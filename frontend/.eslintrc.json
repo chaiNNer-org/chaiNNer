@@ -1,0 +1,10 @@
+{
+  "extends": "airbnb",
+  "globals": {
+    "MAIN_WINDOW_WEBPACK_ENTRY": true
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  }
+}

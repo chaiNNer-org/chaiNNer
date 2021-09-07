@@ -1,0 +1,43 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Release
+
+# Controls when the workflow will run
+on:
+    # Triggers the workflow on push with a tag
+    push:
+        tags:
+            - 'v*'
+
+    # Triggers on creation of a release
+    release:
+        types:
+            - created
+
+        # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+    release:
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-python@v2
+              with:
+                  python-version: '3.9' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+                  architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+            - uses: actions/setup-node@master
+              with:
+                  node-version: 14
+            - name: install dependencies
+              run: npm install
+            - name: publish
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npm run publish
