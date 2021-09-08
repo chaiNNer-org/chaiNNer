@@ -1,0 +1,12 @@
+{
+  "name": "skale",
+  "description": "A modular interactive flowchart based image processing GUI",
+  "version": "1.0.0",
+  "scripts": {
+    "preinstall": "cd frontend && npm i && cd ../backend && pip install -r requirements.txt",
+    "start": "concurrently \"cd frontend && npm start\" \"cd backend && python run.py\""
+  },
+  "devDependencies": {
+    "concurrently": "^6.2.1"
+  }
+}
