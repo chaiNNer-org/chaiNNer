@@ -1,12 +1,17 @@
 {
-  "name": "skale",
+  "name": "chainner",
   "description": "A modular interactive flowchart based image processing GUI",
   "version": "1.0.0",
   "scripts": {
     "preinstall": "cd frontend && npm i && cd ../backend && pip install -r requirements.txt",
-    "start": "concurrently \"cd frontend && npm start\" \"cd backend && python run.py\""
+    "dev": "concurrently \"cd frontend && npm start\" \"cd backend && python run.py\"",
+    "start": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm start",
+    "build": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm run make"
   },
   "devDependencies": {
     "concurrently": "^6.2.1"
+  },
+  "dependencies": {
+    "axios": "^0.21.4"
   }
 }

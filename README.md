@@ -1,2 +1,3 @@
-# sKale
-An extensible interactive flowchart-based image processing GUI built with React, Electron, and Flask
+# chaiNNer
+
+An interactive flowchart/node-based image processing GUI aimed at making chaining image and video processing tasks, especially those done by neural networks, easy, intuitive, and customizable.

@@ -1,6 +1,6 @@
 {
-  "name": "sale",
-  "productName": "skale",
+  "name": "chainner",
+  "productName": "chaiNNer",
   "version": "1.0.0",
   "description": "A modular interactive flowchart based image processing GUI",
   "main": ".webpack/main",
@@ -56,7 +56,8 @@
                   "name": "main_window"
                 }
               ]
-            }
+            },
+            "devContentSecurityPolicy": "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:; connect-src 'self' localhost:8000 'unsafe-eval' 'unsafe-inline' data:;"
           }
         ]
       ]
@@ -74,11 +75,14 @@
     "@vercel/webpack-asset-relocator-loader": "^1.7.0",
     "babel-loader": "^8.2.2",
     "css-loader": "^6.2.0",
-    "electron": "14.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb": "^18.2.1",
     "node-loader": "^2.0.0",
     "style-loader": "^3.2.1"
   },
   "dependencies": {
+    "axios": "^0.21.4",
+    "electron": "14.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"

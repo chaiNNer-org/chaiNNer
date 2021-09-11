@@ -1,5 +1,7 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+import { app, BrowserWindow } from 'electron';
+import path from 'path';
+
+const { exec, execFile } = require('child_process');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -7,10 +9,37 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 const createWindow = () => {
+  const backend = path.join(process.cwd(), '../backend/dist/run.exe');
+
+  execFile(
+    backend,
+    {
+      windowsHide: true,
+    },
+    (err, stdout, stderr) => {
+      if (err) {
+        console.error(err);
+      }
+      if (stdout) {
+        console.error(stdout);
+      }
+      if (stderr) {
+        console.error(stderr);
+      }
+    },
+  );
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    backgroundColor: '#263238',
+    webPreferences: {
+      // turn off webSecurity when in dev mode
+      // webSecurity: false,
+      // allowEval: false,
+      nodeIntegration: true,
+    },
   });
 
   // and load the index.html of the app.
@@ -30,6 +59,14 @@ app.on('ready', createWindow);
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    exec('taskkill /f /t /im app.exe', (err, stdout, stderr) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+      console.log(`stderr: ${stderr}`);
+    });
     app.quit();
   }
 });
