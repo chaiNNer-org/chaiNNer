@@ -20,13 +20,13 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "executableName": "chaiNNer"
+        "executableName": "chainner"
       },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "skale"
+            "name": "chainner"
           }
         },
         {
@@ -37,11 +37,15 @@
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {}
+          "config": {
+            "name": "chainner"
+          }
         },
         {
           "name": "@electron-forge/maker-rpm",
-          "config": {}
+          "config": {
+            "name": "chainner"
+          }
         }
       ],
       "plugins": [
