@@ -19,7 +19,9 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "executableName": "chaiNNer"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
