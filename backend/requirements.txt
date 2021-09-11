@@ -3,3 +3,7 @@ websockets==8.1
 numpy
 opencv-python
 sanic-cors
+pyinstaller
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.9.0+cu111; sys_platform == 'linux' or sys_platform == 'windows'
+torch==1.9.0+cpu; sys_platform == 'darwin'
