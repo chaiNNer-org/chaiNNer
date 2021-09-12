@@ -1,7 +1,7 @@
 {
   "name": "chainner",
   "description": "A modular interactive flowchart based image processing GUI",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "scripts": {
     "preinstall": "cd frontend && npm i && cd ../backend && pip install -r requirements.txt",
     "dev": "concurrently \"cd frontend && npm start\" \"cd backend && python run.py\"",
