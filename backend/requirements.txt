@@ -1,5 +1,5 @@
 sanic
-websockets==8.1
+websockets==9.1
 numpy
 opencv-python
 sanic-cors
