@@ -1,12 +1,13 @@
 {
   "name": "chainner",
   "description": "A modular interactive flowchart based image processing GUI",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {
     "preinstall": "cd frontend && npm i && cd ../backend && pip install -r requirements.txt",
     "dev": "concurrently \"cd frontend && npm start\" \"cd backend && python run.py\"",
     "start": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm start",
-    "build": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm run make"
+    "build": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm run make",
+    "publish": "cd backend && pyinstaller run.py --onefile && cd ../frontend && npm run publish"
   },
   "devDependencies": {
     "concurrently": "^6.2.1"
