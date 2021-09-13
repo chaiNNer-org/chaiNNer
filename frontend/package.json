@@ -39,7 +39,8 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "chainner"
+            "name": "chainner",
+            "noMsi": false
           }
         },
         {
