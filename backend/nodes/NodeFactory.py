@@ -35,12 +35,5 @@ class NodeFactory:
         return inner_wrapper
 
     @classmethod
-    def get_nodes(self) -> Dict:
-        output = {}
-        for category in self.registry:
-            if category not in output:
-                output[category] = {}
-            for node in self.registry[category]:
-                node_object = self.create_node(category, node)
-                output[category][node] = node  # node_object
-        return output
+    def get_registry(self) -> Dict:
+        return self.registry
