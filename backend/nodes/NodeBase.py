@@ -12,6 +12,3 @@ class NodeBase(metaclass=ABCMeta):
     def run(self, command: str) -> Any:
         """ Abstract method to run a command """
         pass
-
-
-# end class NodeBase

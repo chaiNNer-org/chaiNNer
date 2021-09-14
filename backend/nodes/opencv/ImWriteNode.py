@@ -1,4 +1,5 @@
-from .. import NodeBase, NodeFactory
+from ..NodeBase import NodeBase
+from ..NodeFactory import NodeFactory
 
 import cv2
 import numpy as np
@@ -12,8 +13,3 @@ class ImWriteNode(NodeBase):
         status = cv2.imwrite(path, img)
 
         return status
-
-    # end run()
-
-
-# end class ImWriteNode
