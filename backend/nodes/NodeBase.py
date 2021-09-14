@@ -9,6 +9,20 @@ class NodeBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def run(self, command: str) -> Any:
-        """ Abstract method to run a command """
+    def execute(self) -> Any:
+        """ Abstract method to execute a node """
         pass
+
+    @abstractmethod
+    def run(self) -> Any:
+        """ Abstract method to run a node's logic """
+        pass
+
+    def get_props(self):
+        return self.properties
+
+    def get_inputs(self):
+        return self.inputs
+
+    def get_outputs(self):
+        return self.outputs

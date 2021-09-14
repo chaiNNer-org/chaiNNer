@@ -13,11 +13,16 @@ async def test(request):
     registry = NodeFactory.get_registry()
     output = []
     for category in registry:
-        category_object = {'category': category, 'nodes': []}
+        category_dict = {'category': category, 'nodes': []}
         for node in registry[category]:
-            # node_object = NodeFactory.create_node(category, node)
-            category_object['nodes'].append({'name': node})
-        output.append(category_object)
+            node_object = NodeFactory.create_node(category, node)
+            node_dict = {'name': node}
+            node_dict['properties'] = node_object.get_props()
+            node_dict['inputs'] = node_object.get_inputs()
+            node_dict['outputs'] = node_object.get_outputs()
+
+            category_dict['nodes'].append(node_dict)
+        output.append(category_dict)
     return json(output)
 
 
