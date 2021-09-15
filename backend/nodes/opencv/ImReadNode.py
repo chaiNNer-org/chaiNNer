@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 
-@NodeFactory.register('opencv', 'imread')
+@NodeFactory.register('OpenCV', 'Read Image')
 class ImReadNode(NodeBase):
     """ OpenCV Imread node """
     def __init__(self, **kwargs):

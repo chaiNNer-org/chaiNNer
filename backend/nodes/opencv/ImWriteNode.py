@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 
-@NodeFactory.register('opencv', 'imwrite')
+@NodeFactory.register('OpenCV', 'Write Image')
 class ImWriteNode(NodeBase):
     """ OpenCV Imwrite node """
     def __init__(self, **kwargs):
