@@ -17,7 +17,6 @@ async def test(request):
         for node in registry[category]:
             node_object = NodeFactory.create_node(category, node)
             node_dict = {'name': node}
-            node_dict['properties'] = node_object.get_props()
             node_dict['inputs'] = node_object.get_inputs()
             node_dict['outputs'] = node_object.get_outputs()
 
