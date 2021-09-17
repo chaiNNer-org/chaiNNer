@@ -1,20 +1,19 @@
 from ..NodeBase import NodeBase
 from ..NodeFactory import NodeFactory
-from ..properties.InputFactory import InputFactory
+from ..properties.inputs.NumPyInputs import ImageInput
+from ..properties.outputs.FileOutputs import ImageFileOutput
 
 import cv2
 import numpy as np
 
 
-@NodeFactory.register('OpenCV', 'Write Image')
+@NodeFactory.register('OpenCV', 'Image::Write')
 class ImWriteNode(NodeBase):
     """ OpenCV Imwrite node """
     def __init__(self, **kwargs):
         """ Constructor """
-        inputs = []
-        inputs.append(InputFactory.create_input('image', 'Image'))
-        self.inputs = inputs
-        self.outputs = [{'name': 'status', 'type': 'boolean'}]
+        self.inputs = [ImageInput()]
+        self.outputs = [ImageFileOutput()]
 
     def run(self, img: np.ndarray, path: str) -> bool:
         """ Write an image to the specified path and return write status """

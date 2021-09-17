@@ -1,33 +1,19 @@
 from ..NodeBase import NodeBase
 from ..NodeFactory import NodeFactory
-from ..properties.InputFactory import InputFactory
-# from ..properties.inputs.FileInput import FileInput
+from ..properties.inputs.FileInputs import ImageFileInput
+from ..properties.outputs.NumPyOutputs import ImageOutput
 
 import cv2
 import numpy as np
 
 
-@NodeFactory.register('OpenCV', 'Read Image')
+@NodeFactory.register('OpenCV', 'Image::Read')
 class ImReadNode(NodeBase):
     """ OpenCV Imread node """
     def __init__(self, **kwargs):
         """ Constructor """
-        inputs = []
-        inputs.append(InputFactory.create_input('file', 'Image Path'))
-        self.inputs = inputs
-        self.outputs = [{'name': 'image', 'type': 'np.ndarray'}]
-        # {
-        #     'inputs': [{
-        #         'label': 'path',
-        #         'connectable': True,
-        #         'type': 'file',
-        #         'accepts': ['string']
-        #     }],
-        #     'outputs': [{
-        #         'label': 'image',
-        #         'type': 'np.ndarray'
-        #     }]
-        # }
+        self.inputs = [ImageFileInput()]
+        self.outputs = [ImageOutput()]
 
     def run(self, path: str) -> np.ndarray:
         """ Reads an image from the specified path and return it as a numpy array """
