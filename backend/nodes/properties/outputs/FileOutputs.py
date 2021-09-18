@@ -10,7 +10,7 @@ def FileOutput(type: str, label: str, filetypes: List[str]) -> Dict:
     }
 
 
-def ImageFileOutput() -> Dict:
+def ImageFileOutput(label: str = 'image') -> Dict:
     """ Output for saving a local image file """
-    return FileOutput('image', 'Image File',
+    return FileOutput(label, 'Image File',
                       ['png', 'jpg', 'jpeg', 'gif', 'tiff', 'webp'])

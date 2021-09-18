@@ -22,3 +22,8 @@ def ImageInput() -> Dict:
 def VideoInput() -> Dict:
     """ Input a 3D Video NumPy array """
     return NumPyInput('3d', 'Video')
+
+
+def SplitImageChannelImage() -> Dict:
+    """ Combine multiple single-channel arrays into a single multi-channel numpy array """
+    return NumPyInput('2d::merge', 'Image')
