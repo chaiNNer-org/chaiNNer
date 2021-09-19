@@ -15,11 +15,11 @@ class NodeFactory:
     registry = {}
     """ Internal registry for available nodes """
     @classmethod
-    def create_node(self, category: str, name: str, **kwargs) -> NodeBase:
+    def create_node(self, category: str, name: str) -> NodeBase:
         """ Factory command to create the node """
 
         node_class = self.registry[category][name]
-        node = node_class(**kwargs)
+        node = node_class()
         return node
 
     @classmethod

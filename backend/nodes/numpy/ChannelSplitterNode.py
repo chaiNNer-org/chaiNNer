@@ -10,7 +10,7 @@ import numpy as np
 @NodeFactory.register('NumPy', 'Channel::Split')
 class ImReadNode(NodeBase):
     """ NumPy Splitter node """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Constructor """
         self.inputs = [ImageInput()]
         self.outputs = [SplitImageChannelOutput()]

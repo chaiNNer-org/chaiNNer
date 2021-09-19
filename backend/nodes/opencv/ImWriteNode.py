@@ -10,7 +10,7 @@ import numpy as np
 @NodeFactory.register('OpenCV', 'Image::Write')
 class ImWriteNode(NodeBase):
     """ OpenCV Imwrite node """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Constructor """
         self.inputs = [ImageInput()]
         self.outputs = [ImageFileOutput()]

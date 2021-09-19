@@ -10,7 +10,7 @@ import numpy as np
 @NodeFactory.register('OpenCV', 'Image::Read')
 class ImReadNode(NodeBase):
     """ OpenCV Imread node """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Constructor """
         self.inputs = [ImageFileInput()]
         self.outputs = [ImageOutput()]

@@ -11,7 +11,7 @@ import numpy as np
 @NodeFactory.register('PyTorch', 'ESRGAN')
 class ImReadNode(NodeBase):
     """ ESRGAN node """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Constructor """
         self.inputs = [PthFileInput(), ImageInput()]
         self.outputs = [ImageOutput('Upscaled Image')]
