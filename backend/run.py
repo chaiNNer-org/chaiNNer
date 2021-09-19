@@ -26,10 +26,10 @@ async def test(request):
     return json(output)
 
 
-@app.route('/run', methods=['GET'])
+@app.route('/run', methods=['POST'])
 async def test(request):
     try:
-        nodes_list = request.body
+        nodes_list = request.json
         executor = Executor(nodes_list)
         executor.run()
         return json({'message': 'Successfully ran nodes!'}, status=200)

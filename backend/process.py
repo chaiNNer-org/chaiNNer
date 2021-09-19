@@ -3,63 +3,12 @@ import uuid
 
 from nodes.NodeFactory import NodeFactory
 
-fake_nodes_dict = {
-    '0': {
-        'category': 'OpenCV',
-        'node': 'Image::Read',
-        'id': '0',
-        'inputs': ['C:/Users/Joey/Desktop/discord alt.png'],
-        'outputs': [{
-            'id': '1'
-        }],
-    },
-    '1': {
-        'category': 'PyTorch',
-        'node': 'ESRGAN',
-        'id': '1',
-        'inputs': ['D://ESRGAN-Bot/models/4xESRGAN.pth', {
-            'id': '0'
-        }],
-        'outputs': [{
-            'id': '2'
-        }],
-    },
-    '2': {
-        'category':
-        'OpenCV',
-        'node':
-        'Image::Write',
-        'id':
-        '2',
-        'inputs': [{
-            'id': '1'
-        }, 'C:/Users/Joey/Desktop/discord alt REWRITTEN OMG.png'],
-        'outputs':
-        None,
-    },
-    '3': {
-        'category':
-        'OpenCV',
-        'node':
-        'Image::Write',
-        'id':
-        '3',
-        'inputs': [{
-            'id': '1'
-        }, 'C:/Users/Joey/Desktop/discord alt REWRITTEN OMG 2.png'],
-        'outputs':
-        None,
-    }
-}
-
 
 class Executor():
     def __init__(self, nodes: List[Dict]):
         """ Constructor """
         self.execution_id = uuid.uuid4().hex
-        # TODO: Uncomment this once you get actual POSTing working
-        # self.nodes = nodes
-        self.nodes = fake_nodes_dict
+        self.nodes = nodes
         self.output_cache = {}
 
     def process(self, node: Dict):
