@@ -1,8 +1,7 @@
-from typing import Callable, Dict
-from . import NodeBase
-
-import sys
 import logging
+from typing import Callable, Dict
+
+from . import NodeBase
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,12 +13,14 @@ class NodeFactory:
 
     registry = {}
     """ Internal registry for available nodes """
+
     @classmethod
     def create_node(self, category: str, name: str) -> NodeBase:
         """ Factory command to create the node """
 
         node_class = self.registry[category][name]
         node = node_class()
+        logger.info(f"Created {category}, {name} node")
         return node
 
     @classmethod
@@ -28,7 +29,7 @@ class NodeFactory:
             if category not in self.registry:
                 self.registry[category] = {}
             if name in self.registry[category]:
-                logger.warning(f'Node {name} already exists. Will replace it')
+                logger.warning(f"Node {name} already exists. Will replace it")
             self.registry[category][name] = wrapped_class
             return wrapped_class
 

@@ -1,15 +1,17 @@
+import cv2
+
+import numpy as np
+
 from ..NodeBase import NodeBase
 from ..NodeFactory import NodeFactory
 from ..properties.inputs.NumPyInputs import ImageInput
 from ..properties.outputs.NumPyOutputs import SplitImageChannelOutput
 
-import cv2
-import numpy as np
 
-
-@NodeFactory.register('NumPy', 'Channel::Split')
+@NodeFactory.register("NumPy", "Channel::Split")
 class ImReadNode(NodeBase):
     """ NumPy Splitter node """
+
     def __init__(self):
         """ Constructor """
         self.inputs = [ImageInput()]
