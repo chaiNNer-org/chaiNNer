@@ -101,6 +101,9 @@ class LoadEsrganModelNode(NodeBase):
         )
 
         model.load_state_dict(state_dict, strict=True)
+        for k, v in model.named_parameters():
+            v.requires_grad = False
+        model.eval()
         model.to(torch.device("cuda"))
 
         return model

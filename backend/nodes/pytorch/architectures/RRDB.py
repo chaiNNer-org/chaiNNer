@@ -34,7 +34,7 @@ class RRDBNet(nn.Module):
         if upscale == 3:
             n_upscale = 1
 
-        self.scale = n_upscale
+        self.scale = n_upscale ** 2
 
         fea_conv = B.conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
         rb_blocks = [

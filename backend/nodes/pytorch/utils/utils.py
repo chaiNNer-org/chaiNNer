@@ -194,12 +194,19 @@ def auto_split_process(
 ) -> Tuple[torch.Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
+    # Prevent splitting from causing an infinite out-of-vram loop
+    if current_depth > 15:
+        torch.cuda.empty_cache()
+        gc.collect()
+        raise RuntimeError("Splitting stopped to prevent infinite loop")
+
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         try:
             result = model(lr_img)
             return result, current_depth
         except RuntimeError as e:
+            print(e)
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e):
                 # Collect garbage (clear VRAM)
