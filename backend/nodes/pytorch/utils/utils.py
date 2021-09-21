@@ -1,3 +1,4 @@
+# pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 
 import gc

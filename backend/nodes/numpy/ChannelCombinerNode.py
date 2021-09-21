@@ -22,7 +22,6 @@ class ImReadNode(NodeBase):
     def run(self, imgs: List[np.ndarray]) -> np.ndarray:
         """ Combine separate channels into a multi-chanel image  """
 
-        # TODO: compare this to combining with numpy
         img = cv2.merge(imgs)
 
         return img

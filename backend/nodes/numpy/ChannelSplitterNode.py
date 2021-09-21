@@ -20,7 +20,6 @@ class ImReadNode(NodeBase):
     def run(self, img: np.ndarray) -> np.ndarray:
         """ Split a multi-chanel image into separate channels """
 
-        # TODO: compare this to splitting with numpy
         imgs = cv2.split(img)
 
         return imgs
