@@ -1,10 +1,10 @@
 from typing import Dict, List
 
 
-def FileOutput(type: str, label: str, filetypes: List[str]) -> Dict:
+def FileOutput(input_type: str, label: str, filetypes: List[str]) -> Dict:
     """ Output for saving a local file """
     return {
-        "type": f"file::{type}",
+        "type": f"file::{input_type}",
         "label": label,
         "filetypes": filetypes,
     }

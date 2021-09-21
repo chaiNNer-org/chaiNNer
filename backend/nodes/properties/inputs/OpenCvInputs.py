@@ -5,7 +5,7 @@ import cv2
 from GenericInputs import DropDownInput
 
 
-def ColorModeInput(type: str, label: str, options: List[Dict]) -> str:
+def ColorModeInput(input_type: str, label: str, options: List[Dict]) -> str:
     """ Input for submitting a local file """
     return DropDownInput(
         "opencv::colormode",

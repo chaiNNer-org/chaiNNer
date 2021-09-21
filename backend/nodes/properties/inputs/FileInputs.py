@@ -1,10 +1,12 @@
 from typing import Dict, List
 
 
-def FileInput(type: str, label: str, accepts: List[str], filetypes: List[str]) -> Dict:
+def FileInput(
+    input_type: str, label: str, accepts: List[str], filetypes: List[str]
+) -> Dict:
     """ Input for submitting a local file """
     return {
-        "type": f"file::{type}",
+        "type": f"file::{input_type}",
         "label": label,
         "accepts": None,
         "filetypes": filetypes,

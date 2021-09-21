@@ -1,10 +1,10 @@
 from typing import Dict
 
 
-def NumPyOutput(type: str, label: str) -> Dict:
+def NumPyOutput(input_type: str, label: str) -> Dict:
     """ Output a NumPy array """
     return {
-        "type": f"numpy::{type}",
+        "type": f"numpy::{input_type}",
         "label": label,
     }
 

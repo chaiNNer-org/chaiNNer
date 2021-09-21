@@ -30,36 +30,7 @@ class LoadEsrganModelNode(NodeBase):
 
         # Convert a 'new-arch' model to 'old-arch'
         if "conv_first.weight" in state_dict:
-            logger.info("Attempting to convert and load a new-format model")
-            old_net = {}
-            items = []
-            for k, v in state_dict.items():
-                items.append(k)
-
-            old_net["model.0.weight"] = state_dict["conv_first.weight"]
-            old_net["model.0.bias"] = state_dict["conv_first.bias"]
-
-            for k in items.copy():
-                if "RDB" in k:
-                    ori_k = k.replace("RRDB_trunk.", "model.1.sub.")
-                    if ".weight" in k:
-                        ori_k = ori_k.replace(".weight", ".0.weight")
-                    elif ".bias" in k:
-                        ori_k = ori_k.replace(".bias", ".0.bias")
-                    old_net[ori_k] = state_dict[k]
-                    items.remove(k)
-
-            old_net["model.1.sub.23.weight"] = state_dict["trunk_conv.weight"]
-            old_net["model.1.sub.23.bias"] = state_dict["trunk_conv.bias"]
-            old_net["model.3.weight"] = state_dict["upconv1.weight"]
-            old_net["model.3.bias"] = state_dict["upconv1.bias"]
-            old_net["model.6.weight"] = state_dict["upconv2.weight"]
-            old_net["model.6.bias"] = state_dict["upconv2.bias"]
-            old_net["model.8.weight"] = state_dict["HRconv.weight"]
-            old_net["model.8.bias"] = state_dict["HRconv.bias"]
-            old_net["model.10.weight"] = state_dict["conv_last.weight"]
-            old_net["model.10.bias"] = state_dict["conv_last.bias"]
-            state_dict = old_net
+            state_dict = self.convert_new_to_old(state_dict)
 
         # extract model information
         scale2 = 0
@@ -107,3 +78,35 @@ class LoadEsrganModelNode(NodeBase):
         model.to(torch.device("cuda"))
 
         return model
+
+    def convert_new_to_old(self, state_dict):
+        logger.warn("Attempting to convert and load a new-format model")
+        old_net = {}
+        items = []
+        for k, _ in state_dict.items():
+            items.append(k)
+
+        old_net["model.0.weight"] = state_dict["conv_first.weight"]
+        old_net["model.0.bias"] = state_dict["conv_first.bias"]
+
+        for k in items.copy():
+            if "RDB" in k:
+                ori_k = k.replace("RRDB_trunk.", "model.1.sub.")
+                if ".weight" in k:
+                    ori_k = ori_k.replace(".weight", ".0.weight")
+                elif ".bias" in k:
+                    ori_k = ori_k.replace(".bias", ".0.bias")
+                old_net[ori_k] = state_dict[k]
+                items.remove(k)
+
+        old_net["model.1.sub.23.weight"] = state_dict["trunk_conv.weight"]
+        old_net["model.1.sub.23.bias"] = state_dict["trunk_conv.bias"]
+        old_net["model.3.weight"] = state_dict["upconv1.weight"]
+        old_net["model.3.bias"] = state_dict["upconv1.bias"]
+        old_net["model.6.weight"] = state_dict["upconv2.weight"]
+        old_net["model.6.bias"] = state_dict["upconv2.bias"]
+        old_net["model.8.weight"] = state_dict["HRconv.weight"]
+        old_net["model.8.bias"] = state_dict["HRconv.bias"]
+        old_net["model.10.weight"] = state_dict["conv_last.weight"]
+        old_net["model.10.bias"] = state_dict["conv_last.bias"]
+        return old_net
