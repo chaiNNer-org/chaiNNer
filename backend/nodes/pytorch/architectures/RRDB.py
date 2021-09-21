@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 import math
 
 import torch
@@ -7,7 +9,6 @@ import torch.nn.functional as F
 from . import block as B
 
 
-# pylint: skip-file
 class RRDBNet(nn.Module):
     def __init__(
         self,
