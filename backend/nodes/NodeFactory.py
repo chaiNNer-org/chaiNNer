@@ -15,26 +15,26 @@ class NodeFactory:
     """ Internal registry for available nodes """
 
     @classmethod
-    def create_node(self, category: str, name: str) -> NodeBase:
+    def create_node(cls, category: str, name: str) -> NodeBase:
         """ Factory command to create the node """
 
-        node_class = self.registry[category][name]
+        node_class = cls.registry[category][name]
         node = node_class()
         logger.info(f"Created {category}, {name} node")
         return node
 
     @classmethod
-    def register(self, category: str, name: str) -> Callable:
+    def register(cls, category: str, name: str) -> Callable:
         def inner_wrapper(wrapped_class: NodeBase) -> Callable:
-            if category not in self.registry:
-                self.registry[category] = {}
-            if name in self.registry[category]:
+            if category not in cls.registry:
+                cls.registry[category] = {}
+            if name in cls.registry[category]:
                 logger.warning(f"Node {name} already exists. Will replace it")
-            self.registry[category][name] = wrapped_class
+            cls.registry[category][name] = wrapped_class
             return wrapped_class
 
         return inner_wrapper
 
     @classmethod
-    def get_registry(self) -> Dict:
-        return self.registry
+    def get_registry(cls) -> Dict:
+        return cls.registry
