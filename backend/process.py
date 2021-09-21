@@ -24,11 +24,11 @@ class Executor:
             return self.output_cache[node_id]
 
         inputs = []
-        for input in node["inputs"]:
+        for node_input in node["inputs"]:
             # If input is a dict indication another node, use that node's output value
-            if type(input) is dict and input.get("id", None):
+            if isinstance(node_input, dict) and node_input.get("id", None):
                 # Get the next node by id
-                next_input = self.nodes[input["id"]]
+                next_input = self.nodes[node_input["id"]]
                 # Recursively get the value of the input
                 processed_input = self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
@@ -38,7 +38,7 @@ class Executor:
                 inputs.append(processed_input)
             # Otherwise, just use the given input (number, string, etc)
             else:
-                inputs.append(input)
+                inputs.append(node_input)
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(node["category"], node["node"])
         # Run the node and pass in inputs as args
