@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from 'electron';
+import { readdir } from 'fs/promises';
 import path from 'path';
+// import { loadingEvents } from './api/nodes';
 
 const { exec, execFile } = require('child_process');
 
@@ -8,8 +10,14 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
-const createWindow = () => {
-  const backend = path.join(process.cwd(), '../backend/dist/run.exe');
+const createWindow = async () => {
+  // This should make it platform independent since I don't know what extension it'll be
+  // TODO: Figure out if it's always an exe
+  const backendRoot = path.join(process.cwd(), '../backend/dist/');
+  const files = await readdir(backendRoot);
+  const file = files.find((item) => item.split('.')[0] === 'run');
+  const backend = path.join(backendRoot, file);
+  console.log(backend);
 
   execFile(
     backend,
@@ -31,22 +39,39 @@ const createWindow = () => {
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
     backgroundColor: '#263238',
     webPreferences: {
       // turn off webSecurity when in dev mode
       // webSecurity: false,
       // allowEval: false,
       nodeIntegration: true,
+      nativeWindowOpen: true,
     },
+    // show: false,
   });
+
+  // const splash = new BrowserWindow({
+  //   width: 800,
+  //   height: 600,
+  //   frame: false,
+  //   webPreferences: {
+  //     nativeWindowOpen: true,
+  //   },
+  // });
+  // splash.show();
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  // loadingEvents.on('finished', () => {
+  //   splash.destroy();
+  //   mainWindow.show();
+  // });
 };
 
 // This method will be called when Electron has finished

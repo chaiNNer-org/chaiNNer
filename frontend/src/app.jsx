@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -10,14 +10,6 @@ import { fetchNodes } from './api/nodes';
 const queryClient = new QueryClient();
 
 function App() {
-  const [info, setInfo] = useState({});
-
-  useEffect(async () => {
-    const data = await fetchNodes();
-    setInfo(data);
-  });
-
-  console.log(info);
   return (
     <QueryClientProvider client={queryClient}>
       <Testing />
@@ -48,8 +40,15 @@ function Testing() {
   return (
     <div>
       <ul>
-        {data.map((node) => (
-          <li key={node.category}>{node.category}</li>
+        {data.map(({ category, nodes }) => (
+          <>
+            <li key={category}>{category}</li>
+            <ul>
+              {nodes.map((node) => (
+                <li key={node.name}>{node.name}</li>
+              ))}
+            </ul>
+          </>
         ))}
       </ul>
     </div>
