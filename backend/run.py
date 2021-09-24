@@ -1,7 +1,11 @@
+import os
+import sys
+
 from sanic import Sanic
 from sanic.response import json
 from sanic_cors import CORS, cross_origin
 
+from nodes import numpy_nodes, opencv_nodes, pytorch_nodes
 from nodes.NodeFactory import NodeFactory
 from process import Executor
 

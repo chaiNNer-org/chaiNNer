@@ -1,7 +1,7 @@
 import logging
 from typing import Callable, Dict
 
-from . import NodeBase
+from .NodeBase import NodeBase
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
