@@ -2,8 +2,8 @@
 
 from collections import OrderedDict
 
-import torch
 import torch.nn as nn
+from torch import cat as torch_cat
 
 ####################
 # Basic blocks
@@ -72,7 +72,7 @@ class ConcatBlock(nn.Module):
         self.sub = submodule
 
     def forward(self, x):
-        output = torch.cat((x, self.sub(x)), dim=1)
+        output = torch_cat((x, self.sub(x)), dim=1)
         return output
 
     def __repr__(self):
@@ -406,14 +406,14 @@ class ResidualDenseBlock_5C(nn.Module):
 
     def forward(self, x):
         x1 = self.conv1(x)
-        x2 = self.conv2(torch.cat((x, x1), 1))
+        x2 = self.conv2(torch_cat((x, x1), 1))
         if self.conv1x1:
             x2 = x2 + self.conv1x1(x)  # +
-        x3 = self.conv3(torch.cat((x, x1, x2), 1))
-        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
+        x3 = self.conv3(torch_cat((x, x1, x2), 1))
+        x4 = self.conv4(torch_cat((x, x1, x2, x3), 1))
         if self.conv1x1:
             x4 = x4 + x2  # +
-        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
+        x5 = self.conv5(torch_cat((x, x1, x2, x3, x4), 1))
         return x5 * 0.2 + x
 
 

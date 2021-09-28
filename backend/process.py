@@ -1,11 +1,9 @@
-import logging
 import uuid
 from typing import Dict, List
 
-from nodes.NodeFactory import NodeFactory
+from sanic.log import logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from nodes.NodeFactory import NodeFactory
 
 
 class Executor:

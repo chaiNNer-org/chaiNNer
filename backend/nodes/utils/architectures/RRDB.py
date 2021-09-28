@@ -2,9 +2,8 @@
 
 import math
 
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch import clamp, sigmoid, tanh
 
 from . import block as B
 
@@ -98,12 +97,12 @@ class RRDBNet(nn.Module):
         if (
             outm == "scaltanh"
         ):  # limit output range to [-1,1] range with tanh and rescale to [0,1] Idea from: https://github.com/goldhuang/SRGAN-PyTorch/blob/master/model.py
-            return (torch.tanh(x) + 1.0) / 2.0
+            return (tanh(x) + 1.0) / 2.0
         elif outm == "tanh":  # limit output to [-1,1] range
-            return torch.tanh(x)
+            return tanh(x)
         elif outm == "sigmoid":  # limit output to [0,1] range
-            return torch.sigmoid(x)
+            return sigmoid(x)
         elif outm == "clamp":
-            return torch.clamp(x, min=0.0, max=1.0)
+            return clamp(x, min=0.0, max=1.0)
         else:  # Default, no cap for the output
             return x

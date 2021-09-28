@@ -4,43 +4,43 @@
 import gc
 from typing import Tuple
 
-import numpy as np
-import torch
+from numpy import ascontiguousarray, clip, dtype, ndarray, transpose, uint8
+from torch import Tensor, cuda, empty, from_numpy
 
 MAX_VALUES_BY_DTYPE = {
-    np.dtype("int8"): 127,
-    np.dtype("uint8"): 255,
-    np.dtype("int16"): 32767,
-    np.dtype("uint16"): 65535,
-    np.dtype("int32"): 2147483647,
-    np.dtype("uint32"): 4294967295,
-    np.dtype("int64"): 9223372036854775807,
-    np.dtype("uint64"): 18446744073709551615,
-    np.dtype("float32"): 1.0,
-    np.dtype("float64"): 1.0,
+    dtype("int8"): 127,
+    dtype("uint8"): 255,
+    dtype("int16"): 32767,
+    dtype("uint16"): 65535,
+    dtype("int32"): 2147483647,
+    dtype("uint32"): 4294967295,
+    dtype("int64"): 9223372036854775807,
+    dtype("uint64"): 18446744073709551615,
+    dtype("float32"): 1.0,
+    dtype("float64"): 1.0,
 }
 
 
-def bgr_to_rgb(image: torch.Tensor) -> torch.Tensor:
+def bgr_to_rgb(image: Tensor) -> Tensor:
     # flip image channels
     # https://github.com/pytorch/pytorch/issues/229
-    out: torch.Tensor = image.flip(-3)
+    out: Tensor = image.flip(-3)
     # RGB to BGR #may be faster:
-    # out: torch.Tensor = image[[2, 1, 0], :, :]
+    # out: Tensor = image[[2, 1, 0], :, :]
     return out
 
 
-def rgb_to_bgr(image: torch.Tensor) -> torch.Tensor:
+def rgb_to_bgr(image: Tensor) -> Tensor:
     # same operation as bgr_to_rgb(), flip image channels
     return bgr_to_rgb(image)
 
 
-def bgra_to_rgba(image: torch.Tensor) -> torch.Tensor:
-    out: torch.Tensor = image[[2, 1, 0, 3], :, :]
+def bgra_to_rgba(image: Tensor) -> Tensor:
+    out: Tensor = image[[2, 1, 0, 3], :, :]
     return out
 
 
-def rgba_to_bgra(image: torch.Tensor) -> torch.Tensor:
+def rgba_to_bgra(image: Tensor) -> Tensor:
     # same operation as bgra_to_rgba(), flip image channels
     return bgra_to_rgba(image)
 
@@ -53,44 +53,40 @@ def denorm(x, min_max=(-1.0, 1.0)):
     for use with proper act in Generator output (ie. tanh)
     """
     out = (x - min_max[0]) / (min_max[1] - min_max[0])
-    if isinstance(x, torch.Tensor):
+    if isinstance(x, Tensor):
         return out.clamp(0, 1)
-    elif isinstance(x, np.ndarray):
-        return np.clip(out, 0, 1)
+    elif isinstance(x, ndarray):
+        return clip(out, 0, 1)
     else:
-        raise TypeError(
-            "Got unexpected object type, expected torch.Tensor or np.ndarray"
-        )
+        raise TypeError("Got unexpected object type, expected Tensor or ndarray")
 
 
 def norm(x):
     """ Normalize (z-norm) from [0,1] range to [-1,1] """
     out = (x - 0.5) * 2.0
-    if isinstance(x, torch.Tensor):
+    if isinstance(x, Tensor):
         return out.clamp(-1, 1)
-    elif isinstance(x, np.ndarray):
-        return np.clip(out, -1, 1)
+    elif isinstance(x, ndarray):
+        return clip(out, -1, 1)
     else:
-        raise TypeError(
-            "Got unexpected object type, expected torch.Tensor or np.ndarray"
-        )
+        raise TypeError("Got unexpected object type, expected Tensor or ndarray")
 
 
 def np2tensor(
-    img: np.ndarray,
+    img: ndarray,
     bgr2rgb=True,
     data_range=1.0,
     normalize=False,
     change_range=True,
     add_batch=True,
-) -> torch.Tensor:
+) -> Tensor:
     """Converts a numpy image array into a Tensor array.
     Parameters:
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
-        raise TypeError("Got unexpected object type, expected np.ndarray")
+    if not isinstance(img, ndarray):  # images expected to be uint8 -> 255
+        raise TypeError("Got unexpected object type, expected ndarray")
 
     # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
     # if bgr2rgb:
@@ -98,11 +94,11 @@ def np2tensor(
     if change_range:
         dtype = img.dtype
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
-        t_dtype = np.dtype("float32")
+        t_dtype = dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
 
-    img = torch.from_numpy(
-        np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
+    img = from_numpy(
+        ascontiguousarray(transpose(img, (2, 0, 1)))
     ).float()  # "HWC to CHW" and "numpy to tensor"
     if bgr2rgb:
         # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
@@ -122,14 +118,14 @@ def np2tensor(
 
 
 def tensor2np(
-    img: torch.Tensor,
+    img: Tensor,
     rgb2bgr=True,
     remove_batch=True,
     data_range=255,
     denormalize=False,
     change_range=True,
-    imtype=np.uint8,
-) -> np.ndarray:
+    imtype=uint8,
+) -> ndarray:
     """Converts a Tensor array into a numpy image array.
     Parameters:
         img (tensor): the input image tensor array
@@ -141,8 +137,8 @@ def tensor2np(
     Output:
         img (np array): 3D(H,W,C) or 2D(H,W), [0,255], np.uint8 (default)
     """
-    if not isinstance(img, torch.Tensor):
-        raise TypeError("Got unexpected object type, expected torch.Tensor")
+    if not isinstance(img, Tensor):
+        raise TypeError("Got unexpected object type, expected Tensor")
     n_dim = img.dim()
 
     # TODO: Check: could denormalize here in tensor form instead, but end result is the same
@@ -163,7 +159,7 @@ def tensor2np(
             img_np = rgba_to_bgra(img).numpy()
         else:
             img_np = img.numpy()
-        img_np = np.transpose(img_np, (1, 2, 0))  # CHW to HWC
+        img_np = transpose(img_np, (1, 2, 0))  # CHW to HWC
     elif n_dim == 2:
         img_np = img.numpy()
     else:
@@ -177,7 +173,7 @@ def tensor2np(
     if denormalize:
         img_np = denorm(img_np)  # denormalize if needed
     if change_range:
-        img_np = np.clip(
+        img_np = clip(
             data_range * img_np, 0, data_range
         ).round()  # clip to the data_range
 
@@ -186,18 +182,18 @@ def tensor2np(
 
 
 def auto_split_process(
-    lr_img: torch.Tensor,
+    lr_img: Tensor,
     model,
     scale: int = 4,
     overlap: int = 32,
     max_depth: int = None,
     current_depth: int = 1,
-) -> Tuple[torch.Tensor, int]:
+) -> Tuple[Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
-        torch.cuda.empty_cache()
+        cuda.empty_cache()
         gc.collect()
         raise RuntimeError("Splitting stopped to prevent infinite loop")
 
@@ -211,7 +207,7 @@ def auto_split_process(
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e):
                 # Collect garbage (clear VRAM)
-                torch.cuda.empty_cache()
+                cuda.empty_cache()
                 gc.collect()
             # Re-raise the exception if not an OOM error
             else:
@@ -264,9 +260,7 @@ def auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = torch.empty(
-        (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
-    )
+    output_img = empty((b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[

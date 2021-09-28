@@ -3,7 +3,8 @@ websockets==9.1
 numpy
 opencv-python
 sanic-cors
-pyinstaller
+nuitka
+zstandard
 
 # Pytorch
 --find-links https://download.pytorch.org/whl/torch_stable.html

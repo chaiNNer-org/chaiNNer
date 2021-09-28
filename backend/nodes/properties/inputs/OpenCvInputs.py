@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-import cv2
+from cv2 import COLOR_BGR2BGRA, COLOR_BGRA2BGR, COLOR_BGRA2GRAY, COLOR_GRAY2BGR
 
 from GenericInputs import DropDownInput
 
@@ -13,25 +13,25 @@ def ColorModeInput(input_type: str, label: str, options: List[Dict]) -> str:
         [
             {
                 "option": "Color -> Grayscale",
-                "value": cv2.COLOR_BGR2BGRA,
+                "value": COLOR_BGR2BGRA,
                 "inputs": "numpy::2d:3c",
                 "outputs": "numpy::2d:1c",
             },
             {
                 "option": "Grayscale -> Color",
-                "value": cv2.COLOR_GRAY2BGR,
+                "value": COLOR_GRAY2BGR,
                 "inputs": "numpy::2d:1c",
                 "outputs": "np::2d:3c",
             },
             {
                 "option": "Color + Alpha -> Color",
-                "value": cv2.COLOR_BGRA2BGR,
+                "value": COLOR_BGRA2BGR,
                 "inputs": "numpy::2d::4c",
                 "outputs": "np::2d:3c",
             },
             {
                 "option": "Color + Alpha -> Grayscale",
-                "value": cv2.COLOR_BGRA2GRAY,
+                "value": COLOR_BGRA2GRAY,
                 "inputs": "numpy::2d::4c",
                 "outputs": "np::2d:1c",
             },

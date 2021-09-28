@@ -7,7 +7,7 @@ from typing import Any
 class NodeBase(metaclass=ABCMeta):
     """ Base class for a node """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Constructor """
         pass
 

@@ -1,7 +1,7 @@
 import logging
 
-import cv2
-import numpy as np
+from cv2 import IMREAD_UNCHANGED, imread, imwrite
+from numpy import ndarray
 
 from .NodeBase import NodeBase
 from .NodeFactory import NodeFactory
@@ -23,11 +23,11 @@ class ImReadNode(NodeBase):
         self.inputs = [ImageFileInput()]
         self.outputs = [ImageOutput()]
 
-    def run(self, path: str) -> np.ndarray:
+    def run(self, path: str) -> ndarray:
         """ Reads an image from the specified path and return it as a numpy array """
 
         logger.info(f"Reading image from path: {path}")
-        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        img = imread(path, IMREAD_UNCHANGED)
 
         return img
 
@@ -41,10 +41,10 @@ class ImWriteNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = [ImageFileOutput()]
 
-    def run(self, img: np.ndarray, path: str) -> bool:
+    def run(self, img: ndarray, path: str) -> bool:
         """ Write an image to the specified path and return write status """
 
         logger.info(f"Writing image to path: {path}")
-        status = cv2.imwrite(path, img)
+        status = imwrite(path, img)
 
         return status

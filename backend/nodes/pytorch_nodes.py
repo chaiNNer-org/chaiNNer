@@ -1,8 +1,9 @@
 import logging
 from typing import Any, OrderedDict
 
-import numpy as np
-import torch
+from numpy import dstack, expand_dims, full, iinfo, ndarray, tile
+from torch import device as torch_device
+from torch import load as torch_load
 
 from .NodeBase import NodeBase
 from .NodeFactory import NodeFactory
@@ -31,7 +32,7 @@ class LoadStateDictNode(NodeBase):
         """ Read a pth file from the specified path and return it as a state dict """
 
         logger.info(f"Reading state dict from path: {path}")
-        state_dict = torch.load(path)
+        state_dict = torch_load(path)
 
         return state_dict
 
@@ -97,7 +98,7 @@ class LoadEsrganModelNode(NodeBase):
         for k, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model.to(torch.device("cuda"))
+        model.to(torch_device("cuda"))
 
         return model
 
@@ -143,12 +144,12 @@ class EsrganNode(NodeBase):
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
-    def run(self, model: RRDBNet, img: np.ndarray) -> np.ndarray:
+    def run(self, model: RRDBNet, img: ndarray) -> ndarray:
         """ Upscales an image with an ESRGAN pretrained model """
 
         logger.info(f"Upscaling image...")
 
-        img = img / np.iinfo(img.dtype).max
+        img = img / iinfo(img.dtype).max
 
         in_nc = model.in_nc
         out_nc = model.out_nc
@@ -166,7 +167,7 @@ class EsrganNode(NodeBase):
         # # Add extra channels if not enough (i.e single channel img, three channel model)
         if img.ndim == 2:
             logger.warn("Expanding image channels")
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
+            img = tile(expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
         # Remove extra channels if too many (i.e three channel image, single channel model)
         elif img.shape[2] > in_nc:
             logger.warn("Truncating image channels")
@@ -174,11 +175,11 @@ class EsrganNode(NodeBase):
         # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
         elif img.shape[2] == 3 and in_nc == 4:
             logger.warn("Expanding image channels")
-            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+            img = dstack((img, full(img.shape[:-1], 1.0)))
 
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
-        t_img = np2tensor(img).to(torch.device("cuda"))
+        t_img = np2tensor(img).to(torch_device("cuda"))
         # t_out = t_img.clone()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(

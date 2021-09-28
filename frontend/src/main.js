@@ -1,9 +1,8 @@
-import { app, BrowserWindow } from 'electron';
-import { readdir } from 'fs/promises';
-import path from 'path';
-// import { loadingEvents } from './api/nodes';
+import { app, BrowserWindow, ipcMain } from 'electron';
+// import { readdir } from 'fs/promises';
+// import path from 'path';
 
-const { exec, execFile } = require('child_process');
+const { exec, execFile, spawn } = require('child_process');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -13,29 +12,31 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 const createWindow = async () => {
   // This should make it platform independent since I don't know what extension it'll be
   // TODO: Figure out if it's always an exe
-  const backendRoot = path.join(process.cwd(), '../backend/dist/');
-  const files = await readdir(backendRoot);
-  const file = files.find((item) => item.split('.')[0] === 'run');
-  const backend = path.join(backendRoot, file);
-  console.log(backend);
+  // const backendRoot = path.join(process.cwd(), '../backend/run.dist/');
+  // const files = await readdir(backendRoot);
+  // const file = files.find((item) => item.split('.')[0] === 'run');
+  // const backend = path.join(backendRoot, file);
+  // console.log(backend);
 
-  execFile(
-    backend,
-    {
-      windowsHide: true,
-    },
-    (err, stdout, stderr) => {
-      if (err) {
-        console.error(err);
-      }
-      if (stdout) {
-        console.error(stdout);
-      }
-      if (stderr) {
-        console.error(stderr);
-      }
-    },
-  );
+  // execFile(
+  //   backend,
+  //   {
+  //     windowsHide: true,
+  //   },
+  //   (err, stdout, stderr) => {
+  //     if (err) {
+  //       console.error(err);
+  //     }
+  //     if (stdout) {
+  //       console.error(stdout);
+  //     }
+  //     if (stderr) {
+  //       console.error(stderr);
+  //     }
+  //   },
+  // );
+
+  spawn('python', ['../backend/run.py']);
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -43,24 +44,36 @@ const createWindow = async () => {
     height: 720,
     backgroundColor: '#263238',
     webPreferences: {
-      // turn off webSecurity when in dev mode
-      // webSecurity: false,
-      // allowEval: false,
       nodeIntegration: true,
+      contextIsolation: false,
       nativeWindowOpen: true,
     },
-    // show: false,
+    show: false,
   });
 
-  // const splash = new BrowserWindow({
-  //   width: 800,
-  //   height: 600,
-  //   frame: false,
-  //   webPreferences: {
-  //     nativeWindowOpen: true,
-  //   },
-  // });
-  // splash.show();
+  const splash = new BrowserWindow({
+    width: 400,
+    height: 400,
+    frame: false,
+    backgroundColor: '#263238',
+    center: true,
+    minWidth: 400,
+    minHeight: 400,
+    maxWidth: 400,
+    maxHeight: 400,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    closable: false,
+    alwaysOnTop: true,
+    webPreferences: {
+      nativeWindowOpen: true,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+  splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+  splash.show();
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -68,10 +81,10 @@ const createWindow = async () => {
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 
-  // loadingEvents.on('finished', () => {
-  //   splash.destroy();
-  //   mainWindow.show();
-  // });
+  ipcMain.once('backend-ready', () => {
+    splash.destroy();
+    mainWindow.show();
+  });
 };
 
 // This method will be called when Electron has finished

@@ -1,4 +1,5 @@
-import React from 'react';
+import { ipcRenderer } from 'electron';
+import React, { useState } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -19,10 +20,14 @@ function App() {
 
 function Testing() {
   // Queries
+  const [backendReady, setBackendReady] = useState(false);
   const {
     isLoading, isError, data, error,
   } = useQuery('nodes', fetchNodes);
-  console.log(data);
+  if (data && !isLoading && !isError && !backendReady) {
+    setBackendReady(true);
+    ipcRenderer.send('backend-ready');
+  }
 
   if (isLoading) {
     return <span>Loading...</span>;

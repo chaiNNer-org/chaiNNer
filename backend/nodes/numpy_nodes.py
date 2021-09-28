@@ -1,7 +1,7 @@
 from typing import List
 
-import cv2
-import numpy as np
+from cv2 import merge, split
+from numpy import ndarray
 
 from .NodeBase import NodeBase
 from .NodeFactory import NodeFactory
@@ -18,10 +18,10 @@ class ChannelMergeNode(NodeBase):
         self.inputs = [SplitImageChannelImage()]
         self.outputs = [ImageOutput()]
 
-    def run(self, imgs: List[np.ndarray]) -> np.ndarray:
+    def run(self, imgs: List[ndarray]) -> ndarray:
         """ Combine separate channels into a multi-chanel image  """
 
-        img = cv2.merge(imgs)
+        img = merge(imgs)
 
         return img
 
@@ -35,9 +35,9 @@ class ChannelSplitNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = [SplitImageChannelOutput()]
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: ndarray) -> ndarray:
         """ Split a multi-chanel image into separate channels """
 
-        imgs = cv2.split(img)
+        imgs = split(img)
 
         return imgs
