@@ -110,11 +110,18 @@
     "style-loader": "^3.2.1"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^1.0.15",
+    "@chakra-ui/react": "^1.6.8",
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
     "axios": "^0.21.4",
     "electron": "14.0.0",
     "electron-squirrel-startup": "^1.0.0",
+    "framer-motion": "^4.1.17",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-query": "^3.24.4"
+    "react-flow-renderer": "^9.6.7",
+    "react-query": "^3.24.4",
+    "react-resize-aware": "^3.1.1"
   }
 }

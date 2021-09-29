@@ -26,8 +26,7 @@
  * ```
  */
 
+import './index.css';
 // eslint-disable-next-line import/extensions
 import './index.jsx';
-import './index.css';
-
 // console.log('👋 This message is being logged by "renderer.js", included via webpack');

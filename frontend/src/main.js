@@ -42,7 +42,7 @@ const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
-    backgroundColor: '#263238',
+    backgroundColor: '#2D3748',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -55,7 +55,7 @@ const createWindow = async () => {
     width: 400,
     height: 400,
     frame: false,
-    backgroundColor: '#263238',
+    backgroundColor: '#2D3748',
     center: true,
     minWidth: 400,
     minHeight: 400,
@@ -66,20 +66,25 @@ const createWindow = async () => {
     maximizable: false,
     closable: false,
     alwaysOnTop: true,
+    titleBarStyle: 'hidden',
     webPreferences: {
       nativeWindowOpen: true,
       nodeIntegration: true,
       contextIsolation: false,
     },
+    show: false,
   });
   splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
-  splash.show();
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  splash.once('ready-to-show', () => {
+    splash.show();
+  });
 
   ipcMain.once('backend-ready', () => {
     splash.destroy();
