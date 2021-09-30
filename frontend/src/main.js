@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
 
-const { exec, execFile, spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require

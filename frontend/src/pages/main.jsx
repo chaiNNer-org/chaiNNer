@@ -1,7 +1,10 @@
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, HStack, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useColorMode, VStack,
+  Box, Center, Heading, HStack, Tab, TabList, TabPanel, TabPanels, Tabs,
+  Text, VStack, Wrap, WrapItem,
 } from '@chakra-ui/react';
+import { Split } from '@geoffcox/react-splitter';
+import { useWindowSize } from '@react-hook/window-size';
 import { ipcRenderer } from 'electron';
 import React, { useState } from 'react';
 import ReactFlow, { Background, Controls } from 'react-flow-renderer';
@@ -38,7 +41,8 @@ const elements = [
 ];
 
 function Main() {
-  const { colorMode, toggleColorMode } = useColorMode();
+  // const { colorMode, toggleColorMode } = useColorMode();
+  const [width, height] = useWindowSize();
 
   // Queries
   const [backendReady, setBackendReady] = useState(false);
@@ -64,38 +68,86 @@ function Main() {
   }
 
   return (
-    <VStack w="100vw" h="100vh" p={2}>
+    <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
       <Header />
-      <HStack w="100%" h="100%">
-        {/* <Button size="sm" colorScheme="blue" onClick={toggleColorMode}>
-          Toggle Mode
-        </Button> */}
-        <Box w="500px" h="100%" borderWidth="1px" borderRadius="lg">
-          <Tabs w="500px" h="100%" isFitted variant="enclosed">
+      <HStack
+        as={Split}
+        initialPrimarySize="25%"
+        minPrimarySize="250px"
+        minSecondarySize="50%"
+        splitterSize="10px"
+        defaultSplitterColors={{
+          color: '#71809633',
+          hover: '#71809666',
+          drag: '#718096EE',
+        }}
+      >
+        <Box
+          w="auto"
+          h="100%"
+          borderWidth="1px"
+          borderRadius="lg"
+        >
+          <Tabs
+            w="100%"
+            h="100%"
+            isFitted
+            variant="enclosed"
+          >
             <TabList>
               <Tab>Nodes</Tab>
               <Tab>Presets</Tab>
             </TabList>
             <TabPanels>
-              <TabPanel>
-                <Box h="100%">
+              <TabPanel m={0} p={0}>
+                <Box
+                  h={height - 120}
+                  overflowY="scroll"
+                  sx={{
+                    '&::-webkit-scrollbar': {
+                      width: '6px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      borderRadius: '8px',
+                      width: '8px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    },
+                  }}
+                >
                   <Accordion allowMultiple defaultIndex={data.map((item, index) => index)}>
                     {data.map(({ category, nodes }) => (
                       <AccordionItem key={category}>
                         <AccordionButton>
                           <Box flex="1" textAlign="left">
-                            <Text>{category}</Text>
+                            <Heading size="5xl">{category}</Heading>
                           </Box>
                           <AccordionIcon />
                         </AccordionButton>
-                        <AccordionPanel pb={4}>
-                          <ul>
+                        <AccordionPanel>
+                          <Wrap>
                             {nodes.map((node) => (
-                              <Text key={node.name} color="white">
-                                <li>{node.name}</li>
-                              </Text>
+                              <WrapItem key={node.name} p={4}>
+                                <Center w="180px" h="auto" borderWidth="1px" borderRadius="lg" p={4}>
+                                  <VStack>
+                                    <Heading as="u" size="sm" casing="uppercase">{node.name.toUpperCase()}</Heading>
+                                    <Text as="u" fontSize="xs">inputs</Text>
+                                    {node.inputs.map((input) => (
+                                      <Text key={input.label}>{input.label}</Text>
+                                    ))}
+                                    <Text as="u" fontSize="xs">outputs</Text>
+                                    {node.outputs.map((output) => (
+                                      <Text key={output.label}>{output.label}</Text>
+                                    ))}
+                                  </VStack>
+                                </Center>
+                              </WrapItem>
                             ))}
-                          </ul>
+                          </Wrap>
                         </AccordionPanel>
                       </AccordionItem>
                     ))}
@@ -107,7 +159,7 @@ function Main() {
         </Box>
 
         <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg">
-          <ReactFlow elements={elements}>
+          <ReactFlow elements={elements} style={{ zIndex: 0 }}>
             <Background
               variant="dots"
               gap={16}
@@ -116,7 +168,6 @@ function Main() {
             <Controls />
           </ReactFlow>
         </Box>
-
       </HStack>
     </VStack>
 
