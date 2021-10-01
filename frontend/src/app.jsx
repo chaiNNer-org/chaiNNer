@@ -5,6 +5,8 @@ import {
   QueryClientProvider,
 } from 'react-query';
 // eslint-disable-next-line import/extensions
+import { FlowGraphProvider } from './components/FlowProvider.jsx';
+// eslint-disable-next-line import/extensions
 import './index.css';
 // eslint-disable-next-line import/extensions
 import Main from './pages/main.jsx';
@@ -18,7 +20,9 @@ function App() {
     <ChakraProvider>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <QueryClientProvider client={queryClient}>
-        <Main />
+        <FlowGraphProvider>
+          <Main />
+        </FlowGraphProvider>
       </QueryClientProvider>
     </ChakraProvider>
   );
