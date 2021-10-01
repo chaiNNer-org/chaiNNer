@@ -24,6 +24,7 @@ async def test(request):
             node_dict = {"name": node}
             node_dict["inputs"] = node_object.get_inputs()
             node_dict["outputs"] = node_object.get_outputs()
+            node_dict["description"] = node_object.get_description()
 
             category_dict["nodes"].append(node_dict)
         output.append(category_dict)

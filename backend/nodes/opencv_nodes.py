@@ -20,6 +20,7 @@ class ImReadNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Read image from file into BGR numpy array"
         self.inputs = [ImageFileInput()]
         self.outputs = [ImageOutput()]
 
@@ -38,6 +39,7 @@ class ImWriteNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Write image from BGR numpy array to file"
         self.inputs = [ImageInput()]
         self.outputs = [ImageFileOutput()]
 

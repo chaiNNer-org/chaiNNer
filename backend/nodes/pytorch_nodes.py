@@ -25,6 +25,7 @@ class LoadStateDictNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Load PyTorch state dict file (.pth) from path"
         self.inputs = [PthFileInput()]
         self.outputs = [StateDictOutput()]
 
@@ -43,6 +44,7 @@ class LoadEsrganModelNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Load PyTorch state dict into the ESRGAN model architecture"
         self.inputs = [StateDictInput()]
         self.outputs = [ModelOutput()]
 
@@ -141,6 +143,7 @@ class EsrganNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Upscales a BGR numpy array using an ESRGAN model"
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 

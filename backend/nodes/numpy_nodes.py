@@ -6,7 +6,8 @@ from numpy import ndarray
 from .NodeBase import NodeBase
 from .NodeFactory import NodeFactory
 from .properties.inputs.NumPyInputs import ImageInput, SplitImageChannelImage
-from .properties.outputs.NumPyOutputs import ImageOutput, SplitImageChannelOutput
+from .properties.outputs.NumPyOutputs import (ImageOutput,
+                                              SplitImageChannelOutput)
 
 
 @NodeFactory.register("NumPy", "Channel::Merge")
@@ -15,6 +16,7 @@ class ChannelMergeNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Merge numpy channels together"
         self.inputs = [SplitImageChannelImage()]
         self.outputs = [ImageOutput()]
 
@@ -32,6 +34,7 @@ class ChannelSplitNode(NodeBase):
 
     def __init__(self):
         """ Constructor """
+        self.description = "Split numpy channels apart"
         self.inputs = [ImageInput()]
         self.outputs = [SplitImageChannelOutput()]
 

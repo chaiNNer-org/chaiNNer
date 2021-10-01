@@ -21,3 +21,6 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_outputs(self):
         return self.outputs
+
+    def get_description(self):
+        return self.description
