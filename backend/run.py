@@ -1,12 +1,10 @@
-import os
-import sys
-
 from sanic import Sanic
 from sanic.response import json
-from sanic_cors import CORS, cross_origin
+from sanic.log import logger
+from sanic_cors import CORS
 
 from nodes import numpy_nodes, opencv_nodes, pytorch_nodes
-from nodes.NodeFactory import NodeFactory
+from nodes.node_factory import NodeFactory
 from process import Executor
 
 app = Sanic("chaiNNer")
@@ -14,7 +12,8 @@ CORS(app)
 
 
 @app.route("/nodes")
-async def test(request):
+async def nodes(_):
+    """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
     output = []
     for category in registry:
@@ -32,14 +31,15 @@ async def test(request):
 
 
 @app.route("/run", methods=["POST"])
-async def test(request):
+async def run(request):
+    """Runs the provides nodes"""
     try:
         nodes_list = request.json
         executor = Executor(nodes_list)
         executor.run()
         return json({"message": "Successfully ran nodes!"}, status=200)
-    except Exception as e:
-        print(e)
+    except Exception as exception:
+        logger.log(2, exception, exc_info=1)
         return json({"message": "Error running nodes!"}, status=500)
 
 

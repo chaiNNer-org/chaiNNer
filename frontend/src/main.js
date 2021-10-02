@@ -1,4 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import {
+  app, BrowserWindow, ipcMain, dialog,
+} from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
 
@@ -48,7 +50,7 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: false,
+    // show: false,
   });
 
   const splash = new BrowserWindow({
@@ -120,6 +122,16 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+app.on('uncaughtException', (err) => {
+  const messageBoxOptions = {
+    type: 'error',
+    title: 'Error in Main process',
+    message: `Something failed: ${err}`,
+  };
+  dialog.showMessageBoxSync(messageBoxOptions);
+  app.exit(1);
 });
 
 // In this file you can include the rest of your app's specific main process

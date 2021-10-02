@@ -3,18 +3,18 @@ from typing import Dict, List
 
 from sanic.log import logger
 
-from nodes.NodeFactory import NodeFactory
+from nodes.node_factory import NodeFactory
 
 
 class Executor:
     def __init__(self, nodes: List[Dict]):
-        """ Constructor """
+        """Constructor"""
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
         self.output_cache = {}
 
     def process(self, node: Dict):
-        """ Process a single node """
+        """Process a single node"""
         node_id = node["id"]
         logger.info(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
@@ -46,7 +46,7 @@ class Executor:
         return output
 
     def run(self):
-        """ Run the executor """
+        """Run the executor"""
         logger.info(f"Running executor {self.execution_id}")
         # Create a list of all output nodes
         output_nodes = []

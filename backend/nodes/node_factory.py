@@ -1,22 +1,20 @@
-import logging
 from typing import Callable, Dict
 
-from .NodeBase import NodeBase
+from .node_base import NodeBase
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from sanic.log import logger
 
 
 # Implementation based on https://medium.com/@geoffreykoh/implementing-the-factory-pattern-via-dynamic-registry-and-python-decorators-479fc1537bbe
 class NodeFactory:
-    """ The factory class for creating nodes"""
+    """The factory class for creating nodes"""
 
     registry = {}
     """ Internal registry for available nodes """
 
     @classmethod
     def create_node(cls, category: str, name: str) -> NodeBase:
-        """ Factory command to create the node """
+        """Factory command to create the node"""
 
         node_class = cls.registry[category][name]
         node = node_class()

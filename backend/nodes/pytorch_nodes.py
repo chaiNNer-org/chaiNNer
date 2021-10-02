@@ -1,36 +1,38 @@
-import logging
+"""
+Nodes that provide functionality for pytorch inference
+"""
+
+
+from sanic.log import logger
 from typing import Any, OrderedDict
 
 from numpy import dstack, expand_dims, full, iinfo, ndarray, tile
 from torch import device as torch_device
 from torch import load as torch_load
 
-from .NodeBase import NodeBase
-from .NodeFactory import NodeFactory
-from .properties.inputs.FileInputs import PthFileInput
-from .properties.inputs.NumPyInputs import ImageInput
-from .properties.inputs.PyTorchInputs import ModelInput, StateDictInput
-from .properties.outputs.NumPyOutputs import ImageOutput
-from .properties.outputs.PyTorchOutputs import ModelOutput, StateDictOutput
+from .node_base import NodeBase
+from .node_factory import NodeFactory
+from .properties.inputs.file_inputs import PthFileInput
+from .properties.inputs.numpy_inputs import ImageInput
+from .properties.inputs.pytorch_inputs import ModelInput, StateDictInput
+from .properties.outputs.numpy_outputs import ImageOutput
+from .properties.outputs.pytorch_outputs import ModelOutput, StateDictOutput
 from .utils.architectures.RRDB import RRDBNet
 from .utils.utils import auto_split_process, np2tensor, tensor2np
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 @NodeFactory.register("PyTorch", "PyTorch::Read")
 class LoadStateDictNode(NodeBase):
-    """ Load Model node """
+    """Load Model node"""
 
     def __init__(self):
-        """ Constructor """
+        """Constructor"""
         self.description = "Load PyTorch state dict file (.pth) from path"
         self.inputs = [PthFileInput()]
         self.outputs = [StateDictOutput()]
 
     def run(self, path: str) -> OrderedDict:
-        """ Read a pth file from the specified path and return it as a state dict """
+        """Read a pth file from the specified path and return it as a state dict"""
 
         logger.info(f"Reading state dict from path: {path}")
         state_dict = torch_load(path)
@@ -40,16 +42,16 @@ class LoadStateDictNode(NodeBase):
 
 @NodeFactory.register("PyTorch", "ESRGAN::Load")
 class LoadEsrganModelNode(NodeBase):
-    """ Load ESRGAN Model node """
+    """Load ESRGAN Model node"""
 
     def __init__(self):
-        """ Constructor """
+        """Constructor"""
         self.description = "Load PyTorch state dict into the ESRGAN model architecture"
         self.inputs = [StateDictInput()]
         self.outputs = [ModelOutput()]
 
     def run(self, state_dict: OrderedDict) -> Any:
-        """ Loads the state dict to an ESRGAN model after finding arch config """
+        """Loads the state dict to an ESRGAN model after finding arch config"""
 
         logger.info(f"Loading state dict into ESRGAN model")
 
@@ -97,7 +99,7 @@ class LoadEsrganModelNode(NodeBase):
         )
 
         model.load_state_dict(state_dict, strict=True)
-        for k, v in model.named_parameters():
+        for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
         model.to(torch_device("cuda"))
@@ -139,16 +141,16 @@ class LoadEsrganModelNode(NodeBase):
 
 @NodeFactory.register("PyTorch", "ESRGAN::Run")
 class EsrganNode(NodeBase):
-    """ ESRGAN node """
+    """ESRGAN node"""
 
     def __init__(self):
-        """ Constructor """
+        """Constructor"""
         self.description = "Upscales a BGR numpy array using an ESRGAN model"
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
     def run(self, model: RRDBNet, img: ndarray) -> ndarray:
-        """ Upscales an image with an ESRGAN pretrained model """
+        """Upscales an image with an ESRGAN pretrained model"""
 
         logger.info(f"Upscaling image...")
 
