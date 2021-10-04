@@ -8,6 +8,11 @@ import {
 import React from 'react';
 import { IconFactory } from './CustomIcons.jsx';
 
+const onDragStart = (event, nodeType) => {
+  event.dataTransfer.setData('application/reactflow', nodeType);
+  event.dataTransfer.effectAllowed = 'move';
+};
+
 // eslint-disable-next-line react/prop-types
 function NodeSelector({ data, height }) {
   return (
@@ -62,7 +67,15 @@ function NodeSelector({ data, height }) {
                         {nodes.map((node) => (
                           <WrapItem key={node.name} p={4}>
                             <Tooltip label={node.description} hasArrow closeOnMouseDown>
-                              <Center w="180px" h="auto" borderWidth="1px" borderRadius="lg" p={4}>
+                              <Center
+                                w="180px"
+                                h="auto"
+                                borderWidth="1px"
+                                borderRadius="lg"
+                                p={4}
+                                onDragStart={(event) => onDragStart(event, node.name)}
+                                draggable
+                              >
                                 <VStack>
                                   <Heading as="u" size="sm" casing="uppercase">{node.name.toUpperCase()}</Heading>
                                   <Text as="u" fontSize="xs">inputs</Text>
