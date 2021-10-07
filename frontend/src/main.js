@@ -1,10 +1,12 @@
 import {
-  app, BrowserWindow, ipcMain, dialog,
+  app, BrowserWindow, dialog, ipcMain, protocol,
 } from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
 
 const { exec, spawn } = require('child_process');
+
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -46,11 +48,13 @@ const createWindow = async () => {
     height: 720,
     backgroundColor: '#2D3748',
     webPreferences: {
+      webSecurity: false,
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: false,
+    show: true,
   });
 
   const splash = new BrowserWindow({
@@ -70,6 +74,7 @@ const createWindow = async () => {
     alwaysOnTop: true,
     titleBarStyle: 'hidden',
     webPreferences: {
+      webSecurity: false,
       nativeWindowOpen: true,
       nodeIntegration: true,
       contextIsolation: false,
@@ -98,6 +103,13 @@ const createWindow = async () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+
+app.whenReady().then(() => {
+  protocol.registerFileProtocol('file', (request, callback) => {
+    const pathname = decodeURI(request.url.replace('file:///', ''));
+    callback(pathname);
+  });
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

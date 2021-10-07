@@ -10,6 +10,7 @@ import { IconFactory } from './CustomIcons.jsx';
 
 const onDragStart = (event, nodeType) => {
   event.dataTransfer.setData('application/reactflow', nodeType);
+  // eslint-disable-next-line no-param-reassign
   event.dataTransfer.effectAllowed = 'move';
 };
 

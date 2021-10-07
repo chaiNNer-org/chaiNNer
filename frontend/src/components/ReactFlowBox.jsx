@@ -7,7 +7,7 @@ import ReactFlow, { Background, Controls } from 'react-flow-renderer';
 
 // eslint-disable-next-line react/prop-types
 function ReactFlowBox({
-  elements, onConnect, onElementsRemove, onLoad, onDrop, onDragOver, wrapperRef,
+  elements, onConnect, onElementsRemove, onLoad, onDrop, onDragOver, wrapperRef, nodeTypes,
 }) {
   return (
     <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef}>
@@ -18,6 +18,7 @@ function ReactFlowBox({
         onLoad={onLoad}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        nodeTypes={nodeTypes}
         style={{ zIndex: 0 }}
       >
         <Background

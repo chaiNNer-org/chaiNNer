@@ -7,6 +7,9 @@ import { extendTheme } from '@chakra-ui/react';
 const config = {
   initialColorMode: 'dark',
   useSystemColorMode: false,
+  fonts: {
+    heading: 'Open Sans',
+  },
 };
 
 // 3. extend the theme
