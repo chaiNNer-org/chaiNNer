@@ -139,7 +139,7 @@ function Main() {
       <ReactFlowProvider>
         <HStack
           as={Split}
-          initialPrimarySize="25%"
+          initialPrimarySize="28%"
           minPrimarySize="250px"
           minSecondarySize="50%"
           splitterSize="10px"

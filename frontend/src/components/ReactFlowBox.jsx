@@ -9,6 +9,10 @@ import ReactFlow, { Background, Controls } from 'react-flow-renderer';
 function ReactFlowBox({
   elements, onConnect, onElementsRemove, onLoad, onDrop, onDragOver, wrapperRef, nodeTypes,
 }) {
+  const onNodeDragStart = (event) => {
+    event.stopPropagation();
+  };
+
   return (
     <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef}>
       <ReactFlow
@@ -18,6 +22,9 @@ function ReactFlowBox({
         onLoad={onLoad}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onNodeDragStart={onNodeDragStart}
+        onNodeDrag={onNodeDragStart}
+        onNodeDragStop={onNodeDragStart}
         nodeTypes={nodeTypes}
         style={{ zIndex: 0 }}
       >
