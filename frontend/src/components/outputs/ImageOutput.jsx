@@ -25,12 +25,12 @@ const getColorMode = (img) => {
   }
 };
 
-function ImageOutput({ data }) {
+function ImageOutput({ data, index }) {
   const [img, setImg] = useState();
   const [path, setPath] = useState('');
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
-  const [nodeData, setNodeData] = useNodeData(id);
+  const [nodeData] = useNodeData(id);
 
   useEffect(async () => {
     if (nodeData?.file?.path && path !== nodeData.file.path) {
@@ -46,7 +46,7 @@ function ImageOutput({ data }) {
   }, [path]);
 
   return (
-    <OutputContainer>
+    <OutputContainer hasHandle index={index} id={id}>
       <Center
         w="full"
       >

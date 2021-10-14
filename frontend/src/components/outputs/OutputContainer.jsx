@@ -4,11 +4,11 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { Handle } from 'react-flow-renderer';
-import { v4 as uuidv4 } from 'uuid';
 
-function OutputContainer({ children, hasHandle = true }) {
+function OutputContainer({
+  children, hasHandle, index, id,
+}) {
   let contents = children;
-  const outputId = uuidv4();
   if (hasHandle) {
     const handleColor = useColorModeValue('#EDF2F7', '#171923');
     const borderColor = useColorModeValue('#171923', '#F7FAFC');
@@ -21,7 +21,7 @@ function OutputContainer({ children, hasHandle = true }) {
           <Handle
             type="source"
             position="right"
-            id={outputId}
+            id={`${id}-${index}`}
             style={{
               background: handleColor, width: '15px', height: '15px', borderWidth: '1px', borderColor,
             }}

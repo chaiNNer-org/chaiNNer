@@ -4,7 +4,8 @@ import { Input, useColorModeValue, VisuallyHidden } from '@chakra-ui/react';
 import React, { useRef, useState } from 'react';
 import InputContainer from './InputContainer.jsx';
 
-function PthFileInput({ extensions }) {
+function PthFileInput({ extensions, data, index }) {
+  const { id } = data;
   const [pth, setPth] = useState({ name: '', path: '' });
   const inputFile = useRef(null);
 
@@ -22,7 +23,7 @@ function PthFileInput({ extensions }) {
   };
 
   return (
-    <InputContainer>
+    <InputContainer id={id} index={index}>
       <VisuallyHidden>
         <input
           type="file"

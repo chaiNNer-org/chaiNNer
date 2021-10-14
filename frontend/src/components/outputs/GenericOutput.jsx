@@ -6,9 +6,10 @@ import {
 import React from 'react';
 import OutputContainer from './OutputContainer.jsx';
 
-function GenericOutput({ label }) {
+function GenericOutput({ label, data, index }) {
+  const { id } = data;
   return (
-    <OutputContainer>
+    <OutputContainer hasHandle id={id} index={index}>
       <Text w="full" textAlign="right" marginInlineEnd="0.5rem">
         {label}
       </Text>

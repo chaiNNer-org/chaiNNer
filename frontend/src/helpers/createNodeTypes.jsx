@@ -19,15 +19,15 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
   switch (input.type) {
     case 'file::image':
       return (
-        <ImageFileInput key={i} extensions={input.filetypes} data={data} />
+        <ImageFileInput key={i} index={i} extensions={input.filetypes} data={data} />
       );
     case 'file::pth':
       return (
-        <PthFileInput key={i} extensions={input.filetypes} data={data} />
+        <PthFileInput key={i} index={i} extensions={input.filetypes} data={data} />
       );
     default:
       return (
-        <GenericInput key={i} label={input.label} data={data} />
+        <GenericInput key={i} index={i} label={input.label} data={data} />
       );
   }
 });
@@ -41,11 +41,11 @@ export const createUsableOutputs = (data) => data.outputs.map((output, i) => {
   switch (output.type) {
     case 'numpy::2d':
       return (
-        <ImageOutput key={i} data={data} />
+        <ImageOutput key={i} index={i} data={data} />
       );
     default:
       return (
-        <GenericOutput key={i} label={output.label} data={data} />
+        <GenericOutput key={i} index={i} label={output.label} data={data} />
       );
   }
 });

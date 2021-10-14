@@ -7,7 +7,7 @@ import React, {
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function ImageFileInput({ extensions, data }) {
+function ImageFileInput({ extensions, data, index }) {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
@@ -29,7 +29,7 @@ function ImageFileInput({ extensions, data }) {
   };
 
   return (
-    <InputContainer>
+    <InputContainer id={id} index={index}>
       <VisuallyHidden>
         <input
           type="file"
