@@ -1,11 +1,17 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Input, useColorModeValue, VisuallyHidden } from '@chakra-ui/react';
-import React, { useRef, useState } from 'react';
+import React, {
+  useContext, useRef,
+} from 'react';
+import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function ImageFileInput({ extensions }) {
-  const [image, setImage] = useState({ name: '', path: '' });
+function ImageFileInput({ extensions, data }) {
+  const { id } = data;
+  const { useNodeData } = useContext(GlobalContext);
+  const [nodeData, setNodeData] = useNodeData(id);
+
   const inputFile = useRef(null);
 
   const onButtonClick = () => {
@@ -15,10 +21,10 @@ function ImageFileInput({ extensions }) {
 
   const handleChange = (event) => {
     const file = event.target.files[0];
-    console.log('🚀 ~ file: ImageFileInput.jsx ~ line 19 ~ handleChange ~ file', file);
-    if (file && image.path !== file.path) {
-      setImage(file);
+    if (file) {
+      setNodeData({ file });
     }
+
     inputFile.current.blur();
   };
 
@@ -38,7 +44,7 @@ function ImageFileInput({ extensions }) {
       </VisuallyHidden>
       <Input
         placeholder="Image..."
-        value={image.name}
+        value={nodeData?.file?.name ?? ''}
         isReadOnly
         onClick={onButtonClick}
         isTruncated

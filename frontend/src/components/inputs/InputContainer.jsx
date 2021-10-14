@@ -4,10 +4,14 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { Handle } from 'react-flow-renderer';
+import { v4 as uuidv4 } from 'uuid';
 
 function InputContainer({ children, hasHandle }) {
   let contents = children;
+  const inputId = uuidv4();
   if (hasHandle) {
+    const handleColor = useColorModeValue('#EDF2F7', '#171923');
+    const borderColor = useColorModeValue('#171923', '#F7FAFC');
     contents = (
       <HStack h="full">
         <div
@@ -15,9 +19,10 @@ function InputContainer({ children, hasHandle }) {
         >
           <Handle
             type="target"
+            id={inputId}
             position="left"
             style={{
-              background: '#171923', width: '15px', height: '15px', borderWidth: '1px',
+              background: handleColor, width: '15px', height: '15px', borderWidth: '1px', borderColor,
             }}
             onConnect={(params) => console.log('handle onConnect', params)}
             isConnectable

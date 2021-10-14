@@ -10,8 +10,13 @@ import React, { useState } from 'react';
 import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 
-const onDragStart = (event, nodeType) => {
-  event.dataTransfer.setData('application/reactflow', nodeType);
+const onDragStart = (event, nodeCategory, node) => {
+  event.dataTransfer.setData('application/reactflow/type', node.name);
+  event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
+  event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
+  event.dataTransfer.setData('application/reactflow/category', nodeCategory);
+  event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
+  event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign
   event.dataTransfer.effectAllowed = 'move';
 };
@@ -100,7 +105,7 @@ function NodeSelector({ data, height }) {
                                   // maxW="180px"
                                   // minW="180px"
                                   boxSizing="border-box"
-                                  onDragStart={(event) => onDragStart(event, node.name)}
+                                  onDragStart={(event) => onDragStart(event, category, node)}
                                   draggable
                                   // height="180px"
                                   // width="auto"

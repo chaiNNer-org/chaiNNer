@@ -1,3 +1,6 @@
+/* eslint-disable react/destructuring-assignment */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/no-unused-state */
 // Based on https://github.com/Nearoo/audio-tool/blob/main/src/graph/flow.js
 
 import _ from 'lodash';
@@ -13,9 +16,30 @@ function createUniqueId() {
 export class FlowGraphProvider extends Component {
   constructor(props) {
     super(props);
+
+    // This is so stupid
+    this.getElementById = this.getElementById.bind(this);
+    this.getNodeData = this.getNodeData.bind(this);
+    this.setNodeData = this.setNodeData.bind(this);
+    this.pushElement = this.pushElement.bind(this);
+    this.pullElementById = this.pullElementById.bind(this);
+    this.pullElementByPredicate = this.pullElementByPredicate.bind(this);
+    this.replaceElementById = this.replaceElementById.bind(this);
+    this.createNode = this.createNode.bind(this);
+    this.createEdge = this.createEdge.bind(this);
+    this.deleteEdgesConnectedToHandle = this.deleteEdgesConnectedToHandle.bind(this);
+
     this.state = {
-      elements: [],
-      setElements: (elements) => this.setState({ elements }),
+      elements: () => {
+        const stored = sessionStorage.getItem('elements');
+        if (!stored) {
+          return [];
+        }
+        return JSON.parse(stored);
+      },
+      setElements: (elements) => {
+        sessionStorage.setItem('elements', JSON.stringify(elements));
+      },
 
       reactFlowInstance: null,
       setReactFlowInstance: (reactFlowInstance) => this.setState({ reactFlowInstance }),
@@ -45,7 +69,7 @@ export class FlowGraphProvider extends Component {
   }
 
   pushElement(element) {
-    this.setState((state) => ({ elements: [...state.elements, element] }));
+    this.state.setElements([...this.state.elements, element]);
   }
 
   pullElement(element) {
@@ -53,11 +77,11 @@ export class FlowGraphProvider extends Component {
   }
 
   pullElementById(id) {
-    this.setState((state) => ({ elements: _.reject(state.elements, { id }) }));
+    this.state.setElements(_.reject(this.state.elements, { id }));
   }
 
   pullElementByPredicate(pred) {
-    this.setState((state) => ({ elements: _.filter(state.elements, (el) => !pred(el)) }));
+    this.state.setElements(_.filter(this.state.elements, (el) => !pred(el)));
   }
 
   replaceElementById(id, element) {

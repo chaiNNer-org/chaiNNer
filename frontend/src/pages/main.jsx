@@ -1,29 +1,25 @@
 /* eslint-disable import/extensions */
 import {
-  AlertDialog,
-  AlertDialogBody, AlertDialogContent, AlertDialogFooter,
+  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Button, HStack, VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { ipcRenderer } from 'electron';
 import React, {
-  useCallback, useRef, useState,
+  useRef, useState,
 } from 'react';
 import {
-  addEdge, ReactFlowProvider, removeElements,
+  ReactFlowProvider,
 } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
 import { createNodeTypes } from '../helpers/createNodeTypes.jsx';
+import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const { app } = require('electron');
-
-let id = 0;
-// eslint-disable-next-line no-plusplus
-const getId = () => `dndnode_${id++}`;
 
 function Main() {
   const [nodeTypes, setNodeTypes] = useState({});
@@ -31,54 +27,6 @@ function Main() {
   const [width, height] = useWindowSize();
 
   const reactFlowWrapper = useRef(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
-  const [elements, setElements] = useState([]);
-  const onConnect = useCallback(
-    (params) => setElements((els) => addEdge({ ...params, animated: true, style: { stroke: '#fff' } }, els)),
-    [],
-  );
-  const onElementsRemove = useCallback(
-    (elementsToRemove) => setElements((els) => removeElements(elementsToRemove, els)),
-    [],
-  );
-
-  const onLoad = useCallback(
-    (rfi) => {
-      if (!reactFlowInstance) {
-        setReactFlowInstance(rfi);
-        console.log('flow loaded:', rfi);
-      }
-    },
-    [reactFlowInstance],
-  );
-
-  const onDragOver = (event) => {
-    event.preventDefault();
-    // eslint-disable-next-line no-param-reassign
-    event.dataTransfer.dropEffect = 'move';
-  };
-
-  const onDrop = (event) => {
-    event.preventDefault();
-
-    const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
-
-    const type = event.dataTransfer.getData('application/reactflow');
-
-    const position = reactFlowInstance.project({
-      x: event.clientX - reactFlowBounds.left,
-      y: event.clientY - reactFlowBounds.top,
-    });
-
-    const newNode = {
-      id: getId(),
-      type,
-      position,
-      data: { label: `${type} node` },
-    };
-
-    setElements((es) => es.concat(newNode));
-  };
 
   // Queries
   const [backendReady, setBackendReady] = useState(false);
@@ -151,17 +99,13 @@ function Main() {
         >
           <NodeSelector data={data} height={height} />
 
-          <ReactFlowBox
-            elements={elements}
-            onConnect={onConnect}
-            onElementsRemove={onElementsRemove}
-            onLoad={onLoad}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            nodeTypes={nodeTypes}
-            className="reactflow-wrapper"
-            wrapperRef={reactFlowWrapper}
-          />
+          <GlobalProvider>
+            <ReactFlowBox
+              nodeTypes={nodeTypes}
+              className="reactflow-wrapper"
+              wrapperRef={reactFlowWrapper}
+            />
+          </GlobalProvider>
         </HStack>
       </ReactFlowProvider>
     </VStack>

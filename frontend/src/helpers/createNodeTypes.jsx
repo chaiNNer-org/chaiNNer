@@ -5,7 +5,7 @@ import { CheckCircleIcon, UnlockIcon } from '@chakra-ui/icons';
 import {
   Center, Flex, Heading, HStack, Icon, Spacer, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { memo } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
@@ -15,45 +15,40 @@ import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
 
-export const createUsableInputs = (category, node) => (
-  node.inputs.map((input, i) => {
-    switch (input.type) {
-      case 'file::image':
-        return (
-          <ImageFileInput key={i} extensions={input.filetypes} />
-        );
-      case 'file::pth':
-        return (
-          <PthFileInput key={i} extensions={input.filetypes} />
-        );
-      default:
-        return (
-          <GenericInput key={i} label={input.label} />
-        );
-    }
-  })
-);
-
+export const createUsableInputs = (data) => data.inputs.map((input, i) => {
+  switch (input.type) {
+    case 'file::image':
+      return (
+        <ImageFileInput key={i} extensions={input.filetypes} data={data} />
+      );
+    case 'file::pth':
+      return (
+        <PthFileInput key={i} extensions={input.filetypes} data={data} />
+      );
+    default:
+      return (
+        <GenericInput key={i} label={input.label} data={data} />
+      );
+  }
+});
 export const createRepresentativeInputs = (category, node) => (
   node.inputs.map((input, i) => (
     <GenericInput key={i} label={input.label} hasHandle={false} />
   ))
 );
 
-export const createUsableOutputs = (category, node) => (
-  node.outputs.map((output, i) => {
-    switch (output.type) {
-      case 'numpy::2d':
-        return (
-          <ImageOutput key={i} path="C:/Users/Joey/Desktop/discord alt REWRITTEN OMG 2.png" />
-        );
-      default:
-        return (
-          <GenericOutput key={i} label={output.label} />
-        );
-    }
-  })
-);
+export const createUsableOutputs = (data) => data.outputs.map((output, i) => {
+  switch (output.type) {
+    case 'numpy::2d':
+      return (
+        <ImageOutput key={i} data={data} />
+      );
+    default:
+      return (
+        <GenericOutput key={i} label={output.label} data={data} />
+      );
+  }
+});
 
 export const createRepresentativeOutputs = (category, node) => (
   node.outputs.map((output, i) => (
@@ -77,29 +72,32 @@ const BottomArea = () => (
   </Flex>
 );
 
-const NodeHeader = ({ category, node, width }) => (
-  <Center
-    w={width || 'full'}
-    h="auto"
-    borderBottomColor={getAccentColor(category)}
-    borderBottomWidth="4px"
-  >
-    <HStack
-      pl={6}
-      pr={6}
-      pb={2}
+const NodeHeader = ({ data, width }) => {
+  const { category, type } = data;
+  return (
+    <Center
+      w={width || 'full'}
+      h="auto"
+      borderBottomColor={getAccentColor(category)}
+      borderBottomWidth="4px"
     >
-      <Center>
-        {IconFactory(category)}
-      </Center>
-      <Center>
-        <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>
-          {node.name.toUpperCase()}
-        </Heading>
-      </Center>
-    </HStack>
-  </Center>
-);
+      <HStack
+        pl={6}
+        pr={6}
+        pb={2}
+      >
+        <Center>
+          {IconFactory(category)}
+        </Center>
+        <Center>
+          <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>
+            {type.toUpperCase()}
+          </Heading>
+        </Center>
+      </HStack>
+    </Center>
+  );
+};
 
 const NodeWrapper = ({ children }) => (
   <Center
@@ -118,55 +116,75 @@ const NodeWrapper = ({ children }) => (
   </Center>
 );
 
-export const createUsableNode = (category, node) => (
-  <NodeWrapper>
-    <VStack>
-      <NodeHeader category={category} node={node} />
+function UsableNode({ data }) {
+  return (
+    <NodeWrapper>
+      <VStack>
+        <NodeHeader data={data} />
 
-      <Text fontSize="xs" p={0} m={0}>
-        INPUTS
-      </Text>
-      {createUsableInputs(category, node)}
+        <Text fontSize="xs" p={0} m={0}>
+          INPUTS
+        </Text>
+        {createUsableInputs(data)}
 
-      <Text fontSize="xs" p={0} m={0}>
-        OUTPUTS
-      </Text>
-      {createUsableOutputs(category, node)}
+        <Text fontSize="xs" p={0} m={0}>
+          OUTPUTS
+        </Text>
+        {createUsableOutputs(data)}
 
-      <BottomArea />
-    </VStack>
-  </NodeWrapper>
-);
+        <BottomArea />
+      </VStack>
+    </NodeWrapper>
+  );
+}
+
+// export const createUsableNode = (category, node) => {
+//   const id = createUniqueId();
+//   return (
+//     <NodeWrapper>
+//       <VStack>
+//         <NodeHeader category={category} node={node} />
+
+//         <Text fontSize="xs" p={0} m={0}>
+//           INPUTS
+//         </Text>
+//         {createUsableInputs(category, node, id)}
+
+//         <Text fontSize="xs" p={0} m={0}>
+//           OUTPUTS
+//         </Text>
+//         {createUsableOutputs(category, node, id)}
+
+//         <BottomArea />
+//       </VStack>
+//     </NodeWrapper>
+//   );
+// };
+
+// function RepresentativeNode({ data }) {
+//   return (
+//     <NodeWrapper>
+//       <VStack>
+//         <NodeHeader data={data} width="220px" />
+//       </VStack>
+//     </NodeWrapper>
+//   );
+// }
 
 export const createRepresentativeNode = (category, node) => (
   <NodeWrapper>
     <VStack>
-      <NodeHeader category={category} node={node} width="220px" />
-
-      {/* <Text fontSize="xs" p={0} m={0}>
-        INPUTS
-      </Text>
-      {createRepresentativeInputs(category, node)}
-
-      <Text fontSize="xs" p={0} m={0}>
-        OUTPUTS
-      </Text>
-      {createRepresentativeOutputs(category, node)} */}
+      <NodeHeader data={{ category, type: node.name }} width="220px" />
     </VStack>
   </NodeWrapper>
 );
 
 export const createNodeTypes = (data) => {
-  console.log(data);
   const nodesList = {};
   if (data) {
     data.forEach(({ category, nodes }) => {
       nodes.forEach((node) => {
-        const newNode = () => (
-          createUsableNode(category, node)
-        );
-        nodesList[node.name] = newNode;
-        console.log('nodes list', nodesList);
+        nodesList[node.name] = memo(UsableNode);
       });
     });
   }
@@ -174,7 +192,6 @@ export const createNodeTypes = (data) => {
 };
 
 export const createRepresentativeNodeTypes = (data) => {
-  console.log(data);
   const nodesList = {};
   if (data) {
     data.forEach(({ category, nodes }) => {
@@ -183,7 +200,6 @@ export const createRepresentativeNodeTypes = (data) => {
           createRepresentativeNode(category, node)
         );
         nodesList[node.name] = newNode;
-        console.log('nodes list', nodesList);
       });
     });
   }

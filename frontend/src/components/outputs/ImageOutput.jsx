@@ -3,7 +3,8 @@
 import {
   Center, HStack, Image, Tag, VStack,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import OutputContainer from './OutputContainer.jsx';
 
 const { Image: ImageJS } = require('image-js');
@@ -24,13 +25,25 @@ const getColorMode = (img) => {
   }
 };
 
-function ImageOutput({ path }) {
+function ImageOutput({ data }) {
   const [img, setImg] = useState();
+  const [path, setPath] = useState('');
+  const { id } = data;
+  const { useNodeData } = useContext(GlobalContext);
+  const [nodeData, setNodeData] = useNodeData(id);
 
   useEffect(async () => {
-    const loadedImg = await ImageJS.load(path);
-    setImg(loadedImg);
-  }, []);
+    if (nodeData?.file?.path && path !== nodeData.file.path) {
+      setPath(nodeData.file.path);
+    }
+  }, [nodeData]);
+
+  useEffect(async () => {
+    if (path) {
+      const loadedImg = await ImageJS.load(path);
+      setImg(loadedImg);
+    }
+  }, [path]);
 
   return (
     <OutputContainer>
@@ -41,20 +54,25 @@ function ImageOutput({ path }) {
           <Image
             borderRadius="md"
             boxSize="150px"
-            src={path}
+            src={path || ''}
             fallbackSrc="https://via.placeholder.com/150"
             alt="Image Output"
             draggable={false}
           />
-          <HStack>
-            <Tag>
-              {img ? `${img.width}x${img.height}` : '?'}
-            </Tag>
-            <Tag>
-              {getColorMode(img)}
-            </Tag>
-            <Tag>{String(path.split('.').slice(-1)).toUpperCase()}</Tag>
-          </HStack>
+          {
+            img && (
+              <HStack>
+                <Tag>
+                  {img ? `${img.width}x${img.height}` : '?'}
+                </Tag>
+                <Tag>
+                  {getColorMode(img)}
+                </Tag>
+                <Tag>{String(path.split('.').slice(-1)).toUpperCase()}</Tag>
+              </HStack>
+            )
+          }
+
         </VStack>
       </Center>
 
