@@ -91,6 +91,26 @@ export const GlobalProvider = ({ children }) => {
     return [nodeData, setNodeDataById];
   }
 
+  function convertToUsableFormat() {
+    const result = {};
+    state.elements.forEach((element) => {
+      if (element.data && !element.source) {
+        const { type, id, data } = element;
+        const { category } = data;
+        // Node
+        result[id] = {
+          category,
+          node: type,
+          id,
+          inputs: {},
+          outputs: {},
+        };
+      } else if (element.source && !element.data) {
+        // Connection
+      }
+    });
+  }
+
   return (
     <GlobalContext.Provider value={{
       elements: state.elements,
