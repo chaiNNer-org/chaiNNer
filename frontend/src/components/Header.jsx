@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 import {
   HamburgerIcon, LinkIcon, MoonIcon, SunIcon,
 } from '@chakra-ui/icons';
@@ -5,11 +6,21 @@ import {
   Box, Flex, Heading, HStack, IconButton, Menu, MenuButton,
   MenuDivider, MenuItem, MenuList, Portal, Spacer, Tag, useColorMode,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useContext } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
+import useFetch from 'use-http';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
+  const { convertToUsableFormat } = useContext(GlobalContext);
+  const { post } = useFetch('http://localhost:8000/run');
+
+  async function run() {
+    const data = convertToUsableFormat();
+    const response = await post(data);
+    console.log(response);
+  }
 
   return (
     <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg">
@@ -23,7 +34,7 @@ function Header() {
         </HStack>
         <Spacer />
         <HStack>
-          <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" />
+          <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" onClick={() => { run(); }} />
           <IconButton icon={<IoPause />} variant="outline" size="md" colorScheme="yellow" disabled />
           <IconButton icon={<IoStop />} variant="outline" size="md" colorScheme="red" disabled />
         </HStack>

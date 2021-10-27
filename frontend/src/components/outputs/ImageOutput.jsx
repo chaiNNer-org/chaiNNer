@@ -33,8 +33,9 @@ function ImageOutput({ data, index }) {
   const [nodeData] = useNodeData(id);
 
   useEffect(async () => {
-    if (nodeData?.file?.path && path !== nodeData.file.path) {
-      setPath(nodeData.file.path);
+    console.log(nodeData);
+    if (nodeData?.sharedData?.file?.path && path !== nodeData.sharedData.file.path) {
+      setPath(nodeData.sharedData.file.path);
     }
   }, [nodeData]);
 

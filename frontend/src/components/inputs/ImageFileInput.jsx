@@ -22,7 +22,11 @@ function ImageFileInput({ extensions, data, index }) {
   const handleChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setNodeData({ file });
+      const inputData = nodeData?.inputData ?? {};
+      const sharedData = nodeData?.sharedData ?? {};
+      inputData[index] = file.path;
+      sharedData.file = file;
+      setNodeData({ inputData, sharedData });
     }
 
     inputFile.current.blur();
@@ -44,7 +48,7 @@ function ImageFileInput({ extensions, data, index }) {
       </VisuallyHidden>
       <Input
         placeholder="Image..."
-        value={nodeData?.file?.name ?? ''}
+        value={nodeData?.sharedData?.file?.name ?? ''}
         isReadOnly
         onClick={onButtonClick}
         isTruncated

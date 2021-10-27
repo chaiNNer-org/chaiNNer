@@ -82,33 +82,33 @@ function Main() {
   }
 
   return (
-    <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
-      <Header />
-      <ReactFlowProvider>
-        <HStack
-          as={Split}
-          initialPrimarySize="28%"
-          minPrimarySize="250px"
-          minSecondarySize="50%"
-          splitterSize="10px"
-          defaultSplitterColors={{
-            color: '#71809633',
-            hover: '#71809666',
-            drag: '#718096EE',
-          }}
-        >
-          <NodeSelector data={data} height={height} />
+    <GlobalProvider>
+      <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
+        <Header />
+        <ReactFlowProvider>
+          <HStack
+            as={Split}
+            initialPrimarySize="28%"
+            minPrimarySize="250px"
+            minSecondarySize="50%"
+            splitterSize="10px"
+            defaultSplitterColors={{
+              color: '#71809633',
+              hover: '#71809666',
+              drag: '#718096EE',
+            }}
+          >
+            <NodeSelector data={data} height={height} />
 
-          <GlobalProvider>
             <ReactFlowBox
               nodeTypes={nodeTypes}
               className="reactflow-wrapper"
               wrapperRef={reactFlowWrapper}
             />
-          </GlobalProvider>
-        </HStack>
-      </ReactFlowProvider>
-    </VStack>
+          </HStack>
+        </ReactFlowProvider>
+      </VStack>
+    </GlobalProvider>
 
   );
 }
