@@ -51,7 +51,7 @@ class Executor:
         # Create a list of all output nodes
         output_nodes = []
         for node in self.nodes.values():
-            if node["outputs"] is None:
+            if node["outputs"] is None or len(node["outputs"]) == 0:
                 output_nodes.append(node)
         # Run each of the output nodes through processing
         for output_node in output_nodes:

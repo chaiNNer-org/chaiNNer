@@ -43,10 +43,12 @@ class ImWriteNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = [ImageFileOutput()]
 
-    def run(self, img: ndarray, path: str) -> bool:
+    def run(
+        self, img: ndarray, path: str = "C:/Users/Joey/Desktop/this_is_a_test.png"
+    ) -> bool:
         """Write an image to the specified path and return write status"""
 
         logger.info(f"Writing image to path: {path}")
-        status = imwrite("C:/Users/Joey/Desktop/this_is_a_test.png", img)
+        status = imwrite(path, img)
 
         return status
