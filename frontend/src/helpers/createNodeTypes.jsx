@@ -8,9 +8,11 @@ import {
 import React, { memo } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
+import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
 import ImageFileInput from '../components/inputs/ImageFileInput.jsx';
 import PthFileInput from '../components/inputs/PthFileInput.jsx';
+import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
@@ -19,11 +21,25 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
   switch (input.type) {
     case 'file::image':
       return (
-        <ImageFileInput key={i} index={i} extensions={input.filetypes} data={data} />
+        <ImageFileInput
+          key={i}
+          index={i}
+          extensions={input.filetypes}
+          data={data}
+          label={input.label}
+        />
       );
     case 'file::pth':
       return (
         <PthFileInput key={i} index={i} extensions={input.filetypes} data={data} />
+      );
+    case 'file::directory':
+      return (
+        <DirectoryInput key={i} index={i} data={data} label={input.label} />
+      );
+    case 'text::any':
+      return (
+        <TextInput key={i} index={i} data={data} label={input.label} />
       );
     default:
       return (
@@ -41,7 +57,7 @@ export const createUsableOutputs = (data) => data.outputs.map((output, i) => {
   switch (output.type) {
     case 'numpy::2d':
       return (
-        <ImageOutput key={i} index={i} data={data} />
+        <ImageOutput key={i} index={i} data={data} label={output.label} />
       );
     default:
       return (
@@ -122,14 +138,18 @@ function UsableNode({ data }) {
       <VStack>
         <NodeHeader data={data} />
 
+        {data.inputs.length && (
         <Text fontSize="xs" p={0} m={0}>
           INPUTS
         </Text>
+        )}
         {createUsableInputs(data)}
 
+        {data.outputs.length && (
         <Text fontSize="xs" p={0} m={0}>
           OUTPUTS
         </Text>
+        )}
         {createUsableOutputs(data)}
 
         <BottomArea />

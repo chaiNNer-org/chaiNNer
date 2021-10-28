@@ -8,7 +8,12 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import ImageFileInput
+from .properties.inputs.file_inputs import (
+    DirectoryInput,
+    ImageExtensionDropdown,
+    ImageFileInput,
+)
+from .properties.inputs.generic_inputs import DropDownInput, TextInput
 from .properties.inputs.numpy_inputs import ImageInput
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
@@ -40,8 +45,13 @@ class ImWriteNode(NodeBase):
     def __init__(self):
         """Constructor"""
         self.description = "Write image from BGR numpy array to file"
-        self.inputs = [ImageInput()]
-        self.outputs = [ImageFileOutput()]
+        self.inputs = [
+            ImageInput(),
+            DirectoryInput(),
+            TextInput("Image Name"),
+            ImageExtensionDropdown(),
+        ]
+        self.outputs = []
 
     def run(
         self, img: ndarray, path: str = "C:/Users/Joey/Desktop/this_is_a_test.png"

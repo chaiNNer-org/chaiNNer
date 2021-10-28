@@ -35,6 +35,9 @@ function ImageFileInput({ extensions, data, index }) {
   return (
     <InputContainer id={id} index={index}>
       <VisuallyHidden>
+        {/* TODO: Replace this with the native electron dialog that does the same thing
+                  I have no idea if it's any better, but it might be less jank.
+        */}
         <input
           type="file"
           id="file"

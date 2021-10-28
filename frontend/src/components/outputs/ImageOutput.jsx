@@ -5,6 +5,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import GenericOutput from './GenericOutput.jsx';
 import OutputContainer from './OutputContainer.jsx';
 
 const { Image: ImageJS } = require('image-js');
@@ -25,7 +26,7 @@ const getColorMode = (img) => {
   }
 };
 
-function ImageOutput({ data, index }) {
+function ImageOutput({ label, data, index }) {
   const [img, setImg] = useState();
   const [path, setPath] = useState('');
   const { id } = data;
@@ -33,7 +34,6 @@ function ImageOutput({ data, index }) {
   const [nodeData] = useNodeData(id);
 
   useEffect(async () => {
-    console.log(nodeData);
     if (nodeData?.sharedData?.file?.path && path !== nodeData.sharedData.file.path) {
       setPath(nodeData.sharedData.file.path);
     }
@@ -45,6 +45,12 @@ function ImageOutput({ data, index }) {
       setImg(loadedImg);
     }
   }, [path]);
+
+  // No preview if no shared file selected
+  // This prevents nodes that output an image but do not select any file from showing a preview
+  if (!nodeData?.sharedData?.file) {
+    return (<GenericOutput label={label} data={data} index={index} />);
+  }
 
   return (
     <OutputContainer hasHandle index={index} id={id}>

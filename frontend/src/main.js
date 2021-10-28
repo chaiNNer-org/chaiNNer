@@ -146,5 +146,14 @@ app.on('uncaughtException', (err) => {
   app.exit(1);
 });
 
+ipcMain.handle('dir-select', () => dialog.showOpenDialog({
+  properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+}));
+
+ipcMain.handle('file-select', (filters, allowMultiple = false) => dialog.showOpenDialog({
+  filters,
+  properties: ['openFile', allowMultiple && 'multiSelections'],
+}));
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
