@@ -1,3 +1,7 @@
+import {
+  removeElements,
+} from 'react-flow-renderer';
+
 export default (state, action) => {
   switch (action.type) {
     case 'SET_STATE':
@@ -27,6 +31,17 @@ export default (state, action) => {
       return {
         ...state,
         nodeData: action.payload,
+      };
+    case 'REMOVE_ELEMENTS':
+      return {
+        ...state,
+        elements: removeElements(action.payload.elements, state.elements),
+        nodeData: action.payload.nodeData,
+      };
+    case 'SET_RFI':
+      return {
+        ...state,
+        rfi: action.payload,
       };
     default:
       return state;

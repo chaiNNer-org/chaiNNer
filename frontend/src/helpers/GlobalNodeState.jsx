@@ -55,14 +55,13 @@ export const GlobalProvider = ({ children }) => {
     });
 
     // Apply input data to inputs when applicable
-    state.elements.forEach((element) => {
-      if (state.nodeData[element.source]) {
-        const { inputData } = state.nodeData[element.source];
-        if (inputData) {
-          Object.keys(inputData).forEach((index) => {
-            result[element.source].inputs[index] = inputData[index];
-          });
-        }
+    Object.keys(state.nodeData).forEach((key) => {
+      const { inputData } = state.nodeData[key];
+      if (inputData) {
+        console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 62 ~ state.elements.forEach ~ inputData', inputData);
+        Object.keys(inputData).forEach((index) => {
+          result[key].inputs[index] = inputData[index];
+        });
       }
     });
 
@@ -95,6 +94,17 @@ export const GlobalProvider = ({ children }) => {
     dispatch({
       type: 'SET_ELEMENTS',
       payload: elements,
+    });
+  }
+
+  function removeElements(elements) {
+    const nodeDataCopy = { ...state.nodeData };
+    elements.forEach((element) => {
+      delete nodeDataCopy[element.id];
+    });
+    dispatch({
+      type: 'REMOVE_ELEMENTS',
+      payload: { elements, nodeData: nodeDataCopy },
     });
   }
 
@@ -158,6 +168,7 @@ export const GlobalProvider = ({ children }) => {
       setElements,
       useNodeData,
       convertToUsableFormat,
+      removeElements,
     }}
     >
       {children}

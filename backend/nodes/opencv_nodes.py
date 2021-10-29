@@ -2,6 +2,8 @@
 Nodes that provide functionality for opencv image manipulation
 """
 
+from os import path
+
 from cv2 import IMREAD_UNCHANGED, imread, imwrite
 from numpy import ndarray
 from sanic.log import logger
@@ -53,12 +55,11 @@ class ImWriteNode(NodeBase):
         ]
         self.outputs = []
 
-    def run(
-        self, img: ndarray, path: str = "C:/Users/Joey/Desktop/this_is_a_test.png"
-    ) -> bool:
+    def run(self, img: ndarray, directory: str, filename: str, extension: str) -> bool:
         """Write an image to the specified path and return write status"""
-
-        logger.info(f"Writing image to path: {path}")
-        status = imwrite(path, img)
+        fullFile = f"{filename}.{extension}"
+        fullPath = path.join(directory, fullFile)
+        logger.info(f"Writing image to path: {fullPath}")
+        status = imwrite(fullPath, img)
 
         return status

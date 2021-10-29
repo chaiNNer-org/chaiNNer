@@ -3,10 +3,10 @@ Nodes that provide functionality for pytorch inference
 """
 
 
-from sanic.log import logger
 from typing import Any, OrderedDict
 
 from numpy import dstack, expand_dims, full, iinfo, ndarray, tile
+from sanic.log import logger
 from torch import device as torch_device
 from torch import load as torch_load
 
@@ -184,8 +184,11 @@ class EsrganNode(NodeBase):
 
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
+        img_tensor = np2tensor(img)
+        logger.info(img_tensor)
         t_img = np2tensor(img).to(torch_device("cuda"))
-        # t_out = t_img.clone()
+        t_out = t_img.clone()
+        logger.info("🚀 ~ file: pytorch_nodes.py ~ line 189 ~ t_out %s", t_out)
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
             t_img,

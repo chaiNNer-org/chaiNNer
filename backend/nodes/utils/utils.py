@@ -4,20 +4,21 @@
 import gc
 from typing import Tuple
 
-from numpy import ascontiguousarray, clip, dtype, ndarray, transpose, uint8
+import numpy as np
+from sanic.log import logger
 from torch import Tensor, cuda, empty, from_numpy
 
 MAX_VALUES_BY_DTYPE = {
-    dtype("int8"): 127,
-    dtype("uint8"): 255,
-    dtype("int16"): 32767,
-    dtype("uint16"): 65535,
-    dtype("int32"): 2147483647,
-    dtype("uint32"): 4294967295,
-    dtype("int64"): 9223372036854775807,
-    dtype("uint64"): 18446744073709551615,
-    dtype("float32"): 1.0,
-    dtype("float64"): 1.0,
+    np.dtype("int8"): 127,
+    np.dtype("uint8"): 255,
+    np.dtype("int16"): 32767,
+    np.dtype("uint16"): 65535,
+    np.dtype("int32"): 2147483647,
+    np.dtype("uint32"): 4294967295,
+    np.dtype("int64"): 9223372036854775807,
+    np.dtype("uint64"): 18446744073709551615,
+    np.dtype("float32"): 1.0,
+    np.dtype("float64"): 1.0,
 }
 
 
@@ -55,10 +56,10 @@ def denorm(x, min_max=(-1.0, 1.0)):
     out = (x - min_max[0]) / (min_max[1] - min_max[0])
     if isinstance(x, Tensor):
         return out.clamp(0, 1)
-    elif isinstance(x, ndarray):
-        return clip(out, 0, 1)
+    elif isinstance(x, np.ndarray):
+        return np.clip(out, 0, 1)
     else:
-        raise TypeError("Got unexpected object type, expected Tensor or ndarray")
+        raise TypeError("Got unexpected object type, expected Tensor or np.ndarray")
 
 
 def norm(x):
@@ -66,14 +67,14 @@ def norm(x):
     out = (x - 0.5) * 2.0
     if isinstance(x, Tensor):
         return out.clamp(-1, 1)
-    elif isinstance(x, ndarray):
-        return clip(out, -1, 1)
+    elif isinstance(x, np.ndarray):
+        return np.clip(out, -1, 1)
     else:
-        raise TypeError("Got unexpected object type, expected Tensor or ndarray")
+        raise TypeError("Got unexpected object type, expected Tensor or np.ndarray")
 
 
 def np2tensor(
-    img: ndarray,
+    img: np.ndarray,
     bgr2rgb=True,
     data_range=1.0,
     normalize=False,
@@ -85,20 +86,20 @@ def np2tensor(
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    if not isinstance(img, ndarray):  # images expected to be uint8 -> 255
-        raise TypeError("Got unexpected object type, expected ndarray")
-
+    if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
+        raise TypeError("Got unexpected object type, expected np.ndarray")
     # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
     # if bgr2rgb:
-    #     img = img[:, :, [2, 1, 0]] #BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
+    #     img = img[
+    #         :, :, [2, 1, 0]
+    #     ]  # BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
     if change_range:
         dtype = img.dtype
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
-        t_dtype = dtype("float32")
+        t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
-
     img = from_numpy(
-        ascontiguousarray(transpose(img, (2, 0, 1)))
+        np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
     ).float()  # "HWC to CHW" and "numpy to tensor"
     if bgr2rgb:
         # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
@@ -124,8 +125,8 @@ def tensor2np(
     data_range=255,
     denormalize=False,
     change_range=True,
-    imtype=uint8,
-) -> ndarray:
+    imtype=np.uint8,
+) -> np.ndarray:
     """Converts a Tensor array into a numpy image array.
     Parameters:
         img (tensor): the input image tensor array
@@ -159,7 +160,7 @@ def tensor2np(
             img_np = rgba_to_bgra(img).numpy()
         else:
             img_np = img.numpy()
-        img_np = transpose(img_np, (1, 2, 0))  # CHW to HWC
+        img_np = np.transpose(img_np, (1, 2, 0))  # CHW to HWC
     elif n_dim == 2:
         img_np = img.numpy()
     else:
@@ -173,9 +174,9 @@ def tensor2np(
     if denormalize:
         img_np = denorm(img_np)  # denormalize if needed
     if change_range:
-        img_np = clip(
+        img_np = np.clip(
             data_range * img_np, 0, data_range
-        ).round()  # clip to the data_range
+        ).round()  # np.clip to the data_range
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32
     return img_np.astype(imtype)

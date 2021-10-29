@@ -20,7 +20,7 @@ function ReactFlowBox({
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
   const {
-    elements, createNode, createConnection, setElements,
+    elements, createNode, createConnection, setElements, removeElements,
   } = useContext(GlobalContext);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ function ReactFlowBox({
       <ReactFlow
         elements={elements}
         onConnect={onConnect}
-        // onElementsRemove={removeElement}
+        onElementsRemove={removeElements}
         onLoad={onLoad}
         onDrop={onDrop}
         onDragOver={onDragOver}

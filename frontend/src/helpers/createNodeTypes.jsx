@@ -9,9 +9,9 @@ import React, { memo } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
+import DropDownInput from '../components/inputs/DropDownInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
 import ImageFileInput from '../components/inputs/ImageFileInput.jsx';
-import PthFileInput from '../components/inputs/PthFileInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
@@ -31,7 +31,7 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
       );
     case 'file::pth':
       return (
-        <PthFileInput key={i} index={i} extensions={input.filetypes} data={data} />
+        <ImageFileInput key={i} index={i} extensions={input.filetypes} data={data} />
       );
     case 'file::directory':
       return (
@@ -40,6 +40,10 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
     case 'text::any':
       return (
         <TextInput key={i} index={i} data={data} label={input.label} />
+      );
+    case 'dropdown::image-extensions':
+      return (
+        <DropDownInput key={i} index={i} data={data} label={input.label} options={input.options} />
       );
     default:
       return (
