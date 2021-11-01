@@ -1,10 +1,11 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
-import { Input, useColorModeValue } from '@chakra-ui/react';
+import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
   useContext,
 } from 'react';
+import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
@@ -26,20 +27,27 @@ function DirectoryInput({ label, data, index }) {
   };
 
   return (
-    <InputContainer id={id} index={index}>
-      <Input
-        placeholder={label}
-        value={nodeData?.sharedData?.path ?? ''}
-        isReadOnly
-        onClick={onButtonClick}
-        isTruncated
-        bg={useColorModeValue('gray.500', 'gray.200')}
-        textColor={useColorModeValue('gray.200', 'gray.700')}
-        borderColor={useColorModeValue('gray.200', 'gray.700')}
-        _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
-        draggable={false}
-        cursor="pointer"
-      />
+    <InputContainer id={id} index={index} label={label}>
+      <InputGroup>
+        <InputLeftElement
+          pointerEvents="none"
+        >
+          <BsFolderPlus />
+        </InputLeftElement>
+        <Input
+          placeholder="Select a directory..."
+          value={nodeData?.sharedData?.path ?? ''}
+          isReadOnly
+          onClick={onButtonClick}
+          isTruncated
+        // bg={useColorModeValue('gray.500', 'gray.200')}
+        // textColor={useColorModeValue('gray.200', 'gray.700')}
+        // borderColor={useColorModeValue('gray.200', 'gray.700')}
+        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
+          draggable={false}
+          cursor="pointer"
+        />
+      </InputGroup>
     </InputContainer>
   );
 }

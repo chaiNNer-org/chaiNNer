@@ -1,17 +1,20 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
-import { CheckCircleIcon, UnlockIcon } from '@chakra-ui/icons';
 import {
-  Center, Flex, Heading, HStack, Icon, Spacer, Text, useColorModeValue, VStack,
+  CheckCircleIcon, CopyIcon, DeleteIcon, UnlockIcon,
+} from '@chakra-ui/icons';
+import {
+  Center, Flex, Heading, HStack, Icon, Menu, MenuButton, MenuItem,
+  MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
 import DropDownInput from '../components/inputs/DropDownInput.jsx';
+import FileInput from '../components/inputs/FileInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
-import ImageFileInput from '../components/inputs/ImageFileInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
@@ -21,7 +24,7 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
   switch (input.type) {
     case 'file::image':
       return (
-        <ImageFileInput
+        <FileInput
           key={i}
           index={i}
           extensions={input.filetypes}
@@ -31,7 +34,7 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
       );
     case 'file::pth':
       return (
-        <ImageFileInput key={i} index={i} extensions={input.filetypes} data={data} />
+        <FileInput key={i} index={i} extensions={input.filetypes} data={data} label={input.label} />
       );
     case 'file::directory':
       return (
@@ -82,13 +85,26 @@ const BottomArea = () => (
       <Icon as={UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} cursor="pointer" />
     </Center>
     <Spacer />
-    <Center>
-      <Icon as={CheckCircleIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} cursor="pointer" />
-    </Center>
+    <Tooltip label="Node Valid" closeOnClick={false} hasArrow gutter={24}>
+      <Center>
+        <Icon as={CheckCircleIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="pointer" />
+      </Center>
+    </Tooltip>
     <Spacer />
     <Center>
-      <Icon as={MdMoreHoriz} w={6} h={6} mt={-4} mb={-4} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} cursor="pointer" />
+      <Menu>
+        <MenuButton as={Center} mt={-4} mb={-4} cursor="pointer">
+          <Icon as={MdMoreHoriz} w={6} h={6} mt={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} />
+        </MenuButton>
+        <Portal>
+          <MenuList>
+            <MenuItem icon={<CopyIcon />}>Duplicate</MenuItem>
+            <MenuItem icon={<DeleteIcon />}>Delete</MenuItem>
+          </MenuList>
+        </Portal>
+      </Menu>
     </Center>
+
   </Flex>
 );
 
@@ -119,22 +135,30 @@ const NodeHeader = ({ data, width }) => {
   );
 };
 
-const NodeWrapper = ({ children }) => (
-  <Center
-    bg={useColorModeValue('gray.50', 'gray.700')}
-    borderWidth="1px"
-    borderRadius="lg"
-    py={2}
-    boxShadow="lg"
-    _hover={{ boxShadow: 'rgba(0, 0, 0, 0.40) 0px 14px 18px -3px', transition: '0.15s ease-in-out', transform: 'translate(-1px, -1px)' }}
-    _active={{ boxShadow: 'rgba(0, 0, 0, 0.40) 0px 14px 18px -3px', transition: '0.15s ease-in-out', transform: 'translate(-1px, -1px)' }}
-    transition="0.2s ease-in-out"
-    onDragCapture={(e) => e.stopPropagation()}
-    onDrag={(e) => e.stopPropagation()}
-  >
-    { children }
-  </Center>
-);
+const NodeWrapper = ({ children }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  // console.log(isDragging);
+  return (
+    <Center
+      bg={useColorModeValue('gray.50', 'gray.700')}
+      borderWidth="1px"
+      borderRadius="lg"
+      py={2}
+      boxShadow="lg"
+      // _hover={{ boxShadow: 'rgba(0, 0, 0, 0.40) 0px 0px 13px -3px', transform: 'translate(-1px, -1px)' }}
+      // _active={{ boxShadow: 'rgba(0, 0, 0, 0.50) 0px 14px 18px -3px', transform: 'translate(-2px, -2px)' }}
+      transition="0.2s ease-in-out"
+      // onDragCapture={() => setIsDragging(true)}
+      // onDrag={() => setIsDragging(true)}
+      // onDragStart={() => setIsDragging(true)}
+      // onDragStartCapture={() => setIsDragging(true)}
+      // onDragEndCapture={() => setIsDragging(false)}
+      // onDragEnter={() => setIsDragging(false)}
+    >
+      { children }
+    </Center>
+  );
+};
 
 function UsableNode({ data }) {
   return (
@@ -143,16 +167,20 @@ function UsableNode({ data }) {
         <NodeHeader data={data} />
 
         {data.inputs.length && (
-        <Text fontSize="xs" p={0} m={0}>
-          INPUTS
-        </Text>
+          <Center>
+            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+              INPUTS
+            </Text>
+          </Center>
         )}
         {createUsableInputs(data)}
 
         {data.outputs.length && (
-        <Text fontSize="xs" p={0} m={0}>
-          OUTPUTS
-        </Text>
+          <Center>
+            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+              OUTPUTS
+            </Text>
+          </Center>
         )}
         {createUsableOutputs(data)}
 

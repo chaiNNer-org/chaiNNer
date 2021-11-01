@@ -27,9 +27,9 @@ function DropDownInput({
   };
 
   return (
-    <InputContainer id={id} index={index}>
+    <InputContainer id={id} index={index} label={label}>
       <Select
-        placeholder={label}
+        // placeholder={label}
         value={selection}
         onChange={handleChange}
         // bg={useColorModeValue('gray.500', 'gray.200')}

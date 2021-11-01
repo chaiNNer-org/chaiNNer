@@ -1,12 +1,12 @@
 /* eslint-disable react/prop-types */
 import {
-  Box, HStack, useColorModeValue,
+  Box, HStack, Text, useColorModeValue,
 } from '@chakra-ui/react';
 import React from 'react';
 import { Handle } from 'react-flow-renderer';
 
 function InputContainer({
-  children, hasHandle, id, index,
+  children, hasHandle, id, index, label,
 }) {
   let contents = children;
   if (hasHandle) {
@@ -36,9 +36,12 @@ function InputContainer({
   return (
     <Box
       p={2}
-      bg={useColorModeValue('gray.200', 'gray.600')}
+      bg={useColorModeValue('gray.100', 'gray.600')}
       w="full"
     >
+      <Text textAlign="center" fontSize="xs" p={1} pt={-1} mt={-1} display={label ? 'block' : 'none'}>
+        {label}
+      </Text>
       {contents}
     </Box>
   );

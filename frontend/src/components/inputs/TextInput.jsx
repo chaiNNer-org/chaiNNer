@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
-import { Input, useColorModeValue } from '@chakra-ui/react';
+import { Input } from '@chakra-ui/react';
 import React, {
   useContext, useState,
 } from 'react';
@@ -25,15 +25,15 @@ function TextInput({ label, data, index }) {
   };
 
   return (
-    <InputContainer id={id} index={index}>
+    <InputContainer id={id} index={index} label={label}>
       <Input
         placeholder={label}
         value={inputText}
         onChange={handleChange}
-        bg={useColorModeValue('gray.500', 'gray.200')}
-        textColor={useColorModeValue('gray.200', 'gray.700')}
-        borderColor={useColorModeValue('gray.200', 'gray.700')}
-        _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
+        // bg={useColorModeValue('gray.500', 'gray.200')}
+        // textColor={useColorModeValue('gray.200', 'gray.700')}
+        // borderColor={useColorModeValue('gray.200', 'gray.700')}
+        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
         draggable={false}
         // cursor="pointer"
       />

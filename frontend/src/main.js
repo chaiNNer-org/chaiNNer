@@ -1,5 +1,5 @@
 import {
-  app, BrowserWindow, dialog, ipcMain, protocol,
+  app, BrowserWindow, dialog, ipcMain, protocol
 } from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
@@ -54,7 +54,7 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: true,
+    show: false,
   });
 
   const splash = new BrowserWindow({

@@ -126,7 +126,14 @@ export const GlobalProvider = ({ children }) => {
   }) {
     const id = createUniqueId();
     const newEdge = {
-      id, sourceHandle, targetHandle, source, target, type,
+      id,
+      sourceHandle,
+      targetHandle,
+      source,
+      target,
+      type,
+      animated: true,
+      style: { strokeWidth: 2 },
     };
     dispatch({
       type: 'CREATE_EDGE',
@@ -160,7 +167,6 @@ export const GlobalProvider = ({ children }) => {
   return (
     <GlobalContext.Provider value={{
       elements: state.elements,
-      connections: state.connections,
       nodeData: state.nodeData,
       createNode,
       createConnection,

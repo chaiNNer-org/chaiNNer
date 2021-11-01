@@ -14,7 +14,9 @@ import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { convertToUsableFormat } = useContext(GlobalContext);
-  const { post } = useFetch('http://localhost:8000/run');
+  const { post } = useFetch('http://localhost:8000/run', {
+    cachePolicy: 'no-cache',
+  });
 
   async function run() {
     const data = convertToUsableFormat();

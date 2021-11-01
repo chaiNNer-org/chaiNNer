@@ -4,7 +4,7 @@ Nodes that provide functionality for opencv image manipulation
 
 from os import path
 
-from cv2 import IMREAD_UNCHANGED, imread, imwrite
+import cv2
 from numpy import ndarray
 from sanic.log import logger
 
@@ -35,7 +35,7 @@ class ImReadNode(NodeBase):
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
-        img = imread(path, IMREAD_UNCHANGED)
+        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 
         return img
 
@@ -60,6 +60,22 @@ class ImWriteNode(NodeBase):
         fullFile = f"{filename}.{extension}"
         fullPath = path.join(directory, fullFile)
         logger.info(f"Writing image to path: {fullPath}")
-        status = imwrite(fullPath, img)
+        status = cv2.imwrite(fullPath, img)
 
         return status
+
+
+@NodeFactory.register("OpenCV", "Image::Show")
+class ImWriteNode(NodeBase):
+    """OpenCV Imshow node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Show image preview in a new window"
+        self.inputs = [ImageInput()]
+        self.outputs = []
+
+    def run(self, img: ndarray) -> bool:
+        """Show image"""
+        cv2.imshow("Image Preview", img)
+        cv2.waitKey(0)

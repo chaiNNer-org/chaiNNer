@@ -36,6 +36,6 @@ def ImageExtensionDropdown() -> Dict:
     """ Input for selecting file type from dropdown """
     return DropDownInput(
         "image-extensions",
-        "Image Extensions",
-        ["png", "jpg", "jpeg", "gif", "tiff", "webp"],
+        "Image Extension",
+        ["png", "jpg", "gif", "tiff", "webp"],
     )

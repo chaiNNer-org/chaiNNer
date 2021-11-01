@@ -1,13 +1,18 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
-import { Input, useColorModeValue, VisuallyHidden } from '@chakra-ui/react';
+import {
+  Input, InputGroup, InputLeftElement, VisuallyHidden,
+} from '@chakra-ui/react';
 import React, {
   useContext, useRef,
 } from 'react';
+import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function ImageFileInput({ extensions, data, index }) {
+function FileInput({
+  extensions, data, index, label,
+}) {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
@@ -33,7 +38,7 @@ function ImageFileInput({ extensions, data, index }) {
   };
 
   return (
-    <InputContainer id={id} index={index}>
+    <InputContainer id={id} index={index} label={label}>
       <VisuallyHidden>
         {/* TODO: Replace this with the native electron dialog that does the same thing
                   I have no idea if it's any better, but it might be less jank.
@@ -49,21 +54,28 @@ function ImageFileInput({ extensions, data, index }) {
           onChange={handleChange}
         />
       </VisuallyHidden>
-      <Input
-        placeholder="Image..."
-        value={nodeData?.sharedData?.file?.name ?? ''}
-        isReadOnly
-        onClick={onButtonClick}
-        isTruncated
-        bg={useColorModeValue('gray.500', 'gray.200')}
-        textColor={useColorModeValue('gray.200', 'gray.700')}
-        borderColor={useColorModeValue('gray.200', 'gray.700')}
-        _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
-        draggable={false}
-        cursor="pointer"
-      />
+      <InputGroup>
+        <InputLeftElement
+          pointerEvents="none"
+        >
+          <BsFileEarmarkPlus />
+        </InputLeftElement>
+        <Input
+          placeholder="Select a file..."
+          value={nodeData?.sharedData?.file?.name ?? ''}
+          isReadOnly
+          onClick={onButtonClick}
+          isTruncated
+        // bg={useColorModeValue('gray.500', 'gray.200')}
+        // textColor={useColorModeValue('gray.200', 'gray.700')}
+        // borderColor={useColorModeValue('gray.200', 'gray.700')}
+        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
+          draggable={false}
+          cursor="pointer"
+        />
+      </InputGroup>
     </InputContainer>
   );
 }
 
-export default ImageFileInput;
+export default FileInput;
