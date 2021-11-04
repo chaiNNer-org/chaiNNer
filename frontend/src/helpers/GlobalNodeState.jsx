@@ -39,17 +39,11 @@ export const GlobalProvider = ({ children }) => {
       };
     });
 
-    console.log('nodes', nodes);
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 27 ~ convertToUsableFormat ~ result', result);
-
     // Apply input data to inputs when applicable
     Object.keys(nodeData).forEach((key) => {
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 47 ~ Object.keys ~ nodeData', nodeData);
       const { inputData } = nodeData[key];
       if (inputData) {
-        console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 62 ~ state.elements.forEach ~ inputData', inputData);
         Object.keys(inputData).forEach((index) => {
-          console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 27 ~ convertToUsableFormat ~ result[key]', result, key, result[key]);
           result[key].inputs[index] = inputData[index];
         });
       }
