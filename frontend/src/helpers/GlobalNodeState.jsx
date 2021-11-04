@@ -39,12 +39,17 @@ export const GlobalProvider = ({ children }) => {
       };
     });
 
+    console.log('nodes', nodes);
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 27 ~ convertToUsableFormat ~ result', result);
+
     // Apply input data to inputs when applicable
     Object.keys(nodeData).forEach((key) => {
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 47 ~ Object.keys ~ nodeData', nodeData);
       const { inputData } = nodeData[key];
       if (inputData) {
         console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 62 ~ state.elements.forEach ~ inputData', inputData);
         Object.keys(inputData).forEach((index) => {
+          console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 27 ~ convertToUsableFormat ~ result[key]', result, key, result[key]);
           result[key].inputs[index] = inputData[index];
         });
       }
@@ -89,6 +94,7 @@ export const GlobalProvider = ({ children }) => {
     });
     setNodes(rfRemoveElements(nodesToRemove, nodes));
     setEdges(rfRemoveElements(edgesToRemove, edges));
+    setNodeData(nodeDataCopy);
   }
 
   function createNode({
@@ -133,9 +139,7 @@ export const GlobalProvider = ({ children }) => {
 
   function useNodeData(id) {
     const individualNodeData = nodeData[id];
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 134 ~ useNodeData ~ individualNodeData', individualNodeData);
     const setNodeDataById = (data) => {
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 134 ~ useNodeData ~ data', data);
       setNodeData({
         ...nodeData,
         [id]: {
