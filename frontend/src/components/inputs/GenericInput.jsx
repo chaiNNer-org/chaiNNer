@@ -1,12 +1,12 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Text } from '@chakra-ui/react';
-import React from 'react';
+import React, { memo } from 'react';
 import InputContainer from './InputContainer.jsx';
 
-function GenericInput({
+const GenericInput = memo(({
   label, hasHandle = true, data, index,
-}) {
+}) => {
   const { id } = data;
   return (
     <InputContainer hasHandle={hasHandle} id={id} index={index}>
@@ -15,6 +15,6 @@ function GenericInput({
       </Text>
     </InputContainer>
   );
-}
+});
 
 export default GenericInput;

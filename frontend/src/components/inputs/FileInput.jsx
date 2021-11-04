@@ -3,16 +3,14 @@
 import {
   Input, InputGroup, InputLeftElement, VisuallyHidden,
 } from '@chakra-ui/react';
-import React, {
-  useContext, useRef,
-} from 'react';
+import React, { memo, useContext, useRef } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function FileInput({
+const FileInput = memo(({
   extensions, data, index, label,
-}) {
+}) => {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
@@ -26,11 +24,16 @@ function FileInput({
 
   const handleChange = (event) => {
     const file = event.target.files[0];
+    console.log('🚀 ~ file: FileInput.jsx ~ line 27 ~ handleChange ~ file', file);
     if (file) {
       const inputData = nodeData?.inputData ?? {};
+      console.log('🚀 ~ file: FileInput.jsx ~ line 30 ~ handleChange ~ inputData', inputData);
       const sharedData = nodeData?.sharedData ?? {};
+      console.log('🚀 ~ file: FileInput.jsx ~ line 32 ~ handleChange ~ sharedData', sharedData);
       inputData[index] = file.path;
-      sharedData.file = file;
+      sharedData.file = {};
+      sharedData.file.path = file.path;
+      sharedData.file.name = file.name;
       setNodeData({ inputData, sharedData });
     }
 
@@ -76,6 +79,6 @@ function FileInput({
       </InputGroup>
     </InputContainer>
   );
-}
+});
 
 export default FileInput;

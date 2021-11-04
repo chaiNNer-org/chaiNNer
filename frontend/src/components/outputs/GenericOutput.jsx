@@ -3,10 +3,10 @@
 import {
   Text,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { memo } from 'react';
 import OutputContainer from './OutputContainer.jsx';
 
-function GenericOutput({ label, data, index }) {
+const GenericOutput = memo(({ label, data, index }) => {
   const { id } = data;
   return (
     <OutputContainer hasHandle id={id} index={index}>
@@ -15,6 +15,6 @@ function GenericOutput({ label, data, index }) {
       </Text>
     </OutputContainer>
   );
-}
+});
 
 export default GenericOutput;

@@ -3,7 +3,9 @@
 import {
   Center, HStack, Image, Tag, VStack,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import GenericOutput from './GenericOutput.jsx';
 import OutputContainer from './OutputContainer.jsx';
@@ -26,7 +28,7 @@ const getColorMode = (img) => {
   }
 };
 
-function ImageOutput({ label, data, index }) {
+const ImageOutput = memo(({ label, data, index }) => {
   const [img, setImg] = useState();
   const [path, setPath] = useState('');
   const { id } = data;
@@ -85,6 +87,6 @@ function ImageOutput({ label, data, index }) {
 
     </OutputContainer>
   );
-}
+});
 
 export default ImageOutput;

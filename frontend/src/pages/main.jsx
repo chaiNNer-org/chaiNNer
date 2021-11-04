@@ -9,9 +9,7 @@ import { ipcRenderer } from 'electron';
 import React, {
   useRef, useState,
 } from 'react';
-import {
-  ReactFlowProvider,
-} from 'react-flow-renderer';
+import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
@@ -82,10 +80,10 @@ function Main() {
   }
 
   return (
-    <GlobalProvider>
-      <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
-        <Header />
-        <ReactFlowProvider>
+    <ReactFlowProvider>
+      <GlobalProvider>
+        <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
+          <Header />
           <HStack
             as={Split}
             initialPrimarySize="28%"
@@ -106,9 +104,9 @@ function Main() {
               wrapperRef={reactFlowWrapper}
             />
           </HStack>
-        </ReactFlowProvider>
-      </VStack>
-    </GlobalProvider>
+        </VStack>
+      </GlobalProvider>
+    </ReactFlowProvider>
 
   );
 }

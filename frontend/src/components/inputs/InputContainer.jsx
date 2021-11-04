@@ -2,12 +2,12 @@
 import {
   Box, HStack, Text, useColorModeValue,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { memo } from 'react';
 import { Handle } from 'react-flow-renderer';
 
-function InputContainer({
+const InputContainer = memo(({
   children, hasHandle, id, index, label,
-}) {
+}) => {
   let contents = children;
   if (hasHandle) {
     const handleColor = useColorModeValue('#EDF2F7', '#171923');
@@ -45,6 +45,6 @@ function InputContainer({
       {contents}
     </Box>
   );
-}
+});
 
 export default InputContainer;

@@ -1,13 +1,11 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Input } from '@chakra-ui/react';
-import React, {
-  useContext, useState,
-} from 'react';
+import React, { memo, useContext, useState } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function TextInput({ label, data, index }) {
+const TextInput = memo(({ label, data, index }) => {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
@@ -39,6 +37,6 @@ function TextInput({ label, data, index }) {
       />
     </InputContainer>
   );
-}
+});
 
 export default TextInput;

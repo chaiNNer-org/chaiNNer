@@ -2,20 +2,18 @@
 /* eslint-disable react/prop-types */
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, {
-  useContext,
-} from 'react';
+import React, { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function DirectoryInput({ label, data, index }) {
+const DirectoryInput = memo(({ label, data, index }) => {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
 
   const onButtonClick = async () => {
-    const { canceled, filePaths } = await ipcRenderer.invoke('dir-select');
+    const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', nodeData?.sharedData?.path ?? '');
     const path = filePaths[0];
     if (!canceled && path) {
       const inputData = nodeData?.inputData ?? {};
@@ -50,6 +48,6 @@ function DirectoryInput({ label, data, index }) {
       </InputGroup>
     </InputContainer>
   );
-}
+});
 
 export default DirectoryInput;

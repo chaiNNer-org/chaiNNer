@@ -1,15 +1,13 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Select } from '@chakra-ui/react';
-import React, {
-  useContext, useState,
-} from 'react';
+import React, { memo, useContext, useState } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
-function DropDownInput({
+const DropDownInput = memo(({
   label, options, data, index,
-}) {
+}) => {
   const { id } = data;
   const { useNodeData } = useContext(GlobalContext);
   const [nodeData, setNodeData] = useNodeData(id);
@@ -44,6 +42,6 @@ function DropDownInput({
       </Select>
     </InputContainer>
   );
-}
+});
 
 export default DropDownInput;

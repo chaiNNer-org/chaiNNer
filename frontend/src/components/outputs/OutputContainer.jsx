@@ -2,12 +2,12 @@
 import {
   Box, HStack, useColorModeValue,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { memo } from 'react';
 import { Handle } from 'react-flow-renderer';
 
-function OutputContainer({
+const OutputContainer = memo(({
   children, hasHandle, index, id,
-}) {
+}) => {
   let contents = children;
   if (hasHandle) {
     const handleColor = useColorModeValue('#EDF2F7', '#171923');
@@ -44,6 +44,6 @@ function OutputContainer({
       </Box>
     </>
   );
-}
+});
 
 export default OutputContainer;

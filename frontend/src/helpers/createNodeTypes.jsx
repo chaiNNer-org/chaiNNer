@@ -20,7 +20,7 @@ import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
 
-export const createUsableInputs = (data) => data.inputs.map((input, i) => {
+export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) => {
   switch (input.type) {
     case 'file::image':
       return (
@@ -53,14 +53,15 @@ export const createUsableInputs = (data) => data.inputs.map((input, i) => {
         <GenericInput key={i} index={i} label={input.label} data={data} />
       );
   }
-});
+}));
+
 export const createRepresentativeInputs = (category, node) => (
   node.inputs.map((input, i) => (
     <GenericInput key={i} label={input.label} hasHandle={false} />
   ))
 );
 
-export const createUsableOutputs = (data) => data.outputs.map((output, i) => {
+export const CreateUsableOutputs = memo(({ data }) => data.outputs.map((output, i) => {
   switch (output.type) {
     case 'numpy::2d':
       return (
@@ -71,7 +72,7 @@ export const createUsableOutputs = (data) => data.outputs.map((output, i) => {
         <GenericOutput key={i} index={i} label={output.label} data={data} />
       );
   }
-});
+}));
 
 export const createRepresentativeOutputs = (category, node) => (
   node.outputs.map((output, i) => (
@@ -79,7 +80,7 @@ export const createRepresentativeOutputs = (category, node) => (
   ))
 );
 
-const BottomArea = () => (
+const BottomArea = memo(() => (
   <Flex w="full" pl={2} pr={2}>
     <Center>
       <Icon as={UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} cursor="pointer" />
@@ -106,9 +107,9 @@ const BottomArea = () => (
     </Center>
 
   </Flex>
-);
+));
 
-const NodeHeader = ({ data, width }) => {
+const NodeHeader = memo(({ data, width }) => {
   const { category, type } = data;
   return (
     <Center
@@ -133,9 +134,9 @@ const NodeHeader = ({ data, width }) => {
       </HStack>
     </Center>
   );
-};
+});
 
-const NodeWrapper = ({ children }) => {
+const NodeWrapper = memo(({ children }) => {
   const [isDragging, setIsDragging] = useState(false);
   // console.log(isDragging);
   return (
@@ -158,7 +159,7 @@ const NodeWrapper = ({ children }) => {
       { children }
     </Center>
   );
-};
+});
 
 function UsableNode({ data }) {
   return (
@@ -173,7 +174,7 @@ function UsableNode({ data }) {
             </Text>
           </Center>
         )}
-        {createUsableInputs(data)}
+        <CreateUsableInputs data={data} />
 
         {data.outputs.length && (
           <Center>
@@ -182,7 +183,7 @@ function UsableNode({ data }) {
             </Text>
           </Center>
         )}
-        {createUsableOutputs(data)}
+        <CreateUsableOutputs data={data} />
 
         <BottomArea />
       </VStack>

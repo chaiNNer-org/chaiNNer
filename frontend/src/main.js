@@ -1,5 +1,5 @@
 import {
-  app, BrowserWindow, dialog, ipcMain, protocol
+  app, BrowserWindow, dialog, ipcMain, protocol,
 } from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
@@ -146,11 +146,12 @@ app.on('uncaughtException', (err) => {
   app.exit(1);
 });
 
-ipcMain.handle('dir-select', () => dialog.showOpenDialog({
+ipcMain.handle('dir-select', (event, path) => dialog.showOpenDialog({
+  defaultPath: path,
   properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
 }));
 
-ipcMain.handle('file-select', (filters, allowMultiple = false) => dialog.showOpenDialog({
+ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.showOpenDialog({
   filters,
   properties: ['openFile', allowMultiple && 'multiSelections'],
 }));

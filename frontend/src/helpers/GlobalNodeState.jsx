@@ -1,62 +1,47 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
-import React, { createContext, useReducer } from 'react';
+import React, {
+  createContext, useCallback, useEffect, useState,
+} from 'react';
+import {
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
+} from 'react-flow-renderer';
 import { v4 as uuidv4 } from 'uuid';
-import AppReducer from './AppReducer.js';
-// import useSessionStorage from './useSessionStorage.js';
+import useSessionStorage from './useSessionStorage.js';
 
-const initialState = {
-  elements: [],
-  nodeData: {},
-};
-
-export const GlobalContext = createContext(initialState);
+export const GlobalContext = createContext({});
 
 function createUniqueId() {
   return uuidv4();
 }
 
 export const GlobalProvider = ({ children }) => {
-  // const [sessionState, setSessionState] = useSessionStorage('globalState', initialState);
-  const [state, dispatch] = useReducer(AppReducer, initialState);
-
-  //   useEffect(() => {
-  //     console.log('STATE CHANGE', state.nodeData);
-  //     setSessionState(state);
-  //   }, [state]);
-
-  //   useEffect(() => {
-  //     console.log('sessionState', sessionState);
-  //     dispatch({
-  //       type: 'SET_STATE',
-  //       payload: sessionState,
-  //     });
-  //   }, []);
-
-  // Actions for changing state
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const { transform } = useZoomPanHelper();
 
   function convertToUsableFormat() {
     const result = {};
 
     // Set up each node in the result
-    state.elements.forEach((element) => {
-      if (element.data && !element.source) {
-        const { type, id, data } = element;
-        const { category } = data;
-        // Node
-        result[id] = {
-          category,
-          node: type,
-          id,
-          inputs: {},
-          outputs: {},
-        };
-      }
+    nodes.forEach((element) => {
+      const { type, id, data } = element;
+      const { category } = data;
+      // Node
+      result[id] = {
+        category,
+        node: type,
+        id,
+        inputs: {},
+        outputs: {},
+      };
     });
 
     // Apply input data to inputs when applicable
-    Object.keys(state.nodeData).forEach((key) => {
-      const { inputData } = state.nodeData[key];
+    Object.keys(nodeData).forEach((key) => {
+      const { inputData } = nodeData[key];
       if (inputData) {
         console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 62 ~ state.elements.forEach ~ inputData', inputData);
         Object.keys(inputData).forEach((index) => {
@@ -67,16 +52,14 @@ export const GlobalProvider = ({ children }) => {
 
     // Apply inputs and outputs from connections
     // Note: As-is, this will overwrite inputted data from above
-    state.elements.forEach((element) => {
-      if (element.source && !element.data) {
-        const {
-          // eslint-disable-next-line no-unused-vars
-          id, sourceHandle, targetHandle, source, target, type,
-        } = element;
-        // Connection
-        result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: target };
-        result[target].inputs[targetHandle.split('-').slice(-1)] = { id: source };
-      }
+    edges.forEach((element) => {
+      const {
+        // eslint-disable-next-line no-unused-vars
+        id, sourceHandle, targetHandle, source, target, type,
+      } = element;
+      // Connection
+      result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: target };
+      result[target].inputs[targetHandle.split('-').slice(-1)] = { id: source };
     });
 
     // Convert inputs and outputs to arrays
@@ -90,22 +73,22 @@ export const GlobalProvider = ({ children }) => {
     return result;
   }
 
-  function setElements(elements) {
-    dispatch({
-      type: 'SET_ELEMENTS',
-      payload: elements,
-    });
-  }
+  // function setElements(elements) {
+  //   dispatch({
+  //     type: 'SET_ELEMENTS',
+  //     payload: elements,
+  //   });
+  // }
 
   function removeElements(elements) {
-    const nodeDataCopy = { ...state.nodeData };
-    elements.forEach((element) => {
-      delete nodeDataCopy[element.id];
+    const nodeDataCopy = { ...nodeData };
+    const nodesToRemove = elements.filter((element) => element.data && !element.source);
+    const edgesToRemove = elements.filter((element) => !element.data && element.source);
+    nodesToRemove.forEach((node) => {
+      delete nodeDataCopy[node.id];
     });
-    dispatch({
-      type: 'REMOVE_ELEMENTS',
-      payload: { elements, nodeData: nodeDataCopy },
-    });
+    setNodes(rfRemoveElements(nodesToRemove, nodes));
+    setEdges(rfRemoveElements(edgesToRemove, edges));
   }
 
   function createNode({
@@ -115,10 +98,10 @@ export const GlobalProvider = ({ children }) => {
     const newNode = {
       type, id, position, data: { ...data, id },
     };
-    dispatch({
-      type: 'CREATE_NODE',
-      payload: newNode,
-    });
+    setNodes([
+      ...nodes,
+      newNode,
+    ]);
   }
 
   function createConnection({
@@ -135,46 +118,71 @@ export const GlobalProvider = ({ children }) => {
       animated: true,
       style: { strokeWidth: 2 },
     };
-    dispatch({
-      type: 'CREATE_EDGE',
-      payload: newEdge,
-    });
+    setEdges([
+      ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
+      newEdge,
+    ]);
   }
 
-  function removeItemFromList(item) {
-    dispatch({
-      type: 'REMOVE_ITEM',
-      payload: item,
-    });
-  }
+  // function removeItemFromList(item) {
+  //   dispatch({
+  //     type: 'REMOVE_ITEM',
+  //     payload: item,
+  //   });
+  // }
 
   function useNodeData(id) {
-    const nodeData = state.nodeData[id];
+    const individualNodeData = nodeData[id];
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 134 ~ useNodeData ~ individualNodeData', individualNodeData);
     const setNodeDataById = (data) => {
-      dispatch({
-        type: 'SET_NODE_DATA',
-        payload: {
-          ...state.nodeData,
-          [id]: {
-            ...data,
-          },
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 134 ~ useNodeData ~ data', data);
+      setNodeData({
+        ...nodeData,
+        [id]: {
+          ...data,
         },
       });
     };
-    return [nodeData, setNodeDataById];
+    return [individualNodeData, setNodeDataById];
   }
+
+  useEffect(() => {
+    const flow = JSON.parse(sessionStorage.getItem('rfi'));
+    if (flow) {
+      const [x = 0, y = 0] = flow.position;
+      setNodes(flow.elements.filter((element) => isNode(element)) || []);
+      setEdges(flow.elements.filter((element) => isEdge(element)) || []);
+      transform({ x, y, zoom: flow.zoom || 0 });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (reactFlowInstance) {
+      const flow = reactFlowInstance.toObject();
+      sessionStorage.setItem('rfi', JSON.stringify(flow));
+    }
+  }, [nodes, edges, reactFlowInstance]);
+
+  const updateRfi = useCallback(() => {
+    if (reactFlowInstance) {
+      const flow = reactFlowInstance.toObject();
+      sessionStorage.setItem('rfi', JSON.stringify(flow));
+    }
+  }, [nodes, edges, reactFlowInstance, transform]);
 
   return (
     <GlobalContext.Provider value={{
-      elements: state.elements,
-      nodeData: state.nodeData,
+      elements: [...nodes, ...edges],
+      nodeData,
       createNode,
       createConnection,
-      removeItemFromList,
-      setElements,
+      // removeItemFromList,
       useNodeData,
       convertToUsableFormat,
       removeElements,
+      reactFlowInstance,
+      setReactFlowInstance,
+      updateRfi,
     }}
     >
       {children}
