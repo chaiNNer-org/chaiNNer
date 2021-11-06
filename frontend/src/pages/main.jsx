@@ -81,13 +81,13 @@ function Main() {
 
   return (
     <ReactFlowProvider>
-      <GlobalProvider>
+      <GlobalProvider nodeTypes={nodeTypes}>
         <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
           <Header />
           <HStack
             as={Split}
-            initialPrimarySize="28%"
-            minPrimarySize="250px"
+            initialPrimarySize="550px"
+            minPrimarySize="290px"
             minSecondarySize="50%"
             splitterSize="10px"
             defaultSplitterColors={{

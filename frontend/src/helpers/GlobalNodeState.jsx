@@ -15,7 +15,7 @@ function createUniqueId() {
   return uuidv4();
 }
 
-export const GlobalProvider = ({ children }) => {
+export const GlobalProvider = ({ nodeTypes, children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
@@ -168,6 +168,21 @@ export const GlobalProvider = ({ children }) => {
     }
   }, [nodes, edges, reactFlowInstance, transform]);
 
+  function isValidConnection({
+    target, targetHandle, source, sourceHandle,
+  }) {
+    const sourceHandleIndex = sourceHandle.split('-').slice(-1);
+    const targetHandleIndex = targetHandle.split('-').slice(-1);
+
+    const { outputs: sourceOutputs } = nodes.find((node) => node.id === source);
+    const { inputs: targetInputs } = nodes.find((node) => node.id === target);
+
+    const sourceOutput = sourceOutputs[sourceHandleIndex];
+    const targetOutput = targetInputs[targetHandleIndex];
+
+    return sourceOutput.type === targetOutput.type;
+  }
+
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
@@ -181,6 +196,7 @@ export const GlobalProvider = ({ children }) => {
       reactFlowInstance,
       setReactFlowInstance,
       updateRfi,
+      isValidConnection,
     }}
     >
       {children}

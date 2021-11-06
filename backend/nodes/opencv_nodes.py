@@ -15,8 +15,14 @@ from .properties.inputs.file_inputs import (
     ImageExtensionDropdown,
     ImageFileInput,
 )
-from .properties.inputs.generic_inputs import DropDownInput, TextInput
+from .properties.inputs.generic_inputs import (
+    DropDownInput,
+    IntegerInput,
+    NumberInput,
+    TextInput,
+)
 from .properties.inputs.numpy_inputs import ImageInput
+from .properties.inputs.opencv_inputs import InterpolationInput
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
@@ -79,3 +85,54 @@ class ImWriteNode(NodeBase):
         """Show image"""
         cv2.imshow("Image Preview", img)
         cv2.waitKey(0)
+
+
+@NodeFactory.register("OpenCV", "Resize::Factor")
+class ImResizeByFactorNode(NodeBase):
+    """OpenCV resize node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Resize a numpy array image by a scale factor"
+        self.inputs = [ImageInput(), NumberInput("Scale Factor"), InterpolationInput()]
+        self.outputs = [ImageOutput()]
+
+    def run(self, img: ndarray, scale: float, interpolation: int) -> ndarray:
+        """Takes an image and resizes it"""
+
+        logger.info(f"Resizing image by {scale} via {interpolation}")
+        result = cv2.resize(
+            img,
+            None,
+            fx=float(scale),
+            fy=float(scale),
+            interpolation=int(interpolation),
+        )
+
+        return result
+
+
+@NodeFactory.register("OpenCV", "Resize::Resolution")
+class ImResizeToResolutionNode(NodeBase):
+    """OpenCV resize node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Resize a numpy array image to an exact resolution"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Width"),
+            IntegerInput("Height"),
+            InterpolationInput(),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(self, img: ndarray, width: int, height: int, interpolation: int) -> ndarray:
+        """Takes an image and resizes it"""
+
+        logger.info(f"Resizing image to {width}x{height} via {interpolation}")
+        result = cv2.resize(
+            img, (int(width), int(height)), interpolation=int(interpolation)
+        )
+
+        return result

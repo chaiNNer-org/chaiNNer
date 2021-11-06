@@ -1,7 +1,7 @@
-from typing import List
+from typing import Dict, List
 
 
-def DropDownInput(input_type: str, label: str, options: List[str]) -> str:
+def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
     """ Input for a dropdown """
     return {
         "type": f"dropdown::{input_type}",
@@ -10,9 +10,25 @@ def DropDownInput(input_type: str, label: str, options: List[str]) -> str:
     }
 
 
-def TextInput(label: str) -> str:
+def TextInput(label: str) -> Dict:
     """ Input for arbitrary text """
     return {
         "type": "text::any",
+        "label": label,
+    }
+
+
+def NumberInput(label: str) -> Dict:
+    """ Input for arbitrary number """
+    return {
+        "type": "number::any",
+        "label": label,
+    }
+
+
+def IntegerInput(label: str) -> Dict:
+    """ Input for integer number """
+    return {
+        "type": "number::integer",
         "label": label,
     }

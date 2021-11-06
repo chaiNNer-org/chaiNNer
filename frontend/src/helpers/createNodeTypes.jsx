@@ -15,6 +15,7 @@ import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
 import DropDownInput from '../components/inputs/DropDownInput.jsx';
 import FileInput from '../components/inputs/FileInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
+import NumberInput from '../components/inputs/NumberInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import ImageOutput from '../components/outputs/ImageOutput.jsx';
@@ -47,6 +48,18 @@ export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) 
     case 'dropdown::image-extensions':
       return (
         <DropDownInput key={i} index={i} data={data} label={input.label} options={input.options} />
+      );
+    case 'dropdown::generic':
+      return (
+        <DropDownInput key={i} index={i} data={data} label={input.label} options={input.options} />
+      );
+    case 'number::any':
+      return (
+        <NumberInput key={i} index={i} data={data} label={input.label} min={0} />
+      );
+    case 'number::integer':
+      return (
+        <NumberInput key={i} index={i} data={data} label={input.label} min={0} precision={0} />
       );
     default:
       return (

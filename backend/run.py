@@ -1,6 +1,6 @@
 from sanic import Sanic
-from sanic.response import json
 from sanic.log import logger
+from sanic.response import json
 from sanic_cors import CORS
 
 from nodes import numpy_nodes, opencv_nodes, pytorch_nodes
@@ -40,7 +40,9 @@ async def run(request):
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=1)
-        return json({"message": "Error running nodes!"}, status=500)
+        return json(
+            {"message": "Error running nodes!", "exception": str(exception)}, status=500
+        )
 
 
 if __name__ == "__main__":

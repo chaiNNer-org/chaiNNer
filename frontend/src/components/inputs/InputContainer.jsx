@@ -1,13 +1,17 @@
+/* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
   Box, HStack, Text, useColorModeValue,
 } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import React, { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
+import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const InputContainer = memo(({
   children, hasHandle, id, index, label,
 }) => {
+  const { isValidConnection } = useContext(GlobalContext);
+
   let contents = children;
   if (hasHandle) {
     const handleColor = useColorModeValue('#EDF2F7', '#171923');
@@ -26,6 +30,7 @@ const InputContainer = memo(({
             }}
             onConnect={(params) => console.log('handle onConnect', params)}
             isConnectable
+            isValidConnection={isValidConnection}
           />
         </div>
         {children}

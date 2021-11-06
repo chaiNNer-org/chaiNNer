@@ -54,7 +54,7 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: false,
+    show: true,
   });
 
   const splash = new BrowserWindow({

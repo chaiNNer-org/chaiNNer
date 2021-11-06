@@ -37,5 +37,26 @@ def ImageExtensionDropdown() -> Dict:
     return DropDownInput(
         "image-extensions",
         "Image Extension",
-        ["png", "jpg", "gif", "tiff", "webp"],
+        [
+            {
+                "option": "PNG",
+                "value": "png",
+            },
+            {
+                "option": "JPG",
+                "value": "jpg",
+            },
+            {
+                "option": "GIF",
+                "value": "gif",
+            },
+            {
+                "option": "TIFF",
+                "value": "tiff",
+            },
+            {
+                "option": "WEBP",
+                "value": "webp",
+            },
+        ],
     )
