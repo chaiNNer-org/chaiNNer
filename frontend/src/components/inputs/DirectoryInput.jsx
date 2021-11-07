@@ -44,6 +44,7 @@ const DirectoryInput = memo(({ label, data, index }) => {
         // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
           draggable={false}
           cursor="pointer"
+          className="nodrag"
         />
       </InputGroup>
     </InputContainer>

@@ -24,12 +24,9 @@ const FileInput = memo(({
 
   const handleChange = (event) => {
     const file = event.target.files[0];
-    console.log('🚀 ~ file: FileInput.jsx ~ line 27 ~ handleChange ~ file', file);
     if (file) {
       const inputData = nodeData?.inputData ?? {};
-      console.log('🚀 ~ file: FileInput.jsx ~ line 30 ~ handleChange ~ inputData', inputData);
       const sharedData = nodeData?.sharedData ?? {};
-      console.log('🚀 ~ file: FileInput.jsx ~ line 32 ~ handleChange ~ sharedData', sharedData);
       inputData[index] = file.path;
       sharedData.file = {};
       sharedData.file.path = file.path;
@@ -75,6 +72,7 @@ const FileInput = memo(({
         // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
           draggable={false}
           cursor="pointer"
+          className="nodrag"
         />
       </InputGroup>
     </InputContainer>

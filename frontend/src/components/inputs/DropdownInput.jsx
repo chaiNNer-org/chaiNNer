@@ -35,6 +35,7 @@ const DropDownInput = memo(({
         // borderColor={useColorModeValue('gray.200', 'gray.700')}
         // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
         draggable={false}
+        className="nodrag"
       >
         {options.map(({ option, value }) => (
           <option key={option} value={value}>{option}</option>

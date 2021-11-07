@@ -32,6 +32,7 @@ const NumericalInput = memo(({
         value={nodeData?.inputData[index]}
         onChange={handleChange}
         draggable={false}
+        className="nodrag"
       >
         <NumberInputField />
         <NumberInputStepper>

@@ -6,6 +6,7 @@ import {
 import React, { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import './flow.css';
 
 const InputContainer = memo(({
   children, hasHandle, id, index, label,

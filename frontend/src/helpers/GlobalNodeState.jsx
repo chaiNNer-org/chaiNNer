@@ -171,16 +171,16 @@ export const GlobalProvider = ({ nodeTypes, children }) => {
   function isValidConnection({
     target, targetHandle, source, sourceHandle,
   }) {
-    const sourceHandleIndex = sourceHandle.split('-').slice(-1);
-    const targetHandleIndex = targetHandle.split('-').slice(-1);
+    const [sourceHandleIndex] = sourceHandle.split('-').slice(-1);
+    const [targetHandleIndex] = targetHandle.split('-').slice(-1);
 
-    const { outputs: sourceOutputs } = nodes.find((node) => node.id === source);
-    const { inputs: targetInputs } = nodes.find((node) => node.id === target);
+    const sourceNode = nodes.find((node) => node.id === source);
+    const targetNode = nodes.find((node) => node.id === target);
 
-    const sourceOutput = sourceOutputs[sourceHandleIndex];
-    const targetOutput = targetInputs[targetHandleIndex];
+    const sourceOutput = sourceNode.data.outputs[sourceHandleIndex];
+    const targetInput = targetNode.data.inputs[targetHandleIndex];
 
-    return sourceOutput.type === targetOutput.type;
+    return sourceOutput.type === targetInput.type;
   }
 
   return (
