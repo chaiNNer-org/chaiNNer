@@ -18,7 +18,6 @@ import GenericInput from '../components/inputs/GenericInput.jsx';
 import NumberInput from '../components/inputs/NumberInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
-import ImageOutput from '../components/outputs/ImageOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
 
 export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) => {
@@ -76,10 +75,10 @@ export const createRepresentativeInputs = (category, node) => (
 
 export const CreateUsableOutputs = memo(({ data }) => data.outputs.map((output, i) => {
   switch (output.type) {
-    case 'numpy::2d':
-      return (
-        <ImageOutput key={i} index={i} data={data} label={output.label} />
-      );
+    // case 'numpy::2d':
+    //   return (
+    //     <ImageOutput key={i} index={i} data={data} label={output.label} />
+    //   );
     default:
       return (
         <GenericOutput key={i} index={i} label={output.label} data={data} />

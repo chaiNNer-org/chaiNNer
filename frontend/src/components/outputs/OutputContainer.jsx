@@ -17,7 +17,18 @@ const OutputContainer = memo(({
     const handleColor = useColorModeValue('#EDF2F7', '#171923');
     const borderColor = useColorModeValue('#171923', '#F7FAFC');
     contents = (
-      <HStack h="full">
+      <HStack
+        h="full"
+        sx={{
+          '.react-flow__handle-connecting': {
+            background: '#E53E3E !important',
+            cursor: 'not-allowed !important',
+          },
+          '.react-flow__handle-valid': {
+            background: '#38A169 !important',
+          },
+        }}
+      >
         {children}
         <div
           style={{ position: 'absolute', right: '-4px', width: 0 }}
@@ -27,7 +38,7 @@ const OutputContainer = memo(({
             position="right"
             id={`${id}-${index}`}
             style={{
-              background: handleColor, width: '15px', height: '15px', borderWidth: '1px', borderColor,
+              width: '15px', height: '15px', borderWidth: '1px', borderColor, transition: '0.25s ease-in-out', background: handleColor,
             }}
             onConnect={(params) => console.log('handle onConnect', params)}
             isConnectable

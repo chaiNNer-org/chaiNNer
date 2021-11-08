@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Select } from '@chakra-ui/react';
-import React, { memo, useContext, useState } from 'react';
+import React, { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
@@ -9,31 +9,24 @@ const DropDownInput = memo(({
   label, options, data, index,
 }) => {
   const { id } = data;
-  const { useNodeData } = useContext(GlobalContext);
-  const [nodeData, setNodeData] = useNodeData(id);
+  const { useInputData } = useContext(GlobalContext);
+  const [selection, setSelection] = useInputData(id, index);
 
-  const [selection, setSelection] = useState('');
+  // Set the input state to the first option on mount otherwise it thinks nothing is selected
+  useEffect(() => {
+    setSelection(options[0].value);
+  }, []);
 
   const handleChange = (event) => {
-    const text = event.target.value;
-    setSelection(text);
-    const inputData = nodeData?.inputData ?? {};
-    const sharedData = nodeData?.sharedData ?? {};
-    inputData[index] = text;
-    sharedData.selection = text;
-    setNodeData({ inputData, sharedData });
+    const { value } = event.target;
+    setSelection(value);
   };
 
   return (
     <InputContainer id={id} index={index} label={label}>
       <Select
-        // placeholder={label}
         value={selection}
         onChange={handleChange}
-        // bg={useColorModeValue('gray.500', 'gray.200')}
-        // textColor={useColorModeValue('gray.200', 'gray.700')}
-        // borderColor={useColorModeValue('gray.200', 'gray.700')}
-        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
         draggable={false}
         className="nodrag"
       >

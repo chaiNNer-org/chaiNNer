@@ -1,19 +1,23 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Input, InputGroup, InputLeftElement, VisuallyHidden,
+  Box, Input, InputGroup, InputLeftElement, VisuallyHidden, VStack,
 } from '@chakra-ui/react';
-import React, { memo, useContext, useRef } from 'react';
+import path from 'path';
+import React, {
+  memo, useContext, useRef,
+} from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
+import ImagePreview from './previews/ImagePreview.jsx';
 
 const FileInput = memo(({
   extensions, data, index, label,
 }) => {
   const { id } = data;
-  const { useNodeData } = useContext(GlobalContext);
-  const [nodeData, setNodeData] = useNodeData(id);
+  const { useInputData } = useContext(GlobalContext);
+  const [filePath, setFilePath] = useInputData(id, index);
 
   const inputFile = useRef(null);
 
@@ -25,16 +29,18 @@ const FileInput = memo(({
   const handleChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const inputData = nodeData?.inputData ?? {};
-      const sharedData = nodeData?.sharedData ?? {};
-      inputData[index] = file.path;
-      sharedData.file = {};
-      sharedData.file.path = file.path;
-      sharedData.file.name = file.name;
-      setNodeData({ inputData, sharedData });
+      setFilePath(file.path);
     }
-
     inputFile.current.blur();
+  };
+
+  const preview = () => {
+    switch (data?.inputs[index]?.type) {
+      case 'file::image':
+        return <ImagePreview path={filePath} />;
+      default:
+        return <></>;
+    }
   };
 
   return (
@@ -54,27 +60,30 @@ const FileInput = memo(({
           onChange={handleChange}
         />
       </VisuallyHidden>
-      <InputGroup>
-        <InputLeftElement
-          pointerEvents="none"
-        >
-          <BsFileEarmarkPlus />
-        </InputLeftElement>
-        <Input
-          placeholder="Select a file..."
-          value={nodeData?.sharedData?.file?.name ?? ''}
-          isReadOnly
-          onClick={onButtonClick}
-          isTruncated
-        // bg={useColorModeValue('gray.500', 'gray.200')}
-        // textColor={useColorModeValue('gray.200', 'gray.700')}
-        // borderColor={useColorModeValue('gray.200', 'gray.700')}
-        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
-          draggable={false}
-          cursor="pointer"
-          className="nodrag"
-        />
-      </InputGroup>
+      <VStack>
+        <InputGroup>
+          <InputLeftElement
+            pointerEvents="none"
+          >
+            <BsFileEarmarkPlus />
+          </InputLeftElement>
+          <Input
+            placeholder="Select a file..."
+            value={filePath ? path.parse(filePath).base : ''}
+            isReadOnly
+            onClick={onButtonClick}
+            isTruncated
+            draggable={false}
+            cursor="pointer"
+            className="nodrag"
+          />
+        </InputGroup>
+        {filePath && (
+        <Box>
+          { preview() }
+        </Box>
+        )}
+      </VStack>
     </InputContainer>
   );
 });

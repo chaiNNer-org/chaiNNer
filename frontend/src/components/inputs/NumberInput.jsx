@@ -11,14 +11,11 @@ const NumericalInput = memo(({
   label, data, index, def, min, max, precision,
 }) => {
   const { id } = data;
-  const { useNodeData } = useContext(GlobalContext);
-  const [nodeData, setNodeData] = useNodeData(id);
+  const { useInputData } = useContext(GlobalContext);
+  const [input, setInput] = useInputData(id, index);
 
   const handleChange = (number) => {
-    const inputData = nodeData?.inputData ?? {};
-    const sharedData = nodeData?.sharedData ?? {};
-    inputData[index] = number;
-    setNodeData({ inputData, sharedData });
+    setInput(number);
   };
 
   return (
@@ -29,7 +26,7 @@ const NumericalInput = memo(({
         max={max}
         precision={precision}
         placeholder={label}
-        value={nodeData?.inputData[index]}
+        value={input}
         onChange={handleChange}
         draggable={false}
         className="nodrag"

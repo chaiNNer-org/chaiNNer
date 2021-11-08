@@ -15,7 +15,7 @@ function createUniqueId() {
   return uuidv4();
 }
 
-export const GlobalProvider = ({ nodeTypes, children }) => {
+export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
@@ -41,7 +41,7 @@ export const GlobalProvider = ({ nodeTypes, children }) => {
 
     // Apply input data to inputs when applicable
     Object.keys(nodeData).forEach((key) => {
-      const { inputData } = nodeData[key];
+      const inputData = nodeData[key];
       if (inputData) {
         Object.keys(inputData).forEach((index) => {
           result[key].inputs[index] = inputData[index];
@@ -67,17 +67,10 @@ export const GlobalProvider = ({ nodeTypes, children }) => {
       result[id].outputs = Object.values(result[id].outputs);
     });
 
-    console.log(JSON.stringify(result));
+    // console.log(JSON.stringify(result));
 
     return result;
   }
-
-  // function setElements(elements) {
-  //   dispatch({
-  //     type: 'SET_ELEMENTS',
-  //     payload: elements,
-  //   });
-  // }
 
   function removeElements(elements) {
     const nodeDataCopy = { ...nodeData };
@@ -124,26 +117,6 @@ export const GlobalProvider = ({ nodeTypes, children }) => {
     ]);
   }
 
-  // function removeItemFromList(item) {
-  //   dispatch({
-  //     type: 'REMOVE_ITEM',
-  //     payload: item,
-  //   });
-  // }
-
-  function useNodeData(id) {
-    const individualNodeData = nodeData[id];
-    const setNodeDataById = (data) => {
-      setNodeData({
-        ...nodeData,
-        [id]: {
-          ...data,
-        },
-      });
-    };
-    return [individualNodeData, setNodeDataById];
-  }
-
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
     if (flow) {
@@ -183,20 +156,34 @@ export const GlobalProvider = ({ nodeTypes, children }) => {
     return sourceOutput.type === targetInput.type;
   }
 
+  function useInputData(id, index) {
+    const nodeDataById = nodeData[id] ?? {};
+    const inputData = nodeDataById[index];
+    const setInputData = (data) => {
+      setNodeData({
+        ...nodeData,
+        [id]: {
+          ...nodeDataById,
+          [index]: data,
+        },
+      });
+    };
+    return [inputData, setInputData];
+  }
+
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
       nodeData,
       createNode,
       createConnection,
-      // removeItemFromList,
-      useNodeData,
       convertToUsableFormat,
       removeElements,
       reactFlowInstance,
       setReactFlowInstance,
       updateRfi,
       isValidConnection,
+      useInputData,
     }}
     >
       {children}

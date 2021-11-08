@@ -9,18 +9,14 @@ import InputContainer from './InputContainer.jsx';
 
 const DirectoryInput = memo(({ label, data, index }) => {
   const { id } = data;
-  const { useNodeData } = useContext(GlobalContext);
-  const [nodeData, setNodeData] = useNodeData(id);
+  const { useInputData } = useContext(GlobalContext);
+  const [directory, setDirectory] = useInputData(id, index);
 
   const onButtonClick = async () => {
-    const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', nodeData?.sharedData?.path ?? '');
+    const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');
     const path = filePaths[0];
     if (!canceled && path) {
-      const inputData = nodeData?.inputData ?? {};
-      const sharedData = nodeData?.sharedData ?? {};
-      inputData[index] = path;
-      sharedData.path = path;
-      setNodeData({ inputData, sharedData });
+      setDirectory(path);
     }
   };
 
@@ -34,14 +30,10 @@ const DirectoryInput = memo(({ label, data, index }) => {
         </InputLeftElement>
         <Input
           placeholder="Select a directory..."
-          value={nodeData?.sharedData?.path ?? ''}
+          value={directory ?? ''}
           isReadOnly
           onClick={onButtonClick}
           isTruncated
-        // bg={useColorModeValue('gray.500', 'gray.200')}
-        // textColor={useColorModeValue('gray.200', 'gray.700')}
-        // borderColor={useColorModeValue('gray.200', 'gray.700')}
-        // _placeholder={{ color: useColorModeValue('gray.200', 'gray.700') }}
           draggable={false}
           cursor="pointer"
           className="nodrag"
