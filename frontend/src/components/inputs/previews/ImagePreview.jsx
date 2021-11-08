@@ -42,8 +42,8 @@ export default memo(({
         <Image
           borderRadius="md"
           // boxSize="150px"
-          maxW="250px"
-          maxH="250px"
+          maxW="200px"
+          maxH="200px"
           src={path || ''}
           // fallbackSrc="https://via.placeholder.com/150"
           alt="Image Output"

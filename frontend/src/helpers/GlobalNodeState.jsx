@@ -108,7 +108,7 @@ export const GlobalProvider = ({ children }) => {
       source,
       target,
       type,
-      animated: true,
+      animated: false,
       style: { strokeWidth: 2 },
     };
     setEdges([
@@ -171,6 +171,24 @@ export const GlobalProvider = ({ children }) => {
     return [inputData, setInputData];
   }
 
+  function useAnimateEdges() {
+    const animateEdges = () => {
+      setEdges(edges.map((edge) => ({
+        ...edge,
+        animated: true,
+      })));
+    };
+
+    const unAnimateEdges = () => {
+      setEdges(edges.map((edge) => ({
+        ...edge,
+        animated: false,
+      })));
+    };
+
+    return [animateEdges, unAnimateEdges];
+  }
+
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
@@ -184,6 +202,7 @@ export const GlobalProvider = ({ children }) => {
       updateRfi,
       isValidConnection,
       useInputData,
+      useAnimateEdges,
     }}
     >
       {children}

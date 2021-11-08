@@ -13,15 +13,18 @@ import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
-  const { convertToUsableFormat } = useContext(GlobalContext);
+  const { convertToUsableFormat, useAnimateEdges } = useContext(GlobalContext);
+  const [animateEdges, unAnimateEdges] = useAnimateEdges();
   const { post } = useFetch('http://localhost:8000/run', {
     cachePolicy: 'no-cache',
   });
 
   async function run() {
+    animateEdges();
     const data = convertToUsableFormat();
     const response = await post(data);
     console.log(response);
+    unAnimateEdges();
   }
 
   return (
