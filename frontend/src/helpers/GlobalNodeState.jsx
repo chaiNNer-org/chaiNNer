@@ -19,6 +19,7 @@ export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
+  const [nodeLocks, setNodeLocks] = useSessionStorage('nodeLocks', {});
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const { transform } = useZoomPanHelper();
 
@@ -74,13 +75,23 @@ export const GlobalProvider = ({ children }) => {
 
   function removeElements(elements) {
     const nodeDataCopy = { ...nodeData };
-    const nodesToRemove = elements.filter((element) => element.data && !element.source);
-    const edgesToRemove = elements.filter((element) => !element.data && element.source);
+    const nodesToRemove = elements.filter((element) => isNode(element));
+    const edgesToRemove = elements.filter((element) => isEdge(element));
     nodesToRemove.forEach((node) => {
       delete nodeDataCopy[node.id];
     });
     setNodes(rfRemoveElements(nodesToRemove, nodes));
     setEdges(rfRemoveElements(edgesToRemove, edges));
+    setNodeData(nodeDataCopy);
+  }
+
+  function removeNodeById(id) {
+    const nodeDataCopy = { ...nodeData };
+    const nodeToRemove = nodes.find((node) => node.id === id);
+    delete nodeDataCopy[id];
+    const newElements = rfRemoveElements([nodeToRemove], [...nodes, ...edges]);
+    setNodes(newElements.filter((element) => isNode(element)));
+    setEdges(newElements.filter((element) => isEdge(element)));
     setNodeData(nodeDataCopy);
   }
 
@@ -95,6 +106,7 @@ export const GlobalProvider = ({ children }) => {
       ...nodes,
       newNode,
     ]);
+    return id;
   }
 
   function createConnection({
@@ -189,6 +201,63 @@ export const GlobalProvider = ({ children }) => {
     return [animateEdges, unAnimateEdges];
   }
 
+  function useNodeLock(id) {
+    const isLocked = nodeLocks[id] ?? false;
+    const toggleLock = () => {
+      const node = nodes.find((n) => n.id === id);
+      node.draggable = isLocked;
+      node.connectable = isLocked;
+      setNodeLocks({
+        ...nodeLocks,
+        [id]: !isLocked,
+      });
+      setNodes([
+        ...nodes.filter((n) => n.id !== id),
+        node,
+      ]);
+    };
+    return [isLocked, toggleLock];
+  }
+
+  function useNodeValidity(id) {
+    const node = nodes.find((n) => n.id === id);
+    if (!node) {
+      return [false, 'Node not found.'];
+    }
+    const { inputs } = node.data;
+    if (!inputs) {
+      return [false, 'Node has no inputs.'];
+    }
+    const inputData = nodeData[id];
+    if (!inputData) {
+      return [false, 'Node has no input data.'];
+    }
+    const filteredEdges = edges.filter((e) => e.target === id);
+    if (inputs.length !== Object.keys(inputData).length + filteredEdges.length) {
+      return [false, 'Node missing required input data'];
+    }
+    return [true];
+  }
+
+  function duplicateNode(id) {
+    const rfiNodes = reactFlowInstance.getElements();
+    const node = rfiNodes.find((n) => n.id === id);
+    const x = node.position.x + 200;
+    const y = node.position.y + 200;
+    const newId = createNode({
+      type: node.type, position: { x, y }, data: node.data,
+    });
+    const nodeDataCopy = { ...nodeData };
+    nodeDataCopy[newId] = { ...nodeData[id] };
+    setNodeData(nodeDataCopy);
+  }
+
+  function clearNode(id) {
+    const nodeDataCopy = { ...nodeData };
+    delete nodeDataCopy[id];
+    setNodeData(nodeDataCopy);
+  }
+
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
@@ -203,6 +272,11 @@ export const GlobalProvider = ({ children }) => {
       isValidConnection,
       useInputData,
       useAnimateEdges,
+      removeNodeById,
+      useNodeLock,
+      useNodeValidity,
+      duplicateNode,
+      clearNode,
     }}
     >
       {children}

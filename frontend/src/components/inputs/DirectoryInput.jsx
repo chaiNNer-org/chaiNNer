@@ -9,8 +9,9 @@ import InputContainer from './InputContainer.jsx';
 
 const DirectoryInput = memo(({ label, data, index }) => {
   const { id } = data;
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [directory, setDirectory] = useInputData(id, index);
+  const [isLocked] = useNodeLock(id);
 
   const onButtonClick = async () => {
     const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');
@@ -37,6 +38,7 @@ const DirectoryInput = memo(({ label, data, index }) => {
           draggable={false}
           cursor="pointer"
           className="nodrag"
+          disabled={isLocked}
         />
       </InputGroup>
     </InputContainer>

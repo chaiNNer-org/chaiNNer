@@ -11,8 +11,9 @@ const NumericalInput = memo(({
   label, data, index, def, min, max, precision,
 }) => {
   const { id } = data;
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
+  const [isLocked] = useNodeLock(id);
 
   const handleChange = (number) => {
     setInput(number);
@@ -30,6 +31,7 @@ const NumericalInput = memo(({
         onChange={handleChange}
         draggable={false}
         className="nodrag"
+        disabled={isLocked}
       >
         <NumberInputField />
         <NumberInputStepper>

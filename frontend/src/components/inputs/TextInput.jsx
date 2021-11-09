@@ -7,8 +7,9 @@ import InputContainer from './InputContainer.jsx';
 
 const TextInput = memo(({ label, data, index }) => {
   const { id } = data;
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
+  const [isLocked] = useNodeLock(id);
 
   const handleChange = (event) => {
     const text = event.target.value;
@@ -23,6 +24,7 @@ const TextInput = memo(({ label, data, index }) => {
         onChange={handleChange}
         draggable={false}
         className="nodrag"
+        disabled={isLocked}
       />
     </InputContainer>
   );

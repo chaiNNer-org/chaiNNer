@@ -41,26 +41,34 @@ function ReactFlowBox({
 
     const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
-    const type = event.dataTransfer.getData('application/reactflow/type');
-    const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
-    const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
-    const category = event.dataTransfer.getData('application/reactflow/category');
-    const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
-    const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
+    try {
+      const type = event.dataTransfer.getData('application/reactflow/type');
+      const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
+      const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
+      const category = event.dataTransfer.getData('application/reactflow/category');
+      const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
+      const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
 
-    const position = reactFlowInstance.project({
-      x: event.clientX - reactFlowBounds.left - offsetX,
-      y: event.clientY - reactFlowBounds.top - offsetY,
-    });
+      const position = reactFlowInstance.project({
+        x: event.clientX - reactFlowBounds.left - offsetX,
+        y: event.clientY - reactFlowBounds.top - offsetY,
+      });
 
-    const nodeData = {
-      category,
-      type,
-      inputs,
-      outputs,
-    };
+      const nodeData = {
+        category,
+        type,
+        inputs,
+        outputs,
+      };
 
-    createNode({ type, position, data: nodeData });
+      createNode({ type, position, data: nodeData });
+    } catch (error) {
+      console.log('Oops! This probably means something was dragged here that should not have been.');
+    }
+  };
+
+  const onNodeContextMenu = (event, node) => {
+    console.log(event, node);
   };
 
   // const onConnect = useCallback(
@@ -80,6 +88,7 @@ function ReactFlowBox({
         onDragOver={onDragOver}
         onNodeDragStop={updateRfi}
         nodeTypes={nodeTypes}
+        onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
       >
         <Background

@@ -9,8 +9,9 @@ const DropDownInput = memo(({
   label, options, data, index,
 }) => {
   const { id } = data;
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [selection, setSelection] = useInputData(id, index);
+  const [isLocked] = useNodeLock(id);
 
   // Set the input state to the first option on mount otherwise it thinks nothing is selected
   useEffect(() => {
@@ -29,6 +30,7 @@ const DropDownInput = memo(({
         onChange={handleChange}
         draggable={false}
         className="nodrag"
+        disabled={isLocked}
       >
         {options.map(({ option, value }) => (
           <option key={option} value={value}>{option}</option>

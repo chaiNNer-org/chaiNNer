@@ -16,8 +16,9 @@ const FileInput = memo(({
   extensions, data, index, label,
 }) => {
   const { id } = data;
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
+  const [isLocked] = useNodeLock(id);
 
   const inputFile = useRef(null);
 
@@ -76,6 +77,7 @@ const FileInput = memo(({
             draggable={false}
             cursor="pointer"
             className="nodrag"
+            disabled={isLocked}
           />
         </InputGroup>
         {filePath && (

@@ -2,13 +2,13 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, CopyIcon, DeleteIcon, UnlockIcon,
+  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
 } from '@chakra-ui/icons';
 import {
   Center, Flex, Heading, HStack, Icon, Menu, MenuButton, MenuItem,
   MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import React, { memo, useState } from 'react';
+import React, { memo, useContext } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
@@ -19,6 +19,7 @@ import NumberInput from '../components/inputs/NumberInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
+import { GlobalContext } from './GlobalNodeState.jsx';
 
 export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) => {
   switch (input.type) {
@@ -92,34 +93,64 @@ export const createRepresentativeOutputs = (category, node) => (
   ))
 );
 
-const BottomArea = memo(() => (
-  <Flex w="full" pl={2} pr={2}>
-    <Center>
-      <Icon as={UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} cursor="pointer" />
-    </Center>
-    <Spacer />
-    <Tooltip label="Node Valid" closeOnClick={false} hasArrow gutter={24}>
-      <Center>
-        <Icon as={CheckCircleIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="pointer" />
-      </Center>
-    </Tooltip>
-    <Spacer />
-    <Center>
-      <Menu>
-        <MenuButton as={Center} mt={-4} mb={-4} cursor="pointer">
-          <Icon as={MdMoreHoriz} w={6} h={6} mt={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} />
-        </MenuButton>
-        <Portal>
-          <MenuList>
-            <MenuItem icon={<CopyIcon />}>Duplicate</MenuItem>
-            <MenuItem icon={<DeleteIcon />}>Delete</MenuItem>
-          </MenuList>
-        </Portal>
-      </Menu>
-    </Center>
+const BottomArea = memo(({ data }) => {
+  const { id } = data;
+  const {
+    removeNodeById, useNodeLock, useNodeValidity, duplicateNode, clearNode,
+  } = useContext(GlobalContext);
+  const [isLocked, toggleLock] = useNodeLock(id);
+  const [isValid, invalidReason] = useNodeValidity(id);
 
-  </Flex>
-));
+  return (
+    <Flex w="full" pl={2} pr={2}>
+      <Center>
+        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => toggleLock()} cursor="pointer" />
+      </Center>
+      <Spacer />
+      <Tooltip label={isValid ? 'Node valid' : `Node invalid: ${invalidReason}`} closeOnClick={false} hasArrow gutter={24}>
+        <Center>
+          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="pointer" />
+        </Center>
+      </Tooltip>
+      <Spacer />
+      <Center>
+        <Menu>
+          <MenuButton as={Center} mt={-4} mb={-4} cursor="pointer">
+            <Icon as={MdMoreHoriz} w={6} h={6} mt={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} />
+          </MenuButton>
+          <Portal>
+            <MenuList>
+              <MenuItem
+                icon={<CopyIcon />}
+                onClick={() => {
+                  duplicateNode(id);
+                }}
+              >
+                Duplicate
+              </MenuItem>
+              <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                  clearNode(id);
+                }}
+              >
+                Clear
+              </MenuItem>
+              <MenuItem
+                icon={<DeleteIcon />}
+                onClick={() => {
+                  removeNodeById(id);
+                }}
+              >
+                Delete
+              </MenuItem>
+            </MenuList>
+          </Portal>
+        </Menu>
+      </Center>
+    </Flex>
+  );
+});
 
 const NodeHeader = memo(({ data, width }) => {
   const { category, type } = data;
@@ -148,30 +179,20 @@ const NodeHeader = memo(({ data, width }) => {
   );
 });
 
-const NodeWrapper = memo(({ children }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  // console.log(isDragging);
-  return (
-    <Center
-      bg={useColorModeValue('gray.50', 'gray.700')}
-      borderWidth="1px"
-      borderRadius="lg"
-      py={2}
-      boxShadow="lg"
+const NodeWrapper = memo(({ children }) => (
+  <Center
+    bg={useColorModeValue('gray.50', 'gray.700')}
+    borderWidth="1px"
+    borderRadius="lg"
+    py={2}
+    boxShadow="lg"
       // _hover={{ boxShadow: 'rgba(0, 0, 0, 0.40) 0px 0px 13px -3px', transform: 'translate(-1px, -1px)' }}
       // _active={{ boxShadow: 'rgba(0, 0, 0, 0.50) 0px 14px 18px -3px', transform: 'translate(-2px, -2px)' }}
-      transition="0.2s ease-in-out"
-      // onDragCapture={() => setIsDragging(true)}
-      // onDrag={() => setIsDragging(true)}
-      // onDragStart={() => setIsDragging(true)}
-      // onDragStartCapture={() => setIsDragging(true)}
-      // onDragEndCapture={() => setIsDragging(false)}
-      // onDragEnter={() => setIsDragging(false)}
-    >
-      { children }
-    </Center>
-  );
-});
+    transition="0.2s ease-in-out"
+  >
+    { children }
+  </Center>
+));
 
 function UsableNode({ data }) {
   return (
@@ -197,7 +218,7 @@ function UsableNode({ data }) {
         )}
         <CreateUsableOutputs data={data} />
 
-        <BottomArea />
+        <BottomArea data={data} />
       </VStack>
     </NodeWrapper>
   );
