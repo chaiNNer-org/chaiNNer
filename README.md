@@ -1,3 +1,4 @@
 # chaiNNer
 
-An interactive flowchart/node-based image processing GUI aimed at making chaining image and video processing tasks, especially those done by neural networks, easy, intuitive, and customizable.
+
+A node-flow image processing GUI aimed at making chaining image processing tasks, especially those done by neural networks, easy and customizable.
