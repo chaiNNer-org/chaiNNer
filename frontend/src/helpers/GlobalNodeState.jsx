@@ -201,7 +201,8 @@ export const GlobalProvider = ({ children }) => {
     return [animateEdges, unAnimateEdges];
   }
 
-  function useNodeLock(id) {
+  const useNodeLock = useCallback((id) => {
+    console.log('perf check (node lock)');
     const isLocked = nodeLocks[id] ?? false;
     const toggleLock = () => {
       const node = nodes.find((n) => n.id === id);
@@ -217,27 +218,35 @@ export const GlobalProvider = ({ children }) => {
       ]);
     };
     return [isLocked, toggleLock];
-  }
+  }, [nodeLocks, nodes]);
 
-  function useNodeValidity(id) {
+  const useNodeValidity = useCallback((id) => {
+    console.log('perf check (node validity)');
+    // This should never happen, but I'd rather not have this function crash if it does
     const node = nodes.find((n) => n.id === id);
     if (!node) {
       return [false, 'Node not found.'];
     }
+    // This should also never happen.
     const { inputs } = node.data;
     if (!inputs) {
       return [false, 'Node has no inputs.'];
     }
-    const inputData = nodeData[id];
-    if (!inputData) {
-      return [false, 'Node has no input data.'];
-    }
+    const inputData = nodeData[id] ?? {};
     const filteredEdges = edges.filter((e) => e.target === id);
+    // Check to make sure the node has all the data it should based on the schema.
+    // Compares the schema against the connections and the entered data
     if (inputs.length !== Object.keys(inputData).length + filteredEdges.length) {
-      return [false, 'Node missing required input data'];
+      // Grabs all the indexes of the inputs that the connections are targeting
+      const edgeTargetIndexes = edges.map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
+      // Grab all inputs that do not have data or a connected edge
+      const missingInputs = inputs.filter((input, i) => !Object.keys(inputData).includes(String(i))
+        && !edgeTargetIndexes.includes(String(i)));
+      return [false, `Node missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
     }
+
     return [true];
-  }
+  }, [nodeData, edges]);
 
   function duplicateNode(id) {
     const rfiNodes = reactFlowInstance.getElements();
