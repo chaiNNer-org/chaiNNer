@@ -13,6 +13,7 @@ from torch import load as torch_load
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs.file_inputs import PthFileInput
+from .properties.inputs.generic_inputs import SliderInput
 from .properties.inputs.numpy_inputs import ImageInput
 from .properties.inputs.pytorch_inputs import ModelInput, StateDictInput
 from .properties.outputs.numpy_outputs import ImageOutput
@@ -201,3 +202,32 @@ class EsrganNode(NodeBase):
         logger.info("Done upscaling")
 
         return img_out
+
+
+@NodeFactory.register("PyTorch", "PyTorch::Interpolate")
+class InterpolateNode(NodeBase):
+    """Interpolate node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Interpolate two models together"
+        self.inputs = [
+            StateDictInput(),
+            StateDictInput(),
+            SliderInput("Amount", 0, 100, 50),
+        ]
+        self.outputs = [StateDictOutput()]
+
+    def run(self, model_a: RRDBNet, model_b: RRDBNet, amount: int) -> ndarray:
+        """Upscales an image with an ESRGAN pretrained model"""
+
+        logger.info(f"Interpolating models...")
+
+        amount_a = amount / 100
+        amount_b = 1 - amount_a
+
+        state_dict = OrderedDict()
+        for k, v_1 in model_a.items():
+            v_2 = model_b[k]
+            state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
+        return state_dict

@@ -32,3 +32,14 @@ def IntegerInput(label: str) -> Dict:
         "type": "number::integer",
         "label": label,
     }
+
+
+def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
+    """ Input for integer number via slider"""
+    return {
+        "type": "number::slider",
+        "label": label,
+        "min": min,
+        "max": max,
+        "def": default,
+    }

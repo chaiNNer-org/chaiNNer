@@ -201,6 +201,7 @@ export const GlobalProvider = ({ children }) => {
     return [animateEdges, unAnimateEdges];
   }
 
+  // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id) => {
     console.log('perf check (node lock)');
     const isLocked = nodeLocks[id] ?? false;
@@ -242,11 +243,11 @@ export const GlobalProvider = ({ children }) => {
       // Grab all inputs that do not have data or a connected edge
       const missingInputs = inputs.filter((input, i) => !Object.keys(inputData).includes(String(i))
         && !edgeTargetIndexes.includes(String(i)));
-      return [false, `Node missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
+      return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
     }
 
     return [true];
-  }, [nodeData, edges]);
+  }, [nodeData, edges, nodes]);
 
   function duplicateNode(id) {
     const rfiNodes = reactFlowInstance.getElements();

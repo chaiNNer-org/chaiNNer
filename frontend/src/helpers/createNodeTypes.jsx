@@ -16,6 +16,7 @@ import DropDownInput from '../components/inputs/DropDownInput.jsx';
 import FileInput from '../components/inputs/FileInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
 import NumberInput from '../components/inputs/NumberInput.jsx';
+import SliderInput from '../components/inputs/SliderInput.jsx';
 import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
@@ -60,6 +61,18 @@ export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) 
     case 'number::integer':
       return (
         <NumberInput key={i} index={i} data={data} label={input.label} min={0} precision={0} />
+      );
+    case 'number::slider':
+      return (
+        <SliderInput
+          key={i}
+          index={i}
+          data={data}
+          label={input.label}
+          min={input.min}
+          max={input.max}
+          def={input.def}
+        />
       );
     default:
       return (
@@ -107,7 +120,13 @@ const BottomArea = memo(({ data }) => {
         <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => toggleLock()} cursor="pointer" />
       </Center>
       <Spacer />
-      <Tooltip label={isValid ? 'Node valid' : `Node invalid: ${invalidReason}`} closeOnClick={false} hasArrow gutter={24}>
+      <Tooltip
+        label={isValid ? 'Node valid' : invalidReason}
+        closeOnClick={false}
+        hasArrow
+        gutter={24}
+        textAlign="center"
+      >
         <Center>
           <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="pointer" />
         </Center>
