@@ -4,6 +4,7 @@ import {
   Slider, SliderFilledTrack, SliderThumb, SliderTrack,
 } from '@chakra-ui/react';
 import React, { memo, useContext } from 'react';
+import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
@@ -31,7 +32,7 @@ const SliderInput = memo(({
         isDisabled={isLocked}
       >
         <SliderTrack>
-          <SliderFilledTrack />
+          <SliderFilledTrack bg={getAccentColor(data.category)} />
         </SliderTrack>
         <SliderThumb />
       </Slider>

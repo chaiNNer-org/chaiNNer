@@ -156,6 +156,9 @@ export const GlobalProvider = ({ children }) => {
   function isValidConnection({
     target, targetHandle, source, sourceHandle,
   }) {
+    if (source === target) {
+      return false;
+    }
     const [sourceHandleIndex] = sourceHandle.split('-').slice(-1);
     const [targetHandleIndex] = targetHandle.split('-').slice(-1);
 
