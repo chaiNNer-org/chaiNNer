@@ -6,6 +6,7 @@ import {
   Box, Flex, Heading, HStack, IconButton, Menu, MenuButton,
   MenuDivider, MenuItem, MenuList, Portal, Spacer, Tag, useColorMode,
 } from '@chakra-ui/react';
+import { ipcRenderer } from 'electron';
 import React, { useContext } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
@@ -15,7 +16,7 @@ function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { convertToUsableFormat, useAnimateEdges } = useContext(GlobalContext);
   const [animateEdges, unAnimateEdges] = useAnimateEdges();
-  const { post } = useFetch('http://localhost:8000/run', {
+  const { post } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
     cachePolicy: 'no-cache',
   });
 

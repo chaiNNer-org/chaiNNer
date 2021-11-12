@@ -30,7 +30,7 @@ function Main() {
   const [backendReady, setBackendReady] = useState(false);
 
   const options = {};
-  const { loading, error, data = [] } = useFetch('http://localhost:8000/nodes', options, []);
+  const { loading, error, data = [] } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/nodes`, options, []);
 
   if (data && !loading && !error && !backendReady) {
     setBackendReady(true);

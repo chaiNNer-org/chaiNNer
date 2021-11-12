@@ -135,7 +135,7 @@ const BottomArea = memo(({ data }) => {
       <Center>
         <Menu>
           <MenuButton as={Center} mt={-4} mb={-4} cursor="pointer">
-            <Icon as={MdMoreHoriz} w={6} h={6} mt={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => {}} />
+            <Icon as={MdMoreHoriz} w={6} h={6} mt={-1} color={useColorModeValue('gray.300', 'gray.800')} />
           </MenuButton>
           <Portal>
             <MenuList>

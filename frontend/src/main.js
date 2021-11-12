@@ -1,12 +1,16 @@
 import {
-  app, BrowserWindow, dialog, ipcMain, protocol,
+  app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
 // import { readdir } from 'fs/promises';
 // import path from 'path';
+import portastic from 'portastic';
 
 const { exec, spawn } = require('child_process');
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
+const isMac = process.platform === 'darwin';
+let port = 8000;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -40,7 +44,96 @@ const createWindow = async () => {
   //   },
   // );
 
-  spawn('python', ['../backend/run.py']);
+  const ports = await portastic.find({
+    min: 8000,
+    max: 8080,
+  });
+  [port] = ports;
+
+  spawn('python', ['../backend/run.py', port]);
+
+  const menu = Menu.buildFromTemplate([
+    // isMac && { role: 'appMenu' },
+    {
+      label: 'File',
+      submenu: [
+        { label: 'New' },
+        { label: 'Open' },
+        { type: 'separator' },
+        { label: 'Save' },
+        { label: 'Save As' },
+        { type: 'separator' },
+        isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(isMac ? [
+          { role: 'delete' },
+          { role: 'selectAll' },
+          { type: 'separator' },
+          {
+            label: 'Speech',
+            submenu: [
+              { role: 'startSpeaking' },
+              { role: 'stopSpeaking' },
+            ],
+          },
+        ] : [
+          { role: 'delete' },
+          { type: 'separator' },
+          { role: 'selectAll' },
+        ]),
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac ? [
+          { type: 'separator' },
+          { role: 'front' },
+          { type: 'separator' },
+          { role: 'window' },
+        ] : [
+          { role: 'close' },
+        ]),
+      ],
+    },
+    {
+      role: 'Help',
+      submenu: [
+        {
+          label: 'View README',
+          click: async () => {
+            await shell.openExternal('https://github.com/JoeyBallentine/chaiNNer');
+          },
+        },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(menu);
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -104,12 +197,12 @@ const createWindow = async () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-app.whenReady().then(() => {
-  protocol.registerFileProtocol('file', (request, callback) => {
-    const pathname = decodeURI(request.url.replace('file:///', ''));
-    callback(pathname);
-  });
-});
+// app.whenReady().then(() => {
+//   protocol.registerFileProtocol('file', (request, callback) => {
+//     const pathname = decodeURI(request.url.replace('file:///', ''));
+//     callback(pathname);
+//   });
+// });
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -155,6 +248,12 @@ ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.
   filters,
   properties: ['openFile', allowMultiple && 'multiSelections'],
 }));
+
+ipcMain.on('get-port', (event) => {
+  // event.reply('asynchronous-reply', 'pong');
+  // eslint-disable-next-line no-param-reassign
+  event.returnValue = port;
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

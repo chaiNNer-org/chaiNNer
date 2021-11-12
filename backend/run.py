@@ -1,3 +1,5 @@
+import sys
+
 from sanic import Sanic
 from sanic.log import logger
 from sanic.response import json
@@ -46,4 +48,5 @@ async def run(request):
 
 
 if __name__ == "__main__":
-    app.run()
+    port = sys.argv[1] or 8000
+    app.run(port=port)
