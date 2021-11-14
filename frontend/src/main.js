@@ -1,67 +1,236 @@
+// const { exec, spawn } = require('child_process');
+import { spawn, spawnSync } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, shell,
+  app, BrowserWindow, dialog, ipcMain, Menu, shell
 } from 'electron';
+import { readFile, writeFile } from 'fs/promises';
+import hasbin from 'hasbin';
 // import { readdir } from 'fs/promises';
-// import path from 'path';
+import path from 'path';
 import portastic from 'portastic';
-
-const { exec, spawn } = require('child_process');
+import semver from 'semver';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 const isMac = process.platform === 'darwin';
 let port = 8000;
 
+const pythonKeys = {
+  python: 'python',
+  pip: 'pip',
+};
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
 }
 
-const createWindow = async () => {
-  // This should make it platform independent since I don't know what extension it'll be
-  // TODO: Figure out if it's always an exe
-  // const backendRoot = path.join(process.cwd(), '../backend/run.dist/');
-  // const files = await readdir(backendRoot);
-  // const file = files.find((item) => item.split('.')[0] === 'run');
-  // const backend = path.join(backendRoot, file);
-  // console.log(backend);
-
-  // execFile(
-  //   backend,
-  //   {
-  //     windowsHide: true,
-  //   },
-  //   (err, stdout, stderr) => {
-  //     if (err) {
-  //       console.error(err);
-  //     }
-  //     if (stdout) {
-  //       console.error(stdout);
-  //     }
-  //     if (stderr) {
-  //       console.error(stderr);
-  //     }
-  //   },
-  // );
-
+const getValidPort = async (splash) => {
   const ports = await portastic.find({
     min: 8000,
     max: 8080,
   });
+  if (!ports || ports.length === 0) {
+    splash.hide();
+    const messageBoxOptions = {
+      type: 'error',
+      title: 'No open port',
+      message: 'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
+    };
+    dialog.showMessageBoxSync(messageBoxOptions);
+    app.exit(1);
+  }
   [port] = ports;
+  ipcMain.on('get-port', (event) => {
+    // eslint-disable-next-line no-param-reassign
+    event.returnValue = port;
+  });
+};
 
-  spawn('python', ['../backend/run.py', port]);
+const checkPythonEnv = async (splash) => {
+  const hasPythonAndPip = hasbin.all.sync(['python', 'pip']);
+  const hasPython3AndPip3 = await hasbin.all.sync(['python3', 'pip3']);
+  if (!hasPythonAndPip && !hasPython3AndPip3) {
+    splash.hide();
+    const messageBoxOptions = {
+      type: 'error',
+      title: 'Python not installed',
+      buttons: ['Get Python', 'Exit'],
+      defaultId: 1,
+      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/',
+    };
+    const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
+    if (buttonResult === 1) {
+      app.exit(1);
+    } else if (buttonResult === 0) {
+      await shell.openExternal('https://www.python.org/downloads/');
+    }
+    app.exit(1);
+  }
+
+  if (hasPython3AndPip3) {
+    pythonKeys.python = 'python3';
+    pythonKeys.pip = 'pip3';
+  }
+
+  const { stdout } = spawnSync(pythonKeys.python, ['--version'], {
+    stdio: 'pipe',
+    encoding: 'utf-8',
+  });
+  const { version: pythonVersion } = semver.coerce(stdout);
+  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0');
+  if (!hasValidPythonVersion) {
+    splash.hide();
+    const messageBoxOptions = {
+      type: 'error',
+      title: 'Python version too low',
+      buttons: ['Get Python', 'Exit'],
+      defaultId: 1,
+      message: 'It seems like your installed Python version does not meet the minimum requirement (>=3.7). Please install a later Python version (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/',
+    };
+    const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
+    if (buttonResult === 1) {
+      app.exit(1);
+    } else if (buttonResult === 0) {
+      await shell.openExternal('https://www.python.org/downloads/');
+    }
+    app.exit(1);
+  }
+  pythonKeys.version = pythonVersion;
+  ipcMain.on('get-python', (event) => {
+    // eslint-disable-next-line no-param-reassign
+    event.returnValue = pythonVersion;
+  });
+};
+
+const spawnBackend = async () => {
+  const backendPath = app.isPackaged ? path.join(process.resourcePath, 'backend', 'run.py') : '../backend/run.py';
+  spawn(pythonKeys.python, [backendPath, port], { stdio: 'inherit', stdout: 'inherit' });
+};
+
+const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
+  const splash = new BrowserWindow({
+    width: 400,
+    height: 400,
+    frame: false,
+    backgroundColor: '#2D3748',
+    center: true,
+    minWidth: 400,
+    minHeight: 400,
+    maxWidth: 400,
+    maxHeight: 400,
+    resizable: false,
+    minimizable: true,
+    maximizable: false,
+    closable: false,
+    alwaysOnTop: true,
+    titleBarStyle: 'hidden',
+    webPreferences: {
+      webSecurity: false,
+      nativeWindowOpen: true,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    show: false,
+  });
+  splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+
+  splash.once('ready-to-show', () => {
+    splash.show();
+  });
+
+  const sleep = (ms) => new Promise((r) => {
+    setTimeout(r, ms);
+  });
+
+  // Send events to splash screen renderer as they happen
+  // Added some sleep functions so I can see that this is doing what I want it to
+  // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
+  splash.webContents.once('dom-ready', async () => {
+    splash.webContents.send('checking-port');
+    await getValidPort(splash);
+    await sleep(1000);
+
+    splash.webContents.send('checking-python');
+    await checkPythonEnv(splash);
+    await sleep(1000);
+
+    splash.webContents.send('spawning-backend');
+    await spawnBackend();
+    await sleep(2000);
+
+    splash.webContents.send('splash-finish');
+
+    await sleep(1000);
+    resolve();
+  });
+
+  ipcMain.once('backend-ready', () => {
+    splash.destroy();
+    mainWindow.show();
+  });
+});
+
+const createWindow = async () => {
+  // Create the browser window.
+  const mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 720,
+    backgroundColor: '#2D3748',
+    webPreferences: {
+      webSecurity: false,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+      contextIsolation: false,
+      nativeWindowOpen: true,
+    },
+    show: false,
+  });
 
   const menu = Menu.buildFromTemplate([
     // isMac && { role: 'appMenu' },
     {
       label: 'File',
       submenu: [
-        { label: 'New' },
-        { label: 'Open' },
+        {
+          label: 'New',
+          click: async () => {
+            await mainWindow.webContents.send('file-new');
+          },
+        },
+        {
+          label: 'Open',
+          click: async () => {
+            const { canceled, filePaths: [filepath] } = await dialog.showOpenDialog({
+              title: 'Open Chain File',
+              filters: [{ name: 'Chain', extensions: ['chn'] }],
+              properties: ['openFile'],
+            });
+            try {
+              if (!canceled) {
+                const fileContents = await readFile(filepath);
+                const parsed = JSON.parse(fileContents);
+                await mainWindow.webContents.send('file-open', parsed, filepath);
+              }
+            } catch (error) {
+              console.error(error);
+              // show error dialog idk
+            }
+          },
+        },
         { type: 'separator' },
-        { label: 'Save' },
-        { label: 'Save As' },
+        {
+          label: 'Save',
+          click: async () => {
+            mainWindow.webContents.send('file-save');
+          },
+        },
+        {
+          label: 'Save As',
+          click: async () => {
+            mainWindow.webContents.send('file-save-as');
+          },
+        },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' },
       ],
@@ -135,61 +304,13 @@ const createWindow = async () => {
   ]);
   Menu.setApplicationMenu(menu);
 
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 720,
-    backgroundColor: '#2D3748',
-    webPreferences: {
-      webSecurity: false,
-      nodeIntegration: true,
-      nodeIntegrationInWorker: true,
-      contextIsolation: false,
-      nativeWindowOpen: true,
-    },
-    show: true,
-  });
-
-  const splash = new BrowserWindow({
-    width: 400,
-    height: 400,
-    frame: false,
-    backgroundColor: '#2D3748',
-    center: true,
-    minWidth: 400,
-    minHeight: 400,
-    maxWidth: 400,
-    maxHeight: 400,
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    closable: false,
-    alwaysOnTop: true,
-    titleBarStyle: 'hidden',
-    webPreferences: {
-      webSecurity: false,
-      nativeWindowOpen: true,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    show: false,
-  });
-  splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+  await doSplashScreenChecks(mainWindow);
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
-
-  splash.once('ready-to-show', () => {
-    splash.show();
-  });
-
-  ipcMain.once('backend-ready', () => {
-    splash.destroy();
-    mainWindow.show();
-  });
 };
 
 // This method will be called when Electron has finished
@@ -209,14 +330,14 @@ app.on('ready', createWindow);
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    exec('taskkill /f /t /im run.exe', (err, stdout, stderr) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log(`stdout: ${stdout}`);
-      console.log(`stderr: ${stderr}`);
-    });
+    // exec('taskkill /f /t /im run.exe', (err, stdout, stderr) => {
+    //   if (err) {
+    //     console.error(err);
+    //     return;
+    //   }
+    //   console.log(`stdout: ${stdout}`);
+    //   console.log(`stderr: ${stderr}`);
+    // });
     app.quit();
   }
 });
@@ -239,8 +360,8 @@ app.on('uncaughtException', (err) => {
   app.exit(1);
 });
 
-ipcMain.handle('dir-select', (event, path) => dialog.showOpenDialog({
-  defaultPath: path,
+ipcMain.handle('dir-select', (event, dirPath) => dialog.showOpenDialog({
+  defaultPath: dirPath,
   properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
 }));
 
@@ -249,10 +370,38 @@ ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.
   properties: ['openFile', allowMultiple && 'multiSelections'],
 }));
 
-ipcMain.on('get-port', (event) => {
-  // event.reply('asynchronous-reply', 'pong');
-  // eslint-disable-next-line no-param-reassign
-  event.returnValue = port;
+ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Save Chain File',
+      filters: [{ name: 'Chain File', extensions: ['chn'] }],
+      defaultPath: lastFilePath,
+    });
+    if (!canceled && filePath) {
+      await writeFile(filePath, json);
+    }
+  } catch (error) {
+    console.error(error);
+  // show error dialog idk
+  }
+});
+
+ipcMain.handle('file-save-json', async (event, json, savePath) => {
+  try {
+    await writeFile(savePath, json);
+  } catch (error) {
+    console.error(error);
+  // show error dialog idk
+  }
+});
+
+ipcMain.handle('quit-application', async () => {
+  app.exit();
+});
+
+ipcMain.handle('relaunch-application', async () => {
+  app.relaunch();
+  app.exit();
 });
 
 // In this file you can include the rest of your app's specific main process

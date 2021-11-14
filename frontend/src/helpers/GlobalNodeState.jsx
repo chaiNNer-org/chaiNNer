@@ -1,5 +1,6 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
+import { ipcRenderer } from 'electron';
 import React, {
   createContext, useCallback, useEffect, useState,
 } from 'react';
@@ -21,7 +22,76 @@ export const GlobalProvider = ({ children }) => {
   const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
   const [nodeLocks, setNodeLocks] = useSessionStorage('nodeLocks', {});
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [savePath, setSavePath] = useState();
   const { transform } = useZoomPanHelper();
+
+  const dumpStateToJSON = () => {
+    const fullState = {
+      nodeData,
+      nodeLocks,
+      rfi: JSON.parse(sessionStorage.getItem('rfi')),
+    };
+    const output = JSON.stringify(fullState);
+    return output;
+  };
+
+  function setStateFromJSON(json) {
+    const {
+      nodeData: nd,
+      nodeLocks: nl,
+      rfi,
+    } = json;
+
+    const [x = 0, y = 0] = rfi.position;
+    setNodes(rfi.elements.filter((element) => isNode(element)) || []);
+    setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
+    transform({ x, y, zoom: rfi.zoom || 0 });
+
+    setNodeData(nd);
+    setNodeLocks(nl);
+  }
+
+  function clearState() {
+    setEdges([]);
+    setNodes([]);
+    setNodeData({});
+    setNodeLocks({});
+    setSavePath(undefined);
+    // transform({ x: 0, y: 0, zoom: 0 });
+  }
+
+  // Register New/Open/Save event handlers
+  useEffect(() => {
+    ipcRenderer.on('file-new', () => {
+      clearState();
+    });
+
+    ipcRenderer.on('file-open', (event, json, openedFilePath) => {
+      setSavePath(openedFilePath);
+      setStateFromJSON(json);
+    });
+
+    ipcRenderer.on('file-save-as', () => {
+      const json = dumpStateToJSON();
+      ipcRenderer.invoke('file-save-as-json', json, savePath);
+    });
+
+    ipcRenderer.on('file-save', () => {
+      const json = dumpStateToJSON();
+      if (savePath) {
+        ipcRenderer.invoke('file-save-json', json, savePath);
+      } else {
+        ipcRenderer.invoke('file-save-as-json', json, savePath);
+      }
+    });
+
+    return () => {
+      ipcRenderer.removeAllListeners('file-new');
+      ipcRenderer.removeAllListeners('file-open');
+      ipcRenderer.removeAllListeners('file-save-as');
+      ipcRenderer.removeAllListeners('file-save');
+    };
+  }, [nodeData, nodeLocks, reactFlowInstance, nodes, edges, savePath]);
 
   function convertToUsableFormat() {
     const result = {};
@@ -80,8 +150,8 @@ export const GlobalProvider = ({ children }) => {
     nodesToRemove.forEach((node) => {
       delete nodeDataCopy[node.id];
     });
-    setNodes(rfRemoveElements(nodesToRemove, nodes));
     setEdges(rfRemoveElements(edgesToRemove, edges));
+    setNodes(rfRemoveElements(nodesToRemove, nodes));
     setNodeData(nodeDataCopy);
   }
 
@@ -90,8 +160,8 @@ export const GlobalProvider = ({ children }) => {
     const nodeToRemove = nodes.find((node) => node.id === id);
     delete nodeDataCopy[id];
     const newElements = rfRemoveElements([nodeToRemove], [...nodes, ...edges]);
-    setNodes(newElements.filter((element) => isNode(element)));
     setEdges(newElements.filter((element) => isEdge(element)));
+    setNodes(newElements.filter((element) => isNode(element)));
     setNodeData(nodeDataCopy);
   }
 

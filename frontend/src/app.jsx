@@ -7,7 +7,7 @@ import {
 // eslint-disable-next-line import/extensions
 import { FlowGraphProvider } from './components/FlowProvider.jsx';
 // eslint-disable-next-line import/extensions
-import './index.css';
+import './global.css';
 // eslint-disable-next-line import/extensions
 import Main from './pages/main.jsx';
 import theme from './theme';
