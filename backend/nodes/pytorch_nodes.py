@@ -22,7 +22,7 @@ from .utils.architectures.RRDB import RRDBNet
 from .utils.utils import auto_split_process, np2tensor, tensor2np
 
 
-@NodeFactory.register("PyTorch", "PyTorch::Read")
+@NodeFactory.register("PyTorch", "Model::Read")
 class LoadStateDictNode(NodeBase):
     """Load Model node"""
 
@@ -204,7 +204,7 @@ class EsrganNode(NodeBase):
         return img_out
 
 
-@NodeFactory.register("PyTorch", "PyTorch::Interpolate")
+@NodeFactory.register("PyTorch", "Model::Interpolate")
 class InterpolateNode(NodeBase):
     """Interpolate node"""
 

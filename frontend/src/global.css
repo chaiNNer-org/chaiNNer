@@ -1,7 +1,8 @@
-:not(input):not(textarea),
-:not(input):not(textarea)::after,
-:not(input):not(textarea)::before {
+:not(input):not(textarea):not(button):not(svg):not(path),
+:not(input):not(textarea):not(button):not(svg):not(path)::after,
+:not(input):not(textarea):not(button):not(svg):not(path)::before {
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
 }
+

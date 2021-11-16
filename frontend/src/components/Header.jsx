@@ -3,18 +3,15 @@ import {
   DownloadIcon, HamburgerIcon, LinkIcon, MoonIcon, SunIcon,
 } from '@chakra-ui/icons';
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Button, Flex, Heading, HStack, IconButton, Menu, MenuButton, MenuDivider, MenuItem,
-  MenuList, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Portal, Spacer, Tag, Text, Textarea, useColorMode, useDisclosure, VStack,
+  Box, Flex, Heading, HStack, IconButton, Menu, MenuButton, MenuDivider, MenuItem,
+  MenuList, Portal, Spacer, Tag, useColorMode, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
-
-const { spawn } = require('child_process');
+import DependencyManager from './DependencyManager.jsx';
 
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -24,9 +21,6 @@ function Header() {
     cachePolicy: 'no-cache',
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [deps, setDeps] = useState({});
-
-  const [shellOutput, setShellOutput] = useState('');
 
   async function run() {
     animateEdges();
@@ -35,38 +29,6 @@ function Header() {
     console.log(response);
     unAnimateEdges();
   }
-
-  useEffect(() => {
-    const pythonVersion = ipcRenderer.sendSync('get-python');
-    setDeps({
-      ...deps,
-      pythonVersion,
-    });
-  }, []);
-
-  const availableDeps = [{
-    name: 'OpenCV',
-    installCommand: 'pip install opencv-python',
-  }];
-
-  const runCommand = (installCommand) => {
-    const command = spawn('pip', ['install', 'opencv-python']);
-    command.stdout.on('data', (data) => {
-      setShellOutput(data);
-    });
-
-    command.stderr.on('data', (data) => {
-      setShellOutput(data);
-    });
-
-    command.on('error', (error) => {
-      console.log(`error: ${error.message}`);
-    });
-
-    command.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
-    });
-  };
 
   return (
     <>
@@ -112,66 +74,11 @@ function Header() {
         </Flex>
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Dependency Manager</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack w="full">
-              <Text>
-                {`Current Python version: ${deps.pythonVersion}`}
-              </Text>
-              <Accordion w="full">
-                {availableDeps.map((dep) => (
-                  <AccordionItem key={dep.name}>
-                    <h2>
-                      <AccordionButton>
-                        <Box flex="1" textAlign="left">
-                          {dep.name}
-                        </Box>
-                        <AccordionIcon />
-                      </AccordionButton>
-                    </h2>
-                    <AccordionPanel pb={4}>
-                      <VStack w="full">
-                        <Flex align="center" w="full">
-                          <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text>
-                          <Spacer />
-                          <Button onClick={() => {
-                            runCommand(dep.installCommand);
-                          }}
-                          >
-                            Install
-
-                          </Button>
-                        </Flex>
-
-                        <Textarea disabled placeholder="console output here" w="full" value={shellOutput} />
-                      </VStack>
-                    </AccordionPanel>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </VStack>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                ipcRenderer.invoke('relaunch-application');
-              }}
-            >
-              Restart chaiNNer
-
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <DependencyManager
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
+      />
     </>
   );
 }

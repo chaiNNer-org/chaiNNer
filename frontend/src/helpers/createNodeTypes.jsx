@@ -128,7 +128,7 @@ const BottomArea = memo(({ data }) => {
         textAlign="center"
       >
         <Center>
-          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="pointer" />
+          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="default" />
         </Center>
       </Tooltip>
       <Spacer />

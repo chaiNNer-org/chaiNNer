@@ -23,6 +23,14 @@ function Splash() {
       setStatus('Checking system environment for valid Python...');
     });
 
+    ipcRenderer.on('checking-deps', () => {
+      setStatus('Checking dependencies...');
+    });
+
+    ipcRenderer.on('installing-deps', () => {
+      setStatus('Installing dependencies...');
+    });
+
     ipcRenderer.on('spawning-backend', () => {
       setStatus('Starting up backend process...');
     });

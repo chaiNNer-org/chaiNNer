@@ -1,7 +1,6 @@
-// const { exec, spawn } = require('child_process');
-import { spawn, spawnSync } from 'child_process';
+import { execSync, spawn, spawnSync } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, shell
+  app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
 import hasbin from 'hasbin';
@@ -99,13 +98,31 @@ const checkPythonEnv = async (splash) => {
   pythonKeys.version = pythonVersion;
   ipcMain.on('get-python', (event) => {
     // eslint-disable-next-line no-param-reassign
-    event.returnValue = pythonVersion;
+    event.returnValue = pythonKeys;
   });
+};
+
+const checkPythonDeps = async (splash) => {
+  try {
+    let pipList = execSync(`${pythonKeys.pip} list`);
+    pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+    const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
+    const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
+    if (!hasSanic || !hasSanicCors) {
+      splash.webContents.send('installing-deps');
+      execSync(`${pythonKeys.pip} install sanic Sanic-Cors`);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const spawnBackend = async () => {
   const backendPath = app.isPackaged ? path.join(process.resourcePath, 'backend', 'run.py') : '../backend/run.py';
-  spawn(pythonKeys.python, [backendPath, port], { stdio: 'inherit', stdout: 'inherit' });
+  const backend = spawn(pythonKeys.python, [backendPath, port], { stdio: 'inherit', stdout: 'inherit' });
+  ipcMain.handle('kill-backend', () => {
+    backend.kill();
+  });
 };
 
 const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
@@ -153,6 +170,10 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
 
     splash.webContents.send('checking-python');
     await checkPythonEnv(splash);
+    await sleep(1000);
+
+    splash.webContents.send('checking-deps');
+    await checkPythonDeps(splash);
     await sleep(1000);
 
     splash.webContents.send('spawning-backend');
