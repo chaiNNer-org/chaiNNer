@@ -9,9 +9,9 @@ import {
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-import usePrevious from './usePrevious.js';
+// import useUndoHistory from './useMultipleUndoHistory.js';
+// import usePrevious from './usePrevious.js';
 import useSessionStorage from './useSessionStorage.js';
-import useUndoHistory from './useSingleUndoHistory.js';
 
 export const GlobalContext = createContext({});
 
@@ -27,9 +27,9 @@ export const GlobalProvider = ({ children }) => {
   const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
 
-  const prevState = usePrevious({ reactFlowInstanceRfi, nodeData, nodeLocks });
-  // eslint-disable-next-line no-unused-vars
-  const [undo, redo, push, previous, current, next] = useUndoHistory(10);
+  // const prevState = usePrevious({ reactFlowInstanceRfi, nodeData, nodeLocks });
+  // // eslint-disable-next-line no-unused-vars
+  // const [undo, redo, push, previous, current, next] = useUndoHistory(10);
 
   const { transform } = useZoomPanHelper();
 
@@ -59,44 +59,44 @@ export const GlobalProvider = ({ children }) => {
     setNodeLocks(nl);
   };
 
-  const setRfiState = (rfi) => {
-    const [x = 0, y = 0] = rfi.position;
-    setNodes(rfi.elements.filter((element) => isNode(element)) || []);
-    setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
-    transform({ x, y, zoom: rfi.zoom || 0 });
-  };
+  // const setRfiState = (rfi) => {
+  //   const [x = 0, y = 0] = rfi.position;
+  //   setNodes(rfi.elements.filter((element) => isNode(element)) || []);
+  //   setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
+  //   transform({ x, y, zoom: rfi.zoom || 0 });
+  // };
 
-  useEffect(() => {
-    if (current) {
-      const { type, data } = JSON.parse(current);
-      switch (type) {
-        case 'rfi':
-          setRfiState(data);
-          break;
-        case 'nodeData':
-          setNodeData(data);
-          break;
-        // case 'nodeLocks':
-        //   setNodeLocks(data);
-        //   break;
-        default:
-      }
-    }
-  }, [current]);
+  // useEffect(() => {
+  //   if (current) {
+  //     const { type, data } = JSON.parse(current);
+  //     switch (type) {
+  //       case 'rfi':
+  //         setRfiState(data);
+  //         break;
+  //       case 'nodeData':
+  //         setNodeData(data);
+  //         break;
+  //       // case 'nodeLocks':
+  //       //   setNodeLocks(data);
+  //       //   break;
+  //       default:
+  //     }
+  //   }
+  // }, [current]);
 
-  useEffect(() => {
-    push({
-      previous: JSON.stringify({ type: 'rfi', data: prevState?.reactFlowInstanceRfi }),
-      current: JSON.stringify({ type: 'rfi', data: reactFlowInstanceRfi }),
-    });
-  }, [reactFlowInstanceRfi]);
+  // useEffect(() => {
+  //   push({
+  //     previous: JSON.stringify({ type: 'rfi', data: prevState?.reactFlowInstanceRfi }),
+  //     current: JSON.stringify({ type: 'rfi', data: reactFlowInstanceRfi }),
+  //   });
+  // }, [reactFlowInstanceRfi]);
 
-  useEffect(() => {
-    push({
-      previous: JSON.stringify({ type: 'nodeData', data: prevState?.nodeData }),
-      current: JSON.stringify({ type: 'nodeData', data: nodeData }),
-    });
-  }, [nodeData]);
+  // useEffect(() => {
+  //   push({
+  //     previous: JSON.stringify({ type: 'nodeData', data: prevState?.nodeData }),
+  //     current: JSON.stringify({ type: 'nodeData', data: nodeData }),
+  //   });
+  // }, [nodeData]);
 
   // useEffect(() => {
   //   push({
@@ -147,9 +147,9 @@ export const GlobalProvider = ({ children }) => {
   }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
 
   useHotkeys('ctrl+s', performSave, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
-  useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
-  useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
-  useHotkeys('ctrl+shift+z', redo, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
+  // useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
+  // useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
+  // useHotkeys('ctrl+shift+z', redo, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
   useHotkeys('ctrl+n', clearState, {}, []);
 
   // Register New File event handler
