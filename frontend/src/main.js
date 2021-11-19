@@ -1,6 +1,6 @@
 import { execSync, spawn, spawnSync } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, shell,
+  app, BrowserWindow, dialog, ipcMain, Menu, shell
 } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
 import hasbin from 'hasbin';
@@ -205,7 +205,7 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: false,
+    show: true,
   });
 
   const menu = Menu.buildFromTemplate([
@@ -401,8 +401,11 @@ ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
     if (!canceled && filePath) {
       await writeFile(filePath, json);
     }
+    // eslint-disable-next-line no-param-reassign
+    return filePath;
   } catch (error) {
     console.error(error);
+    return error.message;
   // show error dialog idk
   }
 });

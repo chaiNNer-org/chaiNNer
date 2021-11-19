@@ -7,35 +7,43 @@ import React, {
 import {
   isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
+import usePrevious from './usePrevious.js';
 import useSessionStorage from './useSessionStorage.js';
+import useUndoHistory from './useSingleUndoHistory.js';
 
 export const GlobalContext = createContext({});
 
-function createUniqueId() {
-  return uuidv4();
-}
+const createUniqueId = () => uuidv4();
 
 export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
   const [nodeLocks, setNodeLocks] = useSessionStorage('nodeLocks', {});
+  // At this point i dont even understand how my code works enough to know why i need these both....
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
+
+  const prevState = usePrevious({ reactFlowInstanceRfi, nodeData, nodeLocks });
+  // eslint-disable-next-line no-unused-vars
+  const [undo, redo, push, previous, current, next] = useUndoHistory(10);
+
   const { transform } = useZoomPanHelper();
 
   const dumpStateToJSON = () => {
     const fullState = {
       nodeData,
       nodeLocks,
-      rfi: JSON.parse(sessionStorage.getItem('rfi')),
+      rfi: reactFlowInstanceRfi,
     };
     const output = JSON.stringify(fullState);
     return output;
   };
 
-  function setStateFromJSON(json) {
+  const setStateFromJSON = (json) => {
     const {
       nodeData: nd,
       nodeLocks: nl,
@@ -49,51 +57,147 @@ export const GlobalProvider = ({ children }) => {
 
     setNodeData(nd);
     setNodeLocks(nl);
-  }
+  };
 
-  function clearState() {
+  const setRfiState = (rfi) => {
+    const [x = 0, y = 0] = rfi.position;
+    setNodes(rfi.elements.filter((element) => isNode(element)) || []);
+    setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
+    transform({ x, y, zoom: rfi.zoom || 0 });
+  };
+
+  useEffect(() => {
+    if (current) {
+      const { type, data } = JSON.parse(current);
+      switch (type) {
+        case 'rfi':
+          setRfiState(data);
+          break;
+        case 'nodeData':
+          setNodeData(data);
+          break;
+        // case 'nodeLocks':
+        //   setNodeLocks(data);
+        //   break;
+        default:
+      }
+    }
+  }, [current]);
+
+  useEffect(() => {
+    push({
+      previous: JSON.stringify({ type: 'rfi', data: prevState?.reactFlowInstanceRfi }),
+      current: JSON.stringify({ type: 'rfi', data: reactFlowInstanceRfi }),
+    });
+  }, [reactFlowInstanceRfi]);
+
+  useEffect(() => {
+    push({
+      previous: JSON.stringify({ type: 'nodeData', data: prevState?.nodeData }),
+      current: JSON.stringify({ type: 'nodeData', data: nodeData }),
+    });
+  }, [nodeData]);
+
+  // useEffect(() => {
+  //   push({
+  //     previous: JSON.stringify({ type: 'nodeLocks', data: prevState?.nodeLocks }),
+  //     current: JSON.stringify({ type: 'nodeLocks', data: nodeLocks }),
+  //   });
+  // }, [nodeLocks]);
+
+  const clearState = () => {
     setEdges([]);
     setNodes([]);
     setNodeData({});
     setNodeLocks({});
     setSavePath(undefined);
     // transform({ x: 0, y: 0, zoom: 0 });
-  }
+  };
 
-  // Register New/Open/Save event handlers
+  // const performUndo = () => {
+  //   try {
+  //     const history = undo();
+  //     if (history) {
+  //       setStateFromJSON(JSON.parse(history));
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  // const performRedo = () => {
+  //   try {
+  //     const history = redo();
+  //     if (history) {
+  //       setStateFromJSON(JSON.parse(history));
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  const performSave = useCallback(async () => {
+    const json = dumpStateToJSON();
+    if (savePath) {
+      ipcRenderer.invoke('file-save-json', json, savePath);
+    } else {
+      const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
+      setSavePath(savedAsPath);
+    }
+  }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
+
+  useHotkeys('ctrl+s', performSave, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
+  useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
+  useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
+  useHotkeys('ctrl+shift+z', redo, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
+  useHotkeys('ctrl+n', clearState, {}, []);
+
+  // Register New File event handler
   useEffect(() => {
     ipcRenderer.on('file-new', () => {
       clearState();
     });
+    return () => {
+      ipcRenderer.removeAllListeners('file-new');
+    };
+  }, []);
 
+  // Register Open File event handler
+  useEffect(() => {
     ipcRenderer.on('file-open', (event, json, openedFilePath) => {
       setSavePath(openedFilePath);
       setStateFromJSON(json);
     });
 
-    ipcRenderer.on('file-save-as', () => {
+    return () => {
+      ipcRenderer.removeAllListeners('file-open');
+    };
+  }, [savePath]);
+
+  // Register Save/Save-As event handlers
+  useEffect(() => {
+    ipcRenderer.on('file-save-as', async () => {
       const json = dumpStateToJSON();
-      ipcRenderer.invoke('file-save-as-json', json, savePath);
+      const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
+      setSavePath(savedAsPath);
     });
 
     ipcRenderer.on('file-save', () => {
-      const json = dumpStateToJSON();
-      if (savePath) {
-        ipcRenderer.invoke('file-save-json', json, savePath);
-      } else {
-        ipcRenderer.invoke('file-save-as-json', json, savePath);
-      }
+      performSave();
     });
 
     return () => {
-      ipcRenderer.removeAllListeners('file-new');
-      ipcRenderer.removeAllListeners('file-open');
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [nodeData, nodeLocks, reactFlowInstance, nodes, edges, savePath]);
+  }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
 
-  function convertToUsableFormat() {
+  // Push state to undo history
+  // useEffect(() => {
+  //   push(dumpStateToJSON());
+  // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
+
+  const convertToUsableFormat = () => {
     const result = {};
 
     // Set up each node in the result
@@ -141,9 +245,9 @@ export const GlobalProvider = ({ children }) => {
     // console.log(JSON.stringify(result));
 
     return result;
-  }
+  };
 
-  function removeElements(elements) {
+  const removeElements = (elements) => {
     const nodeDataCopy = { ...nodeData };
     const nodesToRemove = elements.filter((element) => isNode(element));
     const edgesToRemove = elements.filter((element) => isEdge(element));
@@ -153,9 +257,9 @@ export const GlobalProvider = ({ children }) => {
     setEdges(rfRemoveElements(edgesToRemove, edges));
     setNodes(rfRemoveElements(nodesToRemove, nodes));
     setNodeData(nodeDataCopy);
-  }
+  };
 
-  function removeNodeById(id) {
+  const removeNodeById = (id) => {
     const nodeDataCopy = { ...nodeData };
     const nodeToRemove = nodes.find((node) => node.id === id);
     delete nodeDataCopy[id];
@@ -163,11 +267,11 @@ export const GlobalProvider = ({ children }) => {
     setEdges(newElements.filter((element) => isEdge(element)));
     setNodes(newElements.filter((element) => isNode(element)));
     setNodeData(nodeDataCopy);
-  }
+  };
 
-  function createNode({
+  const createNode = ({
     type, position, data,
-  }) {
+  }) => {
     const id = createUniqueId();
     const newNode = {
       type, id, position, data: { ...data, id },
@@ -177,11 +281,11 @@ export const GlobalProvider = ({ children }) => {
       newNode,
     ]);
     return id;
-  }
+  };
 
-  function createConnection({
+  const createConnection = ({
     source, sourceHandle, target, targetHandle, type,
-  }) {
+  }) => {
     const id = createUniqueId();
     const newEdge = {
       id,
@@ -197,7 +301,7 @@ export const GlobalProvider = ({ children }) => {
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
       newEdge,
     ]);
-  }
+  };
 
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
@@ -209,23 +313,25 @@ export const GlobalProvider = ({ children }) => {
     }
   }, []);
 
+  // Updates the saved reactFlowInstance object
   useEffect(() => {
     if (reactFlowInstance) {
       const flow = reactFlowInstance.toObject();
-      sessionStorage.setItem('rfi', JSON.stringify(flow));
+      setRfi(flow);
     }
-  }, [nodes, edges, reactFlowInstance]);
+  }, [nodes, edges]);
 
-  const updateRfi = useCallback(() => {
+  // Update rfi when drag and drop on drag end
+  const updateRfi = () => {
     if (reactFlowInstance) {
       const flow = reactFlowInstance.toObject();
-      sessionStorage.setItem('rfi', JSON.stringify(flow));
+      setRfi(flow);
     }
-  }, [nodes, edges, reactFlowInstance, transform]);
+  };
 
-  function isValidConnection({
+  const isValidConnection = ({
     target, targetHandle, source, sourceHandle,
-  }) {
+  }) => {
     if (source === target) {
       return false;
     }
@@ -239,9 +345,9 @@ export const GlobalProvider = ({ children }) => {
     const targetInput = targetNode.data.inputs[targetHandleIndex];
 
     return sourceOutput.type === targetInput.type;
-  }
+  };
 
-  function useInputData(id, index) {
+  const useInputData = (id, index) => {
     const nodeDataById = nodeData[id] ?? {};
     const inputData = nodeDataById[index];
     const setInputData = (data) => {
@@ -254,9 +360,9 @@ export const GlobalProvider = ({ children }) => {
       });
     };
     return [inputData, setInputData];
-  }
+  };
 
-  function useAnimateEdges() {
+  const useAnimateEdges = () => {
     const animateEdges = () => {
       setEdges(edges.map((edge) => ({
         ...edge,
@@ -272,11 +378,11 @@ export const GlobalProvider = ({ children }) => {
     };
 
     return [animateEdges, unAnimateEdges];
-  }
+  };
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id) => {
-    console.log('perf check (node lock)');
+    // console.log('perf check (node lock)');
     const isLocked = nodeLocks[id] ?? false;
     const toggleLock = () => {
       const node = nodes.find((n) => n.id === id);
@@ -295,7 +401,7 @@ export const GlobalProvider = ({ children }) => {
   }, [nodeLocks, nodes]);
 
   const useNodeValidity = useCallback((id) => {
-    console.log('perf check (node validity)');
+    // console.log('perf check (node validity)');
     // This should never happen, but I'd rather not have this function crash if it does
     const node = nodes.find((n) => n.id === id);
     if (!node) {
@@ -322,7 +428,7 @@ export const GlobalProvider = ({ children }) => {
     return [true];
   }, [nodeData, edges, nodes]);
 
-  function duplicateNode(id) {
+  const duplicateNode = (id) => {
     const rfiNodes = reactFlowInstance.getElements();
     const node = rfiNodes.find((n) => n.id === id);
     const x = node.position.x + 200;
@@ -333,13 +439,13 @@ export const GlobalProvider = ({ children }) => {
     const nodeDataCopy = { ...nodeData };
     nodeDataCopy[newId] = { ...nodeData[id] };
     setNodeData(nodeDataCopy);
-  }
+  };
 
-  function clearNode(id) {
+  const clearNode = (id) => {
     const nodeDataCopy = { ...nodeData };
     delete nodeDataCopy[id];
     setNodeData(nodeDataCopy);
-  }
+  };
 
   return (
     <GlobalContext.Provider value={{
