@@ -17,7 +17,7 @@ function ReactFlowBox({
 }) {
   const {
     elements, createNode, createConnection, reactFlowInstance,
-    setReactFlowInstance, removeElements, updateRfi,
+    setReactFlowInstance, removeElements, updateRfi, setSelectedElements,
   } = useContext(GlobalContext);
 
   const onLoad = useCallback(
@@ -90,6 +90,7 @@ function ReactFlowBox({
         nodeTypes={nodeTypes}
         onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
+        onSelectionChange={setSelectedElements}
       >
         <Background
           variant="dots"

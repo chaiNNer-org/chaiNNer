@@ -9,8 +9,7 @@ import {
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-// import useUndoHistory from './useMultipleUndoHistory.js';
-// import usePrevious from './usePrevious.js';
+import useUndoHistory from './useMultipleUndoHistory.js';
 import useSessionStorage from './useSessionStorage.js';
 
 export const GlobalContext = createContext({});
@@ -20,43 +19,33 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [nodeData, setNodeData] = useSessionStorage('nodeData', {});
-  const [nodeLocks, setNodeLocks] = useSessionStorage('nodeLocks', {});
-  // At this point i dont even understand how my code works enough to know why i need these both....
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
 
-  // const prevState = usePrevious({ reactFlowInstanceRfi, nodeData, nodeLocks });
-  // // eslint-disable-next-line no-unused-vars
-  // const [undo, redo, push, previous, current, next] = useUndoHistory(10);
+  // cut/copy/paste
+  // const [selectedElements, setSelectedElements] = useState([]);
+  // const [copiedElements, setCopiedElements] = useState([]);
+
+  // eslint-disable-next-line no-unused-vars
+  const [undo, redo, push, current] = useUndoHistory(10);
 
   const { transform } = useZoomPanHelper();
 
   const dumpStateToJSON = () => {
-    const fullState = {
-      nodeData,
-      nodeLocks,
-      rfi: reactFlowInstanceRfi,
-    };
-    const output = JSON.stringify(fullState);
+    const output = JSON.stringify(reactFlowInstanceRfi);
     return output;
   };
 
-  const setStateFromJSON = (json) => {
-    const {
-      nodeData: nd,
-      nodeLocks: nl,
-      rfi,
-    } = json;
-
-    const [x = 0, y = 0] = rfi.position;
-    setNodes(rfi.elements.filter((element) => isNode(element)) || []);
-    setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
-    transform({ x, y, zoom: rfi.zoom || 0 });
-
-    setNodeData(nd);
-    setNodeLocks(nl);
+  const setStateFromJSON = (savedData, loadPosition = false) => {
+    if (savedData) {
+      const [x = 0, y = 0] = savedData.position;
+      setNodes(savedData.elements.filter((element) => isNode(element)) || []);
+      setEdges(savedData.elements.filter((element) => isEdge(element)) || []);
+      if (loadPosition) {
+        transform({ x, y, zoom: savedData.zoom || 0 });
+      }
+    }
   };
 
   // const setRfiState = (rfi) => {
@@ -66,75 +55,25 @@ export const GlobalProvider = ({ children }) => {
   //   transform({ x, y, zoom: rfi.zoom || 0 });
   // };
 
-  // useEffect(() => {
-  //   if (current) {
-  //     const { type, data } = JSON.parse(current);
-  //     switch (type) {
-  //       case 'rfi':
-  //         setRfiState(data);
-  //         break;
-  //       case 'nodeData':
-  //         setNodeData(data);
-  //         break;
-  //       // case 'nodeLocks':
-  //       //   setNodeLocks(data);
-  //       //   break;
-  //       default:
-  //     }
-  //   }
-  // }, [current]);
+  // TODO: Potential performance issue. Gets called every time rfi state changes
+  // Ideally, this would only change when an undo or redo has been performed
+  useEffect(() => {
+    if (current) {
+      const data = JSON.parse(current);
+      setStateFromJSON(data, false);
+    }
+  }, [current]);
 
-  // useEffect(() => {
-  //   push({
-  //     previous: JSON.stringify({ type: 'rfi', data: prevState?.reactFlowInstanceRfi }),
-  //     current: JSON.stringify({ type: 'rfi', data: reactFlowInstanceRfi }),
-  //   });
-  // }, [reactFlowInstanceRfi]);
-
-  // useEffect(() => {
-  //   push({
-  //     previous: JSON.stringify({ type: 'nodeData', data: prevState?.nodeData }),
-  //     current: JSON.stringify({ type: 'nodeData', data: nodeData }),
-  //   });
-  // }, [nodeData]);
-
-  // useEffect(() => {
-  //   push({
-  //     previous: JSON.stringify({ type: 'nodeLocks', data: prevState?.nodeLocks }),
-  //     current: JSON.stringify({ type: 'nodeLocks', data: nodeLocks }),
-  //   });
-  // }, [nodeLocks]);
+  useEffect(() => {
+    push(dumpStateToJSON());
+  }, [reactFlowInstanceRfi]);
 
   const clearState = () => {
     setEdges([]);
     setNodes([]);
-    setNodeData({});
-    setNodeLocks({});
     setSavePath(undefined);
-    // transform({ x: 0, y: 0, zoom: 0 });
+    transform({ x: 0, y: 0, zoom: 0 });
   };
-
-  // const performUndo = () => {
-  //   try {
-  //     const history = undo();
-  //     if (history) {
-  //       setStateFromJSON(JSON.parse(history));
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
-  // const performRedo = () => {
-  //   try {
-  //     const history = redo();
-  //     if (history) {
-  //       setStateFromJSON(JSON.parse(history));
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   const performSave = useCallback(async () => {
     const json = dumpStateToJSON();
@@ -144,12 +83,12 @@ export const GlobalProvider = ({ children }) => {
       const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
       setSavePath(savedAsPath);
     }
-  }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
+  }, [reactFlowInstanceRfi, savePath]);
 
-  useHotkeys('ctrl+s', performSave, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
-  // useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
-  // useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodeData, nodeLocks]);
-  // useHotkeys('ctrl+shift+z', redo, {}, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
+  useHotkeys('ctrl+s', performSave, {}, [reactFlowInstanceRfi, nodes, edges, savePath]);
+  useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodes, edges]);
+  useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
+  useHotkeys('ctrl+shift+z', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
   useHotkeys('ctrl+n', clearState, {}, []);
 
   // Register New File event handler
@@ -166,7 +105,7 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     ipcRenderer.on('file-open', (event, json, openedFilePath) => {
       setSavePath(openedFilePath);
-      setStateFromJSON(json);
+      setStateFromJSON(json, true);
     });
 
     return () => {
@@ -190,7 +129,7 @@ export const GlobalProvider = ({ children }) => {
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges, savePath]);
+  }, [reactFlowInstanceRfi, nodes, edges, savePath]);
 
   // Push state to undo history
   // useEffect(() => {
@@ -215,11 +154,11 @@ export const GlobalProvider = ({ children }) => {
     });
 
     // Apply input data to inputs when applicable
-    Object.keys(nodeData).forEach((key) => {
-      const inputData = nodeData[key];
+    nodes.forEach((node) => {
+      const inputData = node.data?.inputData;
       if (inputData) {
         Object.keys(inputData).forEach((index) => {
-          result[key].inputs[index] = inputData[index];
+          result[node.id].inputs[index] = inputData[index];
         });
       }
     });
@@ -248,25 +187,25 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const removeElements = (elements) => {
-    const nodeDataCopy = { ...nodeData };
+    // const nodeDataCopy = { ...nodeData };
     const nodesToRemove = elements.filter((element) => isNode(element));
     const edgesToRemove = elements.filter((element) => isEdge(element));
-    nodesToRemove.forEach((node) => {
-      delete nodeDataCopy[node.id];
-    });
+    // nodesToRemove.forEach((node) => {
+    //   delete nodeDataCopy[node.id];
+    // });
     setEdges(rfRemoveElements(edgesToRemove, edges));
     setNodes(rfRemoveElements(nodesToRemove, nodes));
-    setNodeData(nodeDataCopy);
+    // setNodeData(nodeDataCopy);
   };
 
   const removeNodeById = (id) => {
-    const nodeDataCopy = { ...nodeData };
+    // const nodeDataCopy = { ...nodeData };
     const nodeToRemove = nodes.find((node) => node.id === id);
-    delete nodeDataCopy[id];
+    // delete nodeDataCopy[id];
     const newElements = rfRemoveElements([nodeToRemove], [...nodes, ...edges]);
     setEdges(newElements.filter((element) => isEdge(element)));
     setNodes(newElements.filter((element) => isNode(element)));
-    setNodeData(nodeDataCopy);
+    // setNodeData(nodeDataCopy);
   };
 
   const createNode = ({
@@ -348,18 +287,24 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const useInputData = (id, index) => {
-    const nodeDataById = nodeData[id] ?? {};
-    const inputData = nodeDataById[index];
+    const nodeById = nodes.find((node) => node.id === id) ?? {};
+    const nodeData = nodeById?.data;
+    const inputData = nodeData?.inputData ?? {};
+    // const nodeDataById = nodeData[id] ?? {};
+    const inputDataByIndex = inputData[index];
     const setInputData = (data) => {
-      setNodeData({
-        ...nodeData,
-        [id]: {
-          ...nodeDataById,
-          [index]: data,
-        },
-      });
+      const nodeCopy = { ...nodeById };
+      nodeCopy.data.inputData = {
+        ...inputData,
+        [index]: data,
+      };
+      const filteredNodes = nodes.filter((n) => n.id !== id);
+      setNodes([
+        ...filteredNodes,
+        nodeCopy,
+      ]);
     };
-    return [inputData, setInputData];
+    return [inputDataByIndex, setInputData];
   };
 
   const useAnimateEdges = () => {
@@ -383,22 +328,22 @@ export const GlobalProvider = ({ children }) => {
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id) => {
     // console.log('perf check (node lock)');
-    const isLocked = nodeLocks[id] ?? false;
+    const node = nodes.find((n) => n.id === id);
+    if (!node) {
+      return [];
+    }
+    const isLocked = node.data?.isLocked ?? false;
     const toggleLock = () => {
-      const node = nodes.find((n) => n.id === id);
       node.draggable = isLocked;
       node.connectable = isLocked;
-      setNodeLocks({
-        ...nodeLocks,
-        [id]: !isLocked,
-      });
+      node.data.isLocked = !isLocked;
       setNodes([
         ...nodes.filter((n) => n.id !== id),
         node,
       ]);
     };
     return [isLocked, toggleLock];
-  }, [nodeLocks, nodes]);
+  }, [nodes]);
 
   const useNodeValidity = useCallback((id) => {
     // console.log('perf check (node validity)');
@@ -412,7 +357,7 @@ export const GlobalProvider = ({ children }) => {
     if (!inputs) {
       return [false, 'Node has no inputs.'];
     }
-    const inputData = nodeData[id] ?? {};
+    const inputData = node.data.inputData ?? {}; // nodeData[id] ?? {};
     const filteredEdges = edges.filter((e) => e.target === id);
     // Check to make sure the node has all the data it should based on the schema.
     // Compares the schema against the connections and the entered data
@@ -422,35 +367,66 @@ export const GlobalProvider = ({ children }) => {
       // Grab all inputs that do not have data or a connected edge
       const missingInputs = inputs.filter((input, i) => !Object.keys(inputData).includes(String(i))
         && !edgeTargetIndexes.includes(String(i)));
+      // TODO: This fails to output the missing inputs when a node is connected to another
       return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
     }
 
     return [true];
-  }, [nodeData, edges, nodes]);
+  }, [edges, nodes]); // nodeData
 
   const duplicateNode = (id) => {
-    const rfiNodes = reactFlowInstance.getElements();
-    const node = rfiNodes.find((n) => n.id === id);
+    // const rfiNodes = reactFlowInstance.getElements();
+    const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
     const y = node.position.y + 200;
-    const newId = createNode({
+    createNode({
       type: node.type, position: { x, y }, data: node.data,
     });
-    const nodeDataCopy = { ...nodeData };
-    nodeDataCopy[newId] = { ...nodeData[id] };
-    setNodeData(nodeDataCopy);
   };
 
   const clearNode = (id) => {
-    const nodeDataCopy = { ...nodeData };
-    delete nodeDataCopy[id];
-    setNodeData(nodeDataCopy);
+    const nodesCopy = [...nodes];
+    const node = nodesCopy.find((n) => n.id === id);
+    node.data.inputData = {};
+    setNodes([
+      ...nodes.filter((n) => n.id !== id),
+      node,
+    ]);
   };
+
+  // const cut = () => {
+  //   setCopiedElements(selectedElements);
+  //   removeElements(selectedElements);
+  //   setSelectedElements([]);
+  // };
+
+  // const copy = () => {
+  //   setCopiedElements(selectedElements);
+  // };
+
+  // const paste = () => {
+  //   copiedElements.forEach((element) => {
+  //     if (isNode(element)) {
+  //       const node = { ...element };
+  //       const x = node.position.x + 200;
+  //       const y = node.position.y + 200;
+  //       createNode({
+  //         type: node.type, position: { x, y }, data: node.data,
+  //       });
+  //     } else if (isEdge(element)) {
+  //       // Can't do this yet
+  //     }
+  //   });
+  // };
+
+  // useHotkeys('ctrl+x', cut, {}, [reactFlowInstanceRfi, selectedElements]);
+  // useHotkeys('ctrl+c', copy, {}, [reactFlowInstanceRfi, selectedElements]);
+  // useHotkeys('ctrl+v', paste, {}, [reactFlowInstanceRfi, selectedElements]);
 
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
-      nodeData,
+      // nodeData,
       createNode,
       createConnection,
       convertToUsableFormat,
@@ -466,6 +442,7 @@ export const GlobalProvider = ({ children }) => {
       useNodeValidity,
       duplicateNode,
       clearNode,
+      setSelectedElements,
     }}
     >
       {children}

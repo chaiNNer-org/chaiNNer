@@ -3,49 +3,51 @@ import { useState } from 'react';
 
 const useUndoHistory = (maxLength) => {
   const [previous, setPrevious] = useState([]);
-  // console.log('🚀 ~ file: useSingleUndoHistory.js ~ line 6 ~ useUndoHistory ~ previous', previous);
+  console.log('🚀 ~ file: useMultipleUndoHistory.js ~ line 6 ~ useUndoHistory ~ previous', previous);
   const [current, setCurrent] = useState(null);
-  // console.log('🚀 ~ file: useSingleUndoHistory.js ~ line 6 ~ useUndoHistory ~ current', current);
   const [next, setNext] = useState([]);
-  // console.log('🚀 ~ file: useSingleUndoHistory.js ~ line 8 ~ useUndoHistory ~ next', next);
-
-  const canUndo = !!previous.length;
-  const canRedo = !!next.length;
 
   const undo = () => {
-    if (canUndo) {
+    if (previous.length > 0) {
       console.log('undoing');
       const copy = { previous, current, next };
-      console.log('[...next, copy.current]', [...next, copy.current]);
       setNext([...next, copy.current]);
-      console.log('copy.previous.slice(-1)[0]', copy.previous.slice(-1)[0]);
-      setCurrent(copy.previous.slice(-1)[0]);
-      console.log('copy.previous.slice(0, -1)', copy.previous.slice(0, -1));
-      setPrevious(copy.previous.slice(0, -1));
+      const popped = copy.previous.pop();
+      setCurrent(popped);
+      setPrevious(copy.previous);
     }
   };
 
   const redo = () => {
-    if (canRedo) {
+    if (next.length > 0) {
       console.log('redoing');
       const copy = { previous, current, next };
       setPrevious([...previous, copy.current]);
-      setCurrent(copy.next.slice(-1)[0]);
-      setNext(copy.next.slice(0, -1));
+      const popped = copy.next.pop();
+      setCurrent(popped);
+      setNext(copy.next);
     }
   };
 
   const push = (data) => {
     if (data !== current) {
-      setNext([]);
-      setPrevious([...previous, data.previous].slice(-maxLength));
-      setCurrent(data.current);
+      if (next.length) {
+        setNext([]);
+      }
+      if (current) {
+        if (previous.length) {
+          setPrevious([...previous, current].slice(-maxLength));
+        } else {
+          setPrevious([current]);
+        }
+      }
+      setCurrent(data);
     }
   };
 
   // const debouncedPush = useDebouncedCallback(push, 500);
 
-  return [undo, redo, push, previous, current, next];
+  return [undo, redo, push, current];
 };
 
 export default useUndoHistory;
