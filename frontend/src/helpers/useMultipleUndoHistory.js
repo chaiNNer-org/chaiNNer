@@ -1,15 +1,12 @@
 import { useState } from 'react';
-// import { useDebouncedCallback } from 'use-debounce';
 
 const useUndoHistory = (maxLength) => {
   const [previous, setPrevious] = useState([]);
-  console.log('🚀 ~ file: useMultipleUndoHistory.js ~ line 6 ~ useUndoHistory ~ previous', previous);
   const [current, setCurrent] = useState(null);
   const [next, setNext] = useState([]);
 
   const undo = () => {
     if (previous.length > 0) {
-      console.log('undoing');
       const copy = { previous, current, next };
       setNext([...next, copy.current]);
       const popped = copy.previous.pop();
@@ -20,7 +17,6 @@ const useUndoHistory = (maxLength) => {
 
   const redo = () => {
     if (next.length > 0) {
-      console.log('redoing');
       const copy = { previous, current, next };
       setPrevious([...previous, copy.current]);
       const popped = copy.next.pop();
@@ -44,8 +40,6 @@ const useUndoHistory = (maxLength) => {
       setCurrent(data);
     }
   };
-
-  // const debouncedPush = useDebouncedCallback(push, 500);
 
   return [undo, redo, push, current];
 };

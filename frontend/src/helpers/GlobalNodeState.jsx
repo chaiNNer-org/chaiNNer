@@ -39,10 +39,10 @@ export const GlobalProvider = ({ children }) => {
 
   const setStateFromJSON = (savedData, loadPosition = false) => {
     if (savedData) {
-      const [x = 0, y = 0] = savedData.position;
       setNodes(savedData.elements.filter((element) => isNode(element)) || []);
       setEdges(savedData.elements.filter((element) => isEdge(element)) || []);
       if (loadPosition) {
+        const [x = 0, y = 0] = savedData.position;
         transform({ x, y, zoom: savedData.zoom || 0 });
       }
     }
@@ -442,7 +442,7 @@ export const GlobalProvider = ({ children }) => {
       useNodeValidity,
       duplicateNode,
       clearNode,
-      setSelectedElements,
+      // setSelectedElements,
     }}
     >
       {children}
