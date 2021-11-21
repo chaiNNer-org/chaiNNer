@@ -23,15 +23,17 @@ class Executor:
 
         inputs = []
         for node_input in node["inputs"]:
-            # If input is a dict indication another node, use that node's output value
+            # If input is a dict indicating another node, use that node's output value
             if isinstance(node_input, dict) and node_input.get("id", None):
                 # Get the next node by id
-                next_input = self.nodes[node_input["id"]]
+                next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                next_input = self.nodes[next_node_id]
+                next_index = int(node_input["id"].split("-")[-1])
                 # Recursively get the value of the input
                 processed_input = self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
                 if type(processed_input) in [list, tuple]:
-                    index = next_input["outputs"].index({"id": node_id})
+                    index = next_index  # next_input["outputs"].index({"id": node_id})
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
             # Otherwise, just use the given input (number, string, etc)

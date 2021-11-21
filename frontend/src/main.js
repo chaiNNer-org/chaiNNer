@@ -1,6 +1,6 @@
 import { execSync, spawn, spawnSync } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, shell
+  app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
 import hasbin from 'hasbin';
@@ -118,7 +118,7 @@ const checkPythonDeps = async (splash) => {
 };
 
 const spawnBackend = async () => {
-  const backendPath = app.isPackaged ? path.join(process.resourcePath, 'backend', 'run.py') : '../backend/run.py';
+  const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : '../backend/run.py';
   const backend = spawn(pythonKeys.python, [backendPath, port], { stdio: 'inherit', stdout: 'inherit' });
   ipcMain.handle('kill-backend', () => {
     backend.kill();
@@ -148,12 +148,14 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    icon: `${__dirname}/public/icons/cross_platform/icon`,
     show: false,
   });
   splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
 
   splash.once('ready-to-show', () => {
     splash.show();
+    // splash.webContents.openDevTools();
   });
 
   const sleep = (ms) => new Promise((r) => {
@@ -166,23 +168,23 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
   splash.webContents.once('dom-ready', async () => {
     splash.webContents.send('checking-port');
     await getValidPort(splash);
-    await sleep(1000);
+    // await sleep(1000);
 
     splash.webContents.send('checking-python');
     await checkPythonEnv(splash);
-    await sleep(1000);
+    // await sleep(1000);
 
     splash.webContents.send('checking-deps');
     await checkPythonDeps(splash);
-    await sleep(1000);
+    // await sleep(1000);
 
     splash.webContents.send('spawning-backend');
     await spawnBackend();
-    await sleep(2000);
+    // await sleep(2000);
 
     splash.webContents.send('splash-finish');
 
-    await sleep(1000);
+    // await sleep(1000);
     resolve();
   });
 
@@ -205,7 +207,8 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    show: true,
+    icon: `${__dirname}/public/icons/cross_platform/icon`,
+    show: false,
   });
 
   const menu = Menu.buildFromTemplate([
@@ -262,25 +265,25 @@ const createWindow = async () => {
         { role: 'undo' },
         { role: 'redo' },
         { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        ...(isMac ? [
-          { role: 'delete' },
-          { role: 'selectAll' },
-          { type: 'separator' },
-          {
-            label: 'Speech',
-            submenu: [
-              { role: 'startSpeaking' },
-              { role: 'stopSpeaking' },
-            ],
-          },
-        ] : [
-          { role: 'delete' },
-          { type: 'separator' },
-          { role: 'selectAll' },
-        ]),
+        // { role: 'cut' },
+        // { role: 'copy' },
+        // { role: 'paste' },
+        // ...(isMac ? [
+        //   { role: 'delete' },
+        //   { role: 'selectAll' },
+        //   { type: 'separator' },
+        //   {
+        //     label: 'Speech',
+        //     submenu: [
+        //       { role: 'startSpeaking' },
+        //       { role: 'stopSpeaking' },
+        //     ],
+        //   },
+        // ] : [
+        //   { role: 'delete' },
+        //   { type: 'separator' },
+        //   { role: 'selectAll' },
+        // ]),
       ],
     },
     {
@@ -331,7 +334,9 @@ const createWindow = async () => {
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // This method will be called when Electron has finished

@@ -29,7 +29,7 @@ function Main() {
   // Queries
   const [backendReady, setBackendReady] = useState(false);
 
-  const options = { cachePolicy: 'no-cache' };
+  const options = { cachePolicy: 'no-cache', retries: 10 };
   const { loading, error, data = [] } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/nodes`, options, []);
 
   if (data && !loading && !error && !backendReady) {

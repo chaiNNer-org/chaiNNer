@@ -10,7 +10,9 @@ import {
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer, shell } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  memo, useEffect, useRef, useState,
+} from 'react';
 
 function DependencyManager({ isOpen, onClose }) {
   const {
@@ -348,4 +350,4 @@ function DependencyManager({ isOpen, onClose }) {
   );
 }
 
-export default DependencyManager;
+export default memo(DependencyManager);

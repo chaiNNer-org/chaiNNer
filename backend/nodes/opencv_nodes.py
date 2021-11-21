@@ -5,7 +5,7 @@ Nodes that provide functionality for opencv image manipulation
 from os import path
 
 import cv2
-from numpy import ndarray
+import numpy as np
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -37,7 +37,7 @@ class ImReadNode(NodeBase):
         self.inputs = [ImageFileInput()]
         self.outputs = [ImageOutput()]
 
-    def run(self, path: str) -> ndarray:
+    def run(self, path: str) -> np.ndarray:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -61,7 +61,9 @@ class ImWriteNode(NodeBase):
         ]
         self.outputs = []
 
-    def run(self, img: ndarray, directory: str, filename: str, extension: str) -> bool:
+    def run(
+        self, img: np.ndarray, directory: str, filename: str, extension: str
+    ) -> bool:
         """Write an image to the specified path and return write status"""
         fullFile = f"{filename}.{extension}"
         fullPath = path.join(directory, fullFile)
@@ -72,7 +74,7 @@ class ImWriteNode(NodeBase):
 
 
 @NodeFactory.register("OpenCV", "Image::Show")
-class ImWriteNode(NodeBase):
+class ImShowNode(NodeBase):
     """OpenCV Imshow node"""
 
     def __init__(self):
@@ -81,10 +83,13 @@ class ImWriteNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = []
 
-    def run(self, img: ndarray) -> bool:
+    def run(self, img: np.ndarray) -> bool:
         """Show image"""
-        cv2.imshow("Image Preview", img)
-        cv2.waitKey(0)
+        try:
+            cv2.imshow("Image Preview", img)
+            cv2.waitKey(0)
+        except:
+            logger.fatal("Imshow had a critical error")
 
 
 @NodeFactory.register("OpenCV", "Resize::Factor")
@@ -97,7 +102,7 @@ class ImResizeByFactorNode(NodeBase):
         self.inputs = [ImageInput(), NumberInput("Scale Factor"), InterpolationInput()]
         self.outputs = [ImageOutput()]
 
-    def run(self, img: ndarray, scale: float, interpolation: int) -> ndarray:
+    def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
@@ -127,7 +132,9 @@ class ImResizeToResolutionNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
 
-    def run(self, img: ndarray, width: int, height: int, interpolation: int) -> ndarray:
+    def run(
+        self, img: np.ndarray, width: int, height: int, interpolation: int
+    ) -> np.ndarray:
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")

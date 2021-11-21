@@ -21,7 +21,8 @@
     "forge": {
       "packagerConfig": {
         "executableName": "chaiNNer",
-        "extraResource": "../backend/**"
+        "extraResource": "../backend/",
+        "icon": "./src/public/icons/cross_platform/icon"
       },
       "publishers": [
         {
@@ -118,7 +119,6 @@
     "@fontsource/open-sans": "^4.5.1",
     "@geoffcox/react-splitter": "^2.1.1",
     "@react-hook/window-size": "^3.0.7",
-    "axios": "^0.21.4",
     "electron": "^15.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "framer-motion": "^4.1.17",
@@ -133,7 +133,6 @@
     "react-hotkeys": "^2.0.0",
     "react-hotkeys-hook": "^3.4.4",
     "react-icons": "^4.2.0",
-    "react-query": "^3.24.4",
     "react-resize-aware": "^3.1.1",
     "semver": "^7.3.5",
     "use-debounce": "^7.0.1",

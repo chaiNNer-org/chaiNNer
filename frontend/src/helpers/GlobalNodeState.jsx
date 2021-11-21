@@ -57,16 +57,16 @@ export const GlobalProvider = ({ children }) => {
 
   // TODO: Potential performance issue. Gets called every time rfi state changes
   // Ideally, this would only change when an undo or redo has been performed
-  useEffect(() => {
-    if (current) {
-      const data = JSON.parse(current);
-      setStateFromJSON(data, false);
-    }
-  }, [current]);
+  // useEffect(() => {
+  //   if (current) {
+  //     const data = JSON.parse(current);
+  //     setStateFromJSON(data, false);
+  //   }
+  // }, [current]);
 
-  useEffect(() => {
-    push(dumpStateToJSON());
-  }, [reactFlowInstanceRfi]);
+  // useEffect(() => {
+  //   push(dumpStateToJSON());
+  // }, [reactFlowInstanceRfi]);
 
   const clearState = () => {
     setEdges([]);
@@ -171,8 +171,8 @@ export const GlobalProvider = ({ children }) => {
         id, sourceHandle, targetHandle, source, target, type,
       } = element;
       // Connection
-      result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: target };
-      result[target].inputs[targetHandle.split('-').slice(-1)] = { id: source };
+      result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: targetHandle };
+      result[target].inputs[targetHandle.split('-').slice(-1)] = { id: sourceHandle };
     });
 
     // Convert inputs and outputs to arrays
@@ -426,7 +426,6 @@ export const GlobalProvider = ({ children }) => {
   return (
     <GlobalContext.Provider value={{
       elements: [...nodes, ...edges],
-      // nodeData,
       createNode,
       createConnection,
       convertToUsableFormat,

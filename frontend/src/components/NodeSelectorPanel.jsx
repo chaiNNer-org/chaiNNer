@@ -6,7 +6,7 @@ import {
   Box, Center, Heading, HStack, Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Tooltip, useColorModeValue, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 
@@ -150,4 +150,4 @@ function NodeSelector({ data, height }) {
   );
 }
 
-export default NodeSelector;
+export default memo(NodeSelector);

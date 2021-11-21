@@ -14,9 +14,9 @@ def AudioInput() -> Dict:
     return NumPyInput("1d", "Audio")
 
 
-def ImageInput() -> Dict:
+def ImageInput(label: str = "Image") -> Dict:
     """ Input a 2D Image NumPy array """
-    return NumPyInput("2d", "Image")
+    return NumPyInput("2d", label)
 
 
 def VideoInput() -> Dict:
