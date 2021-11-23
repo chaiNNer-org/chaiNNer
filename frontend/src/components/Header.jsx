@@ -3,7 +3,7 @@ import {
   DownloadIcon, HamburgerIcon, LinkIcon, MoonIcon, SettingsIcon, SunIcon,
 } from '@chakra-ui/icons';
 import {
-  Box, Flex, Heading, HStack, IconButton, Menu, MenuButton, MenuDivider, MenuItem,
+  Box, Flex, Heading, HStack, IconButton, Menu, MenuButton, MenuItem,
   MenuList, Portal, Spacer, Tag, useColorMode, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
@@ -68,14 +68,14 @@ function Header() {
                 <MenuItem icon={<SettingsIcon />} onClick={onSettingsOpen}>
                   Settings
                 </MenuItem>
-                <MenuDivider />
-                <MenuItem onClick={() => {
+                {/* <MenuDivider /> */}
+                {/* <MenuItem onClick={() => {
                   ipcRenderer.invoke('quit-application');
                 }}
                 >
                   Quit Application
 
-                </MenuItem>
+                </MenuItem> */}
               </MenuList>
             </Portal>
           </Menu>

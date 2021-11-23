@@ -8,7 +8,7 @@ from .generic_inputs import DropDownInput
 def ColorModeInput() -> Dict:
     """ Converting color mode dropdown """
     return DropDownInput(
-        "opencv::colormode",
+        "generic",
         "Color Mode",
         [
             {

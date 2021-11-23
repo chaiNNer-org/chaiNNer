@@ -3,17 +3,17 @@ Nodes that provide functionality for pytorch inference
 """
 
 
+from os import path
 from typing import Any, OrderedDict
 
+import torch
 from numpy import dstack, expand_dims, full, iinfo, ndarray, tile
 from sanic.log import logger
-from torch import device as torch_device
-from torch import load as torch_load
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import PthFileInput
-from .properties.inputs.generic_inputs import SliderInput
+from .properties.inputs.file_inputs import DirectoryInput, PthFileInput
+from .properties.inputs.generic_inputs import SliderInput, TextInput
 from .properties.inputs.numpy_inputs import ImageInput
 from .properties.inputs.pytorch_inputs import ModelInput, StateDictInput
 from .properties.outputs.numpy_outputs import ImageOutput
@@ -36,7 +36,7 @@ class LoadStateDictNode(NodeBase):
         """Read a pth file from the specified path and return it as a state dict"""
 
         logger.info(f"Reading state dict from path: {path}")
-        state_dict = torch_load(path)
+        state_dict = torch.load(path)
 
         return state_dict
 
@@ -103,7 +103,7 @@ class LoadEsrganModelNode(NodeBase):
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model.to(torch_device("cuda"))
+        model.to(torch.device("cuda"))
 
         return model
 
@@ -187,7 +187,7 @@ class EsrganNode(NodeBase):
         logger.info("Converting image to tensor")
         img_tensor = np2tensor(img)
         logger.info(img_tensor)
-        t_img = np2tensor(img).to(torch_device("cuda"))
+        t_img = np2tensor(img).to(torch.device("cuda"))
         t_out = t_img.clone()
         logger.info("🚀 ~ file: pytorch_nodes.py ~ line 189 ~ t_out %s", t_out)
         logger.info("Upscaling image")
@@ -231,3 +231,23 @@ class InterpolateNode(NodeBase):
             v_2 = model_b[k]
             state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
         return state_dict
+
+
+@NodeFactory.register("PyTorch", "Model::Save")
+class PthSaveNode(NodeBase):
+    """Model Save node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Save a PyTorch model"
+        self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
+        self.outputs = []
+
+    def run(self, model: OrderedDict(), directory: str, name: str) -> ndarray:
+        """Upscales an image with an ESRGAN pretrained model"""
+        fullFile = f"{name}.pth"
+        fullPath = path.join(directory, fullFile)
+        logger.info(f"Writing image to path: {fullPath}")
+        status = torch.save(model, fullPath)
+
+        return status

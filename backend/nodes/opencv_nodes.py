@@ -22,7 +22,7 @@ from .properties.inputs.generic_inputs import (
     TextInput,
 )
 from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.opencv_inputs import InterpolationInput
+from .properties.inputs.opencv_inputs import ColorModeInput, InterpolationInput
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
@@ -141,5 +141,26 @@ class ImResizeToResolutionNode(NodeBase):
         result = cv2.resize(
             img, (int(width), int(height)), interpolation=int(interpolation)
         )
+
+        return result
+
+
+@NodeFactory.register("OpenCV", "Color::Convert")
+class ColorConvertNode(NodeBase):
+    """OpenCV color conversion node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Converts the color of an image"
+        self.inputs = [
+            ImageInput(),
+            ColorModeInput(),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
+        """Takes an image and changes the color mode it"""
+
+        result = cv2.cvtColor(img, int(color_mode))
 
         return result
