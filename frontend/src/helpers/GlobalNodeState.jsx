@@ -187,25 +187,16 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const removeElements = (elements) => {
-    // const nodeDataCopy = { ...nodeData };
-    const nodesToRemove = elements.filter((element) => isNode(element));
-    const edgesToRemove = elements.filter((element) => isEdge(element));
-    // nodesToRemove.forEach((node) => {
-    //   delete nodeDataCopy[node.id];
-    // });
-    setEdges(rfRemoveElements(edgesToRemove, edges));
-    setNodes(rfRemoveElements(nodesToRemove, nodes));
-    // setNodeData(nodeDataCopy);
+    const removedElements = rfRemoveElements(elements, [...nodes, ...edges]);
+    setEdges(removedElements.filter((element) => isEdge(element)));
+    setNodes(removedElements.filter((element) => isNode(element)));
   };
 
   const removeNodeById = (id) => {
-    // const nodeDataCopy = { ...nodeData };
     const nodeToRemove = nodes.find((node) => node.id === id);
-    // delete nodeDataCopy[id];
     const newElements = rfRemoveElements([nodeToRemove], [...nodes, ...edges]);
     setEdges(newElements.filter((element) => isEdge(element)));
     setNodes(newElements.filter((element) => isNode(element)));
-    // setNodeData(nodeDataCopy);
   };
 
   const createNode = ({

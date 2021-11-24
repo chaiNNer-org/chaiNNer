@@ -22,7 +22,7 @@ const OutputContainer = memo(({
         sx={{
           '.react-flow__handle-connecting': {
             background: '#E53E3E !important',
-            cursor: 'not-allowed !important',
+            // cursor: 'not-allowed !important',
           },
           '.react-flow__handle-valid': {
             background: '#38A169 !important',

@@ -9,6 +9,10 @@ import path from 'path';
 import portastic from 'portastic';
 import semver from 'semver';
 
+import { graphics } from 'systeminformation';
+
+let gpuInfo;
+
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 const isMac = process.platform === 'darwin';
@@ -344,26 +348,11 @@ const createWindow = async () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-// app.whenReady().then(() => {
-//   protocol.registerFileProtocol('file', (request, callback) => {
-//     const pathname = decodeURI(request.url.replace('file:///', ''));
-//     callback(pathname);
-//   });
-// });
-
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    // exec('taskkill /f /t /im run.exe', (err, stdout, stderr) => {
-    //   if (err) {
-    //     console.error(err);
-    //     return;
-    //   }
-    //   console.log(`stdout: ${stdout}`);
-    //   console.log(`stderr: ${stderr}`);
-    // });
     app.quit();
   }
 });
@@ -431,6 +420,13 @@ ipcMain.handle('quit-application', async () => {
 ipcMain.handle('relaunch-application', async () => {
   app.relaunch();
   app.exit();
+});
+
+ipcMain.handle('get-gpu-info', async () => {
+  if (!gpuInfo) {
+    gpuInfo = await graphics();
+  }
+  return gpuInfo;
 });
 
 // In this file you can include the rest of your app's specific main process

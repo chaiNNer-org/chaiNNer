@@ -135,6 +135,7 @@
     "react-icons": "^4.2.0",
     "react-resize-aware": "^3.1.1",
     "semver": "^7.3.5",
+    "systeminformation": "^5.9.15",
     "use-debounce": "^7.0.1",
     "use-http": "^1.0.26",
     "uuid": "^3.4.0"

@@ -38,6 +38,12 @@ function DependencyManager({ isOpen, onClose }) {
 
   const [depChanged, setDepChanged] = useState(false);
 
+  const [gpuInfo, setGpuInfo] = useState();
+
+  useEffect(async () => {
+    setGpuInfo(await ipcRenderer.invoke('get-gpu-info'));
+  }, []);
+
   // TODO: Make this not hardcoded
   const availableDeps = [{
     name: 'OpenCV',
