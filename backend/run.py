@@ -5,7 +5,24 @@ from sanic.log import logger
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes import numpy_nodes, opencv_nodes, pytorch_nodes
+try:
+    import numpy
+    from nodes import numpy_nodes
+except:
+    logger.info("NumPy not installed")
+
+try:
+    import cv2
+    from nodes import opencv_nodes
+except:
+    logger.info("OpenCV not installed")
+
+try:
+    import torch
+    from nodes import pytorch_nodes
+except:
+    logger.info("PyTorch not installed")
+
 from nodes.node_factory import NodeFactory
 from process import Executor
 

@@ -28,6 +28,12 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
+if (app.isPackaged) {
+  // workaround for missing executable argument)
+  process.argv.unshift(null);
+}
+const parameters = process.argv.slice(2);
+
 const getValidPort = async (splash) => {
   const ports = await portastic.find({
     min: 8000,
@@ -152,7 +158,7 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    icon: `${__dirname}/public/icons/cross_platform/icon`,
+    // icon: `${__dirname}/public/icons/cross_platform/icon`,
     show: false,
   });
   splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
@@ -211,12 +217,12 @@ const createWindow = async () => {
       contextIsolation: false,
       nativeWindowOpen: true,
     },
-    icon: `${__dirname}/public/icons/cross_platform/icon`,
+    // icon: `${__dirname}/public/icons/cross_platform/icon`,
     show: false,
   });
 
   const menu = Menu.buildFromTemplate([
-    // isMac && { role: 'appMenu' },
+    ...(isMac ? [{ role: 'appMenu' }] : []),
     {
       label: 'File',
       submenu: [
@@ -236,8 +242,9 @@ const createWindow = async () => {
             });
             try {
               if (!canceled) {
-                const fileContents = await readFile(filepath);
-                const parsed = JSON.parse(fileContents);
+                const fileContents = await readFile(filepath, { encoding: 'binary' });
+                const buf = Buffer.from(fileContents, 'base64').toString('utf8');
+                const parsed = JSON.parse(buf);
                 await mainWindow.webContents.send('file-open', parsed, filepath);
               }
             } catch (error) {
@@ -341,6 +348,20 @@ const createWindow = async () => {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
+
+  if (parameters[0]) {
+    const filepath = parameters[0];
+    try {
+      // TODO: extract to function
+      const fileContents = await readFile(filepath, { encoding: 'binary' });
+      const buf = Buffer.from(fileContents, 'base64').toString('utf8');
+      const parsed = JSON.parse(buf);
+      await mainWindow.webContents.send('file-open', parsed, filepath);
+    } catch (error) {
+      console.error(error);
+      // show error dialog idk
+    }
+  }
 };
 
 // This method will be called when Electron has finished
@@ -393,7 +414,7 @@ ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
       defaultPath: lastFilePath,
     });
     if (!canceled && filePath) {
-      await writeFile(filePath, json);
+      await writeFile(filePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
     }
     // eslint-disable-next-line no-param-reassign
     return filePath;
@@ -406,7 +427,7 @@ ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
 
 ipcMain.handle('file-save-json', async (event, json, savePath) => {
   try {
-    await writeFile(savePath, json);
+    await writeFile(savePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
   } catch (error) {
     console.error(error);
   // show error dialog idk
