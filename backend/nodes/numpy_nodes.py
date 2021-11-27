@@ -57,9 +57,9 @@ class ChannelMergeRGBANode(NodeBase):
         self.description = "Merge numpy channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
         self.inputs = [
             ImageInput("Channel(s) A"),
-            ImageInput("Channel(s) B"),
-            ImageInput("Channel(s) C"),
-            ImageInput("Channel(s) D"),
+            ImageInput("Channel(s) B", optional=True),
+            ImageInput("Channel(s) C", optional=True),
+            ImageInput("Channel(s) D", optional=True),
         ]
         self.outputs = [ImageOutput()]
 
