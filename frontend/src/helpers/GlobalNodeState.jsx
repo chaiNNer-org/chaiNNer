@@ -23,6 +23,8 @@ export const GlobalProvider = ({ children }) => {
   const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
 
+  const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
+
   // cut/copy/paste
   // const [selectedElements, setSelectedElements] = useState([]);
   // const [copiedElements, setCopiedElements] = useState([]);
@@ -99,6 +101,17 @@ export const GlobalProvider = ({ children }) => {
     return () => {
       ipcRenderer.removeAllListeners('file-new');
     };
+  }, []);
+
+  useEffect(async () => {
+    if (!loadedFromCli) {
+      const contents = await ipcRenderer.invoke('get-cli-open');
+      console.log(contents);
+      if (contents) {
+        setStateFromJSON(contents, true);
+        setLoadedFromCli(true);
+      }
+    }
   }, []);
 
   // Register Open File event handler

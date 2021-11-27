@@ -356,11 +356,14 @@ const createWindow = async () => {
       const fileContents = await readFile(filepath, { encoding: 'binary' });
       const buf = Buffer.from(fileContents, 'base64').toString('utf8');
       const parsed = JSON.parse(buf);
-      await mainWindow.webContents.send('file-open', parsed, filepath);
+      // await mainWindow.webContents.send('file-open', parsed, filepath);
+      ipcMain.handle('get-cli-open', () => parsed);
     } catch (error) {
       console.error(error);
       // show error dialog idk
     }
+  } else {
+    ipcMain.handle('get-cli-open', () => undefined);
   }
 };
 
