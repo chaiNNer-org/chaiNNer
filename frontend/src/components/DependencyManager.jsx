@@ -38,10 +38,22 @@ function DependencyManager({ isOpen, onClose }) {
 
   const [depChanged, setDepChanged] = useState(false);
 
-  const [gpuInfo, setGpuInfo] = useState();
+  const [gpuInfo, setGpuInfo] = useState([]);
+  const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
+  const [nvidiaGpuName, setNvidiaGpuName] = useState(null);
 
   useEffect(async () => {
-    setGpuInfo(await ipcRenderer.invoke('get-gpu-info'));
+    const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+    const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
+    setGpuInfo(gpuNames);
+    // Check if gpu string contains any nvidia-specific terms
+    const nvidiaGpu = gpuNames.find(
+      (gpu) => gpu.toLowerCase().split(' ').some(
+        (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
+      ),
+    );
+    setNvidiaGpuName(nvidiaGpu);
+    setIsNvidiaAvailable(!!nvidiaGpu);
   }, []);
 
   // TODO: Make this not hardcoded
@@ -56,7 +68,7 @@ function DependencyManager({ isOpen, onClose }) {
   }, {
     name: 'PyTorch',
     packageName: 'torch',
-    installCommand: 'pip install torch==1.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html',
+    installCommand: `pip install torch==1.10.0+${isNvidiaAvailable ? 'cu113' : 'cpu'} -f https://download.pytorch.org/whl/+${isNvidiaAvailable ? 'cu113' : 'cpu'}/torch_stable.html`,
   }];
 
   useEffect(() => {
@@ -67,7 +79,8 @@ function DependencyManager({ isOpen, onClose }) {
       pythonVersion: pKeys.version,
     });
     exec(`${pKeys.pip} list`, (error, stdout, stderr) => {
-      if (error || stderr) {
+      if (error) {
+        setIsLoadingPipList(false);
         return;
       }
       const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
@@ -82,6 +95,7 @@ function DependencyManager({ isOpen, onClose }) {
 
   useEffect(() => {
     if (!isRunningShell) {
+      setIsLoadingPipList(true);
       exec(`${pythonKeys.pip} list`, (error, stdout, stderr) => {
         if (error || stderr) {
           return;
@@ -95,23 +109,27 @@ function DependencyManager({ isOpen, onClose }) {
         setIsLoadingPipList(false);
       });
     }
-  }, [isRunningShell]);
+  }, [isRunningShell, pythonKeys]);
 
-  // Check for updates once pipList is occupied
-  useEffect(() => {
-    exec(`${pythonKeys.pip} list --outdated`, (error, stdout, stderr) => {
-      if (error || stderr) {
-        return;
-      }
-      const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-      const pipObj = {};
-      tempPipList.forEach(([dep, version, newVersion]) => {
-        pipObj[dep] = newVersion;
+  useEffect(async () => {
+    if (pipList && Object.keys(pipList).length) {
+      setIsCheckingUpdates(true);
+      exec(`${pythonKeys.pip} list --outdated`, (error, stdout, stderr) => {
+        if (error) {
+          console.log(error, stderr);
+          setIsCheckingUpdates(false);
+          return;
+        }
+        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+        const pipObj = {};
+        tempPipList.forEach(([dep, version, newVersion]) => {
+          pipObj[dep] = newVersion;
+        });
+        setPipUpdateList(pipObj);
+        setIsCheckingUpdates(false);
       });
-      setPipUpdateList(pipObj);
-      setIsCheckingUpdates(false);
-    });
-  }, [pipList]);
+    }
+  }, [pythonKeys, pipList]);
 
   useEffect(async () => {
     if (depChanged) {
@@ -225,10 +243,15 @@ function DependencyManager({ isOpen, onClose }) {
             <VStack w="full">
               <VStack w="full">
                 <Flex align="center" w="full">
+                  <Text flex="1" textAlign="left" color={isNvidiaAvailable ? 'inherit' : 'red.500'}>
+                    {`GPU (${isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'})`}
+                  </Text>
+                </Flex>
+                <Flex align="center" w="full">
                   <Text flex="1" textAlign="left">
                     {`Python (${deps.pythonVersion})`}
                   </Text>
-                  <HStack>
+                  {/* <HStack>
                     <Button
                       colorScheme="blue"
                       onClick={() => {
@@ -240,13 +263,13 @@ function DependencyManager({ isOpen, onClose }) {
                     >
                       Check for Updates
                     </Button>
-                  </HStack>
+                  </HStack> */}
                 </Flex>
                 {isLoadingPipList ? <Spinner />
                   : availableDeps.map((dep) => (
                     <Flex align="center" w="full" key={dep.name}>
                       {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
-                      <Text flex="1" textAlign="left">
+                      <Text flex="1" textAlign="left" color={pipList[dep.packageName] ? 'inherit' : 'red.500'}>
                         {`${dep.name} (${pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'})`}
                       </Text>
                       {pipList[dep.packageName] ? (

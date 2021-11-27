@@ -86,7 +86,7 @@ function Main() {
           <Header />
           <HStack
             as={Split}
-            initialPrimarySize="550px"
+            initialPrimarySize="560px"
             minPrimarySize="290px"
             minSecondarySize="50%"
             splitterSize="10px"

@@ -66,7 +66,7 @@ const checkPythonEnv = async (splash) => {
       title: 'Python not installed',
       buttons: ['Get Python', 'Exit'],
       defaultId: 1,
-      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/',
+      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/',
     };
     const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
     if (buttonResult === 1) {
@@ -87,15 +87,15 @@ const checkPythonEnv = async (splash) => {
     encoding: 'utf-8',
   });
   const { version: pythonVersion } = semver.coerce(stdout);
-  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0');
+  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0') && semver.lt(pythonVersion, '3.10.0');
   if (!hasValidPythonVersion) {
     splash.hide();
     const messageBoxOptions = {
       type: 'error',
-      title: 'Python version too low',
+      title: 'Python version invalid',
       buttons: ['Get Python', 'Exit'],
       defaultId: 1,
-      message: 'It seems like your installed Python version does not meet the minimum requirement (>=3.7). Please install a later Python version (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/',
+      message: 'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
     };
     const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
     if (buttonResult === 1) {
