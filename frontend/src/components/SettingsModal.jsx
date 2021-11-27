@@ -2,27 +2,25 @@
 /* eslint-disable import/extensions */
 import {
   Button, Flex, HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Switch, Text, VStack,
+  ModalOverlay, Switch, Text, VStack, StackDivider, useColorMode,
 } from '@chakra-ui/react';
 import React, { memo, useState, useEffect } from 'react';
 import { ipcRenderer } from 'electron';
-import { Divider } from '@chakra-ui/react';
 import useLocalStorage from '../helpers/useLocalStorage.js';
 
 function SettingsModal({ isOpen, onClose }) {
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
-  console.log('🚀 ~ file: SettingsModal.jsx ~ line 12 ~ SettingsModal ~ isCpu', isCpu);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
-  console.log('🚀 ~ file: SettingsModal.jsx ~ line 14 ~ SettingsModal ~ isFp16', isFp16);
+  const { colorMode, toggleColorMode } = useColorMode();
 
-  const [gpuInfo, setGpuInfo] = useState([]);
+  // const [gpuInfo, setGpuInfo] = useState([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
   const [isFp16Available, setIsFp16Available] = useState(false);
 
   useEffect(async () => {
     const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
     const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-    setGpuInfo(gpuNames);
+    // setGpuInfo(gpuNames);
     // Check if gpu string contains any nvidia-specific terms
     const nvidiaGpu = gpuNames.find(
       (gpu) => gpu.toLowerCase().split(' ').some(
@@ -33,6 +31,14 @@ function SettingsModal({ isOpen, onClose }) {
     setIsNvidiaAvailable(!!nvidiaGpu);
   }, []);
 
+  useEffect(() => {
+    setIsCpu(!isNvidiaAvailable);
+  }, [isNvidiaAvailable]);
+
+  useEffect(() => {
+    setIsFp16(isFp16Available);
+  });
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="md">
       <ModalOverlay />
@@ -40,7 +46,21 @@ function SettingsModal({ isOpen, onClose }) {
         <ModalHeader>Settings</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack w="full">
+          <VStack w="full" divider={<StackDivider />}>
+            <Flex align="center" w="full">
+              <VStack w="full" alignItems="left" alignContent="left">
+                <Text flex="1" textAlign="left">
+                  Dark theme
+                </Text>
+                <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+                  Use dark mode throughout chaiNNer.
+                </Text>
+              </VStack>
+              <HStack>
+                <Switch size="lg" value={colorMode === 'dark'} defaultIsChecked={colorMode === 'dark'} onChange={() => { toggleColorMode(); }} />
+              </HStack>
+            </Flex>
+
             <Flex align="center" w="full">
               <VStack w="full" alignItems="left" alignContent="left">
                 <Text flex="1" textAlign="left">
@@ -55,7 +75,7 @@ function SettingsModal({ isOpen, onClose }) {
                 <Switch size="lg" isDisabled={!isNvidiaAvailable} value={isNvidiaAvailable && isCpu} defaultIsChecked={isNvidiaAvailable && isCpu} onChange={() => { setIsCpu(!isCpu); }} />
               </HStack>
             </Flex>
-            <Divider />
+
             <Flex align="center" w="full">
               <VStack w="full" alignItems="left" alignContent="left">
                 <Text flex="1" textAlign="left">

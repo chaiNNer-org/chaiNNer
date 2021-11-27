@@ -6,7 +6,7 @@ import {
   AlertDialogBody, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Button, Flex,
   HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Spinner, Text, Textarea, useDisclosure, VStack,
+  ModalOverlay, Spinner, Text, Textarea, useDisclosure, VStack, StackDivider,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer, shell } from 'electron';
@@ -68,7 +68,7 @@ function DependencyManager({ isOpen, onClose }) {
   }, {
     name: 'PyTorch',
     packageName: 'torch',
-    installCommand: `pip install torch==1.10.0+${isNvidiaAvailable ? 'cu113' : 'cpu'} -f https://download.pytorch.org/whl/+${isNvidiaAvailable ? 'cu113' : 'cpu'}/torch_stable.html`,
+    installCommand: `pip install torch==1.10.0+${isNvidiaAvailable ? 'cu113' : 'cpu'} -f https://download.pytorch.org/whl/${isNvidiaAvailable ? 'cu113' : 'cpu'}/torch_stable.html`,
   }];
 
   useEffect(() => {
@@ -240,8 +240,8 @@ function DependencyManager({ isOpen, onClose }) {
           <ModalHeader>Dependency Manager</ModalHeader>
           <ModalCloseButton disabled={depChanged} />
           <ModalBody>
-            <VStack w="full">
-              <VStack w="full">
+            <VStack w="full" divider={<StackDivider />}>
+              <VStack w="full" divider={<StackDivider />}>
                 <Flex align="center" w="full">
                   <Text flex="1" textAlign="left" color={isNvidiaAvailable ? 'inherit' : 'red.500'}>
                     {`GPU (${isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'})`}
@@ -313,6 +313,7 @@ function DependencyManager({ isOpen, onClose }) {
                             size="sm"
                             leftIcon={<DownloadIcon />}
                             disabled={isRunningShell}
+                            isLoading={isRunningShell}
                           >
                             Install
                           </Button>

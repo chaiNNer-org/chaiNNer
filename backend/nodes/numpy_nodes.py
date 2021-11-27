@@ -17,26 +17,35 @@ from .properties.outputs.numpy_outputs import ImageOutput
 
 @NodeFactory.register("NumPy", "Img::Channel::Split")
 class ChannelSplitRGBANode(NodeBase):
-    """NumPy 4 -> 3/1 Splitter node"""
+    """NumPy  Splitter node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Split 4 numpy channels into a 3 channel image and a single channel image. Typically used for splitting off an alpha (transparency) layer."
-        self.inputs = [ImageInput(), SliderInput("Split Position", 1, 3, 3)]
-        self.outputs = [ImageOutput("Channel(s) A"), ImageOutput("Channel(s) B")]
+        self.description = "Split numpy image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            ImageOutput("Channel A"),
+            ImageOutput("Channel B"),
+            ImageOutput("Channel C"),
+            ImageOutput("Channel D"),
+        ]
 
-    def run(self, img: np.ndarray, position: int) -> np.ndarray:
+    def run(self, img: np.ndarray) -> np.ndarray:
         """Split a multi-chanel image into separate channels"""
+        c = 1
         if img.ndim > 2:
-            h, w, c = img.shape
-            position = min(c, position)
-        if img.ndim == 2:
-            position = min(1, position)
+            c = img.shape[2]
+            safe_out = np.zeros_like(img[:, :, 0])
+        else:
+            safe_out = np.zeros_like(img)
 
-        out1 = img[:, :, :position]
-        out2 = img[:, :, position:]
+        out = []
+        for i in range(c):
+            out.append(img[:, :, i])
+        for i in range(4 - c):
+            out.append(safe_out)
 
-        return out1, out2
+        return out
 
 
 @NodeFactory.register("NumPy", "Img::Channel::Merge")
@@ -45,17 +54,36 @@ class ChannelMergeRGBANode(NodeBase):
 
     def __init__(self):
         """Constructor"""
-        self.description = "Merge 3/1 numpy channels together into a 4 channel image. Typically used for combining an image with an alpha layer."
-        self.inputs = [ImageInput("Channel(s) A"), ImageInput("Channel(s) B")]
+        self.description = "Merge numpy channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
+        self.inputs = [
+            ImageInput("Channel(s) A"),
+            ImageInput("Channel(s) B"),
+            ImageInput("Channel(s) C"),
+            ImageInput("Channel(s) D"),
+        ]
         self.outputs = [ImageOutput()]
 
-    def run(self, im1: np.ndarray, im2: np.ndarray) -> np.ndarray:
+    def run(
+        self,
+        im1: np.ndarray,
+        im2: np.ndarray = None,
+        im3: np.ndarray = None,
+        im4: np.ndarray = None,
+    ) -> np.ndarray:
         """Combine separate channels into a multi-chanel image"""
 
-        logger.info(im1.shape)
-        logger.info(im2.shape)
+        # assert im1.shape[:2] == im2.shape[:2] == im3.shape[:2] == im4.shape[:2]
 
-        img = np.concatenate((im1, im2), axis=2)
+        imgs = []
+        for img in im1, im2, im3, im4:
+            if img is not None:
+                imgs.append(img)
+
+        for idx, img in enumerate(imgs):
+            if img.ndim == 2:
+                imgs[idx] = np.expand_dims(img, axis=2)
+
+        img = np.concatenate(imgs, axis=2)
 
         # ensure output is safe number of channels
         if img.ndim > 2:
