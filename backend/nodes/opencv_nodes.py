@@ -22,7 +22,11 @@ from .properties.inputs.generic_inputs import (
     TextInput,
 )
 from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.opencv_inputs import ColorModeInput, InterpolationInput
+from .properties.inputs.opencv_inputs import (
+    ColorModeInput,
+    InterpolationInput,
+    BorderInput,
+)
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
@@ -195,5 +199,36 @@ class ColorConvertNode(NodeBase):
         """Takes an image and changes the color mode it"""
 
         result = cv2.cvtColor(img, int(color_mode))
+
+        return result
+
+
+@NodeFactory.register("OpenCV", "Border::Make")
+class BorderMakeNode(NodeBase):
+    """OpenCV CopyMakeBorder node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Creates a border around the image"
+        self.inputs = [
+            ImageInput(),
+            BorderInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
+        """Takes an image and applies a border to it"""
+
+        result = cv2.copyMakeBorder(
+            img,
+            int(amount),
+            int(amount),
+            int(amount),
+            int(amount),
+            int(border_type),
+            None,
+            value=0,
+        )
 
         return result

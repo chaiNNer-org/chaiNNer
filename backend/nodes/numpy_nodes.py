@@ -24,20 +24,21 @@ class ChannelSplitRGBANode(NodeBase):
         self.description = "Split numpy image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
         self.inputs = [ImageInput()]
         self.outputs = [
-            ImageOutput("Channel A"),
-            ImageOutput("Channel B"),
-            ImageOutput("Channel C"),
-            ImageOutput("Channel D"),
+            ImageOutput("Blue Channel"),
+            ImageOutput("Green Channel"),
+            ImageOutput("Red Channel"),
+            ImageOutput("Alpha Channel"),
         ]
 
     def run(self, img: np.ndarray) -> np.ndarray:
-        """Split a multi-chanel image into separate channels"""
+        """Split a multi-channel image into separate channels"""
         c = 1
+        dtype_max = np.iinfo(img.dtype).max
         if img.ndim > 2:
             c = img.shape[2]
-            safe_out = np.zeros_like(img[:, :, 0])
+            safe_out = np.ones_like(img[:, :, 0]) * dtype_max
         else:
-            safe_out = np.zeros_like(img)
+            safe_out = np.ones_like(img) * dtype_max
 
         out = []
         for i in range(c):

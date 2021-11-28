@@ -6,31 +6,37 @@ from .generic_inputs import DropDownInput
 
 
 def ColorModeInput() -> Dict:
-    """ Converting color mode dropdown """
+    """Converting color mode dropdown"""
     return DropDownInput(
         "generic",
         "Color Mode",
         [
             {
-                "option": "Color -> Grayscale",
-                "value": cv2.COLOR_BGR2BGRA,
+                "option": "BGR -> Gray",
+                "value": cv2.COLOR_BGR2GRAY,
                 "inputs": "numpy::2d:3c",
                 "outputs": "numpy::2d:1c",
             },
             {
-                "option": "Grayscale -> Color",
+                "option": "Gray -> BGR",
                 "value": cv2.COLOR_GRAY2BGR,
                 "inputs": "numpy::2d:1c",
                 "outputs": "np::2d:3c",
             },
             {
-                "option": "Color + Alpha -> Color",
+                "option": "BGR -> BGRA",
+                "value": cv2.COLOR_BGR2BGRA,
+                "inputs": "numpy::2d::3c",
+                "outputs": "np::2d:4c",
+            },
+            {
+                "option": "BGRA -> BGR",
                 "value": cv2.COLOR_BGRA2BGR,
                 "inputs": "numpy::2d::4c",
                 "outputs": "np::2d:3c",
             },
             {
-                "option": "Color + Alpha -> Grayscale",
+                "option": "BGRA -> Gray",
                 "value": cv2.COLOR_BGRA2GRAY,
                 "inputs": "numpy::2d::4c",
                 "outputs": "np::2d:1c",
@@ -40,7 +46,7 @@ def ColorModeInput() -> Dict:
 
 
 def InterpolationInput() -> Dict:
-    """ Resize interpolation dropdown """
+    """Resize interpolation dropdown"""
     return DropDownInput(
         "generic",
         "Interpolation Mode",
@@ -64,6 +70,32 @@ def InterpolationInput() -> Dict:
             {
                 "option": "Lanczos",
                 "value": cv2.INTER_LANCZOS4,
+            },
+        ],
+    )
+
+
+def BorderInput() -> Dict:
+    """CopyMakeBorder option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Border Type",
+        [
+            {
+                "option": "Constant Color",
+                "value": cv2.BORDER_CONSTANT,
+            },
+            {
+                "option": "Replicate Edges",
+                "value": cv2.BORDER_REPLICATE,
+            },
+            {
+                "option": "Reflect (Mirror)",
+                "value": cv2.BORDER_REFLECT101,
+            },
+            {
+                "option": "Wrap (Tile)",
+                "value": cv2.BORDER_WRAP,
             },
         ],
     )

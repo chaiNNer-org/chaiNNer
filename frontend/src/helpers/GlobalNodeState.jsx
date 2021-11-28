@@ -106,7 +106,6 @@ export const GlobalProvider = ({ children }) => {
   useEffect(async () => {
     if (!loadedFromCli) {
       const contents = await ipcRenderer.invoke('get-cli-open');
-      console.log(contents);
       if (contents) {
         setStateFromJSON(contents, true);
         setLoadedFromCli(true);
