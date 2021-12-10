@@ -21,6 +21,7 @@ import TextInput from '../components/inputs/TextInput.jsx';
 import GenericOutput from '../components/outputs/GenericOutput.jsx';
 import getAccentColor from './getNodeAccentColors.js';
 import { GlobalContext } from './GlobalNodeState.jsx';
+import shadeColor from './shadeColor.js';
 
 export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) => {
   switch (input.type) {
@@ -61,6 +62,19 @@ export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) 
     case 'number::integer':
       return (
         <NumberInput key={i} index={i} data={data} label={input.label} min={0} precision={0} />
+      );
+    case 'number::integer::odd':
+      return (
+        <NumberInput
+          key={i}
+          index={i}
+          data={data}
+          label={input.label}
+          min={1}
+          precision={0}
+          def={1}
+          step={2}
+        />
       );
     case 'number::slider':
       return (
@@ -198,25 +212,33 @@ const NodeHeader = memo(({ data, width }) => {
   );
 });
 
-const NodeWrapper = memo(({ children }) => (
-  <Center
-    bg={useColorModeValue('gray.50', 'gray.700')}
-    borderWidth="1px"
-    borderRadius="lg"
-    py={2}
-    boxShadow="lg"
+const NodeWrapper = memo(({ children, data, selected }) => {
+  const accentColor = getAccentColor(data?.category);
+
+  const borderColor = selected ? shadeColor(accentColor, 0) : 'inherit';
+
+  return (
+    <Center
+      bg={useColorModeValue('gray.50', 'gray.700')}
+      borderWidth={data?.invalid ? '2px' : '0.5px'}
+      // borderColor={data.invalid ? 'red.400' : 'inherit'}
+      borderColor={borderColor}
+      borderRadius="lg"
+      py={2}
+      boxShadow="lg"
       // _hover={{ boxShadow: 'rgba(0, 0, 0, 0.40) 0px 0px 13px -3px', transform: 'translate(-1px, -1px)' }}
       // _active={{ boxShadow: 'rgba(0, 0, 0, 0.50) 0px 14px 18px -3px', transform: 'translate(-2px, -2px)' }}
-    transition="0.2s ease-in-out"
-  >
-    { children }
-  </Center>
-));
+      transition="0.15s ease-in-out"
+    >
+      { children }
+    </Center>
+  );
+});
 
-function UsableNode({ data }) {
+function UsableNode({ data, selected }) {
   return (
-    <NodeWrapper>
-      <VStack>
+    <NodeWrapper data={data} selected={selected}>
+      <VStack minWidth="240px">
         <NodeHeader data={data} />
 
         {data.inputs.length && (
@@ -279,7 +301,7 @@ function UsableNode({ data }) {
 export const createRepresentativeNode = (category, node) => (
   <NodeWrapper>
     <VStack>
-      <NodeHeader data={{ category, type: node.name }} width="220px" />
+      <NodeHeader data={{ category, type: node.name }} width="240px" />
     </VStack>
   </NodeWrapper>
 );

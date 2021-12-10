@@ -1,26 +1,33 @@
 /* eslint-disable import/extensions */
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Button, HStack, VStack,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { ipcRenderer } from 'electron';
-import React, {
-  useRef, useState,
-} from 'react';
+import log from 'electron-log';
+import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
 import { createNodeTypes } from '../helpers/createNodeTypes.jsx';
+import CustomEdge from '../helpers/CustomEdge.jsx.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const { app } = require('electron');
 
 function Main() {
+  useEffect(() => {
+    log.info('Main window mounted.');
+  }, []);
+
   const [nodeTypes, setNodeTypes] = useState({});
+  const edgeTypes = {
+    main: CustomEdge,
+  };
   // const { colorMode, toggleColorMode } = useColorMode();
   const [width, height] = useWindowSize();
 
@@ -30,18 +37,25 @@ function Main() {
   const [backendReady, setBackendReady] = useState(false);
 
   const options = { cachePolicy: 'no-cache', retries: 10 };
-  const { loading, error, data } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/nodes`, options, []);
+  const {
+    loading, error, data, response,
+  } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/nodes`, options, []);
 
-  if (data && !loading && !error && !backendReady) {
+  if (response.ok && data && !loading && !error && !backendReady) {
     setBackendReady(true);
-    ipcRenderer.send('backend-ready');
     setNodeTypes(createNodeTypes(data));
+    ipcRenderer.send('backend-ready');
   }
 
   if (loading) {
-    return <span>Loading...</span>;
+    return (
+      <Box w="full" h="full">
+        <Center w="full" h="full">
+          <Spinner />
+        </Center>
+      </Box>
+    );
   }
-
   if (error) {
     return (
       <AlertDialog
@@ -86,7 +100,7 @@ function Main() {
           <Header />
           <HStack
             as={Split}
-            initialPrimarySize="560px"
+            initialPrimarySize="565px"
             minPrimarySize="290px"
             minSecondarySize="50%"
             splitterSize="10px"
@@ -100,6 +114,7 @@ function Main() {
 
             <ReactFlowBox
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
               className="reactflow-wrapper"
               wrapperRef={reactFlowWrapper}
             />

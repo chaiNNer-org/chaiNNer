@@ -2,10 +2,10 @@
 /* eslint-disable import/extensions */
 import {
   Button, Flex, HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Switch, Text, VStack, StackDivider, useColorMode,
+  ModalOverlay, StackDivider, Switch, Text, useColorMode, VStack,
 } from '@chakra-ui/react';
-import React, { memo, useState, useEffect } from 'react';
 import { ipcRenderer } from 'electron';
+import React, { memo, useEffect, useState } from 'react';
 import useLocalStorage from '../helpers/useLocalStorage.js';
 
 function SettingsModal({ isOpen, onClose }) {
@@ -15,7 +15,7 @@ function SettingsModal({ isOpen, onClose }) {
 
   // const [gpuInfo, setGpuInfo] = useState([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-  const [isFp16Available, setIsFp16Available] = useState(false);
+  // const [isFp16Available, setIsFp16Available] = useState(false);
 
   useEffect(async () => {
     const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
@@ -27,7 +27,9 @@ function SettingsModal({ isOpen, onClose }) {
         (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
       ),
     );
-    setIsFp16Available(nvidiaGpu.toLowerCase().includes('rtx'));
+    if (nvidiaGpu.toLowerCase().includes('rtx')) {
+      setIsFp16(true);
+    }
     setIsNvidiaAvailable(!!nvidiaGpu);
   }, []);
 
@@ -36,8 +38,10 @@ function SettingsModal({ isOpen, onClose }) {
   }, [isNvidiaAvailable]);
 
   useEffect(() => {
-    setIsFp16(isFp16Available);
-  });
+    if (isCpu && isFp16) {
+      setIsFp16(false);
+    }
+  }, [isCpu]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="md">
@@ -57,7 +61,7 @@ function SettingsModal({ isOpen, onClose }) {
                 </Text>
               </VStack>
               <HStack>
-                <Switch size="lg" value={colorMode === 'dark'} defaultIsChecked={colorMode === 'dark'} onChange={() => { toggleColorMode(); }} />
+                <Switch size="lg" value={colorMode === 'dark'} defaultChecked={colorMode === 'dark'} onChange={() => { toggleColorMode(); }} />
               </HStack>
             </Flex>
 
@@ -72,7 +76,7 @@ function SettingsModal({ isOpen, onClose }) {
                 </Text>
               </VStack>
               <HStack>
-                <Switch size="lg" isDisabled={!isNvidiaAvailable} value={isNvidiaAvailable && isCpu} defaultIsChecked={isNvidiaAvailable && isCpu} onChange={() => { setIsCpu(!isCpu); }} />
+                <Switch size="lg" isDisabled={!isNvidiaAvailable} value={isCpu} defaultChecked={isCpu} onChange={() => { setIsCpu(!isCpu); }} />
               </HStack>
             </Flex>
 
@@ -82,12 +86,12 @@ function SettingsModal({ isOpen, onClose }) {
                   FP16 mode
                 </Text>
                 <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
-                  Runs PyTorch inference in half-precision (FP16) mode for a speedup.
-                  Supported by RTX GPUs only.
+                  Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage.
+                  RTX GPUs also get an inference speedup.
                 </Text>
               </VStack>
               <HStack>
-                <Switch size="lg" isDisabled={!isFp16Available} value={isFp16Available && isFp16} defaultIsChecked={isFp16Available && isFp16} onChange={() => { setIsFp16(!isFp16); }} />
+                <Switch size="lg" isDisabled={isCpu} value={isFp16} defaultChecked={isFp16} onChange={() => { setIsFp16(!isFp16); }} />
               </HStack>
             </Flex>
           </VStack>

@@ -2,14 +2,19 @@ import { execSync, spawn, spawnSync } from 'child_process';
 import {
   app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
+import log from 'electron-log';
 import { readFile, writeFile } from 'fs/promises';
 import hasbin from 'hasbin';
 // import { readdir } from 'fs/promises';
 import path from 'path';
 import portastic from 'portastic';
 import semver from 'semver';
-
 import { graphics } from 'systeminformation';
+
+// log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
+// eslint-disable-next-line max-len
+log.transports.file.resolvePath = (variables) => path.join(variables.electronDefaultDir, variables.fileName);
+log.transports.file.level = 'info';
 
 let gpuInfo;
 
@@ -35,11 +40,13 @@ if (app.isPackaged) {
 const parameters = process.argv.slice(2);
 
 const getValidPort = async (splash) => {
+  log.info('Attempting to check for a port...');
   const ports = await portastic.find({
     min: 8000,
     max: 8080,
   });
   if (!ports || ports.length === 0) {
+    log.warn('An open port could not be found');
     splash.hide();
     const messageBoxOptions = {
       type: 'error',
@@ -50,6 +57,7 @@ const getValidPort = async (splash) => {
     app.exit(1);
   }
   [port] = ports;
+  log.info(`Port found: ${port}`);
   ipcMain.on('get-port', (event) => {
     // eslint-disable-next-line no-param-reassign
     event.returnValue = port;
@@ -57,9 +65,22 @@ const getValidPort = async (splash) => {
 };
 
 const checkPythonEnv = async (splash) => {
-  const hasPythonAndPip = hasbin.all.sync(['python', 'pip']);
-  const hasPython3AndPip3 = await hasbin.all.sync(['python3', 'pip3']);
-  if (!hasPythonAndPip && !hasPython3AndPip3) {
+  log.info('Attempting to check Python env...');
+  let pythonBin = hasbin.first.sync(['python3', 'python']);
+  let pipBin = hasbin.first.sync(['pip3', 'pip']);
+  log.info(`Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
+
+  // TODO: check to see if this is even a worthwhile backup strat
+  if (!pythonBin) {
+    log.info('Python binary not found, attempting to grab from "which"');
+    pythonBin = execSync('which python3') || execSync('which python');
+    pipBin = execSync('which pip3') || execSync('which pip');
+  }
+
+  log.info(`Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
+
+  if (!pythonBin) {
+    log.warn('Python binary not found');
     splash.hide();
     const messageBoxOptions = {
       type: 'error',
@@ -77,16 +98,18 @@ const checkPythonEnv = async (splash) => {
     app.exit(1);
   }
 
-  if (hasPython3AndPip3) {
-    pythonKeys.python = 'python3';
-    pythonKeys.pip = 'pip3';
+  if (pythonBin) {
+    pythonKeys.python = pythonBin;
+    pythonKeys.pip = pipBin;
   }
 
   const { stdout } = spawnSync(pythonKeys.python, ['--version'], {
     stdio: 'pipe',
     encoding: 'utf-8',
   });
+  log.info(`Python version (raw): ${stdout}`);
   const { version: pythonVersion } = semver.coerce(stdout);
+  log.info(`Python version (semver): ${pythonVersion}`);
   const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0') && semver.lt(pythonVersion, '3.10.0');
   if (!hasValidPythonVersion) {
     splash.hide();
@@ -113,12 +136,14 @@ const checkPythonEnv = async (splash) => {
 };
 
 const checkPythonDeps = async (splash) => {
+  log.info('Attempting to check Python deps...');
   try {
     let pipList = execSync(`${pythonKeys.pip} list`);
     pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
+      log.info('Sanic not found. Installing sanic...');
       splash.webContents.send('installing-deps');
       execSync(`${pythonKeys.pip} install sanic Sanic-Cors`);
     }
@@ -128,9 +153,20 @@ const checkPythonDeps = async (splash) => {
 };
 
 const spawnBackend = async () => {
+  log.info('Attempting to spawn backend...');
   const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : '../backend/run.py';
-  const backend = spawn(pythonKeys.python, [backendPath, port], { stdio: 'inherit', stdout: 'inherit' });
+  const backend = spawn(pythonKeys.python, [backendPath, port]);
+
+  backend.stdout.on('data', (data) => {
+    log.info(`Backend: ${String(data)}`);
+  });
+
+  backend.stderr.on('data', (data) => {
+    log.error(`Backend: ${String(data)}`);
+  });
+
   ipcMain.handle('kill-backend', () => {
+    log.info('Attempting to kill backend...');
     backend.kill();
   });
 };
@@ -452,6 +488,8 @@ ipcMain.handle('get-gpu-info', async () => {
   }
   return gpuInfo;
 });
+
+ipcMain.handle('get-app-version', async () => app.getVersion());
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

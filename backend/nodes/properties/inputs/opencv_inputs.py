@@ -52,12 +52,12 @@ def InterpolationInput() -> Dict:
         "Interpolation Mode",
         [
             {
-                "option": "Nearest Neighbor",
-                "value": cv2.INTER_NEAREST,
+                "option": "Area (Box)",
+                "value": cv2.INTER_AREA,
             },
             {
-                "option": "Box (Area)",
-                "value": cv2.INTER_AREA,
+                "option": "Nearest Neighbor",
+                "value": cv2.INTER_NEAREST,
             },
             {
                 "option": "Linear",
@@ -82,20 +82,98 @@ def BorderInput() -> Dict:
         "Border Type",
         [
             {
-                "option": "Constant Color",
-                "value": cv2.BORDER_CONSTANT,
-            },
-            {
-                "option": "Replicate Edges",
-                "value": cv2.BORDER_REPLICATE,
-            },
-            {
                 "option": "Reflect (Mirror)",
                 "value": cv2.BORDER_REFLECT101,
             },
             {
                 "option": "Wrap (Tile)",
                 "value": cv2.BORDER_WRAP,
+            },
+            {
+                "option": "Replicate Edges",
+                "value": cv2.BORDER_REPLICATE,
+            },
+            {
+                "option": "Constant Color",
+                "value": cv2.BORDER_CONSTANT,
+            },
+        ],
+    )
+
+
+def ThresholdInput() -> Dict:
+    """Threshold type option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Threshold Type",
+        [
+            {
+                "option": "Binary",
+                "value": cv2.THRESH_BINARY,
+            },
+            {
+                "option": "Binary (Inverted)",
+                "value": cv2.THRESH_BINARY_INV,
+            },
+            {
+                "option": "Truncated",
+                "value": cv2.THRESH_TRUNC,
+            },
+            {
+                "option": "To Zero",
+                "value": cv2.THRESH_TOZERO,
+            },
+            {
+                "option": "To Zero (Inverted)",
+                "value": cv2.THRESH_TOZERO_INV,
+            },
+            {
+                "option": "OTSU",
+                "value": cv2.THRESH_OTSU,
+            },
+            {
+                "option": "Triangle",
+                "value": cv2.THRESH_TRIANGLE,
+            },
+            {
+                "option": "Mask",
+                "value": cv2.THRESH_MASK,
+            },
+        ],
+    )
+
+
+def AdaptiveThresholdInput() -> Dict:
+    """Adaptive Threshold type option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Threshold Type",
+        [
+            {
+                "option": "Binary",
+                "value": cv2.THRESH_BINARY,
+            },
+            {
+                "option": "Binary (Inverted)",
+                "value": cv2.THRESH_BINARY_INV,
+            },
+        ],
+    )
+
+
+def AdaptiveMethodInput() -> Dict:
+    """Adaptive method border option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Adaptive Method",
+        [
+            {
+                "option": "Replicate Edges",
+                "value": cv2.BORDER_REPLICATE,
+            },
+            {
+                "option": "Isolated",
+                "value": cv2.BORDER_ISOLATED,
             },
         ],
     )

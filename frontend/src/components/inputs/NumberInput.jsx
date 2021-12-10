@@ -8,7 +8,7 @@ import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
 const NumericalInput = memo(({
-  label, data, index, def, min, max, precision,
+  label, data, index, def, min, max, precision, step,
 }) => {
   const { id } = data;
   const { useInputData, useNodeLock } = useContext(GlobalContext);
@@ -16,7 +16,12 @@ const NumericalInput = memo(({
   const [isLocked] = useNodeLock(id);
 
   const handleChange = (number) => {
-    setInput(number);
+    if (data?.inputs[index]?.type.includes('odd')) {
+      // Make the number odd if need be
+      setInput(Number(number) + (1 - (Number(number) % 2)));
+    } else {
+      setInput(number);
+    }
   };
 
   return (
@@ -32,6 +37,7 @@ const NumericalInput = memo(({
         draggable={false}
         className="nodrag"
         disabled={isLocked}
+        step={step ?? 1}
       >
         <NumberInputField />
         <NumberInputStepper>

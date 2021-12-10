@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Select } from '@chakra-ui/react';
-import React, { memo, useContext, useEffect } from 'react';
+import React, { memo, useContext } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
 
@@ -12,11 +12,6 @@ const DropDownInput = memo(({
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [selection, setSelection] = useInputData(id, index);
   const [isLocked] = useNodeLock(id);
-
-  // Set the input state to the first option on mount otherwise it thinks nothing is selected
-  useEffect(() => {
-    setSelection(options[0].value);
-  }, []);
 
   const handleChange = (event) => {
     const { value } = event.target;

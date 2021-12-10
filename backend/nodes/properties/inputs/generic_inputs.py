@@ -34,6 +34,17 @@ def IntegerInput(label: str) -> Dict:
     }
 
 
+def OddIntegerInput(label: str) -> Dict:
+    """ Input for integer number """
+    return {
+        "type": "number::integer::odd",
+        "label": label,
+        "def": 1,
+        "step": 2,
+        "min": 1,
+    }
+
+
 def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
     """ Input for integer number via slider"""
     return {

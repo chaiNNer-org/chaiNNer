@@ -19,13 +19,18 @@ from .properties.inputs.generic_inputs import (
     DropDownInput,
     IntegerInput,
     NumberInput,
+    OddIntegerInput,
+    SliderInput,
     TextInput,
 )
 from .properties.inputs.numpy_inputs import ImageInput
 from .properties.inputs.opencv_inputs import (
+    AdaptiveMethodInput,
+    AdaptiveThresholdInput,
+    BorderInput,
     ColorModeInput,
     InterpolationInput,
-    BorderInput,
+    ThresholdInput,
 )
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
@@ -110,6 +115,7 @@ class ImShowNode(NodeBase):
         """Show image"""
         try:
             dtype_max = np.iinfo(img.dtype).max
+
             show_img = img.astype("float32") / dtype_max
             logger.info(dtype_max)
             if img.ndim > 2 and img.shape[2] == 4:
@@ -229,6 +235,97 @@ class BorderMakeNode(NodeBase):
             int(border_type),
             None,
             value=0,
+        )
+
+        return result
+
+
+@NodeFactory.register("OpenCV", "Threshold::Standard")
+class ThresholdNode(NodeBase):
+    """OpenCV Threshold node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Threshold an image"
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Threshold", 0, 100, 50),
+            SliderInput("Maximum Value", 0, 100, 100),
+            ThresholdInput(),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
+    ) -> np.ndarray:
+        """Takes an image and applies a threshold to it"""
+
+        dtype_max = np.iinfo(img.dtype).max
+
+        if (
+            thresh_type == cv2.THRESH_OTSU or thresh_type == cv2.THRESH_TRIANGLE
+        ) and img.ndim != 2:
+            raise RuntimeError(
+                "Image must be grayscale (single channel) to apply a threshold"
+            )
+
+        logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
+
+        real_thresh = int(thresh) / 100 * dtype_max
+        real_maxval = int(maxval) / 100 * dtype_max
+
+        logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
+
+        _, result = cv2.threshold(img, real_thresh, real_maxval, int(thresh_type))
+
+        return result
+
+
+@NodeFactory.register("OpenCV", "Threshold::Adaptive")
+class AdaptiveThresholdNode(NodeBase):
+    """OpenCV Adaptive Threshold node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Adaptive threshold an image"
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Maximum Value", 0, 100, 100),
+            AdaptiveMethodInput(),
+            AdaptiveThresholdInput(),
+            OddIntegerInput("Block Size"),
+            IntegerInput("Mean Subtraction"),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        img: np.ndarray,
+        maxval: int,
+        adaptive_method: int,
+        thresh_type: int,
+        block_size: int,
+        c: int,
+    ) -> np.ndarray:
+        """Takes an image and applies an adaptive threshold to it"""
+
+        dtype_max = np.iinfo(img.dtype).max
+
+        assert (
+            img.ndim == 2
+        ), "Image must be grayscale (single channel) to apply an adaptive threshold"
+
+        assert block_size % 2 == 1, "Block size must be an odd number"
+
+        real_maxval = int(maxval) / 100 * dtype_max
+
+        result = cv2.adaptiveThreshold(
+            img,
+            real_maxval,
+            int(adaptive_method),
+            int(thresh_type),
+            int(block_size),
+            int(c),
         )
 
         return result

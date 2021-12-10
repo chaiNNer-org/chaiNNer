@@ -1,38 +1,144 @@
 /* eslint-disable import/extensions */
 import {
-  DownloadIcon, HamburgerIcon, LinkIcon, MoonIcon, SettingsIcon, SunIcon,
+  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
 } from '@chakra-ui/icons';
 import {
-  Box, Flex, Heading, HStack, IconButton, Menu, MenuButton, MenuItem,
+  AlertDialog,
+  AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack,
+  IconButton, Image, Menu, MenuButton, MenuItem,
   MenuList, Portal, Spacer, Tag, useColorMode, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, { memo, useContext } from 'react';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import useInterval from '../helpers/useInterval.js';
+import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
 function Header() {
   const { colorMode, toggleColorMode } = useColorMode();
-  const { convertToUsableFormat, useAnimateEdges } = useContext(GlobalContext);
-  const [animateEdges, unAnimateEdges] = useAnimateEdges();
-  const { post } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
+  const {
+    convertToUsableFormat,
+    useAnimateEdges,
+    useNodeValidity,
+    nodes,
+    outlineInvalidNodes,
+    unOutlineInvalidNodes,
+  } = useContext(GlobalContext);
+  const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
+
+  const [running, setRunning] = useState(false);
+  const { post, error, response: res } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
     cachePolicy: 'no-cache',
   });
+
+  const { post: checkPost, error: checkError, response: checkRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/check`, {
+    cachePolicy: 'no-cache',
+  });
+
+  useInterval(async () => {
+    if (running) {
+      const response = await checkPost();
+      if (checkRes.ok) {
+        if (response.finished) {
+          console.log(response);
+          completeEdges(response.finished);
+        }
+      }
+    }
+  }, 500);
+
+  const { post: killPost, error: killError, response: killRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/kill`, {
+    cachePolicy: 'no-cache',
+  });
+
+  const { post: pausePost, error: pauseError, response: pauseRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/pause`, {
+    cachePolicy: 'no-cache',
+  });
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose,
   } = useDisclosure();
 
+  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
+  const [errorMessage, setErrorMessage] = useState('');
+  const cancelRef = React.useRef();
+
+  const [appVersion, setAppVersion] = useState('#.#.#');
+  useEffect(async () => {
+    const version = await ipcRenderer.invoke('get-app-version');
+    setAppVersion(version);
+  }, []);
+
   async function run() {
+    setRunning(true);
     animateEdges();
-    const data = convertToUsableFormat();
-    console.log('🚀 ~ file: Header.jsx ~ line 32 ~ run ~ data', JSON.stringify(data));
-    const response = await post(data);
-    console.log(response);
+    if (nodes.length === 0) {
+      setErrorMessage('There are no nodes to run.');
+      onErrorOpen();
+    } else {
+      const invalidNodes = nodes.filter((node) => {
+        const [valid] = useNodeValidity(node.id);
+        return !valid;
+      });
+      if (invalidNodes.length === 0) {
+        try {
+          const data = convertToUsableFormat();
+          const response = await post(data);
+          console.log(response);
+          if (!res.ok) {
+            setErrorMessage(response.exception);
+            onErrorOpen();
+          }
+        } catch (err) {
+          setErrorMessage(err.exception);
+          onErrorOpen();
+        }
+      } else {
+        // outlineInvalidNodes(invalidNodes);
+        // setTimeout(() => {
+        //   unOutlineInvalidNodes(invalidNodes);
+        // }, 2000);
+        setErrorMessage('There are invalid nodes in the editor. Please fix them before running.');
+        onErrorOpen();
+      }
+    }
     unAnimateEdges();
+    setRunning(false);
+  }
+
+  async function pause() {
+    try {
+      const response = await pausePost();
+      if (!pauseRes.ok) {
+        setErrorMessage(response.exception);
+        onErrorOpen();
+      }
+    } catch (err) {
+      setErrorMessage(err.exception);
+      onErrorOpen();
+    }
+  }
+
+  async function kill() {
+    try {
+      const response = await killPost();
+      clearCompleteEdges();
+      if (!killRes.ok) {
+        setErrorMessage(response.exception);
+        onErrorOpen();
+      }
+    } catch (err) {
+      setErrorMessage(err.exception);
+      onErrorOpen();
+    }
   }
 
   return (
@@ -40,17 +146,19 @@ function Header() {
       <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg">
         <Flex align="center" h="100%" p={2}>
           <HStack>
-            <LinkIcon />
+            {/* <LinkIcon /> */}
+            <Image boxSize="36px" src={logo} draggable={false} />
             <Heading size="md">
               chaiNNer
             </Heading>
-            <Tag>v0.0.1</Tag>
+            <Tag>Pre-Alpha</Tag>
+            <Tag>{`v${appVersion}`}</Tag>
           </HStack>
           <Spacer />
           <HStack>
-            <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" onClick={() => { run(); }} />
-            <IconButton icon={<IoPause />} variant="outline" size="md" colorScheme="yellow" disabled />
-            <IconButton icon={<IoStop />} variant="outline" size="md" colorScheme="red" disabled />
+            <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" onClick={() => { run(); }} disabled={running} />
+            <IconButton icon={<IoPause />} variant="outline" size="md" colorScheme="yellow" onClick={() => { pause(); }} disabled={!running} />
+            <IconButton icon={<IoStop />} variant="outline" size="md" colorScheme="red" onClick={() => { kill(); }} disabled={!running} />
           </HStack>
           <Spacer />
           <Menu isLazy>
@@ -93,6 +201,28 @@ function Header() {
         onOpen={onSettingsOpen}
         onClose={onSettingsClose}
       />
+
+      <AlertDialog
+        leastDestructiveRef={cancelRef}
+        onClose={onErrorClose}
+        isOpen={isErrorOpen}
+        isCentered
+      >
+        <AlertDialogOverlay />
+
+        <AlertDialogContent>
+          <AlertDialogHeader>Error</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>
+            {errorMessage}
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={onErrorClose}>
+              OK
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

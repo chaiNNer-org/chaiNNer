@@ -211,12 +211,28 @@ export const GlobalProvider = ({ children }) => {
     setNodes(newElements.filter((element) => isNode(element)));
   };
 
+  const getInputDefaults = (nodeData) => {
+    const defaultData = {};
+    if (nodeData.inputs) {
+      nodeData.inputs.forEach((input, i) => {
+        if (input.def) {
+          defaultData[i] = input.def;
+        } else if (input.default) {
+          defaultData[i] = input.default;
+        } else if (input.options) {
+          defaultData[i] = input.options[0].value;
+        }
+      });
+    }
+    return defaultData;
+  };
+
   const createNode = ({
     type, position, data,
   }) => {
     const id = createUniqueId();
     const newNode = {
-      type, id, position, data: { ...data, id },
+      type, id, position, data: { ...data, id, inputData: getInputDefaults(data) },
     };
     setNodes([
       ...nodes,
@@ -235,9 +251,12 @@ export const GlobalProvider = ({ children }) => {
       targetHandle,
       source,
       target,
-      type,
+      type: 'main',
       animated: false,
       style: { strokeWidth: 2 },
+      data: {
+        sourceType: (nodes.find((n) => n.id === source))?.data.category,
+      },
     };
     setEdges([
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
@@ -292,15 +311,25 @@ export const GlobalProvider = ({ children }) => {
   const useInputData = (id, index) => {
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
-    const inputData = nodeData?.inputData ?? {};
-    // const nodeDataById = nodeData[id] ?? {};
+
+    if (!nodeData) {
+      return [];
+    }
+
+    let inputData = nodeData?.inputData;
+    if (!inputData) {
+      inputData = getInputDefaults(nodeData);
+    }
+
     const inputDataByIndex = inputData[index];
     const setInputData = (data) => {
       const nodeCopy = { ...nodeById };
-      nodeCopy.data.inputData = {
-        ...inputData,
-        [index]: data,
-      };
+      if (nodeCopy && nodeCopy.data) {
+        nodeCopy.data.inputData = {
+          ...inputData,
+          [index]: data,
+        };
+      }
       const filteredNodes = nodes.filter((n) => n.id !== id);
       setNodes([
         ...filteredNodes,
@@ -325,7 +354,32 @@ export const GlobalProvider = ({ children }) => {
       })));
     };
 
-    return [animateEdges, unAnimateEdges];
+    const completeEdges = (finished) => {
+      setEdges(edges.map((edge) => {
+        const complete = finished.includes(edge.source);
+        return {
+          ...edge,
+          animated: !complete,
+          data: {
+            ...edge.data,
+            complete,
+          },
+        };
+      }));
+    };
+
+    const clearCompleteEdges = () => {
+      setEdges(edges.map((edge) => ({
+        ...edge,
+        animated: false,
+        data: {
+          ...edge.data,
+          complete: false,
+        },
+      })));
+    };
+
+    return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges];
   };
 
   // TODO: performance concern? runs twice when deleting node
@@ -393,7 +447,7 @@ export const GlobalProvider = ({ children }) => {
   const clearNode = (id) => {
     const nodesCopy = [...nodes];
     const node = nodesCopy.find((n) => n.id === id);
-    node.data.inputData = {};
+    node.data.inputData = getInputDefaults(node.data);
     setNodes([
       ...nodes.filter((n) => n.id !== id),
       node,
@@ -429,8 +483,36 @@ export const GlobalProvider = ({ children }) => {
   // useHotkeys('ctrl+c', copy, {}, [reactFlowInstanceRfi, selectedElements]);
   // useHotkeys('ctrl+v', paste, {}, [reactFlowInstanceRfi, selectedElements]);
 
+  const outlineInvalidNodes = (invalidNodes) => {
+    const invalidIds = invalidNodes.map((node) => node.id);
+    const mappedNodes = invalidNodes.map((node) => {
+      const nodeCopy = { ...node };
+      nodeCopy.data.invalid = true;
+      return nodeCopy;
+    });
+    setNodes([
+      ...(nodes.filter((node) => !invalidIds.includes(node.id))),
+      ...mappedNodes,
+    ]);
+  };
+
+  const unOutlineInvalidNodes = (invalidNodes) => {
+    const invalidIds = invalidNodes.map((node) => node.id);
+    const mappedNodes = invalidNodes.map((node) => {
+      const nodeCopy = { ...node };
+      nodeCopy.data.invalid = false;
+      return nodeCopy;
+    });
+    setNodes([
+      ...(nodes.filter((node) => !invalidIds.includes(node.id))),
+      ...mappedNodes,
+    ]);
+  };
+
   return (
     <GlobalContext.Provider value={{
+      nodes,
+      edges,
       elements: [...nodes, ...edges],
       createNode,
       createConnection,
@@ -448,6 +530,8 @@ export const GlobalProvider = ({ children }) => {
       duplicateNode,
       clearNode,
       // setSelectedElements,
+      outlineInvalidNodes,
+      unOutlineInvalidNodes,
     }}
     >
       {children}

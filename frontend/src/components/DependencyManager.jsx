@@ -1,15 +1,15 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
-import { DeleteIcon, DownloadIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
   AlertDialog,
   AlertDialogBody, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Button, Flex,
   HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Spinner, Text, Textarea, useDisclosure, VStack, StackDivider,
+  ModalOverlay, Spinner, StackDivider, Text, Textarea, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
-import { ipcRenderer, shell } from 'electron';
+import { ipcRenderer } from 'electron';
 import React, {
   memo, useEffect, useRef, useState,
 } from 'react';
@@ -33,6 +33,7 @@ function DependencyManager({ isOpen, onClose }) {
 
   const [uninstallingPackage, setUninstallingPackage] = useState('');
 
+  const consoleRef = useRef(null);
   const [shellOutput, setShellOutput] = useState('');
   const [isRunningShell, setIsRunningShell] = useState(false);
 
@@ -232,6 +233,12 @@ function DependencyManager({ isOpen, onClose }) {
     });
   };
 
+  useEffect(() => {
+    if (consoleRef.current) {
+      consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+    }
+  }, [shellOutput]);
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl" closeOnOverlayClick={!depChanged}>
@@ -321,7 +328,19 @@ function DependencyManager({ isOpen, onClose }) {
                     </Flex>
                   ))}
               </VStack>
-              <Textarea disabled placeholder="Console output..." w="full" h="150" value={shellOutput} fontFamily="monospace" />
+              <Textarea
+                placeholder="Console output..."
+                w="full"
+                h="150"
+                value={shellOutput}
+                fontFamily="monospace"
+                cursor="default"
+                ref={consoleRef}
+                onClick={(e) => e.preventDefault()}
+                onChange={(e) => e.preventDefault()}
+                onFocus={(e) => e.preventDefault()}
+                readOnly
+              />
             </VStack>
           </ModalBody>
 

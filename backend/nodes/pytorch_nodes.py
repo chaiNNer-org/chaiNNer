@@ -6,8 +6,8 @@ Nodes that provide functionality for pytorch inference
 from os import path
 from typing import Any, OrderedDict
 
+import numpy as np
 import torch
-from numpy import dstack, expand_dims, full, iinfo, ndarray, tile
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -150,12 +150,12 @@ class EsrganNode(NodeBase):
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
-    def run(self, model: RRDBNet, img: ndarray) -> ndarray:
+    def run(self, model: RRDBNet, img: np.ndarray) -> np.ndarray:
         """Upscales an image with an ESRGAN pretrained model"""
 
         logger.info(f"Upscaling image...")
 
-        img = img / iinfo(img.dtype).max
+        img = img / np.iinfo(img.dtype).max
 
         in_nc = model.in_nc
         out_nc = model.out_nc
@@ -171,9 +171,11 @@ class EsrganNode(NodeBase):
         # But I want to be extra safe
 
         # # Add extra channels if not enough (i.e single channel img, three channel model)
+        gray = False
         if img.ndim == 2:
+            gray = True
             logger.warn("Expanding image channels")
-            img = tile(expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
         # Remove extra channels if too many (i.e three channel image, single channel model)
         elif img.shape[2] > in_nc:
             logger.warn("Truncating image channels")
@@ -181,15 +183,13 @@ class EsrganNode(NodeBase):
         # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
         elif img.shape[2] == 3 and in_nc == 4:
             logger.warn("Expanding image channels")
-            img = dstack((img, full(img.shape[:-1], 1.0)))
+            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
         img_tensor = np2tensor(img)
-        logger.info(img_tensor)
         t_img = np2tensor(img).to(torch.device("cuda"))
         t_out = t_img.clone()
-        logger.info("🚀 ~ file: pytorch_nodes.py ~ line 189 ~ t_out %s", t_out)
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
             t_img,
@@ -200,6 +200,9 @@ class EsrganNode(NodeBase):
         logger.info("Converting tensor to image")
         img_out = tensor2np(t_out.detach())
         logger.info("Done upscaling")
+
+        if gray:
+            img_out = np.average(img_out, axis=2).astype("uint8")
 
         return img_out
 
@@ -218,7 +221,7 @@ class InterpolateNode(NodeBase):
         ]
         self.outputs = [StateDictOutput()]
 
-    def run(self, model_a: RRDBNet, model_b: RRDBNet, amount: int) -> ndarray:
+    def run(self, model_a: RRDBNet, model_b: RRDBNet, amount: int) -> np.ndarray:
         """Upscales an image with an ESRGAN pretrained model"""
 
         logger.info(f"Interpolating models...")
@@ -243,7 +246,7 @@ class PthSaveNode(NodeBase):
         self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
-    def run(self, model: OrderedDict(), directory: str, name: str) -> ndarray:
+    def run(self, model: OrderedDict(), directory: str, name: str) -> np.ndarray:
         """Upscales an image with an ESRGAN pretrained model"""
         fullFile = f"{name}.pth"
         fullPath = path.join(directory, fullFile)

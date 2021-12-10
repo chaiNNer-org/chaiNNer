@@ -3,7 +3,7 @@
 import {
   Slider, SliderFilledTrack, SliderThumb, SliderTrack,
 } from '@chakra-ui/react';
-import React, { memo, useContext, useEffect } from 'react';
+import React, { memo, useContext } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import InputContainer from './InputContainer.jsx';
@@ -15,10 +15,6 @@ const SliderInput = memo(({
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
   const [isLocked] = useNodeLock(id);
-
-  useEffect(() => {
-    setInput(def);
-  }, []);
 
   const handleChange = (number) => {
     setInput(number);
@@ -32,7 +28,7 @@ const SliderInput = memo(({
         max={max}
         step={1}
         onChange={handleChange}
-        value={input}
+        value={input ?? def}
         isDisabled={isLocked}
       >
         <SliderTrack>
@@ -44,5 +40,4 @@ const SliderInput = memo(({
     </InputContainer>
   );
 });
-
 export default SliderInput;

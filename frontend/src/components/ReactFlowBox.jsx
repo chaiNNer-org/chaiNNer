@@ -13,7 +13,7 @@ export const NodeDataContext = createContext({});
 
 // eslint-disable-next-line react/prop-types
 function ReactFlowBox({
-  wrapperRef, nodeTypes,
+  wrapperRef, nodeTypes, edgeTypes,
 }) {
   const {
     elements, createNode, createConnection, reactFlowInstance,
@@ -88,6 +88,7 @@ function ReactFlowBox({
         onDragOver={onDragOver}
         onNodeDragStop={updateRfi}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
         onSelectionChange={setSelectedElements}
