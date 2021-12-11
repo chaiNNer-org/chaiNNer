@@ -329,3 +329,69 @@ class AdaptiveThresholdNode(NodeBase):
         )
 
         return result
+
+
+@NodeFactory.register("OpenCV", "Concat::Horizontal")
+class HConcatNode(NodeBase):
+    """OpenCV HConcat Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Concatenate multiple images horizontally"
+        self.inputs = [
+            ImageInput("Image A"),
+            ImageInput("Image B", optional=True),
+            ImageInput("Image C", optional=True),
+            ImageInput("Image D", optional=True),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        im1: np.ndarray,
+        im2: np.ndarray = None,
+        im3: np.ndarray = None,
+        im4: np.ndarray = None,
+    ) -> np.ndarray:
+        """Concatenate multiple images horizontally"""
+
+        imgs = []
+        for img in im1, im2, im3, im4:
+            if img is not None:
+                imgs.append(img)
+        img = cv2.hconcat(imgs)
+
+        return img
+
+
+@NodeFactory.register("OpenCV", "Concat::Vertical")
+class VConcatNode(NodeBase):
+    """OpenCV VConcat Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Concatenate multiple images vertically"
+        self.inputs = [
+            ImageInput("Image A"),
+            ImageInput("Image B", optional=True),
+            ImageInput("Image C", optional=True),
+            ImageInput("Image D", optional=True),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        im1: np.ndarray,
+        im2: np.ndarray = None,
+        im3: np.ndarray = None,
+        im4: np.ndarray = None,
+    ) -> np.ndarray:
+        """Concatenate multiple images vertically"""
+
+        imgs = []
+        for img in im1, im2, im3, im4:
+            if img is not None:
+                imgs.append(img)
+        img = cv2.vconcat(imgs)
+
+        return img

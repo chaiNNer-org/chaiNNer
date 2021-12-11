@@ -90,7 +90,6 @@ async def check(request):
         logger.info("No executor to check")
         return json({"message": "No executor to check!"}, status=200)
     except Exception as exception:
-        print("🚀 ~ file: run.py ~ line 68 ~ exception", exception)
         logger.log(2, exception, exc_info=1)
         request.app.executor = None
         return json(

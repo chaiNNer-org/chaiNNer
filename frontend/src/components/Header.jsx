@@ -47,7 +47,6 @@ function Header() {
       const response = await checkPost();
       if (checkRes.ok) {
         if (response.finished) {
-          console.log(response);
           completeEdges(response.finished);
         }
       }

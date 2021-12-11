@@ -26,6 +26,20 @@ const CustomEdge = ({
 
   const [isHovered, setIsHovered] = useState(false);
   const accentColor = getNodeAccentColors(data.sourceType);
+  const selectedColor = shadeColor(accentColor, -40);
+  // const normalColor = useColorModeValue('gray.600', 'gray.400');
+
+  const getCurrentColor = () => {
+    if (selected) {
+      return selectedColor;
+    }
+
+    if (data.complete) {
+      return accentColor;
+    }
+
+    return accentColor;
+  };
 
   return (
     <>
@@ -34,9 +48,7 @@ const CustomEdge = ({
         style={{
           ...style,
           strokeWidth: isHovered ? '4px' : '2px',
-          ...((data.complete || true) && {
-            stroke: selected ? shadeColor(accentColor, -40) : accentColor,
-          }),
+          stroke: getCurrentColor(),
           transitionDuration: '0.15s',
           transitionProperty: 'stroke-width, stroke',
           transitionTimingFunction: 'ease-in-out',
