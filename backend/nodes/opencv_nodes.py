@@ -2,7 +2,7 @@
 Nodes that provide functionality for opencv image manipulation
 """
 
-from os import path
+import os
 
 import cv2
 import numpy as np
@@ -75,7 +75,7 @@ class ImWriteNode(NodeBase):
     ) -> bool:
         """Write an image to the specified path and return write status"""
         fullFile = f"{filename}.{extension}"
-        fullPath = path.join(directory, fullFile)
+        fullPath = os.path.join(directory, fullFile)
         logger.info(f"Writing image to path: {fullPath}")
         status = cv2.imwrite(fullPath, img)
 
@@ -128,6 +128,23 @@ class ImShowNode(NodeBase):
                 background = cv2.multiply(1.0 - alpha, checkerboard)
                 show_img = cv2.add(foreground, background)
 
+            h, w = show_img.shape[:2]
+            x = int(0.85 * int(os.environ["resolutionX"]))
+            y = int(0.85 * int(os.environ["resolutionY"]))
+            if h > y:
+                ratio = y / h
+                new_h = y
+                new_w = int(ratio * w)
+                show_img = cv2.resize(
+                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                )
+            elif w > x:
+                ratio = x / w
+                new_h = int(ratio * h)
+                new_w = x
+                show_img = cv2.resize(
+                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                )
             cv2.imshow("Image Preview", show_img)
             cv2.waitKey(0)
         except Exception as e:
@@ -356,10 +373,26 @@ class HConcatNode(NodeBase):
         """Concatenate multiple images horizontally"""
 
         imgs = []
+        max_h, max_w = 0, 0
         for img in im1, im2, im3, im4:
             if img is not None:
+                h, w = img.shape[:2]
+                max_h = max(h, max_h)
+                max_w = max(w, max_w)
                 imgs.append(img)
-        img = cv2.hconcat(imgs)
+
+        fixed_imgs = []
+        for img in imgs:
+            h, w = img.shape[:2]
+            if h < max_h or w < max_w:
+                temp_img = cv2.resize(
+                    img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
+                )
+                fixed_imgs.append(temp_img)
+            else:
+                fixed_imgs.append(img)
+
+        img = cv2.hconcat(fixed_imgs)
 
         return img
 
@@ -389,9 +422,79 @@ class VConcatNode(NodeBase):
         """Concatenate multiple images vertically"""
 
         imgs = []
+        max_h, max_w = 0, 0
         for img in im1, im2, im3, im4:
             if img is not None:
+                h, w = img.shape[:2]
+                max_h = max(h, max_h)
+                max_w = max(w, max_w)
                 imgs.append(img)
-        img = cv2.vconcat(imgs)
+
+        fixed_imgs = []
+        for img in imgs:
+            h, w = img.shape[:2]
+            if h < max_h or w < max_w:
+                temp_img = cv2.resize(
+                    img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
+                )
+                fixed_imgs.append(temp_img)
+            else:
+                fixed_imgs.append(img)
+
+        img = cv2.vconcat(fixed_imgs)
+
+        return img
+
+
+@NodeFactory.register("OpenCV", "Adjust::Brightness")
+class BrightnessNode(NodeBase):
+    """OpenCV Brightness Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Adjust the brightness of an image"
+        self.inputs = [ImageInput(), SliderInput("Amount", -100, 100, 0)]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: int,
+    ) -> np.ndarray:
+        """Adjusts the brightness of an image"""
+
+        dtype_max = np.iinfo(img.dtype).max
+        f_img = img.astype("float") / dtype_max
+        amount = int(amount) / 100
+
+        f_img = f_img + amount
+        img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
+
+        return img
+
+
+@NodeFactory.register("OpenCV", "Adjust::Contrast")
+class ContrastNode(NodeBase):
+    """OpenCV Contrast Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Adjust the contrast of an image"
+        self.inputs = [ImageInput(), SliderInput("Amount", 0, 200, 100)]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: int,
+    ) -> np.ndarray:
+        """Adjusts the contrast of an image"""
+
+        dtype_max = np.iinfo(img.dtype).max
+        f_img = img.astype("float") / dtype_max
+        amount = int(amount) / 100
+
+        f_img = f_img * amount
+        img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
 
         return img

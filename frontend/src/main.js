@@ -64,20 +64,47 @@ const getValidPort = async (splash) => {
   });
 };
 
+const checkPythonVersion = (pythonBin) => {
+  const { stdout } = spawnSync(pythonBin, ['--version'], {
+    stdio: 'pipe',
+    encoding: 'utf-8',
+  });
+  log.info(`Python version (raw): ${stdout}`);
+  const { version: pythonVersion } = semver.coerce(stdout);
+  log.info(`Python version (semver): ${pythonVersion}`);
+  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0') && semver.lt(pythonVersion, '3.10.0');
+  return { pythonVersion, hasValidPythonVersion };
+};
+
 const checkPythonEnv = async (splash) => {
   log.info('Attempting to check Python env...');
-  let pythonBin = hasbin.first.sync(['python3', 'python']);
-  let pipBin = hasbin.first.sync(['pip3', 'pip']);
-  log.info(`Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
 
-  // TODO: check to see if this is even a worthwhile backup strat
-  if (!pythonBin) {
-    log.info('Python binary not found, attempting to grab from "which"');
-    pythonBin = execSync('which python3') || execSync('which python');
-    pipBin = execSync('which pip3') || execSync('which pip');
+  // Check first for standard 'python' keyword
+  let pythonBin = hasbin.sync('python') ? 'python' : null;
+  let pipBin = hasbin.sync('pip') ? 'pip' : null;
+  let validPythonVersion = null;
+  log.info(`(Hasbin) Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
+  if (pythonBin) {
+    const { pythonVersion, hasValidPythonVersion } = checkPythonVersion(pythonBin);
+    if (pythonVersion && hasValidPythonVersion) {
+      validPythonVersion = pythonVersion;
+    }
   }
 
-  log.info(`Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
+  // If 'python' not available or not right version, check 'python3'
+  if (!pythonBin || !validPythonVersion) {
+    pythonBin = hasbin.sync('python3') ? 'python3' : null;
+    pipBin = hasbin.sync('pip3') ? 'pip3' : null;
+    log.info(`(Hasbin) Python3 binary: ${pythonBin}`, `Pip3 binary: ${pipBin}`);
+    if (pythonBin) {
+      const { pythonVersion, hasValidPythonVersion } = checkPythonVersion(pythonBin);
+      if (pythonVersion && hasValidPythonVersion) {
+        validPythonVersion = pythonVersion;
+      }
+    }
+  }
+
+  log.info(`Final Python binary: ${pythonBin}`, `Final Pip binary: ${pipBin}`);
 
   if (!pythonBin) {
     log.warn('Python binary not found');
@@ -87,7 +114,7 @@ const checkPythonEnv = async (splash) => {
       title: 'Python not installed',
       buttons: ['Get Python', 'Exit'],
       defaultId: 1,
-      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/',
+      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
     };
     const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
     if (buttonResult === 1) {
@@ -101,17 +128,11 @@ const checkPythonEnv = async (splash) => {
   if (pythonBin) {
     pythonKeys.python = pythonBin;
     pythonKeys.pip = pipBin;
+    pythonKeys.version = validPythonVersion;
+    log.info({ pythonKeys });
   }
 
-  const { stdout } = spawnSync(pythonKeys.python, ['--version'], {
-    stdio: 'pipe',
-    encoding: 'utf-8',
-  });
-  log.info(`Python version (raw): ${stdout}`);
-  const { version: pythonVersion } = semver.coerce(stdout);
-  log.info(`Python version (semver): ${pythonVersion}`);
-  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0') && semver.lt(pythonVersion, '3.10.0');
-  if (!hasValidPythonVersion) {
+  if (!validPythonVersion) {
     splash.hide();
     const messageBoxOptions = {
       type: 'error',
@@ -128,7 +149,7 @@ const checkPythonEnv = async (splash) => {
     }
     app.exit(1);
   }
-  pythonKeys.version = pythonVersion;
+
   ipcMain.on('get-python', (event) => {
     // eslint-disable-next-line no-param-reassign
     event.returnValue = pythonKeys;

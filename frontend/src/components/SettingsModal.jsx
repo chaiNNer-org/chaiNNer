@@ -5,12 +5,19 @@ import {
   ModalOverlay, StackDivider, Switch, Text, useColorMode, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, { memo, useEffect, useState } from 'react';
-import useLocalStorage from '../helpers/useLocalStorage.js';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
 function SettingsModal({ isOpen, onClose }) {
-  const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
-  const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
+  const {
+    useIsCpu,
+    useIsFp16,
+  } = useContext(GlobalContext);
+
+  const [isCpu, setIsCpu] = useIsCpu;
+  const [isFp16, setIsFp16] = useIsFp16;
   const { colorMode, toggleColorMode } = useColorMode();
 
   // const [gpuInfo, setGpuInfo] = useState([]);

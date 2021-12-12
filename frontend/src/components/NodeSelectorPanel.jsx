@@ -98,6 +98,7 @@ function NodeSelector({ data, height }) {
                       <Wrap>
                         {nodes
                           .filter((e) => `${category} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .sort((a, b) => a.name.toUpperCase().localeCompare(b.name.toUpperCase()))
                           .map((node) => (
                             <WrapItem key={node.name} p={2}>
                               <Tooltip label={node.description} hasArrow closeOnMouseDown>

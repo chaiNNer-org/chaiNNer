@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 
 from sanic import Sanic
@@ -64,7 +65,13 @@ async def run(request):
             await executor.run()
         else:
             logger.info("Running new executor...")
-            nodes_list = request.json
+            full_data = request.json
+            logger.info(full_data)
+            nodes_list = full_data["data"]
+            os.environ["device"] = "cpu" if bool(full_data["isCpu"]) else "cuda"
+            os.environ["isFp16"] = str(full_data["isFp16"])
+            os.environ["resolutionX"] = str(full_data["resolutionX"])
+            os.environ["resolutionY"] = str(full_data["resolutionY"])
             executor = Executor(nodes_list, app.loop)
             request.app.executor = executor
             await executor.run()

@@ -3,7 +3,7 @@ Nodes that provide functionality for pytorch inference
 """
 
 
-from os import path
+import os
 from typing import Any, OrderedDict
 
 import numpy as np
@@ -20,6 +20,20 @@ from .properties.outputs.numpy_outputs import ImageOutput
 from .properties.outputs.pytorch_outputs import ModelOutput, StateDictOutput
 from .utils.architectures.RRDB import RRDBNet
 from .utils.utils import auto_split_process, np2tensor, tensor2np
+
+
+def check_env():
+    os.environ["device"] = (
+        "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
+    )
+
+    if bool(os.environ["isFp16"]):
+        if os.environ["device"] == "cpu":
+            torch.set_default_tensor_type(torch.HalfTensor)
+        elif os.environ["device"] == "cuda":
+            torch.set_default_tensor_type(torch.cuda.HalfTensor)
+        else:
+            logger.warn("Something isn't set right with the device env var")
 
 
 @NodeFactory.register("PyTorch", "Model::Read")
@@ -103,7 +117,7 @@ class LoadEsrganModelNode(NodeBase):
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model.to(torch.device("cuda"))
+        model.to(torch.device(os.environ["device"]))
 
         return model
 
@@ -153,6 +167,8 @@ class EsrganNode(NodeBase):
     def run(self, model: RRDBNet, img: np.ndarray) -> np.ndarray:
         """Upscales an image with an ESRGAN pretrained model"""
 
+        check_env()
+
         logger.info(f"Upscaling image...")
 
         img = img / np.iinfo(img.dtype).max
@@ -188,8 +204,11 @@ class EsrganNode(NodeBase):
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
         img_tensor = np2tensor(img)
-        t_img = np2tensor(img).to(torch.device("cuda"))
+        t_img = np2tensor(img).to(torch.device(os.environ["device"]))
         t_out = t_img.clone()
+        if bool(os.environ["isFp16"]):
+            model = model.half()
+            t_img = t_img.half()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
             t_img,
@@ -249,7 +268,7 @@ class PthSaveNode(NodeBase):
     def run(self, model: OrderedDict(), directory: str, name: str) -> np.ndarray:
         """Upscales an image with an ESRGAN pretrained model"""
         fullFile = f"{name}.pth"
-        fullPath = path.join(directory, fullFile)
+        fullPath = os.path.join(directory, fullFile)
         logger.info(f"Writing image to path: {fullPath}")
         status = torch.save(model, fullPath)
 

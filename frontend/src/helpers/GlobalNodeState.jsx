@@ -9,6 +9,7 @@ import {
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
+import useLocalStorage from './useLocalStorage.js';
 import useUndoHistory from './useMultipleUndoHistory.js';
 import useSessionStorage from './useSessionStorage.js';
 
@@ -22,6 +23,9 @@ export const GlobalProvider = ({ children }) => {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
+
+  const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
+  const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -215,9 +219,9 @@ export const GlobalProvider = ({ children }) => {
     const defaultData = {};
     if (nodeData.inputs) {
       nodeData.inputs.forEach((input, i) => {
-        if (input.def) {
+        if (input.def || input.def === 0) {
           defaultData[i] = input.def;
-        } else if (input.default) {
+        } else if (input.default || input.default === 0) {
           defaultData[i] = input.default;
         } else if (input.options) {
           defaultData[i] = input.options[0].value;
@@ -421,7 +425,7 @@ export const GlobalProvider = ({ children }) => {
     const nonOptionalInputs = inputs.filter((input) => !input.optional);
     if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length) {
       // Grabs all the indexes of the inputs that the connections are targeting
-      const edgeTargetIndexes = edges.map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
+      const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
       // Grab all inputs that do not have data or a connected edge
       const missingInputs = nonOptionalInputs.filter(
         (input, i) => !Object.keys(inputData).includes(String(i))
@@ -532,6 +536,8 @@ export const GlobalProvider = ({ children }) => {
       // setSelectedElements,
       outlineInvalidNodes,
       unOutlineInvalidNodes,
+      useIsCpu: [isCpu, setIsCpu],
+      useIsFp16: [isFp16, setIsFp16],
     }}
     >
       {children}

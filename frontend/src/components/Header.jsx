@@ -22,15 +22,29 @@ import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
 function Header() {
+  const [monitor, setMonitor] = useState(null);
+
+  useEffect(async () => {
+    const { displays } = await ipcRenderer.invoke('get-gpu-info');
+    if (displays) {
+      const mainDisplay = displays.find((display) => display.main === true);
+      setMonitor(mainDisplay);
+    }
+  }, []);
+
   const { colorMode, toggleColorMode } = useColorMode();
   const {
     convertToUsableFormat,
     useAnimateEdges,
     useNodeValidity,
     nodes,
-    outlineInvalidNodes,
-    unOutlineInvalidNodes,
+    useIsCpu,
+    useIsFp16,
   } = useContext(GlobalContext);
+
+  const [isCpu] = useIsCpu;
+  const [isFp16] = useIsFp16;
+
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
@@ -90,7 +104,13 @@ function Header() {
       if (invalidNodes.length === 0) {
         try {
           const data = convertToUsableFormat();
-          const response = await post(data);
+          const response = await post({
+            data,
+            isCpu,
+            isFp16: isFp16 && !isCpu,
+            resolutionX: monitor?.resolutionX || 1920,
+            resolutionY: monitor?.resolutionY || 1080,
+          });
           console.log(response);
           if (!res.ok) {
             setErrorMessage(response.exception);
@@ -101,10 +121,6 @@ function Header() {
           onErrorOpen();
         }
       } else {
-        // outlineInvalidNodes(invalidNodes);
-        // setTimeout(() => {
-        //   unOutlineInvalidNodes(invalidNodes);
-        // }, 2000);
         setErrorMessage('There are invalid nodes in the editor. Please fix them before running.');
         onErrorOpen();
       }
