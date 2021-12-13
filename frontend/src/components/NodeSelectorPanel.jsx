@@ -3,10 +3,11 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Button, Center, Heading, HStack, Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
-  TabPanels, Tabs, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
+  Box, Button, Center, Divider, Heading, HStack, Input,
+  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
@@ -27,6 +28,26 @@ function NodeSelector({ data, height }) {
   const [searchQuery, setSearchQuery] = useState('');
   const handleChange = (event) => setSearchQuery(event.target.value);
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [namespaces, setNamespaces] = useState([]);
+
+  useEffect(() => {
+    const set = {};
+    data?.forEach(({ category, nodes }) => {
+      nodes
+        .sort((a, b) => a.name.toUpperCase().localeCompare(b.name.toUpperCase()))
+        .forEach((node) => {
+          const namespace = node.name.split('::')[0];
+          if (!set[category]) {
+            set[category] = [];
+          }
+          if (!set[category].includes(namespace)) {
+            set[category].push(namespace);
+          }
+        });
+    });
+    setNamespaces(set);
+  }, [data]);
 
   return (
     <Box
@@ -66,7 +87,7 @@ function NodeSelector({ data, height }) {
             </InputGroup>
             <Box
               h={height - 165}
-              overflowY="auto"
+              overflowY="scroll"
               sx={{
                 '&::-webkit-scrollbar': {
                   width: '6px',
@@ -95,31 +116,52 @@ function NodeSelector({ data, height }) {
                       <AccordionIcon />
                     </AccordionButton>
                     <AccordionPanel>
-                      <Wrap>
-                        {nodes
-                          .filter((e) => `${category} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()))
-                          .sort((a, b) => a.name.toUpperCase().localeCompare(b.name.toUpperCase()))
-                          .map((node) => (
-                            <WrapItem key={node.name} p={2}>
-                              <Tooltip label={node.description} hasArrow closeOnMouseDown>
-                                <Center
+                      {namespaces[category] && namespaces[category]
+                        .map((namespace) => (
+                          <Box key={namespace}>
+                            <Center w="full">
+                              <HStack w="full">
+                                <Divider orientation="horizontal" />
+                                <Text fontSize="sm" color="#71809699" casing="uppercase">{namespace}</Text>
+                                <Divider orientation="horizontal" />
+                              </HStack>
+                            </Center>
+                            <Wrap>
+                              {nodes
+                                .filter(
+                                  (e) => `${category} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                                )
+                                .filter(
+                                  (e) => e.name.toUpperCase().includes(namespace.toUpperCase()),
+                                )
+                                .sort(
+                                  (a, b) => a.name.toUpperCase()
+                                    .localeCompare(b.name.toUpperCase()),
+                                )
+                                .map((node) => (
+                                  <WrapItem key={node.name} p={2}>
+                                    <Tooltip label={node.description} hasArrow closeOnMouseDown>
+                                      <Center
                                   // w="180px"
                                   // h="auto"
                                   // maxW="180px"
                                   // minW="180px"
-                                  boxSizing="border-box"
-                                  onDragStart={(event) => onDragStart(event, category, node)}
-                                  draggable
+                                        boxSizing="border-box"
+                                        onDragStart={(event) => onDragStart(event, category, node)}
+                                        draggable
                                   // height="180px"
                                   // width="auto"
-                                  display="block"
-                                >
-                                  {createRepresentativeNode(category, node)}
-                                </Center>
-                              </Tooltip>
-                            </WrapItem>
-                          ))}
-                      </Wrap>
+                                        display="block"
+                                      >
+                                        {createRepresentativeNode(category, node)}
+                                      </Center>
+                                    </Tooltip>
+                                  </WrapItem>
+                                ))}
+                            </Wrap>
+                          </Box>
+                        ))}
+
                     </AccordionPanel>
                   </AccordionItem>
                 ))}
