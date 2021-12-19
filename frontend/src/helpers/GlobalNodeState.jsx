@@ -5,6 +5,7 @@ import React, {
   createContext, useCallback, useEffect, useState,
 } from 'react';
 import {
+  getOutgoers,
   isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -309,7 +310,21 @@ export const GlobalProvider = ({ children }) => {
     const sourceOutput = sourceNode.data.outputs[sourceHandleIndex];
     const targetInput = targetNode.data.inputs[targetHandleIndex];
 
-    return sourceOutput.type === targetInput.type;
+    const checkTargetChildren = (parentNode) => {
+      const targetChildren = getOutgoers(parentNode, [...nodes, ...edges]);
+      if (!targetChildren.length) {
+        return false;
+      }
+      return targetChildren.some((childNode) => {
+        if (childNode.id === sourceNode.id) {
+          return true;
+        }
+        return checkTargetChildren(childNode);
+      });
+    };
+    const isLoop = checkTargetChildren(targetNode);
+
+    return sourceOutput.type === targetInput.type && !isLoop;
   };
 
   const useInputData = (id, index) => {

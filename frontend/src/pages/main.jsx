@@ -47,15 +47,16 @@ function Main() {
     ipcRenderer.send('backend-ready');
   }
 
-  if (loading) {
+  if (loading && !backendReady) {
     return (
-      <Box w="full" h="full">
+      <Box w={width} h={height}>
         <Center w="full" h="full">
           <Spinner />
         </Center>
       </Box>
     );
   }
+
   if (error) {
     return (
       <AlertDialog

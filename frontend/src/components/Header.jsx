@@ -5,9 +5,10 @@ import {
 import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack,
-  IconButton, Image, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Tag, useColorMode, useDisclosure,
+  AlertDialogHeader, AlertDialogOverlay, Box,
+  Button, CircularProgress, CircularProgressLabel, Flex, Heading, HStack,
+  IconButton, Image, Menu, MenuButton, MenuItem, MenuList,
+  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
@@ -63,6 +64,9 @@ function Header() {
         if (response.finished) {
           completeEdges(response.finished);
         }
+      } else {
+        unAnimateEdges();
+        setRunning(false);
       }
     }
   }, 500);
@@ -90,6 +94,56 @@ function Header() {
     setAppVersion(version);
   }, []);
 
+  const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
+  const [nvidiaGpuIndex, setNvidiaGpuIndex] = useState(null);
+
+  const [vramUsage, setVramUsage] = useState(0);
+  const [ramUsage, setRamUsage] = useState(0);
+  const [cpuUsage, setCpuUsage] = useState(0);
+  const [hasCheckedGPU, setHasCheckedGPU] = useState(false);
+  const checkSysInfo = async () => {
+    const { gpu, ram, cpu } = await ipcRenderer.invoke('get-live-sys-info');
+
+    const vramCheck = (index) => {
+      const gpuInfo = gpu.controllers[index];
+      const usage = Number(((gpuInfo?.memoryUsed || 0) / (gpuInfo?.memoryTotal || 1)) * 100);
+      setVramUsage(usage);
+    };
+    if (!hasCheckedGPU) {
+      const gpuNames = gpu?.controllers.map((g) => g.model);
+      // Check if gpu string contains any nvidia-specific terms
+      const nvidiaGpu = gpuNames.find(
+        (g) => g.toLowerCase().split(' ').some(
+          (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
+        ),
+      );
+      setNvidiaGpuIndex(gpuNames.indexOf(nvidiaGpu));
+      setIsNvidiaAvailable(!!nvidiaGpu);
+      setHasCheckedGPU(true);
+      if (nvidiaGpu) {
+        vramCheck(gpuNames.indexOf(nvidiaGpu));
+      }
+    }
+    if (isNvidiaAvailable && gpu) {
+      vramCheck(nvidiaGpuIndex);
+    }
+    if (ram) {
+      const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
+      setRamUsage(usage);
+    }
+    if (cpu) {
+      setCpuUsage(cpu.currentLoad);
+    }
+  };
+
+  useEffect(async () => {
+    await checkSysInfo();
+  }, []);
+
+  useInterval(async () => {
+    await checkSysInfo();
+  }, 5000);
+
   async function run() {
     setRunning(true);
     animateEdges();
@@ -104,7 +158,7 @@ function Header() {
       if (invalidNodes.length === 0) {
         try {
           const data = convertToUsableFormat();
-          const response = await post({
+          const response = post({
             data,
             isCpu,
             isFp16: isFp16 && !isCpu,
@@ -112,26 +166,31 @@ function Header() {
             resolutionY: monitor?.resolutionY || 1080,
           });
           console.log(response);
-          if (!res.ok) {
-            setErrorMessage(response.exception);
-            onErrorOpen();
-          }
+          // if (!res.ok) {
+          //   setErrorMessage(response.exception);
+          //   onErrorOpen();
+          //   unAnimateEdges();
+          //   setRunning(false);
+          // }
         } catch (err) {
           setErrorMessage(err.exception);
           onErrorOpen();
+          unAnimateEdges();
+          setRunning(false);
         }
       } else {
         setErrorMessage('There are invalid nodes in the editor. Please fix them before running.');
         onErrorOpen();
+        unAnimateEdges();
+        setRunning(false);
       }
     }
-    unAnimateEdges();
-    setRunning(false);
   }
 
   async function pause() {
     try {
       const response = await pausePost();
+      setRunning(false);
       if (!pauseRes.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
@@ -139,6 +198,7 @@ function Header() {
     } catch (err) {
       setErrorMessage(err.exception);
       onErrorOpen();
+      setRunning(false);
     }
   }
 
@@ -146,6 +206,8 @@ function Header() {
     try {
       const response = await killPost();
       clearCompleteEdges();
+      unAnimateEdges();
+      setRunning(false);
       if (!killRes.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
@@ -153,6 +215,8 @@ function Header() {
     } catch (err) {
       setErrorMessage(err.exception);
       onErrorOpen();
+      unAnimateEdges();
+      setRunning(false);
     }
   }
 
@@ -170,38 +234,75 @@ function Header() {
             <Tag>{`v${appVersion}`}</Tag>
           </HStack>
           <Spacer />
+
           <HStack>
             <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" onClick={() => { run(); }} disabled={running} />
             <IconButton icon={<IoPause />} variant="outline" size="md" colorScheme="yellow" onClick={() => { pause(); }} disabled={!running} />
             <IconButton icon={<IoStop />} variant="outline" size="md" colorScheme="red" onClick={() => { kill(); }} disabled={!running} />
           </HStack>
           <Spacer />
-          <Menu isLazy>
-            <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">
-              Settings
-            </MenuButton>
-            <Portal>
-              <MenuList>
-                <MenuItem icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />} onClick={() => toggleColorMode()}>
-                  Toggle Theme
-                </MenuItem>
-                <MenuItem icon={<DownloadIcon />} onClick={onOpen}>
-                  Manage Dependencies
-                </MenuItem>
-                <MenuItem icon={<SettingsIcon />} onClick={onSettingsOpen}>
-                  Settings
-                </MenuItem>
-                {/* <MenuDivider /> */}
-                {/* <MenuItem onClick={() => {
-                  ipcRenderer.invoke('quit-application');
-                }}
+          <HStack>
+            <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
+              <Box>
+                <CircularProgress
+                  value={cpuUsage}
+                  color={cpuUsage < 90 ? 'blue.400' : 'red.400'}
+                  size="42px"
+                  capIsRound
+                  trackColor={useColorModeValue('gray.300', 'gray.700')}
                 >
-                  Quit Application
+                  <CircularProgressLabel>CPU</CircularProgressLabel>
+                </CircularProgress>
+              </Box>
+            </Tooltip>
 
-                </MenuItem> */}
-              </MenuList>
-            </Portal>
-          </Menu>
+            <Tooltip label={`${Number(ramUsage).toFixed(1)}%`}>
+              <Box>
+                <CircularProgress
+                  value={ramUsage}
+                  color={ramUsage < 90 ? 'blue.400' : 'red.400'}
+                  size="42px"
+                  capIsRound
+                  trackColor={useColorModeValue('gray.300', 'gray.700')}
+                >
+                  <CircularProgressLabel>RAM</CircularProgressLabel>
+                </CircularProgress>
+              </Box>
+            </Tooltip>
+
+            <Tooltip label={`${Number(vramUsage).toFixed(1)}%`}>
+              <Box>
+                <CircularProgress
+                  value={vramUsage}
+                  color={vramUsage < 90 ? 'blue.400' : 'red.400'}
+                  size="42px"
+                  capIsRound
+                  trackColor={useColorModeValue('gray.300', 'gray.700')}
+                >
+                  <CircularProgressLabel>VRAM</CircularProgressLabel>
+                </CircularProgress>
+              </Box>
+            </Tooltip>
+
+            <Menu isLazy>
+              <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">
+                Settings
+              </MenuButton>
+              <Portal>
+                <MenuList>
+                  <MenuItem icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />} onClick={() => toggleColorMode()}>
+                    Toggle Theme
+                  </MenuItem>
+                  <MenuItem icon={<DownloadIcon />} onClick={onOpen}>
+                    Manage Dependencies
+                  </MenuItem>
+                  <MenuItem icon={<SettingsIcon />} onClick={onSettingsOpen}>
+                    Settings
+                  </MenuItem>
+                </MenuList>
+              </Portal>
+            </Menu>
+          </HStack>
         </Flex>
       </Box>
 

@@ -95,7 +95,7 @@ async def check(request):
             response = await executor.check()
             return json(response, status=200)
         logger.info("No executor to check")
-        return json({"message": "No executor to check!"}, status=200)
+        return json({"message": "No executor to check!"}, status=400)
     except Exception as exception:
         logger.log(2, exception, exc_info=1)
         request.app.executor = None

@@ -9,7 +9,7 @@ import hasbin from 'hasbin';
 import path from 'path';
 import portastic from 'portastic';
 import semver from 'semver';
-import { graphics } from 'systeminformation';
+import { currentLoad, graphics, mem } from 'systeminformation';
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len
@@ -38,6 +38,76 @@ if (app.isPackaged) {
   process.argv.unshift(null);
 }
 const parameters = process.argv.slice(2);
+
+let splash;
+let mainWindow;
+
+const registerEventHandlers = () => {
+  ipcMain.handle('dir-select', (event, dirPath) => dialog.showOpenDialog({
+    defaultPath: dirPath,
+    properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+  }));
+
+  ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.showOpenDialog({
+    filters,
+    properties: ['openFile', allowMultiple && 'multiSelections'],
+  }));
+
+  ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
+    try {
+      const { canceled, filePath } = await dialog.showSaveDialog({
+        title: 'Save Chain File',
+        filters: [{ name: 'Chain File', extensions: ['chn'] }],
+        defaultPath: lastFilePath,
+      });
+      if (!canceled && filePath) {
+        await writeFile(filePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
+      }
+      // eslint-disable-next-line no-param-reassign
+      return filePath;
+    } catch (error) {
+      console.error(error);
+      return error.message;
+      // show error dialog idk
+    }
+  });
+
+  ipcMain.handle('file-save-json', async (event, json, savePath) => {
+    try {
+      await writeFile(savePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
+    } catch (error) {
+      console.error(error);
+      // show error dialog idk
+    }
+  });
+
+  ipcMain.handle('quit-application', async () => {
+    app.exit();
+  });
+
+  ipcMain.handle('relaunch-application', async () => {
+    app.relaunch();
+    app.exit();
+  });
+
+  ipcMain.handle('get-gpu-info', async () => {
+    if (!gpuInfo) {
+      gpuInfo = await graphics();
+    }
+    return gpuInfo;
+  });
+
+  ipcMain.handle('get-live-sys-info', async () => {
+    const gpu = await graphics();
+    const cpu = await currentLoad();
+    const ram = await mem();
+    return {
+      gpu, cpu, ram,
+    };
+  });
+
+  ipcMain.handle('get-app-version', async () => app.getVersion());
+};
 
 const getValidPort = async (splash) => {
   log.info('Attempting to check for a port...');
@@ -156,7 +226,7 @@ const checkPythonEnv = async (splash) => {
   });
 };
 
-const checkPythonDeps = async (splash) => {
+const checkPythonDeps = async () => {
   log.info('Attempting to check Python deps...');
   try {
     let pipList = execSync(`${pythonKeys.pip} list`);
@@ -192,8 +262,8 @@ const spawnBackend = async () => {
   });
 };
 
-const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
-  const splash = new BrowserWindow({
+const doSplashScreenChecks = async () => new Promise((resolve) => {
+  splash = new BrowserWindow({
     width: 400,
     height: 400,
     frame: false,
@@ -225,6 +295,12 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
     // splash.webContents.openDevTools();
   });
 
+  splash.on('close', () => {
+    if (mainWindow) {
+      mainWindow.destroy();
+    }
+  });
+
   const sleep = (ms) => new Promise((r) => {
     setTimeout(r, ms);
   });
@@ -249,6 +325,8 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
     await spawnBackend();
     // await sleep(2000);
 
+    registerEventHandlers();
+
     splash.webContents.send('splash-finish');
 
     // await sleep(1000);
@@ -256,6 +334,7 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
   });
 
   ipcMain.once('backend-ready', () => {
+    splash.on('close', () => {});
     splash.destroy();
     mainWindow.show();
   });
@@ -263,10 +342,10 @@ const doSplashScreenChecks = async (mainWindow) => new Promise((resolve) => {
 
 const createWindow = async () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
-    backgroundColor: '#2D3748',
+    backgroundColor: '#1A202C',
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
@@ -396,7 +475,7 @@ const createWindow = async () => {
   ]);
   Menu.setApplicationMenu(menu);
 
-  await doSplashScreenChecks(mainWindow);
+  await doSplashScreenChecks();
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -455,62 +534,6 @@ app.on('uncaughtException', (err) => {
   dialog.showMessageBoxSync(messageBoxOptions);
   app.exit(1);
 });
-
-ipcMain.handle('dir-select', (event, dirPath) => dialog.showOpenDialog({
-  defaultPath: dirPath,
-  properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
-}));
-
-ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.showOpenDialog({
-  filters,
-  properties: ['openFile', allowMultiple && 'multiSelections'],
-}));
-
-ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
-  try {
-    const { canceled, filePath } = await dialog.showSaveDialog({
-      title: 'Save Chain File',
-      filters: [{ name: 'Chain File', extensions: ['chn'] }],
-      defaultPath: lastFilePath,
-    });
-    if (!canceled && filePath) {
-      await writeFile(filePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
-    }
-    // eslint-disable-next-line no-param-reassign
-    return filePath;
-  } catch (error) {
-    console.error(error);
-    return error.message;
-  // show error dialog idk
-  }
-});
-
-ipcMain.handle('file-save-json', async (event, json, savePath) => {
-  try {
-    await writeFile(savePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
-  } catch (error) {
-    console.error(error);
-  // show error dialog idk
-  }
-});
-
-ipcMain.handle('quit-application', async () => {
-  app.exit();
-});
-
-ipcMain.handle('relaunch-application', async () => {
-  app.relaunch();
-  app.exit();
-});
-
-ipcMain.handle('get-gpu-info', async () => {
-  if (!gpuInfo) {
-    gpuInfo = await graphics();
-  }
-  return gpuInfo;
-});
-
-ipcMain.handle('get-app-version', async () => app.getVersion());
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

@@ -63,7 +63,7 @@ function NodeSelector({ data, height }) {
       >
         <TabList>
           <Tab>Nodes</Tab>
-          <Tab>Presets</Tab>
+          <Tab isDisabled>Presets</Tab>
         </TabList>
         <TabPanels>
           <TabPanel m={0} p={0}>
@@ -117,6 +117,12 @@ function NodeSelector({ data, height }) {
                     </AccordionButton>
                     <AccordionPanel>
                       {namespaces[category] && namespaces[category]
+                      // eslint-disable-next-line max-len
+                      // This is super terrible but I have no better way of filtering for these at the moment
+                      // I could probably cache this in the namespace object but w/e
+                        .filter(
+                          (namespace) => `${category} ${nodes.filter((e) => e.name.includes(namespace)).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                        )
                         .map((namespace) => (
                           <Box key={namespace}>
                             <Center w="full">
@@ -142,15 +148,9 @@ function NodeSelector({ data, height }) {
                                   <WrapItem key={node.name} p={2}>
                                     <Tooltip label={node.description} hasArrow closeOnMouseDown>
                                       <Center
-                                  // w="180px"
-                                  // h="auto"
-                                  // maxW="180px"
-                                  // minW="180px"
                                         boxSizing="border-box"
                                         onDragStart={(event) => onDragStart(event, category, node)}
                                         draggable
-                                  // height="180px"
-                                  // width="auto"
                                         display="block"
                                       >
                                         {createRepresentativeNode(category, node)}
