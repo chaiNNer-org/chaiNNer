@@ -191,6 +191,7 @@ function Header() {
     try {
       const response = await pausePost();
       setRunning(false);
+      unAnimateEdges();
       if (!pauseRes.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
@@ -199,6 +200,7 @@ function Header() {
       setErrorMessage(err.exception);
       onErrorOpen();
       setRunning(false);
+      unAnimateEdges();
     }
   }
 
