@@ -6,10 +6,11 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
+    "dev": "concurrently \"electron-forge start\" \"nodemon ../backend/run.py 8000\"",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "eslint . --fix"
   },
   "keywords": [],
   "author": {
@@ -20,7 +21,9 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "executableName": "chainner"
+        "executableName": "chainner",
+        "extraResource": "../backend/",
+        "icon": "./src/public/icons/cross_platform/icon"
       },
       "publishers": [
         {
@@ -69,15 +72,22 @@
             "mainConfig": "./webpack.main.config.js",
             "renderer": {
               "config": "./webpack.renderer.config.js",
+              "nodeIntegration": true,
+              "contextIsolation": false,
               "entryPoints": [
                 {
                   "html": "./src/index.html",
                   "js": "./src/renderer.js",
                   "name": "main_window"
+                },
+                {
+                  "html": "./src/splash.html",
+                  "js": "./src/splash_renderer.js",
+                  "name": "splash_screen"
                 }
               ]
             },
-            "devContentSecurityPolicy": "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:; connect-src 'self' localhost:8000 'unsafe-eval' 'unsafe-inline' data:;"
+            "devContentSecurityPolicy": ""
           }
         ]
       ]
@@ -95,18 +105,45 @@
     "@electron-forge/publisher-github": "*",
     "@vercel/webpack-asset-relocator-loader": "^1.7.0",
     "babel-loader": "^8.2.2",
+    "concurrently": "^6.5.1",
     "css-loader": "^6.2.0",
-    "electron": "14.0.0",
+    "electron": "^15.0.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "node-loader": "^2.0.0",
     "style-loader": "^3.2.1"
   },
   "dependencies": {
-    "axios": "^0.21.4",
-    "electron": "14.0.0",
+    "@chakra-ui/icons": "^1.0.15",
+    "@chakra-ui/react": "^1.6.8",
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
+    "@fontsource/open-sans": "^4.5.1",
+    "@geoffcox/react-splitter": "^2.1.1",
+    "@react-hook/window-size": "^3.0.7",
+    "electron": "^15.0.0",
+    "electron-log": "^4.4.1",
     "electron-squirrel-startup": "^1.0.0",
+    "file-loader": "^6.2.0",
+    "framer-motion": "^4.1.17",
+    "hasbin": "^1.2.3",
+    "image-js": "^0.33.0",
+    "image-webpack-loader": "^8.0.1",
+    "lodash": "^4.17.21",
+    "meow": "^10.1.1",
+    "portastic": "^1.0.1",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-flow-renderer": "^9.6.8",
+    "react-hotkeys": "^2.0.0",
+    "react-hotkeys-hook": "^3.4.4",
+    "react-icons": "^4.2.0",
+    "react-resize-aware": "^3.1.1",
+    "react-use-websocket": "^2.9.1",
+    "semver": "^7.3.5",
+    "systeminformation": "^5.9.15",
+    "use-debounce": "^7.0.1",
+    "use-http": "^1.0.26",
+    "uuid": "^3.4.0"
   }
 }

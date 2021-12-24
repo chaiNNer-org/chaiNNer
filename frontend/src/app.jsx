@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { fetchMain } from './api/main';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
+import React from 'react';
+// eslint-disable-next-line import/extensions
+import './global.css';
+// eslint-disable-next-line import/extensions
+import Main from './pages/main.jsx';
+import theme from './theme';
 
-function App() {
-  const [info, setInfo] = useState({});
-
-  useEffect(async () => {
-    const data = await fetchMain();
-    setInfo(data);
-  });
-
-  return (
-    <div>
-      <h1>{JSON.stringify(info)}</h1>
-    </div>
-  );
-}
+const App = () => (
+  <ChakraProvider theme={theme}>
+    <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+    <Main />
+  </ChakraProvider>
+);
 
 export default App;

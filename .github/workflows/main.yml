@@ -24,14 +24,10 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            - uses: actions/setup-python@v2
-              with:
-                  python-version: '3.9' # Version range or exact version of a Python version to use, using SemVer's version range syntax
-                  architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
             - uses: actions/setup-node@master
               with:
                   node-version: 14
             - name: install dependencies
-              run: npm install
+              run: cd frontend && npm install
             - name: build
-              run: npm run build
+              run: cd frontend && npm run make
