@@ -59,7 +59,7 @@ export const OpenCVIcon = createIcon({
   ),
 });
 
-export const IconFactory = (category) => {
+export var IconFactory = function (category) {
   switch (category) {
     case 'NumPy':
       return <NumPyIcon />;

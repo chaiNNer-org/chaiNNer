@@ -235,7 +235,7 @@ const NodeWrapper = memo(({ children, data, selected }) => {
   );
 });
 
-function UsableNode({ data, selected }) {
+const UsableNode = function ({ data, selected }) {
   return (
     <NodeWrapper data={data} selected={selected}>
       <VStack minWidth="240px">
@@ -263,7 +263,7 @@ function UsableNode({ data, selected }) {
       </VStack>
     </NodeWrapper>
   );
-}
+};
 
 // export const createUsableNode = (category, node) => {
 //   const id = createUniqueId();

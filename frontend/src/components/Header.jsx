@@ -22,7 +22,7 @@ import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
-function Header() {
+const Header = function () {
   const [monitor, setMonitor] = useState(null);
 
   useEffect(async () => {
@@ -343,6 +343,6 @@ function Header() {
       </AlertDialog>
     </>
   );
-}
+};
 
 export default memo(Header);

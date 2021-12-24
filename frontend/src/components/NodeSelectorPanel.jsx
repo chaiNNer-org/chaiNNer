@@ -24,7 +24,7 @@ const onDragStart = (event, nodeCategory, node) => {
 };
 
 // eslint-disable-next-line react/prop-types
-function NodeSelector({ data, height }) {
+const NodeSelector = function ({ data, height }) {
   const [searchQuery, setSearchQuery] = useState('');
   const handleChange = (event) => setSearchQuery(event.target.value);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -184,6 +184,6 @@ function NodeSelector({ data, height }) {
       </Tabs>
     </Box>
   );
-}
+};
 
 export default memo(NodeSelector);

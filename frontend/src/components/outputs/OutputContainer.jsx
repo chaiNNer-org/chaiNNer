@@ -50,15 +50,13 @@ const OutputContainer = memo(({
   }
 
   return (
-    <>
-      <Box
-        p={2}
-        bg={useColorModeValue('gray.200', 'gray.600')}
-        w="full"
-      >
-        {contents}
-      </Box>
-    </>
+    <Box
+      p={2}
+      bg={useColorModeValue('gray.200', 'gray.600')}
+      w="full"
+    >
+      {contents}
+    </Box>
   );
 });
 

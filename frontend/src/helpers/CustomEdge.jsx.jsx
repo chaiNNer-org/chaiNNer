@@ -5,7 +5,7 @@ import { getBezierPath, getMarkerEnd } from 'react-flow-renderer';
 import getNodeAccentColors from './getNodeAccentColors';
 import shadeColor from './shadeColor.js';
 
-const CustomEdge = ({
+const CustomEdge = function ({
   id,
   sourceX,
   sourceY,
@@ -18,7 +18,7 @@ const CustomEdge = ({
   arrowHeadType,
   markerEndId,
   selected,
-}) => {
+}) {
   const edgePath = getBezierPath({
     sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
   });

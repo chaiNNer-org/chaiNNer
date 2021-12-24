@@ -15,7 +15,7 @@ import React, {
 } from 'react';
 import getAvailableDeps from '../helpers/dependencies.js';
 
-function DependencyManager({ isOpen, onClose }) {
+const DependencyManager = function ({ isOpen, onClose }) {
   const {
     isOpen: isUninstallOpen,
     onOpen: onUninstallOpen,
@@ -390,6 +390,6 @@ function DependencyManager({ isOpen, onClose }) {
       </AlertDialog>
     </>
   );
-}
+};
 
 export default memo(DependencyManager);

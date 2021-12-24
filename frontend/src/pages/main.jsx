@@ -19,7 +19,7 @@ import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const { app } = require('electron');
 
-function Main() {
+const Main = function () {
   useEffect(() => {
     log.info('Main window mounted.');
   }, []);
@@ -125,6 +125,6 @@ function Main() {
     </ReactFlowProvider>
 
   );
-}
+};
 
 export default Main;

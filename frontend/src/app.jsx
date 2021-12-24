@@ -6,13 +6,13 @@ import './global.css';
 import Main from './pages/main.jsx';
 import theme from './theme';
 
-function App() {
+const App = function () {
   return (
     <ChakraProvider theme={theme}>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <Main />
     </ChakraProvider>
   );
-}
+};
 
 export default App;

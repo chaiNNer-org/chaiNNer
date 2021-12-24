@@ -10,7 +10,7 @@ import './global.css';
 
 ReactDOM.render(<Splash />, document.getElementById('root'));
 
-function Splash() {
+const Splash = function () {
   const [status, setStatus] = useState('Loading...');
 
   // Register event listeners
@@ -56,6 +56,6 @@ function Splash() {
       </Center>
     </ChakraProvider>
   );
-}
+};
 
 export default Splash;

@@ -12,7 +12,7 @@ import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 export const NodeDataContext = createContext({});
 
 // eslint-disable-next-line react/prop-types
-function ReactFlowBox({
+const ReactFlowBox = function ({
   wrapperRef, nodeTypes, edgeTypes,
 }) {
   const {
@@ -102,6 +102,6 @@ function ReactFlowBox({
       </ReactFlow>
     </Box>
   );
-}
+};
 
 export default ReactFlowBox;
