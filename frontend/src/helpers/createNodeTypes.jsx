@@ -2,17 +2,17 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon
+  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
 } from '@chakra-ui/icons';
 import {
   Center, Flex, Heading, HStack, Icon, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack
+  MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, { memo, useContext } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
-import DropDownInput from '../components/inputs/DropDownInput.jsx';
+import DropDownInput from '../components/inputs/DropdownInput.jsx';
 import FileInput from '../components/inputs/FileInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
 import NumberInput from '../components/inputs/NumberInput.jsx';
@@ -235,35 +235,33 @@ const NodeWrapper = memo(({ children, data, selected }) => {
   );
 });
 
-const UsableNode = ({ data, selected }) => {
-  return (
-    <NodeWrapper data={data} selected={selected}>
-      <VStack minWidth="240px">
-        <NodeHeader data={data} />
+const UsableNode = ({ data, selected }) => (
+  <NodeWrapper data={data} selected={selected}>
+    <VStack minWidth="240px">
+      <NodeHeader data={data} />
 
-        {data.inputs.length && (
-          <Center>
-            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
-              INPUTS
-            </Text>
-          </Center>
-        )}
-        <CreateUsableInputs data={data} />
+      {data.inputs.length && (
+      <Center>
+        <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+          INPUTS
+        </Text>
+      </Center>
+      )}
+      <CreateUsableInputs data={data} />
 
-        {data.outputs.length && (
-          <Center>
-            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
-              OUTPUTS
-            </Text>
-          </Center>
-        )}
-        <CreateUsableOutputs data={data} />
+      {data.outputs.length && (
+      <Center>
+        <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+          OUTPUTS
+        </Text>
+      </Center>
+      )}
+      <CreateUsableOutputs data={data} />
 
-        <BottomArea data={data} />
-      </VStack>
-    </NodeWrapper>
-  );
-};
+      <BottomArea data={data} />
+    </VStack>
+  </NodeWrapper>
+);
 
 // export const createUsableNode = (category, node) => {
 //   const id = createUniqueId();
