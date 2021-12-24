@@ -13,6 +13,7 @@ import { ipcRenderer } from 'electron';
 import React, {
   memo, useEffect, useRef, useState,
 } from 'react';
+import getAvailableDeps from '../helpers/dependencies.js';
 
 function DependencyManager({ isOpen, onClose }) {
   const {
@@ -43,6 +44,13 @@ function DependencyManager({ isOpen, onClose }) {
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
   const [nvidiaGpuName, setNvidiaGpuName] = useState(null);
 
+  const [availableDeps, setAvailableDeps] = useState([]);
+
+  useEffect(() => {
+    const depsArr = getAvailableDeps(isNvidiaAvailable);
+    setAvailableDeps(depsArr);
+  }, [isNvidiaAvailable]);
+
   useEffect(async () => {
     const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
     const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
@@ -56,21 +64,6 @@ function DependencyManager({ isOpen, onClose }) {
     setNvidiaGpuName(nvidiaGpu);
     setIsNvidiaAvailable(!!nvidiaGpu);
   }, []);
-
-  // TODO: Make this not hardcoded
-  const availableDeps = [{
-    name: 'OpenCV',
-    packageName: 'opencv-python',
-    installCommand: 'pip install opencv-python',
-  }, {
-    name: 'NumPy',
-    packageName: 'numpy',
-    installCommand: 'pip install numpy',
-  }, {
-    name: 'PyTorch',
-    packageName: 'torch',
-    installCommand: `pip install torch==1.10.0+${isNvidiaAvailable ? 'cu113' : 'cpu'} -f https://download.pytorch.org/whl/${isNvidiaAvailable ? 'cu113' : 'cpu'}/torch_stable.html`,
-  }];
 
   useEffect(() => {
     const pKeys = ipcRenderer.sendSync('get-python');
