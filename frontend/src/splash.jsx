@@ -10,7 +10,7 @@ import './global.css';
 
 ReactDOM.render(<Splash />, document.getElementById('root'));
 
-const Splash = function () {
+const Splash = () => {
   const [status, setStatus] = useState('Loading...');
 
   // Register event listeners

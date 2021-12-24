@@ -22,7 +22,7 @@ import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
-const Header = function () {
+const Header = () => {
   const [monitor, setMonitor] = useState(null);
 
   useEffect(async () => {

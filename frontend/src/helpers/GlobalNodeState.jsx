@@ -18,7 +18,7 @@ export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
-export var GlobalProvider = function ({ children }) {
+export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);

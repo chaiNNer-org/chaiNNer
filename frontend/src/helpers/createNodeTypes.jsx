@@ -235,7 +235,7 @@ const NodeWrapper = memo(({ children, data, selected }) => {
   );
 });
 
-const UsableNode = function ({ data, selected }) {
+const UsableNode = ({ data, selected }) => {
   return (
     <NodeWrapper data={data} selected={selected}>
       <VStack minWidth="240px">
