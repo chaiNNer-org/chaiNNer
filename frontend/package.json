@@ -21,7 +21,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "executableName": "chaiNNer",
+        "executableName": "chainner",
         "extraResource": "../backend/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
