@@ -15,7 +15,7 @@ import React, {
 } from 'react';
 import getAvailableDeps from '../helpers/dependencies.js';
 
-const DependencyManager = ({ isOpen, onClose }) => {
+const DependencyManager = function ({ isOpen, onClose }) {
   const {
     isOpen: isUninstallOpen,
     onOpen: onUninstallOpen,

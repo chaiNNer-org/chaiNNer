@@ -12,9 +12,9 @@ import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 export const NodeDataContext = createContext({});
 
 // eslint-disable-next-line react/prop-types
-const ReactFlowBox = ({
+const ReactFlowBox = function ({
   wrapperRef, nodeTypes, edgeTypes,
-}) => {
+}) {
   const {
     elements, createNode, createConnection, reactFlowInstance,
     setReactFlowInstance, removeElements, updateRfi, setSelectedElements,
