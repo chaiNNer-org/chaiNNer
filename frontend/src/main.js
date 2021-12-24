@@ -109,7 +109,7 @@ const registerEventHandlers = () => {
   ipcMain.handle('get-app-version', async () => app.getVersion());
 };
 
-const getValidPort = async (splash) => {
+const getValidPort = async () => {
   log.info('Attempting to check for a port...');
   const ports = await portastic.find({
     min: 8000,
@@ -146,7 +146,7 @@ const checkPythonVersion = (pythonBin) => {
   return { pythonVersion, hasValidPythonVersion };
 };
 
-const checkPythonEnv = async (splash) => {
+const checkPythonEnv = async () => {
   log.info('Attempting to check Python env...');
 
   // Check first for standard 'python' keyword
