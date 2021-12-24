@@ -301,35 +301,26 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     }
   });
 
-  const sleep = (ms) => new Promise((r) => {
-    setTimeout(r, ms);
-  });
-
   // Send events to splash screen renderer as they happen
   // Added some sleep functions so I can see that this is doing what I want it to
   // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
   splash.webContents.once('dom-ready', async () => {
     splash.webContents.send('checking-port');
     await getValidPort(splash);
-    // await sleep(1000);
 
     splash.webContents.send('checking-python');
     await checkPythonEnv(splash);
-    // await sleep(1000);
 
     splash.webContents.send('checking-deps');
     await checkPythonDeps(splash);
-    // await sleep(1000);
 
     splash.webContents.send('spawning-backend');
     await spawnBackend();
-    // await sleep(2000);
 
     registerEventHandlers();
 
     splash.webContents.send('splash-finish');
 
-    // await sleep(1000);
     resolve();
   });
 

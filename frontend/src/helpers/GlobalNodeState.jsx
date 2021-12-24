@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useState,
+  createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers,
@@ -18,7 +18,7 @@ export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
-export var GlobalProvider = function ({ children }) {
+export const GlobalProvider = ({ children }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -247,7 +247,7 @@ export var GlobalProvider = function ({ children }) {
   };
 
   const createConnection = ({
-    source, sourceHandle, target, targetHandle, type,
+    source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
     const newEdge = {
@@ -528,33 +528,34 @@ export var GlobalProvider = function ({ children }) {
     ]);
   };
 
+  const contextValue = useMemo(() => ({
+    nodes,
+    edges,
+    elements: [...nodes, ...edges],
+    createNode,
+    createConnection,
+    convertToUsableFormat,
+    removeElements,
+    reactFlowInstance,
+    setReactFlowInstance,
+    updateRfi,
+    isValidConnection,
+    useInputData,
+    useAnimateEdges,
+    removeNodeById,
+    useNodeLock,
+    useNodeValidity,
+    duplicateNode,
+    clearNode,
+    // setSelectedElements,
+    outlineInvalidNodes,
+    unOutlineInvalidNodes,
+    useIsCpu: [isCpu, setIsCpu],
+    useIsFp16: [isFp16, setIsFp16],
+  }), [nodes, edges, isCpu, isFp16]);
+
   return (
-    <GlobalContext.Provider value={{
-      nodes,
-      edges,
-      elements: [...nodes, ...edges],
-      createNode,
-      createConnection,
-      convertToUsableFormat,
-      removeElements,
-      reactFlowInstance,
-      setReactFlowInstance,
-      updateRfi,
-      isValidConnection,
-      useInputData,
-      useAnimateEdges,
-      removeNodeById,
-      useNodeLock,
-      useNodeValidity,
-      duplicateNode,
-      clearNode,
-      // setSelectedElements,
-      outlineInvalidNodes,
-      unOutlineInvalidNodes,
-      useIsCpu: [isCpu, setIsCpu],
-      useIsFp16: [isFp16, setIsFp16],
-    }}
-    >
+    <GlobalContext.Provider value={contextValue}>
       {children}
     </GlobalContext.Provider>
   );

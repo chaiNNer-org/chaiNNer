@@ -2,11 +2,11 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
+  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon
 } from '@chakra-ui/icons';
 import {
   Center, Flex, Heading, HStack, Icon, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack,
+  MenuList, Portal, Spacer, Text, Tooltip, useColorModeValue, VStack
 } from '@chakra-ui/react';
 import React, { memo, useContext } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
@@ -235,7 +235,7 @@ const NodeWrapper = memo(({ children, data, selected }) => {
   );
 });
 
-const UsableNode = function ({ data, selected }) {
+const UsableNode = ({ data, selected }) => {
   return (
     <NodeWrapper data={data} selected={selected}>
       <VStack minWidth="240px">

@@ -19,7 +19,7 @@ import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const { app } = require('electron');
 
-const Main = function () {
+const Main = () => {
   useEffect(() => {
     log.info('Main window mounted.');
   }, []);

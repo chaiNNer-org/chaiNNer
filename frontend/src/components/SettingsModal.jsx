@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
-const SettingsModal = function ({ isOpen, onClose }) {
+const SettingsModal = ({ isOpen, onClose }) => {
   const {
     useIsCpu,
     useIsFp16,

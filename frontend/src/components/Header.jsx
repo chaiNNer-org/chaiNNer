@@ -6,9 +6,9 @@ import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Box,
-  Button, CircularProgress, CircularProgressLabel, Flex, Heading, HStack,
+  Button, Flex, Heading, HStack,
   IconButton, Image, Menu, MenuButton, MenuItem, MenuList,
-  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
+  Portal, Spacer, Tag, useColorMode, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
@@ -22,7 +22,7 @@ import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
-const Header = function () {
+const Header = () => {
   const [monitor, setMonitor] = useState(null);
 
   useEffect(async () => {
@@ -124,25 +124,25 @@ const Header = function () {
         vramCheck(gpuNames.indexOf(nvidiaGpu));
       }
     }
-    if (isNvidiaAvailable && gpu) {
-      vramCheck(nvidiaGpuIndex);
-    }
-    if (ram) {
-      const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
-      setRamUsage(usage);
-    }
-    if (cpu) {
-      setCpuUsage(cpu.currentLoad);
-    }
+    // if (isNvidiaAvailable && gpu) {
+    //   vramCheck(nvidiaGpuIndex);
+    // }
+    // if (ram) {
+    //   const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
+    //   setRamUsage(usage);
+    // }
+    // if (cpu) {
+    //   setCpuUsage(cpu.currentLoad);
+    // }
   };
 
   useEffect(async () => {
     await checkSysInfo();
   }, []);
 
-  useInterval(async () => {
-    await checkSysInfo();
-  }, 5000);
+  // useInterval(async () => {
+  //   await checkSysInfo();
+  // }, 5000);
 
   async function run() {
     setRunning(true);
@@ -244,7 +244,7 @@ const Header = function () {
           </HStack>
           <Spacer />
           <HStack>
-            <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
+            {/* <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
               <Box>
                 <CircularProgress
                   value={cpuUsage}
@@ -284,7 +284,7 @@ const Header = function () {
                   <CircularProgressLabel>VRAM</CircularProgressLabel>
                 </CircularProgress>
               </Box>
-            </Tooltip>
+            </Tooltip> */}
 
             <Menu isLazy>
               <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">
