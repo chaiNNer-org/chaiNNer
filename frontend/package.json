@@ -21,7 +21,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "executableName": "chainner",
+        "executableName": "chaiNNer",
         "extraResource": "../backend/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
@@ -42,7 +42,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "chainner",
+            "name": "chaiNNer",
             "noMsi": false
           }
         },
@@ -55,13 +55,13 @@
         {
           "name": "@electron-forge/maker-deb",
           "config": {
-            "name": "chainner"
+            "name": "chaiNNer"
           }
         },
         {
           "name": "@electron-forge/maker-rpm",
           "config": {
-            "name": "chainner"
+            "name": "chaiNNer"
           }
         }
       ],
@@ -131,6 +131,7 @@
     "image-webpack-loader": "^8.0.1",
     "lodash": "^4.17.21",
     "meow": "^10.1.1",
+    "os-utils": "^0.0.14",
     "portastic": "^1.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

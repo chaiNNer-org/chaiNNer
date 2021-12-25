@@ -8,8 +8,6 @@ import ReactDOM from 'react-dom';
 // eslint-disable-next-line import/extensions
 import './global.css';
 
-ReactDOM.render(<Splash />, document.getElementById('root'));
-
 const Splash = () => {
   const [status, setStatus] = useState('Loading...');
 
@@ -57,5 +55,7 @@ const Splash = () => {
     </ChakraProvider>
   );
 };
+
+ReactDOM.render(<Splash />, document.getElementById('root'));
 
 export default Splash;

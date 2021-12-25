@@ -109,7 +109,7 @@ const registerEventHandlers = () => {
   ipcMain.handle('get-app-version', async () => app.getVersion());
 };
 
-const getValidPort = async () => {
+const getValidPort = async (splashWindow) => {
   log.info('Attempting to check for a port...');
   const ports = await portastic.find({
     min: 8000,
@@ -117,7 +117,7 @@ const getValidPort = async () => {
   });
   if (!ports || ports.length === 0) {
     log.warn('An open port could not be found');
-    splash.hide();
+    splashWindow.hide();
     const messageBoxOptions = {
       type: 'error',
       title: 'No open port',
@@ -146,7 +146,7 @@ const checkPythonVersion = (pythonBin) => {
   return { pythonVersion, hasValidPythonVersion };
 };
 
-const checkPythonEnv = async () => {
+const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');
 
   // Check first for standard 'python' keyword
@@ -178,7 +178,7 @@ const checkPythonEnv = async () => {
 
   if (!pythonBin) {
     log.warn('Python binary not found');
-    splash.hide();
+    splashWindow.hide();
     const messageBoxOptions = {
       type: 'error',
       title: 'Python not installed',
@@ -203,7 +203,7 @@ const checkPythonEnv = async () => {
   }
 
   if (!validPythonVersion) {
-    splash.hide();
+    splashWindow.hide();
     const messageBoxOptions = {
       type: 'error',
       title: 'Python version invalid',
@@ -226,7 +226,7 @@ const checkPythonEnv = async () => {
   });
 };
 
-const checkPythonDeps = async () => {
+const checkPythonDeps = async (splashWindow) => {
   log.info('Attempting to check Python deps...');
   try {
     let pipList = execSync(`${pythonKeys.pip} list`);
@@ -235,7 +235,7 @@ const checkPythonDeps = async () => {
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
       log.info('Sanic not found. Installing sanic...');
-      splash.webContents.send('installing-deps');
+      splashWindow.webContents.send('installing-deps');
       execSync(`${pythonKeys.pip} install sanic Sanic-Cors`);
     }
   } catch (error) {

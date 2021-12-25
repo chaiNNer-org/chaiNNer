@@ -5,10 +5,10 @@ import {
 import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box,
-  Button, Flex, Heading, HStack,
-  IconButton, Image, Menu, MenuButton, MenuItem, MenuList,
-  Portal, Spacer, Tag, useColorMode, useDisclosure,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, CircularProgress,
+  CircularProgressLabel, Flex, Heading, HStack, IconButton,
+  Image, Menu, MenuButton, MenuItem, MenuList,
+  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
@@ -18,6 +18,7 @@ import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import useInterval from '../helpers/useInterval.js';
+import useSystemUsage from '../helpers/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
@@ -97,48 +98,50 @@ const Header = () => {
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
   const [nvidiaGpuIndex, setNvidiaGpuIndex] = useState(null);
 
-  const [vramUsage, setVramUsage] = useState(0);
-  const [ramUsage, setRamUsage] = useState(0);
-  const [cpuUsage, setCpuUsage] = useState(0);
+  // const [vramUsage, setVramUsage] = useState(0);
+  // const [ramUsage, setRamUsage] = useState(0);
+  // const [cpuUsage, setCpuUsage] = useState(0);
   const [hasCheckedGPU, setHasCheckedGPU] = useState(false);
-  const checkSysInfo = async () => {
-    const { gpu, ram, cpu } = await ipcRenderer.invoke('get-live-sys-info');
+  // const checkSysInfo = async () => {
+  //   const { gpu, ram, cpu } = await ipcRenderer.invoke('get-live-sys-info');
 
-    const vramCheck = (index) => {
-      const gpuInfo = gpu.controllers[index];
-      const usage = Number(((gpuInfo?.memoryUsed || 0) / (gpuInfo?.memoryTotal || 1)) * 100);
-      setVramUsage(usage);
-    };
-    if (!hasCheckedGPU) {
-      const gpuNames = gpu?.controllers.map((g) => g.model);
-      // Check if gpu string contains any nvidia-specific terms
-      const nvidiaGpu = gpuNames.find(
-        (g) => g.toLowerCase().split(' ').some(
-          (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
-        ),
-      );
-      setNvidiaGpuIndex(gpuNames.indexOf(nvidiaGpu));
-      setIsNvidiaAvailable(!!nvidiaGpu);
-      setHasCheckedGPU(true);
-      if (nvidiaGpu) {
-        vramCheck(gpuNames.indexOf(nvidiaGpu));
-      }
-    }
-    // if (isNvidiaAvailable && gpu) {
-    //   vramCheck(nvidiaGpuIndex);
-    // }
-    // if (ram) {
-    //   const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
-    //   setRamUsage(usage);
-    // }
-    // if (cpu) {
-    //   setCpuUsage(cpu.currentLoad);
-    // }
-  };
+  //   const vramCheck = (index) => {
+  //     const gpuInfo = gpu.controllers[index];
+  //     const usage = Number(((gpuInfo?.memoryUsed || 0) / (gpuInfo?.memoryTotal || 1)) * 100);
+  //     setVramUsage(usage);
+  //   };
+  //   if (!hasCheckedGPU) {
+  //     const gpuNames = gpu?.controllers.map((g) => g.model);
+  //     // Check if gpu string contains any nvidia-specific terms
+  //     const nvidiaGpu = gpuNames.find(
+  //       (g) => g.toLowerCase().split(' ').some(
+  //         (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
+  //       ),
+  //     );
+  //     setNvidiaGpuIndex(gpuNames.indexOf(nvidiaGpu));
+  //     setIsNvidiaAvailable(!!nvidiaGpu);
+  //     setHasCheckedGPU(true);
+  //     if (nvidiaGpu) {
+  //       vramCheck(gpuNames.indexOf(nvidiaGpu));
+  //     }
+  //   }
+  // if (isNvidiaAvailable && gpu) {
+  //   vramCheck(nvidiaGpuIndex);
+  // }
+  // if (ram) {
+  //   const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
+  //   setRamUsage(usage);
+  // }
+  // if (cpu) {
+  //   setCpuUsage(cpu.currentLoad);
+  // }
+  // };
 
-  useEffect(async () => {
-    await checkSysInfo();
-  }, []);
+  const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
+
+  // useEffect(async () => {
+  //   await checkSysInfo();
+  // }, []);
 
   // useInterval(async () => {
   //   await checkSysInfo();
@@ -244,7 +247,7 @@ const Header = () => {
           </HStack>
           <Spacer />
           <HStack>
-            {/* <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
+            <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
               <Box>
                 <CircularProgress
                   value={cpuUsage}
@@ -284,7 +287,7 @@ const Header = () => {
                   <CircularProgressLabel>VRAM</CircularProgressLabel>
                 </CircularProgress>
               </Box>
-            </Tooltip> */}
+            </Tooltip>
 
             <Menu isLazy>
               <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">
