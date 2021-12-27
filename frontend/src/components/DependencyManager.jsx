@@ -52,17 +52,15 @@ const DependencyManager = ({ isOpen, onClose }) => {
   }, [isNvidiaAvailable]);
 
   useEffect(async () => {
-    const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-    const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-    setGpuInfo(gpuNames);
-    // Check if gpu string contains any nvidia-specific terms
-    const nvidiaGpu = gpuNames.find(
-      (gpu) => gpu.toLowerCase().split(' ').some(
-        (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
-      ),
-    );
-    setNvidiaGpuName(nvidiaGpu);
-    setIsNvidiaAvailable(!!nvidiaGpu);
+    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+    if (hasNvidia) {
+      setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
+      setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
+    } else {
+      const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+      const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
+      setGpuInfo(gpuNames);
+    }
   }, []);
 
   useEffect(() => {
@@ -131,17 +129,10 @@ const DependencyManager = ({ isOpen, onClose }) => {
     }
   }, [depChanged]);
 
-  const installPackage = (installCommand) => {
+  const runPipCommand = (args) => {
     setShellOutput('');
     setIsRunningShell(true);
-    const args = installCommand.split(' ');
-    const installer = args.shift();
-    let command = '';
-    if (installer === 'pip') {
-      command = spawn(pythonKeys.pip, args);
-    } else {
-      command = spawn(installer, args);
-    }
+    const command = spawn(pythonKeys.pip, args);
 
     let outputString = '';
 
@@ -164,66 +155,27 @@ const DependencyManager = ({ isOpen, onClose }) => {
     });
   };
 
+  const installPackage = (installCommand) => {
+    const args = installCommand.split(' ');
+    const installer = args.shift();
+    if (installer === 'pip') {
+      runPipCommand(args);
+    }
+  };
+
   const updatePackage = (packageName) => {
-    setShellOutput('');
-    setIsRunningShell(true);
-    const command = spawn(pythonKeys.pip, ['install', '--upgrade', packageName]);
-
-    let outputString = '';
-
-    command.stdout.on('data', (data) => {
-      outputString += String(data);
-      setShellOutput(outputString);
-    });
-
-    command.stderr.on('data', (data) => {
-      setShellOutput(data);
-    });
-
-    command.on('error', (error) => {
-      setShellOutput(error);
-    });
-
-    command.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
-      setIsRunningShell(false);
-    });
+    runPipCommand(['install', '--upgrade', packageName]);
   };
 
   const uninstallPackage = (packageName) => {
     const packageDep = availableDeps.find(
       (dep) => dep.name === packageName || dep.packageName === packageName,
     );
-    setShellOutput('');
-    setIsRunningShell(true);
     const args = packageDep.installCommand.split(' ');
     const installer = args.shift();
-    let command = '';
     if (installer === 'pip') {
-      command = spawn(pythonKeys.pip, ['uninstall', '-y', packageDep.packageName]);
-    } else {
-      return;
+      runPipCommand(['uninstall', '-y', packageDep.packageName]);
     }
-
-    let outputString = '';
-
-    command.stdout.on('data', (data) => {
-      outputString += String(data);
-      setShellOutput(outputString);
-    });
-
-    command.stderr.on('data', (data) => {
-      setShellOutput(data);
-    });
-
-    command.on('error', (error) => {
-      setShellOutput(error);
-    });
-
-    command.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
-      setIsRunningShell(false);
-    });
   };
 
   useEffect(() => {
@@ -251,19 +203,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
                   <Text flex="1" textAlign="left">
                     {`Python (${deps.pythonVersion})`}
                   </Text>
-                  {/* <HStack>
-                    <Button
-                      colorScheme="blue"
-                      onClick={() => {
-                        shell.openExternal('https://www.python.org/downloads/');
-                      }}
-                      size="sm"
-                    // disabled
-                      leftIcon={<ExternalLinkIcon />}
-                    >
-                      Check for Updates
-                    </Button>
-                  </HStack> */}
                 </Flex>
                 {isLoadingPipList ? <Spinner />
                   : availableDeps.map((dep) => (

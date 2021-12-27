@@ -10,9 +10,9 @@ import {
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-import useLocalStorage from './useLocalStorage.js';
-import useUndoHistory from './useMultipleUndoHistory.js';
-import useSessionStorage from './useSessionStorage.js';
+import useLocalStorage from './hooks/useLocalStorage.js';
+import useUndoHistory from './hooks/useMultipleUndoHistory.js';
+import useSessionStorage from './hooks/useSessionStorage.js';
 
 export const GlobalContext = createContext({});
 

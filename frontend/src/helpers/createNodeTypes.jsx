@@ -263,39 +263,6 @@ const UsableNode = ({ data, selected }) => (
   </NodeWrapper>
 );
 
-// export const createUsableNode = (category, node) => {
-//   const id = createUniqueId();
-//   return (
-//     <NodeWrapper>
-//       <VStack>
-//         <NodeHeader category={category} node={node} />
-
-//         <Text fontSize="xs" p={0} m={0}>
-//           INPUTS
-//         </Text>
-//         {createUsableInputs(category, node, id)}
-
-//         <Text fontSize="xs" p={0} m={0}>
-//           OUTPUTS
-//         </Text>
-//         {createUsableOutputs(category, node, id)}
-
-//         <BottomArea />
-//       </VStack>
-//     </NodeWrapper>
-//   );
-// };
-
-// function RepresentativeNode({ data }) {
-//   return (
-//     <NodeWrapper>
-//       <VStack>
-//         <NodeHeader data={data} width="220px" />
-//       </VStack>
-//     </NodeWrapper>
-//   );
-// }
-
 export const createRepresentativeNode = (category, node) => (
   <NodeWrapper>
     <VStack>

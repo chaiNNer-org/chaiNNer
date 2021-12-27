@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 import {
-  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
+  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon
 } from '@chakra-ui/icons';
 import {
   AlertDialog,
@@ -8,17 +8,17 @@ import {
   AlertDialogHeader, AlertDialogOverlay, Box, Button, CircularProgress,
   CircularProgressLabel, Flex, Heading, HStack, IconButton,
   Image, Menu, MenuButton, MenuItem, MenuList,
-  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
+  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
-  memo, useContext, useEffect, useState,
+  memo, useContext, useEffect, useState
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
-import useInterval from '../helpers/useInterval.js';
-import useSystemUsage from '../helpers/useSystemUsage.js';
+import useInterval from '../helpers/hooks/useInterval.js';
+import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';

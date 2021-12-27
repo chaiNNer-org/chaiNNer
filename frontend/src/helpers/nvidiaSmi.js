@@ -1,5 +1,13 @@
 // Borrowed and modified from https://github.com/sebhildebrandt/systeminformation/blob/master/lib/graphics.js
 
+// TODO: Convert this to a useNvidiaSmi hook
+// Could auto-check gpu before letting you run whatever command?
+
+// Actually, should probably get the nvidia-smi path in the main process and use ipc to grab it.
+// either that, or call this from the global state and pass the path/keyword into the hook.
+// If getting in main, do it during splash screen dep check.
+// Then in stuff like the dependency manager i can just use ipc to get the gpu name and isNvidia
+
 import fs from 'fs';
 import os from 'os';
 

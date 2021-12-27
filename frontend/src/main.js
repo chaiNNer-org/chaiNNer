@@ -1,4 +1,4 @@
-import { execSync, spawn, spawnSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import {
   app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
@@ -10,6 +10,7 @@ import path from 'path';
 import portastic from 'portastic';
 import semver from 'semver';
 import { currentLoad, graphics, mem } from 'systeminformation';
+import { getNvidiaSmi } from './helpers/nvidiaSmi.js';
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len
@@ -135,10 +136,7 @@ const getValidPort = async (splashWindow) => {
 };
 
 const checkPythonVersion = (pythonBin) => {
-  const { stdout } = spawnSync(pythonBin, ['--version'], {
-    stdio: 'pipe',
-    encoding: 'utf-8',
-  });
+  const stdout = execSync(`${pythonBin} --version`).toString();
   log.info(`Python version (raw): ${stdout}`);
   const { version: pythonVersion } = semver.coerce(stdout);
   log.info(`Python version (semver): ${pythonVersion}`);
@@ -243,6 +241,36 @@ const checkPythonDeps = async (splashWindow) => {
   }
 };
 
+const checkNvidiaSmi = async () => {
+  const nvidiaSmi = getNvidiaSmi();
+  ipcMain.handle('get-smi', () => nvidiaSmi);
+  if (nvidiaSmi) {
+    const [gpu] = execSync(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`).toString().split('\n');
+    ipcMain.handle('get-has-nvidia', () => true);
+    ipcMain.handle('get-gpu-name', () => gpu.trim());
+    let vramChecker;
+    ipcMain.handle('setup-vram-checker-process', (event, delay) => {
+      if (!vramChecker) {
+        vramChecker = spawn(nvidiaSmi, `-lms ${delay} --query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory --format=csv,noheader,nounits`.split(' '));
+      }
+
+      vramChecker.stdout.on('data', (data) => {
+        ipcMain.removeHandler('get-vram-usage');
+        ipcMain.handle('get-vram-usage', () => {
+          const [, vramTotal, vramUsed] = String(data).split('\n')[0].split(', ');
+          const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
+          return usage;
+        });
+      });
+    });
+  } else {
+    ipcMain.handle('get-has-nvidia', () => false);
+    ipcMain.handle('get-gpu-name', () => null);
+    ipcMain.handle('setup-vram-checker-process', () => null);
+    ipcMain.handle('get-vram-usage', () => null);
+  }
+};
+
 const spawnBackend = async () => {
   log.info('Attempting to spawn backend...');
   const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : '../backend/run.py';
@@ -313,6 +341,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
 
     splash.webContents.send('checking-deps');
     await checkPythonDeps(splash);
+    await checkNvidiaSmi();
 
     splash.webContents.send('spawning-backend');
     await spawnBackend();
