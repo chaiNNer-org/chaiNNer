@@ -5,8 +5,9 @@ import gc
 from typing import Tuple
 
 import numpy as np
-from sanic.log import logger
 from torch import Tensor, cuda, empty, from_numpy
+
+from ...sanic_server.sanic.log import logger
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -63,7 +64,7 @@ def denorm(x, min_max=(-1.0, 1.0)):
 
 
 def norm(x):
-    """ Normalize (z-norm) from [0,1] range to [-1,1] """
+    """Normalize (z-norm) from [0,1] range to [-1,1]"""
     out = (x - 0.5) * 2.0
     if isinstance(x, Tensor):
         return out.clamp(-1, 1)

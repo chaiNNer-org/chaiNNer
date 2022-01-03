@@ -2,10 +2,16 @@ import asyncio
 import os
 import sys
 
-from sanic import Sanic
-from sanic.log import logger
-from sanic.response import json
-from sanic_cors import CORS
+from sanic_server.sanic import Sanic
+from sanic_server.sanic.log import logger
+from sanic_server.sanic.response import json
+from sanic_server.sanic_cors import CORS
+
+# from sanic import Sanic
+# from sanic.log import logger
+# from sanic.response import json
+# from sanic_cors import CORS
+
 
 try:
     import cv2
@@ -143,5 +149,8 @@ async def kill(request):
 
 
 if __name__ == "__main__":
-    port = sys.argv[1] or 8000
+    try:
+        port = sys.argv[1] or 8000
+    except:
+        port = 8000
     app.run(port=port)

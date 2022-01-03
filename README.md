@@ -16,6 +16,16 @@ The only dependency you need to have installed already is Python 3.7-3.9. All ot
 
 Currently, chaiNNer's neural network support (via PyTorch) only supports Nvidia GPUs. There is currently no plan to support pre-compiled `.exe`s for NCNN processing. PyTorch also does not support GPU processing on MacOS.
 
+## Planned Features
+
+-   Batch/Folder/Video inputs
+    -   In the future, I will be implementing the ability to iterate over items in lists. This will allow for things like batch upscaling images in a folder or upscaling every frame of a video. Unfortunately, the way I want to implement this requires a feature of `react-flow-renderer` (the library I use as the basis for all things node-related) that is still in beta. I would rather not waste my time implementing it in a jank roundabout way when I can just wait a bit longer and implement it with that new sub-flow feature.
+-   Undo/Redo History
+    -   Once `react-flow-renderer` updates I will have to redo how it works if I were to do it now. Also, I did try implementing this and there isn't a good way to do it currently. However, with that new update I _think_ it should be much easier to implement this.
+-   More PyTorch models
+-   More image processing library support
+-   Much more
+
 ## FAQ
 
 **_Why is this needed?_**

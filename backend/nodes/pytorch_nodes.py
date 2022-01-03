@@ -4,12 +4,15 @@ Nodes that provide functionality for pytorch inference
 
 
 import os
+import sys
 from typing import Any, OrderedDict
 
 import numpy as np
 import torch
-from sanic.log import logger
 
+sys.path.append("..")
+
+from ..sanic_server.sanic.log import logger
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs.file_inputs import DirectoryInput, PthFileInput
