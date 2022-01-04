@@ -10,7 +10,8 @@ import numpy as np
 
 sys.path.append("..")
 
-from ..sanic_server.sanic.log import logger
+from sanic_server.sanic.log import logger
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs.file_inputs import (

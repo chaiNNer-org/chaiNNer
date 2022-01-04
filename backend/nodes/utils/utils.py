@@ -1,13 +1,15 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
+import sys
+
+sys.path.append("...")
 
 import gc
 from typing import Tuple
 
 import numpy as np
+from sanic_server.sanic.log import logger
 from torch import Tensor, cuda, empty, from_numpy
-
-from ...sanic_server.sanic.log import logger
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
