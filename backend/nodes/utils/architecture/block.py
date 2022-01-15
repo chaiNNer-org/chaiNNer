@@ -1,9 +1,10 @@
-# pylint: skip-file
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from collections import OrderedDict
 
+import torch
 import torch.nn as nn
-from torch import cat as torch_cat
 
 ####################
 # Basic blocks
@@ -72,7 +73,7 @@ class ConcatBlock(nn.Module):
         self.sub = submodule
 
     def forward(self, x):
-        output = torch_cat((x, self.sub(x)), dim=1)
+        output = torch.cat((x, self.sub(x)), dim=1)
         return output
 
     def __repr__(self):
@@ -91,6 +92,22 @@ class ShortcutBlock(nn.Module):
     def forward(self, x):
         output = x + self.sub(x)
         return output
+
+    def __repr__(self):
+        tmpstr = "Identity + \n|"
+        modstr = self.sub.__repr__().replace("\n", "\n|")
+        tmpstr = tmpstr + modstr
+        return tmpstr
+
+
+class ShortcutBlockSPSR(nn.Module):
+    # Elementwise sum the output of a submodule to its input
+    def __init__(self, submodule):
+        super(ShortcutBlockSPSR, self).__init__()
+        self.sub = submodule
+
+    def forward(self, x):
+        return x, self.sub
 
     def __repr__(self):
         tmpstr = "Identity + \n|"
@@ -309,9 +326,9 @@ class ResidualDenseBlock_5C(nn.Module):
     style: 5 convs
     The core module of paper: (Residual Dense Network for Image Super-Resolution, CVPR 18)
     Modified options that can be used:
-        - 'Partial Convolution based Padding' arXiv:1811.11718
-        - 'Spectral normalization' arXiv:1802.05957
-        - 'ICASSP 2020 - ESRGAN+ : Further Improving ESRGAN' N. C.
+        - "Partial Convolution based Padding" arXiv:1811.11718
+        - "Spectral normalization" arXiv:1802.05957
+        - "ICASSP 2020 - ESRGAN+ : Further Improving ESRGAN" N. C.
             {Rakotonirina} and A. {Rasoanaivo}
 
     Args:
@@ -340,9 +357,9 @@ class ResidualDenseBlock_5C(nn.Module):
     ):
         super(ResidualDenseBlock_5C, self).__init__()
 
-        # +
+        ## +
         self.conv1x1 = conv1x1(nf, gc) if plus else None
-        # +
+        ## +
 
         self.conv1 = conv_block(
             nf,
@@ -406,14 +423,14 @@ class ResidualDenseBlock_5C(nn.Module):
 
     def forward(self, x):
         x1 = self.conv1(x)
-        x2 = self.conv2(torch_cat((x, x1), 1))
+        x2 = self.conv2(torch.cat((x, x1), 1))
         if self.conv1x1:
             x2 = x2 + self.conv1x1(x)  # +
-        x3 = self.conv3(torch_cat((x, x1, x2), 1))
-        x4 = self.conv4(torch_cat((x, x1, x2, x3), 1))
+        x3 = self.conv3(torch.cat((x, x1, x2), 1))
+        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
         if self.conv1x1:
             x4 = x4 + x2  # +
-        x5 = self.conv5(torch_cat((x, x1, x2, x3, x4), 1))
+        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
         return x5 * 0.2 + x
 
 

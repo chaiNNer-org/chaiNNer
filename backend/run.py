@@ -11,29 +11,32 @@ try:
     import cv2
 
     from nodes import opencv_nodes
-except:
-    logger.info("OpenCV not installed")
+except Exception as e:
+    logger.warning(e)
+    logger.info("OpenCV most likely not installed")
 
 try:
     import numpy
 
     from nodes import numpy_nodes
-except:
-    logger.info("NumPy not installed")
+except Exception as e:
+    logger.warning(e)
+    logger.info("NumPy most likely not installed")
 
 try:
     import torch
 
     from nodes import pytorch_nodes
-except:
-    logger.info("PyTorch not installed")
+except Exception as e:
+    logger.warning(e)
+    logger.info("PyTorch most likely not installed")
 
 from nodes.node_factory import NodeFactory
 from process import Executor
 
 app = Sanic("chaiNNer")
 CORS(app)
-app.executor = None
+app.ctx.executor = None
 
 
 @app.route("/nodes")
@@ -59,9 +62,9 @@ async def nodes(_):
 async def run(request):
     """Runs the provided nodes"""
     try:
-        if request.app.executor:
+        if request.app.ctx.executor:
             logger.info("Resuming existing executor...")
-            executor = request.app.executor
+            executor = request.app.ctx.executor
             await executor.run()
         else:
             logger.info("Running new executor...")
@@ -73,14 +76,14 @@ async def run(request):
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             executor = Executor(nodes_list, app.loop)
-            request.app.executor = executor
+            request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:
-            request.app.executor = None
+            request.app.ctx.executor = None
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=1)
-        request.app.executor = None
+        request.app.ctx.executor = None
         return json(
             {"message": "Error running nodes!", "exception": str(exception)}, status=500
         )
@@ -90,7 +93,7 @@ async def run(request):
 async def check(request):
     """Check the execution status"""
     try:
-        executor = request.app.executor
+        executor = request.app.ctx.executor
         if executor:
             response = await executor.check()
             return json(response, status=200)
@@ -98,7 +101,7 @@ async def check(request):
         return json({"message": "No executor to check!"}, status=400)
     except Exception as exception:
         logger.log(2, exception, exc_info=1)
-        request.app.executor = None
+        request.app.ctx.executor = None
         return json(
             {"message": "Error checking nodes!", "exception": str(exception)},
             status=500,
@@ -109,9 +112,9 @@ async def check(request):
 async def kill(request):
     """Pauses the current execution"""
     try:
-        if request.app.executor:
+        if request.app.ctx.executor:
             logger.info("Executor found. Attempting to pause...")
-            await request.app.executor.pause()
+            await request.app.ctx.executor.pause()
             return json({"message": "Successfully paused execution!"}, status=200)
         logger.info("No executor to pause")
         return json({"message": "No executor to pause!"}, status=200)
@@ -127,10 +130,10 @@ async def kill(request):
 async def kill(request):
     """Kills the current execution"""
     try:
-        if request.app.executor:
+        if request.app.ctx.executor:
             logger.info("Executor found. Attempting to kill...")
-            await request.app.executor.kill()
-            request.app.executor = None
+            await request.app.ctx.executor.kill()
+            request.app.ctx.executor = None
             return json({"message": "Successfully killed execution!"}, status=200)
         logger.info("No executor to kill")
         return json({"message": "No executor to kill!"}, status=200)

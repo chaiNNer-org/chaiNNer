@@ -15,3 +15,11 @@ def ModelInput() -> Any:
         "type": "pytorch::model",
         "label": "Loaded Model",
     }
+
+
+def TorchScriptInput() -> Any:
+    """ Input a JIT traced model """
+    return {
+        "type": "pytorch::torchscript",
+        "label": "Traced Model",
+    }

@@ -12,17 +12,29 @@ import torch
 
 sys.path.append("..")
 
+from typing import Union
+
 from sanic_server.sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import DirectoryInput, PthFileInput
+from .properties.inputs.file_inputs import DirectoryInput, PthFileInput, TorchFileInput
 from .properties.inputs.generic_inputs import SliderInput, TextInput
 from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.pytorch_inputs import ModelInput, StateDictInput
+from .properties.inputs.pytorch_inputs import (
+    ModelInput,
+    StateDictInput,
+    TorchScriptInput,
+)
 from .properties.outputs.numpy_outputs import ImageOutput
-from .properties.outputs.pytorch_outputs import ModelOutput, StateDictOutput
-from .utils.architectures.RRDB import RRDBNet
+from .properties.outputs.pytorch_outputs import (
+    ModelOutput,
+    StateDictOutput,
+    TorchScriptOutput,
+)
+from .utils.architecture.RRDB import RRDBNet as ESRGAN
+from .utils.architecture.SPSR import SPSRNet as SPSR
+from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.utils import auto_split_process, np2tensor, tensor2np
 
 
@@ -59,13 +71,13 @@ class LoadStateDictNode(NodeBase):
         return state_dict
 
 
-@NodeFactory.register("PyTorch", "ESRGAN::Load")
-class LoadEsrganModelNode(NodeBase):
-    """Load ESRGAN Model node"""
+@NodeFactory.register("PyTorch", "Model::AutoLoad")
+class AutoLoadModelNode(NodeBase):
+    """Load PyTorch Model node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Load PyTorch state dict into the ESRGAN model architecture"
+        self.description = "Load PyTorch state dict into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture"
         self.inputs = [StateDictInput()]
         self.outputs = [ModelOutput()]
 
@@ -74,50 +86,19 @@ class LoadEsrganModelNode(NodeBase):
 
         logger.info(f"Loading state dict into ESRGAN model")
 
-        # Convert a 'new-arch' model to 'old-arch'
-        if "conv_first.weight" in state_dict:
-            state_dict = self.convert_new_to_old(state_dict)
+        # SRVGGNet Real-ESRGAN (v2)
+        if (
+            "params" in state_dict.keys()
+            and "body.0.weight" in state_dict["params"].keys()
+        ):
+            model = RealESRGANv2(state_dict)
+        # SPSR (ESRGAN with lots of extra layers)
+        elif "f_HR_conv1.0.weight" in state_dict:
+            model = SPSR(state_dict)
+        # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
+        else:
+            model = ESRGAN(state_dict)
 
-        # extract model information
-        scale2 = 0
-        max_part = 0
-        in_nc = 0
-        out_nc = 0
-        plus = False
-        for part in list(state_dict):
-            parts = part.split(".")
-            n_parts = len(parts)
-            if n_parts == 5 and parts[2] == "sub":
-                nb = int(parts[3])
-            elif n_parts == 3:
-                part_num = int(parts[1])
-                if part_num > 6 and parts[0] == "model" and parts[2] == "weight":
-                    scale2 += 1
-                if part_num > max_part:
-                    max_part = part_num
-                    out_nc = state_dict[part].shape[0]
-            if "conv1x1" in part and not plus:
-                plus = True
-
-        upscale = 2 ** scale2
-        in_nc = state_dict["model.0.weight"].shape[1]
-        nf = state_dict["model.0.weight"].shape[0]
-
-        model = RRDBNet(
-            in_nc=in_nc,
-            out_nc=out_nc,
-            nf=nf,
-            nb=nb,
-            gc=32,
-            upscale=upscale,
-            norm_type=None,
-            act_type="leakyrelu",
-            mode="CNA",
-            upsample_mode="upconv",
-            plus=plus,
-        )
-
-        model.load_state_dict(state_dict, strict=True)
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
@@ -125,51 +106,19 @@ class LoadEsrganModelNode(NodeBase):
 
         return model
 
-    def convert_new_to_old(self, state_dict):
-        logger.warn("Attempting to convert and load a new-format model")
-        old_net = {}
-        items = []
-        for k, _ in state_dict.items():
-            items.append(k)
 
-        old_net["model.0.weight"] = state_dict["conv_first.weight"]
-        old_net["model.0.bias"] = state_dict["conv_first.bias"]
-
-        for k in items.copy():
-            if "RDB" in k:
-                ori_k = k.replace("RRDB_trunk.", "model.1.sub.")
-                if ".weight" in k:
-                    ori_k = ori_k.replace(".weight", ".0.weight")
-                elif ".bias" in k:
-                    ori_k = ori_k.replace(".bias", ".0.bias")
-                old_net[ori_k] = state_dict[k]
-                items.remove(k)
-
-        old_net["model.1.sub.23.weight"] = state_dict["trunk_conv.weight"]
-        old_net["model.1.sub.23.bias"] = state_dict["trunk_conv.bias"]
-        old_net["model.3.weight"] = state_dict["upconv1.weight"]
-        old_net["model.3.bias"] = state_dict["upconv1.bias"]
-        old_net["model.6.weight"] = state_dict["upconv2.weight"]
-        old_net["model.6.bias"] = state_dict["upconv2.bias"]
-        old_net["model.8.weight"] = state_dict["HRconv.weight"]
-        old_net["model.8.bias"] = state_dict["HRconv.bias"]
-        old_net["model.10.weight"] = state_dict["conv_last.weight"]
-        old_net["model.10.bias"] = state_dict["conv_last.bias"]
-        return old_net
-
-
-@NodeFactory.register("PyTorch", "ESRGAN::Run")
-class EsrganNode(NodeBase):
-    """ESRGAN node"""
+@NodeFactory.register("PyTorch", "Image::Upscale")
+class ImageUpscaleNode(NodeBase):
+    """Image Upscale node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Upscales a BGR numpy array using an ESRGAN model"
+        self.description = "Upscales a BGR numpy array using a Super-Resolution model"
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
-    def run(self, model: RRDBNet, img: np.ndarray) -> np.ndarray:
-        """Upscales an image with an ESRGAN pretrained model"""
+    def run(self, model: torch.nn.Module, img: np.ndarray) -> np.ndarray:
+        """Upscales an image with a pretrained model"""
 
         check_env()
 
@@ -177,6 +126,7 @@ class EsrganNode(NodeBase):
 
         img = img / np.iinfo(img.dtype).max
 
+        # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
         in_nc = model.in_nc
         out_nc = model.out_nc
         scale = model.scale
@@ -236,7 +186,7 @@ class InterpolateNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
-        self.description = "Interpolate two models together"
+        self.description = "Interpolate two of the same kind of model together"
         self.inputs = [
             StateDictInput(),
             StateDictInput(),
@@ -244,8 +194,9 @@ class InterpolateNode(NodeBase):
         ]
         self.outputs = [StateDictOutput()]
 
-    def run(self, model_a: RRDBNet, model_b: RRDBNet, amount: int) -> np.ndarray:
-        """Upscales an image with an ESRGAN pretrained model"""
+    def run(
+        self, model_a: torch.nn.Module, model_b: torch.nn.Module, amount: int
+    ) -> np.ndarray:
 
         logger.info(f"Interpolating models...")
 
@@ -269,11 +220,103 @@ class PthSaveNode(NodeBase):
         self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
-    def run(self, model: OrderedDict(), directory: str, name: str) -> np.ndarray:
-        """Upscales an image with an ESRGAN pretrained model"""
+    def run(self, model: OrderedDict(), directory: str, name: str) -> bool:
         fullFile = f"{name}.pth"
         fullPath = os.path.join(directory, fullFile)
-        logger.info(f"Writing image to path: {fullPath}")
+        logger.info(f"Writing model to path: {fullPath}")
         status = torch.save(model, fullPath)
 
         return status
+
+
+# @NodeFactory.register("PyTorch", "JIT::Trace")
+# class JitTraceNode(NodeBase):
+#     """JIT trace node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         self.description = "JIT trace a pytorch model"
+#         self.inputs = [ModelInput(), ImageInput("Example Input")]
+#         self.outputs = [TorchScriptOutput()]
+
+#     def run(self, model: any, image: np.ndarray) -> torch.ScriptModule:
+#         tensor = np2tensor(image)
+#         traced = torch.jit.trace(model.cpu(), tensor.cpu())
+
+#         return traced
+
+
+# @NodeFactory.register("PyTorch", "JIT::Optimize")
+# class JitOptimizeNode(NodeBase):
+#     """JIT optimize node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         self.description = "Optimize a JIT traced pytorch model for inference"
+#         self.inputs = [TorchScriptInput()]
+#         self.outputs = [TorchScriptOutput()]
+
+#     def run(self, model: torch.ScriptModule) -> torch.ScriptModule:
+#         optimized = torch.jit.optimize_for_inference(model)
+
+#         return optimized
+
+
+# @NodeFactory.register("PyTorch", "JIT::Save")
+# class JitSaveNode(NodeBase):
+#     """JIT save node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         self.description = "Save a JIT traced pytorch model to a file"
+#         self.inputs = [TorchScriptInput(), DirectoryInput(), TextInput("Model Name")]
+#         self.outputs = []
+
+#     def run(self, model: torch.ScriptModule, directory: str, name: str):
+#         fullFile = f"{name}.pt"
+#         fullPath = os.path.join(directory, fullFile)
+#         logger.info(f"Writing model to path: {fullPath}")
+#         torch.jit.save(model, fullPath)
+
+
+# @NodeFactory.register("PyTorch", "JIT::Load")
+# class JitLoadNode(NodeBase):
+#     """JIT load node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         self.description = "Load a JIT traced pytorch model from a file"
+#         self.inputs = [TorchFileInput()]
+#         self.outputs = [TorchScriptOutput()]
+
+#     def run(self, path: str) -> torch.ScriptModule:
+#         # device = (
+#         #     f"cuda:0"
+#         #     if torch.cuda.is_available() and os.environ["device"] != "cpu"
+#         #     else "cpu"
+#         # )
+#         model = torch.jit.load(
+#             path, map_location=torch.device("cpu")
+#         )  # , map_location=device)
+
+#         return model
+
+
+# @NodeFactory.register("PyTorch", "JIT::Run")
+# class JitRunNode(NodeBase):
+#     """JIT run node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         self.description = "Run a JIT traced pytorch model"
+#         self.inputs = [TorchScriptInput(), ImageInput()]
+#         self.outputs = [ImageOutput()]
+
+#     def run(self, model: torch.ScriptModule, image: np.ndarray) -> np.ndarray:
+#         tensor = np2tensor(image).cpu()
+#         # if os.environ["device"] == "cuda":
+#         #     model = model.cuda()
+#         #     tensor = tensor.cuda()
+#         out = model.cpu()(tensor)
+
+#         return out

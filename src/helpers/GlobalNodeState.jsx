@@ -39,8 +39,12 @@ export const GlobalProvider = ({ children }) => {
 
   const { transform } = useZoomPanHelper();
 
-  const dumpStateToJSON = () => {
-    const output = JSON.stringify(reactFlowInstanceRfi);
+  const dumpStateToJSON = async () => {
+    const output = JSON.stringify({
+      version: await ipcRenderer.invoke('get-app-version'),
+      content: reactFlowInstanceRfi,
+      timestamp: new Date(),
+    });
     return output;
   };
 
@@ -83,7 +87,7 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const performSave = useCallback(async () => {
-    const json = dumpStateToJSON();
+    const json = await dumpStateToJSON();
     if (savePath) {
       ipcRenderer.invoke('file-save-json', json, savePath);
     } else {
@@ -121,8 +125,15 @@ export const GlobalProvider = ({ children }) => {
   // Register Open File event handler
   useEffect(() => {
     ipcRenderer.on('file-open', (event, json, openedFilePath) => {
+      const { version, content } = json;
       setSavePath(openedFilePath);
-      setStateFromJSON(json, true);
+      if (version) {
+        // TODO: Add version upgrading
+        setStateFromJSON(content, true);
+      } else {
+        // Legacy files
+        setStateFromJSON(json, true);
+      }
     });
 
     return () => {
@@ -133,7 +144,7 @@ export const GlobalProvider = ({ children }) => {
   // Register Save/Save-As event handlers
   useEffect(() => {
     ipcRenderer.on('file-save-as', async () => {
-      const json = dumpStateToJSON();
+      const json = await dumpStateToJSON();
       const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
       setSavePath(savedAsPath);
     });

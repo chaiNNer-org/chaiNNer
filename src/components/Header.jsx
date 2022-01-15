@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 import {
-  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon
+  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
 } from '@chakra-ui/icons';
 import {
   AlertDialog,
@@ -8,11 +8,11 @@ import {
   AlertDialogHeader, AlertDialogOverlay, Box, Button, CircularProgress,
   CircularProgressLabel, Flex, Heading, HStack, IconButton,
   Image, Menu, MenuButton, MenuItem, MenuList,
-  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure
+  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
-import { ipcRenderer } from 'electron';
+import { clipboard, ipcRenderer } from 'electron';
 import React, {
-  memo, useContext, useEffect, useState
+  memo, useContext, useEffect, useState,
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
@@ -52,6 +52,7 @@ const Header = () => {
   const [running, setRunning] = useState(false);
   const { post, error, response: res } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
     cachePolicy: 'no-cache',
+    timeout: 0,
   });
 
   const { post: checkPost, error: checkError, response: checkRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/check`, {
@@ -161,7 +162,7 @@ const Header = () => {
       if (invalidNodes.length === 0) {
         try {
           const data = convertToUsableFormat();
-          const response = post({
+          const response = await post({
             data,
             isCpu,
             isFp16: isFp16 && !isCpu,
@@ -169,12 +170,12 @@ const Header = () => {
             resolutionY: monitor?.resolutionY || 1080,
           });
           console.log(response);
-          // if (!res.ok) {
-          //   setErrorMessage(response.exception);
-          //   onErrorOpen();
-          //   unAnimateEdges();
-          //   setRunning(false);
-          // }
+          if (!res.ok) {
+            setErrorMessage(response.exception);
+            onErrorOpen();
+            unAnimateEdges();
+            setRunning(false);
+          }
         } catch (err) {
           setErrorMessage(err.exception);
           onErrorOpen();
@@ -338,6 +339,12 @@ const Header = () => {
             {errorMessage}
           </AlertDialogBody>
           <AlertDialogFooter>
+            <Button onClick={(() => {
+              clipboard.writeText(errorMessage);
+            })}
+            >
+              Copy to Clipboard
+            </Button>
             <Button ref={cancelRef} onClick={onErrorClose}>
               OK
             </Button>

@@ -4,7 +4,6 @@ import {
 } from 'electron';
 import log from 'electron-log';
 import { readFile, writeFile } from 'fs/promises';
-import hasbin from 'hasbin';
 // import { readdir } from 'fs/promises';
 import path from 'path';
 import portastic from 'portastic';
@@ -26,7 +25,6 @@ let port = 8000;
 
 const pythonKeys = {
   python: 'python',
-  pip: 'pip',
 };
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -135,44 +133,37 @@ const getValidPort = async (splashWindow) => {
   });
 };
 
-const checkPythonVersion = (pythonBin) => {
-  const stdout = execSync(`${pythonBin} --version`).toString();
-  log.info(`Python version (raw): ${stdout}`);
-  const { version: pythonVersion } = semver.coerce(stdout);
-  log.info(`Python version (semver): ${pythonVersion}`);
-  const hasValidPythonVersion = semver.gt(pythonVersion, '3.7.0') && semver.lt(pythonVersion, '3.10.0');
-  return { pythonVersion, hasValidPythonVersion };
+const getPythonVersion = (pythonBin) => {
+  try {
+    const stdout = execSync(`${pythonBin} --version`).toString();
+    log.info(`Python version (raw): ${stdout}`);
+    const { version } = semver.coerce(stdout);
+    log.info(`Python version (semver): ${version}`);
+    return version;
+  } catch (error) {
+    return null;
+  }
 };
+
+const checkPythonVersion = (version) => semver.gt(version, '3.7.0') && semver.lt(version, '3.10.0');
 
 const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');
 
-  // Check first for standard 'python' keyword
-  let pythonBin = hasbin.sync('python') ? 'python' : null;
-  let pipBin = hasbin.sync('pip') ? 'pip' : null;
-  let validPythonVersion = null;
-  log.info(`(Hasbin) Python binary: ${pythonBin}`, `Pip binary: ${pipBin}`);
-  if (pythonBin) {
-    const { pythonVersion, hasValidPythonVersion } = checkPythonVersion(pythonBin);
-    if (pythonVersion && hasValidPythonVersion) {
-      validPythonVersion = pythonVersion;
-    }
+  const pythonVersion = getPythonVersion('python');
+  const python3Version = getPythonVersion('python3');
+  let validPythonVersion;
+  let pythonBin;
+
+  if (pythonVersion && checkPythonVersion(pythonVersion)) {
+    validPythonVersion = pythonVersion;
+    pythonBin = 'python';
+  } else if (python3Version && checkPythonVersion(python3Version)) {
+    validPythonVersion = python3Version;
+    pythonBin = 'python3';
   }
 
-  // If 'python' not available or not right version, check 'python3'
-  if (!pythonBin || !validPythonVersion) {
-    pythonBin = hasbin.sync('python3') ? 'python3' : null;
-    pipBin = hasbin.sync('pip3') ? 'pip3' : null;
-    log.info(`(Hasbin) Python3 binary: ${pythonBin}`, `Pip3 binary: ${pipBin}`);
-    if (pythonBin) {
-      const { pythonVersion, hasValidPythonVersion } = checkPythonVersion(pythonBin);
-      if (pythonVersion && hasValidPythonVersion) {
-        validPythonVersion = pythonVersion;
-      }
-    }
-  }
-
-  log.info(`Final Python binary: ${pythonBin}`, `Final Pip binary: ${pipBin}`);
+  log.info(`Final Python binary: ${pythonBin}`);
 
   if (!pythonBin) {
     log.warn('Python binary not found');
@@ -195,7 +186,6 @@ const checkPythonEnv = async (splashWindow) => {
 
   if (pythonBin) {
     pythonKeys.python = pythonBin;
-    pythonKeys.pip = pipBin;
     pythonKeys.version = validPythonVersion;
     log.info({ pythonKeys });
   }
@@ -227,14 +217,14 @@ const checkPythonEnv = async (splashWindow) => {
 const checkPythonDeps = async (splashWindow) => {
   log.info('Attempting to check Python deps...');
   try {
-    let pipList = execSync(`${pythonKeys.pip} list`);
+    let pipList = execSync(`${pythonKeys.python} -m pip list`);
     pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
       log.info('Sanic not found. Installing sanic...');
       splashWindow.webContents.send('installing-deps');
-      execSync(`${pythonKeys.pip} install sanic Sanic-Cors`);
+      execSync(`${pythonKeys.python} -m pip install sanic Sanic-Cors`);
     }
   } catch (error) {
     console.error(error);
@@ -273,7 +263,7 @@ const checkNvidiaSmi = async () => {
 
 const spawnBackend = async () => {
   log.info('Attempting to spawn backend...');
-  const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : '../backend/run.py';
+  const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : './backend/run.py';
   const backend = spawn(pythonKeys.python, [backendPath, port]);
 
   backend.stdout.on('data', (data) => {
