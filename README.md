@@ -50,6 +50,10 @@ Currently, chaiNNer's neural network support (via PyTorch) only supports Nvidia 
 
 > What the title says
 
+**Live Updating**
+
+> This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
+
 ## FAQ
 
 **What does the name mean?**
