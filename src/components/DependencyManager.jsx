@@ -70,7 +70,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
       ...deps,
       pythonVersion: pKeys.version,
     });
-    exec(`${pKeys.pip} list`, (error, stdout, stderr) => {
+    exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
       if (error) {
         setIsLoadingPipList(false);
         return;
@@ -106,7 +106,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   useEffect(async () => {
     if (pipList && Object.keys(pipList).length) {
       setIsCheckingUpdates(true);
-      exec(`${pythonKeys.pip} list --outdated`, (error, stdout, stderr) => {
+      exec(`${pythonKeys.python} -m pip list --outdated`, (error, stdout, stderr) => {
         if (error) {
           console.log(error, stderr);
           setIsCheckingUpdates(false);
@@ -132,7 +132,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   const runPipCommand = (args) => {
     setShellOutput('');
     setIsRunningShell(true);
-    const command = spawn(pythonKeys.pip, args);
+    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args]);
 
     let outputString = '';
 
