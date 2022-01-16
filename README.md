@@ -2,6 +2,10 @@
 
 ![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer) ![GitHub Total Downloads](https://img.shields.io/github/downloads/joeyballentine/chaiNNer/total) ![License](https://img.shields.io/github/license/joeyballentine/chaiNNer) ![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)
 
+<p align="center">
+    <img src="src/public/chaiNNer screenshot.png" width="600" />
+</p>
+
 A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially those done by neural networks) easy, intuitive, and customizable.
 
 No existing GUI gives you the level of customization of your image processing workflow that chaiNNer does. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
