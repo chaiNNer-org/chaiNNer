@@ -9,7 +9,7 @@ import path from 'path';
 import portastic from 'portastic';
 import semver from 'semver';
 import { currentLoad, graphics, mem } from 'systeminformation';
-import { getNvidiaSmi } from './helpers/nvidiaSmi.js';
+import { getNvidiaSmi } from './helpers/nvidiaSmi';
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len

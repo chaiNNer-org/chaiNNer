@@ -12,7 +12,7 @@ import React, { memo, useContext } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { IconFactory } from '../components/CustomIcons.jsx';
 import DirectoryInput from '../components/inputs/DirectoryInput.jsx';
-import DropDownInput from '../components/inputs/DropdownInput.jsx';
+import DropDownInput from '../components/inputs/DropDownInput.jsx';
 import FileInput from '../components/inputs/FileInput.jsx';
 import GenericInput from '../components/inputs/GenericInput.jsx';
 import NumberInput from '../components/inputs/NumberInput.jsx';
