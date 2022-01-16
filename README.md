@@ -4,7 +4,7 @@ A flowchart/node-based image processing GUI aimed at making chaining image proce
 
 No existing GUI gives you the level of customization of your image processing workflow that chaiNNer does. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
 
-ChaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
+chaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
 
 ## Installation
 
@@ -18,20 +18,52 @@ Currently, chaiNNer's neural network support (via PyTorch) only supports Nvidia 
 
 ## Planned Features
 
--   Batch/Folder/Video inputs
-    -   In the future, I will be implementing the ability to iterate over items in lists. This will allow for things like batch upscaling images in a folder or upscaling every frame of a video. Unfortunately, the way I want to implement this requires a feature of `react-flow-renderer` (the library I use as the basis for all things node-related) that is still in beta. I would rather not waste my time implementing it in a jank roundabout way when I can just wait a bit longer and implement it with that new sub-flow feature.
--   Undo/Redo History
-    -   Once `react-flow-renderer` updates I will have to redo how it works if I were to do it now. Also, I did try implementing this and there isn't a good way to do it currently. However, with that new update I _think_ it should be much easier to implement this.
--   More PyTorch models
--   More image processing library support
--   Much more
+**Embedded Python**
+
+> I'm currently figuring out the best way to add this in. There are standalone python binaries for every platform that I plan on supporting. I am still just trying to figure out whether it should be downloaded and installed to on first run, or if all that should be done in the build action and bundled with the installer.
+
+**NCNN**
+
+> Once the python api for NCNN supports GPU, I will be adding the ability to convert from PyTorch to TorchScript to ONNX to NCNN. It'll be a bit convoluted but it'll allow AMD support I think
+
+**PIL & Wand**
+
+> I do plan on adding support for PIL and Wand for image processing.
+
+**Batch Processing**
+
+> I am waiting to add this until the node-graph library I use supports nested flows (which is coming relatively soon). The way I will be doing this will be similar to how for loops work, in that you will have iterator panels that will iterate over some sort of loaded array of items (i.e. folder input or frames of a video)
+
+**Undo History, Copy & Paste**
+
+> For now I am having difficulty adding these in. I plan on revisiting this later after I am forced to refactor my implementation due to the node-graph library I use releasing breaking changes soon.
+
+**Drag and Drop Images**
+
+> This is planned, ideally for both dragging into the file selection box and onto the window to make a new image read node
+
+**Presets**
+
+> Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
+
+**More SR Networks, More Image Processing Libraries**
+
+> What the title says
 
 ## FAQ
 
-**_Why is this needed?_**
+**What does the name mean?**
 
-It isn't necessarily needed, I just wanted a GUI that would let me do image processing steps in any order. Also, there is currently no other cross-platform GUI for ESRGAN that I am aware of.
+> chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
 
-**_Why didn't you use embedded python or a python packager instead of relying on the system python installation?_**
+**Why not just use Cupscale/IEU/CLI?**
 
-First off, if you want to isolate chaiNNer from your system python, you can run it via conda. The biggest reason I didn't use a python bundler/packager is because pytorch is multiple gigabytes, which would have bloated the packaged python to an insane degree. I also noticed other issues with this, such as it taking quite a while to unpack when installing, as well as leaving huge temp files around if the installation was cancelled or failed. Embedded python is windows only, so that wasn't an option at all. Ultimately, using system python works well enough, and since conda can be used I have no concerns about it.
+> All of these tools are viable options, but as anyone who has used them before knows, they can be limited in what it can do, as many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image, just do not exist in Cupscale, for example. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+
+**Wouldn't this make it more difficult to do things?**
+
+> In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+
+**What platforms are supported?**
+
+> Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality.
