@@ -236,7 +236,7 @@ const Header = () => {
             <Heading size="md">
               chaiNNer
             </Heading>
-            <Tag>Pre-Alpha</Tag>
+            <Tag>Alpha</Tag>
             <Tag>{`v${appVersion}`}</Tag>
           </HStack>
           <Spacer />

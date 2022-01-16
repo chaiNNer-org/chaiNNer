@@ -3,6 +3,7 @@
 import {
   Box,
 } from '@chakra-ui/react';
+import log from 'electron-log';
 import React, {
   createContext, useCallback, useContext,
 } from 'react';
@@ -37,6 +38,7 @@ const ReactFlowBox = ({
   };
 
   const onDrop = (event) => {
+    log.info('dropped');
     event.preventDefault();
 
     const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
@@ -48,6 +50,7 @@ const ReactFlowBox = ({
       const category = event.dataTransfer.getData('application/reactflow/category');
       const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
       const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
+      log.info(type, inputs, outputs, category);
 
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left - offsetX,

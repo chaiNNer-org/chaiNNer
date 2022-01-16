@@ -13,12 +13,13 @@ import { v4 as uuidv4 } from 'uuid';
 import useLocalStorage from './hooks/useLocalStorage.js';
 import useUndoHistory from './hooks/useMultipleUndoHistory.js';
 import useSessionStorage from './hooks/useSessionStorage.js';
+import { migrate } from './migrations.js';
 
 export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
-export const GlobalProvider = ({ children }) => {
+export const GlobalProvider = ({ children, nodeTypes }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -50,8 +51,15 @@ export const GlobalProvider = ({ children }) => {
 
   const setStateFromJSON = (savedData, loadPosition = false) => {
     if (savedData) {
-      setNodes(savedData.elements.filter((element) => isNode(element)) || []);
-      setEdges(savedData.elements.filter((element) => isEdge(element)) || []);
+      const nodeTypesArr = Object.keys(nodeTypes);
+      const validNodes = savedData.elements.filter(
+        (element) => isNode(element) && nodeTypesArr.includes(element.type),
+      ) || [];
+      setNodes(validNodes);
+      setEdges(savedData.elements.filter((element) => isEdge(element) && (
+        validNodes.some((el) => el.id === element.target)
+        && validNodes.some((el) => el.id === element.source)
+      )) || []);
       if (loadPosition) {
         const [x = 0, y = 0] = savedData.position;
         transform({ x, y, zoom: savedData.zoom || 0 });
@@ -116,8 +124,15 @@ export const GlobalProvider = ({ children }) => {
     if (!loadedFromCli) {
       const contents = await ipcRenderer.invoke('get-cli-open');
       if (contents) {
-        setStateFromJSON(contents, true);
-        setLoadedFromCli(true);
+        const { version, content } = contents;
+        if (version) {
+          const upgraded = migrate(version, content);
+          setStateFromJSON(upgraded, true);
+        } else {
+          // Legacy files
+          const upgraded = migrate(null, content);
+          setStateFromJSON(upgraded, true);
+        }
       }
     }
   }, []);
@@ -126,13 +141,16 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     ipcRenderer.on('file-open', (event, json, openedFilePath) => {
       const { version, content } = json;
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 144 ~ ipcRenderer.on ~ content', content);
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 144 ~ ipcRenderer.on ~ version', version);
       setSavePath(openedFilePath);
       if (version) {
-        // TODO: Add version upgrading
-        setStateFromJSON(content, true);
+        const upgraded = migrate(version, content);
+        setStateFromJSON(upgraded, true);
       } else {
         // Legacy files
-        setStateFromJSON(json, true);
+        const upgraded = migrate(null, json);
+        setStateFromJSON(upgraded, true);
       }
     });
 
