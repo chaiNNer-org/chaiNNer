@@ -41,6 +41,30 @@ def ColorModeInput() -> Dict:
                 "inputs": "numpy::2d::4c",
                 "outputs": "np::2d:1c",
             },
+            {
+                "option": "BGR -> YUV",
+                "value": cv2.COLOR_BGR2YUV,
+                "inputs": "numpy::2d::4c",
+                "outputs": "np::2d:1c",
+            },
+            {
+                "option": "YUV -> BGR",
+                "value": cv2.COLOR_YUV2BGR,
+                "inputs": "numpy::2d::4c",
+                "outputs": "np::2d:1c",
+            },
+            {
+                "option": "BGR -> HSV",
+                "value": cv2.COLOR_BGR2HSV,
+                "inputs": "numpy::2d::4c",
+                "outputs": "np::2d:1c",
+            },
+            {
+                "option": "HSV -> BGR",
+                "value": cv2.COLOR_HSV2BGR,
+                "inputs": "numpy::2d::4c",
+                "outputs": "np::2d:1c",
+            },
         ],
     )
 
@@ -70,6 +94,27 @@ def InterpolationInput() -> Dict:
             {
                 "option": "Lanczos",
                 "value": cv2.INTER_LANCZOS4,
+            },
+        ],
+    )
+    
+def BlurInput() -> Dict:
+    """Blur option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Blur Mode",
+        [
+            {
+                "option": "Box",
+                "value": 0,
+            },
+            {
+                "option": "Blur",
+                "value": 1,
+            },
+            {
+                "option": "Gaussian",
+                "value": 2,
             },
         ],
     )
