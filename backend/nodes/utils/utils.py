@@ -8,7 +8,7 @@ import gc
 from typing import Tuple
 
 import numpy as np
-from sanic_server.sanic.log import logger
+from sanic.log import logger
 from torch import Tensor, cuda, empty, from_numpy
 
 MAX_VALUES_BY_DTYPE = {

@@ -2,10 +2,10 @@ import asyncio
 import os
 import sys
 
-from sanic_server.sanic import Sanic
-from sanic_server.sanic.log import logger
-from sanic_server.sanic.response import json
-from sanic_server.sanic_cors import CORS
+from sanic import Sanic
+from sanic.log import logger
+from sanic.response import json
+from sanic_cors import CORS
 
 try:
     import cv2
