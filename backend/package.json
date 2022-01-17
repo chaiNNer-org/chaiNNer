@@ -1,7 +1,0 @@
-{
-  "name": "chainner-backend",
-  "scripts": {
-    "start": "python run.py",
-    "build": "bash build.sh"
-  }
-}
