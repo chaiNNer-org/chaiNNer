@@ -141,8 +141,6 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   useEffect(() => {
     ipcRenderer.on('file-open', (event, json, openedFilePath) => {
       const { version, content } = json;
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 144 ~ ipcRenderer.on ~ content', content);
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 144 ~ ipcRenderer.on ~ version', version);
       setSavePath(openedFilePath);
       if (version) {
         const upgraded = migrate(version, content);
