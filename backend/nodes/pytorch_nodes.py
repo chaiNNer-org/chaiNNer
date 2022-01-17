@@ -10,11 +10,9 @@ from typing import Any, OrderedDict
 import numpy as np
 import torch
 
-sys.path.append("..")
-
 from typing import Union
 
-from sanic_server.sanic.log import logger
+from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

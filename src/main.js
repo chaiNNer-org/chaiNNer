@@ -214,22 +214,22 @@ const checkPythonEnv = async (splashWindow) => {
   });
 };
 
-// const checkPythonDeps = async (splashWindow) => {
-//   log.info('Attempting to check Python deps...');
-//   try {
-//     let pipList = execSync(`${pythonKeys.python} -m pip list`);
-//     pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-//     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
-//     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
-//     if (!hasSanic || !hasSanicCors) {
-//       log.info('Sanic not found. Installing sanic...');
-//       splashWindow.webContents.send('installing-deps');
-//       execSync(`${pythonKeys.python} -m pip install sanic Sanic-Cors`);
-//     }
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
+const checkPythonDeps = async (splashWindow) => {
+  log.info('Attempting to check Python deps...');
+  try {
+    let pipList = execSync(`${pythonKeys.python} -m pip list`);
+    pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+    const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
+    const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
+    if (!hasSanic || !hasSanicCors) {
+      log.info('Sanic not found. Installing sanic...');
+      splashWindow.webContents.send('installing-deps');
+      execSync(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 const checkNvidiaSmi = async () => {
   const nvidiaSmi = getNvidiaSmi();
@@ -330,7 +330,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     await checkPythonEnv(splash);
 
     splash.webContents.send('checking-deps');
-    // await checkPythonDeps(splash);
+    await checkPythonDeps(splash);
     await checkNvidiaSmi();
 
     splash.webContents.send('spawning-backend');

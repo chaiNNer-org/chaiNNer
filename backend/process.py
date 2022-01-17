@@ -3,9 +3,10 @@ import functools
 import uuid
 from typing import Dict, List
 
+from sanic import app
+from sanic.log import logger
+
 from nodes.node_factory import NodeFactory
-from sanic_server.sanic import app
-from sanic_server.sanic.log import logger
 
 
 class Executor:

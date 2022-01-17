@@ -1,9 +1,7 @@
 import sys
 from typing import Callable, Dict
 
-sys.path.append("..")
-
-from sanic_server.sanic.log import logger
+from sanic.log import logger
 
 from .node_base import NodeBase
 
