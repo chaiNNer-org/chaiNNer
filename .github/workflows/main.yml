@@ -28,6 +28,6 @@ jobs:
               with:
                   node-version: 14
             - name: install dependencies
-              run: cd frontend && npm install
+              run: npm install
             - name: build
               run: npm run make
