@@ -10,9 +10,9 @@ on:
             - 'v*'
 
     # Triggers on creation of a release
-    release:
-        types:
-            - created
+    # release:
+    #     types:
+    #         - created
 
         # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
@@ -32,8 +32,8 @@ jobs:
               with:
                   node-version: 14
             - name: install dependencies
-              run: cd frontend && npm install
+              run: npm install
             - name: publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: cd frontend && npm run publish
+              run: npm run publish

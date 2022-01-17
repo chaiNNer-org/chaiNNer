@@ -1,8 +1,11 @@
+import sys
 from typing import Callable, Dict
 
-from .node_base import NodeBase
+sys.path.append("..")
 
-from sanic.log import logger
+from sanic_server.sanic.log import logger
+
+from .node_base import NodeBase
 
 
 # Implementation based on https://medium.com/@geoffreykoh/implementing-the-factory-pattern-via-dynamic-registry-and-python-decorators-479fc1537bbe

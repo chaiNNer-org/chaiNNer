@@ -1,11 +1,14 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
+import sys
+
+sys.path.append("...")
 
 import gc
 from typing import Tuple
 
 import numpy as np
-from sanic.log import logger
+from sanic_server.sanic.log import logger
 from torch import Tensor, cuda, empty, from_numpy
 
 MAX_VALUES_BY_DTYPE = {
@@ -63,7 +66,7 @@ def denorm(x, min_max=(-1.0, 1.0)):
 
 
 def norm(x):
-    """ Normalize (z-norm) from [0,1] range to [-1,1] """
+    """Normalize (z-norm) from [0,1] range to [-1,1]"""
     out = (x - 0.5) * 2.0
     if isinstance(x, Tensor):
         return out.clamp(-1, 1)

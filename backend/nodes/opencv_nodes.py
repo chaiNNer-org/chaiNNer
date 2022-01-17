@@ -3,10 +3,14 @@ Nodes that provide functionality for opencv image manipulation
 """
 
 import os
+import sys
 
 import cv2
 import numpy as np
-from sanic.log import logger
+
+sys.path.append("..")
+
+from sanic_server.sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

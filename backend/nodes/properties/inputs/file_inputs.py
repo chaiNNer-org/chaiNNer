@@ -27,6 +27,11 @@ def PthFileInput() -> Dict:
     return FileInput("pth", "Pretrained Model", None, ["pth"])
 
 
+def TorchFileInput() -> Dict:
+    """ Input for submitting a local .pth or .pt file """
+    return FileInput("pth", "Pretrained Model", None, ["pth", "pt"])
+
+
 def DirectoryInput() -> Dict:
     """ Input for submitting a local directory """
     return FileInput("directory", "Directory", None, ["directory"])

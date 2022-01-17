@@ -1,4 +1,4 @@
-from typing import OrderedDict, Any
+from typing import Any, OrderedDict
 
 
 def StateDictOutput() -> OrderedDict:
@@ -14,4 +14,12 @@ def ModelOutput() -> Any:
     return {
         "type": "pytorch::model",
         "label": "Loaded Model",
+    }
+
+
+def TorchScriptOutput() -> Any:
+    """ Output a JIT traced model """
+    return {
+        "type": "pytorch::torchscript",
+        "label": "Traced Model",
     }

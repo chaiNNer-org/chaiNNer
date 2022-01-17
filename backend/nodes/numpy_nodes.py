@@ -2,11 +2,15 @@
 Nodes that provide functionality for numpy array manipulation
 """
 
+import sys
 from typing import List
 
 import cv2
 import numpy as np
-from sanic.log import logger
+
+sys.path.append("..")
+
+from sanic_server.sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
