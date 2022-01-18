@@ -5,13 +5,10 @@ Nodes that provide functionality for pytorch inference
 
 import os
 import sys
-from typing import Any, OrderedDict
+from typing import Any, OrderedDict, Union
 
 import numpy as np
 import torch
-
-from typing import Union
-
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -156,18 +153,14 @@ class ImageUpscaleNode(NodeBase):
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
         img_tensor = np2tensor(img)
-        t_img = np2tensor(img).to(torch.device(os.environ["device"]))
-        t_out = t_img.clone()
         if bool(os.environ["isFp16"]):
             model = model.half()
-            t_img = t_img.half()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
-            t_img,
+            img_tensor,
             model,
             scale,
         )
-        # t_out = model(t_out)
         logger.info("Converting tensor to image")
         img_out = tensor2np(t_out.detach())
         logger.info("Done upscaling")

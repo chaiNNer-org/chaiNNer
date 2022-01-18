@@ -80,6 +80,8 @@ async def run(request):
             await executor.run()
         if not executor.paused:
             request.app.ctx.executor = None
+        if torch:
+            torch.cuda.empty_cache()
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=1)

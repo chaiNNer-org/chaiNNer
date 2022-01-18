@@ -5,11 +5,12 @@ import sys
 sys.path.append("...")
 
 import gc
+import os
 from typing import Tuple
 
 import numpy as np
 from sanic.log import logger
-from torch import Tensor, cuda, empty, from_numpy
+from torch import Tensor, cuda, device, empty, from_numpy, nn
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -187,7 +188,7 @@ def tensor2np(
 
 def auto_split_process(
     lr_img: Tensor,
-    model,
+    model: nn.Module,
     scale: int = 4,
     overlap: int = 32,
     max_depth: int = None,
@@ -204,12 +205,15 @@ def auto_split_process(
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         try:
-            result = model(lr_img)
+            d_img = lr_img.to(device(os.environ["device"]))
+            if bool(os.environ["isFp16"]):
+                d_img = d_img.half()
+            result = model(d_img).detach().cpu()
             return result, current_depth
         except RuntimeError as e:
             print(e)
             # Check to see if its actually the CUDA out of memory error
-            if "allocate" in str(e):
+            if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
                 cuda.empty_cache()
                 gc.collect()
@@ -229,14 +233,14 @@ def auto_split_process(
     # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
     top_left_rlt, depth = auto_split_process(
         top_left,
-        model,
+        upscale_func,
         scale=scale,
         overlap=overlap,
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = auto_split_process(
         top_right,
-        model,
+        upscale_func,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
@@ -244,7 +248,7 @@ def auto_split_process(
     )
     bottom_left_rlt, _ = auto_split_process(
         bottom_left,
-        model,
+        upscale_func,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
@@ -252,7 +256,7 @@ def auto_split_process(
     )
     bottom_right_rlt, _ = auto_split_process(
         bottom_right,
-        model,
+        upscale_func,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
