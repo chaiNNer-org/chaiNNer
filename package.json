@@ -6,7 +6,7 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
-    "dev": "concurrently \"nodemon ./backend/run.py 8000\" \"electron-forge start\"",
+    "dev": "concurrently \"nodemon ./backend/run.py 8000\" \"electron-forge start -- --no-backend\"",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -142,7 +142,7 @@
     "lodash": "^4.17.21",
     "meow": "^10.1.1",
     "os-utils": "^0.0.14",
-    "portastic": "^1.0.1",
+    "portfinder": "^1.0.28",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-flow-renderer": "^9.6.8",

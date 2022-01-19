@@ -6,7 +6,7 @@ import log from 'electron-log';
 import { readFile, writeFile } from 'fs/promises';
 // import { readdir } from 'fs/promises';
 import path from 'path';
-import portastic from 'portastic';
+import portfinder from 'portfinder';
 import semver from 'semver';
 import { currentLoad, graphics, mem } from 'systeminformation';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
@@ -21,7 +21,6 @@ let gpuInfo;
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 const isMac = process.platform === 'darwin';
-let port = 8000;
 
 const pythonKeys = {
   python: 'python',
@@ -110,11 +109,8 @@ const registerEventHandlers = () => {
 
 const getValidPort = async (splashWindow) => {
   log.info('Attempting to check for a port...');
-  const ports = await portastic.find({
-    min: 8000,
-    max: 8080,
-  });
-  if (!ports || ports.length === 0) {
+  const port = await portfinder.getPortPromise();
+  if (!port) {
     log.warn('An open port could not be found');
     splashWindow.hide();
     const messageBoxOptions = {
@@ -125,12 +121,16 @@ const getValidPort = async (splashWindow) => {
     dialog.showMessageBoxSync(messageBoxOptions);
     app.exit(1);
   }
-  [port] = ports;
   log.info(`Port found: ${port}`);
   ipcMain.on('get-port', (event) => {
+    if (process.argv[2] && process.argv[2] === '--no-backend') {
+      // eslint-disable-next-line no-param-reassign
+      event.returnValue = 8000;
+    }
     // eslint-disable-next-line no-param-reassign
     event.returnValue = port;
   });
+  return port;
 };
 
 const getPythonVersion = (pythonBin) => {
@@ -261,7 +261,10 @@ const checkNvidiaSmi = async () => {
   }
 };
 
-const spawnBackend = async () => {
+const spawnBackend = async (port) => {
+  if (process.argv[2] && process.argv[2] === '--no-backend') {
+    return;
+  }
   log.info('Attempting to spawn backend...');
   const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : './backend/run.py';
   const backend = spawn(pythonKeys.python, [backendPath, port]);
@@ -277,6 +280,13 @@ const spawnBackend = async () => {
   ipcMain.handle('kill-backend', () => {
     log.info('Attempting to kill backend...');
     backend.kill();
+  });
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      log.info('Attempting to kill backend...');
+      backend.kill();
+    }
   });
 };
 
@@ -324,7 +334,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
   // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
   splash.webContents.once('dom-ready', async () => {
     splash.webContents.send('checking-port');
-    await getValidPort(splash);
+    const port = await getValidPort(splash);
 
     splash.webContents.send('checking-python');
     await checkPythonEnv(splash);
@@ -334,7 +344,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     await checkNvidiaSmi();
 
     splash.webContents.send('spawning-backend');
-    await spawnBackend();
+    await spawnBackend(port);
 
     registerEventHandlers();
 
@@ -495,7 +505,8 @@ const createWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 
-  if (parameters[0]) {
+  // Opening file with chaiNNer
+  if (parameters[0] && parameters[0] !== '--no-backend') {
     const filepath = parameters[0];
     try {
       // TODO: extract to function
