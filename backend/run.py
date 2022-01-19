@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import traceback
 
 from sanic import Sanic
 from sanic.log import logger
@@ -73,7 +74,7 @@ async def run(request):
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if bool(full_data["isCpu"]) else "cuda"
             os.environ["isFp16"] = (
-                False if bool(full_data["isCpu"]) else bool(full_data["isFp16"])
+                "False" if bool(full_data["isCpu"]) else str(full_data["isFp16"])
             )
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
@@ -86,8 +87,9 @@ async def run(request):
             torch.cuda.empty_cache()
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
-        logger.log(2, exception, exc_info=1)
+        logger.error(exception, exc_info=1)
         request.app.ctx.executor = None
+        logger.error(traceback.format_exc())
         return json(
             {"message": "Error running nodes!", "exception": str(exception)}, status=500
         )
