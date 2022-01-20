@@ -209,6 +209,7 @@ def auto_split_process(
             if bool(os.environ["isFp16"]):
                 d_img = d_img.half()
             result = model(d_img).detach().cpu()
+            del d_img
             return result, current_depth
         except RuntimeError as e:
             print(e)
