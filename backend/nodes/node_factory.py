@@ -19,7 +19,7 @@ class NodeFactory:
 
         node_class = cls.registry[category][name]
         node = node_class()
-        logger.info(f"Created {category}, {name} node")
+        # logger.info(f"Created {category}, {name} node")
         return node
 
     @classmethod

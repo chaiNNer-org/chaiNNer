@@ -25,19 +25,12 @@ const SettingsModal = ({ isOpen, onClose }) => {
   // const [isFp16Available, setIsFp16Available] = useState(false);
 
   useEffect(async () => {
-    const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-    const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-    // setGpuInfo(gpuNames);
-    // Check if gpu string contains any nvidia-specific terms
-    const nvidiaGpu = gpuNames.find(
-      (gpu) => gpu.toLowerCase().split(' ').some(
-        (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
-      ),
-    );
-    if (nvidiaGpu.toLowerCase().includes('rtx')) {
+    const gpuName = await ipcRenderer.invoke('get-gpu-name') || 'GPU not detected';
+    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+    if (gpuName.toLowerCase().includes('rtx')) {
       setIsFp16(true);
     }
-    setIsNvidiaAvailable(!!nvidiaGpu);
+    setIsNvidiaAvailable(hasNvidia);
   }, []);
 
   useEffect(() => {

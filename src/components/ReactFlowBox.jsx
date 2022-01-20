@@ -95,6 +95,8 @@ const ReactFlowBox = ({
         onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
         onSelectionChange={setSelectedElements}
+        maxZoom={8}
+        minZoom={0.125}
       >
         <Background
           variant="dots"
