@@ -266,28 +266,43 @@ const spawnBackend = async (port) => {
     return;
   }
   log.info('Attempting to spawn backend...');
-  const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : './backend/run.py';
-  const backend = spawn(pythonKeys.python, [backendPath, port]);
+  try {
+    const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : './backend/run.py';
+    const backend = spawn(pythonKeys.python, [backendPath, port]);
+    backend.stdout.on('data', (data) => {
+      const dataString = String(data);
+      // Remove unneeded timestamp
+      const fixedData = dataString.split('] ').slice(1).join('] ');
+      log.info(`Backend: ${fixedData}`);
+    });
 
-  backend.stdout.on('data', (data) => {
-    log.info(`Backend: ${String(data)}`);
-  });
+    backend.stderr.on('data', (data) => {
+      log.error(`Backend: ${String(data)}`);
+    });
 
-  backend.stderr.on('data', (data) => {
-    log.error(`Backend: ${String(data)}`);
-  });
-
-  ipcMain.handle('kill-backend', () => {
-    log.info('Attempting to kill backend...');
-    backend.kill();
-  });
-
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
+    ipcMain.handle('kill-backend', () => {
       log.info('Attempting to kill backend...');
-      backend.kill();
-    }
-  });
+      try {
+        backend.kill();
+      } catch (error) {
+        log.error('Error killing backend.');
+      }
+    });
+
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') {
+        log.info('Attempting to kill backend...');
+        try {
+          backend.kill();
+        } catch (error) {
+          log.error('Error killing backend.');
+        }
+      }
+    });
+    log.info('Successfully spawned backend.');
+  } catch (error) {
+    log.error('Error spawning backend.');
+  }
 };
 
 const doSplashScreenChecks = async () => new Promise((resolve) => {

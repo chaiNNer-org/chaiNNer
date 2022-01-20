@@ -7,7 +7,6 @@ from typing import List
 
 import cv2
 import numpy as np
-
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -35,7 +34,12 @@ class ChannelSplitRGBANode(NodeBase):
     def run(self, img: np.ndarray) -> np.ndarray:
         """Split a multi-channel image into separate channels"""
         c = 1
-        dtype_max = np.iinfo(img.dtype).max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+
         if img.ndim > 2:
             c = img.shape[2]
             safe_out = np.ones_like(img[:, :, 0]) * dtype_max

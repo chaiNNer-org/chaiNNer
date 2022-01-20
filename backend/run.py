@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import os
 import sys
 import traceback
@@ -29,6 +30,7 @@ try:
 
     from nodes import pytorch_nodes
 except Exception as e:
+    torch = None
     logger.warning(e)
     logger.info("PyTorch most likely not installed")
 
@@ -38,6 +40,21 @@ from process import Executor
 app = Sanic("chaiNNer")
 CORS(app)
 app.ctx.executor = None
+
+app.config.REQUEST_TIMEOUT = sys.maxsize
+app.config.RESPONSE_TIMEOUT = sys.maxsize
+
+import logging
+
+from sanic.log import access_logger
+
+
+class CheckFilter(logging.Filter):
+    def filter(self, record):
+        return not (record.request.endswith("/check") and record.status == 200)
+
+
+access_logger.addFilter(CheckFilter())
 
 
 @app.route("/nodes")
@@ -83,8 +100,9 @@ async def run(request):
             await executor.run()
         if not executor.paused:
             request.app.ctx.executor = None
-        if torch:
+        if torch is not None:
             torch.cuda.empty_cache()
+        gc.collect()
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.error(exception, exc_info=1)

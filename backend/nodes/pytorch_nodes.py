@@ -119,7 +119,12 @@ class ImageUpscaleNode(NodeBase):
 
         logger.info(f"Upscaling image...")
 
-        img = img / np.iinfo(img.dtype).max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+        # img = img / dtype_max
 
         # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
         in_nc = model.in_nc
@@ -152,7 +157,7 @@ class ImageUpscaleNode(NodeBase):
 
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
-        img_tensor = np2tensor(img)
+        img_tensor = np2tensor(img, change_range=True)
         if bool(os.environ["isFp16"]):
             model = model.half()
         logger.info("Upscaling image")
@@ -161,12 +166,14 @@ class ImageUpscaleNode(NodeBase):
             model,
             scale,
         )
+        del img_tensor
         logger.info("Converting tensor to image")
-        img_out = tensor2np(t_out.detach())
+        img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         logger.info("Done upscaling")
+        del t_out
 
         if gray:
-            img_out = np.average(img_out, axis=2).astype("uint8")
+            img_out = np.average(img_out, axis=2).astype("float32")
 
         return img_out
 

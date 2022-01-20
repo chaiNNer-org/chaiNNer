@@ -77,6 +77,21 @@ const CustomEdge = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       />
+      {/* <mask>
+        <rect
+          x={edgeCenterX - (buttonSize) / 2}
+          y={edgeCenterY - (buttonSize) / 2}
+          width={buttonSize}
+          height={buttonSize}
+          fill="white"
+        />
+        <circle
+          cx={edgeCenterX}
+          cy={edgeCenterY}
+          r={(buttonSize) / 2}
+          fill="black"
+        />
+      </mask> */}
       <path
         id={id}
         style={{
@@ -92,6 +107,7 @@ const CustomEdge = ({
         markerEnd={markerEnd}
         onMouseEnter={() => setIsHovered(true)}
       />
+
       <foreignObject
         width={buttonSize}
         height={buttonSize}
@@ -103,7 +119,7 @@ const CustomEdge = ({
           borderRadius: 100,
           opacity: isHovered ? 1 : 0,
           transitionDuration: '0.15s',
-          transitionProperty: 'opacity',
+          transitionProperty: 'opacity, background-color',
           transitionTimingFunction: 'ease-in-out',
         }}
         onMouseEnter={() => setIsHovered(true)}
@@ -116,6 +132,9 @@ const CustomEdge = ({
           borderColor={useColorModeValue('gray.100', 'gray.800')}
           borderWidth={2}
           borderRadius={100}
+          transitionDuration="0.15s"
+          transitionProperty="background-color"
+          transitionTimingFunction="ease-in-out"
         >
           <IconButton
             className="edgebutton"
