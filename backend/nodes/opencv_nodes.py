@@ -88,7 +88,7 @@ class ImWriteNode(NodeBase):
         logger.info(f"Writing image to path: {fullPath}")
 
         # Put image back in int range
-        img = (img * 255).round().astype("uint8")
+        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         status = cv2.imwrite(fullPath, img)
 

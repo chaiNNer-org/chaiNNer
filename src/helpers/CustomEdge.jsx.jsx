@@ -63,7 +63,7 @@ const CustomEdge = ({
   return (
     <>
       {/* The top path is for easier hovering. Bottom one is rendered */}
-      <path
+      {/* <path
         id={id}
         style={{
           ...style,
@@ -76,7 +76,7 @@ const CustomEdge = ({
         markerEnd={markerEnd}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-      />
+      /> */}
       {/* <mask>
         <rect
           x={edgeCenterX - (buttonSize) / 2}
@@ -106,6 +106,7 @@ const CustomEdge = ({
         d={edgePath}
         markerEnd={markerEnd}
         onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       />
 
       <foreignObject

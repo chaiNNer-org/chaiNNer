@@ -234,14 +234,14 @@ def auto_split_process(
     # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
     top_left_rlt, depth = auto_split_process(
         top_left,
-        upscale_func,
+        model,
         scale=scale,
         overlap=overlap,
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = auto_split_process(
         top_right,
-        upscale_func,
+        model,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
@@ -249,7 +249,7 @@ def auto_split_process(
     )
     bottom_left_rlt, _ = auto_split_process(
         bottom_left,
-        upscale_func,
+        model,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
@@ -257,7 +257,7 @@ def auto_split_process(
     )
     bottom_right_rlt, _ = auto_split_process(
         bottom_right,
-        upscale_func,
+        model,
         scale=scale,
         overlap=overlap,
         max_depth=depth,
