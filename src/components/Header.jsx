@@ -170,6 +170,7 @@ const Header = () => {
             resolutionY: monitor?.resolutionY || 1080,
           });
           setRunning(false);
+          unAnimateEdges();
           if (!res.ok) {
             setErrorMessage(response.exception);
             onErrorOpen();
