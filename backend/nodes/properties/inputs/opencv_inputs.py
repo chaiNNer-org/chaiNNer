@@ -97,6 +97,27 @@ def InterpolationInput() -> Dict:
             },
         ],
     )
+    
+def BlurInput() -> Dict:
+    """Blur option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Blur Mode",
+        [
+            {
+                "option": "Box",
+                "value": 0,
+            },
+            {
+                "option": "Blur",
+                "value": 1,
+            },
+            {
+                "option": "Gaussian",
+                "value": 2,
+            },
+        ],
+    )
 
 
 def BorderInput() -> Dict:
