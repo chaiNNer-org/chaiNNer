@@ -15,12 +15,12 @@ const NumericalInput = memo(({
   const [input, setInput] = useInputData(id, index);
   const [isLocked] = useNodeLock(id);
 
-  const handleChange = (number) => {
+  const handleChange = (numberAsString, numberAsNumber) => {
     if (data?.inputs[index]?.type.includes('odd')) {
       // Make the number odd if need be
-      setInput(Number(number) + (1 - (Number(number) % 2)));
+      setInput(numberAsNumber + (1 - (numberAsNumber % 2)));
     } else {
-      setInput(number);
+      setInput(numberAsNumber);
     }
   };
 
@@ -28,8 +28,8 @@ const NumericalInput = memo(({
     <InputContainer id={id} index={index} label={label}>
       <NumberInput
         default={def}
-        min={min}
-        max={max}
+        min={min ?? -Infinity}
+        max={max ?? Infinity}
         precision={precision}
         placeholder={label}
         value={input}

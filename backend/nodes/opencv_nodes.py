@@ -2,6 +2,7 @@
 Nodes that provide functionality for opencv image manipulation
 """
 
+import math
 import os
 import sys
 
@@ -17,6 +18,7 @@ from .properties.inputs.file_inputs import (
     ImageFileInput,
 )
 from .properties.inputs.generic_inputs import (
+    BoundlessIntegerInput,
     DropDownInput,
     IntegerInput,
     NumberInput,
@@ -28,16 +30,14 @@ from .properties.inputs.numpy_inputs import ImageInput
 from .properties.inputs.opencv_inputs import (
     AdaptiveMethodInput,
     AdaptiveThresholdInput,
+    BlurInput,
     BorderInput,
     ColorModeInput,
     InterpolationInput,
     ThresholdInput,
-    BlurInput,
 )
 from .properties.outputs.file_outputs import ImageFileOutput
 from .properties.outputs.numpy_outputs import ImageOutput
-
-import math
 
 
 @NodeFactory.register("OpenCV", "Image::Read")
@@ -562,8 +562,8 @@ class ContrastNode(NodeBase):
         img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
 
         return img
-        
-        
+
+
 @NodeFactory.register("OpenCV", "Adjust::Blur")
 class LowPassNode(NodeBase):
     """OpenCV Blur Node"""
@@ -571,7 +571,11 @@ class LowPassNode(NodeBase):
     def __init__(self):
         """Constructor"""
         self.description = "Blur an image"
-        self.inputs = [ImageInput(), IntegerInput("Amount X"), IntegerInput("Amount Y")]#, IntegerInput("Sigma")]#,BlurInput()]
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]  # , IntegerInput("Sigma")]#,BlurInput()]
         self.outputs = [ImageOutput()]
 
     def run(
@@ -579,18 +583,18 @@ class LowPassNode(NodeBase):
         img: np.ndarray,
         amountX: int,
         amountY: int,
-        #sigma: int,
+        # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
-        #ksize=(math.floor(int(amountX)/2)*2+1,math.floor(int(amountY)/2)*2+1)
-        #img=cv2.GaussianBlur(img,ksize,int(sigma))
-        ksize=(int(amountX),int(amountY))
+        # ksize=(math.floor(int(amountX)/2)*2+1,math.floor(int(amountY)/2)*2+1)
+        # img=cv2.GaussianBlur(img,ksize,int(sigma))
+        ksize = (int(amountX), int(amountY))
         for __i in range(16):
-            img=cv2.blur(img,ksize)
+            img = cv2.blur(img, ksize)
 
         return img
-        
-        
+
+
 @NodeFactory.register("OpenCV", "Adjust::Shift")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
@@ -598,7 +602,11 @@ class ShiftNode(NodeBase):
     def __init__(self):
         """Constructor"""
         self.description = "Shift an image"
-        self.inputs = [ImageInput(), IntegerInput("Amount X"), IntegerInput("Amount Y")]
+        self.inputs = [
+            ImageInput(),
+            BoundlessIntegerInput("Amount X"),
+            BoundlessIntegerInput("Amount Y"),
+        ]
         self.outputs = [ImageOutput()]
 
     def run(
@@ -609,6 +617,6 @@ class ShiftNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the position of an image"""
         num_rows, num_cols = img.shape[:2]
-        translation_matrix = np.float32([ [1,0,amountX], [0,1,amountY] ])
-        img=cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+        translation_matrix = np.float32([[1, 0, amountX], [0, 1, amountY]])
+        img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
         return img
