@@ -62,7 +62,7 @@ class ImReadNode(NodeBase):
         except:
             logger.info("img dtype is not an int")
 
-        img = img.astype("float") / dtype_max
+        img = img.astype("float32") / dtype_max
 
         return img
 
@@ -435,7 +435,7 @@ class HConcatNode(NodeBase):
                 temp_img[:, :, :c] = fixed_img
                 fixed_img = temp_img
 
-            fixed_imgs.append(fixed_img)
+            fixed_imgs.append(fixed_img.astype("float32"))
 
         for img in fixed_imgs:
             logger.info(img.dtype)
@@ -495,7 +495,8 @@ class VConcatNode(NodeBase):
                 temp_img = np.ones((max_h, max_w, max_c))
                 temp_img[:, :, :c] = fixed_img
                 fixed_img = temp_img
-            fixed_imgs.append(fixed_img)
+
+            fixed_imgs.append(fixed_img.astype("float32"))
 
         img = cv2.vconcat(fixed_imgs)
 
@@ -524,7 +525,7 @@ class BrightnessNode(NodeBase):
             dtype_max = np.iinfo(img.dtype).max
         except:
             logger.debug("img dtype is not int")
-        f_img = img.astype("float") / dtype_max
+        f_img = img.astype("float32") / dtype_max
         amount = int(amount) / 100
 
         f_img = f_img + amount
@@ -555,7 +556,7 @@ class ContrastNode(NodeBase):
             dtype_max = np.iinfo(img.dtype).max
         except:
             logger.debug("img dtype is not int")
-        f_img = img.astype("float") / dtype_max
+        f_img = img.astype("float32") / dtype_max
         amount = int(amount) / 100
 
         f_img = f_img * amount

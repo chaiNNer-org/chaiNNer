@@ -175,6 +175,8 @@ class ImageUpscaleNode(NodeBase):
         if gray:
             img_out = np.average(img_out, axis=2).astype("float32")
 
+        img_out = np.clip(img_out, 0, 1)
+
         return img_out
 
 
