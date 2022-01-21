@@ -18,9 +18,9 @@ const NumericalInput = memo(({
   const handleChange = (numberAsString, numberAsNumber) => {
     if (data?.inputs[index]?.type.includes('odd')) {
       // Make the number odd if need be
-      setInput(numberAsNumber + (1 - (numberAsNumber % 2)));
+      setInput(String(numberAsNumber + (1 - (numberAsNumber % 2))));
     } else {
-      setInput(numberAsNumber);
+      setInput(numberAsString);
     }
   };
 
@@ -32,7 +32,7 @@ const NumericalInput = memo(({
         max={max ?? Infinity}
         precision={precision}
         placeholder={label}
-        value={input}
+        value={String(input) || 0}
         onChange={handleChange}
         draggable={false}
         className="nodrag"
