@@ -1,6 +1,6 @@
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span),
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span)::after,
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span)::before {
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.chakra-slider__track),
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.chakra-slider__track)::after,
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.chakra-slider__track)::before {
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
