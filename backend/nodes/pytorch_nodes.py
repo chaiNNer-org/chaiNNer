@@ -5,13 +5,10 @@ Nodes that provide functionality for pytorch inference
 
 import os
 import sys
-from typing import Any, OrderedDict
+from typing import Any, OrderedDict, Union
 
 import numpy as np
 import torch
-
-from typing import Union
-
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -64,7 +61,7 @@ class LoadStateDictNode(NodeBase):
         """Read a pth file from the specified path and return it as a state dict"""
 
         logger.info(f"Reading state dict from path: {path}")
-        state_dict = torch.load(path)
+        state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
 
         return state_dict
 
@@ -122,7 +119,12 @@ class ImageUpscaleNode(NodeBase):
 
         logger.info(f"Upscaling image...")
 
-        img = img / np.iinfo(img.dtype).max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+        # img = img / dtype_max
 
         # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
         in_nc = model.in_nc
@@ -155,25 +157,25 @@ class ImageUpscaleNode(NodeBase):
 
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
-        img_tensor = np2tensor(img)
-        t_img = np2tensor(img).to(torch.device(os.environ["device"]))
-        t_out = t_img.clone()
+        img_tensor = np2tensor(img, change_range=True)
         if bool(os.environ["isFp16"]):
             model = model.half()
-            t_img = t_img.half()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
-            t_img,
+            img_tensor,
             model,
             scale,
         )
-        # t_out = model(t_out)
+        del img_tensor
         logger.info("Converting tensor to image")
-        img_out = tensor2np(t_out.detach())
+        img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         logger.info("Done upscaling")
+        del t_out
 
         if gray:
-            img_out = np.average(img_out, axis=2).astype("uint8")
+            img_out = np.average(img_out, axis=2).astype("float32")
+
+        img_out = np.clip(img_out, 0, 1)
 
         return img_out
 

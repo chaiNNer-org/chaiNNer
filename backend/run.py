@@ -1,6 +1,8 @@
 import asyncio
+import gc
 import os
 import sys
+import traceback
 
 from sanic import Sanic
 from sanic.log import logger
@@ -28,6 +30,7 @@ try:
 
     from nodes import pytorch_nodes
 except Exception as e:
+    torch = None
     logger.warning(e)
     logger.info("PyTorch most likely not installed")
 
@@ -37,6 +40,21 @@ from process import Executor
 app = Sanic("chaiNNer")
 CORS(app)
 app.ctx.executor = None
+
+app.config.REQUEST_TIMEOUT = sys.maxsize
+app.config.RESPONSE_TIMEOUT = sys.maxsize
+
+import logging
+
+from sanic.log import access_logger
+
+
+class CheckFilter(logging.Filter):
+    def filter(self, record):
+        return not (record.request.endswith("/check") and record.status == 200)
+
+
+access_logger.addFilter(CheckFilter())
 
 
 @app.route("/nodes")
@@ -72,7 +90,9 @@ async def run(request):
             logger.info(full_data)
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if bool(full_data["isCpu"]) else "cuda"
-            os.environ["isFp16"] = str(full_data["isFp16"])
+            os.environ["isFp16"] = (
+                "False" if bool(full_data["isCpu"]) else str(full_data["isFp16"])
+            )
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             executor = Executor(nodes_list, app.loop)
@@ -80,10 +100,14 @@ async def run(request):
             await executor.run()
         if not executor.paused:
             request.app.ctx.executor = None
+        if torch is not None:
+            torch.cuda.empty_cache()
+        gc.collect()
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
-        logger.log(2, exception, exc_info=1)
+        logger.error(exception, exc_info=1)
         request.app.ctx.executor = None
+        logger.error(traceback.format_exc())
         return json(
             {"message": "Error running nodes!", "exception": str(exception)}, status=500
         )

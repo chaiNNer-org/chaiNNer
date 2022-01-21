@@ -3,7 +3,9 @@
 import {
   Slider, SliderFilledTrack, SliderThumb, SliderTrack,
 } from '@chakra-ui/react';
-import React, { memo, useContext, useState } from 'react';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
@@ -22,8 +24,12 @@ const SliderInput = memo(({
     (number) => {
       setInput(number);
     },
-    1000,
+    500,
   );
+
+  useEffect(() => {
+    setSliderValue(input);
+  }, [input]);
 
   return (
     <InputContainer id={id} index={index} label={label}>

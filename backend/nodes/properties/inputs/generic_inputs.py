@@ -31,6 +31,8 @@ def IntegerInput(label: str) -> Dict:
     return {
         "type": "number::integer",
         "label": label,
+        "min": 0,
+        "def": 0,
     }
 
 
@@ -42,6 +44,17 @@ def OddIntegerInput(label: str) -> Dict:
         "def": 1,
         "step": 2,
         "min": 1,
+    }
+
+
+def BoundlessIntegerInput(label: str) -> Dict:
+    """ Input for integer number """
+    return {
+        "type": "number::integer",
+        "label": label,
+        "min": None,
+        "max": None,
+        "def": 0,
     }
 
 

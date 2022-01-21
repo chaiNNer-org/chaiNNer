@@ -169,7 +169,8 @@ const Header = () => {
             resolutionX: monitor?.resolutionX || 1920,
             resolutionY: monitor?.resolutionY || 1080,
           });
-          console.log(response);
+          setRunning(false);
+          unAnimateEdges();
           if (!res.ok) {
             setErrorMessage(response.exception);
             onErrorOpen();

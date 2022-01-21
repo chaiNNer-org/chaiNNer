@@ -2,12 +2,12 @@
 Nodes that provide functionality for opencv image manipulation
 """
 
+import math
 import os
 import sys
 
 import cv2
 import numpy as np
-
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -18,6 +18,7 @@ from .properties.inputs.file_inputs import (
     ImageFileInput,
 )
 from .properties.inputs.generic_inputs import (
+    BoundlessIntegerInput,
     DropDownInput,
     IntegerInput,
     NumberInput,
@@ -29,6 +30,7 @@ from .properties.inputs.numpy_inputs import ImageInput
 from .properties.inputs.opencv_inputs import (
     AdaptiveMethodInput,
     AdaptiveThresholdInput,
+    BlurInput,
     BorderInput,
     ColorModeInput,
     InterpolationInput,
@@ -53,6 +55,14 @@ class ImReadNode(NodeBase):
 
         logger.info(f"Reading image from path: {path}")
         img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.info("img dtype is not an int")
+
+        img = img.astype("float32") / dtype_max
 
         return img
 
@@ -79,6 +89,10 @@ class ImWriteNode(NodeBase):
         fullFile = f"{filename}.{extension}"
         fullPath = os.path.join(directory, fullFile)
         logger.info(f"Writing image to path: {fullPath}")
+
+        # Put image back in int range
+        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+
         status = cv2.imwrite(fullPath, img)
 
         return status
@@ -116,10 +130,15 @@ class ImShowNode(NodeBase):
     def run(self, img: np.ndarray) -> bool:
         """Show image"""
         try:
-            dtype_max = np.iinfo(img.dtype).max
+            # Theoretically this isn't necessary, but just in case
+            dtype_max = 1
+            try:
+                dtype_max = np.iinfo(img.dtype).max
+            except:
+                logger.debug("img dtype is not int")
 
             show_img = img.astype("float32") / dtype_max
-            logger.info(dtype_max)
+            # logger.info(dtype_max)
             if img.ndim > 2 and img.shape[2] == 4:
                 h, w, _ = img.shape
                 checkerboard = self.checkerboard(h, w)
@@ -133,7 +152,14 @@ class ImShowNode(NodeBase):
             h, w = show_img.shape[:2]
             x = int(0.85 * int(os.environ["resolutionX"]))
             y = int(0.85 * int(os.environ["resolutionY"]))
-            if h > y:
+            if h > y and w > x:
+                ratio = min(y / h, x / w)
+                new_h = int(ratio * h)
+                new_w = int(ratio * w)
+                show_img = cv2.resize(
+                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                )
+            elif h > y:
                 ratio = y / h
                 new_h = y
                 new_w = int(ratio * w)
@@ -279,7 +305,11 @@ class ThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies a threshold to it"""
 
-        dtype_max = np.iinfo(img.dtype).max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
 
         if (
             thresh_type == cv2.THRESH_OTSU or thresh_type == cv2.THRESH_TRIANGLE
@@ -328,7 +358,11 @@ class AdaptiveThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
 
-        dtype_max = np.iinfo(img.dtype).max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
 
         assert (
             img.ndim == 2
@@ -375,24 +409,36 @@ class HConcatNode(NodeBase):
         """Concatenate multiple images horizontally"""
 
         imgs = []
-        max_h, max_w = 0, 0
+        max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
             if img is not None:
                 h, w = img.shape[:2]
+                c = img.shape[2] or 1
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
+                max_c = max(c, max_c)
                 imgs.append(img)
 
         fixed_imgs = []
         for img in imgs:
             h, w = img.shape[:2]
+            c = img.shape[2] or 1
+
+            fixed_img = img
             if h < max_h or w < max_w:
-                temp_img = cv2.resize(
+                fixed_img = cv2.resize(
                     img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
                 )
-                fixed_imgs.append(temp_img)
-            else:
-                fixed_imgs.append(img)
+
+            if c < max_c:
+                temp_img = np.ones((max_h, max_w, max_c))
+                temp_img[:, :, :c] = fixed_img
+                fixed_img = temp_img
+
+            fixed_imgs.append(fixed_img.astype("float32"))
+
+        for img in fixed_imgs:
+            logger.info(img.dtype)
 
         img = cv2.hconcat(fixed_imgs)
 
@@ -424,24 +470,33 @@ class VConcatNode(NodeBase):
         """Concatenate multiple images vertically"""
 
         imgs = []
-        max_h, max_w = 0, 0
+        max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
             if img is not None:
                 h, w = img.shape[:2]
+                c = img.shape[2] or 1
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
+                max_c = max(c, max_c)
                 imgs.append(img)
 
         fixed_imgs = []
         for img in imgs:
             h, w = img.shape[:2]
+            c = img.shape[2] or 1
+
+            fixed_img = img
             if h < max_h or w < max_w:
-                temp_img = cv2.resize(
+                fixed_img = cv2.resize(
                     img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
                 )
-                fixed_imgs.append(temp_img)
-            else:
-                fixed_imgs.append(img)
+
+            if c < max_c:
+                temp_img = np.ones((max_h, max_w, max_c))
+                temp_img[:, :, :c] = fixed_img
+                fixed_img = temp_img
+
+            fixed_imgs.append(fixed_img.astype("float32"))
 
         img = cv2.vconcat(fixed_imgs)
 
@@ -465,8 +520,12 @@ class BrightnessNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the brightness of an image"""
 
-        dtype_max = np.iinfo(img.dtype).max
-        f_img = img.astype("float") / dtype_max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+        f_img = img.astype("float32") / dtype_max
         amount = int(amount) / 100
 
         f_img = f_img + amount
@@ -492,11 +551,73 @@ class ContrastNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the contrast of an image"""
 
-        dtype_max = np.iinfo(img.dtype).max
-        f_img = img.astype("float") / dtype_max
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+        f_img = img.astype("float32") / dtype_max
         amount = int(amount) / 100
 
         f_img = f_img * amount
         img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
 
+        return img
+
+
+@NodeFactory.register("OpenCV", "Adjust::Blur")
+class LowPassNode(NodeBase):
+    """OpenCV Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Blur an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]  # , IntegerInput("Sigma")]#,BlurInput()]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        img: np.ndarray,
+        amountX: int,
+        amountY: int,
+        # sigma: int,
+    ) -> np.ndarray:
+        """Adjusts the blur of an image"""
+        # ksize=(math.floor(int(amountX)/2)*2+1,math.floor(int(amountY)/2)*2+1)
+        # img=cv2.GaussianBlur(img,ksize,int(sigma))
+        ksize = (int(amountX), int(amountY))
+        for __i in range(16):
+            img = cv2.blur(img, ksize)
+
+        return img
+
+
+@NodeFactory.register("OpenCV", "Adjust::Shift")
+class ShiftNode(NodeBase):
+    """OpenCV Shift Node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.description = "Shift an image"
+        self.inputs = [
+            ImageInput(),
+            BoundlessIntegerInput("Amount X"),
+            BoundlessIntegerInput("Amount Y"),
+        ]
+        self.outputs = [ImageOutput()]
+
+    def run(
+        self,
+        img: np.ndarray,
+        amountX: int,
+        amountY: int,
+    ) -> np.ndarray:
+        """Adjusts the position of an image"""
+        num_rows, num_cols = img.shape[:2]
+        translation_matrix = np.float32([[1, 0, amountX], [0, 1, amountY]])
+        img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
         return img
