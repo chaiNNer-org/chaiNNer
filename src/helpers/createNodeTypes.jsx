@@ -61,7 +61,14 @@ export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) 
       );
     case 'number::integer':
       return (
-        <NumberInput key={i} index={i} data={data} label={input.label} min={0} precision={0} />
+        <NumberInput
+          key={i}
+          index={i}
+          data={data}
+          label={input.label}
+          min={input.min}
+          precision={0}
+        />
       );
     case 'number::integer::odd':
       return (
