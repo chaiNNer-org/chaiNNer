@@ -61,6 +61,7 @@ class Executor:
         output = await self.loop.run_in_executor(None, run_func)
         # Cache the output of the node
         self.output_cache[node_id] = output
+        del node_instance, run_func
         return output
 
     async def process_nodes(self):

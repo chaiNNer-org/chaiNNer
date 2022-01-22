@@ -97,7 +97,7 @@ class AutoLoadModelNode(NodeBase):
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model.to(torch.device(os.environ["device"]))
+        model = model.to(torch.device(os.environ["device"]))
 
         return model
 
@@ -166,10 +166,12 @@ class ImageUpscaleNode(NodeBase):
             model,
             scale,
         )
-        del img_tensor
+        del img_tensor, model
         logger.info("Converting tensor to image")
         img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         logger.info("Done upscaling")
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         del t_out
 
         if gray:
@@ -219,6 +221,8 @@ class InterpolateNode(NodeBase):
         del model
         mean_color = np.mean(result)
         del result
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         return mean_color > 0.5
 
     def run(

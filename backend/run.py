@@ -99,6 +99,7 @@ async def run(request):
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:
+            del request.app.ctx.executor
             request.app.ctx.executor = None
         if torch is not None:
             torch.cuda.empty_cache()
