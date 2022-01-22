@@ -54,7 +54,21 @@ class ImReadNode(NodeBase):
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
-        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        try:
+            img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        except:
+            logger.warn(
+                f"Error loading image, assuming image had unicode characters in path"
+            )
+            try:
+                img = cv2.imdecode(
+                    np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
+                )
+            except Exception as e:
+                logger.error("Error loading image.")
+                raise RuntimeError(
+                    f'Error reading image image from path "{path}". Image may be corrupt.'
+                )
 
         dtype_max = 1
         try:
@@ -425,11 +439,14 @@ class HConcatNode(NodeBase):
             c = img.shape[2] or 1
 
             fixed_img = img
-            if h < max_h or w < max_w:
+            # Fix images so they resize proportionally to the max image
+            if h < max_h:
+                ratio = max_h / h
                 fixed_img = cv2.resize(
-                    img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
+                    img, (int(w * ratio), max_h), interpolation=cv2.INTER_NEAREST
                 )
 
+            # Expand channel dims if necessary
             if c < max_c:
                 temp_img = np.ones((max_h, max_w, max_c))
                 temp_img[:, :, :c] = fixed_img
@@ -439,6 +456,14 @@ class HConcatNode(NodeBase):
 
         for img in fixed_imgs:
             logger.info(img.dtype)
+
+        for i in range(len(fixed_imgs)):
+            assert (
+                fixed_imgs[i].shape[0] == fixed_imgs[0].shape[0]
+            ), "Inputted heights are not the same and could not be auto-fixed"
+            assert (
+                fixed_imgs[i].dtype == fixed_imgs[0].dtype
+            ), "The image types are not the same and could not be auto-fixed"
 
         img = cv2.hconcat(fixed_imgs)
 
@@ -486,17 +511,28 @@ class VConcatNode(NodeBase):
             c = img.shape[2] or 1
 
             fixed_img = img
-            if h < max_h or w < max_w:
+            # Fix images so they resize proportionally to the max image
+            if w < max_w:
+                ratio = max_w / w
                 fixed_img = cv2.resize(
-                    img, (max_w, max_h), interpolation=cv2.INTER_NEAREST
+                    img, (max_w, int(h * ratio)), interpolation=cv2.INTER_NEAREST
                 )
 
+            # Expand channel dims if necessary
             if c < max_c:
                 temp_img = np.ones((max_h, max_w, max_c))
                 temp_img[:, :, :c] = fixed_img
                 fixed_img = temp_img
 
             fixed_imgs.append(fixed_img.astype("float32"))
+
+        for i in range(len(fixed_imgs)):
+            assert (
+                fixed_imgs[i].shape[1] == fixed_imgs[0].shape[1]
+            ), "Inputted widths are not the same and could not be auto-fixed"
+            assert (
+                fixed_imgs[i].dtype == fixed_imgs[0].dtype
+            ), "The image types are not the same and could not be auto-fixed"
 
         img = cv2.vconcat(fixed_imgs)
 
