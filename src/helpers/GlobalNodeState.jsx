@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState
+  createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -471,13 +471,19 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     // Check to make sure the node has all the data it should based on the schema.
     // Compares the schema against the connections and the entered data
     const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length) {
+    const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 475 ~ useNodeValidity ~ emptyInputs', emptyInputs);
+    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length
+    || emptyInputs.length > 0) {
       // Grabs all the indexes of the inputs that the connections are targeting
       const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
       // Grab all inputs that do not have data or a connected edge
       const missingInputs = nonOptionalInputs.filter(
-        (input, i) => !Object.keys(inputData).includes(String(i))
-        && !edgeTargetIndexes.includes(String(i)),
+        (input, i) => {
+          console.log(i, emptyInputs.includes(String(i)));
+          return !Object.keys(inputData).includes(String(i))
+        && !edgeTargetIndexes.includes(String(i));
+        },
       );
       // TODO: This fails to output the missing inputs when a node is connected to another
       return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
