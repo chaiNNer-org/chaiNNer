@@ -3,9 +3,11 @@ import gc
 import os
 import sys
 import traceback
+from json import dumps as stringify
 
 from sanic import Sanic
 from sanic.log import logger
+from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
@@ -49,12 +51,12 @@ import logging
 from sanic.log import access_logger
 
 
-class CheckFilter(logging.Filter):
+class SSEFilter(logging.Filter):
     def filter(self, record):
-        return not (record.request.endswith("/check") and record.status == 200)
+        return not (record.request.endswith("/sse") and record.status == 200)
 
 
-access_logger.addFilter(CheckFilter())
+access_logger.addFilter(SSEFilter())
 
 
 @app.route("/nodes")
@@ -77,8 +79,12 @@ async def nodes(_):
 
 
 @app.route("/run", methods=["POST"])
-async def run(request):
+async def run(request: Request):
     """Runs the provided nodes"""
+    # headers = {"Cache-Control": "no-cache"}
+    # await request.respond(response="Run request accepted", status=200, headers=headers)
+    queue = request.app.ctx.queue
+
     try:
         if request.app.ctx.executor:
             logger.info("Resuming existing executor...")
@@ -95,7 +101,7 @@ async def run(request):
             )
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
-            executor = Executor(nodes_list, app.loop)
+            executor = Executor(nodes_list, app.loop, queue)
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:
@@ -104,33 +110,43 @@ async def run(request):
         if torch is not None:
             torch.cuda.empty_cache()
         gc.collect()
+        await queue.put(
+            {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
+        )
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.error(exception, exc_info=1)
         request.app.ctx.executor = None
         logger.error(traceback.format_exc())
+        await queue.put(
+            {
+                "event": "error",
+                "data": {
+                    "message": "Error running nodes!",
+                    "exception": str(exception),
+                },
+            }
+        )
         return json(
             {"message": "Error running nodes!", "exception": str(exception)}, status=500
         )
 
 
-@app.route("/check", methods=["POST"])
-async def check(request):
-    """Check the execution status"""
-    try:
-        executor = request.app.ctx.executor
-        if executor:
-            response = await executor.check()
-            return json(response, status=200)
-        logger.info("No executor to check")
-        return json({"message": "No executor to check!"}, status=400)
-    except Exception as exception:
-        logger.log(2, exception, exc_info=1)
-        request.app.ctx.executor = None
-        return json(
-            {"message": "Error checking nodes!", "exception": str(exception)},
-            status=500,
-        )
+@app.get("/sse")
+async def sse(request: Request):
+    headers = {"Cache-Control": "no-cache"}
+    response = await request.respond(headers=headers, content_type="text/event-stream")
+    while True:
+        message = await request.app.ctx.queue.get()
+        if not message:
+            break
+        await response.send(f"event: {message['event']}\n")
+        await response.send(f"data: {stringify(message['data'])}\n\n")
+
+
+@app.after_server_start
+async def setup_queue(app: Sanic, _):
+    app.ctx.queue = asyncio.Queue()
 
 
 @app.route("/pause", methods=["POST"])

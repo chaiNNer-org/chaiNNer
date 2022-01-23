@@ -289,6 +289,17 @@ const spawnBackend = async (port) => {
       }
     });
 
+    ipcMain.handle('restart-backend', async () => {
+      log.info('Attempting to kill backend...');
+      try {
+        backend.kill();
+        ipcMain.removeHandler('kill-backend');
+        await spawnBackend(port);
+      } catch (error) {
+        log.error('Error restarting backend.');
+      }
+    });
+
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
         log.info('Attempting to kill backend...');
