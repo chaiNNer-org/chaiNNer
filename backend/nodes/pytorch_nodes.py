@@ -103,6 +103,7 @@ class AutoLoadModelNode(NodeBase):
 
 
 @NodeFactory.register("PyTorch", "Image::Upscale")
+@torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     """Image Upscale node"""
 

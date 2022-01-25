@@ -57,7 +57,14 @@ export const CreateUsableInputs = memo(({ data }) => data.inputs.map((input, i) 
       );
     case 'number::any':
       return (
-        <NumberInput key={i} index={i} data={data} label={input.label} min={0} />
+        <NumberInput
+          key={i}
+          index={i}
+          data={data}
+          label={input.label}
+          min={input.min}
+          step={input.step}
+        />
       );
     case 'number::integer':
       return (

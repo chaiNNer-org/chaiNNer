@@ -201,7 +201,11 @@ class ImResizeByFactorNode(NodeBase):
     def __init__(self):
         """Constructor"""
         self.description = "Resize a numpy array image by a scale factor"
-        self.inputs = [ImageInput(), NumberInput("Scale Factor"), InterpolationInput()]
+        self.inputs = [
+            ImageInput(),
+            NumberInput("Scale Factor", default=1.0, step=0.5),
+            InterpolationInput(),
+        ]
         self.outputs = [ImageOutput()]
 
     def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:

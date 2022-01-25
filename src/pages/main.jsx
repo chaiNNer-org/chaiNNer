@@ -14,7 +14,7 @@ import Header from '../components/Header.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
 import { createNodeTypes } from '../helpers/createNodeTypes.jsx';
-import CustomEdge from '../helpers/CustomEdge.jsx.jsx';
+import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const { app } = require('electron');

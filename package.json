@@ -1,7 +1,7 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A flowchart based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
@@ -25,6 +25,7 @@
         "extraResource": "./backend/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
+      "hooks": "require:./src/hooks.js",
       "publishers": [
         {
           "name": "@electron-forge/publisher-github",
@@ -132,6 +133,7 @@
     "@geoffcox/react-splitter": "^2.1.1",
     "@react-hook/window-size": "^3.0.7",
     "@react-nano/use-event-source": "^0.11.0",
+    "decompress": "^4.2.1",
     "electron": "^15.0.0",
     "electron-log": "^4.4.1",
     "electron-squirrel-startup": "^1.0.0",
@@ -142,6 +144,7 @@
     "image-webpack-loader": "^8.0.1",
     "lodash": "^4.17.21",
     "meow": "^10.1.1",
+    "nodejs-file-downloader": "^4.9.2",
     "os-utils": "^0.0.14",
     "portfinder": "^1.0.28",
     "react": "^17.0.2",
