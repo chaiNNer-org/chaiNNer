@@ -15,15 +15,16 @@ const SettingsModal = ({ isOpen, onClose }) => {
   const {
     useIsCpu,
     useIsFp16,
+    useIsSystemPython,
   } = useContext(GlobalContext);
+
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const [isCpu, setIsCpu] = useIsCpu;
   const [isFp16, setIsFp16] = useIsFp16;
-  const { colorMode, toggleColorMode } = useColorMode();
+  const [isSystemPython, setIsSystemPython] = useIsSystemPython;
 
-  // const [gpuInfo, setGpuInfo] = useState([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-  // const [isFp16Available, setIsFp16Available] = useState(false);
 
   useEffect(async () => {
     const gpuName = await ipcRenderer.invoke('get-gpu-name') || 'GPU not detected';
@@ -62,7 +63,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     </VStack>
   );
 
-  const PyTorchSettings = () => (
+  const EnvironmentSettings = () => (
     <VStack w="full" divider={<StackDivider />}>
       <Flex align="center" w="full">
         <VStack w="full" alignItems="left" alignContent="left">
@@ -96,6 +97,24 @@ const SettingsModal = ({ isOpen, onClose }) => {
     </VStack>
   );
 
+  const PythonSettings = () => (
+    <VStack w="full" divider={<StackDivider />}>
+      <Flex align="center" w="full">
+        <VStack w="full" alignItems="left" alignContent="left">
+          <Text flex="1" textAlign="left">
+            Use system Python (requires restart)
+          </Text>
+          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+            {'Use system Python for chaiNNer\'s processing instead of the bundled Python (not recommended)'}
+          </Text>
+        </VStack>
+        <HStack>
+          <Switch size="lg" value={isSystemPython} defaultChecked={isSystemPython} onChange={() => { setIsSystemPython(!isSystemPython); }} />
+        </HStack>
+      </Flex>
+    </VStack>
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl">
       <ModalOverlay />
@@ -107,22 +126,36 @@ const SettingsModal = ({ isOpen, onClose }) => {
             <TabList>
               <Tab>Appearance</Tab>
               <Tab>Environment</Tab>
+              <Tab>Python</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
                 <AppearanceSettings />
               </TabPanel>
               <TabPanel>
-                <PyTorchSettings />
+                <EnvironmentSettings />
+              </TabPanel>
+              <TabPanel>
+                <PythonSettings />
               </TabPanel>
             </TabPanels>
           </Tabs>
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Close
-          </Button>
+          <HStack>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                ipcRenderer.invoke('relaunch-application');
+              }}
+            >
+              Restart chaiNNer
+            </Button>
+            <Button colorScheme="blue" mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </HStack>
         </ModalFooter>
       </ModalContent>
     </Modal>

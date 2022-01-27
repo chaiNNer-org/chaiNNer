@@ -447,7 +447,7 @@ class HConcatNode(NodeBase):
             if h < max_h:
                 ratio = max_h / h
                 fixed_img = cv2.resize(
-                    img, (int(w * ratio), max_h), interpolation=cv2.INTER_NEAREST
+                    img, (math.ceil(w * ratio), max_h), interpolation=cv2.INTER_NEAREST
                 )
 
             # Expand channel dims if necessary
@@ -519,7 +519,7 @@ class VConcatNode(NodeBase):
             if w < max_w:
                 ratio = max_w / w
                 fixed_img = cv2.resize(
-                    img, (max_w, int(h * ratio)), interpolation=cv2.INTER_NEAREST
+                    img, (max_w, math.ceil(h * ratio)), interpolation=cv2.INTER_NEAREST
                 )
 
             # Expand channel dims if necessary

@@ -91,8 +91,10 @@ class AutoLoadModelNode(NodeBase):
         elif "f_HR_conv1.0.weight" in state_dict:
             model = SPSR(state_dict)
         # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
-        else:
+        elif "model.0.weight" in state_dict:
             model = ESRGAN(state_dict)
+        else:
+            raise ValueError("Model unsupported by chaiNNer. Please try another.")
 
         for _, v in model.named_parameters():
             v.requires_grad = False
@@ -213,6 +215,10 @@ class InterpolateNode(NodeBase):
             )
 
     def check_can_interp(self, model_a: OrderedDict, model_b: OrderedDict):
+        a_keys = model_a.keys()
+        b_keys = model_b.keys()
+        if a_keys != b_keys:
+            return False
         loaded = AutoLoadModelNode()
         interp_50 = self.perform_interp(model_a, model_b, 50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32)
@@ -233,7 +239,7 @@ class InterpolateNode(NodeBase):
         logger.info(f"Interpolating models...")
         if not self.check_can_interp(model_a, model_b):
             raise ValueError(
-                "These models are not compatible and able not able to be interpolated together"
+                "These models are not compatible and not able to be interpolated together"
             )
 
         state_dict = self.perform_interp(model_a, model_b, amount)

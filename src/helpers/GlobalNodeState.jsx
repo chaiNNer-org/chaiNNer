@@ -28,6 +28,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
+  const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -588,7 +589,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     unOutlineInvalidNodes,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
-  }), [nodes, edges, isCpu, isFp16]);
+    useIsSystemPython: [isSystemPython, setIsSystemPython],
+  }), [nodes, edges, isCpu, isFp16, isSystemPython]);
 
   return (
     <GlobalContext.Provider value={contextValue}>
