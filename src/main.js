@@ -261,15 +261,18 @@ const checkPythonEnv = async (splashWindow) => {
       log.info('Python not downloaded, downloading...');
       try {
       // eslint-disable-next-line no-unused-vars
-        const onProgress = (percentage, _chunk, _remainingSize) => {
+        const onProgress = (percentage, _chunk = null, _remainingSize = null) => {
           splash.webContents.send('progress', percentage);
         };
         splash.webContents.send('downloading-python');
+        onProgress(0);
         await downloadPython(integratedPythonFolderPath, onProgress);
         splash.webContents.send('extracting-python');
+        onProgress(0);
         await extractPython(integratedPythonFolderPath, onProgress);
         splash.webContents.send('installing-main-deps');
-        await installSanic(pythonPath);
+        onProgress(0);
+        await installSanic(pythonPath, onProgress);
       } catch (error) {
         log.error(error);
       }

@@ -6,6 +6,7 @@ import Downloader from 'nodejs-file-downloader';
 import os from 'os';
 import path from 'path';
 import downloads from './downloads';
+import pipInstallWithProgress from './helpers/pipInstallWithProgress';
 
 export const downloadPython = async (directory, onProgress) => {
   const platform = os.platform();
@@ -39,51 +40,40 @@ export const extractPython = async (directory, onProgress) => {
   fs.rmSync(path.join(directory, '/python.tar.gz'));
 };
 
-// TODO: figure out if I can make this work properly
-// |################################| 336 kB 3.3 MB/s
-const getPipPercentFromData = (data) => {
-  try {
-    const dataString = String(data);
-    const regexp = /\|(#*).*\|\s*([0-9]*\s?.B)?/g;
-    const matches = [...dataString.matchAll(regexp)];
-    // eslint-disable-next-line no-unused-vars
-    const [fullMatch, hashes, size] = matches[0];
-    // Length of the pip install progress bar is 32
-    return (hashes.length / 32) * 100;
-  } catch (error) {
-    return 0;
-  }
+const upgradePip = async (pythonPath, onProgress) => new Promise((resolve, reject) => {
+  const pipUpgrade = spawn(pythonPath, '-m pip install --upgrade pip --no-warn-script-location'.split(' '));
+  pipUpgrade.stdout.on('data', (data) => {
+    // onProgress(getPipPercentFromData(data));
+  });
+  pipUpgrade.stderr.on('data', (data) => {
+    log.error(`Error updating pip: ${String(data)}`);
+    reject(new Error(`Error updating pip: ${String(data)}`));
+  });
+  pipUpgrade.on('close', () => {
+    resolve();
+  });
+});
+
+const pipInstallSanic = async (pythonPath, onProgress) => {
+  const sanicDep = {
+    name: 'Sanic',
+    packageName: 'sanic',
+    version: '21.9.3',
+  };
+  await pipInstallWithProgress(pythonPath, sanicDep, onProgress);
 };
 
-const upgradePip = async (pythonPath, onProgress) => new Promise((resolve, reject) => {
-  const pipUpgrade = spawn(pythonPath, '-m pip install --upgrade pip --no-warn-script-location --progress-bar ascii --no-cache-dir'.split(' '));
-  pipUpgrade.stdout.on('data', (data) => {
-    onProgress(getPipPercentFromData(data));
-  });
-  pipUpgrade.stderr.on('data', (data) => {
-    log.error(`Error updating pip: ${String(data)}`);
-    reject(new Error(`Error updating pip: ${String(data)}`));
-  });
-  pipUpgrade.on('close', () => {
-    resolve();
-  });
-});
+const pipInstallSanicCors = async (pythonPath, onProgress) => {
+  const sanicCorsDep = {
+    name: 'Sanic-Cors',
+    packageName: 'Sanic-Cors',
+    version: '1.0.1',
+  };
+  await pipInstallWithProgress(pythonPath, sanicCorsDep, onProgress);
+};
 
-const pipInstallSanic = async (pythonPath, onProgress) => new Promise((resolve, reject) => {
-  const pipUpgrade = spawn(pythonPath, '-m pip install sanic==21.9.3 Sanic-Cors==1.0.1 --no-warn-script-location --progress-bar ascii --no-cache-dir'.split(' '));
-  pipUpgrade.stdout.on('data', (data) => {
-    onProgress(getPipPercentFromData(data));
-  });
-  pipUpgrade.stderr.on('data', (data) => {
-    log.error(`Error updating pip: ${String(data)}`);
-    reject(new Error(`Error updating pip: ${String(data)}`));
-  });
-  pipUpgrade.on('close', () => {
-    resolve();
-  });
-});
-
-export const installSanic = async (pythonPath) => {
+export const installSanic = async (pythonPath, onProgress) => {
   await upgradePip(pythonPath, () => {});
-  await pipInstallSanic(pythonPath, () => {});
+  await pipInstallSanic(pythonPath, onProgress);
+  await pipInstallSanicCors(pythonPath, onProgress);
 };
