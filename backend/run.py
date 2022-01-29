@@ -120,7 +120,7 @@ async def run(request: Request):
         logger.error(traceback.format_exc())
         await queue.put(
             {
-                "event": "error",
+                "event": "execution-error",
                 "data": {
                     "message": "Error running nodes!",
                     "exception": str(exception),

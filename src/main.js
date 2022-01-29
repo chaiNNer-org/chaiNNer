@@ -158,7 +158,7 @@ const getPythonVersion = (pythonBin) => {
   }
 };
 
-const checkPythonVersion = (version) => semver.gt(version, '3.7.0') && semver.lt(version, '3.10.0');
+const checkPythonVersion = (version) => semver.gte(version, '3.7.0') && semver.lt(version, '3.10.0');
 
 const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');

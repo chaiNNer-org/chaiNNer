@@ -13,6 +13,7 @@ import { ipcRenderer } from 'electron';
 import React, {
   memo, useEffect, useRef, useState,
 } from 'react';
+import semver from 'semver';
 import getAvailableDeps from '../helpers/dependencies.js';
 
 const DependencyManager = ({ isOpen, onClose }) => {
@@ -28,9 +29,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
 
   const [isLoadingPipList, setIsLoadingPipList] = useState(true);
   const [pipList, setPipList] = useState({});
-
-  const [isCheckingUpdates, setIsCheckingUpdates] = useState(true);
-  const [pipUpdateList, setPipUpdateList] = useState({});
 
   const [uninstallingPackage, setUninstallingPackage] = useState('');
 
@@ -88,7 +86,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isRunningShell) {
       setIsLoadingPipList(true);
-      exec(`${pythonKeys.pip} list`, (error, stdout, stderr) => {
+      exec(`${pythonKeys.python} -m pip list`, (error, stdout, stderr) => {
         if (error || stderr) {
           return;
         }
@@ -102,26 +100,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
       });
     }
   }, [isRunningShell, pythonKeys]);
-
-  useEffect(async () => {
-    if (pipList && Object.keys(pipList).length) {
-      setIsCheckingUpdates(true);
-      exec(`${pythonKeys.python} -m pip list --outdated`, (error, stdout, stderr) => {
-        if (error) {
-          console.log(error, stderr);
-          setIsCheckingUpdates(false);
-          return;
-        }
-        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-        const pipObj = {};
-        tempPipList.forEach(([dep, version, newVersion]) => {
-          pipObj[dep] = newVersion;
-        });
-        setPipUpdateList(pipObj);
-        setIsCheckingUpdates(false);
-      });
-    }
-  }, [pythonKeys, pipList]);
 
   useEffect(async () => {
     if (depChanged) {
@@ -147,6 +125,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
 
     command.on('error', (error) => {
       setShellOutput(error);
+      setIsRunningShell(false);
     });
 
     command.on('close', (code) => {
@@ -155,27 +134,32 @@ const DependencyManager = ({ isOpen, onClose }) => {
     });
   };
 
-  const installPackage = (installCommand) => {
-    const args = installCommand.split(' ');
-    const installer = args.shift();
-    if (installer === 'pip') {
-      runPipCommand(args);
+  const installPackage = (dep) => {
+    let args = ['install', `${dep.packageName}==${dep.version}`];
+    if (dep.findLink) {
+      args = [
+        ...args,
+        '-f',
+        dep.findLink,
+      ];
     }
+    runPipCommand(args);
   };
 
-  const updatePackage = (packageName) => {
-    runPipCommand(['install', '--upgrade', packageName]);
+  const updatePackage = (dep) => {
+    let args = ['install', '--upgrade', `${dep.packageName}==${dep.version}`];
+    if (dep.findLink) {
+      args = [
+        ...args,
+        '-f',
+        dep.findLink,
+      ];
+    }
+    runPipCommand(args);
   };
 
-  const uninstallPackage = (packageName) => {
-    const packageDep = availableDeps.find(
-      (dep) => dep.name === packageName || dep.packageName === packageName,
-    );
-    const args = packageDep.installCommand.split(' ');
-    const installer = args.shift();
-    if (installer === 'pip') {
-      runPipCommand(['uninstall', '-y', packageDep.packageName]);
-    }
+  const uninstallPackage = (dep) => {
+    runPipCommand(['uninstall', '-y', dep.packageName]);
   };
 
   useEffect(() => {
@@ -183,6 +167,15 @@ const DependencyManager = ({ isOpen, onClose }) => {
       consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
     }
   }, [shellOutput]);
+
+  const checkSemver = (v1, v2) => {
+    try {
+      return !semver.gt(semver.coerce(v1).version, semver.coerce(v2).version);
+    } catch (error) {
+      console.log(error);
+      return true;
+    }
+  };
 
   return (
     <>
@@ -217,21 +210,20 @@ const DependencyManager = ({ isOpen, onClose }) => {
                             colorScheme="blue"
                             onClick={() => {
                               setDepChanged(true);
-                              updatePackage(dep.packageName);
+                              updatePackage(dep);
                             }}
                             size="sm"
-                            disabled={isCheckingUpdates
-                                || !pipUpdateList[dep.packageName]
-                                || isRunningShell}
-                            isLoading={isCheckingUpdates}
+                            disabled={checkSemver(dep.version, pipList[dep.packageName])
+                              || isRunningShell}
+                            isLoading={isRunningShell}
                             leftIcon={<DownloadIcon />}
                           >
-                            {`Update${pipUpdateList[dep.packageName] ? ` (${pipUpdateList[dep.packageName]})` : ''}`}
+                            {`Update${!checkSemver(dep.version, pipList[dep.packageName]) ? ` (${dep.version})` : ''}`}
                           </Button>
                           <Button
                             colorScheme="red"
                             onClick={() => {
-                              setUninstallingPackage(dep.name);
+                              setUninstallingPackage(dep);
                               onUninstallOpen();
                             }}
                             size="sm"
@@ -247,7 +239,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
                             colorScheme="blue"
                             onClick={() => {
                               setDepChanged(true);
-                              installPackage(dep.installCommand);
+                              installPackage(dep);
                             }}
                             size="sm"
                             leftIcon={<DownloadIcon />}
@@ -305,7 +297,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              {`Are you sure you want to uninstall ${uninstallingPackage}?`}
+              {`Are you sure you want to uninstall ${uninstallingPackage.name}?`}
             </AlertDialogBody>
 
             <AlertDialogFooter>

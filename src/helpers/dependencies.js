@@ -3,13 +3,14 @@ const isMac = process.platform === 'darwin';
 export default (isNvidiaAvailable) => [{
   name: 'OpenCV',
   packageName: 'opencv-python',
-  installCommand: 'pip install opencv-python',
+  version: '4.5.5.62',
 }, {
   name: 'NumPy',
   packageName: 'numpy',
-  installCommand: 'pip install numpy',
+  version: '1.22.1',
 }, {
   name: 'PyTorch',
   packageName: 'torch',
-  installCommand: `pip install torch==1.10.1+${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'} -f https://download.pytorch.org/whl/${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}/torch_stable.html`,
+  version: `1.10.2+${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}`,
+  findLink: `https://download.pytorch.org/whl/${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}/torch_stable.html`,
 }];

@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
-import { log } from 'electron-log';
+import log from 'electron-log';
 import React, {
   memo, useContext, useEffect, useState,
 } from 'react';
@@ -80,18 +80,22 @@ const Header = () => {
     setRunning(false);
   }, [eventSource, setRunning, clearCompleteEdges]);
 
-  useEventSourceListener(eventSource, ['error'], ({ data }) => {
-    try {
-      const { message, exception } = JSON.parse(data);
-      // console.log({ message, exception });
-      setErrorMessage(exception);
-    } catch (err) {
-      setErrorMessage(err);
-      log.error(err);
+  useEventSourceListener(eventSource, ['execution-error'], ({ data }) => {
+    if (data) {
+      try {
+        const { message, exception } = JSON.parse(data);
+        if (exception) {
+          setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
+        }
+      } catch (err) {
+        console.log('🚀 ~ file: Header.jsx ~ line 94 ~ useEventSourceListener ~ err', err);
+        setErrorMessage(err);
+        log.error(err);
+      }
+      onErrorOpen();
+      unAnimateEdges();
+      setRunning(false);
     }
-    onErrorOpen();
-    unAnimateEdges();
-    setRunning(false);
   }, [eventSource, setRunning, unAnimateEdges]);
 
   useEventSourceListener(eventSource, ['node-finish'], ({ data }) => {
@@ -299,7 +303,7 @@ const Header = () => {
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
           <AlertDialogBody>
-            {errorMessage}
+            {String(errorMessage)}
           </AlertDialogBody>
           <AlertDialogFooter>
             <HStack>
