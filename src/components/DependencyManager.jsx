@@ -6,7 +6,8 @@ import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, Modal,
   ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Progress, Spinner, StackDivider, Text, Textarea, useDisclosure, VStack,
+  ModalOverlay, Progress, Spinner, StackDivider, Text,
+  Textarea, useColorModeValue, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
@@ -113,7 +114,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   const runPipCommand = (args) => {
     setShellOutput('');
     setIsRunningShell(true);
-    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args, '--no-cache-dir']);
+    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args]);
 
     let outputString = '';
 
@@ -138,15 +139,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
   };
 
   const installPackage = async (dep) => {
-    // let args = ['install', `${dep.packageName}==${dep.version}`];
-    // if (dep.findLink) {
-    //   args = [
-    //     ...args,
-    //     '-f',
-    //     dep.findLink,
-    //   ];
-    // }
-    // runPipCommand(args);
     setIsRunningShell(true);
     setInstallingPackage(dep);
     let output = '';
@@ -163,15 +155,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
   };
 
   const updatePackage = async (dep) => {
-    // let args = ['install', '--upgrade', `${dep.packageName}==${dep.version}`];
-    // if (dep.findLink) {
-    //   args = [
-    //     ...args,
-    //     '-f',
-    //     dep.findLink,
-    //   ];
-    // }
-    // runPipCommand(args);
     setIsRunningShell(true);
     setInstallingPackage(dep);
     let output = '';
@@ -301,7 +284,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
                   </h2>
                   <AccordionPanel pb={4}>
                     <Textarea
-                      placeholder="Console output..."
+                      placeholder=""
                       w="full"
                       h="150"
                       value={shellOutput}
@@ -312,6 +295,22 @@ const DependencyManager = ({ isOpen, onClose }) => {
                       onChange={(e) => e.preventDefault()}
                       onFocus={(e) => e.preventDefault()}
                       readOnly
+                      overflowY="scroll"
+                      sx={{
+                        '&::-webkit-scrollbar': {
+                          width: '8px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0)',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          borderRadius: '8px',
+                          width: '8px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          borderRadius: '8px',
+                          backgroundColor: useColorModeValue('gray.300', 'gray.600'),
+                        },
+                      }}
                     />
                   </AccordionPanel>
                 </AccordionItem>

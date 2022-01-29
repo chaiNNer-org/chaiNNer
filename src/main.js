@@ -1,4 +1,4 @@
-import { execSync, spawn } from 'child_process';
+import { exec as _exec, spawn } from 'child_process';
 import {
   app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
@@ -11,8 +11,11 @@ import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
 import { currentLoad, graphics, mem } from 'systeminformation';
+import util from 'util';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+
+const exec = util.promisify(_exec);
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len
@@ -108,16 +111,6 @@ const registerEventHandlers = () => {
   });
 
   ipcMain.handle('get-app-version', async () => app.getVersion());
-
-  ipcMain.handle('getStoreValue', (event, key) => {
-    const value = store.get(key);
-    console.log('🚀 ~ file: main.js ~ line 115 ~ ipcMain.handle ~ value', value);
-  });
-
-  ipcMain.handle('setStoreValue', (event, key, value) => {
-    console.log(`setting to ${value}`);
-    store.get(key, value);
-  });
 };
 
 const getValidPort = async (splashWindow) => {
@@ -146,9 +139,9 @@ const getValidPort = async (splashWindow) => {
   return port;
 };
 
-const getPythonVersion = (pythonBin) => {
+const getPythonVersion = async (pythonBin) => {
   try {
-    const stdout = execSync(`${pythonBin} --version`).toString();
+    const { stdout } = await exec(`${pythonBin} --version`);
     log.info(`Python version (raw): ${stdout}`);
     const { version } = semver.coerce(stdout);
     log.info(`Python version (semver): ${version}`);
@@ -168,8 +161,8 @@ const checkPythonEnv = async (splashWindow) => {
 
   // User is using system python
   if (useSystemPython === 'true') {
-    const pythonVersion = getPythonVersion('python');
-    const python3Version = getPythonVersion('python3');
+    const pythonVersion = await getPythonVersion('python');
+    const python3Version = await getPythonVersion('python3');
     let validPythonVersion;
     let pythonBin;
 
@@ -278,7 +271,7 @@ const checkPythonEnv = async (splashWindow) => {
       }
     }
 
-    const pythonVersion = getPythonVersion(pythonPath);
+    const pythonVersion = await getPythonVersion(pythonPath);
     pythonKeys.python = pythonPath;
     pythonKeys.version = pythonVersion;
     log.info({ pythonKeys });
@@ -293,14 +286,14 @@ const checkPythonEnv = async (splashWindow) => {
 const checkPythonDeps = async (splashWindow) => {
   log.info('Attempting to check Python deps...');
   try {
-    let pipList = execSync(`${pythonKeys.python} -m pip list`);
+    let { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
     pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
       log.info('Sanic not found. Installing sanic...');
       splashWindow.webContents.send('installing-deps');
-      execSync(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
+      await exec(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
     }
   } catch (error) {
     console.error(error);
@@ -311,7 +304,7 @@ const checkNvidiaSmi = async () => {
   const nvidiaSmi = getNvidiaSmi();
   ipcMain.handle('get-smi', () => nvidiaSmi);
   if (nvidiaSmi) {
-    const [gpu] = execSync(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`).toString().split('\n');
+    const [gpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
     ipcMain.handle('get-gpu-name', () => gpu.trim());
     let vramChecker;
