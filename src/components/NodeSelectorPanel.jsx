@@ -174,7 +174,7 @@ const NodeSelector = ({ data, height }) => {
                         cursor: 'pointer !important',
                         transition: '0.15s ease-in-out',
                       }}
-                      bg="gray.700"
+                      bg={useColorModeValue('gray.200', 'gray.700')}
                       p={2}
                       pl={4}
                       pr={4}

@@ -26,7 +26,7 @@ export const downloadPython = async (directory, onProgress) => {
   }
 };
 
-export const extractPython = async (directory, onProgress) => {
+export const extractPython = async (directory, pythonPath, onProgress) => {
   const fileData = Array.from(await decompress(path.join(directory, '/python.tar.gz')));
   const totalFiles = fileData.length;
   fileData.forEach((file, i) => {
@@ -38,6 +38,16 @@ export const extractPython = async (directory, onProgress) => {
     onProgress(percentageComplete);
   });
   fs.rmSync(path.join(directory, '/python.tar.gz'));
+  if (['linux', 'darwin'].includes(os.platform())) {
+    try {
+      log.info('Granting perms for integrated python...');
+      await fs.chmod(pythonPath, 0o7777, (error) => {
+        log.error(error);
+      });
+    } catch (error) {
+      log.error(error);
+    }
+  }
 };
 
 const upgradePip = async (pythonPath, onProgress) => new Promise((resolve, reject) => {
@@ -73,7 +83,10 @@ const pipInstallSanicCors = async (pythonPath, onProgress) => {
 };
 
 export const installSanic = async (pythonPath, onProgress) => {
+  log.info('Updating internal pip');
   await upgradePip(pythonPath, () => {});
+  log.info('Installing Sanic to internal python');
   await pipInstallSanic(pythonPath, onProgress);
+  log.info('Installing Sanic-Cors to internal python');
   await pipInstallSanicCors(pythonPath, onProgress);
 };

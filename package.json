@@ -1,7 +1,7 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "A flowchart based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
@@ -17,7 +17,7 @@
     "name": "Joey Ballentine",
     "email": "joeyjballentine@gmail.com"
   },
-  "license": "MIT",
+  "license": "GPLv3",
   "config": {
     "forge": {
       "packagerConfig": {
@@ -31,7 +31,7 @@
           "name": "@electron-forge/publisher-github",
           "config": {
             "repository": {
-              "owner": "JoeyBallentine",
+              "owner": "joeyballentine",
               "name": "chaiNNer"
             }
           },

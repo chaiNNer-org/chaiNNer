@@ -5,6 +5,7 @@ const fs = require('fs');
 const https = require('https');
 const os = require('os');
 const path = require('path');
+const log = require('electron-log');
 
 const tempDir = os.tmpdir();
 
@@ -56,7 +57,7 @@ const downloadWheelAndInstall = async (
         });
       });
     } catch (error) {
-      // console.log(error);
+      log.error(error);
       reject(error);
     }
   },
@@ -69,6 +70,7 @@ const pipInstallWithProgress = async (
   upgrade = false,
 ) => new Promise(
   (resolve, reject) => {
+    log.info('Beginning pip install...');
     onProgress(0);
     let args = ['install', ...(upgrade ? ['--upgrade'] : []), `${dep.packageName}==${dep.version}`];
     if (dep.findLink) {
@@ -89,6 +91,7 @@ const pipInstallWithProgress = async (
         const [wheelFileName] = matches;
         pipRequest.kill();
         onProgress(1);
+        log.info(`Found whl: ${wheelFileName}`);
 
         if (stringIsAValidUrl(wheelFileName)) {
           const wheelName = wheelFileName.split('/').slice(-1)[0];
@@ -121,9 +124,9 @@ const pipInstallWithProgress = async (
           });
 
           req.on('error', (error) => {
-            // console.log(error);
+            log.error(error);
+            log.error('Error installing normal way, resorting to generic pip install.');
             const result = execSync(`${python} -m pip ${args.join(' ')}`);
-            // console.log(String(result));
             resolve(result);
           });
 
@@ -137,7 +140,7 @@ const pipInstallWithProgress = async (
     });
 
     pipRequest.on('error', (error) => {
-      // console.log(String(error));
+      log.error(error);
       reject(error);
     });
 

@@ -1,6 +1,6 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
+  app, BrowserWindow, dialog, getPath, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
 import {
@@ -234,10 +234,10 @@ const checkPythonEnv = async (splashWindow) => {
         pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/python.exe'));
         break;
       case 'linux':
-        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3'));
+        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3.9'));
         break;
       case 'darwin':
-        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3'));
+        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3.9'));
         break;
       default:
         break;
@@ -251,7 +251,7 @@ const checkPythonEnv = async (splashWindow) => {
     }
 
     if (!pythonBinExists) {
-      log.info('Python not downloaded, downloading...');
+      log.info('Python not downloaded');
       try {
       // eslint-disable-next-line no-unused-vars
         const onProgress = (percentage, _chunk = null, _remainingSize = null) => {
@@ -259,13 +259,19 @@ const checkPythonEnv = async (splashWindow) => {
         };
         splash.webContents.send('downloading-python');
         onProgress(0);
+        log.info('Downloading standalone python...');
         await downloadPython(integratedPythonFolderPath, onProgress);
+        log.info('Done downloading standalone python.');
         splash.webContents.send('extracting-python');
         onProgress(0);
-        await extractPython(integratedPythonFolderPath, onProgress);
+        log.info('Extracting standalone python...');
+        await extractPython(integratedPythonFolderPath, pythonPath, onProgress);
+        log.info('Done extracting standalone python.');
         splash.webContents.send('installing-main-deps');
         onProgress(0);
+        log.info('Installing required deps...');
         await installSanic(pythonPath, onProgress);
+        log.info('Done installing required deps...');
       } catch (error) {
         log.error(error);
       }
@@ -596,7 +602,13 @@ const createWindow = async () => {
         {
           label: 'View README',
           click: async () => {
-            await shell.openExternal('https://github.com/JoeyBallentine/chaiNNer');
+            await shell.openExternal('https://github.com/joeyballentine/chaiNNer');
+          },
+        },
+        {
+          label: 'Open logs folder',
+          click: async () => {
+            await shell.openPath(getPath('logs'));
           },
         },
       ],
