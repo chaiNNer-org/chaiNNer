@@ -91,10 +91,11 @@ class AutoLoadModelNode(NodeBase):
         elif "f_HR_conv1.0.weight" in state_dict:
             model = SPSR(state_dict)
         # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
-        elif "model.0.weight" in state_dict:
-            model = ESRGAN(state_dict)
         else:
-            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+            try:
+                model = ESRGAN(state_dict)
+            except:
+                raise ValueError("Model unsupported by chaiNNer. Please try another.")
 
         for _, v in model.named_parameters():
             v.requires_grad = False
