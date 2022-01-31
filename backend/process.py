@@ -10,7 +10,7 @@ from nodes.node_factory import NodeFactory
 
 
 class Executor:
-    def __init__(self, nodes: List[Dict], loop):
+    def __init__(self, nodes: List[Dict], loop, queue: asyncio.Queue):
         """Constructor"""
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
@@ -21,6 +21,7 @@ class Executor:
         self.paused = False
 
         self.loop = loop
+        self.queue = queue
 
     async def process(self, node: Dict):
         """Process a single node"""
@@ -61,6 +62,9 @@ class Executor:
         output = await self.loop.run_in_executor(None, run_func)
         # Cache the output of the node
         self.output_cache[node_id] = output
+        finish_data = await self.check()
+        await self.queue.put({"event": "node-finish", "data": finish_data})
+        del node_instance, run_func, finish_data
         return output
 
     async def process_nodes(self):

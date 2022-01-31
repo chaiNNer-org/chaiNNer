@@ -1,15 +1,21 @@
-import { execSync, spawn } from 'child_process';
+import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, shell,
+  app, BrowserWindow, dialog, getPath, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
-import { readFile, writeFile } from 'fs/promises';
-// import { readdir } from 'fs/promises';
+import {
+  access, readFile, writeFile,
+} from 'fs/promises';
+import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
 import { currentLoad, graphics, mem } from 'systeminformation';
+import util from 'util';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
+import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+
+const exec = util.promisify(_exec);
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len
@@ -133,9 +139,9 @@ const getValidPort = async (splashWindow) => {
   return port;
 };
 
-const getPythonVersion = (pythonBin) => {
+const getPythonVersion = async (pythonBin) => {
   try {
-    const stdout = execSync(`${pythonBin} --version`).toString();
+    const { stdout } = await exec(`${pythonBin} --version`);
     log.info(`Python version (raw): ${stdout}`);
     const { version } = semver.coerce(stdout);
     log.info(`Python version (semver): ${version}`);
@@ -145,86 +151,155 @@ const getPythonVersion = (pythonBin) => {
   }
 };
 
-const checkPythonVersion = (version) => semver.gt(version, '3.7.0') && semver.lt(version, '3.10.0');
+const checkPythonVersion = (version) => semver.gte(version, '3.7.0') && semver.lt(version, '3.10.0');
 
 const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');
 
-  const pythonVersion = getPythonVersion('python');
-  const python3Version = getPythonVersion('python3');
-  let validPythonVersion;
-  let pythonBin;
+  const localStorageVars = await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript('({...localStorage});');
+  const useSystemPython = localStorageVars['use-system-python'];
 
-  if (pythonVersion && checkPythonVersion(pythonVersion)) {
-    validPythonVersion = pythonVersion;
-    pythonBin = 'python';
-  } else if (python3Version && checkPythonVersion(python3Version)) {
-    validPythonVersion = python3Version;
-    pythonBin = 'python3';
-  }
+  // User is using system python
+  if (useSystemPython === 'true') {
+    const pythonVersion = await getPythonVersion('python');
+    const python3Version = await getPythonVersion('python3');
+    let validPythonVersion;
+    let pythonBin;
 
-  log.info(`Final Python binary: ${pythonBin}`);
-
-  if (!pythonBin) {
-    log.warn('Python binary not found');
-    splashWindow.hide();
-    const messageBoxOptions = {
-      type: 'error',
-      title: 'Python not installed',
-      buttons: ['Get Python', 'Exit'],
-      defaultId: 1,
-      message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
-    };
-    const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-    if (buttonResult === 1) {
-      app.exit(1);
-    } else if (buttonResult === 0) {
-      await shell.openExternal('https://www.python.org/downloads/');
+    if (pythonVersion && checkPythonVersion(pythonVersion)) {
+      validPythonVersion = pythonVersion;
+      pythonBin = 'python';
+    } else if (python3Version && checkPythonVersion(python3Version)) {
+      validPythonVersion = python3Version;
+      pythonBin = 'python3';
     }
-    app.exit(1);
-  }
 
-  if (pythonBin) {
-    pythonKeys.python = pythonBin;
-    pythonKeys.version = validPythonVersion;
+    log.info(`Final Python binary: ${pythonBin}`);
+
+    if (!pythonBin) {
+      log.warn('Python binary not found');
+      splashWindow.hide();
+      const messageBoxOptions = {
+        type: 'error',
+        title: 'Python not installed',
+        buttons: ['Get Python', 'Exit'],
+        defaultId: 1,
+        message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+      };
+      const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
+      if (buttonResult === 1) {
+        app.exit(1);
+      } else if (buttonResult === 0) {
+        await shell.openExternal('https://www.python.org/downloads/');
+      }
+      app.exit(1);
+    }
+
+    if (pythonBin) {
+      pythonKeys.python = pythonBin;
+      pythonKeys.version = validPythonVersion;
+      log.info({ pythonKeys });
+    }
+
+    if (!validPythonVersion) {
+      splashWindow.hide();
+      const messageBoxOptions = {
+        type: 'error',
+        title: 'Python version invalid',
+        buttons: ['Get Python', 'Exit'],
+        defaultId: 1,
+        message: 'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
+      };
+      const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
+      if (buttonResult === 1) {
+        app.exit(1);
+      } else if (buttonResult === 0) {
+        await shell.openExternal('https://www.python.org/downloads/');
+      }
+      app.exit(1);
+    }
+
+    ipcMain.on('get-python', (event) => {
+      // eslint-disable-next-line no-param-reassign
+      event.returnValue = pythonKeys;
+    });
+    // User is using bundled python
+  } else {
+    const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
+
+    const platform = os.platform();
+    let pythonPath;
+    switch (platform) {
+      case 'win32':
+        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/python.exe'));
+        break;
+      case 'linux':
+        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3.9'));
+        break;
+      case 'darwin':
+        pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3.9'));
+        break;
+      default:
+        break;
+    }
+
+    let pythonBinExists = true;
+    try {
+      await access(pythonPath);
+    } catch (error) {
+      pythonBinExists = false;
+    }
+
+    if (!pythonBinExists) {
+      log.info('Python not downloaded');
+      try {
+      // eslint-disable-next-line no-unused-vars
+        const onProgress = (percentage, _chunk = null, _remainingSize = null) => {
+          splash.webContents.send('progress', percentage);
+        };
+        splash.webContents.send('downloading-python');
+        onProgress(0);
+        log.info('Downloading standalone python...');
+        await downloadPython(integratedPythonFolderPath, onProgress);
+        log.info('Done downloading standalone python.');
+        splash.webContents.send('extracting-python');
+        onProgress(0);
+        log.info('Extracting standalone python...');
+        await extractPython(integratedPythonFolderPath, pythonPath, onProgress);
+        log.info('Done extracting standalone python.');
+        splash.webContents.send('installing-main-deps');
+        onProgress(0);
+        log.info('Installing required deps...');
+        await installSanic(pythonPath, onProgress);
+        log.info('Done installing required deps...');
+      } catch (error) {
+        log.error(error);
+      }
+    }
+
+    const pythonVersion = await getPythonVersion(pythonPath);
+    pythonKeys.python = pythonPath;
+    pythonKeys.version = pythonVersion;
     log.info({ pythonKeys });
-  }
 
-  if (!validPythonVersion) {
-    splashWindow.hide();
-    const messageBoxOptions = {
-      type: 'error',
-      title: 'Python version invalid',
-      buttons: ['Get Python', 'Exit'],
-      defaultId: 1,
-      message: 'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
-    };
-    const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-    if (buttonResult === 1) {
-      app.exit(1);
-    } else if (buttonResult === 0) {
-      await shell.openExternal('https://www.python.org/downloads/');
-    }
-    app.exit(1);
+    ipcMain.on('get-python', (event) => {
+      // eslint-disable-next-line no-param-reassign
+      event.returnValue = pythonKeys;
+    });
   }
-
-  ipcMain.on('get-python', (event) => {
-    // eslint-disable-next-line no-param-reassign
-    event.returnValue = pythonKeys;
-  });
 };
 
 const checkPythonDeps = async (splashWindow) => {
   log.info('Attempting to check Python deps...');
   try {
-    let pipList = execSync(`${pythonKeys.python} -m pip list`);
+    let { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
     pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
       log.info('Sanic not found. Installing sanic...');
       splashWindow.webContents.send('installing-deps');
-      execSync(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
+      await exec(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
     }
   } catch (error) {
     console.error(error);
@@ -235,7 +310,7 @@ const checkNvidiaSmi = async () => {
   const nvidiaSmi = getNvidiaSmi();
   ipcMain.handle('get-smi', () => nvidiaSmi);
   if (nvidiaSmi) {
-    const [gpu] = execSync(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`).toString().split('\n');
+    const [gpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
     ipcMain.handle('get-gpu-name', () => gpu.trim());
     let vramChecker;
@@ -283,9 +358,30 @@ const spawnBackend = async (port) => {
     ipcMain.handle('kill-backend', () => {
       log.info('Attempting to kill backend...');
       try {
-        backend.kill();
+        const success = backend.kill();
+        if (success) {
+          log.error('Successfully killed backend.');
+        } else {
+          log.error('Error killing backend.');
+        }
       } catch (error) {
         log.error('Error killing backend.');
+      }
+    });
+
+    ipcMain.handle('restart-backend', async () => {
+      log.info('Attempting to kill backend...');
+      try {
+        const success = backend.kill();
+        if (success) {
+          log.error('Successfully killed backend to restart it.');
+        } else {
+          log.error('Error killing backend.');
+        }
+        ipcMain.removeHandler('kill-backend');
+        await spawnBackend(port);
+      } catch (error) {
+        log.error('Error restarting backend.');
       }
     });
 
@@ -293,7 +389,12 @@ const spawnBackend = async (port) => {
       if (process.platform !== 'darwin') {
         log.info('Attempting to kill backend...');
         try {
-          backend.kill();
+          const success = backend.kill();
+          if (success) {
+            log.error('Successfully killed backend.');
+          } else {
+            log.error('Error killing backend.');
+          }
         } catch (error) {
           log.error('Error killing backend.');
         }
@@ -369,9 +470,20 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
   });
 
   ipcMain.once('backend-ready', () => {
-    splash.on('close', () => {});
-    splash.destroy();
-    mainWindow.show();
+    mainWindow.webContents.once('dom-ready', async () => {
+      splash.on('close', () => {});
+      splash.destroy();
+      mainWindow.show();
+    });
+  });
+
+  mainWindow.webContents.once('dom-ready', async () => {
+    ipcMain.removeHandler('backend-ready');
+    ipcMain.once('backend-ready', () => {
+      splash.on('close', () => {});
+      splash.destroy();
+      mainWindow.show();
+    });
   });
 });
 
@@ -381,6 +493,9 @@ const createWindow = async () => {
     width: 1280,
     height: 720,
     backgroundColor: '#1A202C',
+    minWidth: 720,
+    minHeight: 640,
+    darkTheme: nativeTheme.shouldUseDarkColors,
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
@@ -502,7 +617,13 @@ const createWindow = async () => {
         {
           label: 'View README',
           click: async () => {
-            await shell.openExternal('https://github.com/JoeyBallentine/chaiNNer');
+            await shell.openExternal('https://github.com/joeyballentine/chaiNNer');
+          },
+        },
+        {
+          label: 'Open logs folder',
+          click: async () => {
+            await shell.openPath(getPath('logs'));
           },
         },
       ],
@@ -513,7 +634,7 @@ const createWindow = async () => {
   await doSplashScreenChecks();
 
   // and load the index.html of the app.
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
   if (!app.isPackaged) {

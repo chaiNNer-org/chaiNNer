@@ -4,6 +4,7 @@ import {
   Box,
 } from '@chakra-ui/react';
 import log from 'electron-log';
+// import PillPity from 'pill-pity';
 import React, {
   createContext, useCallback, useContext,
 } from 'react';
@@ -103,6 +104,19 @@ const ReactFlowBox = ({
           gap={16}
           size={0.5}
         />
+        {/* Would be cool to use this in the future */}
+        {/* <PillPity
+          pattern="topography"
+          as={Background}
+          align="center"
+          justify="center"
+          fontWeight="bold"
+          boxSize="200px"
+          patternFill={useColorModeValue('brand.200', 'brand.300')}
+          bgColor="choc.secondary"
+          patternOpacity={0.3}
+        /> */}
+
         <Controls />
       </ReactFlow>
     </Box>

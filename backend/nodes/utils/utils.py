@@ -9,8 +9,9 @@ import os
 from typing import Tuple
 
 import numpy as np
+import torch
 from sanic.log import logger
-from torch import Tensor, cuda, device, empty, from_numpy, nn
+from torch import Tensor
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -102,7 +103,7 @@ def np2tensor(
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
         t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
-    img = from_numpy(
+    img = torch.from_numpy(
         np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
     ).float()  # "HWC to CHW" and "numpy to tensor"
     if bgr2rgb:
@@ -186,9 +187,10 @@ def tensor2np(
     return img_np.astype(imtype)
 
 
+@torch.inference_mode()
 def auto_split_process(
     lr_img: Tensor,
-    model: nn.Module,
+    model: torch.nn.Module,
     scale: int = 4,
     overlap: int = 32,
     max_depth: int = None,
@@ -198,14 +200,14 @@ def auto_split_process(
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
-        cuda.empty_cache()
+        torch.cuda.empty_cache()
         gc.collect()
         raise RuntimeError("Splitting stopped to prevent infinite loop")
 
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         try:
-            d_img = lr_img.to(device(os.environ["device"]))
+            d_img = lr_img.to(torch.device(os.environ["device"]))
             if bool(os.environ["isFp16"]):
                 d_img = d_img.half()
             result = model(d_img).detach().cpu()
@@ -216,7 +218,7 @@ def auto_split_process(
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
-                cuda.empty_cache()
+                torch.cuda.empty_cache()
                 gc.collect()
             # Re-raise the exception if not an OOM error
             else:
@@ -269,7 +271,9 @@ def auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = empty((b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device)
+    output_img = torch.empty(
+        (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
+    )
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[

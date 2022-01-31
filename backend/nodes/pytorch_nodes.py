@@ -92,17 +92,21 @@ class AutoLoadModelNode(NodeBase):
             model = SPSR(state_dict)
         # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
         else:
-            model = ESRGAN(state_dict)
+            try:
+                model = ESRGAN(state_dict)
+            except:
+                raise ValueError("Model unsupported by chaiNNer. Please try another.")
 
         for _, v in model.named_parameters():
             v.requires_grad = False
         model.eval()
-        model.to(torch.device(os.environ["device"]))
+        model = model.to(torch.device(os.environ["device"]))
 
         return model
 
 
 @NodeFactory.register("PyTorch", "Image::Upscale")
+@torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     """Image Upscale node"""
 
@@ -166,10 +170,12 @@ class ImageUpscaleNode(NodeBase):
             model,
             scale,
         )
-        del img_tensor
+        del img_tensor, model
         logger.info("Converting tensor to image")
         img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         logger.info("Done upscaling")
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         del t_out
 
         if gray:
@@ -194,19 +200,51 @@ class InterpolateNode(NodeBase):
         ]
         self.outputs = [StateDictOutput()]
 
+    def perform_interp(self, model_a: OrderedDict, model_b: OrderedDict, amount: int):
+        try:
+            amount_a = amount / 100
+            amount_b = 1 - amount_a
+
+            state_dict = OrderedDict()
+            for k, v_1 in model_a.items():
+                v_2 = model_b[k]
+                state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
+            return state_dict
+        except Exception as e:
+            raise ValueError(
+                "These models are not compatible and able not able to be interpolated together"
+            )
+
+    def check_can_interp(self, model_a: OrderedDict, model_b: OrderedDict):
+        a_keys = model_a.keys()
+        b_keys = model_b.keys()
+        if a_keys != b_keys:
+            return False
+        loaded = AutoLoadModelNode()
+        interp_50 = self.perform_interp(model_a, model_b, 50)
+        fake_img = np.ones((3, 3, 3), dtype=np.float32)
+        model = loaded.run(interp_50)
+        del loaded, interp_50
+        result = ImageUpscaleNode().run(model, fake_img)
+        del model
+        mean_color = np.mean(result)
+        del result
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        return mean_color > 0.5
+
     def run(
-        self, model_a: torch.nn.Module, model_b: torch.nn.Module, amount: int
+        self, model_a: OrderedDict, model_b: OrderedDict, amount: int
     ) -> np.ndarray:
 
         logger.info(f"Interpolating models...")
+        if not self.check_can_interp(model_a, model_b):
+            raise ValueError(
+                "These models are not compatible and not able to be interpolated together"
+            )
 
-        amount_a = amount / 100
-        amount_b = 1 - amount_a
+        state_dict = self.perform_interp(model_a, model_b, amount)
 
-        state_dict = OrderedDict()
-        for k, v_1 in model_a.items():
-            v_2 = model_b[k]
-            state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
         return state_dict
 
 

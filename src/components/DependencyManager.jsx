@@ -2,18 +2,21 @@
 /* eslint-disable import/extensions */
 import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
-  AlertDialog,
-  AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Button, Flex,
-  HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Spinner, StackDivider, Text, Textarea, useDisclosure, VStack,
+  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
+  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, Modal,
+  ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
+  ModalOverlay, Progress, Spinner, StackDivider, Text,
+  Textarea, useColorModeValue, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
 import React, {
   memo, useEffect, useRef, useState,
 } from 'react';
+import semver from 'semver';
 import getAvailableDeps from '../helpers/dependencies.js';
+import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
 const DependencyManager = ({ isOpen, onClose }) => {
   const {
@@ -29,14 +32,13 @@ const DependencyManager = ({ isOpen, onClose }) => {
   const [isLoadingPipList, setIsLoadingPipList] = useState(true);
   const [pipList, setPipList] = useState({});
 
-  const [isCheckingUpdates, setIsCheckingUpdates] = useState(true);
-  const [pipUpdateList, setPipUpdateList] = useState({});
-
+  const [installingPackage, setInstallingPackage] = useState(null);
   const [uninstallingPackage, setUninstallingPackage] = useState('');
 
   const consoleRef = useRef(null);
   const [shellOutput, setShellOutput] = useState('');
   const [isRunningShell, setIsRunningShell] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const [depChanged, setDepChanged] = useState(false);
 
@@ -88,7 +90,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isRunningShell) {
       setIsLoadingPipList(true);
-      exec(`${pythonKeys.pip} list`, (error, stdout, stderr) => {
+      exec(`${pythonKeys.python} -m pip list`, (error, stdout, stderr) => {
         if (error || stderr) {
           return;
         }
@@ -102,26 +104,6 @@ const DependencyManager = ({ isOpen, onClose }) => {
       });
     }
   }, [isRunningShell, pythonKeys]);
-
-  useEffect(async () => {
-    if (pipList && Object.keys(pipList).length) {
-      setIsCheckingUpdates(true);
-      exec(`${pythonKeys.python} -m pip list --outdated`, (error, stdout, stderr) => {
-        if (error) {
-          console.log(error, stderr);
-          setIsCheckingUpdates(false);
-          return;
-        }
-        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-        const pipObj = {};
-        tempPipList.forEach(([dep, version, newVersion]) => {
-          pipObj[dep] = newVersion;
-        });
-        setPipUpdateList(pipObj);
-        setIsCheckingUpdates(false);
-      });
-    }
-  }, [pythonKeys, pipList]);
 
   useEffect(async () => {
     if (depChanged) {
@@ -147,6 +129,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
 
     command.on('error', (error) => {
       setShellOutput(error);
+      setIsRunningShell(false);
     });
 
     command.on('close', (code) => {
@@ -155,27 +138,41 @@ const DependencyManager = ({ isOpen, onClose }) => {
     });
   };
 
-  const installPackage = (installCommand) => {
-    const args = installCommand.split(' ');
-    const installer = args.shift();
-    if (installer === 'pip') {
-      runPipCommand(args);
-    }
+  const installPackage = async (dep) => {
+    setIsRunningShell(true);
+    setInstallingPackage(dep);
+    let output = '';
+    await pipInstallWithProgress(pythonKeys.python, dep,
+      (percentage) => {
+        setProgress(percentage);
+      },
+      (data) => {
+        output += String(data);
+        setShellOutput(output);
+      });
+    setIsRunningShell(false);
+    setProgress(0);
   };
 
-  const updatePackage = (packageName) => {
-    runPipCommand(['install', '--upgrade', packageName]);
+  const updatePackage = async (dep) => {
+    setIsRunningShell(true);
+    setInstallingPackage(dep);
+    let output = '';
+    await pipInstallWithProgress(pythonKeys.python, dep,
+      (percentage) => {
+        setProgress(percentage);
+      },
+      (data) => {
+        output += String(data);
+        setShellOutput(output);
+      }, true);
+    setIsRunningShell(false);
+    setProgress(0);
   };
 
-  const uninstallPackage = (packageName) => {
-    const packageDep = availableDeps.find(
-      (dep) => dep.name === packageName || dep.packageName === packageName,
-    );
-    const args = packageDep.installCommand.split(' ');
-    const installer = args.shift();
-    if (installer === 'pip') {
-      runPipCommand(['uninstall', '-y', packageDep.packageName]);
-    }
+  const uninstallPackage = (dep) => {
+    setInstallingPackage(null);
+    runPipCommand(['uninstall', '-y', dep.packageName]);
   };
 
   useEffect(() => {
@@ -183,6 +180,15 @@ const DependencyManager = ({ isOpen, onClose }) => {
       consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
     }
   }, [shellOutput]);
+
+  const checkSemver = (v1, v2) => {
+    try {
+      return !semver.gt(semver.coerce(v1).version, semver.coerce(v2).version);
+    } catch (error) {
+      console.log(error);
+      return true;
+    }
+  };
 
   return (
     <>
@@ -206,73 +212,109 @@ const DependencyManager = ({ isOpen, onClose }) => {
                 </Flex>
                 {isLoadingPipList ? <Spinner />
                   : availableDeps.map((dep) => (
-                    <Flex align="center" w="full" key={dep.name}>
-                      {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
-                      <Text flex="1" textAlign="left" color={pipList[dep.packageName] ? 'inherit' : 'red.500'}>
-                        {`${dep.name} (${pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'})`}
-                      </Text>
-                      {pipList[dep.packageName] ? (
-                        <HStack>
-                          <Button
-                            colorScheme="blue"
-                            onClick={() => {
-                              setDepChanged(true);
-                              updatePackage(dep.packageName);
-                            }}
-                            size="sm"
-                            disabled={isCheckingUpdates
-                                || !pipUpdateList[dep.packageName]
-                                || isRunningShell}
-                            isLoading={isCheckingUpdates}
-                            leftIcon={<DownloadIcon />}
-                          >
-                            {`Update${pipUpdateList[dep.packageName] ? ` (${pipUpdateList[dep.packageName]})` : ''}`}
-                          </Button>
-                          <Button
-                            colorScheme="red"
-                            onClick={() => {
-                              setUninstallingPackage(dep.name);
-                              onUninstallOpen();
-                            }}
-                            size="sm"
-                            leftIcon={<DeleteIcon />}
-                            disabled={isRunningShell}
-                          >
-                            Uninstall
-                          </Button>
-                        </HStack>
-                      )
-                        : (
-                          <Button
-                            colorScheme="blue"
-                            onClick={() => {
-                              setDepChanged(true);
-                              installPackage(dep.installCommand);
-                            }}
-                            size="sm"
-                            leftIcon={<DownloadIcon />}
-                            disabled={isRunningShell}
-                            isLoading={isRunningShell}
-                          >
-                            Install
-                          </Button>
-                        )}
-                    </Flex>
+                    <VStack w="full" key={dep.name}>
+                      <Flex align="center" w="full" key={dep.name}>
+                        {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
+                        <Text flex="1" textAlign="left" color={pipList[dep.packageName] ? 'inherit' : 'red.500'}>
+                          {`${dep.name} (${pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'})`}
+                        </Text>
+                        {pipList[dep.packageName] ? (
+                          <HStack>
+                            <Button
+                              colorScheme="blue"
+                              onClick={async () => {
+                                setDepChanged(true);
+                                await updatePackage(dep);
+                              }}
+                              size="sm"
+                              disabled={checkSemver(dep.version, pipList[dep.packageName])
+                              || isRunningShell}
+                              isLoading={isRunningShell}
+                              leftIcon={<DownloadIcon />}
+                            >
+                              {`Update${!checkSemver(dep.version, pipList[dep.packageName]) ? ` (${dep.version})` : ''}`}
+                            </Button>
+                            <Button
+                              colorScheme="red"
+                              onClick={() => {
+                                setUninstallingPackage(dep);
+                                onUninstallOpen();
+                              }}
+                              size="sm"
+                              leftIcon={<DeleteIcon />}
+                              disabled={isRunningShell}
+                            >
+                              Uninstall
+                            </Button>
+                          </HStack>
+                        )
+                          : (
+                            <Button
+                              colorScheme="blue"
+                              onClick={async () => {
+                                setDepChanged(true);
+                                await installPackage(dep);
+                              }}
+                              size="sm"
+                              leftIcon={<DownloadIcon />}
+                              disabled={isRunningShell}
+                              isLoading={isRunningShell}
+                            >
+                              Install
+                            </Button>
+                          )}
+                      </Flex>
+                      {isRunningShell && installingPackage?.name === dep.name && (
+                        <Center h={8} w="full">
+                          <Progress w="full" hasStripe value={progress} />
+                        </Center>
+                      )}
+                    </VStack>
                   ))}
               </VStack>
-              <Textarea
-                placeholder="Console output..."
-                w="full"
-                h="150"
-                value={shellOutput}
-                fontFamily="monospace"
-                cursor="default"
-                ref={consoleRef}
-                onClick={(e) => e.preventDefault()}
-                onChange={(e) => e.preventDefault()}
-                onFocus={(e) => e.preventDefault()}
-                readOnly
-              />
+              <Accordion w="full" allowToggle>
+                <AccordionItem>
+                  <h2>
+                    <AccordionButton>
+                      <Box flex="1" textAlign="left">
+                        Console Output
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    <Textarea
+                      placeholder=""
+                      w="full"
+                      h="150"
+                      value={shellOutput}
+                      fontFamily="monospace"
+                      cursor="default"
+                      ref={consoleRef}
+                      onClick={(e) => e.preventDefault()}
+                      onChange={(e) => e.preventDefault()}
+                      onFocus={(e) => e.preventDefault()}
+                      readOnly
+                      overflowY="scroll"
+                      sx={{
+                        '&::-webkit-scrollbar': {
+                          width: '8px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0)',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          borderRadius: '8px',
+                          width: '8px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          borderRadius: '8px',
+                          backgroundColor: useColorModeValue('gray.300', 'gray.600'),
+                        },
+                      }}
+                    />
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
             </VStack>
           </ModalBody>
 
@@ -305,7 +347,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              {`Are you sure you want to uninstall ${uninstallingPackage}?`}
+              {`Are you sure you want to uninstall ${uninstallingPackage.name}?`}
             </AlertDialogBody>
 
             <AlertDialogFooter>

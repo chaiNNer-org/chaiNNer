@@ -18,11 +18,14 @@ def TextInput(label: str) -> Dict:
     }
 
 
-def NumberInput(label: str) -> Dict:
+def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
     """ Input for arbitrary number """
     return {
         "type": "number::any",
         "label": label,
+        "min": minimum,
+        "def": default,
+        "step": step,
     }
 
 

@@ -3,8 +3,8 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Button, Center, Divider, Heading, HStack, Input,
-  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  Box, Center, Divider, Heading,
+  HStack, Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
 import React, { memo, useEffect, useState } from 'react';
@@ -166,8 +166,34 @@ const NodeSelector = ({ data, height }) => {
                   </AccordionItem>
                 ))}
                 <AccordionItem>
-                  <Center p={10}>
-                    <Button onClick={onOpen}>Missing nodes? Check the dependency manager!</Button>
+                  <Center p={10} textOverflow="ellipsis">
+                    <Box
+                      onClick={onOpen}
+                      cursor="pointer"
+                      sx={{
+                        cursor: 'pointer !important',
+                        transition: '0.15s ease-in-out',
+                      }}
+                      bg={useColorModeValue('gray.200', 'gray.700')}
+                      p={2}
+                      pl={4}
+                      pr={4}
+                      borderRadius={10}
+                      _hover={{
+                        backgroundColor: 'gray.600',
+                      }}
+                    >
+                      <Text
+                        fontWeight="bold"
+                        cursor="pointer"
+                        sx={{
+                          cursor: 'pointer !important',
+                        }}
+                        textAlign="center"
+                      >
+                        Missing nodes? Check the dependency manager!
+                      </Text>
+                    </Box>
                   </Center>
                   {/* TODO: Replace this with a single instance of the
                    dep manager that shares a global open/close state */}
