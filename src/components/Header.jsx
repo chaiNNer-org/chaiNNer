@@ -88,7 +88,6 @@ const Header = () => {
           setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
         }
       } catch (err) {
-        console.log('🚀 ~ file: Header.jsx ~ line 94 ~ useEventSourceListener ~ err', err);
         setErrorMessage(err);
         log.error(err);
       }
