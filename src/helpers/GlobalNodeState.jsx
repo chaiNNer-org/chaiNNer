@@ -56,11 +56,20 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
       const validNodes = savedData.elements.filter(
         (element) => isNode(element) && nodeTypesArr.includes(element.type),
       ) || [];
+      setEdges([]);
       setNodes(validNodes);
-      setEdges(savedData.elements.filter((element) => isEdge(element) && (
-        validNodes.some((el) => el.id === element.target)
+      setEdges(
+        savedData.elements
+          .filter((element) => isEdge(element) && (
+            validNodes.some((el) => el.id === element.target)
         && validNodes.some((el) => el.id === element.source)
-      )) || []);
+          ))
+          .map((edge) => ({
+            ...edge,
+            animated: false,
+          }))
+      || [],
+      );
       if (loadPosition) {
         const [x = 0, y = 0] = savedData.position;
         transform({ x, y, zoom: savedData.zoom || 0 });
