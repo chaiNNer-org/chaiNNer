@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState
+  createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,6 +28,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
+  const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -55,11 +56,20 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
       const validNodes = savedData.elements.filter(
         (element) => isNode(element) && nodeTypesArr.includes(element.type),
       ) || [];
+      setEdges([]);
       setNodes(validNodes);
-      setEdges(savedData.elements.filter((element) => isEdge(element) && (
-        validNodes.some((el) => el.id === element.target)
+      setEdges(
+        savedData.elements
+          .filter((element) => isEdge(element) && (
+            validNodes.some((el) => el.id === element.target)
         && validNodes.some((el) => el.id === element.source)
-      )) || []);
+          ))
+          .map((edge) => ({
+            ...edge,
+            animated: false,
+          }))
+      || [],
+      );
       if (loadPosition) {
         const [x = 0, y = 0] = savedData.position;
         transform({ x, y, zoom: savedData.zoom || 0 });
@@ -471,7 +481,9 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     // Check to make sure the node has all the data it should based on the schema.
     // Compares the schema against the connections and the entered data
     const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length) {
+    const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
+    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length
+    || emptyInputs.length > 0) {
       // Grabs all the indexes of the inputs that the connections are targeting
       const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
       // Grab all inputs that do not have data or a connected edge
@@ -586,7 +598,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     unOutlineInvalidNodes,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
-  }), [nodes, edges, isCpu, isFp16]);
+    useIsSystemPython: [isSystemPython, setIsSystemPython],
+  }), [nodes, edges, isCpu, isFp16, isSystemPython]);
 
   return (
     <GlobalContext.Provider value={contextValue}>

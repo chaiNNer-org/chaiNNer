@@ -2,7 +2,9 @@
 /* eslint-disable react/prop-types */
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
-import React, { memo, useContext, useState } from 'react';
+import React, {
+  memo, useCallback, useContext, useState,
+} from 'react';
 import { getBezierPath, getEdgeCenter, getMarkerEnd } from 'react-flow-renderer';
 import getNodeAccentColors from './getNodeAccentColors';
 import { GlobalContext } from './GlobalNodeState.jsx';
@@ -60,38 +62,16 @@ const CustomEdge = ({
     removeEdgeById(edgeId);
   };
 
+  const getEdgePath = useCallback((curvature) => {
+    const distanceX = sourceX - targetX;
+    const scalar = Math.min(curvature, Math.max(0, distanceX / 10000));
+    const hx1 = sourceX + Math.abs(targetX - sourceX) * (curvature - scalar);
+    const hx2 = targetX - Math.abs(targetX - sourceX) * (curvature - scalar);
+    return `M${sourceX},${sourceY} C${hx1},${sourceY} ${hx2},${targetY}, ${targetX},${targetY}`;
+  }, [sourceX, targetX, sourceY, targetY]);
+
   return (
     <>
-      {/* The top path is for easier hovering. Bottom one is rendered */}
-      {/* <path
-        id={id}
-        style={{
-          ...style,
-          strokeWidth: '12px',
-          stroke: getCurrentColor(),
-          strokeOpacity: 0,
-        }}
-        className="react-flow__edge-path"
-        d={edgePath}
-        markerEnd={markerEnd}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      /> */}
-      {/* <mask>
-        <rect
-          x={edgeCenterX - (buttonSize) / 2}
-          y={edgeCenterY - (buttonSize) / 2}
-          width={buttonSize}
-          height={buttonSize}
-          fill="white"
-        />
-        <circle
-          cx={edgeCenterX}
-          cy={edgeCenterY}
-          r={(buttonSize) / 2}
-          fill="black"
-        />
-      </mask> */}
       <path
         id={id}
         style={{
@@ -103,7 +83,7 @@ const CustomEdge = ({
           transitionTimingFunction: 'ease-in-out',
         }}
         className="react-flow__edge-path"
-        d={edgePath}
+        d={getEdgePath(0.5)}
         markerEnd={markerEnd}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

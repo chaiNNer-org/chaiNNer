@@ -10,14 +10,15 @@ import {
   Image, Menu, MenuButton, MenuItem, MenuList,
   Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
+import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
+import log from 'electron-log';
 import React, {
   memo, useContext, useEffect, useState,
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
-import useInterval from '../helpers/hooks/useInterval.js';
 import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
@@ -55,24 +56,6 @@ const Header = () => {
     timeout: 0,
   });
 
-  const { post: checkPost, error: checkError, response: checkRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/check`, {
-    cachePolicy: 'no-cache',
-  });
-
-  useInterval(async () => {
-    if (running) {
-      const response = await checkPost();
-      if (checkRes.ok) {
-        if (response.finished) {
-          completeEdges(response.finished);
-        }
-      } else {
-        unAnimateEdges();
-        setRunning(false);
-      }
-    }
-  }, 500);
-
   const { post: killPost, error: killError, response: killRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/kill`, {
     cachePolicy: 'no-cache',
   });
@@ -81,14 +64,54 @@ const Header = () => {
     cachePolicy: 'no-cache',
   });
 
+  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
+  const [errorMessage, setErrorMessage] = useState('');
+  const cancelRef = React.useRef();
+
+  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${ipcRenderer.sendSync('get-port')}/sse`, true);
+  useEventSourceListener(eventSource, ['finish'], ({ data }) => {
+    try {
+      const parsedData = JSON.parse(data);
+      // console.log(parsedData);
+    } catch (err) {
+      log.error(err);
+    }
+    clearCompleteEdges();
+    setRunning(false);
+  }, [eventSource, setRunning, clearCompleteEdges]);
+
+  useEventSourceListener(eventSource, ['execution-error'], ({ data }) => {
+    if (data) {
+      try {
+        const { message, exception } = JSON.parse(data);
+        if (exception) {
+          setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
+        }
+      } catch (err) {
+        setErrorMessage(err);
+        log.error(err);
+      }
+      onErrorOpen();
+      unAnimateEdges();
+      setRunning(false);
+    }
+  }, [eventSource, setRunning, unAnimateEdges]);
+
+  useEventSourceListener(eventSource, ['node-finish'], ({ data }) => {
+    try {
+      const { finished } = JSON.parse(data);
+      if (finished) {
+        completeEdges(finished);
+      }
+    } catch (err) {
+      log.error(err);
+    }
+  }, [eventSource, completeEdges]);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose,
   } = useDisclosure();
-
-  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
-  const [errorMessage, setErrorMessage] = useState('');
-  const cancelRef = React.useRef();
 
   const [appVersion, setAppVersion] = useState('#.#.#');
   useEffect(async () => {
@@ -96,57 +119,7 @@ const Header = () => {
     setAppVersion(version);
   }, []);
 
-  const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-  const [nvidiaGpuIndex, setNvidiaGpuIndex] = useState(null);
-
-  // const [vramUsage, setVramUsage] = useState(0);
-  // const [ramUsage, setRamUsage] = useState(0);
-  // const [cpuUsage, setCpuUsage] = useState(0);
-  const [hasCheckedGPU, setHasCheckedGPU] = useState(false);
-  // const checkSysInfo = async () => {
-  //   const { gpu, ram, cpu } = await ipcRenderer.invoke('get-live-sys-info');
-
-  //   const vramCheck = (index) => {
-  //     const gpuInfo = gpu.controllers[index];
-  //     const usage = Number(((gpuInfo?.memoryUsed || 0) / (gpuInfo?.memoryTotal || 1)) * 100);
-  //     setVramUsage(usage);
-  //   };
-  //   if (!hasCheckedGPU) {
-  //     const gpuNames = gpu?.controllers.map((g) => g.model);
-  //     // Check if gpu string contains any nvidia-specific terms
-  //     const nvidiaGpu = gpuNames.find(
-  //       (g) => g.toLowerCase().split(' ').some(
-  //         (item) => ['nvidia', 'geforce', 'gtx', 'rtx'].includes(item),
-  //       ),
-  //     );
-  //     setNvidiaGpuIndex(gpuNames.indexOf(nvidiaGpu));
-  //     setIsNvidiaAvailable(!!nvidiaGpu);
-  //     setHasCheckedGPU(true);
-  //     if (nvidiaGpu) {
-  //       vramCheck(gpuNames.indexOf(nvidiaGpu));
-  //     }
-  //   }
-  // if (isNvidiaAvailable && gpu) {
-  //   vramCheck(nvidiaGpuIndex);
-  // }
-  // if (ram) {
-  //   const usage = Number(((ram.used || 0) / (ram.total || 1)) * 100);
-  //   setRamUsage(usage);
-  // }
-  // if (cpu) {
-  //   setCpuUsage(cpu.currentLoad);
-  // }
-  // };
-
   const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
-
-  // useEffect(async () => {
-  //   await checkSysInfo();
-  // }, []);
-
-  // useInterval(async () => {
-  //   await checkSysInfo();
-  // }, 5000);
 
   async function run() {
     setRunning(true);
@@ -162,21 +135,13 @@ const Header = () => {
       if (invalidNodes.length === 0) {
         try {
           const data = convertToUsableFormat();
-          const response = await post({
+          post({
             data,
             isCpu,
             isFp16: isFp16 && !isCpu,
             resolutionX: monitor?.resolutionX || 1920,
             resolutionY: monitor?.resolutionY || 1080,
           });
-          setRunning(false);
-          unAnimateEdges();
-          if (!res.ok) {
-            setErrorMessage(response.exception);
-            onErrorOpen();
-            unAnimateEdges();
-            setRunning(false);
-          }
         } catch (err) {
           setErrorMessage(err.exception);
           onErrorOpen();
@@ -337,18 +302,20 @@ const Header = () => {
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
           <AlertDialogBody>
-            {errorMessage}
+            {String(errorMessage)}
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button onClick={(() => {
-              clipboard.writeText(errorMessage);
-            })}
-            >
-              Copy to Clipboard
-            </Button>
-            <Button ref={cancelRef} onClick={onErrorClose}>
-              OK
-            </Button>
+            <HStack>
+              <Button onClick={(() => {
+                clipboard.writeText(errorMessage);
+              })}
+              >
+                Copy to Clipboard
+              </Button>
+              <Button ref={cancelRef} onClick={onErrorClose}>
+                OK
+              </Button>
+            </HStack>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
