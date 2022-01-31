@@ -18,7 +18,9 @@ For help, suggestions, or just to hang out, you can join the [chaiNNer Discord s
 
 Download the latest release from Github and run the installer. Simple as that.
 
-The only dependency you need to have installed already is Python 3.7-3.9. All other dependencies can be installed via chaiNNer's dependency manager.
+You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
+
+If you do wish to use your system Python installation still, you will need to turn the system Python setting on, and make sure you have a version between 3.7 and 3.9. However, it is much more recommended to use the integrated Python.
 
 ## Building
 
@@ -29,10 +31,6 @@ To build, run `npm install` to install, and `npm run make` to build the applicat
 Currently, chaiNNer's neural network support (via PyTorch) only supports Nvidia GPUs. There is currently no plan to support pre-compiled `.exe`s for NCNN processing. PyTorch also does not support GPU processing on MacOS.
 
 ## Planned Features
-
-**Embedded Python**
-
-> I'm currently figuring out the best way to add this in. There are standalone python binaries for every platform that I plan on supporting. I am still just trying to figure out whether it should be downloaded and installed to on first run, or if all that should be done in the build action and bundled with the installer.
 
 **NCNN**
 
