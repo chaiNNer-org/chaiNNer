@@ -358,7 +358,12 @@ const spawnBackend = async (port) => {
     ipcMain.handle('kill-backend', () => {
       log.info('Attempting to kill backend...');
       try {
-        backend.kill();
+        const success = backend.kill();
+        if (success) {
+          log.error('Successfully killed backend.');
+        } else {
+          log.error('Error killing backend.');
+        }
       } catch (error) {
         log.error('Error killing backend.');
       }
@@ -367,7 +372,12 @@ const spawnBackend = async (port) => {
     ipcMain.handle('restart-backend', async () => {
       log.info('Attempting to kill backend...');
       try {
-        backend.kill();
+        const success = backend.kill();
+        if (success) {
+          log.error('Successfully killed backend to restart it.');
+        } else {
+          log.error('Error killing backend.');
+        }
         ipcMain.removeHandler('kill-backend');
         await spawnBackend(port);
       } catch (error) {
@@ -379,7 +389,12 @@ const spawnBackend = async (port) => {
       if (process.platform !== 'darwin') {
         log.info('Attempting to kill backend...');
         try {
-          backend.kill();
+          const success = backend.kill();
+          if (success) {
+            log.error('Successfully killed backend.');
+          } else {
+            log.error('Error killing backend.');
+          }
         } catch (error) {
           log.error('Error killing backend.');
         }
