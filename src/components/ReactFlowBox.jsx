@@ -67,6 +67,7 @@ const ReactFlowBox = ({
 
       createNode({ type, position, data: nodeData });
     } catch (error) {
+      log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');
     }
   };

@@ -47,7 +47,7 @@ const Main = () => {
     ipcRenderer.send('backend-ready');
   }
 
-  if (loading && !backendReady) {
+  if (loading || !backendReady) {
     return (
       <Box w={width} h={height}>
         <Center w="full" h="full">

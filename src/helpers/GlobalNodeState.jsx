@@ -599,7 +599,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
-  }), [nodes, edges, isCpu, isFp16, isSystemPython]);
+  }), [reactFlowInstance, nodes, edges, isCpu, isFp16, isSystemPython]);
 
   return (
     <GlobalContext.Provider value={contextValue}>

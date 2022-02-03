@@ -25,16 +25,6 @@ import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
 const Header = () => {
-  const [monitor, setMonitor] = useState(null);
-
-  useEffect(async () => {
-    const { displays } = await ipcRenderer.invoke('get-gpu-info');
-    if (displays) {
-      const mainDisplay = displays.find((display) => display.main === true);
-      setMonitor(mainDisplay);
-    }
-  }, []);
-
   const { colorMode, toggleColorMode } = useColorMode();
   const {
     convertToUsableFormat,
@@ -139,8 +129,8 @@ const Header = () => {
             data,
             isCpu,
             isFp16: isFp16 && !isCpu,
-            resolutionX: monitor?.resolutionX || 1920,
-            resolutionY: monitor?.resolutionY || 1080,
+            resolutionX: window.screen.width * window.devicePixelRatio,
+            resolutionY: window.screen.height * window.devicePixelRatio,
           });
         } catch (err) {
           setErrorMessage(err.exception);

@@ -12,13 +12,20 @@ import {
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
 import React, {
-  memo, useEffect, useRef, useState,
+  memo, useContext, useEffect, useRef, useState,
 } from 'react';
 import semver from 'semver';
 import getAvailableDeps from '../helpers/dependencies.js';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
 const DependencyManager = ({ isOpen, onClose }) => {
+  const {
+    useIsSystemPython,
+  } = useContext(GlobalContext);
+
+  const [isSystemPython] = useIsSystemPython;
+
   const {
     isOpen: isUninstallOpen,
     onOpen: onUninstallOpen,
@@ -207,7 +214,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
                 </Flex>
                 <Flex align="center" w="full">
                   <Text flex="1" textAlign="left">
-                    {`Python (${deps.pythonVersion})`}
+                    {`Python (${deps.pythonVersion}) [${isSystemPython ? 'System' : 'Integrated'}]`}
                   </Text>
                 </Flex>
                 {isLoadingPipList ? <Spinner />

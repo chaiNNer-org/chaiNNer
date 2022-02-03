@@ -307,12 +307,17 @@ const checkPythonDeps = async (splashWindow) => {
 };
 
 const checkNvidiaSmi = async () => {
-  const nvidiaSmi = getNvidiaSmi();
-  ipcMain.handle('get-smi', () => nvidiaSmi);
-  if (nvidiaSmi) {
-    const [gpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
+  const registerEmptyGpuEvents = () => {
+    ipcMain.handle('get-has-nvidia', () => false);
+    ipcMain.handle('get-gpu-name', () => null);
+    ipcMain.handle('setup-vram-checker-process', () => null);
+    ipcMain.handle('get-vram-usage', () => null);
+  };
+
+  const registerNvidiaSmiEvents = async (nvidiaSmi) => {
+    const [nvidiaGpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
-    ipcMain.handle('get-gpu-name', () => gpu.trim());
+    ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
     let vramChecker;
     ipcMain.handle('setup-vram-checker-process', (event, delay) => {
       if (!vramChecker) {
@@ -328,11 +333,40 @@ const checkNvidiaSmi = async () => {
         });
       });
     });
+  };
+
+  // Try using nvidia-smi from path
+  let nvidiaSmi = null;
+  try {
+    const { stdout: nvidiaSmiTest } = await exec('nvidia-smi');
+    if (nvidiaSmiTest) {
+      nvidiaSmi = 'nvidia-smi';
+    }
+  } catch (_) {
+    // pass
+  }
+
+  // If nvidia-smi not in path, it might still exist on windows
+  if (!nvidiaSmi) {
+    if (os.platform() === 'win32') {
+      // Check an easy command to see what the name of the gpu is
+      try {
+        const { stdout } = await exec('wmic path win32_VideoController get name');
+        if (stdout.toLowerCase().includes('geforce') || stdout.toLowerCase().includes('nvidia')) {
+        // Find the path to nvidia-smi
+          nvidiaSmi = await getNvidiaSmi();
+        }
+      } catch (_) {
+      // pass
+      }
+    }
+  }
+
+  if (nvidiaSmi) {
+    ipcMain.handle('get-smi', () => nvidiaSmi);
+    await registerNvidiaSmiEvents(nvidiaSmi);
   } else {
-    ipcMain.handle('get-has-nvidia', () => false);
-    ipcMain.handle('get-gpu-name', () => null);
-    ipcMain.handle('setup-vram-checker-process', () => null);
-    ipcMain.handle('get-vram-usage', () => null);
+    registerEmptyGpuEvents();
   }
 };
 
