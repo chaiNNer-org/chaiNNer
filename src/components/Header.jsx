@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
   DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
@@ -24,7 +25,7 @@ import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
-const Header = () => {
+const Header = ({ port }) => {
   const { colorMode, toggleColorMode } = useColorMode();
   const {
     convertToUsableFormat,
@@ -41,24 +42,16 @@ const Header = () => {
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
-  const { post, error, response: res } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
+  const { post, error, response: res } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
     timeout: 0,
-  });
-
-  const { post: killPost, error: killError, response: killRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/kill`, {
-    cachePolicy: 'no-cache',
-  });
-
-  const { post: pausePost, error: pauseError, response: pauseRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/pause`, {
-    cachePolicy: 'no-cache',
   });
 
   const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('');
   const cancelRef = React.useRef();
 
-  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${ipcRenderer.sendSync('get-port')}/sse`, true);
+  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
   useEventSourceListener(eventSource, ['finish'], ({ data }) => {
     try {
       const parsedData = JSON.parse(data);
@@ -125,7 +118,7 @@ const Header = () => {
       if (invalidNodes.length === 0) {
         try {
           const data = convertToUsableFormat();
-          post({
+          post('/run', {
             data,
             isCpu,
             isFp16: isFp16 && !isCpu,
@@ -149,10 +142,10 @@ const Header = () => {
 
   async function pause() {
     try {
-      const response = await pausePost();
+      const response = await post('/pause');
       setRunning(false);
       unAnimateEdges();
-      if (!pauseRes.ok) {
+      if (!res.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
       }
@@ -166,11 +159,11 @@ const Header = () => {
 
   async function kill() {
     try {
-      const response = await killPost();
+      const response = await post('/kill');
       clearCompleteEdges();
       unAnimateEdges();
       setRunning(false);
-      if (!killRes.ok) {
+      if (!res.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
       }

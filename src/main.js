@@ -128,13 +128,13 @@ const getValidPort = async (splashWindow) => {
     app.exit(1);
   }
   log.info(`Port found: ${port}`);
-  ipcMain.on('get-port', (event) => {
+  ipcMain.handle('get-port', () => {
     if (process.argv[2] && process.argv[2] === '--no-backend') {
       // eslint-disable-next-line no-param-reassign
-      event.returnValue = 8000;
+      return 8000;
     }
     // eslint-disable-next-line no-param-reassign
-    event.returnValue = port;
+    return port;
   });
   return port;
 };
@@ -219,10 +219,7 @@ const checkPythonEnv = async (splashWindow) => {
       app.exit(1);
     }
 
-    ipcMain.on('get-python', (event) => {
-      // eslint-disable-next-line no-param-reassign
-      event.returnValue = pythonKeys;
-    });
+    ipcMain.handle('get-python', () => pythonKeys);
     // User is using bundled python
   } else {
     const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
@@ -282,10 +279,7 @@ const checkPythonEnv = async (splashWindow) => {
     pythonKeys.version = pythonVersion;
     log.info({ pythonKeys });
 
-    ipcMain.on('get-python', (event) => {
-      // eslint-disable-next-line no-param-reassign
-      event.returnValue = pythonKeys;
-    });
+    ipcMain.handle('get-python', () => pythonKeys);
   }
 };
 

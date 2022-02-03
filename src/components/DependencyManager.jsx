@@ -72,8 +72,8 @@ const DependencyManager = ({ isOpen, onClose }) => {
     }
   }, []);
 
-  useEffect(() => {
-    const pKeys = ipcRenderer.sendSync('get-python');
+  useEffect(async () => {
+    const pKeys = await ipcRenderer.invoke('get-python');
     setPythonKeys(pKeys);
     setDeps({
       ...deps,
