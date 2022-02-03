@@ -18,7 +18,7 @@ import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const Main = ({ port }) => {
-  const [nodeTypes, setNodeTypes] = useState({});
+  const [nodeTypes, setNodeTypes] = useState(null);
   const edgeTypes = {
     main: CustomEdge,
   };
@@ -37,15 +37,20 @@ const Main = ({ port }) => {
 
   useEffect(() => {
     if (response.ok && data && !loading && !error && !backendReady) {
-      setBackendReady(true);
       setNodeTypes(createNodeTypes(data));
-      ipcRenderer.send('backend-ready');
     }
   }, [response, data, loading, error, backendReady]);
 
-  if (loading || !backendReady) {
+  useEffect(async () => {
+    if (nodeTypes && !backendReady) {
+      setBackendReady(true);
+      await ipcRenderer.invoke('backend-ready');
+    }
+  }, [nodeTypes]);
+
+  if (!nodeTypes) {
     return (
-      <Box w={width} h={height}>
+      <Box w="full" h="full">
         <Center w="full" h="full">
           <Spinner />
         </Center>

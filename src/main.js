@@ -497,7 +497,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     resolve();
   });
 
-  ipcMain.once('backend-ready', () => {
+  ipcMain.handle('backend-ready', () => {
     mainWindow.webContents.once('dom-ready', async () => {
       splash.on('close', () => {});
       splash.destroy();
@@ -507,7 +507,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
 
   mainWindow.webContents.once('dom-ready', async () => {
     ipcMain.removeHandler('backend-ready');
-    ipcMain.once('backend-ready', () => {
+    ipcMain.handle('backend-ready', () => {
       splash.on('close', () => {});
       splash.destroy();
       mainWindow.show();
