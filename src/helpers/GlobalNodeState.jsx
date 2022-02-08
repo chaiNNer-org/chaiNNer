@@ -445,8 +445,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   };
 
   // TODO: performance concern? runs twice when deleting node
-  const useNodeLock = useCallback((id) => {
-    // console.log('perf check (node lock)');
+  const useNodeLock = useCallback((id, index = null) => {
+    console.log('perf check (node lock)');
     const node = nodes.find((n) => n.id === id);
     if (!node) {
       return [];
@@ -461,8 +461,14 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
         node,
       ]);
     };
-    return [isLocked, toggleLock];
-  }, [nodes]);
+
+    let isInputLocked = false;
+    if (index) {
+      const edge = edges.find((e) => String(e.targetHandle.split('-').slice(-1)) === String(index));
+      isInputLocked = !!edge;
+    }
+    return [isLocked, toggleLock, isInputLocked];
+  }, [nodes, edges]);
 
   const useNodeValidity = useCallback((id) => {
     // console.log('perf check (node validity)');

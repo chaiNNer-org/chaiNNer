@@ -59,6 +59,7 @@ class LoadStateDictNode(NodeBase):
 
     def run(self, path: str) -> OrderedDict:
         """Read a pth file from the specified path and return it as a state dict"""
+        check_env()
 
         logger.info(f"Reading state dict from path: {path}")
         state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))

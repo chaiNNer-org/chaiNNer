@@ -13,7 +13,7 @@ const NumericalInput = memo(({
   const { id } = data;
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
-  const [isLocked] = useNodeLock(id);
+  const [isLocked, , isInputLocked] = useNodeLock(id, index);
 
   const handleChange = (numberAsString, numberAsNumber) => {
     if (data?.inputs[index]?.type.includes('odd')) {
@@ -25,7 +25,7 @@ const NumericalInput = memo(({
   };
 
   return (
-    <InputContainer id={id} index={index} label={label}>
+    <InputContainer id={id} index={index} label={label} hasHandle>
       <NumberInput
         default={def}
         min={min ?? -Infinity}
@@ -36,7 +36,7 @@ const NumericalInput = memo(({
         onChange={handleChange}
         draggable={false}
         className="nodrag"
-        disabled={isLocked}
+        disabled={isLocked || isInputLocked}
         step={step ?? 1}
       >
         <NumberInputField />

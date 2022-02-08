@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import gc
 import os
 import sys
@@ -42,6 +43,7 @@ from process import Executor
 app = Sanic("chaiNNer")
 CORS(app)
 app.ctx.executor = None
+app.ctx.cache = dict()
 
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
@@ -63,7 +65,7 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    output = []
+    nodes = []
     for category in registry:
         category_dict = {"category": category, "nodes": []}
         for node in registry[category]:
@@ -74,8 +76,10 @@ async def nodes(_):
             node_dict["description"] = node_object.get_description()
 
             category_dict["nodes"].append(node_dict)
-        output.append(category_dict)
-    return json(output)
+            del node_object, node_dict
+        nodes.append(category_dict)
+        del category_dict
+    return json(nodes)
 
 
 @app.route("/run", methods=["POST"])
@@ -103,7 +107,7 @@ async def run(request: Request):
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             print(os.environ["resolutionX"], os.environ["resolutionY"])
-            executor = Executor(nodes_list, app.loop, queue)
+            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache)
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:
@@ -132,6 +136,22 @@ async def run(request: Request):
         return json(
             {"message": "Error running nodes!", "exception": str(exception)}, status=500
         )
+
+
+@app.route("/run/individual", methods=["POST"])
+async def run_individual(request: Request):
+    """Runs a single node"""
+    full_data = request.json
+    logger.info(full_data)
+    # Create node based on given category/name information
+    node_instance = NodeFactory.create_node(full_data["category"], full_data["node"])
+    # Run the node and pass in inputs as args
+    run_func = functools.partial(node_instance.run, full_data["inputs"])
+    output = await app.loop.run_in_executor(None, run_func)
+    # Cache the output of the node
+    app.ctx.cache[full_data["id"]] = output
+    del node_instance, run_func
+    return json(output)
 
 
 @app.get("/sse")

@@ -21,7 +21,7 @@ const TextInput = memo(({ label, data, index }) => {
   };
 
   return (
-    <InputContainer id={id} index={index} label={label}>
+    <InputContainer id={id} index={index} label={label} hasHandle>
       <Input
         placeholder={label}
         value={input ?? ''}

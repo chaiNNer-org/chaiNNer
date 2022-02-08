@@ -37,6 +37,7 @@ from .properties.inputs.opencv_inputs import (
     ThresholdInput,
 )
 from .properties.outputs.file_outputs import ImageFileOutput
+from .properties.outputs.generic_outputs import IntegerOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
 
@@ -48,7 +49,12 @@ class ImReadNode(NodeBase):
         """Constructor"""
         self.description = "Read image from file into BGR numpy array"
         self.inputs = [ImageFileInput()]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(),
+            IntegerOutput("Height"),
+            IntegerOutput("Width"),
+            IntegerOutput("Channels"),
+        ]
 
     def run(self, path: str) -> np.ndarray:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -78,7 +84,10 @@ class ImReadNode(NodeBase):
 
         img = img.astype("float32") / dtype_max
 
-        return img
+        h, w = img.shape[:2]
+        c = img.shape[2] if img.ndim > 2 else 1
+
+        return img, h, w, c
 
 
 @NodeFactory.register("OpenCV", "Image::Write")
