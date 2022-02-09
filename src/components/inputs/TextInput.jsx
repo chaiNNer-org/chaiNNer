@@ -3,10 +3,8 @@
 import { Input } from '@chakra-ui/react';
 import React, { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
-import InputContainer from './InputContainer.jsx';
 
-const TextInput = memo(({ label, data, index }) => {
-  const { id } = data;
+const TextInput = memo(({ label, id, index }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
   const [isLocked] = useNodeLock(id);
@@ -21,16 +19,14 @@ const TextInput = memo(({ label, data, index }) => {
   };
 
   return (
-    <InputContainer id={id} index={index} label={label} hasHandle>
-      <Input
-        placeholder={label}
-        value={input ?? ''}
-        onChange={handleChange}
-        draggable={false}
-        className="nodrag"
-        disabled={isLocked}
-      />
-    </InputContainer>
+    <Input
+      placeholder={label}
+      value={input ?? ''}
+      onChange={handleChange}
+      draggable={false}
+      className="nodrag"
+      disabled={isLocked}
+    />
   );
 });
 

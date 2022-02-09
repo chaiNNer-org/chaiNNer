@@ -9,13 +9,11 @@ import React, {
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
-import InputContainer from './InputContainer.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
 
 const FileInput = memo(({
-  extensions, data, index, label,
+  filetypes, id, index, label, type,
 }) => {
-  const { id } = data;
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
   const [isLocked] = useNodeLock(id);
@@ -36,7 +34,7 @@ const FileInput = memo(({
   };
 
   const preview = () => {
-    switch (data?.inputs[index]?.type) {
+    switch (type) {
       case 'file::image':
         return <ImagePreview path={filePath} />;
       default:
@@ -45,7 +43,7 @@ const FileInput = memo(({
   };
 
   return (
-    <InputContainer id={id} index={index} label={label}>
+    <>
       <VisuallyHidden>
         {/* TODO: Replace this with the native electron dialog that does the same thing
                   I have no idea if it's any better, but it might be less jank.
@@ -53,7 +51,7 @@ const FileInput = memo(({
         <input
           type="file"
           id="file"
-          accept={`.${extensions.join(',.')}`}
+          accept={`.${filetypes.join(',.')}`}
           ref={inputFile}
           style={{
             display: 'none',
@@ -86,7 +84,7 @@ const FileInput = memo(({
         </Box>
         )}
       </VStack>
-    </InputContainer>
+    </>
   );
 });
 

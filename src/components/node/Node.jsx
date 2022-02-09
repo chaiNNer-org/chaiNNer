@@ -27,9 +27,9 @@ const Node = ({ children, data, selected }) => {
       // opacity="0.95"
     >
       <VStack minWidth="240px">
-        <NodeHeader data={data} />
-        <NodeBody data={data} />
-        <NodeFooter data={data} />
+        <NodeHeader data={data} accentColor={accentColor} />
+        <NodeBody data={data} accentColor={accentColor} />
+        <NodeFooter data={data} accentColor={accentColor} />
       </VStack>
     </Center>
   );
