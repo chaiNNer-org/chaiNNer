@@ -38,7 +38,7 @@ def check_env():
         "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
     )
 
-    if bool(os.environ["isFp16"]):
+    if os.environ["isFp16"] == "True":
         if os.environ["device"] == "cpu":
             torch.set_default_tensor_type(torch.HalfTensor)
         elif os.environ["device"] == "cuda":
@@ -162,7 +162,7 @@ class ImageUpscaleNode(NodeBase):
         # Borrowed from iNNfer
         logger.info("Converting image to tensor")
         img_tensor = np2tensor(img, change_range=True)
-        if bool(os.environ["isFp16"]):
+        if os.environ["isFp16"] == "True":
             model = model.half()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
