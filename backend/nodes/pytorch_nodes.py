@@ -13,20 +13,15 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import DirectoryInput, PthFileInput, TorchFileInput
+from .properties.inputs.file_inputs import (DirectoryInput, PthFileInput,
+                                            TorchFileInput)
 from .properties.inputs.generic_inputs import SliderInput, TextInput
 from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.pytorch_inputs import (
-    ModelInput,
-    StateDictInput,
-    TorchScriptInput,
-)
+from .properties.inputs.pytorch_inputs import (ModelInput, StateDictInput,
+                                               TorchScriptInput)
 from .properties.outputs.numpy_outputs import ImageOutput
-from .properties.outputs.pytorch_outputs import (
-    ModelOutput,
-    StateDictOutput,
-    TorchScriptOutput,
-)
+from .properties.outputs.pytorch_outputs import (ModelOutput, StateDictOutput,
+                                                 TorchScriptOutput)
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
@@ -37,6 +32,8 @@ def check_env():
     os.environ["device"] = (
         "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
     )
+
+    logger.info(f"Using device: {os.environ['device']}")
 
     if os.environ["isFp16"] == "True":
         if os.environ["device"] == "cpu":
