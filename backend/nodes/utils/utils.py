@@ -208,7 +208,7 @@ def auto_split_process(
     if max_depth is None or max_depth == current_depth:
         try:
             d_img = lr_img.to(torch.device(os.environ["device"]))
-            if bool(os.environ["isFp16"]):
+            if os.environ["isFp16"] == "True":
                 d_img = d_img.half()
             result = model(d_img).detach().cpu()
             del d_img

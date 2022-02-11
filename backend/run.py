@@ -95,10 +95,11 @@ async def run(request: Request):
             full_data = request.json
             logger.info(full_data)
             nodes_list = full_data["data"]
-            os.environ["device"] = "cpu" if bool(full_data["isCpu"]) else "cuda"
+            os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
             os.environ["isFp16"] = (
-                "False" if bool(full_data["isCpu"]) else str(full_data["isFp16"])
+                "False" if full_data["isCpu"] else str(full_data["isFp16"])
             )
+            logger.info(f"Using device: {os.environ['device']}")
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             executor = Executor(nodes_list, app.loop, queue)
