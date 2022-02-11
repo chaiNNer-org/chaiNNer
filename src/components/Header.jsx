@@ -112,7 +112,7 @@ const Header = ({ port }) => {
       onErrorOpen();
     } else {
       const invalidNodes = nodes.filter((node) => {
-        const [valid] = useNodeValidity(node.id);
+        const [valid] = [true]; // TODO: ///useNodeValidity(node.id);
         return !valid;
       });
       if (invalidNodes.length === 0) {

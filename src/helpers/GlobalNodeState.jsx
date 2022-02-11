@@ -446,7 +446,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id, index = null) => {
-    console.log('perf check (node lock)');
+    // console.log('perf check (node lock)');
     const node = nodes.find((n) => n.id === id);
     if (!node) {
       return [];
@@ -470,39 +470,39 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     return [isLocked, toggleLock, isInputLocked];
   }, [nodes, edges]);
 
-  const useNodeValidity = useCallback((id) => {
-    // console.log('perf check (node validity)');
-    // This should never happen, but I'd rather not have this function crash if it does
-    const node = nodes.find((n) => n.id === id);
-    if (!node) {
-      return [false, 'Node not found.'];
-    }
-    // This should also never happen.
-    const { inputs } = node.data;
-    if (!inputs) {
-      return [false, 'Node has no inputs.'];
-    }
-    const inputData = node.data.inputData ?? {};
-    const filteredEdges = edges.filter((e) => e.target === id);
-    // Check to make sure the node has all the data it should based on the schema.
-    // Compares the schema against the connections and the entered data
-    const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
-    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length
-    || emptyInputs.length > 0) {
-      // Grabs all the indexes of the inputs that the connections are targeting
-      const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
-      // Grab all inputs that do not have data or a connected edge
-      const missingInputs = nonOptionalInputs.filter(
-        (input, i) => !Object.keys(inputData).includes(String(i))
-        && !edgeTargetIndexes.includes(String(i)),
-      );
-      // TODO: This fails to output the missing inputs when a node is connected to another
-      return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
-    }
+  // const useNodeValidity = useCallback((id) => {
+  //   // console.log('perf check (node validity)');
+  //   // This should never happen, but I'd rather not have this function crash if it does
+  //   const node = nodes.find((n) => n.id === id);
+  //   if (!node) {
+  //     return [false, 'Node not found.'];
+  //   }
+  //   // This should also never happen.
+  //   const { inputs } = node.data;
+  //   if (!inputs) {
+  //     return [false, 'Node has no inputs.'];
+  //   }
+  //   const inputData = node.data.inputData ?? {};
+  //   const filteredEdges = edges.filter((e) => e.target === id);
+  //   // Check to make sure the node has all the data it should based on the schema.
+  //   // Compares the schema against the connections and the entered data
+  //   const nonOptionalInputs = inputs.filter((input) => !input.optional);
+  //   const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
+  //   if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length
+  //   || emptyInputs.length > 0) {
+  //     // Grabs all the indexes of the inputs that the connections are targeting
+  //     const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
+  //     // Grab all inputs that do not have data or a connected edge
+  //     const missingInputs = nonOptionalInputs.filter(
+  //       (input, i) => !Object.keys(inputData).includes(String(i))
+  //       && !edgeTargetIndexes.includes(String(i)),
+  //     );
+  //     // TODO: This fails to output the missing inputs when a node is connected to another
+  //     return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
+  //   }
 
-    return [true];
-  }, [edges, nodes]); // nodeData
+  //   return [true];
+  // }, [edges, nodes]); // nodeData
 
   const duplicateNode = (id) => {
     // const rfiNodes = reactFlowInstance.getElements();
@@ -596,7 +596,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     removeNodeById,
     removeEdgeById,
     useNodeLock,
-    useNodeValidity,
+    // useNodeValidity,
     duplicateNode,
     clearNode,
     // setSelectedElements,

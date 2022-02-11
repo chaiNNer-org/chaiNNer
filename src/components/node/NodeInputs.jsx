@@ -73,14 +73,10 @@ const pickInput = (type, props) => {
   );
 };
 
-const NodeInputs = ({ data, accentColor }) => {
-  const { inputs, id } = data;
-
-  return inputs.map((input, i) => {
-    const props = {
-      ...input, id, index: i, type: input.type, accentColor,
-    };
-    return pickInput(input.type, props);
-  });
-};
+const NodeInputs = ({ inputs, id, accentColor }) => inputs.map((input, i) => {
+  const props = {
+    ...input, id, index: i, type: input.type, accentColor,
+  };
+  return pickInput(input.type, props);
+});
 export default memo(NodeInputs);

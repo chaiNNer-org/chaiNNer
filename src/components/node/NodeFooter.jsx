@@ -14,13 +14,14 @@ import React, {
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
-const NodeFooter = ({ data }) => {
-  const { id } = data;
+const NodeFooter = ({
+  id, validity, isLocked, toggleLock,
+}) => {
   const {
-    removeNodeById, useNodeLock, useNodeValidity, duplicateNode, clearNode,
+    removeNodeById, duplicateNode, clearNode,
   } = useContext(GlobalContext);
-  const [isLocked, toggleLock] = useNodeLock(id);
-  const [isValid, invalidReason] = useNodeValidity(id);
+
+  const [isValid, invalidReason] = validity;
 
   return (
     <Flex w="full" pl={2} pr={2}>

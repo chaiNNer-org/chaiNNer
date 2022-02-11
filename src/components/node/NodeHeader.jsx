@@ -9,31 +9,28 @@ import React, {
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { IconFactory } from '../CustomIcons.jsx';
 
-const NodeHeader = ({ data, width }) => {
-  const { category, type } = data;
-  return (
-    <Center
-      w={width || 'full'}
-      h="auto"
-      borderBottomColor={getAccentColor(category)}
-      borderBottomWidth="4px"
+const NodeHeader = ({ category, type, width }) => (
+  <Center
+    w={width || 'full'}
+    h="auto"
+    borderBottomColor={getAccentColor(category)}
+    borderBottomWidth="4px"
+  >
+    <HStack
+      pl={6}
+      pr={6}
+      pb={2}
     >
-      <HStack
-        pl={6}
-        pr={6}
-        pb={2}
-      >
-        <Center>
-          {IconFactory(category)}
-        </Center>
-        <Center>
-          <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>
-            {type.toUpperCase()}
-          </Heading>
-        </Center>
-      </HStack>
-    </Center>
-  );
-};
+      <Center>
+        {IconFactory(category)}
+      </Center>
+      <Center>
+        <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>
+          {type.toUpperCase()}
+        </Heading>
+      </Center>
+    </HStack>
+  </Center>
+);
 
 export default memo(NodeHeader);

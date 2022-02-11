@@ -15,6 +15,7 @@ def TextInput(label: str) -> Dict:
     return {
         "type": "text::any",
         "label": label,
+        "hasHandle": True,
     }
 
 
@@ -26,6 +27,7 @@ def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
         "min": minimum,
         "def": default,
         "step": step,
+        "hasHandle": True,
     }
 
 
@@ -36,6 +38,7 @@ def IntegerInput(label: str) -> Dict:
         "label": label,
         "min": 0,
         "def": 0,
+        "hasHandle": True,
     }
 
 
@@ -47,6 +50,7 @@ def OddIntegerInput(label: str) -> Dict:
         "def": 1,
         "step": 2,
         "min": 1,
+        "hasHandle": True,
     }
 
 
@@ -58,6 +62,7 @@ def BoundlessIntegerInput(label: str) -> Dict:
         "min": None,
         "max": None,
         "def": 0,
+        "hasHandle": True,
     }
 
 
