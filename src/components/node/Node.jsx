@@ -22,14 +22,10 @@ const Node = ({ data, selected }) => {
 
   const {
     id, inputs, inputData, isLocked, outputs, category, type,
-  } = useMemo(() => {
-    console.log('redoing these vars');
-    return data;
-  }, [data]);
+  } = data;
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
-    console.log('performance check (inner isvalid)');
     setValidity(checkNodeValidity({
       id, inputs, inputData, edges,
     }));
