@@ -4,6 +4,7 @@ import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useMemo, useState,
 } from 'react';
+import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import shadeColor from '../../helpers/shadeColor.js';
@@ -11,8 +12,7 @@ import NodeBody from './NodeBody.jsx';
 import NodeFooter from './NodeFooter.jsx';
 import NodeHeader from './NodeHeader.jsx';
 
-const Node = ({ children, data, selected }) => {
-  // console.log('🚀 ~ file: Node.jsx ~ line 15 ~ Node ~ data', data);
+const Node = ({ data, selected }) => {
   const {
     edges, useNodeLock,
   } = useContext(GlobalContext);
@@ -22,35 +22,18 @@ const Node = ({ children, data, selected }) => {
 
   const {
     id, inputs, inputData, isLocked, outputs, category, type,
-  } = data;
+  } = useMemo(() => {
+    console.log('redoing these vars');
+    return data;
+  }, [data]);
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
     console.log('performance check (inner isvalid)');
-    if (!inputs) {
-      return setValidity([false, 'Node has no inputs.']);
-    }
-    const filteredEdges = edges.filter((e) => e.target === id);
-
-    // Check to make sure the node has all the data it should based on the schema.
-    // Compares the schema against the connections and the entered data
-    const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
-    // eslint-disable-next-line max-len
-    const isMissingInputs = nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length;
-    if (isMissingInputs || emptyInputs.length > 0) {
-      // Grabs all the indexes of the inputs that the connections are targeting
-      const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
-      // Grab all inputs that do not have data or a connected edge
-      const missingInputs = nonOptionalInputs.filter(
-        (input, i) => !Object.keys(inputData).includes(String(i))
-        && !edgeTargetIndexes.includes(String(i)),
-      );
-      // TODO: This fails to output the missing inputs when a node is connected to another
-      return setValidity([false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`]);
-    }
-    return setValidity([true, '']);
-  }, [inputData, edges]);
+    setValidity(checkNodeValidity({
+      id, inputs, inputData, edges,
+    }));
+  }, [inputData, edges.length]);
 
   const [, toggleLock] = useNodeLock(id);
 

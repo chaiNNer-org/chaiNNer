@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
+import checkNodeValidity from '../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
@@ -30,8 +31,8 @@ const Header = ({ port }) => {
   const {
     convertToUsableFormat,
     useAnimateEdges,
-    useNodeValidity,
     nodes,
+    edges,
     useIsCpu,
     useIsFp16,
   } = useContext(GlobalContext);
@@ -111,28 +112,29 @@ const Header = ({ port }) => {
       setErrorMessage('There are no nodes to run.');
       onErrorOpen();
     } else {
-      const invalidNodes = nodes.filter((node) => {
-        const [valid] = [true]; // TODO: ///useNodeValidity(node.id);
-        return !valid;
-      });
-      if (invalidNodes.length === 0) {
-        try {
-          const data = convertToUsableFormat();
-          post('/run', {
-            data,
-            isCpu,
-            isFp16: isFp16 && !isCpu,
-            resolutionX: window.screen.width * window.devicePixelRatio,
-            resolutionY: window.screen.height * window.devicePixelRatio,
-          });
-        } catch (err) {
-          setErrorMessage(err.exception);
-          onErrorOpen();
-          unAnimateEdges();
-          setRunning(false);
-        }
-      } else {
-        setErrorMessage('There are invalid nodes in the editor. Please fix them before running.');
+      const nodeValidities = nodes.map(
+        (node) => [...checkNodeValidity({ ...node.data, edges }), node.type],
+      );
+      const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
+      if (invalidNodes.length > 0) {
+        const reasons = invalidNodes.map(([, reason, type]) => `• ${type}: ${reason}`).join('\n');
+        setErrorMessage(`There are invalid nodes in the editor. Please fix them before running.\n${reasons}`);
+        onErrorOpen();
+        unAnimateEdges();
+        setRunning(false);
+        return;
+      }
+      try {
+        const data = convertToUsableFormat();
+        post('/run', {
+          data,
+          isCpu,
+          isFp16: isFp16 && !isCpu,
+          resolutionX: window.screen.width * window.devicePixelRatio,
+          resolutionY: window.screen.height * window.devicePixelRatio,
+        });
+      } catch (err) {
+        setErrorMessage(err.exception);
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -284,7 +286,9 @@ const Header = ({ port }) => {
         <AlertDialogContent>
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
+          <AlertDialogBody
+            whiteSpace="pre-wrap"
+          >
             {String(errorMessage)}
           </AlertDialogBody>
           <AlertDialogFooter>

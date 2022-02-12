@@ -4,10 +4,11 @@ import { Input } from '@chakra-ui/react';
 import React, { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
-const TextInput = memo(({ label, id, index }) => {
-  const { useInputData, useNodeLock } = useContext(GlobalContext);
+const TextInput = memo(({
+  label, id, index, isLocked,
+}) => {
+  const { useInputData } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
-  const [isLocked] = useNodeLock(id);
 
   useEffect(() => {
     setInput('');

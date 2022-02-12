@@ -5,11 +5,10 @@ import React, { memo, useContext } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const DropDownInput = memo(({
-  label, options, id, index,
+  label, options, id, index, isLocked,
 }) => {
-  const { useInputData, useNodeLock } = useContext(GlobalContext);
+  const { useInputData } = useContext(GlobalContext);
   const [selection, setSelection] = useInputData(id, index);
-  const [isLocked] = useNodeLock(id);
 
   const handleChange = (event) => {
     const { value } = event.target;

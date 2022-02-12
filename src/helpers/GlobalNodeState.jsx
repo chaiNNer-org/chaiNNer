@@ -29,6 +29,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
   const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
+  const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
+  const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -605,7 +607,11 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
-  }), [reactFlowInstance, nodes, edges, isCpu, isFp16, isSystemPython]);
+    useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
+  }), [
+    reactFlowInstance, nodes, edges,
+    isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
+  ]);
 
   return (
     <GlobalContext.Provider value={contextValue}>

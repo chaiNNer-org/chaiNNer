@@ -20,7 +20,10 @@ const ReactFlowBox = ({
   const {
     elements, createNode, createConnection, reactFlowInstance,
     setReactFlowInstance, removeElements, updateRfi, setSelectedElements,
+    useSnapToGrid,
   } = useContext(GlobalContext);
+
+  const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
   const onLoad = useCallback(
     (rfi) => {
@@ -99,6 +102,8 @@ const ReactFlowBox = ({
         onSelectionChange={setSelectedElements}
         maxZoom={8}
         minZoom={0.125}
+        snapToGrid={isSnapToGrid}
+        snapGrid={[snapToGridAmount, snapToGridAmount]}
       >
         <Background
           variant="dots"

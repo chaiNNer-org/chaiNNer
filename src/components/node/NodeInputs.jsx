@@ -73,9 +73,11 @@ const pickInput = (type, props) => {
   );
 };
 
-const NodeInputs = ({ inputs, id, accentColor }) => inputs.map((input, i) => {
+const NodeInputs = ({
+  inputs, id, accentColor, isLocked,
+}) => inputs.map((input, i) => {
   const props = {
-    ...input, id, index: i, type: input.type, accentColor,
+    ...input, id, index: i, type: input.type, accentColor, isLocked,
   };
   return pickInput(input.type, props);
 });

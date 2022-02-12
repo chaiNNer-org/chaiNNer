@@ -9,12 +9,11 @@ import React, {
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const SliderInput = memo(({
-  label, index, def, min, max, id, accentColor,
+  label, index, def, min, max, id, accentColor, isLocked,
 }) => {
-  const { useInputData, useNodeLock } = useContext(GlobalContext);
+  const { useInputData } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
   const [sliderValue, setSliderValue] = useState(input ?? def);
-  const [isLocked] = useNodeLock(id);
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {

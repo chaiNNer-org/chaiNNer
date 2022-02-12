@@ -12,11 +12,10 @@ import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
 
 const FileInput = memo(({
-  filetypes, id, index, label, type,
+  filetypes, id, index, label, type, isLocked,
 }) => {
-  const { useInputData, useNodeLock } = useContext(GlobalContext);
+  const { useInputData } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
-  const [isLocked] = useNodeLock(id);
 
   const inputFile = useRef(null);
 

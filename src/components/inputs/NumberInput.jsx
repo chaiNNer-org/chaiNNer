@@ -7,11 +7,11 @@ import React, { memo, useContext } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const NumericalInput = memo(({
-  label, id, index, def, min, max, precision, step, type,
+  label, id, index, def, min, max, precision, step, type, isLocked,
 }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
-  const [isLocked, , isInputLocked] = useNodeLock(id, index);
+  const [, , isInputLocked] = useNodeLock(id, index);
 
   const handleChange = (numberAsString, numberAsNumber) => {
     if (type.includes('odd')) {

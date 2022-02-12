@@ -1,6 +1,6 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, getPath, ipcMain, Menu, nativeTheme, shell,
+  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
 import {
@@ -645,13 +645,19 @@ const createWindow = async () => {
         {
           label: 'View README',
           click: async () => {
-            await shell.openExternal('https://github.com/joeyballentine/chaiNNer');
+            await shell.openExternal('https://github.com/joeyballentine/chaiNNer/blob/main/README.md');
           },
         },
         {
           label: 'Open logs folder',
           click: async () => {
-            await shell.openPath(getPath('logs'));
+            await shell.openPath(app.getPath('logs'));
+          },
+        },
+        {
+          label: 'Get ESRGAN models',
+          click: async () => {
+            await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
           },
         },
       ],

@@ -6,10 +6,11 @@ import React, { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
-const DirectoryInput = memo(({ label, id, index }) => {
-  const { useInputData, useNodeLock } = useContext(GlobalContext);
+const DirectoryInput = memo(({
+  label, id, index, isLocked,
+}) => {
+  const { useInputData } = useContext(GlobalContext);
   const [directory, setDirectory] = useInputData(id, index);
-  const [isLocked] = useNodeLock(id);
 
   const onButtonClick = async () => {
     const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');
