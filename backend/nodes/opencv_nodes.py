@@ -41,12 +41,13 @@ from .properties.outputs.generic_outputs import IntegerOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
 
-@NodeFactory.register("OpenCV", "Image::Read")
+@NodeFactory.register("OpenCV", "Read Image")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Read image from file into BGR numpy array"
         self.inputs = [ImageFileInput()]
         self.outputs = [
@@ -55,6 +56,7 @@ class ImReadNode(NodeBase):
             IntegerOutput("Width"),
             IntegerOutput("Channels"),
         ]
+        self.icon = "BsFillImageFill"
 
     def run(self, path: str) -> np.ndarray:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -96,6 +98,7 @@ class ImWriteNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Write image from BGR numpy array to file"
         self.inputs = [
             ImageInput(),
@@ -127,6 +130,7 @@ class ImShowNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Show image preview in a new window"
         self.inputs = [ImageInput()]
         self.outputs = []
@@ -209,6 +213,7 @@ class ImResizeByFactorNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Resize a numpy array image by a scale factor"
         self.inputs = [
             ImageInput(),
@@ -238,6 +243,7 @@ class ImResizeToResolutionNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Resize a numpy array image to an exact resolution"
         self.inputs = [
             ImageInput(),
@@ -266,6 +272,7 @@ class ColorConvertNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Converts the color of an image"
         self.inputs = [
             ImageInput(),
@@ -287,6 +294,7 @@ class BorderMakeNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Creates a border around the image"
         self.inputs = [
             ImageInput(),
@@ -318,6 +326,7 @@ class ThresholdNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Threshold an image"
         self.inputs = [
             ImageInput(),
@@ -363,6 +372,7 @@ class AdaptiveThresholdNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Adaptive threshold an image"
         self.inputs = [
             ImageInput(),
@@ -417,6 +427,7 @@ class HConcatNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Concatenate multiple images horizontally"
         self.inputs = [
             ImageInput("Image A"),
@@ -489,6 +500,7 @@ class VConcatNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Concatenate multiple images vertically"
         self.inputs = [
             ImageInput("Image A"),
@@ -558,6 +570,7 @@ class BrightnessNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Adjust the brightness of an image"
         self.inputs = [ImageInput(), SliderInput("Amount", -100, 100, 0)]
         self.outputs = [ImageOutput()]
@@ -589,6 +602,7 @@ class ContrastNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Adjust the contrast of an image"
         self.inputs = [ImageInput(), SliderInput("Amount", 0, 200, 100)]
         self.outputs = [ImageOutput()]
@@ -620,6 +634,7 @@ class LowPassNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Blur an image"
         self.inputs = [
             ImageInput(),
@@ -651,6 +666,7 @@ class ShiftNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Shift an image"
         self.inputs = [
             ImageInput(),

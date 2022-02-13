@@ -1,19 +1,18 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
-import {
-  Center, Heading, HStack,
-} from '@chakra-ui/react';
+import { Center, Heading, HStack } from '@chakra-ui/react';
 import React, {
   memo,
 } from 'react';
-import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { IconFactory } from '../CustomIcons.jsx';
 
-const NodeHeader = ({ category, type, width }) => (
+const NodeHeader = ({
+  category, type, width, icon, accentColor,
+}) => (
   <Center
     w={width || 'full'}
     h="auto"
-    borderBottomColor={getAccentColor(category)}
+    borderBottomColor={accentColor}
     borderBottomWidth="4px"
   >
     <HStack
@@ -22,10 +21,10 @@ const NodeHeader = ({ category, type, width }) => (
       pb={2}
     >
       <Center>
-        {IconFactory(category)}
+        {IconFactory(icon, accentColor)}
       </Center>
       <Center>
-        <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>
+        <Heading as="h5" size="sm" m={0} p={0} fontWeight={700} textAlign="center">
           {type.toUpperCase()}
         </Heading>
       </Center>

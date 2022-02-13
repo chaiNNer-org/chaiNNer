@@ -17,6 +17,7 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
   event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
+  event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign

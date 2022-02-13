@@ -53,6 +53,7 @@ class LoadStateDictNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Load PyTorch state dict file (.pth) from path"
         self.inputs = [PthFileInput()]
         self.outputs = [StateDictOutput()]
@@ -73,6 +74,7 @@ class AutoLoadModelNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Load PyTorch state dict into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture"
         self.inputs = [StateDictInput()]
         self.outputs = [ModelOutput()]
@@ -113,6 +115,7 @@ class ImageUpscaleNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Upscales a BGR numpy array using a Super-Resolution model"
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
@@ -193,6 +196,7 @@ class InterpolateNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Interpolate two of the same kind of model together"
         self.inputs = [
             StateDictInput(),
@@ -255,6 +259,7 @@ class PthSaveNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Save a PyTorch model"
         self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []

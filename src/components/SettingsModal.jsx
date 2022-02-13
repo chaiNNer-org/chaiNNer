@@ -91,10 +91,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <HStack>
           <NumberInput
             defaultValue={snapToGridAmount}
-            min={0}
+            min={1}
             max={45}
-            onChange={(_, valueNumber) => setSnapToGridAmount(valueNumber)}
-            value={snapToGridAmount}
+            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
+            value={snapToGridAmount ?? 1}
           >
             <NumberInputField />
             <NumberInputStepper>

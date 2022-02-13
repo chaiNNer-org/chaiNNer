@@ -1,5 +1,11 @@
 import { createIcon } from '@chakra-ui/icons';
+import { Icon } from '@chakra-ui/react';
 import React from 'react';
+
+const libraries = {
+  // eslint-disable-next-line global-require
+  bs: require('react-icons/bs'),
+};
 
 export const NumPyIcon = createIcon({
   displayName: 'NumPyIcon',
@@ -59,7 +65,7 @@ export const OpenCVIcon = createIcon({
   ),
 });
 
-export const IconFactory = (category) => {
+export const IconFactoryOld = (category) => {
   switch (category) {
     case 'NumPy':
       return <NumPyIcon />;
@@ -70,4 +76,18 @@ export const IconFactory = (category) => {
     default:
       return <></>;
   }
+};
+
+export const IconFactory = (icon, accentColor) => {
+  console.log('🚀 ~ file: CustomIcons.jsx ~ line 81 ~ IconFactory ~ icon', icon);
+  if (!icon) {
+    return <OpenCVIcon />;
+  }
+  // eslint-disable-next-line react/destructuring-assignment
+  const prefix = icon.slice(0, 2).toLowerCase();
+  const library = libraries[prefix];
+  if (!library) {
+    return <OpenCVIcon />;
+  }
+  return <Icon as={library[icon]} color={accentColor} />;
 };

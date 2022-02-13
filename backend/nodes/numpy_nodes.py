@@ -22,6 +22,7 @@ class ChannelSplitRGBANode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Split numpy image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
         self.inputs = [ImageInput()]
         self.outputs = [
@@ -61,6 +62,7 @@ class ChannelMergeRGBANode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Merge numpy channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
         self.inputs = [
             ImageInput("Channel(s) A"),
@@ -116,6 +118,7 @@ class CropNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Crop an image based on offsets and resolution."
         self.inputs = [
             ImageInput(),
@@ -152,6 +155,7 @@ class BorderCropNode(NodeBase):
 
     def __init__(self):
         """Constructor"""
+        super().__init__()
         self.description = "Crop an image based on border margin."
         self.inputs = [
             ImageInput(),

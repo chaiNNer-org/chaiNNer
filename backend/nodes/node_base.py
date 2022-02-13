@@ -10,6 +10,7 @@ class NodeBase(metaclass=ABCMeta):
         self.inputs = []
         self.outputs = []
         self.description = ""
+        self.icon = ""
 
     @abstractmethod
     def run(self, **kwargs) -> Any:
@@ -24,3 +25,6 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_description(self):
         return self.description
+
+    def get_icon(self):
+        return self.icon

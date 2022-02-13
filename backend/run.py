@@ -74,6 +74,7 @@ async def nodes(_):
             node_dict["inputs"] = node_object.get_inputs()
             node_dict["outputs"] = node_object.get_outputs()
             node_dict["description"] = node_object.get_description()
+            node_dict["icon"] = node_object.get_icon()
 
             category_dict["nodes"].append(node_dict)
             del node_object, node_dict

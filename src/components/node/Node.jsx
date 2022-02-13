@@ -21,8 +21,9 @@ const Node = ({ data, selected }) => {
   const borderColor = useMemo(() => (selected ? shadeColor(accentColor, 0) : 'inherit'), [selected, accentColor]);
 
   const {
-    id, inputs, inputData, isLocked, outputs, category, type,
+    id, inputs, inputData, isLocked, outputs, category, type, icon,
   } = data;
+  console.log('🚀 ~ file: Node.jsx ~ line 26 ~ Node ~ icon', icon);
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const Node = ({ data, selected }) => {
           category={category}
           type={type}
           accentColor={accentColor}
+          icon={icon}
         />
         <NodeBody
           inputs={inputs}

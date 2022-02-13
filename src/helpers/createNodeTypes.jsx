@@ -191,7 +191,7 @@ import shadeColor from './shadeColor.js';
 // });
 
 const NodeHeader = memo(({ data, width }) => {
-  const { category, type } = data;
+  const { category, type, icon } = data;
   return (
     <Center
       w={width || 'full'}
@@ -205,7 +205,7 @@ const NodeHeader = memo(({ data, width }) => {
         pb={2}
       >
         <Center>
-          {IconFactory(category)}
+          {IconFactory(icon)}
         </Center>
         <Center>
           <Heading as="h5" size="sm" m={0} p={0} fontWeight={700}>

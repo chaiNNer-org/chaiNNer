@@ -52,6 +52,7 @@ const ReactFlowBox = ({
       const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
       const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
       const category = event.dataTransfer.getData('application/reactflow/category');
+      const icon = event.dataTransfer.getData('application/reactflow/icon');
       const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
       const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
       log.info(type, inputs, outputs, category);
@@ -66,6 +67,7 @@ const ReactFlowBox = ({
         type,
         inputs,
         outputs,
+        icon,
       };
 
       createNode({ type, position, data: nodeData });
