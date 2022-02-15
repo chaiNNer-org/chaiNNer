@@ -41,7 +41,7 @@ from .properties.outputs.generic_outputs import IntegerOutput
 from .properties.outputs.numpy_outputs import ImageOutput
 
 
-@NodeFactory.register("OpenCV", "Read Image")
+@NodeFactory.register("Image", "Read Image")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 
@@ -57,6 +57,7 @@ class ImReadNode(NodeBase):
             IntegerOutput("Channels"),
         ]
         self.icon = "BsFillImageFill"
+        self.sub = "I/O"
 
     def run(self, path: str) -> np.ndarray:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -92,7 +93,7 @@ class ImReadNode(NodeBase):
         return img, h, w, c
 
 
-@NodeFactory.register("OpenCV", "Image::Write")
+@NodeFactory.register("Image", "Save Image")
 class ImWriteNode(NodeBase):
     """OpenCV Imwrite node"""
 
@@ -107,6 +108,8 @@ class ImWriteNode(NodeBase):
             ImageExtensionDropdown(),
         ]
         self.outputs = []
+        self.icon = "BsImage"
+        self.sub = "I/O"
 
     def run(
         self, img: np.ndarray, directory: str, filename: str, extension: str
@@ -124,7 +127,7 @@ class ImWriteNode(NodeBase):
         return status
 
 
-@NodeFactory.register("OpenCV", "Image::Show")
+@NodeFactory.register("Image", "Preview Image")
 class ImShowNode(NodeBase):
     """OpenCV Imshow node"""
 
@@ -134,6 +137,8 @@ class ImShowNode(NodeBase):
         self.description = "Show image preview in a new window"
         self.inputs = [ImageInput()]
         self.outputs = []
+        self.icon = "MdPreview"
+        self.sub = "I/O"
 
     def checkerboard(self, h, w):
         square_size = 8
@@ -207,7 +212,7 @@ class ImShowNode(NodeBase):
             logger.fatal("Imshow had a critical error")
 
 
-@NodeFactory.register("OpenCV", "Resize::Factor")
+@NodeFactory.register("Image", "Resize (Factor)")
 class ImResizeByFactorNode(NodeBase):
     """OpenCV resize node"""
 
@@ -221,6 +226,8 @@ class ImResizeByFactorNode(NodeBase):
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "MdOutlinePhotoSizeSelectLarge"
+        self.sub = "Utility"
 
     def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
         """Takes an image and resizes it"""
@@ -237,7 +244,7 @@ class ImResizeByFactorNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Resize::Resolution")
+@NodeFactory.register("Image", "Resize (Resolution)")
 class ImResizeToResolutionNode(NodeBase):
     """OpenCV resize node"""
 
@@ -252,6 +259,8 @@ class ImResizeToResolutionNode(NodeBase):
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "MdOutlinePhotoSizeSelectLarge"
+        self.sub = "Utility"
 
     def run(
         self, img: np.ndarray, width: int, height: int, interpolation: int
@@ -266,7 +275,7 @@ class ImResizeToResolutionNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Color::Convert")
+@NodeFactory.register("Image", "Change Colorspace")
 class ColorConvertNode(NodeBase):
     """OpenCV color conversion node"""
 
@@ -279,6 +288,8 @@ class ColorConvertNode(NodeBase):
             ColorModeInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "MdColorLens"
+        self.sub = "Utility"
 
     def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
@@ -288,7 +299,7 @@ class ColorConvertNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Border::Make")
+@NodeFactory.register("Image", "Create Border")
 class BorderMakeNode(NodeBase):
     """OpenCV CopyMakeBorder node"""
 
@@ -302,6 +313,8 @@ class BorderMakeNode(NodeBase):
             IntegerInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "BsBorderOuter"
+        self.sub = "Utility"
 
     def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
         """Takes an image and applies a border to it"""
@@ -320,7 +333,7 @@ class BorderMakeNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Threshold::Standard")
+@NodeFactory.register("Image", "Threshold")
 class ThresholdNode(NodeBase):
     """OpenCV Threshold node"""
 
@@ -335,6 +348,8 @@ class ThresholdNode(NodeBase):
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "MdShowChart"
+        self.sub = "Effect"
 
     def run(
         self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
@@ -366,7 +381,7 @@ class ThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Threshold::Adaptive")
+@NodeFactory.register("Image", "Threshold (Adaptive)")
 class AdaptiveThresholdNode(NodeBase):
     """OpenCV Adaptive Threshold node"""
 
@@ -383,6 +398,8 @@ class AdaptiveThresholdNode(NodeBase):
             IntegerInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "MdAutoGraph"
+        self.sub = "Effect"
 
     def run(
         self,
@@ -421,7 +438,7 @@ class AdaptiveThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("OpenCV", "Concat::Horizontal")
+@NodeFactory.register("Image", "Stack Images (Horizontal)")
 class HConcatNode(NodeBase):
     """OpenCV HConcat Node"""
 
@@ -436,6 +453,8 @@ class HConcatNode(NodeBase):
             ImageInput("Image D", optional=True),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "CgMergeVertical"
+        self.sub = "Utility"
 
     def run(
         self,
@@ -494,7 +513,7 @@ class HConcatNode(NodeBase):
         return img
 
 
-@NodeFactory.register("OpenCV", "Concat::Vertical")
+@NodeFactory.register("Image", "Stack Images (Vertical)")
 class VConcatNode(NodeBase):
     """OpenCV VConcat Node"""
 
@@ -509,6 +528,8 @@ class VConcatNode(NodeBase):
             ImageInput("Image D", optional=True),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "CgMergeHorizontal"
+        self.sub = "Utility"
 
     def run(
         self,
@@ -564,23 +585,25 @@ class VConcatNode(NodeBase):
         return img
 
 
-@NodeFactory.register("OpenCV", "Adjust::Brightness")
-class BrightnessNode(NodeBase):
+@NodeFactory.register("Image", "Brightness & Contrast")
+class BrightnessAndContrastNode(NodeBase):
     """OpenCV Brightness Node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Adjust the brightness of an image"
-        self.inputs = [ImageInput(), SliderInput("Amount", -100, 100, 0)]
+        self.description = "Adjust the brightness and contrast of an image"
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Brightness", -100, 100, 0),
+            SliderInput("Contrast", 0, 200, 100),
+        ]
         self.outputs = [ImageOutput()]
+        self.icon = "ImBrightnessContrast"
+        self.sub = "Effect"
 
-    def run(
-        self,
-        img: np.ndarray,
-        amount: int,
-    ) -> np.ndarray:
-        """Adjusts the brightness of an image"""
+    def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
+        """Adjusts the brightness and contrast of an image"""
 
         dtype_max = 1
         try:
@@ -588,48 +611,17 @@ class BrightnessNode(NodeBase):
         except:
             logger.debug("img dtype is not int")
         f_img = img.astype("float32") / dtype_max
-        amount = int(amount) / 100
+        b_amount = int(b_amount) / 100
+        c_amount = int(c_amount) / 100
 
-        f_img = f_img + amount
+        f_img = (f_img * c_amount) + b_amount
         img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
 
         return img
 
 
-@NodeFactory.register("OpenCV", "Adjust::Contrast")
-class ContrastNode(NodeBase):
-    """OpenCV Contrast Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Adjust the contrast of an image"
-        self.inputs = [ImageInput(), SliderInput("Amount", 0, 200, 100)]
-        self.outputs = [ImageOutput()]
-
-    def run(
-        self,
-        img: np.ndarray,
-        amount: int,
-    ) -> np.ndarray:
-        """Adjusts the contrast of an image"""
-
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-        f_img = img.astype("float32") / dtype_max
-        amount = int(amount) / 100
-
-        f_img = f_img * amount
-        img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
-
-        return img
-
-
-@NodeFactory.register("OpenCV", "Adjust::Blur")
-class LowPassNode(NodeBase):
+@NodeFactory.register("Image", "Blur Image")
+class BlurNode(NodeBase):
     """OpenCV Blur Node"""
 
     def __init__(self):
@@ -642,6 +634,8 @@ class LowPassNode(NodeBase):
             IntegerInput("Amount Y"),
         ]  # , IntegerInput("Sigma")]#,BlurInput()]
         self.outputs = [ImageOutput()]
+        self.icon = "MdBlurOn"
+        self.sub = "Effect"
 
     def run(
         self,
@@ -660,20 +654,22 @@ class LowPassNode(NodeBase):
         return img
 
 
-@NodeFactory.register("OpenCV", "Adjust::Shift")
+@NodeFactory.register("Image", "Shift Image")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Shift an image"
+        self.description = "Shift an image by an x, y amount"
         self.inputs = [
             ImageInput(),
             BoundlessIntegerInput("Amount X"),
             BoundlessIntegerInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
+        self.icon = "BsGraphDown"
+        self.sub = "Effect"
 
     def run(
         self,

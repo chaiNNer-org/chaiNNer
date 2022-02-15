@@ -9,7 +9,7 @@ const checkNodeValidity = ({
   // Check to make sure the node has all the data it should based on the schema.
   // Compares the schema against the connections and the entered data
   const nonOptionalInputs = inputs.filter((input) => !input.optional);
-  const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
+  const emptyInputs = Object.entries(inputData).filter(([key, value]) => nonOptionalInputs.includes(key) && (value === '' || value === undefined || value === null)).map(([key]) => String(key));
   // eslint-disable-next-line max-len
   const isMissingInputs = nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length;
   if (isMissingInputs || emptyInputs.length > 0) {

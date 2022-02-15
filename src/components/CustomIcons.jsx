@@ -1,10 +1,14 @@
+/* eslint-disable global-require */
 import { createIcon } from '@chakra-ui/icons';
 import { Icon } from '@chakra-ui/react';
 import React from 'react';
 
 const libraries = {
-  // eslint-disable-next-line global-require
   bs: require('react-icons/bs'),
+  cg: require('react-icons/cg'),
+  md: require('react-icons/md'),
+  im: require('react-icons/im'),
+  gi: require('react-icons/gi'),
 };
 
 export const NumPyIcon = createIcon({
@@ -79,9 +83,20 @@ export const IconFactoryOld = (category) => {
 };
 
 export const IconFactory = (icon, accentColor) => {
-  console.log('🚀 ~ file: CustomIcons.jsx ~ line 81 ~ IconFactory ~ icon', icon);
   if (!icon) {
     return <OpenCVIcon />;
+  }
+  switch (icon) {
+    case 'NumPy':
+      return <NumPyIcon />;
+    case 'PyTorch':
+      return <PyTorchIcon />;
+    case 'Image':
+      return <OpenCVIcon />;
+    case 'Utility':
+      return <Icon as={libraries.bs.BsGearWideConnected} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" />;
+    default:
+      // nothing
   }
   // eslint-disable-next-line react/destructuring-assignment
   const prefix = icon.slice(0, 2).toLowerCase();
@@ -89,5 +104,7 @@ export const IconFactory = (icon, accentColor) => {
   if (!library) {
     return <OpenCVIcon />;
   }
-  return <Icon as={library[icon]} color={accentColor} />;
+  return <Icon as={library[icon]} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" />;
 };
+
+// color={shadeColor(accentColor, 100)}

@@ -3,8 +3,8 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading,
-  HStack, Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  Box, Center, Divider, Heading, HStack,
+  Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
 import React, { memo, useEffect, useState } from 'react';
@@ -18,6 +18,7 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
+  event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign
@@ -36,9 +37,14 @@ const NodeSelector = ({ data, height }) => {
     const set = {};
     data?.forEach(({ category, nodes }) => {
       nodes
-        .sort((a, b) => a.name.toUpperCase().localeCompare(b.name.toUpperCase()))
+        .sort(
+          (a, b) => (a.subcategory + a.name)
+            .toUpperCase()
+            .localeCompare((b.subcategory + b.name).toUpperCase()),
+        )
         .forEach((node) => {
-          const namespace = node.name.split('::')[0];
+          console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 41 ~ .forEach ~ node', node);
+          const namespace = node.subcategory;
           if (!set[category]) {
             set[category] = [];
           }
@@ -107,7 +113,7 @@ const NodeSelector = ({ data, height }) => {
             >
 
               <Accordion allowMultiple defaultIndex={data.map((item, index) => index)}>
-                {data.map(({ category, nodes }) => (
+                {data.map(({ subcategory, category, nodes }) => (
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
@@ -122,7 +128,7 @@ const NodeSelector = ({ data, height }) => {
                       // This is super terrible but I have no better way of filtering for these at the moment
                       // I could probably cache this in the namespace object but w/e
                         .filter(
-                          (namespace) => `${category} ${nodes.filter((e) => e.name.includes(namespace)).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                          (namespace) => `${category} ${subcategory} ${nodes.filter((e) => e.name.includes(namespace)).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
                         )
                         .map((namespace) => (
                           <Box key={namespace}>
@@ -136,25 +142,28 @@ const NodeSelector = ({ data, height }) => {
                             <Wrap>
                               {nodes
                                 .filter(
-                                  (e) => `${category} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                                  (e) => `${category} ${subcategory} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
                                 )
                                 .filter(
-                                  (e) => e.name.toUpperCase().includes(namespace.toUpperCase()),
+                                  (e) => e.subcategory
+                                    .toUpperCase()
+                                    .includes(namespace.toUpperCase()),
                                 )
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
                                     .localeCompare(b.name.toUpperCase()),
                                 )
                                 .map((node) => (
-                                  <WrapItem key={node.name} p={2}>
+                                  <WrapItem key={node.name} p={2} w="full">
                                     <Tooltip label={node.description} hasArrow closeOnMouseDown>
                                       <Center
                                         boxSizing="border-box"
                                         onDragStart={(event) => onDragStart(event, category, node)}
                                         draggable
                                         display="block"
+                                        w="full"
                                       >
-                                        {createRepresentativeNode(category, node)}
+                                        {createRepresentativeNode(category, node, node.subcategory)}
                                       </Center>
                                     </Tooltip>
                                   </WrapItem>

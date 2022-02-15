@@ -17,13 +17,19 @@ const Node = ({ data, selected }) => {
     edges, useNodeLock,
   } = useContext(GlobalContext);
 
-  const accentColor = useMemo(() => (getAccentColor(data?.category)), [data?.category]);
-  const borderColor = useMemo(() => (selected ? shadeColor(accentColor, 0) : 'inherit'), [selected, accentColor]);
-
   const {
-    id, inputs, inputData, isLocked, outputs, category, type, icon,
+    id, inputs, inputData, isLocked, outputs, category, type, icon, subcategory,
   } = data;
-  console.log('🚀 ~ file: Node.jsx ~ line 26 ~ Node ~ icon', icon);
+
+  const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
+  const accentColor = useMemo(
+    () => (getAccentColor(category, subcategory)), [category, subcategory],
+  );
+  const borderColor = useMemo(
+    () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
+    [selected, accentColor, regularBorderColor],
+  );
+
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {

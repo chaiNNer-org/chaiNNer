@@ -37,6 +37,11 @@ except Exception as e:
     logger.warning(e)
     logger.info("PyTorch most likely not installed")
 
+try:
+    from nodes import utility_nodes
+except Exception as e:
+    logger.warning(e)
+
 from nodes.node_factory import NodeFactory
 from process import Executor
 
@@ -75,6 +80,7 @@ async def nodes(_):
             node_dict["outputs"] = node_object.get_outputs()
             node_dict["description"] = node_object.get_description()
             node_dict["icon"] = node_object.get_icon()
+            node_dict["subcategory"] = node_object.get_sub_category()
 
             category_dict["nodes"].append(node_dict)
             del node_object, node_dict

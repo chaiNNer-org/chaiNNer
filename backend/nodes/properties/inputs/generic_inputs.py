@@ -75,3 +75,14 @@ def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
         "max": max,
         "def": default,
     }
+
+
+def NoteTextAreaInput() -> Dict:
+    """ Input for note text """
+    return {
+        "type": "textarea::note",
+        "label": "Note Text",
+        "resizable": True,
+        "hasHandle": False,
+        "optional": True,
+    }

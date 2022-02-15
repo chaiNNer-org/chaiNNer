@@ -11,6 +11,7 @@ import GenericInput from '../inputs/GenericInput.jsx';
 import InputContainer from '../inputs/InputContainer.jsx';
 import NumberInput from '../inputs/NumberInput.jsx';
 import SliderInput from '../inputs/SliderInput.jsx';
+import TextAreaInput from '../inputs/TextAreaInput.jsx';
 import TextInput from '../inputs/TextInput.jsx';
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -28,6 +29,9 @@ const pickInput = (type, props) => {
       break;
     case 'text::any':
       InputType = TextInput;
+      break;
+    case 'textarea::note':
+      InputType = TextAreaInput;
       break;
     case 'dropdown::image-extensions':
       InputType = DropDownInput;
