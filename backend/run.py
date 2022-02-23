@@ -114,7 +114,7 @@ async def run(request: Request):
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             print(os.environ["resolutionX"], os.environ["resolutionY"])
-            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache)
+            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:

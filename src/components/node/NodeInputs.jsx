@@ -27,6 +27,12 @@ const pickInput = (type, props) => {
     case 'file::directory':
       InputType = DirectoryInput;
       break;
+    case 'file::bin':
+      InputType = FileInput;
+      break;
+    case 'file::param':
+      InputType = FileInput;
+      break;
     case 'text::any':
       InputType = TextInput;
       break;
@@ -34,6 +40,9 @@ const pickInput = (type, props) => {
       InputType = TextAreaInput;
       break;
     case 'dropdown::image-extensions':
+      InputType = DropDownInput;
+      break;
+    case 'dropdown::math-operations':
       InputType = DropDownInput;
       break;
     case 'dropdown::generic':

@@ -2,7 +2,7 @@
 /* eslint-disable import/extensions */
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useMemo, useState,
+  useContext, useEffect, useMemo, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -77,4 +77,4 @@ const Node = ({ data, selected }) => {
   );
 };
 
-export default memo(Node);
+export default Node;

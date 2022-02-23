@@ -104,7 +104,8 @@ export const IconFactory = (icon, accentColor) => {
   if (!library) {
     return <OpenCVIcon />;
   }
-  return <Icon as={library[icon]} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" />;
+  const libraryIcon = library[icon];
+  return <Icon as={libraryIcon} color={accentColor} alignContent="center" alignItems="center" viewBox="0 0 4 4" width="100%" height="auto" />;
 };
 
 // color={shadeColor(accentColor, 100)}

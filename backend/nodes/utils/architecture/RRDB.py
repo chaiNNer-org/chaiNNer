@@ -9,7 +9,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from . import block as B
+import block as B
 
 
 # Borrowed from https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/archs/ESRGAN.py

@@ -1,11 +1,14 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
+import functools
 import sys
+import traceback
 
 sys.path.append("...")
 
 import gc
 import os
+from concurrent.futures import ProcessPoolExecutor
 from typing import Tuple
 
 import numpy as np
@@ -214,7 +217,6 @@ def auto_split_process(
             del d_img
             return result, current_depth
         except RuntimeError as e:
-            print(e)
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
@@ -290,3 +292,103 @@ def auto_split_process(
     ]
 
     return output_img, depth
+
+# NCNN version of the above function
+def ncnn_auto_split_process(
+    lr_img: np.ndarray,
+    upscale_func,
+    scale: int = 4,
+    overlap: int = 32,
+    max_depth: int = None,
+    current_depth: int = 1,
+) -> Tuple[Tensor, int]:
+    # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
+
+    # Prevent splitting from causing an infinite out-of-vram loop
+    if current_depth > 15:
+        gc.collect()
+        raise RuntimeError("Splitting stopped to prevent infinite loop")
+
+    # Attempt to upscale if unknown depth or if reached known max depth
+    if max_depth is None or max_depth == current_depth:
+        try:
+            # Run in separate process so when it dies it actually clears vram
+            with ProcessPoolExecutor() as executor:
+                proc = executor.submit(upscale_func, lr_img.copy())
+                result = proc.result()
+                return result.astype(np.uint8), current_depth
+        except Exception as e:
+            # Check to see if its actually the NCNN out of memory error
+            if "failed" in str(e):
+                # Collect garbage (clear VRAM) TODO: Verify this actually does anything
+                gc.collect()
+            # Re-raise the exception if not an OOM error
+            else:
+                raise RuntimeError(e)
+
+    h, w, c = lr_img.shape
+
+    # Split image into 4ths
+    top_left = lr_img[: h // 2 + overlap, : w // 2 + overlap, ...].astype(np.uint8)
+    top_right = lr_img[: h // 2 + overlap, w // 2 - overlap :, ...].astype(np.uint8)
+    bottom_left = lr_img[h // 2 - overlap :, : w // 2 + overlap, ...].astype(np.uint8)
+    bottom_right = lr_img[h // 2 - overlap :, w // 2 - overlap :, ...].astype(np.uint8)
+
+    # Recursively upscale the quadrants
+    # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
+    top_left_rlt, depth = ncnn_auto_split_process(
+        top_left,
+        upscale_func,
+        scale=scale,
+        overlap=overlap,
+        current_depth=current_depth + 1,
+    )
+    top_right_rlt, _ = ncnn_auto_split_process(
+        top_right,
+        upscale_func,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+    bottom_left_rlt, _ = ncnn_auto_split_process(
+        bottom_left,
+        upscale_func,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+    bottom_right_rlt, _ = ncnn_auto_split_process(
+        bottom_right,
+        upscale_func,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+
+    # Define output shape
+    out_h = h * scale
+    out_w = w * scale
+
+    # Create blank output image
+    output_img = np.zeros(
+        (out_h, out_w, c), dtype=lr_img.dtype
+    )
+
+    # Fill output image with tiles, cropping out the overlaps
+    output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[
+        : out_h // 2, : out_w // 2, ...
+    ]
+    output_img[: out_h // 2, -out_w // 2 :, ...] = top_right_rlt[
+        : out_h // 2, -out_w // 2 :, ...
+    ]
+    output_img[-out_h // 2 :, : out_w // 2, ...] = bottom_left_rlt[
+        -out_h // 2 :, : out_w // 2, ...
+    ]
+    output_img[-out_h // 2 :, -out_w // 2 :, ...] = bottom_right_rlt[
+        -out_h // 2 :, -out_w // 2 :, ...
+    ]
+
+    return output_img.astype(np.uint8), depth
