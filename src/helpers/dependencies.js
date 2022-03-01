@@ -13,4 +13,8 @@ export default (isNvidiaAvailable) => [{
   packageName: 'torch',
   version: `1.10.2+${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}`,
   findLink: `https://download.pytorch.org/whl/${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}/torch_stable.html`,
+}, {
+  name: 'NCNN',
+  packageName: 'ncnn-vulkan',
+  version: '2022.2.29',
 }];

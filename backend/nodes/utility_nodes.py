@@ -13,7 +13,7 @@ import threading
 
 import cv2
 import numpy as np
-from realsr_ncnn_vulkan_python import RealSR
+from ncnn_vulkan import ncnn
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -96,17 +96,56 @@ class NcnnNode(NodeBase):
             matches = re.findall(regex, lines)
             return int(np.prod([float(n) for n in matches]))
 
+    # def run(self, img: np.ndarray, param_path: str, bin_path: str) -> np.ndarray:
+    #     try:
+    #         # We have to assume in_nc is 3 always because ncnn param files do not have a way to get this
+    #         in_nc = 3
+    #         gray = False
+    #         if img.ndim == 2:
+    #             gray = True
+    #             logger.warn("Expanding image channels")
+    #             img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
+    #         # Remove extra channels if too many (i.e three channel image, single channel model)
+    #         elif img.shape[2] > in_nc:
+    #             logger.warn("Truncating image channels")
+    #             img = img[:, :, :in_nc]
+
+    #         img = (img * 255).astype(np.uint8)
+    #         scale = self.get_scale(param_path)
+    #         self.generic_inference = RealSR(
+    #             gpuid=0, scale=scale, tta_mode=False, param_path=param_path, bin_path=bin_path)
+
+    #         output, _ = ncnn_auto_split_process(img, self.generic_inference.process, scale)
+
+    #         output = output.astype(np.float32) / 255
+
+    #         if gray:
+    #             output = np.average(output, axis=2).astype(np.float32)
+
+    #         return output
+    #     except Exception as e:
+    #         logger.warn(e)
+    #         raise e
+    
     def run(self, img: np.ndarray, param_path: str, bin_path: str) -> np.ndarray:
+        net = ncnn.Net()
+
+        # Use vulkan compute
+        net.opt.use_vulkan_compute = True
+
+        # Load model param and bin
+        net.load_param(param_path)
+        net.load_model(bin_path)
+
+        scale = self.get_scale(param_path)
+
+        # TODO: auto grab input/output names
+        # Try/except block to catch errors
         try:
-            img = (img * 255).astype(np.uint8)
-            scale = self.get_scale(param_path)
-            self.generic_inference = RealSR(
-                gpuid=0, scale=scale, tta_mode=False, param_path=param_path, bin_path=bin_path)
-
-            output, _ = ncnn_auto_split_process(img, self.generic_inference.process, scale)
-
-            output = output.astype(np.float32) / 255
+            output, _ = ncnn_auto_split_process(img, net, scale)
+            net.clear()
             return output
         except Exception as e:
-            logger.warn(e)
-            raise e
+            print(e)
+            # ncnn.destroy_gpu_instance()
+
