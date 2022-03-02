@@ -13,6 +13,14 @@ export default (category, subcategory) => {
         return '#2B6CB0';
       case 'PyTorch':
         return '#DD6B20';
+      case 'PyTorch|I/O':
+        return '#DD6B20';
+      case 'PyTorch|Utility':
+        return '#DD6B20';
+      case 'PyTorch|Processing':
+        return '#DD6B20';
+      case 'NCNN|NCNN':
+        return '#ED64A6';
       default:
         return '#718096';
     }
@@ -26,6 +34,8 @@ export default (category, subcategory) => {
       return '#2B6CB0';
     case 'PyTorch':
       return '#DD6B20';
+    case 'NCNN':
+      return '#ED64A6';
     default:
       return '#718096';
   }

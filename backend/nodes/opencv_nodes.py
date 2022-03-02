@@ -21,7 +21,7 @@ from .properties.outputs.generic_outputs import *
 from .properties.outputs.numpy_outputs import *
 
 
-@NodeFactory.register("Image", "Read Image")
+@NodeFactory.register("Image", "Load Image")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 

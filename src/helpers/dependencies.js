@@ -16,5 +16,5 @@ export default (isNvidiaAvailable) => [{
 }, {
   name: 'NCNN',
   packageName: 'ncnn-vulkan',
-  version: '2022.2.29',
+  version: '2022.3.2',
 }];

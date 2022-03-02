@@ -302,7 +302,8 @@ def ncnn_auto_split_process(
     overlap: int = 32,
     max_depth: int = None,
     current_depth: int = 1,
-    cleanup = None
+    input_name = 'data',
+    output_name = 'output',
 ) -> Tuple[Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
@@ -331,10 +332,11 @@ def ncnn_auto_split_process(
             mean_vals = []
             norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
             mat_in.substract_mean_normalize(mean_vals, norm_vals)
-            ex.input("data", mat_in)
-            _, mat_out = ex.extract("output")
-            result = np.array(mat_out).transpose(1, 2, 0) # * 255
+            ex.input(input_name, mat_in)
+            _, mat_out = ex.extract(output_name)
+            result = np.array(mat_out).transpose(1, 2, 0)
             del ex, mat_in, mat_out
+            # Clear VRAM
             blob_vkallocator.clear()
             staging_vkallocator.clear()
             return result, current_depth
