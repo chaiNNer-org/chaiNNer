@@ -102,7 +102,7 @@ const Main = ({ port }) => {
           <Header port={port} />
           <HStack
             as={Split}
-            initialPrimarySize="565px"
+            initialPrimarySize="380px"
             minPrimarySize="290px"
             minSecondarySize="50%"
             splitterSize="10px"

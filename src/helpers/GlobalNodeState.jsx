@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState,
+  createContext, useCallback, useEffect, useMemo, useState
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -299,6 +299,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
+    const sourceNode = nodes.find((n) => n.id === source);
     const newEdge = {
       id,
       sourceHandle,
@@ -309,7 +310,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
       animated: false,
       style: { strokeWidth: 2 },
       data: {
-        sourceType: (nodes.find((n) => n.id === source))?.data.category,
+        sourceType: sourceNode?.data.category,
+        sourceSubCategory: sourceNode?.data.subcategory,
       },
     };
     setEdges([
@@ -472,7 +474,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     let isInputLocked = false;
     if (index) {
-      const edge = edges.find((e) => String(e.targetHandle.split('-').slice(-1)) === String(index));
+      const edge = edges.find((e) => e.target === id && String(e.targetHandle.split('-').slice(-1)) === String(index));
+      console.log(edge);
       isInputLocked = !!edge;
     }
     return [isLocked, toggleLock, isInputLocked];

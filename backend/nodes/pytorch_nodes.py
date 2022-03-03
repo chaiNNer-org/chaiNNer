@@ -13,12 +13,8 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import *
-from .properties.inputs.generic_inputs import *
-from .properties.inputs.numpy_inputs import *
-from .properties.inputs.pytorch_inputs import *
-from .properties.outputs.numpy_outputs import *
-from .properties.outputs.pytorch_outputs import *
+from .properties.inputs import *
+from .properties.outputs import *
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2

@@ -38,6 +38,15 @@ except Exception as e:
     logger.info("PyTorch most likely not installed")
 
 try:
+    import ncnn_vulkan
+
+    from nodes import ncnn_nodes
+except Exception as e:
+    logger.warning(e)
+    logger.info("NCNN most likely not installed")
+
+
+try:
     from nodes import utility_nodes
 except Exception as e:
     logger.warning(e)

@@ -11,9 +11,8 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.generic_inputs import IntegerInput, SliderInput
-from .properties.inputs.numpy_inputs import ImageInput
-from .properties.outputs.numpy_outputs import ImageOutput
+from .properties.inputs import *
+from .properties.outputs import *
 
 
 @NodeFactory.register("Image", "Split Channels")

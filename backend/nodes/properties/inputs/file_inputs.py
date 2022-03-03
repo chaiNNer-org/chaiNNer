@@ -73,3 +73,7 @@ def BinFileInput() -> Dict:
 def ParamFileInput() -> Dict:
     """ Input for submitting a local .param file """
     return FileInput("param", "NCNN Param File", None, ["param"])
+
+def OnnxFileInput() -> Dict:
+    """ Input for submitting a local .onnx file """
+    return FileInput("param", "NCNN Param File", None, ["param"])

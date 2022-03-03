@@ -9,7 +9,7 @@ import React, {
 import { IconFactory } from '../CustomIcons.jsx';
 
 const NodeHeader = ({
-  category, type, width, icon, accentColor,
+  category, type, width, icon, accentColor, selected,
 }) => (
   <Center
     w={width || 'full'}
@@ -26,8 +26,8 @@ const NodeHeader = ({
       mb={-1}
       verticalAlign="middle"
     >
-      <Center h="100%" w={4} alignContent="center" alignItems="center" verticalAlign="middle">
-        {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
+      <Center h={4} w={4} alignContent="center" alignItems="center" verticalAlign="middle">
+        {IconFactory(icon, selected ? accentColor : useColorModeValue('gray.600', 'gray.400'))}
       </Center>
       <Center verticalAlign="middle">
         <Heading

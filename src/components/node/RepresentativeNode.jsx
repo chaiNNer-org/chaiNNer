@@ -46,11 +46,17 @@ const RepresentativeNode = (
           mt={-1}
           mb={-1}
           verticalAlign="middle"
+          textOverflow="ellipsis"
+          overflow="hidden"
         >
-          <Center h="100%" w={4} alignContent="center" alignItems="center" verticalAlign="middle">
+          <Center h={4} w={4} alignContent="center" alignItems="center" verticalAlign="middle">
             {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
           </Center>
-          <Center verticalAlign="middle">
+          <Center
+            verticalAlign="middle"
+            textOverflow="ellipsis"
+            overflow="hidden"
+          >
             <Heading
               as="h5"
               size="sm"

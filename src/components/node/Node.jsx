@@ -2,7 +2,7 @@
 /* eslint-disable import/extensions */
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import React, {
-  useContext, useEffect, useMemo, useState,
+  memo, useContext, useEffect, useMemo, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -57,6 +57,7 @@ const Node = ({ data, selected }) => {
           type={type}
           accentColor={accentColor}
           icon={icon}
+          selected={selected}
         />
         <NodeBody
           inputs={inputs}
@@ -77,4 +78,4 @@ const Node = ({ data, selected }) => {
   );
 };
 
-export default Node;
+export default memo(Node);

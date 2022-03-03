@@ -4,9 +4,9 @@ export default (category, subcategory) => {
       case 'Image|I/O':
         return '#C53030';
       case 'Image|Effect':
-        return '#F56565';
+        return '#319795';
       case 'Image|Utility':
-        return '#9B2C2C';
+        return '#3182CE';
       case 'Image':
         return '#C53030';
       case 'NumPy':
