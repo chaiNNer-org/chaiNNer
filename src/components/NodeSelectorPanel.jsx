@@ -117,7 +117,7 @@ const NodeSelector = ({ data, height }) => {
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
-                        {IconFactory(category)}
+                        {IconFactory(category, useColorModeValue('gray.600', 'gray.400'))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
                       <AccordionIcon />
@@ -157,11 +157,11 @@ const NodeSelector = ({ data, height }) => {
                                   <WrapItem key={node.name} p={2} w="full">
                                     <Tooltip label={node.description} hasArrow closeOnMouseDown>
                                       <Center
-                                        boxSizing="border-box"
+                                        boxSizing="content-box"
                                         onDragStart={(event) => onDragStart(event, category, node)}
                                         draggable
                                         display="block"
-                                        w="full"
+                                        w="100%"
                                       >
                                         {createRepresentativeNode(category, node, node.subcategory)}
                                       </Center>

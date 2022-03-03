@@ -38,6 +38,15 @@ except Exception as e:
     logger.info("PyTorch most likely not installed")
 
 try:
+    import ncnn_vulkan
+
+    from nodes import ncnn_nodes
+except Exception as e:
+    logger.warning(e)
+    logger.info("NCNN most likely not installed")
+
+
+try:
     from nodes import utility_nodes
 except Exception as e:
     logger.warning(e)
@@ -114,7 +123,7 @@ async def run(request: Request):
             os.environ["resolutionX"] = str(full_data["resolutionX"])
             os.environ["resolutionY"] = str(full_data["resolutionY"])
             print(os.environ["resolutionX"], os.environ["resolutionY"])
-            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache)
+            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:

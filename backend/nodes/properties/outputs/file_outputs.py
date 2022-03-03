@@ -15,3 +15,9 @@ def ImageFileOutput(label: str = "image") -> Dict:
     return FileOutput(
         label, "Image File", ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
     )
+
+def OnnxFileOutput() -> Dict:
+    """ Output for saving a .onnx file """
+    return FileOutput(
+        'onnx', "ONNX Model", ["onnx"]
+    )

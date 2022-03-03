@@ -12,36 +12,11 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import (
-    DirectoryInput,
-    ImageExtensionDropdown,
-    ImageFileInput,
-)
-from .properties.inputs.generic_inputs import (
-    BoundlessIntegerInput,
-    DropDownInput,
-    IntegerInput,
-    NumberInput,
-    OddIntegerInput,
-    SliderInput,
-    TextInput,
-)
-from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.opencv_inputs import (
-    AdaptiveMethodInput,
-    AdaptiveThresholdInput,
-    BlurInput,
-    BorderInput,
-    ColorModeInput,
-    InterpolationInput,
-    ThresholdInput,
-)
-from .properties.outputs.file_outputs import ImageFileOutput
-from .properties.outputs.generic_outputs import IntegerOutput
-from .properties.outputs.numpy_outputs import ImageOutput
+from .properties.inputs import *
+from .properties.outputs import *
 
 
-@NodeFactory.register("Image", "Read Image")
+@NodeFactory.register("Image", "Load Image")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 
@@ -137,7 +112,7 @@ class ImShowNode(NodeBase):
         self.description = "Show image preview in a new window"
         self.inputs = [ImageInput()]
         self.outputs = []
-        self.icon = "MdPreview"
+        self.icon = "BsEyeFill"
         self.sub = "I/O"
 
     def checkerboard(self, h, w):

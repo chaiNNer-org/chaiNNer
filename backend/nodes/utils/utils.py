@@ -1,15 +1,19 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
+import functools
 import sys
+import traceback
 
 sys.path.append("...")
 
 import gc
 import os
+from concurrent.futures import ProcessPoolExecutor
 from typing import Tuple
 
 import numpy as np
 import torch
+from ncnn_vulkan import ncnn
 from sanic.log import logger
 from torch import Tensor
 
@@ -214,7 +218,6 @@ def auto_split_process(
             del d_img
             return result, current_depth
         except RuntimeError as e:
-            print(e)
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
@@ -287,6 +290,131 @@ def auto_split_process(
     ]
     output_img[..., -out_h // 2 :, -out_w // 2 :] = bottom_right_rlt[
         ..., -out_h // 2 :, -out_w // 2 :
+    ]
+
+    return output_img, depth
+
+# NCNN version of the above function
+def ncnn_auto_split_process(
+    lr_img: np.ndarray,
+    net,
+    scale: int = 4,
+    overlap: int = 32,
+    max_depth: int = None,
+    current_depth: int = 1,
+    input_name = 'data',
+    output_name = 'output',
+) -> Tuple[Tensor, int]:
+    # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
+
+    # Prevent splitting from causing an infinite out-of-vram loop
+    if current_depth > 15:
+        gc.collect()
+        raise RuntimeError("Splitting stopped to prevent infinite loop")
+
+    # Attempt to upscale if unknown depth or if reached known max depth
+    if max_depth is None or max_depth == current_depth:
+        ex = net.create_extractor()
+        vkdev = ncnn.get_gpu_device(0)
+        blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
+        staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
+        ex.set_blob_vkallocator(blob_vkallocator)
+        ex.set_workspace_vkallocator(blob_vkallocator)
+        ex.set_staging_vkallocator(staging_vkallocator)
+        # ex.set_light_mode(True)
+        try:
+            mat_in = ncnn.Mat.from_pixels(
+                (lr_img.copy() * 255).astype(np.uint8),
+                ncnn.Mat.PixelType.PIXEL_BGR,
+                lr_img.shape[1],
+                lr_img.shape[0]
+            )
+            mean_vals = []
+            norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
+            mat_in.substract_mean_normalize(mean_vals, norm_vals)
+            ex.input(input_name, mat_in)
+            _, mat_out = ex.extract(output_name)
+            result = np.array(mat_out).transpose(1, 2, 0)
+            del ex, mat_in, mat_out
+            # Clear VRAM
+            blob_vkallocator.clear()
+            staging_vkallocator.clear()
+            return result, current_depth
+        except Exception as e:
+            # Check to see if its actually the NCNN out of memory error
+            if "failed" in str(e):
+                # clear VRAM
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
+                del ex, vkdev
+                gc.collect()
+            # Re-raise the exception if not an OOM error
+            else:
+                raise RuntimeError(e)
+
+    h, w, c = lr_img.shape
+
+    # Split image into 4ths
+    top_left = lr_img[: h // 2 + overlap, : w // 2 + overlap, ...]
+    top_right = lr_img[: h // 2 + overlap, w // 2 - overlap :, ...]
+    bottom_left = lr_img[h // 2 - overlap :, : w // 2 + overlap, ...]
+    bottom_right = lr_img[h // 2 - overlap :, w // 2 - overlap :, ...]
+
+    # Recursively upscale the quadrants
+    # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
+    top_left_rlt, depth = ncnn_auto_split_process(
+        top_left,
+        net,
+        scale=scale,
+        overlap=overlap,
+        current_depth=current_depth + 1,
+    )
+    top_right_rlt, _ = ncnn_auto_split_process(
+        top_right,
+        net,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+    bottom_left_rlt, _ = ncnn_auto_split_process(
+        bottom_left,
+        net,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+    bottom_right_rlt, _ = ncnn_auto_split_process(
+        bottom_right,
+        net,
+        scale=scale,
+        overlap=overlap,
+        max_depth=depth,
+        current_depth=current_depth + 1,
+    )
+
+    # Define output shape
+    out_h = h * scale
+    out_w = w * scale
+
+    # Create blank output image
+    output_img = np.zeros(
+        (out_h, out_w, c), dtype=lr_img.dtype
+    )
+
+    # Fill output image with tiles, cropping out the overlaps
+    output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[
+        : out_h // 2, : out_w // 2, ...
+    ]
+    output_img[: out_h // 2, -out_w // 2 :, ...] = top_right_rlt[
+        : out_h // 2, -out_w // 2 :, ...
+    ]
+    output_img[-out_h // 2 :, : out_w // 2, ...] = bottom_left_rlt[
+        -out_h // 2 :, : out_w // 2, ...
+    ]
+    output_img[-out_h // 2 :, -out_w // 2 :, ...] = bottom_right_rlt[
+        -out_h // 2 :, -out_w // 2 :, ...
     ]
 
     return output_img, depth

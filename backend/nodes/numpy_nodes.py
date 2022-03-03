@@ -11,12 +11,11 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.generic_inputs import IntegerInput, SliderInput
-from .properties.inputs.numpy_inputs import ImageInput
-from .properties.outputs.numpy_outputs import ImageOutput
+from .properties.inputs import *
+from .properties.outputs import *
 
 
-@NodeFactory.register("NumPy", "Img::Channel::Split")
+@NodeFactory.register("Image", "Split Channels")
 class ChannelSplitRGBANode(NodeBase):
     """NumPy  Splitter node"""
 
@@ -31,6 +30,9 @@ class ChannelSplitRGBANode(NodeBase):
             ImageOutput("Red Channel"),
             ImageOutput("Alpha Channel"),
         ]
+
+        self.icon = "MdCallSplit"
+        self.sub = "Utility"
 
     def run(self, img: np.ndarray) -> np.ndarray:
         """Split a multi-channel image into separate channels"""
@@ -56,7 +58,7 @@ class ChannelSplitRGBANode(NodeBase):
         return out
 
 
-@NodeFactory.register("NumPy", "Img::Channel::Merge")
+@NodeFactory.register("Image", "Merge Channels")
 class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
 
@@ -71,6 +73,9 @@ class ChannelMergeRGBANode(NodeBase):
             ImageInput("Channel(s) D", optional=True),
         ]
         self.outputs = [ImageOutput()]
+
+        self.icon = "MdCallMerge"
+        self.sub = "Utility"
 
     def run(
         self,
@@ -112,7 +117,7 @@ class ChannelMergeRGBANode(NodeBase):
         return img
 
 
-@NodeFactory.register("NumPy", "Crop::Offsets")
+@NodeFactory.register("Image", "Crop (Offsets)")
 class CropNode(NodeBase):
     """NumPy Crop node"""
 
@@ -128,6 +133,9 @@ class CropNode(NodeBase):
             IntegerInput("Width"),
         ]
         self.outputs = [ImageOutput()]
+
+        self.icon = "MdCrop"
+        self.sub = "Utility"
 
     def run(
         self, img: np.ndarray, top: int, left: int, height: int, width: int
@@ -149,7 +157,7 @@ class CropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("NumPy", "Crop::Border")
+@NodeFactory.register("Image", "Crop (Border)")
 class BorderCropNode(NodeBase):
     """NumPy Border Crop node"""
 
@@ -162,6 +170,9 @@ class BorderCropNode(NodeBase):
             IntegerInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
+
+        self.icon = "MdCrop"
+        self.sub = "Utility"
 
     def run(self, img: np.ndarray, amount: int) -> np.ndarray:
         """Crop an image"""

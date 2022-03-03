@@ -57,6 +57,7 @@ const Node = ({ data, selected }) => {
           type={type}
           accentColor={accentColor}
           icon={icon}
+          selected={selected}
         />
         <NodeBody
           inputs={inputs}

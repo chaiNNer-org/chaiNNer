@@ -86,3 +86,33 @@ def NoteTextAreaInput() -> Dict:
         "hasHandle": False,
         "optional": True,
     }
+
+
+def MathOpsDropdown() -> Dict:
+    """ Input for selecting math operation type from dropdown """
+    return DropDownInput(
+        "math-operations",
+        "Math Operation",
+        [
+            {
+                "option": "Add (+)",
+                "value": "add",
+            },
+            {
+                "option": "Subtract (-)",
+                "value": "sub",
+            },
+            {
+                "option": "Multiply (×)",
+                "value": "mul",
+            },
+            {
+                "option": "Divide (÷)",
+                "value": "div",
+            },
+            {
+                "option": "Exponent/Power (^)",
+                "value": "pow",
+            },
+        ],
+    )

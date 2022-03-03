@@ -65,3 +65,15 @@ def ImageExtensionDropdown() -> Dict:
             },
         ],
     )
+
+def BinFileInput() -> Dict:
+    """ Input for submitting a local .bin file """
+    return FileInput("bin", "NCNN Bin File", None, ["bin"])
+
+def ParamFileInput() -> Dict:
+    """ Input for submitting a local .param file """
+    return FileInput("param", "NCNN Param File", None, ["param"])
+
+def OnnxFileInput() -> Dict:
+    """ Input for submitting a local .onnx file """
+    return FileInput("param", "NCNN Param File", None, ["param"])

@@ -383,6 +383,10 @@ const spawnBackend = async (port) => {
       log.error(`Backend: ${String(data)}`);
     });
 
+    backend.on('exit', (code, signal) => {
+      console.log({ code, signal });
+    });
+
     ipcMain.handle('kill-backend', () => {
       log.info('Attempting to kill backend...');
       try {

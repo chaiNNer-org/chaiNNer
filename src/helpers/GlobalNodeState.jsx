@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState,
+  createContext, useCallback, useEffect, useMemo, useState
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -211,6 +211,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     // Apply input data to inputs when applicable
     nodes.forEach((node) => {
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 221 ~ nodes.forEach ~ node', node);
       const inputData = node.data?.inputData;
       if (inputData) {
         Object.keys(inputData).forEach((index) => {
@@ -298,6 +299,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
+    const sourceNode = nodes.find((n) => n.id === source);
     const newEdge = {
       id,
       sourceHandle,
@@ -308,7 +310,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
       animated: false,
       style: { strokeWidth: 2 },
       data: {
-        sourceType: (nodes.find((n) => n.id === source))?.data.category,
+        sourceType: sourceNode?.data.category,
+        sourceSubCategory: sourceNode?.data.subcategory,
       },
     };
     setEdges([
@@ -376,6 +379,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   };
 
   const useInputData = (id, index) => {
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 379 ~ useInputData ~ id, index', id, index);
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
 
@@ -390,6 +394,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     const inputDataByIndex = inputData[index];
     const setInputData = (data) => {
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 394 ~ setInputData ~ data', data);
       const nodeCopy = { ...nodeById };
       if (nodeCopy && nodeCopy.data) {
         nodeCopy.data.inputData = {
@@ -469,7 +474,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     let isInputLocked = false;
     if (index) {
-      const edge = edges.find((e) => String(e.targetHandle.split('-').slice(-1)) === String(index));
+      const edge = edges.find((e) => e.target === id && String(e.targetHandle.split('-').slice(-1)) === String(index));
+      console.log(edge);
       isInputLocked = !!edge;
     }
     return [isLocked, toggleLock, isInputLocked];
