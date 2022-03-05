@@ -18,6 +18,7 @@ import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const Main = ({ port }) => {
+  const [availableNodes, setAvailableNodes] = useState(null);
   const [nodeTypes, setNodeTypes] = useState(null);
   const edgeTypes = {
     main: CustomEdge,
@@ -38,6 +39,7 @@ const Main = ({ port }) => {
   useEffect(() => {
     if (response.ok && data && !loading && !error && !backendReady) {
       setNodeTypes(createNodeTypes(data));
+      setAvailableNodes(data);
     }
   }, [response, data, loading, error, backendReady]);
 
@@ -97,7 +99,11 @@ const Main = ({ port }) => {
 
   return (
     <ReactFlowProvider>
-      <GlobalProvider nodeTypes={nodeTypes}>
+      <GlobalProvider
+        nodeTypes={nodeTypes}
+        availableNodes={availableNodes}
+        reactFlowWrapper={reactFlowWrapper}
+      >
         <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
           <Header port={port} />
           <HStack

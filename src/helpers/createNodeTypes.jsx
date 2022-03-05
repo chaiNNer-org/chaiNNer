@@ -15,13 +15,15 @@ export const createRepresentativeNode = (category, node, subcategory) => (
 );
 
 export const createNodeTypes = (data) => {
-  const nodesList = {};
-  if (data) {
-    data.forEach(({ category, nodes }) => {
-      nodes.forEach((node) => {
-        nodesList[node.name] = Node;
-      });
-    });
-  }
+  const nodesList = {
+    regularNode: Node,
+  };
+  // if (data) {
+  //   data.forEach(({ category, nodes }) => {
+  //     nodes.forEach((node) => {
+  //       nodesList[node.name] = Node;
+  //     });
+  //   });
+  // }
   return nodesList;
 };

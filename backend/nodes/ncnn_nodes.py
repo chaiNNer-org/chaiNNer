@@ -37,6 +37,8 @@ class NcnnLoadModelNode(NodeBase):
         with open(param_path) as f:
             lines = f.read()
 
+            assert not 'MemoryData' in lines, "This NCNN param file contains invalid layers" 
+
             # Scale
             regex = 'Interp\s*\w*\s*.*2=(\d.?\d*)'
             matches = re.findall(regex, lines)
@@ -62,6 +64,9 @@ class NcnnLoadModelNode(NodeBase):
 
 
     def run(self, param_path: str, bin_path: str) -> np.ndarray:
+        scale, input_name, output_name, out_nc = self.get_param_info(param_path)
+        logger.info(f'{scale}, {input_name}, {output_name}')
+
         net = ncnn.Net()
 
         # Use vulkan compute
@@ -71,8 +76,6 @@ class NcnnLoadModelNode(NodeBase):
         net.load_param(param_path)
         net.load_model(bin_path)
 
-        scale, input_name, output_name, out_nc = self.get_param_info(param_path)
-        logger.info(f'{scale}, {input_name}, {output_name}')
 
         # Put all this info with the net and disguise it as just the net
         return [(net, scale, input_name, output_name)]

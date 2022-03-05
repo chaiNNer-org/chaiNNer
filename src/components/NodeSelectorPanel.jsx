@@ -8,12 +8,13 @@ import {
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
 import React, {
-  memo, useEffect, useState,
+  memo, useContext, useEffect, useState,
 } from 'react';
-import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
+import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
   console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 18 ~ onDragStart ~ event', event);
@@ -36,6 +37,10 @@ const NodeSelector = ({ data, height }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [namespaces, setNamespaces] = useState([]);
+
+  const {
+    createNode, reactFlowInstance, reactFlowWrapper,
+  } = useContext(GlobalContext);
 
   useEffect(() => {
     const set = {};
@@ -171,9 +176,34 @@ const NodeSelector = ({ data, height }) => {
                                         draggable
                                         display="block"
                                         w="100%"
-                                      >
-                                        {createRepresentativeNode(category, node, node.subcategory)}
+                                        onClick={() => {
+                                          const {
+                                            height: wHeight, width,
+                                          } = reactFlowWrapper.current.getBoundingClientRect();
 
+                                          const position = reactFlowInstance.project({
+                                            x: width / 2,
+                                            y: wHeight / 2,
+                                          });
+
+                                          const nodeData = {
+                                            category,
+                                            type: node.name,
+                                            inputs: node.inputs,
+                                            outputs: node.outputs,
+                                            icon: node.icon,
+                                            subcategory,
+                                          };
+
+                                          createNode({ type: 'regularNode', position, data: nodeData });
+                                        }}
+                                      >
+                                        <RepresentativeNode
+                                          category={category}
+                                          type={node.name}
+                                          icon={node.icon}
+                                          subcategory={node.subcategory}
+                                        />
                                       </Center>
                                     </Tooltip>
                                   </WrapItem>

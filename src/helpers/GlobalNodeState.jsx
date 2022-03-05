@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState
+  createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,9 @@ export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
-export const GlobalProvider = ({ children, nodeTypes }) => {
+export const GlobalProvider = ({
+  children, nodeTypes, availableNodes, reactFlowWrapper,
+}) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -197,8 +199,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     // Set up each node in the result
     nodes.forEach((element) => {
-      const { type, id, data } = element;
-      const { category } = data;
+      const { id, data } = element;
+      const { category, type } = data;
       // Node
       result[id] = {
         category,
@@ -567,6 +569,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     reactFlowInstance,
     setReactFlowInstance,
     updateRfi,
+    reactFlowWrapper,
     isValidConnection,
     useInputData,
     useAnimateEdges,
