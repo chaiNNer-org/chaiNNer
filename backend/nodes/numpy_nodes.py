@@ -15,7 +15,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 
 
-@NodeFactory.register("Image", "Split Channels")
+@NodeFactory.register("Image (Utility)", "Split Channels")
 class ChannelSplitRGBANode(NodeBase):
     """NumPy  Splitter node"""
 
@@ -58,7 +58,7 @@ class ChannelSplitRGBANode(NodeBase):
         return out
 
 
-@NodeFactory.register("Image", "Merge Channels")
+@NodeFactory.register("Image (Utility)", "Merge Channels")
 class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
 
@@ -117,7 +117,7 @@ class ChannelMergeRGBANode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image", "Crop (Offsets)")
+@NodeFactory.register("Image (Utility)", "Crop (Offsets)")
 class CropNode(NodeBase):
     """NumPy Crop node"""
 
@@ -157,7 +157,7 @@ class CropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Crop (Border)")
+@NodeFactory.register("Image (Utility)", "Crop (Border)")
 class BorderCropNode(NodeBase):
     """NumPy Border Crop node"""
 

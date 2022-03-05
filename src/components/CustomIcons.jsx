@@ -177,6 +177,10 @@ export const IconFactory = (icon, accentColor) => {
     case 'Image':
       // return <OpenCVIcon color={accentColor} transition="0.15s ease-in-out" />;
       return <Icon as={libraries.bs.BsImageFill} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" transition="0.15s ease-in-out" />;
+    case 'Image (Utility)':
+      return <Icon as={libraries.md.MdCrop} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" transition="0.15s ease-in-out" />;
+    case 'Image (Effect)':
+      return <Icon as={libraries.bs.BsSliders} color={accentColor} alignContent="center" alignItems="center" boxSize={4} viewBox="0 0 4 4" transition="0.15s ease-in-out" />;
     case 'ONNX':
       return <OnnxIcon color={accentColor} transition="0.15s ease-in-out" />;
     case 'NCNN':

@@ -187,7 +187,7 @@ class ImShowNode(NodeBase):
             logger.fatal("Imshow had a critical error")
 
 
-@NodeFactory.register("Image", "Resize (Factor)")
+@NodeFactory.register("Image (Utility)", "Resize (Factor)")
 class ImResizeByFactorNode(NodeBase):
     """OpenCV resize node"""
 
@@ -219,7 +219,7 @@ class ImResizeByFactorNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Resize (Resolution)")
+@NodeFactory.register("Image (Utility)", "Resize (Resolution)")
 class ImResizeToResolutionNode(NodeBase):
     """OpenCV resize node"""
 
@@ -250,7 +250,7 @@ class ImResizeToResolutionNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Change Colorspace")
+@NodeFactory.register("Image (Utility)", "Change Colorspace")
 class ColorConvertNode(NodeBase):
     """OpenCV color conversion node"""
 
@@ -274,7 +274,7 @@ class ColorConvertNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Create Border")
+@NodeFactory.register("Image (Utility)", "Create Border")
 class BorderMakeNode(NodeBase):
     """OpenCV CopyMakeBorder node"""
 
@@ -308,7 +308,7 @@ class BorderMakeNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Threshold")
+@NodeFactory.register("Image (Effect)", "Threshold")
 class ThresholdNode(NodeBase):
     """OpenCV Threshold node"""
 
@@ -356,7 +356,7 @@ class ThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Threshold (Adaptive)")
+@NodeFactory.register("Image (Effect)", "Threshold (Adaptive)")
 class AdaptiveThresholdNode(NodeBase):
     """OpenCV Adaptive Threshold node"""
 
@@ -413,7 +413,7 @@ class AdaptiveThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image", "Stack Images (Horizontal)")
+@NodeFactory.register("Image (Utility)", "Stack Images (Horizontal)")
 class HConcatNode(NodeBase):
     """OpenCV HConcat Node"""
 
@@ -488,7 +488,7 @@ class HConcatNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image", "Stack Images (Vertical)")
+@NodeFactory.register("Image (Utility)", "Stack Images (Vertical)")
 class VConcatNode(NodeBase):
     """OpenCV VConcat Node"""
 
@@ -560,7 +560,7 @@ class VConcatNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image", "Brightness & Contrast")
+@NodeFactory.register("Image (Effect)", "Brightness & Contrast")
 class BrightnessAndContrastNode(NodeBase):
     """OpenCV Brightness Node"""
 
@@ -595,7 +595,7 @@ class BrightnessAndContrastNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image", "Blur Image")
+@NodeFactory.register("Image (Effect)", "Blur Image")
 class BlurNode(NodeBase):
     """OpenCV Blur Node"""
 
@@ -629,7 +629,7 @@ class BlurNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image", "Shift Image")
+@NodeFactory.register("Image (Effect)", "Shift Image")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
 

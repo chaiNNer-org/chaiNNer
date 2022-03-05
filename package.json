@@ -139,6 +139,7 @@
     "file-loader": "^6.2.0",
     "framer-motion": "^4.1.17",
     "hasbin": "^1.2.3",
+    "html-to-image": "^1.9.0",
     "image-js": "^0.33.0",
     "image-webpack-loader": "^8.1.0",
     "lodash": "^4.17.21",

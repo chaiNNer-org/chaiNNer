@@ -3,16 +3,20 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading, HStack,
-  Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  Box, Center, Divider, Heading, HStack, Input,
+  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, { memo, useEffect, useState } from 'react';
+import React, {
+  memo, useEffect, useState,
+} from 'react';
 import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
+import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
+  console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 18 ~ onDragStart ~ event', event);
   event.dataTransfer.setData('application/reactflow/type', node.name);
   event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
   event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
@@ -117,7 +121,8 @@ const NodeSelector = ({ data, height }) => {
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
-                        {IconFactory(category, useColorModeValue('gray.600', 'gray.400'))}
+                        {/* {IconFactory(category, useColorModeValue('gray.600', 'gray.400'))} */}
+                        {IconFactory(category, getNodeAccentColor(category, subcategory))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
                       <AccordionIcon />
@@ -154,16 +159,21 @@ const NodeSelector = ({ data, height }) => {
                                     .localeCompare(b.name.toUpperCase()),
                                 )
                                 .map((node) => (
-                                  <WrapItem key={node.name} p={2} w="full">
+                                  <WrapItem key={node.name} p={1} w="full">
                                     <Tooltip label={node.description} hasArrow closeOnMouseDown>
                                       <Center
                                         boxSizing="content-box"
-                                        onDragStart={(event) => onDragStart(event, category, node)}
+                                        onDragStart={
+                                            (event) => {
+                                              onDragStart(event, category, node);
+                                            }
+                                          }
                                         draggable
                                         display="block"
                                         w="100%"
                                       >
                                         {createRepresentativeNode(category, node, node.subcategory)}
+
                                       </Center>
                                     </Tooltip>
                                   </WrapItem>
