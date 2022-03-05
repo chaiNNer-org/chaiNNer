@@ -1,5 +1,4 @@
 export default (category, subcategory) => {
-  console.log('🚀 ~ file: getNodeAccentColors.js ~ line 2 ~ category, subcategory', category, subcategory);
   if (subcategory) {
     switch (`${category}|${subcategory}`) {
       case 'Image|I/O':

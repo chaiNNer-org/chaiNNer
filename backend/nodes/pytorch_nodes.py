@@ -34,7 +34,26 @@ def check_env():
         else:
             logger.warn("Something isn't set right with the device env var")
 
+def load_state_dict(state_dict):
+    logger.info(f"Loading state dict into ESRGAN model")
 
+    # SRVGGNet Real-ESRGAN (v2)
+    if (
+        "params" in state_dict.keys()
+        and "body.0.weight" in state_dict["params"].keys()
+    ):
+        model = RealESRGANv2(state_dict)
+    # SPSR (ESRGAN with lots of extra layers)
+    elif "f_HR_conv1.0.weight" in state_dict:
+        model = SPSR(state_dict)
+    # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
+    else:
+        try:
+            model = ESRGAN(state_dict)
+        except:
+            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+    return model
+    
 @NodeFactory.register("PyTorch", "Load Model")
 class LoadStateDictNode(NodeBase):
     """Load Model node"""
@@ -56,23 +75,7 @@ class LoadStateDictNode(NodeBase):
         logger.info(f"Reading state dict from path: {path}")
         state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
 
-        logger.info(f"Loading state dict into ESRGAN model")
-
-        # SRVGGNet Real-ESRGAN (v2)
-        if (
-            "params" in state_dict.keys()
-            and "body.0.weight" in state_dict["params"].keys()
-        ):
-            model = RealESRGANv2(state_dict)
-        # SPSR (ESRGAN with lots of extra layers)
-        elif "f_HR_conv1.0.weight" in state_dict:
-            model = SPSR(state_dict)
-        # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
-        else:
-            try:
-                model = ESRGAN(state_dict)
-            except:
-                raise ValueError("Model unsupported by chaiNNer. Please try another.")
+        model = load_state_dict(state_dict)
 
         for _, v in model.named_parameters():
             v.requires_grad = False
@@ -179,7 +182,7 @@ class InterpolateNode(NodeBase):
             StateDictInput(),
             SliderInput("Amount", 0, 100, 50),
         ]
-        self.outputs = [StateDictOutput()]
+        self.outputs = [StateDictOutput(), ModelOutput()]
 
         self.icon = "PyTorch"
         self.sub = "Utility"
@@ -204,10 +207,9 @@ class InterpolateNode(NodeBase):
         b_keys = model_b.keys()
         if a_keys != b_keys:
             return False
-        loaded = AutoLoadModelNode()
         interp_50 = self.perform_interp(model_a, model_b, 50)
+        model = load_state_dict(interp_50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32)
-        model = loaded.run(interp_50)
         del loaded, interp_50
         result = ImageUpscaleNode().run(model, fake_img)
         del model
@@ -219,7 +221,7 @@ class InterpolateNode(NodeBase):
 
     def run(
         self, model_a: OrderedDict, model_b: OrderedDict, amount: int
-    ) -> np.ndarray:
+    ) -> Any:
 
         logger.info(f"Interpolating models...")
         if not self.check_can_interp(model_a, model_b):
@@ -228,8 +230,9 @@ class InterpolateNode(NodeBase):
             )
 
         state_dict = self.perform_interp(model_a, model_b, amount)
+        model = load_state_dict(state_dict)
 
-        return state_dict
+        return state_dict, model
 
 
 @NodeFactory.register("PyTorch", "Save Model")

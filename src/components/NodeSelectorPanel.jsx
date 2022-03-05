@@ -17,7 +17,6 @@ import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
-  console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 18 ~ onDragStart ~ event', event);
   event.dataTransfer.setData('application/reactflow/type', node.name);
   event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
   event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
@@ -52,7 +51,6 @@ const NodeSelector = ({ data, height }) => {
             .localeCompare((b.subcategory + b.name).toUpperCase()),
         )
         .forEach((node) => {
-          console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 41 ~ .forEach ~ node', node);
           const namespace = node.subcategory;
           if (!set[category]) {
             set[category] = [];

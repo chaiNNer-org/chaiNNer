@@ -213,7 +213,6 @@ export const GlobalProvider = ({
 
     // Apply input data to inputs when applicable
     nodes.forEach((node) => {
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 221 ~ nodes.forEach ~ node', node);
       const inputData = node.data?.inputData;
       if (inputData) {
         Object.keys(inputData).forEach((index) => {
@@ -381,7 +380,6 @@ export const GlobalProvider = ({
   };
 
   const useInputData = (id, index) => {
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 379 ~ useInputData ~ id, index', id, index);
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
 
@@ -396,7 +394,6 @@ export const GlobalProvider = ({
 
     const inputDataByIndex = inputData[index];
     const setInputData = (data) => {
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 394 ~ setInputData ~ data', data);
       const nodeCopy = { ...nodeById };
       if (nodeCopy && nodeCopy.data) {
         nodeCopy.data.inputData = {
@@ -559,6 +556,7 @@ export const GlobalProvider = ({
   };
 
   const contextValue = useMemo(() => ({
+    availableNodes,
     nodes,
     edges,
     elements: [...nodes, ...edges],

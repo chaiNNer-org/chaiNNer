@@ -595,7 +595,7 @@ class BrightnessAndContrastNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Blur Image")
+@NodeFactory.register("Image (Effect)", "Blur")
 class BlurNode(NodeBase):
     """OpenCV Blur Node"""
 
@@ -629,7 +629,7 @@ class BlurNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Shift Image")
+@NodeFactory.register("Image (Effect)", "Shift")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
 

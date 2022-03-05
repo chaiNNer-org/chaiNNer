@@ -38,10 +38,7 @@ const CustomEdge = ({
   // const accentColor = getNodeAccentColors(data.sourceType, data.sourceSubCategory);
   // We dynamically grab this data instead since storing the types makes transitioning harder
   const accentColor = useMemo(
-    () => {
-      console.log('performance check: accentcolor');
-      return getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory);
-    },
+    () => getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory),
     [parentNode],
   );
   const selectedColor = shadeColor(accentColor, -40);

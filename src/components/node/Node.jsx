@@ -12,14 +12,45 @@ import NodeBody from './NodeBody.jsx';
 import NodeFooter from './NodeFooter.jsx';
 import NodeHeader from './NodeHeader.jsx';
 
+const blankSchema = {
+  inputs: [],
+  outputs: [],
+  icon: '',
+  subcategory: '',
+};
+
+const getSchema = (availableNodes, category, type) => {
+  if (availableNodes) {
+    try {
+      const categorySchema = availableNodes.find((e) => e.category === category);
+      if (categorySchema && categorySchema.nodes) {
+        const schema = categorySchema.nodes.find((e) => e.name === type);
+        return schema;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  return blankSchema;
+};
+
 const Node = ({ data, selected }) => {
   const {
-    edges, useNodeLock,
+    edges, useNodeLock, availableNodes,
   } = useContext(GlobalContext);
 
   const {
-    id, inputs, inputData, isLocked, outputs, category, type, icon, subcategory,
+    id, inputData, isLocked, category, type,
   } = data;
+
+  // We get inputs and outputs this way in case something changes with them in the future
+  // This way, we have to do less in the migration file
+  const schema = useMemo(
+    () => getSchema(availableNodes, category, type), [category, type],
+  ) ?? blankSchema;
+  const {
+    inputs, outputs, icon, subcategory,
+  } = schema;
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
   const accentColor = useMemo(
@@ -33,9 +64,11 @@ const Node = ({ data, selected }) => {
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
-    setValidity(checkNodeValidity({
-      id, inputs, inputData, edges,
-    }));
+    if (inputs && inputs.length) {
+      setValidity(checkNodeValidity({
+        id, inputs, inputData, edges,
+      }));
+    }
   }, [inputData, edges.length]);
 
   const [, toggleLock] = useNodeLock(id);
