@@ -23,16 +23,16 @@ class ImReadNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Read image from file into BGR numpy array"
+        self.description = "Load image from file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
             ImageOutput(),
-            IntegerOutput("Height"),
-            IntegerOutput("Width"),
-            IntegerOutput("Channels"),
+            # IntegerOutput("Height"),
+            # IntegerOutput("Width"),
+            # IntegerOutput("Channels"),
         ]
         self.icon = "BsFillImageFill"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def run(self, path: str) -> np.ndarray:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -75,7 +75,7 @@ class ImWriteNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Write image from BGR numpy array to file"
+        self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
             DirectoryInput(),
@@ -84,7 +84,7 @@ class ImWriteNode(NodeBase):
         ]
         self.outputs = []
         self.icon = "BsImage"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def run(
         self, img: np.ndarray, directory: str, filename: str, extension: str
@@ -109,11 +109,11 @@ class ImShowNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Show image preview in a new window"
+        self.description = "Show image preview in a new window."
         self.inputs = [ImageInput()]
         self.outputs = []
         self.icon = "BsEyeFill"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def checkerboard(self, h, w):
         square_size = 8
@@ -194,7 +194,7 @@ class ImResizeByFactorNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Resize a numpy array image by a scale factor"
+        self.description = "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%)."
         self.inputs = [
             ImageInput(),
             NumberInput("Scale Factor", default=1.0, step=0.5),
@@ -202,7 +202,7 @@ class ImResizeByFactorNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
-        self.sub = "Utility"
+        self.sub = "Resizing & Reshaping"
 
     def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
         """Takes an image and resizes it"""
@@ -226,7 +226,7 @@ class ImResizeToResolutionNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Resize a numpy array image to an exact resolution"
+        self.description = "Resize an image to an exact resolution."
         self.inputs = [
             ImageInput(),
             IntegerInput("Width"),
@@ -235,7 +235,7 @@ class ImResizeToResolutionNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
-        self.sub = "Utility"
+        self.sub = "Resizing & Reshaping"
 
     def run(
         self, img: np.ndarray, width: int, height: int, interpolation: int
@@ -257,14 +257,14 @@ class ColorConvertNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Converts the color of an image"
+        self.description = "Convert the colorspace of an image to a different one. Also can convert to different channel-spaces."
         self.inputs = [
             ImageInput(),
             ColorModeInput(),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdColorLens"
-        self.sub = "Utility"
+        self.sub = "Miscellanous"
 
     def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
@@ -281,7 +281,7 @@ class BorderMakeNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Creates a border around the image"
+        self.description = "Creates a border around the image."
         self.inputs = [
             ImageInput(),
             BorderInput(),
@@ -289,7 +289,7 @@ class BorderMakeNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsBorderOuter"
-        self.sub = "Utility"
+        self.sub = "Miscellanous"
 
     def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
         """Takes an image and applies a border to it"""
@@ -315,7 +315,7 @@ class ThresholdNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Threshold an image"
+        self.description = "Perform a threshold on an image."
         self.inputs = [
             ImageInput(),
             SliderInput("Threshold", 0, 100, 50),
@@ -324,7 +324,7 @@ class ThresholdNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdShowChart"
-        self.sub = "Effect"
+        self.sub = "Miscellaneous"
 
     def run(
         self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
@@ -363,7 +363,7 @@ class AdaptiveThresholdNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Adaptive threshold an image"
+        self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
             ImageInput(),
             SliderInput("Maximum Value", 0, 100, 100),
@@ -374,7 +374,7 @@ class AdaptiveThresholdNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdAutoGraph"
-        self.sub = "Effect"
+        self.sub = "Miscellaneous"
 
     def run(
         self,
@@ -420,7 +420,7 @@ class HConcatNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Concatenate multiple images horizontally"
+        self.description = "Concatenate multiple images horizontally."
         self.inputs = [
             ImageInput("Image A"),
             ImageInput("Image B", optional=True),
@@ -429,7 +429,7 @@ class HConcatNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "CgMergeVertical"
-        self.sub = "Utility"
+        self.sub = "Stacking"
 
     def run(
         self,
@@ -495,7 +495,7 @@ class VConcatNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Concatenate multiple images vertically"
+        self.description = "Concatenate multiple images vertically."
         self.inputs = [
             ImageInput("Image A"),
             ImageInput("Image B", optional=True),
@@ -504,7 +504,7 @@ class VConcatNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "CgMergeHorizontal"
-        self.sub = "Utility"
+        self.sub = "Stacking"
 
     def run(
         self,
@@ -567,7 +567,7 @@ class BrightnessAndContrastNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Adjust the brightness and contrast of an image"
+        self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
             SliderInput("Brightness", -100, 100, 0),
@@ -575,7 +575,7 @@ class BrightnessAndContrastNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "ImBrightnessContrast"
-        self.sub = "Effect"
+        self.sub = "Adjustment"
 
     def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
@@ -610,7 +610,7 @@ class BlurNode(NodeBase):
         ]  # , IntegerInput("Sigma")]#,BlurInput()]
         self.outputs = [ImageOutput()]
         self.icon = "MdBlurOn"
-        self.sub = "Effect"
+        self.sub = "Adjustment"
 
     def run(
         self,
@@ -636,7 +636,7 @@ class ShiftNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Shift an image by an x, y amount"
+        self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
             BoundlessIntegerInput("Amount X"),
@@ -644,7 +644,7 @@ class ShiftNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsGraphDown"
-        self.sub = "Effect"
+        self.sub = "Adjustment"
 
     def run(
         self,
@@ -657,3 +657,177 @@ class ShiftNode(NodeBase):
         translation_matrix = np.float32([[1, 0, amountX], [0, 1, amountY]])
         img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
         return img
+
+
+@NodeFactory.register("Image (Utility)", "Split Channels")
+class ChannelSplitRGBANode(NodeBase):
+    """NumPy  Splitter node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Split numpy image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            ImageOutput("Blue Channel"),
+            ImageOutput("Green Channel"),
+            ImageOutput("Red Channel"),
+            ImageOutput("Alpha Channel"),
+        ]
+
+        self.icon = "MdCallSplit"
+        self.sub = "Channel Operation"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Split a multi-channel image into separate channels"""
+        c = 1
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+
+        if img.ndim > 2:
+            c = img.shape[2]
+            safe_out = np.ones_like(img[:, :, 0]) * dtype_max
+        else:
+            safe_out = np.ones_like(img) * dtype_max
+
+        out = []
+        for i in range(c):
+            out.append(img[:, :, i])
+        for i in range(4 - c):
+            out.append(safe_out)
+
+        return out
+
+
+@NodeFactory.register("Image (Utility)", "Merge Channels")
+class ChannelMergeRGBANode(NodeBase):
+    """NumPy Merger node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Merge numpy channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
+        self.inputs = [
+            ImageInput("Channel(s) A"),
+            ImageInput("Channel(s) B", optional=True),
+            ImageInput("Channel(s) C", optional=True),
+            ImageInput("Channel(s) D", optional=True),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdCallMerge"
+        self.sub = "Channel Operation"
+
+    def run(
+        self,
+        im1: np.ndarray,
+        im2: np.ndarray = None,
+        im3: np.ndarray = None,
+        im4: np.ndarray = None,
+    ) -> np.ndarray:
+        """Combine separate channels into a multi-chanel image"""
+
+        start_shape = im1.shape[:2]
+
+        for im in im2, im3, im4:
+            if im is not None:
+                assert (
+                    im.shape[:2] == start_shape
+                ), "All images to be merged must be the same resolution"
+
+        imgs = []
+        for img in im1, im2, im3, im4:
+            if img is not None:
+                imgs.append(img)
+
+        for idx, img in enumerate(imgs):
+            if img.ndim == 2:
+                imgs[idx] = np.expand_dims(img, axis=2)
+
+        img = np.concatenate(imgs, axis=2)
+
+        # ensure output is safe number of channels
+        if img.ndim > 2:
+            h, w, c = img.shape
+            if c == 2:
+                b, g = cv2.split(img)
+                img = cv2.merge((b, g, g))
+            if c > 4:
+                img = img[:, :, :4]
+
+        return img
+
+
+@NodeFactory.register("Image (Utility)", "Crop (Offsets)")
+class CropNode(NodeBase):
+    """NumPy Crop node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Top Offset"),
+            IntegerInput("Left Offset"),
+            IntegerInput("Height"),
+            IntegerInput("Width"),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdCrop"
+        self.sub = "Resizing & Reshaping"
+
+    def run(
+        self, img: np.ndarray, top: int, left: int, height: int, width: int
+    ) -> np.ndarray:
+        """Crop an image"""
+
+        h, w = img.shape[:2]
+
+        top = int(top)
+        left = int(left)
+        height = int(height)
+        width = int(width)
+
+        assert top < h, "Cropped area would result in image with no height"
+        assert left < w, "Cropped area would result in image with no width"
+
+        result = img[top : top + height, left : left + width]
+
+        return result
+
+
+@NodeFactory.register("Image (Utility)", "Crop (Border)")
+class BorderCropNode(NodeBase):
+    """NumPy Border Crop node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Crop an image based on border margin around the entire image."
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdCrop"
+        self.sub = "Resizing & Reshaping"
+
+    def run(self, img: np.ndarray, amount: int) -> np.ndarray:
+        """Crop an image"""
+
+        h, w = img.shape[:2]
+
+        amount = int(amount)
+
+        assert 2 * amount < h, "Cropped area would result in image with no height"
+        assert 2 * amount < w, "Cropped area would result in image with no width"
+
+        result = img[amount : h - amount, amount : w - amount]
+
+        return result

@@ -474,7 +474,6 @@ export const GlobalProvider = ({
     let isInputLocked = false;
     if (index) {
       const edge = edges.find((e) => e.target === id && String(e.targetHandle.split('-').slice(-1)) === String(index));
-      console.log(edge);
       isInputLocked = !!edge;
     }
     return [isLocked, toggleLock, isInputLocked];

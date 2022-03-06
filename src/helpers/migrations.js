@@ -24,10 +24,10 @@ const preAlpha = (data) => {
 };
 
 // ==============
-//    v3.0.0
+//    v0.3.0
 // ==============
 
-const v3TypeMap = {
+const v03TypeMap = {
   'Adjust::Blur': ['Image (Effect)', 'Blur'],
   'Adjust::Brightness': ['Image (Effect)', 'Brightness & Contrast'],
   'Adjust::Contrast': ['Image (Effect)', 'Brightness & Contrast'],
@@ -54,7 +54,7 @@ const v3TypeMap = {
   'Model::Save': ['PyTorch', 'Save Model'],
 };
 
-const toV3 = (data) => {
+const toV03 = (data) => {
   const newData = { ...data };
   let newElements = [...newData.elements];
   newElements.forEach((element) => {
@@ -99,7 +99,7 @@ const toV3 = (data) => {
         delete newElement.data.inputData[0];
       }
       // console.log({ newElement });
-      const [newCategory, newType] = v3TypeMap[newElement.data.type];
+      const [newCategory, newType] = v03TypeMap[newElement.data.type];
       newElement.data.type = newType;
       newElement.data.category = newCategory;
       return newElement;
@@ -121,8 +121,8 @@ export const migrate = (version, data) => {
   }
 
   // V1&2 to V3
-  if (semver.lt(version, '3.0.0')) {
-    convertedData = toV3(convertedData);
+  if (semver.lt(version, '0.3.0')) {
+    convertedData = toV03(convertedData);
   }
 
   return convertedData;

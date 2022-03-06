@@ -22,7 +22,7 @@ class NcnnLoadModelNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Load NCNN model."
+        self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
         self.outputs = [NcnnNetOutput()]
         self.icon = "NCNN"
@@ -90,7 +90,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Perform inference with NCNN."
+        self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
         self.inputs = [NcnnNetInput(), ImageInput()]
         self.outputs = [ImageOutput()]
         self.icon = "NCNN"

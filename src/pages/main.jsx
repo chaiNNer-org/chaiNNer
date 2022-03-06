@@ -11,9 +11,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
+import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import { createNodeTypes } from '../helpers/createNodeTypes.jsx';
 import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
@@ -38,7 +38,9 @@ const Main = ({ port }) => {
 
   useEffect(() => {
     if (response.ok && data && !loading && !error && !backendReady) {
-      setNodeTypes(createNodeTypes(data));
+      setNodeTypes({
+        regularNode: Node,
+      });
       setAvailableNodes(data);
     }
   }, [response, data, loading, error, backendReady]);

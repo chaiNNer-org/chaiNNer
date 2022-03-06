@@ -15,18 +15,10 @@ from sanic_cors import CORS
 try:
     import cv2
 
-    from nodes import opencv_nodes
+    from nodes import image_nodes
 except Exception as e:
     logger.warning(e)
     logger.info("OpenCV most likely not installed")
-
-try:
-    import numpy
-
-    from nodes import numpy_nodes
-except Exception as e:
-    logger.warning(e)
-    logger.info("NumPy most likely not installed")
 
 try:
     import torch

@@ -124,7 +124,6 @@ const NodeSelector = ({ data, height }) => {
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
-                        {/* {IconFactory(category, useColorModeValue('gray.600', 'gray.400'))} */}
                         {IconFactory(category, getNodeAccentColor(category, subcategory))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
@@ -143,7 +142,7 @@ const NodeSelector = ({ data, height }) => {
                             <Center w="full">
                               <HStack w="full">
                                 <Divider orientation="horizontal" />
-                                <Text fontSize="sm" color="#71809699" casing="uppercase">{namespace}</Text>
+                                <Text fontSize="sm" color="#71809699" casing="uppercase" w="auto" whiteSpace="nowrap">{namespace}</Text>
                                 <Divider orientation="horizontal" />
                               </HStack>
                             </Center>
@@ -163,7 +162,14 @@ const NodeSelector = ({ data, height }) => {
                                 )
                                 .map((node) => (
                                   <WrapItem key={node.name} p={1} w="full">
-                                    <Tooltip label={node.description} hasArrow closeOnMouseDown>
+                                    <Tooltip
+                                      label={node.description}
+                                      hasArrow
+                                      closeOnMouseDown
+                                      borderRadius={8}
+                                      py={1}
+                                      px={2}
+                                    >
                                       <Center
                                         boxSizing="content-box"
                                         onDragStart={
@@ -174,7 +180,7 @@ const NodeSelector = ({ data, height }) => {
                                         draggable
                                         display="block"
                                         w="100%"
-                                        onClick={() => {
+                                        onDoubleClick={() => {
                                           const {
                                             height: wHeight, width,
                                           } = reactFlowWrapper.current.getBoundingClientRect();

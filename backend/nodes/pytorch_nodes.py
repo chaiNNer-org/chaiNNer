@@ -61,12 +61,12 @@ class LoadStateDictNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Load PyTorch state dict file (.pth) from path into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture"
+        self.description = "Load PyTorch state dict file (.pth) into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture."
         self.inputs = [PthFileInput()]
         self.outputs = [StateDictOutput(), ModelOutput()]
 
         self.icon = "PyTorch"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def run(self, path: str) -> Any:
         """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
@@ -92,7 +92,7 @@ class ImageUpscaleNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Upscales a BGR numpy array using a Super-Resolution model"
+        self.description = "Upscales an image using a PyTorch Super-Resolution model."
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
@@ -176,7 +176,7 @@ class InterpolateNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Interpolate two of the same kind of model together"
+        self.description = "Interpolate two of the same kind of model state-dict together. Note: models must share a common 'pretrained model' ancestor in order to be interpolatable."
         self.inputs = [
             StateDictInput(),
             StateDictInput(),
@@ -242,12 +242,12 @@ class PthSaveNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Save a PyTorch model"
+        self.description = "Save a PyTorch model to specified directory."
         self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
         self.icon = "PyTorch"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def run(self, model: OrderedDict(), directory: str, name: str) -> bool:
         fullFile = f"{name}.pth"
@@ -357,11 +357,11 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Convert a PyTorch model to ONNX (for converting to NCNN)."
+        self.description = "Convert a PyTorch model to ONNX (for converting to NCNN). Use convertmodel.com to convert to NCNN for now."
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
         self.icon = "ONNX"
-        self.sub = "I/O"
+        self.sub = "Input & Output"
 
     def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
         model.eval().cuda()
@@ -369,8 +369,4 @@ class ConvertTorchToONNXNode(NodeBase):
         dynamic_axes= {'data':{0: 'batch_size', 2:'width', 3:'height'}, 'output':{0:'batch_size' , 2:'width', 3:'height'}}
         dummy_input = torch.rand(1, model.in_nc, 64, 64).cuda()
 
-        # fp32
         torch.onnx.export(model, dummy_input, os.path.join(directory, f'{model_name}.onnx'), opset_version=14, verbose=False, input_names=["data"], output_names=["output"], dynamic_axes=dynamic_axes)
-        # fp16
-        # torch.onnx.export(model.half(), dummy_input.half(), r"C:\Users\Joey\Desktop\4xSpongeBob_redo_fp16.onnx", opset_version=14, verbose=False, input_names=["data"], output_names=["output"], dynamic_axes=dynamic_axes)
-
