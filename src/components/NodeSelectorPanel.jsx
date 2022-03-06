@@ -18,8 +18,8 @@ import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/type', node.name);
-  event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
-  event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
+  // event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
+  // event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);

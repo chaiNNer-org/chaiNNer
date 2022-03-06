@@ -1,9 +1,9 @@
 import {
-  Center, ChakraProvider, Flex, Progress, Spinner, Text,
+  Center, ChakraProvider, Flex, Progress, Spinner, Text
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 // eslint-disable-next-line import/extensions
 import './global.css';
 
@@ -65,8 +65,8 @@ const Splash = () => {
   }, []);
 
   return (
-    <ChakraProvider bg="gray.700">
-      <Center w="full" bg="gray.700" h="400px" color="white">
+    <ChakraProvider>
+      <Center w="full" bg="gray.700" h="400px" color="white" borderRadius={8}>
         <Flex w="full" flexDirection="column">
           <Center>
             <Spinner color="cyan.500" />
@@ -87,6 +87,6 @@ const Splash = () => {
   );
 };
 
-ReactDOM.render(<Splash />, document.getElementById('root'));
+ReactDOM.createRoot(document.getElementById('root')).render(<Splash />);
 
 export default Splash;

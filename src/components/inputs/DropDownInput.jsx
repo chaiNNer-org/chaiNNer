@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { Select } from '@chakra-ui/react';
-import React, { memo, useContext } from 'react';
+import React, { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const DropDownInput = memo(({
@@ -14,6 +14,10 @@ const DropDownInput = memo(({
     const { value } = event.target;
     setSelection(value);
   };
+
+  useEffect(() => {
+    setSelection(options[0].value);
+  }, []);
 
   return (
     <Select

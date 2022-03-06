@@ -1,10 +1,10 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
+  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell
 } from 'electron';
 import log from 'electron-log';
 import {
-  access, readFile, writeFile,
+  access, readFile, writeFile
 } from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -443,7 +443,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     width: 400,
     height: 400,
     frame: false,
-    backgroundColor: '#2D3748',
+    // backgroundColor: '#2D3748',
     center: true,
     minWidth: 400,
     minHeight: 400,
@@ -455,6 +455,8 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     closable: false,
     alwaysOnTop: true,
     titleBarStyle: 'hidden',
+    // transparent: true,
+    // roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nativeWindowOpen: true,
@@ -528,6 +530,7 @@ const createWindow = async () => {
     minWidth: 720,
     minHeight: 640,
     darkTheme: nativeTheme.shouldUseDarkColors,
+    roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
@@ -662,6 +665,12 @@ const createWindow = async () => {
           label: 'Get ESRGAN models',
           click: async () => {
             await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
+          },
+        },
+        {
+          label: 'Convert ONNX models to NCNN',
+          click: async () => {
+            await shell.openExternal('https://convertmodel.com/');
           },
         },
       ],

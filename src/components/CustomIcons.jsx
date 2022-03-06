@@ -2,13 +2,13 @@
 import { createIcon } from '@chakra-ui/icons';
 import { Icon } from '@chakra-ui/react';
 import React from 'react';
+import * as bs from 'react-icons/bs';
+import * as cg from 'react-icons/cg';
+import * as im from 'react-icons/im';
+import * as md from 'react-icons/md';
 
 const libraries = {
-  bs: require('react-icons/bs'),
-  cg: require('react-icons/cg'),
-  md: require('react-icons/md'),
-  im: require('react-icons/im'),
-  gi: require('react-icons/gi'),
+  bs, cg, md, im,
 };
 
 export const NumPyIcon = createIcon({

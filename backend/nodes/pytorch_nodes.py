@@ -18,7 +18,8 @@ from .properties.outputs import *
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from .utils.utils import auto_split_process, np2tensor, tensor2np
+from .utils.pytorch_auto_split import auto_split_process
+from .utils.utils import np2tensor, tensor2np
 
 
 def check_env():
@@ -210,7 +211,7 @@ class InterpolateNode(NodeBase):
         interp_50 = self.perform_interp(model_a, model_b, 50)
         model = load_state_dict(interp_50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32)
-        del loaded, interp_50
+        del interp_50
         result = ImageUpscaleNode().run(model, fake_img)
         del model
         mean_color = np.mean(result)

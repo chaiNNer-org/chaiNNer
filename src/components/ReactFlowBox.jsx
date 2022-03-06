@@ -42,21 +42,21 @@ const ReactFlowBox = ({
   };
 
   const onDrop = (event) => {
-    log.info('dropped');
+    // log.info('dropped');
     event.preventDefault();
 
     const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
     try {
       const type = event.dataTransfer.getData('application/reactflow/type');
-      const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
-      const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
+      // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
+      // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
       const category = event.dataTransfer.getData('application/reactflow/category');
       const icon = event.dataTransfer.getData('application/reactflow/icon');
       const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
       const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
       const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
-      log.info(type, inputs, outputs, category);
+      // log.info(type, inputs, outputs, category);
 
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left - offsetX,
@@ -66,8 +66,8 @@ const ReactFlowBox = ({
       const nodeData = {
         category,
         type,
-        inputs,
-        outputs,
+        // inputs,
+        // outputs,
         icon,
         subcategory,
       };

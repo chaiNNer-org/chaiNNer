@@ -45,11 +45,13 @@ const Main = ({ port }) => {
     }
   }, [response, data, loading, error, backendReady]);
 
-  useEffect(async () => {
-    if (nodeTypes && !backendReady) {
-      setBackendReady(true);
-      await ipcRenderer.invoke('backend-ready');
-    }
+  useEffect(() => {
+    (async () => {
+      if (nodeTypes && !backendReady) {
+        setBackendReady(true);
+        await ipcRenderer.invoke('backend-ready');
+      }
+    })();
   }, [nodeTypes]);
 
   if (!nodeTypes) {

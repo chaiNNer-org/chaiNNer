@@ -12,7 +12,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.utils import ncnn_auto_split_process
+from .utils.ncnn_auto_split import ncnn_auto_split_process
 
 
 @NodeFactory.register("NCNN", "Load Model")

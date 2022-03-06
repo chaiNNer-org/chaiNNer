@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Center, HStack, Image, Tag, VStack, Spinner,
+  Center, HStack, Image, Spinner, Tag, VStack,
 } from '@chakra-ui/react';
 import { Image as ImageJS } from 'image-js';
 import React, { memo, useEffect, useState } from 'react';
@@ -28,13 +28,15 @@ export default memo(({
   const [img, setImg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(async () => {
-    if (path) {
-      setIsLoading(true);
-      const loadedImg = await ImageJS.load(path);
-      setImg(loadedImg);
-      setIsLoading(false);
-    }
+  useEffect(() => {
+    (async () => {
+      if (path) {
+        setIsLoading(true);
+        const loadedImg = await ImageJS.load(path);
+        setImg(loadedImg);
+        setIsLoading(false);
+      }
+    })();
   }, [path]);
 
   return (

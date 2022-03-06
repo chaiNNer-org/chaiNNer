@@ -56,6 +56,7 @@ export const GlobalProvider = ({
 
   const setStateFromJSON = (savedData, loadPosition = false) => {
     if (savedData) {
+      // TODO: This needs to be fixed or it won't work
       const nodeTypesArr = Object.keys(nodeTypes);
       const validNodes = savedData.elements.filter(
         (element) => isNode(element) && nodeTypesArr.includes(element.type),
@@ -134,21 +135,23 @@ export const GlobalProvider = ({
     };
   }, []);
 
-  useEffect(async () => {
-    if (!loadedFromCli) {
-      const contents = await ipcRenderer.invoke('get-cli-open');
-      if (contents) {
-        const { version, content } = contents;
-        if (version) {
-          const upgraded = migrate(version, content);
-          setStateFromJSON(upgraded, true);
-        } else {
+  useEffect(() => {
+    (async () => {
+      if (!loadedFromCli) {
+        const contents = await ipcRenderer.invoke('get-cli-open');
+        if (contents) {
+          const { version, content } = contents;
+          if (version) {
+            const upgraded = migrate(version, content);
+            setStateFromJSON(upgraded, true);
+          } else {
           // Legacy files
-          const upgraded = migrate(null, content);
-          setStateFromJSON(upgraded, true);
+            const upgraded = migrate(null, content);
+            setStateFromJSON(upgraded, true);
+          }
         }
       }
-    }
+    })();
   }, []);
 
   // Register Open File event handler
@@ -359,8 +362,18 @@ export const GlobalProvider = ({
     const sourceNode = nodes.find((node) => node.id === source);
     const targetNode = nodes.find((node) => node.id === target);
 
-    const sourceOutput = sourceNode.data.outputs[sourceHandleIndex];
-    const targetInput = targetNode.data.inputs[targetHandleIndex];
+    // Target inputs, source outputs
+    // This may be somewhat of a performance hog as the number of nodes grows
+    // It might be worth it to build a map or object that uses category/type keys
+    const { outputs } = availableNodes
+      .find((n) => n.category === sourceNode.data.category)
+      .nodes?.find((n) => n.name === sourceNode.data.type);
+    const { inputs } = availableNodes
+      .find((n) => n.category === targetNode.data.category)
+      .nodes?.find((n) => n.name === targetNode.data.type);
+
+    const sourceOutput = outputs[sourceHandleIndex];
+    const targetInput = inputs[targetHandleIndex];
 
     const checkTargetChildren = (parentNode) => {
       const targetChildren = getOutgoers(parentNode, [...nodes, ...edges]);

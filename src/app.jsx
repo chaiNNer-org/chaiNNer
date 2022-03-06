@@ -12,8 +12,10 @@ import theme from './theme';
 const App = () => {
   const [port, setPort] = useState(null);
 
-  useEffect(async () => {
-    setPort(await ipcRenderer.invoke('get-port'));
+  useEffect(() => {
+    (async () => {
+      setPort(await ipcRenderer.invoke('get-port'));
+    })();
   }, []);
 
   let Component = () => (<></>);

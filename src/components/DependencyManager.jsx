@@ -60,38 +60,42 @@ const DependencyManager = ({ isOpen, onClose }) => {
     setAvailableDeps(depsArr);
   }, [isNvidiaAvailable]);
 
-  useEffect(async () => {
-    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-    if (hasNvidia) {
-      setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
-      setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
-    } else {
-      const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-      const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-      setGpuInfo(gpuNames);
-    }
+  useEffect(() => {
+    (async () => {
+      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+      if (hasNvidia) {
+        setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
+        setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
+      } else {
+        const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+        const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
+        setGpuInfo(gpuNames);
+      }
+    })();
   }, []);
 
-  useEffect(async () => {
-    const pKeys = await ipcRenderer.invoke('get-python');
-    setPythonKeys(pKeys);
-    setDeps({
-      ...deps,
-      pythonVersion: pKeys.version,
-    });
-    exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
-      if (error) {
-        setIsLoadingPipList(false);
-        return;
-      }
-      const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-      const pipObj = {};
-      tempPipList.forEach(([dep, version]) => {
-        pipObj[dep] = version;
+  useEffect(() => {
+    (async () => {
+      const pKeys = await ipcRenderer.invoke('get-python');
+      setPythonKeys(pKeys);
+      setDeps({
+        ...deps,
+        pythonVersion: pKeys.version,
       });
-      setPipList(pipObj);
-      setIsLoadingPipList(false);
-    });
+      exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
+        if (error) {
+          setIsLoadingPipList(false);
+          return;
+        }
+        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+        const pipObj = {};
+        tempPipList.forEach(([dep, version]) => {
+          pipObj[dep] = version;
+        });
+        setPipList(pipObj);
+        setIsLoadingPipList(false);
+      });
+    })();
   }, []);
 
   useEffect(() => {
@@ -112,10 +116,12 @@ const DependencyManager = ({ isOpen, onClose }) => {
     }
   }, [isRunningShell, pythonKeys]);
 
-  useEffect(async () => {
-    if (depChanged) {
-      await ipcRenderer.invoke('kill-backend');
-    }
+  useEffect(() => {
+    (async () => {
+      if (depChanged) {
+        await ipcRenderer.invoke('kill-backend');
+      }
+    })();
   }, [depChanged]);
 
   const runPipCommand = (args) => {

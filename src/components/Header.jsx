@@ -35,7 +35,9 @@ const Header = ({ port }) => {
     edges,
     useIsCpu,
     useIsFp16,
+    availableNodes,
   } = useContext(GlobalContext);
+  // console.log('🚀 ~ file: Header.jsx ~ line 40 ~ Header ~ availableNodes', availableNodes);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
@@ -98,9 +100,11 @@ const Header = ({ port }) => {
   } = useDisclosure();
 
   const [appVersion, setAppVersion] = useState('#.#.#');
-  useEffect(async () => {
-    const version = await ipcRenderer.invoke('get-app-version');
-    setAppVersion(version);
+  useEffect(() => {
+    (async () => {
+      const version = await ipcRenderer.invoke('get-app-version');
+      setAppVersion(version);
+    })();
   }, []);
 
   const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
@@ -113,7 +117,14 @@ const Header = ({ port }) => {
       onErrorOpen();
     } else {
       const nodeValidities = nodes.map(
-        (node) => [...checkNodeValidity({ ...node.data, edges }), node.type],
+        (node) => {
+          const { inputs } = availableNodes
+            .find((n) => n.category === node.data.category)
+            .nodes?.find((n) => n.name === node.data.type);
+          return [...checkNodeValidity({
+            id: node.id, inputData: node.data.inputData, edges, inputs,
+          }), node.data.type];
+        },
       );
       const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
       if (invalidNodes.length > 0) {
