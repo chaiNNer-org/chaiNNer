@@ -41,7 +41,14 @@ const Main = ({ port }) => {
       setNodeTypes({
         regularNode: Node,
       });
-      setAvailableNodes(data);
+      const availableNodeMap = {};
+      data.forEach(({ category, nodes }) => {
+        availableNodeMap[category] = {};
+        nodes.forEach((node) => {
+          availableNodeMap[category][node.name] = node;
+        });
+      });
+      setAvailableNodes(availableNodeMap);
     }
   }, [response, data, loading, error, backendReady]);
 

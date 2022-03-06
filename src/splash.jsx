@@ -1,9 +1,9 @@
 import {
-  Center, ChakraProvider, Flex, Progress, Spinner, Text
+  Center, ChakraProvider, Flex, Progress, Spinner, Text,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 // eslint-disable-next-line import/extensions
 import './global.css';
 
@@ -87,6 +87,6 @@ const Splash = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Splash />);
+ReactDOM.render(<Splash />, document.getElementById('root'));
 
 export default Splash;

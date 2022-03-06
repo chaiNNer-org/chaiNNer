@@ -266,10 +266,11 @@ export const GlobalProvider = ({
     setEdges(newElements.filter((element) => isEdge(element)));
   };
 
-  const getInputDefaults = (nodeData) => {
+  const getInputDefaults = ({ category, type }) => {
     const defaultData = {};
-    if (nodeData.inputs) {
-      nodeData.inputs.forEach((input, i) => {
+    const { inputs } = availableNodes[category][type];
+    if (inputs) {
+      inputs.forEach((input, i) => {
         if (input.def || input.def === 0) {
           defaultData[i] = input.def;
         } else if (input.default || input.default === 0) {
@@ -363,14 +364,8 @@ export const GlobalProvider = ({
     const targetNode = nodes.find((node) => node.id === target);
 
     // Target inputs, source outputs
-    // This may be somewhat of a performance hog as the number of nodes grows
-    // It might be worth it to build a map or object that uses category/type keys
-    const { outputs } = availableNodes
-      .find((n) => n.category === sourceNode.data.category)
-      .nodes?.find((n) => n.name === sourceNode.data.type);
-    const { inputs } = availableNodes
-      .find((n) => n.category === targetNode.data.category)
-      .nodes?.find((n) => n.name === targetNode.data.type);
+    const { outputs } = availableNodes[sourceNode.data.category][sourceNode.data.type];
+    const { inputs } = availableNodes[targetNode.data.category][targetNode.data.type];
 
     const sourceOutput = outputs[sourceHandleIndex];
     const targetInput = inputs[targetHandleIndex];

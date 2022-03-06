@@ -37,7 +37,6 @@ const Header = ({ port }) => {
     useIsFp16,
     availableNodes,
   } = useContext(GlobalContext);
-  // console.log('🚀 ~ file: Header.jsx ~ line 40 ~ Header ~ availableNodes', availableNodes);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
@@ -118,9 +117,7 @@ const Header = ({ port }) => {
     } else {
       const nodeValidities = nodes.map(
         (node) => {
-          const { inputs } = availableNodes
-            .find((n) => n.category === node.data.category)
-            .nodes?.find((n) => n.name === node.data.type);
+          const { inputs } = availableNodes[node.data.category][node.data.type];
           return [...checkNodeValidity({
             id: node.id, inputData: node.data.inputData, edges, inputs,
           }), node.data.type];

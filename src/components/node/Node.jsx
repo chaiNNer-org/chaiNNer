@@ -22,11 +22,8 @@ const blankSchema = {
 const getSchema = (availableNodes, category, type) => {
   if (availableNodes) {
     try {
-      const categorySchema = availableNodes.find((e) => e.category === category);
-      if (categorySchema && categorySchema.nodes) {
-        const schema = categorySchema.nodes.find((e) => e.name === type);
-        return schema;
-      }
+      const schema = availableNodes[category][type];
+      return schema;
     } catch (error) {
       console.log(error);
     }
