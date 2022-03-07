@@ -120,11 +120,11 @@ const NodeSelector = ({ data, height }) => {
             >
 
               <Accordion allowMultiple defaultIndex={data.map((item, index) => index)}>
-                {data.map(({ subcategory, category, nodes }) => (
+                {data.map(({ category, nodes }) => (
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
-                        {IconFactory(category, getNodeAccentColor(category, subcategory))}
+                        {IconFactory(category, getNodeAccentColor(category))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
                       <AccordionIcon />
@@ -135,7 +135,7 @@ const NodeSelector = ({ data, height }) => {
                       // This is super terrible but I have no better way of filtering for these at the moment
                       // I could probably cache this in the namespace object but w/e
                         .filter(
-                          (namespace) => `${category} ${subcategory} ${nodes.filter((e) => e.name.includes(namespace)).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
                         )
                         .map((namespace) => (
                           <Box key={namespace}>
@@ -149,7 +149,7 @@ const NodeSelector = ({ data, height }) => {
                             <Wrap>
                               {nodes
                                 .filter(
-                                  (e) => `${category} ${subcategory} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
                                 )
                                 .filter(
                                   (e) => e.subcategory

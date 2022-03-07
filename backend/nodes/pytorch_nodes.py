@@ -185,7 +185,7 @@ class InterpolateNode(NodeBase):
         ]
         self.outputs = [ModelOutput()]
 
-        self.icon = "PyTorch"
+        self.icon = "BsTornado"
         self.sub = "Utility"
 
     def perform_interp(self, model_a: OrderedDict, model_b: OrderedDict, amount: int):
