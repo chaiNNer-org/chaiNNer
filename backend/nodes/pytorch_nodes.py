@@ -56,7 +56,7 @@ def load_state_dict(state_dict):
     return model
     
 @NodeFactory.register("PyTorch", "Load Model")
-class LoadStateDictNode(NodeBase):
+class LoadModelNode(NodeBase):
     """Load Model node"""
 
     def __init__(self):
@@ -64,7 +64,7 @@ class LoadStateDictNode(NodeBase):
         super().__init__()
         self.description = "Load PyTorch state dict file (.pth) into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture."
         self.inputs = [PthFileInput()]
-        self.outputs = [StateDictOutput(), ModelOutput()]
+        self.outputs = [ModelOutput()]
 
         self.icon = "PyTorch"
         self.sub = "Input & Output"
@@ -83,7 +83,7 @@ class LoadStateDictNode(NodeBase):
         model.eval()
         model = model.to(torch.device(os.environ["device"]))
 
-        return state_dict, model
+        return model
 
 @NodeFactory.register("PyTorch", "Upscale Image")
 @torch.inference_mode()
@@ -179,11 +179,11 @@ class InterpolateNode(NodeBase):
         super().__init__()
         self.description = "Interpolate two of the same kind of model state-dict together. Note: models must share a common 'pretrained model' ancestor in order to be interpolatable."
         self.inputs = [
-            StateDictInput(),
-            StateDictInput(),
+            ModelInput('Model A'),
+            ModelInput('Model B'),
             SliderInput("Amount", 0, 100, 50),
         ]
-        self.outputs = [StateDictOutput(), ModelOutput()]
+        self.outputs = [ModelOutput()]
 
         self.icon = "PyTorch"
         self.sub = "Utility"
@@ -221,19 +221,22 @@ class InterpolateNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, model_a: OrderedDict, model_b: OrderedDict, amount: int
+        self, model_a: torch.nn.Module, model_b: torch.nn.Module, amount: int
     ) -> Any:
 
+        state_a = model_a.state
+        state_b = model_b.state
+
         logger.info(f"Interpolating models...")
-        if not self.check_can_interp(model_a, model_b):
+        if not self.check_can_interp(state_a, state_b):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        state_dict = self.perform_interp(model_a, model_b, amount)
+        state_dict = self.perform_interp(state_a, state_b, amount)
         model = load_state_dict(state_dict)
 
-        return state_dict, model
+        return model
 
 
 @NodeFactory.register("PyTorch", "Save Model")
@@ -362,7 +365,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
         self.icon = "ONNX"
-        self.sub = "Input & Output"
+        self.sub = "Utility"
 
     def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
         model.eval().cuda()

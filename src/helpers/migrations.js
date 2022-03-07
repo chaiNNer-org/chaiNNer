@@ -1,4 +1,5 @@
 /* eslint-disable import/prefer-default-export */
+import log from 'electron-log';
 import { isNode } from 'react-flow-renderer';
 import semver from 'semver';
 
@@ -34,8 +35,8 @@ const v03TypeMap = {
   'Adjust::Shift': ['Image (Effect)', 'Shift'],
   'Border::Make': ['Image (Utility)', 'Create Border'],
   'Color::Convert': ['Image (Utility)', 'Change Colorspace'],
-  'Concat::Horizontal': ['Image (Utility)', 'Stack Images (Horizontal)'],
-  'Concat::Vertical': ['Image (Utility)', 'Stack Images (Vertical)'],
+  'Concat::Horizontal': ['Image (Utility)', 'Stack Images'],
+  'Concat::Vertical': ['Image (Utility)', 'Stack Images'],
   'Image::Read': ['Image', 'Load Image'],
   'Image::Show': ['Image', 'Preview Image'],
   'Image::Write': ['Image', 'Save Image'],
@@ -69,13 +70,13 @@ const toV03 = (data) => {
             if (target.data.type === 'Model::AutoLoad') {
               // If target is an AutoLoad node, get the outgoing connections of it
               const targetEdges = newElements.filter((e) => e.source === target.id);
-              // For each of the outgoing connections, replace the source with second output of the
+              // For each of the outgoing connections, replace the source with the output of the
               // new Load Model node
               targetEdges.forEach((targetEdge) => {
                 // eslint-disable-next-line no-param-reassign
                 targetEdge.source = element.id;
                 // eslint-disable-next-line no-param-reassign
-                targetEdge.sourceHandle = `${element.id}-1`;
+                targetEdge.sourceHandle = `${element.id}-0`;
               });
             }
           });
@@ -97,11 +98,19 @@ const toV03 = (data) => {
         // eslint-disable-next-line prefer-destructuring
         newElement.data.inputData[1] = newElement.data.inputData[0];
         delete newElement.data.inputData[0];
+      } else if (newElement.data.type.includes('Concat')) {
+        const newInputData = {};
+        newInputData[4] = newElement.data.type === 'Concat::Horizontal' ? 'horizontal' : 'vertical';
+        newElement.data.inputData = newInputData;
       }
       // console.log({ newElement });
-      const [newCategory, newType] = v03TypeMap[newElement.data.type];
-      newElement.data.type = newType;
-      newElement.data.category = newCategory;
+      try {
+        const [newCategory, newType] = v03TypeMap[newElement.data.type];
+        newElement.data.type = newType;
+        newElement.data.category = newCategory;
+      } catch (error) {
+        log.warn(`File contains invalid node of type "${newElement.data.type}" that could not be converted.`);
+      }
       return newElement;
     }
     return element;

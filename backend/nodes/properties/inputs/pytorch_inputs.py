@@ -9,11 +9,11 @@ def StateDictInput() -> OrderedDict:
     }
 
 
-def ModelInput() -> Any:
+def ModelInput(label: str = 'Model') -> Any:
     """ Input a loaded model """
     return {
         "type": "pytorch::model",
-        "label": "Loaded Model",
+        "label": label,
     }
 
 

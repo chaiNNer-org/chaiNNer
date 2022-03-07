@@ -21,7 +21,7 @@ class NoteNode(NodeBase):
         self.inputs = [NoteTextAreaInput()]
         self.outputs = []
         self.icon = "MdOutlineStickyNote2"
-        self.sub = "Miscellanous"
+        self.sub = "Miscellaneous"
 
     def run(self, text: str) -> None:
         return
@@ -42,7 +42,7 @@ class NoteNode(NodeBase):
 #         ]
 #         self.outputs = [NumberOutput("Result")]
 #         self.icon = "MdCalculate"
-#         self.sub = "Miscellanous"
+#         self.sub = "Miscellaneous"
 
 #     def run(self, in1: str, op: str, in2: str) -> int:
 #         in1, in2 = int(in1), int(in2)

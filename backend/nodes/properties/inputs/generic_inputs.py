@@ -116,3 +116,20 @@ def MathOpsDropdown() -> Dict:
             },
         ],
     )
+
+def StackOrientationDropdown() -> Dict:
+    """ Input for selecting stack orientation from dropdown """
+    return DropDownInput(
+        'generic',
+        'Orientation',
+        [
+            {
+                "option": "Horizontal",
+                "value": "horizontal",
+            },
+            {
+                "option": "Vertical",
+                "value": "vertical",
+            }
+        ]
+    )

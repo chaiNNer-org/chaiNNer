@@ -115,13 +115,13 @@ const Main = ({ port }) => {
         availableNodes={availableNodes}
         reactFlowWrapper={reactFlowWrapper}
       >
-        <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
+        <VStack p={2} overflow="hidden">
           <Header port={port} />
           <HStack
             as={Split}
             initialPrimarySize="380px"
             minPrimarySize="290px"
-            minSecondarySize="50%"
+            minSecondarySize="75%"
             splitterSize="10px"
             defaultSplitterColors={{
               color: '#71809633',

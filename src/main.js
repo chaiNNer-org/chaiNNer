@@ -1,10 +1,10 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell
+  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
 import {
-  access, readFile, writeFile
+  access, readFile, writeFile,
 } from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -111,6 +111,15 @@ const registerEventHandlers = () => {
   });
 
   ipcMain.handle('get-app-version', async () => app.getVersion());
+
+  ipcMain.handle('show-warning-message-box', async (event, title, message) => {
+    dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
+      type: 'warning',
+      title,
+      message,
+    });
+    return Promise.resolve();
+  });
 };
 
 const getValidPort = async (splashWindow) => {
@@ -383,8 +392,12 @@ const spawnBackend = async (port) => {
       log.error(`Backend: ${String(data)}`);
     });
 
+    backend.on('error', (error) => {
+      log.error(`Python subprocess encountered an unexpected error: ${error}`);
+    });
+
     backend.on('exit', (code, signal) => {
-      console.log({ code, signal });
+      log.error(`Python subprocess exited with code ${code} and signal ${signal}`);
     });
 
     ipcMain.handle('kill-backend', () => {

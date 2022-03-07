@@ -13,7 +13,7 @@ def ModelOutput() -> Any:
     """ Output a loaded model """
     return {
         "type": "pytorch::model",
-        "label": "Loaded Model",
+        "label": "Model",
     }
 
 

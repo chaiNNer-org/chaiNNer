@@ -54,13 +54,21 @@ export const GlobalProvider = ({
     return output;
   };
 
-  const setStateFromJSON = (savedData, loadPosition = false) => {
+  const setStateFromJSON = async (savedData, loadPosition = false) => {
     if (savedData) {
-      // TODO: This needs to be fixed or it won't work
-      const nodeTypesArr = Object.keys(nodeTypes);
-      const validNodes = savedData.elements.filter(
-        (element) => isNode(element) && nodeTypesArr.includes(element.type),
+      const justNodes = savedData.elements.filter(
+        (element) => isNode(element),
+      );
+      const validNodes = justNodes.filter(
+        (node) => availableNodes[node.data.category][node.data.type],
       ) || [];
+      if (justNodes.length !== validNodes.length) {
+        await ipcRenderer.invoke(
+          'show-warning-message-box',
+          'File contains invalid nodes',
+          'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
+        );
+      }
       setEdges([]);
       setNodes(validNodes);
       setEdges(
@@ -143,11 +151,11 @@ export const GlobalProvider = ({
           const { version, content } = contents;
           if (version) {
             const upgraded = migrate(version, content);
-            setStateFromJSON(upgraded, true);
+            await setStateFromJSON(upgraded, true);
           } else {
           // Legacy files
             const upgraded = migrate(null, content);
-            setStateFromJSON(upgraded, true);
+            await setStateFromJSON(upgraded, true);
           }
         }
       }

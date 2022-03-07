@@ -16,7 +16,9 @@ const DropDownInput = memo(({
   };
 
   useEffect(() => {
-    setSelection(options[0].value);
+    if (selection === undefined || selection === null) {
+      setSelection(options[0].value);
+    }
   }, []);
 
   return (
