@@ -52,8 +52,9 @@ const registerEventHandlers = () => {
     properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
   }));
 
-  ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.showOpenDialog({
+  ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) => dialog.showOpenDialog({
     filters,
+    defaultPath: dirPath,
     properties: ['openFile', allowMultiple && 'multiSelections'],
   }));
 

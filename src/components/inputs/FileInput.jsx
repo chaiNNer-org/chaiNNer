@@ -1,11 +1,12 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Box, Input, InputGroup, InputLeftElement, VisuallyHidden, VStack,
+  Box, Input, InputGroup, InputLeftElement, VStack,
 } from '@chakra-ui/react';
+import { ipcRenderer } from 'electron';
 import path from 'path';
 import React, {
-  memo, useContext, useRef,
+  memo, useContext,
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
@@ -17,19 +18,17 @@ const FileInput = memo(({
   const { useInputData } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
 
-  const inputFile = useRef(null);
-
-  const onButtonClick = () => {
-    inputFile.current.click();
-    inputFile.current.blur();
-  };
-
-  const handleChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFilePath(file.path);
+  const onButtonClick = async () => {
+    const fileDir = filePath ? path.dirname(filePath) : undefined;
+    const fileFilter = [{
+      name: label,
+      extensions: filetypes ?? ['*'],
+    }];
+    const { canceled, filePaths } = await ipcRenderer.invoke('file-select', fileFilter, false, fileDir);
+    const selectedPath = filePaths[0];
+    if (!canceled && selectedPath) {
+      setFilePath(selectedPath);
     }
-    inputFile.current.blur();
   };
 
   const preview = () => {
@@ -42,48 +41,31 @@ const FileInput = memo(({
   };
 
   return (
-    <>
-      <VisuallyHidden>
-        {/* TODO: Replace this with the native electron dialog that does the same thing
-                  I have no idea if it's any better, but it might be less jank.
-        */}
-        <input
-          type="file"
-          id="file"
-          accept={`.${filetypes.join(',.')}`}
-          ref={inputFile}
-          style={{
-            display: 'none',
-          }}
-          onChange={handleChange}
+    <VStack>
+      <InputGroup>
+        <InputLeftElement
+          pointerEvents="none"
+        >
+          <BsFileEarmarkPlus />
+        </InputLeftElement>
+        <Input
+          placeholder="Select a file..."
+          value={filePath ? path.parse(filePath).base : ''}
+          isReadOnly
+          onClick={onButtonClick}
+          isTruncated
+          draggable={false}
+          cursor="pointer"
+          className="nodrag"
+          disabled={isLocked}
         />
-      </VisuallyHidden>
-      <VStack>
-        <InputGroup>
-          <InputLeftElement
-            pointerEvents="none"
-          >
-            <BsFileEarmarkPlus />
-          </InputLeftElement>
-          <Input
-            placeholder="Select a file..."
-            value={filePath ? path.parse(filePath).base : ''}
-            isReadOnly
-            onClick={onButtonClick}
-            isTruncated
-            draggable={false}
-            cursor="pointer"
-            className="nodrag"
-            disabled={isLocked}
-          />
-        </InputGroup>
-        {filePath && (
+      </InputGroup>
+      {filePath && (
         <Box>
           { preview() }
         </Box>
-        )}
-      </VStack>
-    </>
+      )}
+    </VStack>
   );
 });
 
