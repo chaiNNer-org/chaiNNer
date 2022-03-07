@@ -22,62 +22,70 @@ You don't even need to have Python installed, as chaiNNer will download an isola
 
 If you do wish to use your system Python installation still, you will need to turn the system Python setting on, and make sure you have a version between 3.7 and 3.9. However, it is much more recommended to use the integrated Python.
 
-## Building
+## How To Use
 
-To build, run `npm install` to install, and `npm run make` to build the application.
+Using chaiNNer is pretty straightforward. First make sure you have the dependencies installed through the dependency manager. You can access this via the button in the upper-right-hand corner. After installing the dependencies and restarting chaiNNer, all you have to do is drag and drop (or double click) node names in the selection panel to bring them into the editor. Then, drag from one node handle to another to connect the nodes. See the image at the top of this README for an example.
+
+To select multiple nodes, hold down shift and drag around all the nodes you want selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace to delete them from the editor.
+
+Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively.
+
+## Building chaiNNer Yourself
+
+I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` to install all the nodejs dependencies, and `npm run make` to build the application.
 
 ## GPU Support
 
-Currently, chaiNNer's neural network support (via PyTorch) only supports Nvidia GPUs. There is currently no plan to support pre-compiled `.exe`s for NCNN processing. PyTorch also does not support GPU processing on MacOS.
+For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only support's Nvidia's CUDA. MacOS also does not support CUDA at all, so PyTorch will only work in CPU mode on MacOS.
+
+If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch model to ONNX, and then convert that to NCNN (via convertmodel.com). Conversion straight from PyTorch to NCNN may come in the future, however I currently have no easy way of doing this.
 
 ## Planned Features
 
-**NCNN**
+**DDS (and other filetype) Support**
 
-> Once the python api for NCNN supports GPU, I will be adding the ability to convert from PyTorch to TorchScript to ONNX to NCNN. It'll be a bit convoluted but it'll allow AMD support I think
-
-**PIL & Wand**
-
-> I do plan on adding support for PIL and Wand for image processing.
+* Support for DDS files will come when I add PIL as an extra dependency in the future. This will also allow many other input filetypes, as well as a lot of other image effects.
 
 **Batch Processing**
 
-> I am waiting to add this until the node-graph library I use supports nested flows (which is coming relatively soon). The way I will be doing this will be similar to how for loops work, in that you will have iterator panels that will iterate over some sort of loaded array of items (i.e. folder input or frames of a video)
+* I am waiting to add this until the node-graph library I use supports nested flows (which is coming relatively soon). The way I will be doing this will be similar to how for-loops work, in that you will have iterator panels that will iterate over some sort of loaded array of items (i.e. folder input or frames of a video)
 
 **Undo History, Copy & Paste**
 
-> For now I am having difficulty adding these in. I plan on revisiting this later after I am forced to refactor my implementation due to the node-graph library I use releasing breaking changes soon.
+* For now I am having difficulty adding these in. I plan on revisiting this later after I am forced to refactor my implementation due to the node-graph library I use releasing breaking changes soon.
 
 **Drag and Drop Images**
 
-> This is planned, ideally for both dragging into the file selection box and onto the window to make a new image read node
+* This is planned, ideally for both dragging into the file selection box and onto the window to make a new image read node
 
 **Presets**
 
-> Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
+* Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
 
 **More SR Networks, More Image Processing Libraries**
 
-> What the title says
+* What the title says
 
 **Live Updating**
 
-> This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
+* This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
 
 ## FAQ
 
 **What does the name mean?**
 
-> chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
+* chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
 
 **Why not just use Cupscale/IEU/CLI?**
 
-> All of these tools are viable options, but as anyone who has used them before knows, they can be limited in what it can do, as many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image, just do not exist in Cupscale, for example. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+* All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+
+* This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like batch processing images or running ESRGAN on video.
 
 **Wouldn't this make it more difficult to do things?**
 
-> In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+* In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
-> Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality.
+* Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality.
