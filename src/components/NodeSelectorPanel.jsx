@@ -3,20 +3,26 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading,
-  HStack, Input, InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  Box, Center, Divider, Heading, HStack, Input,
+  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, { memo, useEffect, useState } from 'react';
-import { createRepresentativeNode } from '../helpers/createNodeTypes.jsx';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
+import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
+import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/type', node.name);
-  event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
-  event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
+  // event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
+  // event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
+  event.dataTransfer.setData('application/reactflow/icon', node.icon);
+  event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign
@@ -31,13 +37,21 @@ const NodeSelector = ({ data, height }) => {
 
   const [namespaces, setNamespaces] = useState([]);
 
+  const {
+    createNode, reactFlowInstance, reactFlowWrapper,
+  } = useContext(GlobalContext);
+
   useEffect(() => {
     const set = {};
     data?.forEach(({ category, nodes }) => {
       nodes
-        .sort((a, b) => a.name.toUpperCase().localeCompare(b.name.toUpperCase()))
+        .sort(
+          (a, b) => (a.subcategory + a.name)
+            .toUpperCase()
+            .localeCompare((b.subcategory + b.name).toUpperCase()),
+        )
         .forEach((node) => {
-          const namespace = node.name.split('::')[0];
+          const namespace = node.subcategory;
           if (!set[category]) {
             set[category] = [];
           }
@@ -110,7 +124,7 @@ const NodeSelector = ({ data, height }) => {
                   <AccordionItem key={category}>
                     <AccordionButton>
                       <HStack flex="1" textAlign="left">
-                        {IconFactory(category)}
+                        {IconFactory(category, getNodeAccentColor(category))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
                       <AccordionIcon />
@@ -121,39 +135,79 @@ const NodeSelector = ({ data, height }) => {
                       // This is super terrible but I have no better way of filtering for these at the moment
                       // I could probably cache this in the namespace object but w/e
                         .filter(
-                          (namespace) => `${category} ${nodes.filter((e) => e.name.includes(namespace)).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
                         )
                         .map((namespace) => (
                           <Box key={namespace}>
                             <Center w="full">
                               <HStack w="full">
                                 <Divider orientation="horizontal" />
-                                <Text fontSize="sm" color="#71809699" casing="uppercase">{namespace}</Text>
+                                <Text fontSize="sm" color="#71809699" casing="uppercase" w="auto" whiteSpace="nowrap">{namespace}</Text>
                                 <Divider orientation="horizontal" />
                               </HStack>
                             </Center>
                             <Wrap>
                               {nodes
                                 .filter(
-                                  (e) => `${category} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
                                 )
                                 .filter(
-                                  (e) => e.name.toUpperCase().includes(namespace.toUpperCase()),
+                                  (e) => e.subcategory
+                                    .toUpperCase()
+                                    .includes(namespace.toUpperCase()),
                                 )
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
                                     .localeCompare(b.name.toUpperCase()),
                                 )
                                 .map((node) => (
-                                  <WrapItem key={node.name} p={2}>
-                                    <Tooltip label={node.description} hasArrow closeOnMouseDown>
+                                  <WrapItem key={node.name} p={1} w="full">
+                                    <Tooltip
+                                      label={node.description}
+                                      hasArrow
+                                      closeOnMouseDown
+                                      borderRadius={8}
+                                      py={1}
+                                      px={2}
+                                    >
                                       <Center
-                                        boxSizing="border-box"
-                                        onDragStart={(event) => onDragStart(event, category, node)}
+                                        boxSizing="content-box"
+                                        onDragStart={
+                                            (event) => {
+                                              onDragStart(event, category, node);
+                                            }
+                                          }
                                         draggable
                                         display="block"
+                                        w="100%"
+                                        onDoubleClick={() => {
+                                          const {
+                                            height: wHeight, width,
+                                          } = reactFlowWrapper.current.getBoundingClientRect();
+
+                                          const position = reactFlowInstance.project({
+                                            x: width / 2,
+                                            y: wHeight / 2,
+                                          });
+
+                                          const nodeData = {
+                                            category,
+                                            type: node.name,
+                                            inputs: node.inputs,
+                                            outputs: node.outputs,
+                                            icon: node.icon,
+                                            subcategory,
+                                          };
+
+                                          createNode({ type: 'regularNode', position, data: nodeData });
+                                        }}
                                       >
-                                        {createRepresentativeNode(category, node)}
+                                        <RepresentativeNode
+                                          category={category}
+                                          type={node.name}
+                                          icon={node.icon}
+                                          subcategory={node.subcategory}
+                                        />
                                       </Center>
                                     </Tooltip>
                                   </WrapItem>

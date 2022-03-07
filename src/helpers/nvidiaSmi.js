@@ -1,14 +1,7 @@
 // Borrowed and modified from https://github.com/sebhildebrandt/systeminformation/blob/master/lib/graphics.js
+// Changed to be asynchronous to avoid blocking
 
-// TODO: Convert this to a useNvidiaSmi hook
-// Could auto-check gpu before letting you run whatever command?
-
-// Actually, should probably get the nvidia-smi path in the main process and use ipc to grab it.
-// either that, or call this from the global state and pass the path/keyword into the hook.
-// If getting in main, do it during splash screen dep check.
-// Then in stuff like the dependency manager i can just use ipc to get the gpu name and isNvidia
-
-import fs from 'fs';
+import fs from 'fs/promises';
 import os from 'os';
 
 let nvidiaSmiPath;
@@ -17,7 +10,10 @@ let nvidiaSmiPath;
 const homePath = os.homedir();
 const WINDIR = homePath ? `${homePath.charAt(0)}:\\Windows` : 'C:\\Windows';
 
-export const getNvidiaSmi = () => {
+const asyncFilter = async (arr, predicate) => Promise.all(arr.map(predicate))
+  .then((results) => arr.filter((_v, index) => results[index]));
+
+export const getNvidiaSmi = async () => {
   if (nvidiaSmiPath) {
     return nvidiaSmiPath;
   }
@@ -26,12 +22,13 @@ export const getNvidiaSmi = () => {
     try {
       const basePath = `${WINDIR}\\System32\\DriverStore\\FileRepository`;
       // find all directories that have an nvidia-smi.exe file
-      const candidateDirs = fs.readdirSync(basePath).filter((dir) => fs.readdirSync([basePath, dir].join('/')).includes('nvidia-smi.exe'));
+      const candidateDirs = await asyncFilter((await fs.readdir(basePath)), async (dir) => (await fs.readdir([basePath, dir].join('/'))).includes('nvidia-smi.exe'));
       // use the directory with the most recently created nvidia-smi.exe file
-      const targetDir = candidateDirs.reduce((prevDir, currentDir) => {
-        const previousNvidiaSmi = fs.statSync([basePath, prevDir, 'nvidia-smi.exe'].join('/'));
-        const currentNvidiaSmi = fs.statSync([basePath, currentDir, 'nvidia-smi.exe'].join('/'));
-        return (previousNvidiaSmi.ctimeMs > currentNvidiaSmi.ctimeMs) ? prevDir : currentDir;
+      const targetDir = candidateDirs.reduce(async (prevDir, currentDir) => {
+        const awaitedPrevDir = await prevDir;
+        const previousNvidiaSmi = (await fs.stat([basePath, awaitedPrevDir, 'nvidia-smi.exe'].join('/')));
+        const currentNvidiaSmi = (await fs.stat([basePath, currentDir, 'nvidia-smi.exe'].join('/')));
+        return (previousNvidiaSmi.ctimeMs > currentNvidiaSmi.ctimeMs) ? awaitedPrevDir : currentDir;
       });
 
       if (targetDir) {

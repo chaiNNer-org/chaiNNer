@@ -8,10 +8,12 @@ const useSystemUsage = (delay) => {
   const [ramUsage, setRamUsage] = useState(0);
   const [vramUsage, setVramUsage] = useState(0);
 
-  useEffect(async () => {
+  useEffect(() => {
+    (async () => {
     // We set this up on mount, letting the main process handle it
     // By doing it this way we avoid spawning multiple smi shells
-    await ipcRenderer.invoke('setup-vram-checker-process', delay);
+      await ipcRenderer.invoke('setup-vram-checker-process', delay);
+    })();
   }, []);
 
   useInterval(async () => {

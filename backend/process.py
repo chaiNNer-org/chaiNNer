@@ -10,11 +10,13 @@ from nodes.node_factory import NodeFactory
 
 
 class Executor:
-    def __init__(self, nodes: List[Dict], loop, queue: asyncio.Queue):
+    def __init__(
+        self, nodes: List[Dict], loop, queue: asyncio.Queue, existing_cache: Dict
+    ):
         """Constructor"""
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
-        self.output_cache = {}
+        self.output_cache = existing_cache
 
         self.process_task = None
         self.killed = False

@@ -20,7 +20,10 @@ const ReactFlowBox = ({
   const {
     elements, createNode, createConnection, reactFlowInstance,
     setReactFlowInstance, removeElements, updateRfi, setSelectedElements,
+    useSnapToGrid,
   } = useContext(GlobalContext);
+
+  const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
   const onLoad = useCallback(
     (rfi) => {
@@ -39,19 +42,21 @@ const ReactFlowBox = ({
   };
 
   const onDrop = (event) => {
-    log.info('dropped');
+    // log.info('dropped');
     event.preventDefault();
 
     const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
     try {
       const type = event.dataTransfer.getData('application/reactflow/type');
-      const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
-      const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
+      // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
+      // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
       const category = event.dataTransfer.getData('application/reactflow/category');
+      const icon = event.dataTransfer.getData('application/reactflow/icon');
+      const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
       const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
       const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
-      log.info(type, inputs, outputs, category);
+      // log.info(type, inputs, outputs, category);
 
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left - offsetX,
@@ -61,12 +66,15 @@ const ReactFlowBox = ({
       const nodeData = {
         category,
         type,
-        inputs,
-        outputs,
+        // inputs,
+        // outputs,
+        icon,
+        subcategory,
       };
 
-      createNode({ type, position, data: nodeData });
+      createNode({ type: 'regularNode', position, data: nodeData });
     } catch (error) {
+      log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');
     }
   };
@@ -98,6 +106,8 @@ const ReactFlowBox = ({
         onSelectionChange={setSelectedElements}
         maxZoom={8}
         minZoom={0.125}
+        snapToGrid={isSnapToGrid}
+        snapGrid={[snapToGridAmount, snapToGridAmount]}
       >
         <Background
           variant="dots"

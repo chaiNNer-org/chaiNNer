@@ -19,7 +19,9 @@ export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
-export const GlobalProvider = ({ children, nodeTypes }) => {
+export const GlobalProvider = ({
+  children, nodeTypes, availableNodes, reactFlowWrapper,
+}) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -29,6 +31,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
   const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
+  const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
+  const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -50,12 +54,21 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     return output;
   };
 
-  const setStateFromJSON = (savedData, loadPosition = false) => {
+  const setStateFromJSON = async (savedData, loadPosition = false) => {
     if (savedData) {
-      const nodeTypesArr = Object.keys(nodeTypes);
-      const validNodes = savedData.elements.filter(
-        (element) => isNode(element) && nodeTypesArr.includes(element.type),
+      const justNodes = savedData.elements.filter(
+        (element) => isNode(element),
+      );
+      const validNodes = justNodes.filter(
+        (node) => availableNodes[node.data.category][node.data.type],
       ) || [];
+      if (justNodes.length !== validNodes.length) {
+        await ipcRenderer.invoke(
+          'show-warning-message-box',
+          'File contains invalid nodes',
+          'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
+        );
+      }
       setEdges([]);
       setNodes(validNodes);
       setEdges(
@@ -130,21 +143,23 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     };
   }, []);
 
-  useEffect(async () => {
-    if (!loadedFromCli) {
-      const contents = await ipcRenderer.invoke('get-cli-open');
-      if (contents) {
-        const { version, content } = contents;
-        if (version) {
-          const upgraded = migrate(version, content);
-          setStateFromJSON(upgraded, true);
-        } else {
+  useEffect(() => {
+    (async () => {
+      if (!loadedFromCli) {
+        const contents = await ipcRenderer.invoke('get-cli-open');
+        if (contents) {
+          const { version, content } = contents;
+          if (version) {
+            const upgraded = migrate(version, content);
+            await setStateFromJSON(upgraded, true);
+          } else {
           // Legacy files
-          const upgraded = migrate(null, content);
-          setStateFromJSON(upgraded, true);
+            const upgraded = migrate(null, content);
+            await setStateFromJSON(upgraded, true);
+          }
         }
       }
-    }
+    })();
   }, []);
 
   // Register Open File event handler
@@ -195,8 +210,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
 
     // Set up each node in the result
     nodes.forEach((element) => {
-      const { type, id, data } = element;
-      const { category } = data;
+      const { id, data } = element;
+      const { category, type } = data;
       // Node
       result[id] = {
         category,
@@ -259,10 +274,11 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     setEdges(newElements.filter((element) => isEdge(element)));
   };
 
-  const getInputDefaults = (nodeData) => {
+  const getInputDefaults = ({ category, type }) => {
     const defaultData = {};
-    if (nodeData.inputs) {
-      nodeData.inputs.forEach((input, i) => {
+    const { inputs } = availableNodes[category][type];
+    if (inputs) {
+      inputs.forEach((input, i) => {
         if (input.def || input.def === 0) {
           defaultData[i] = input.def;
         } else if (input.default || input.default === 0) {
@@ -280,7 +296,10 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   }) => {
     const id = createUniqueId();
     const newNode = {
-      type, id, position, data: { ...data, id, inputData: getInputDefaults(data) },
+      type,
+      id,
+      position,
+      data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
     };
     setNodes([
       ...nodes,
@@ -293,6 +312,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
+    const sourceNode = nodes.find((n) => n.id === source);
     const newEdge = {
       id,
       sourceHandle,
@@ -303,7 +323,8 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
       animated: false,
       style: { strokeWidth: 2 },
       data: {
-        sourceType: (nodes.find((n) => n.id === source))?.data.category,
+        sourceType: sourceNode?.data.category,
+        sourceSubCategory: sourceNode?.data.subcategory,
       },
     };
     setEdges([
@@ -350,8 +371,12 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     const sourceNode = nodes.find((node) => node.id === source);
     const targetNode = nodes.find((node) => node.id === target);
 
-    const sourceOutput = sourceNode.data.outputs[sourceHandleIndex];
-    const targetInput = targetNode.data.inputs[targetHandleIndex];
+    // Target inputs, source outputs
+    const { outputs } = availableNodes[sourceNode.data.category][sourceNode.data.type];
+    const { inputs } = availableNodes[targetNode.data.category][targetNode.data.type];
+
+    const sourceOutput = outputs[sourceHandleIndex];
+    const targetInput = inputs[targetHandleIndex];
 
     const checkTargetChildren = (parentNode) => {
       const targetChildren = getOutgoers(parentNode, [...nodes, ...edges]);
@@ -445,7 +470,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   };
 
   // TODO: performance concern? runs twice when deleting node
-  const useNodeLock = useCallback((id) => {
+  const useNodeLock = useCallback((id, index = null) => {
     // console.log('perf check (node lock)');
     const node = nodes.find((n) => n.id === id);
     if (!node) {
@@ -461,42 +486,14 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
         node,
       ]);
     };
-    return [isLocked, toggleLock];
-  }, [nodes]);
 
-  const useNodeValidity = useCallback((id) => {
-    // console.log('perf check (node validity)');
-    // This should never happen, but I'd rather not have this function crash if it does
-    const node = nodes.find((n) => n.id === id);
-    if (!node) {
-      return [false, 'Node not found.'];
+    let isInputLocked = false;
+    if (index) {
+      const edge = edges.find((e) => e.target === id && String(e.targetHandle.split('-').slice(-1)) === String(index));
+      isInputLocked = !!edge;
     }
-    // This should also never happen.
-    const { inputs } = node.data;
-    if (!inputs) {
-      return [false, 'Node has no inputs.'];
-    }
-    const inputData = node.data.inputData ?? {};
-    const filteredEdges = edges.filter((e) => e.target === id);
-    // Check to make sure the node has all the data it should based on the schema.
-    // Compares the schema against the connections and the entered data
-    const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    const emptyInputs = Object.entries(inputData).filter(([, value]) => value === '' || value === undefined || value === null).map(([key]) => String(key));
-    if (nonOptionalInputs.length > Object.keys(inputData).length + filteredEdges.length
-    || emptyInputs.length > 0) {
-      // Grabs all the indexes of the inputs that the connections are targeting
-      const edgeTargetIndexes = edges.filter((edge) => edge.target === id).map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
-      // Grab all inputs that do not have data or a connected edge
-      const missingInputs = nonOptionalInputs.filter(
-        (input, i) => !Object.keys(inputData).includes(String(i))
-        && !edgeTargetIndexes.includes(String(i)),
-      );
-      // TODO: This fails to output the missing inputs when a node is connected to another
-      return [false, `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`];
-    }
-
-    return [true];
-  }, [edges, nodes]); // nodeData
+    return [isLocked, toggleLock, isInputLocked];
+  }, [nodes, edges]);
 
   const duplicateNode = (id) => {
     // const rfiNodes = reactFlowInstance.getElements();
@@ -574,6 +571,7 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
   };
 
   const contextValue = useMemo(() => ({
+    availableNodes,
     nodes,
     edges,
     elements: [...nodes, ...edges],
@@ -584,13 +582,13 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     reactFlowInstance,
     setReactFlowInstance,
     updateRfi,
+    reactFlowWrapper,
     isValidConnection,
     useInputData,
     useAnimateEdges,
     removeNodeById,
     removeEdgeById,
     useNodeLock,
-    useNodeValidity,
     duplicateNode,
     clearNode,
     // setSelectedElements,
@@ -599,7 +597,11 @@ export const GlobalProvider = ({ children, nodeTypes }) => {
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
-  }), [nodes, edges, isCpu, isFp16, isSystemPython]);
+    useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
+  }), [
+    reactFlowInstance, nodes, edges,
+    isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
+  ]);
 
   return (
     <GlobalContext.Provider value={contextValue}>

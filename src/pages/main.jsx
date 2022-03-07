@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
@@ -5,26 +6,20 @@ import {
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
-import { ipcRenderer } from 'electron';
-import log from 'electron-log';
+import { app, ipcRenderer } from 'electron';
 import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
+import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import { createNodeTypes } from '../helpers/createNodeTypes.jsx';
 import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
-const { app } = require('electron');
-
-const Main = () => {
-  useEffect(() => {
-    log.info('Main window mounted.');
-  }, []);
-
-  const [nodeTypes, setNodeTypes] = useState({});
+const Main = ({ port }) => {
+  const [availableNodes, setAvailableNodes] = useState(null);
+  const [nodeTypes, setNodeTypes] = useState(null);
   const edgeTypes = {
     main: CustomEdge,
   };
@@ -39,17 +34,36 @@ const Main = () => {
   const options = { cachePolicy: 'no-cache', retries: 10 };
   const {
     loading, error, data, response,
-  } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/nodes`, options, []);
+  } = useFetch(`http://localhost:${port}/nodes`, options, [port]);
 
-  if (response.ok && data && !loading && !error && !backendReady) {
-    setBackendReady(true);
-    setNodeTypes(createNodeTypes(data));
-    ipcRenderer.send('backend-ready');
-  }
+  useEffect(() => {
+    if (response.ok && data && !loading && !error && !backendReady) {
+      setNodeTypes({
+        regularNode: Node,
+      });
+      const availableNodeMap = {};
+      data.forEach(({ category, nodes }) => {
+        availableNodeMap[category] = {};
+        nodes.forEach((node) => {
+          availableNodeMap[category][node.name] = node;
+        });
+      });
+      setAvailableNodes(availableNodeMap);
+    }
+  }, [response, data, loading, error, backendReady]);
 
-  if (loading && !backendReady) {
+  useEffect(() => {
+    (async () => {
+      if (nodeTypes && !backendReady) {
+        setBackendReady(true);
+        await ipcRenderer.invoke('backend-ready');
+      }
+    })();
+  }, [nodeTypes]);
+
+  if (!nodeTypes) {
     return (
-      <Box w={width} h={height}>
+      <Box w="full" h="full">
         <Center w="full" h="full">
           <Spinner />
         </Center>
@@ -96,14 +110,18 @@ const Main = () => {
 
   return (
     <ReactFlowProvider>
-      <GlobalProvider nodeTypes={nodeTypes}>
-        <VStack w={width - 2} h={height - 2} p={2} overflow="hidden">
-          <Header />
+      <GlobalProvider
+        nodeTypes={nodeTypes}
+        availableNodes={availableNodes}
+        reactFlowWrapper={reactFlowWrapper}
+      >
+        <VStack p={2} overflow="hidden">
+          <Header port={port} />
           <HStack
             as={Split}
-            initialPrimarySize="565px"
+            initialPrimarySize="380px"
             minPrimarySize="290px"
-            minSecondarySize="50%"
+            minSecondarySize="75%"
             splitterSize="10px"
             defaultSplitterColors={{
               color: '#71809633',

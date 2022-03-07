@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
   DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
@@ -18,31 +19,23 @@ import React, {
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
+import checkNodeValidity from '../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
 import DependencyManager from './DependencyManager.jsx';
 import SettingsModal from './SettingsModal.jsx';
 
-const Header = () => {
-  const [monitor, setMonitor] = useState(null);
-
-  useEffect(async () => {
-    const { displays } = await ipcRenderer.invoke('get-gpu-info');
-    if (displays) {
-      const mainDisplay = displays.find((display) => display.main === true);
-      setMonitor(mainDisplay);
-    }
-  }, []);
-
+const Header = ({ port }) => {
   const { colorMode, toggleColorMode } = useColorMode();
   const {
     convertToUsableFormat,
     useAnimateEdges,
-    useNodeValidity,
     nodes,
+    edges,
     useIsCpu,
     useIsFp16,
+    availableNodes,
   } = useContext(GlobalContext);
 
   const [isCpu] = useIsCpu;
@@ -51,24 +44,16 @@ const Header = () => {
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
-  const { post, error, response: res } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/run`, {
+  const { post, error, response: res } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
     timeout: 0,
-  });
-
-  const { post: killPost, error: killError, response: killRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/kill`, {
-    cachePolicy: 'no-cache',
-  });
-
-  const { post: pausePost, error: pauseError, response: pauseRes } = useFetch(`http://localhost:${ipcRenderer.sendSync('get-port')}/pause`, {
-    cachePolicy: 'no-cache',
   });
 
   const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('');
   const cancelRef = React.useRef();
 
-  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${ipcRenderer.sendSync('get-port')}/sse`, true);
+  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
   useEventSourceListener(eventSource, ['finish'], ({ data }) => {
     try {
       const parsedData = JSON.parse(data);
@@ -114,9 +99,11 @@ const Header = () => {
   } = useDisclosure();
 
   const [appVersion, setAppVersion] = useState('#.#.#');
-  useEffect(async () => {
-    const version = await ipcRenderer.invoke('get-app-version');
-    setAppVersion(version);
+  useEffect(() => {
+    (async () => {
+      const version = await ipcRenderer.invoke('get-app-version');
+      setAppVersion(version);
+    })();
   }, []);
 
   const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
@@ -128,28 +115,34 @@ const Header = () => {
       setErrorMessage('There are no nodes to run.');
       onErrorOpen();
     } else {
-      const invalidNodes = nodes.filter((node) => {
-        const [valid] = useNodeValidity(node.id);
-        return !valid;
-      });
-      if (invalidNodes.length === 0) {
-        try {
-          const data = convertToUsableFormat();
-          post({
-            data,
-            isCpu,
-            isFp16: isFp16 && !isCpu,
-            resolutionX: monitor?.resolutionX || 1920,
-            resolutionY: monitor?.resolutionY || 1080,
-          });
-        } catch (err) {
-          setErrorMessage(err.exception);
-          onErrorOpen();
-          unAnimateEdges();
-          setRunning(false);
-        }
-      } else {
-        setErrorMessage('There are invalid nodes in the editor. Please fix them before running.');
+      const nodeValidities = nodes.map(
+        (node) => {
+          const { inputs } = availableNodes[node.data.category][node.data.type];
+          return [...checkNodeValidity({
+            id: node.id, inputData: node.data.inputData, edges, inputs,
+          }), node.data.type];
+        },
+      );
+      const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
+      if (invalidNodes.length > 0) {
+        const reasons = invalidNodes.map(([, reason, type]) => `• ${type}: ${reason}`).join('\n');
+        setErrorMessage(`There are invalid nodes in the editor. Please fix them before running.\n${reasons}`);
+        onErrorOpen();
+        unAnimateEdges();
+        setRunning(false);
+        return;
+      }
+      try {
+        const data = convertToUsableFormat();
+        post('/run', {
+          data,
+          isCpu,
+          isFp16: isFp16 && !isCpu,
+          resolutionX: window.screen.width * window.devicePixelRatio,
+          resolutionY: window.screen.height * window.devicePixelRatio,
+        });
+      } catch (err) {
+        setErrorMessage(err.exception);
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -159,10 +152,10 @@ const Header = () => {
 
   async function pause() {
     try {
-      const response = await pausePost();
+      const response = await post('/pause');
       setRunning(false);
       unAnimateEdges();
-      if (!pauseRes.ok) {
+      if (!res.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
       }
@@ -176,11 +169,11 @@ const Header = () => {
 
   async function kill() {
     try {
-      const response = await killPost();
+      const response = await post('/kill');
       clearCompleteEdges();
       unAnimateEdges();
       setRunning(false);
-      if (!killRes.ok) {
+      if (!res.ok) {
         setErrorMessage(response.exception);
         onErrorOpen();
       }
@@ -301,7 +294,9 @@ const Header = () => {
         <AlertDialogContent>
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
+          <AlertDialogBody
+            whiteSpace="pre-wrap"
+          >
             {String(errorMessage)}
           </AlertDialogBody>
           <AlertDialogFooter>

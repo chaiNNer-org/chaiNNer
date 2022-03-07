@@ -2,7 +2,8 @@
 /* eslint-disable import/extensions */
 import {
   Button, Flex, HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, StackDivider, Switch, Tab, TabList,
+  ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
+  NumberInputStepper, StackDivider, Switch, Tab, TabList,
   TabPanel, TabPanels, Tabs, Text, useColorMode, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
@@ -16,6 +17,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     useIsCpu,
     useIsFp16,
     useIsSystemPython,
+    useSnapToGrid,
   } = useContext(GlobalContext);
 
   const { colorMode, toggleColorMode } = useColorMode();
@@ -23,16 +25,19 @@ const SettingsModal = ({ isOpen, onClose }) => {
   const [isCpu, setIsCpu] = useIsCpu;
   const [isFp16, setIsFp16] = useIsFp16;
   const [isSystemPython, setIsSystemPython] = useIsSystemPython;
+  const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
 
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
-  useEffect(async () => {
-    const gpuName = await ipcRenderer.invoke('get-gpu-name') || 'GPU not detected';
-    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-    if (gpuName.toLowerCase().includes('rtx')) {
-      setIsFp16(true);
-    }
-    setIsNvidiaAvailable(hasNvidia);
+  useEffect(() => {
+    (async () => {
+      const gpuName = await ipcRenderer.invoke('get-gpu-name') || 'GPU not detected';
+      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+      if (gpuName.toLowerCase().includes('rtx')) {
+        setIsFp16(true);
+      }
+      setIsNvidiaAvailable(hasNvidia);
+    })();
   }, []);
 
   useEffect(() => {
@@ -47,6 +52,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
   const AppearanceSettings = () => (
     <VStack w="full" divider={<StackDivider />}>
+      {/* Dark Theme */}
       <Flex align="center" w="full">
         <VStack w="full" alignItems="left" alignContent="left">
           <Text flex="1" textAlign="left">
@@ -58,6 +64,46 @@ const SettingsModal = ({ isOpen, onClose }) => {
         </VStack>
         <HStack>
           <Switch size="lg" value={colorMode === 'dark'} defaultChecked={colorMode === 'dark'} onChange={() => { toggleColorMode(); }} />
+        </HStack>
+      </Flex>
+      {/* Snap To Grid */}
+      <Flex align="center" w="full">
+        <VStack w="full" alignItems="left" alignContent="left">
+          <Text flex="1" textAlign="left">
+            Snap to grid
+          </Text>
+          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+            Enable node grid snapping.
+          </Text>
+        </VStack>
+        <HStack>
+          <Switch size="lg" value={isSnapToGrid} defaultChecked={isSnapToGrid} onChange={() => { setIsSnapToGrid(!isSnapToGrid); }} />
+        </HStack>
+      </Flex>
+      {/* Snap To Grid Amount */}
+      <Flex align="center" w="full">
+        <VStack w="full" alignItems="left" alignContent="left">
+          <Text flex="1" textAlign="left">
+            Snap to grid amount
+          </Text>
+          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+            The amount to snap the grid to.
+          </Text>
+        </VStack>
+        <HStack>
+          <NumberInput
+            defaultValue={snapToGridAmount}
+            min={1}
+            max={45}
+            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
+            value={snapToGridAmount ?? 1}
+          >
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
         </HStack>
       </Flex>
     </VStack>

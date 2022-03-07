@@ -13,27 +13,19 @@ from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
-from .properties.inputs.file_inputs import (DirectoryInput, PthFileInput,
-                                            TorchFileInput)
-from .properties.inputs.generic_inputs import SliderInput, TextInput
-from .properties.inputs.numpy_inputs import ImageInput
-from .properties.inputs.pytorch_inputs import (ModelInput, StateDictInput,
-                                               TorchScriptInput)
-from .properties.outputs.numpy_outputs import ImageOutput
-from .properties.outputs.pytorch_outputs import (ModelOutput, StateDictOutput,
-                                                 TorchScriptOutput)
+from .properties.inputs import *
+from .properties.outputs import *
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from .utils.utils import auto_split_process, np2tensor, tensor2np
+from .utils.pytorch_auto_split import auto_split_process
+from .utils.utils import np2tensor, tensor2np
 
 
 def check_env():
     os.environ["device"] = (
         "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
     )
-
-    logger.info(f"Using device: {os.environ['device']}")
 
     if os.environ["isFp16"] == "True":
         if os.environ["device"] == "cpu":
@@ -43,56 +35,48 @@ def check_env():
         else:
             logger.warn("Something isn't set right with the device env var")
 
+def load_state_dict(state_dict):
+    logger.info(f"Loading state dict into ESRGAN model")
 
-@NodeFactory.register("PyTorch", "Model::Read")
-class LoadStateDictNode(NodeBase):
+    # SRVGGNet Real-ESRGAN (v2)
+    if (
+        "params" in state_dict.keys()
+        and "body.0.weight" in state_dict["params"].keys()
+    ):
+        model = RealESRGANv2(state_dict)
+    # SPSR (ESRGAN with lots of extra layers)
+    elif "f_HR_conv1.0.weight" in state_dict:
+        model = SPSR(state_dict)
+    # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
+    else:
+        try:
+            model = ESRGAN(state_dict)
+        except:
+            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+    return model
+    
+@NodeFactory.register("PyTorch", "Load Model")
+class LoadModelNode(NodeBase):
     """Load Model node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Load PyTorch state dict file (.pth) from path"
+        super().__init__()
+        self.description = "Load PyTorch state dict file (.pth) into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture."
         self.inputs = [PthFileInput()]
-        self.outputs = [StateDictOutput()]
+        self.outputs = [ModelOutput()]
 
-    def run(self, path: str) -> OrderedDict:
-        """Read a pth file from the specified path and return it as a state dict"""
+        self.icon = "PyTorch"
+        self.sub = "Input & Output"
+
+    def run(self, path: str) -> Any:
+        """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
+        check_env()
 
         logger.info(f"Reading state dict from path: {path}")
         state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
 
-        return state_dict
-
-
-@NodeFactory.register("PyTorch", "Model::AutoLoad")
-class AutoLoadModelNode(NodeBase):
-    """Load PyTorch Model node"""
-
-    def __init__(self):
-        """Constructor"""
-        self.description = "Load PyTorch state dict into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture"
-        self.inputs = [StateDictInput()]
-        self.outputs = [ModelOutput()]
-
-    def run(self, state_dict: OrderedDict) -> Any:
-        """Loads the state dict to an ESRGAN model after finding arch config"""
-
-        logger.info(f"Loading state dict into ESRGAN model")
-
-        # SRVGGNet Real-ESRGAN (v2)
-        if (
-            "params" in state_dict.keys()
-            and "body.0.weight" in state_dict["params"].keys()
-        ):
-            model = RealESRGANv2(state_dict)
-        # SPSR (ESRGAN with lots of extra layers)
-        elif "f_HR_conv1.0.weight" in state_dict:
-            model = SPSR(state_dict)
-        # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
-        else:
-            try:
-                model = ESRGAN(state_dict)
-            except:
-                raise ValueError("Model unsupported by chaiNNer. Please try another.")
+        model = load_state_dict(state_dict)
 
         for _, v in model.named_parameters():
             v.requires_grad = False
@@ -101,17 +85,20 @@ class AutoLoadModelNode(NodeBase):
 
         return model
 
-
-@NodeFactory.register("PyTorch", "Image::Upscale")
+@NodeFactory.register("PyTorch", "Upscale Image")
 @torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     """Image Upscale node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Upscales a BGR numpy array using a Super-Resolution model"
+        super().__init__()
+        self.description = "Upscales an image using a PyTorch Super-Resolution model."
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
+
+        self.icon = "PyTorch"
+        self.sub = "Processing"
 
     def run(self, model: torch.nn.Module, img: np.ndarray) -> np.ndarray:
         """Upscales an image with a pretrained model"""
@@ -183,19 +170,23 @@ class ImageUpscaleNode(NodeBase):
         return img_out
 
 
-@NodeFactory.register("PyTorch", "Model::Interpolate")
+@NodeFactory.register("PyTorch", "Interpolate Models")
 class InterpolateNode(NodeBase):
     """Interpolate node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Interpolate two of the same kind of model together"
+        super().__init__()
+        self.description = "Interpolate two of the same kind of model state-dict together. Note: models must share a common 'pretrained model' ancestor in order to be interpolatable."
         self.inputs = [
-            StateDictInput(),
-            StateDictInput(),
+            ModelInput('Model A'),
+            ModelInput('Model B'),
             SliderInput("Amount", 0, 100, 50),
         ]
-        self.outputs = [StateDictOutput()]
+        self.outputs = [ModelOutput()]
+
+        self.icon = "BsTornado"
+        self.sub = "Utility"
 
     def perform_interp(self, model_a: OrderedDict, model_b: OrderedDict, amount: int):
         try:
@@ -217,11 +208,10 @@ class InterpolateNode(NodeBase):
         b_keys = model_b.keys()
         if a_keys != b_keys:
             return False
-        loaded = AutoLoadModelNode()
         interp_50 = self.perform_interp(model_a, model_b, 50)
+        model = load_state_dict(interp_50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32)
-        model = loaded.run(interp_50)
-        del loaded, interp_50
+        del interp_50
         result = ImageUpscaleNode().run(model, fake_img)
         del model
         mean_color = np.mean(result)
@@ -231,29 +221,37 @@ class InterpolateNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, model_a: OrderedDict, model_b: OrderedDict, amount: int
-    ) -> np.ndarray:
+        self, model_a: torch.nn.Module, model_b: torch.nn.Module, amount: int
+    ) -> Any:
+
+        state_a = model_a.state
+        state_b = model_b.state
 
         logger.info(f"Interpolating models...")
-        if not self.check_can_interp(model_a, model_b):
+        if not self.check_can_interp(state_a, state_b):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        state_dict = self.perform_interp(model_a, model_b, amount)
+        state_dict = self.perform_interp(state_a, state_b, amount)
+        model = load_state_dict(state_dict)
 
-        return state_dict
+        return model
 
 
-@NodeFactory.register("PyTorch", "Model::Save")
+@NodeFactory.register("PyTorch", "Save Model")
 class PthSaveNode(NodeBase):
     """Model Save node"""
 
     def __init__(self):
         """Constructor"""
-        self.description = "Save a PyTorch model"
+        super().__init__()
+        self.description = "Save a PyTorch model to specified directory."
         self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
+
+        self.icon = "PyTorch"
+        self.sub = "Input & Output"
 
     def run(self, model: OrderedDict(), directory: str, name: str) -> bool:
         fullFile = f"{name}.pth"
@@ -355,3 +353,24 @@ class PthSaveNode(NodeBase):
 #         out = model.cpu()(tensor)
 
 #         return out
+
+@NodeFactory.register("PyTorch", "Convert To ONNX")
+class ConvertTorchToONNXNode(NodeBase):
+    """ONNX node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Convert a PyTorch model to ONNX (for converting to NCNN). Use convertmodel.com to convert to NCNN for now."
+        self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.outputs = []
+        self.icon = "ONNX"
+        self.sub = "Utility"
+
+    def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
+        model.eval().cuda()
+        # https://github.com/onnx/onnx/issues/654
+        dynamic_axes= {'data':{0: 'batch_size', 2:'width', 3:'height'}, 'output':{0:'batch_size' , 2:'width', 3:'height'}}
+        dummy_input = torch.rand(1, model.in_nc, 64, 64).cuda()
+
+        torch.onnx.export(model, dummy_input, os.path.join(directory, f'{model_name}.onnx'), opset_version=14, verbose=False, input_names=["data"], output_names=["output"], dynamic_axes=dynamic_axes)

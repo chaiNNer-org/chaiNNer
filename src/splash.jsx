@@ -65,8 +65,8 @@ const Splash = () => {
   }, []);
 
   return (
-    <ChakraProvider bg="gray.700">
-      <Center w="full" bg="gray.700" h="400px" color="white">
+    <ChakraProvider>
+      <Center w="full" bg="gray.700" h="400px" color="white" borderRadius={8}>
         <Flex w="full" flexDirection="column">
           <Center>
             <Spinner color="cyan.500" />

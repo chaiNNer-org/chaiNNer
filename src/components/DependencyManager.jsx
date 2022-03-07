@@ -12,13 +12,20 @@ import {
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
 import React, {
-  memo, useEffect, useRef, useState,
+  memo, useContext, useEffect, useRef, useState,
 } from 'react';
 import semver from 'semver';
 import getAvailableDeps from '../helpers/dependencies.js';
+import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
 const DependencyManager = ({ isOpen, onClose }) => {
+  const {
+    useIsSystemPython,
+  } = useContext(GlobalContext);
+
+  const [isSystemPython] = useIsSystemPython;
+
   const {
     isOpen: isUninstallOpen,
     onOpen: onUninstallOpen,
@@ -53,38 +60,42 @@ const DependencyManager = ({ isOpen, onClose }) => {
     setAvailableDeps(depsArr);
   }, [isNvidiaAvailable]);
 
-  useEffect(async () => {
-    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-    if (hasNvidia) {
-      setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
-      setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
-    } else {
-      const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-      const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-      setGpuInfo(gpuNames);
-    }
+  useEffect(() => {
+    (async () => {
+      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+      if (hasNvidia) {
+        setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
+        setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
+      } else {
+        const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+        const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
+        setGpuInfo(gpuNames);
+      }
+    })();
   }, []);
 
   useEffect(() => {
-    const pKeys = ipcRenderer.sendSync('get-python');
-    setPythonKeys(pKeys);
-    setDeps({
-      ...deps,
-      pythonVersion: pKeys.version,
-    });
-    exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
-      if (error) {
-        setIsLoadingPipList(false);
-        return;
-      }
-      const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-      const pipObj = {};
-      tempPipList.forEach(([dep, version]) => {
-        pipObj[dep] = version;
+    (async () => {
+      const pKeys = await ipcRenderer.invoke('get-python');
+      setPythonKeys(pKeys);
+      setDeps({
+        ...deps,
+        pythonVersion: pKeys.version,
       });
-      setPipList(pipObj);
-      setIsLoadingPipList(false);
-    });
+      exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
+        if (error) {
+          setIsLoadingPipList(false);
+          return;
+        }
+        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+        const pipObj = {};
+        tempPipList.forEach(([dep, version]) => {
+          pipObj[dep] = version;
+        });
+        setPipList(pipObj);
+        setIsLoadingPipList(false);
+      });
+    })();
   }, []);
 
   useEffect(() => {
@@ -105,10 +116,12 @@ const DependencyManager = ({ isOpen, onClose }) => {
     }
   }, [isRunningShell, pythonKeys]);
 
-  useEffect(async () => {
-    if (depChanged) {
-      await ipcRenderer.invoke('kill-backend');
-    }
+  useEffect(() => {
+    (async () => {
+      if (depChanged) {
+        await ipcRenderer.invoke('kill-backend');
+      }
+    })();
   }, [depChanged]);
 
   const runPipCommand = (args) => {
@@ -207,7 +220,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
                 </Flex>
                 <Flex align="center" w="full">
                   <Text flex="1" textAlign="left">
-                    {`Python (${deps.pythonVersion})`}
+                    {`Python (${deps.pythonVersion}) [${isSystemPython ? 'System' : 'Integrated'}]`}
                   </Text>
                 </Flex>
                 {isLoadingPipList ? <Spinner />

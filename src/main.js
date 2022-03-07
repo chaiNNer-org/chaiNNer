@@ -1,6 +1,6 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, getPath, ipcMain, Menu, nativeTheme, shell,
+  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
 import {
@@ -52,8 +52,9 @@ const registerEventHandlers = () => {
     properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
   }));
 
-  ipcMain.handle('file-select', (event, filters, allowMultiple = false) => dialog.showOpenDialog({
+  ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) => dialog.showOpenDialog({
     filters,
+    defaultPath: dirPath,
     properties: ['openFile', allowMultiple && 'multiSelections'],
   }));
 
@@ -111,6 +112,15 @@ const registerEventHandlers = () => {
   });
 
   ipcMain.handle('get-app-version', async () => app.getVersion());
+
+  ipcMain.handle('show-warning-message-box', async (event, title, message) => {
+    dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
+      type: 'warning',
+      title,
+      message,
+    });
+    return Promise.resolve();
+  });
 };
 
 const getValidPort = async (splashWindow) => {
@@ -128,13 +138,13 @@ const getValidPort = async (splashWindow) => {
     app.exit(1);
   }
   log.info(`Port found: ${port}`);
-  ipcMain.on('get-port', (event) => {
+  ipcMain.handle('get-port', () => {
     if (process.argv[2] && process.argv[2] === '--no-backend') {
       // eslint-disable-next-line no-param-reassign
-      event.returnValue = 8000;
+      return 8000;
     }
     // eslint-disable-next-line no-param-reassign
-    event.returnValue = port;
+    return port;
   });
   return port;
 };
@@ -219,10 +229,7 @@ const checkPythonEnv = async (splashWindow) => {
       app.exit(1);
     }
 
-    ipcMain.on('get-python', (event) => {
-      // eslint-disable-next-line no-param-reassign
-      event.returnValue = pythonKeys;
-    });
+    ipcMain.handle('get-python', () => pythonKeys);
     // User is using bundled python
   } else {
     const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
@@ -282,10 +289,7 @@ const checkPythonEnv = async (splashWindow) => {
     pythonKeys.version = pythonVersion;
     log.info({ pythonKeys });
 
-    ipcMain.on('get-python', (event) => {
-      // eslint-disable-next-line no-param-reassign
-      event.returnValue = pythonKeys;
-    });
+    ipcMain.handle('get-python', () => pythonKeys);
   }
 };
 
@@ -307,12 +311,17 @@ const checkPythonDeps = async (splashWindow) => {
 };
 
 const checkNvidiaSmi = async () => {
-  const nvidiaSmi = getNvidiaSmi();
-  ipcMain.handle('get-smi', () => nvidiaSmi);
-  if (nvidiaSmi) {
-    const [gpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
+  const registerEmptyGpuEvents = () => {
+    ipcMain.handle('get-has-nvidia', () => false);
+    ipcMain.handle('get-gpu-name', () => null);
+    ipcMain.handle('setup-vram-checker-process', () => null);
+    ipcMain.handle('get-vram-usage', () => null);
+  };
+
+  const registerNvidiaSmiEvents = async (nvidiaSmi) => {
+    const [nvidiaGpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
-    ipcMain.handle('get-gpu-name', () => gpu.trim());
+    ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
     let vramChecker;
     ipcMain.handle('setup-vram-checker-process', (event, delay) => {
       if (!vramChecker) {
@@ -328,11 +337,40 @@ const checkNvidiaSmi = async () => {
         });
       });
     });
+  };
+
+  // Try using nvidia-smi from path
+  let nvidiaSmi = null;
+  try {
+    const { stdout: nvidiaSmiTest } = await exec('nvidia-smi');
+    if (nvidiaSmiTest) {
+      nvidiaSmi = 'nvidia-smi';
+    }
+  } catch (_) {
+    // pass
+  }
+
+  // If nvidia-smi not in path, it might still exist on windows
+  if (!nvidiaSmi) {
+    if (os.platform() === 'win32') {
+      // Check an easy command to see what the name of the gpu is
+      try {
+        const { stdout } = await exec('wmic path win32_VideoController get name');
+        if (stdout.toLowerCase().includes('geforce') || stdout.toLowerCase().includes('nvidia')) {
+        // Find the path to nvidia-smi
+          nvidiaSmi = await getNvidiaSmi();
+        }
+      } catch (_) {
+      // pass
+      }
+    }
+  }
+
+  if (nvidiaSmi) {
+    ipcMain.handle('get-smi', () => nvidiaSmi);
+    await registerNvidiaSmiEvents(nvidiaSmi);
   } else {
-    ipcMain.handle('get-has-nvidia', () => false);
-    ipcMain.handle('get-gpu-name', () => null);
-    ipcMain.handle('setup-vram-checker-process', () => null);
-    ipcMain.handle('get-vram-usage', () => null);
+    registerEmptyGpuEvents();
   }
 };
 
@@ -353,6 +391,14 @@ const spawnBackend = async (port) => {
 
     backend.stderr.on('data', (data) => {
       log.error(`Backend: ${String(data)}`);
+    });
+
+    backend.on('error', (error) => {
+      log.error(`Python subprocess encountered an unexpected error: ${error}`);
+    });
+
+    backend.on('exit', (code, signal) => {
+      log.error(`Python subprocess exited with code ${code} and signal ${signal}`);
     });
 
     ipcMain.handle('kill-backend', () => {
@@ -411,7 +457,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     width: 400,
     height: 400,
     frame: false,
-    backgroundColor: '#2D3748',
+    // backgroundColor: '#2D3748',
     center: true,
     minWidth: 400,
     minHeight: 400,
@@ -423,6 +469,8 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     closable: false,
     alwaysOnTop: true,
     titleBarStyle: 'hidden',
+    // transparent: true,
+    // roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nativeWindowOpen: true,
@@ -469,7 +517,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     resolve();
   });
 
-  ipcMain.once('backend-ready', () => {
+  ipcMain.handle('backend-ready', () => {
     mainWindow.webContents.once('dom-ready', async () => {
       splash.on('close', () => {});
       splash.destroy();
@@ -479,7 +527,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
 
   mainWindow.webContents.once('dom-ready', async () => {
     ipcMain.removeHandler('backend-ready');
-    ipcMain.once('backend-ready', () => {
+    ipcMain.handle('backend-ready', () => {
       splash.on('close', () => {});
       splash.destroy();
       mainWindow.show();
@@ -496,6 +544,7 @@ const createWindow = async () => {
     minWidth: 720,
     minHeight: 640,
     darkTheme: nativeTheme.shouldUseDarkColors,
+    roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
@@ -617,13 +666,25 @@ const createWindow = async () => {
         {
           label: 'View README',
           click: async () => {
-            await shell.openExternal('https://github.com/joeyballentine/chaiNNer');
+            await shell.openExternal('https://github.com/joeyballentine/chaiNNer/blob/main/README.md');
           },
         },
         {
           label: 'Open logs folder',
           click: async () => {
-            await shell.openPath(getPath('logs'));
+            await shell.openPath(app.getPath('logs'));
+          },
+        },
+        {
+          label: 'Get ESRGAN models',
+          click: async () => {
+            await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
+          },
+        },
+        {
+          label: 'Convert ONNX models to NCNN',
+          click: async () => {
+            await shell.openExternal('https://convertmodel.com/');
           },
         },
       ],

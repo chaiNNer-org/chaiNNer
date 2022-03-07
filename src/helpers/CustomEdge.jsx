@@ -3,7 +3,7 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import React, {
-  memo, useCallback, useContext, useState,
+  memo, useCallback, useContext, useMemo, useState,
 } from 'react';
 import { getBezierPath, getEdgeCenter, getMarkerEnd } from 'react-flow-renderer';
 import getNodeAccentColors from './getNodeAccentColors';
@@ -29,12 +29,20 @@ const CustomEdge = ({
   });
   const markerEnd = getMarkerEnd(arrowHeadType, markerEndId);
 
+  const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
+
+  const edge = edges.find((e) => e.id === id);
+  const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
+
   const [isHovered, setIsHovered] = useState(false);
-  const accentColor = getNodeAccentColors(data.sourceType);
+  // const accentColor = getNodeAccentColors(data.sourceType, data.sourceSubCategory);
+  // We dynamically grab this data instead since storing the types makes transitioning harder
+  const accentColor = useMemo(
+    () => getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory),
+    [parentNode],
+  );
   const selectedColor = shadeColor(accentColor, -40);
   // const normalColor = useColorModeValue('gray.600', 'gray.400');
-
-  const { removeEdgeById } = useContext(GlobalContext);
 
   const getCurrentColor = () => {
     if (selected) {
