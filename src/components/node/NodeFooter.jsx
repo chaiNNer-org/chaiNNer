@@ -26,7 +26,7 @@ const NodeFooter = ({
   return (
     <Flex w="full" pl={2} pr={2}>
       <Center>
-        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} onClick={() => toggleLock()} cursor="pointer" />
+        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.400', 'gray.800')} onClick={() => toggleLock()} cursor="pointer" />
       </Center>
       <Spacer />
       <Tooltip
@@ -37,7 +37,7 @@ const NodeFooter = ({
         textAlign="center"
       >
         <Center>
-          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.300', 'gray.800')} cursor="default" />
+          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.400', 'gray.800')} cursor="default" />
         </Center>
       </Tooltip>
       <Spacer />
@@ -45,7 +45,7 @@ const NodeFooter = ({
         <Menu>
           <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle">
             <Center>
-              <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={useColorModeValue('gray.300', 'gray.800')} />
+              <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={useColorModeValue('gray.400', 'gray.800')} />
             </Center>
           </MenuButton>
           <Portal>
