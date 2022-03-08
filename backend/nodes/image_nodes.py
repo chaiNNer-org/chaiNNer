@@ -39,15 +39,15 @@ class ImReadNode(NodeBase):
 
         logger.info(f"Reading image from path: {path}")
         try:
-            img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-        except:
-            logger.warn(
-                f"Error loading image, assuming image had unicode characters in path"
-            )
-            try:
-                img = cv2.imdecode(
+            img = cv2.imdecode(
                     np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
                 )
+        except:
+            logger.warn(
+                f"Error loading image, trying with imread."
+            )
+            try:
+                img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             except Exception as e:
                 logger.error("Error loading image.")
                 raise RuntimeError(
