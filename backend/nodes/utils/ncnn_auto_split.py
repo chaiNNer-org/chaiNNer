@@ -81,14 +81,12 @@ def ncnn_auto_split_process(
     top_left_rlt, depth = ncnn_auto_split_process(
         top_left,
         net,
-        scale=scale,
         overlap=overlap,
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = ncnn_auto_split_process(
         top_right,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
@@ -96,7 +94,6 @@ def ncnn_auto_split_process(
     bottom_left_rlt, _ = ncnn_auto_split_process(
         bottom_left,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
@@ -104,14 +101,14 @@ def ncnn_auto_split_process(
     bottom_right_rlt, _ = ncnn_auto_split_process(
         bottom_right,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
     )
 
+    tl_h, _ = top_left.shape[:2]
     up_h, _ = top_left_rlt.shape[:2]
-    scale = int(up_h / h)
+    scale = int(up_h / tl_h)
 
     # Define output shape
     out_h = h * scale
