@@ -138,8 +138,8 @@ const Header = ({ port }) => {
           data,
           isCpu,
           isFp16: isFp16 && !isCpu,
-          resolutionX: window.screen.width * window.devicePixelRatio,
-          resolutionY: window.screen.height * window.devicePixelRatio,
+          resolutionX: Math.floor(window.screen.width * window.devicePixelRatio),
+          resolutionY: Math.floor(window.screen.height * window.devicePixelRatio),
         });
       } catch (err) {
         setErrorMessage(err.exception);
@@ -235,6 +235,7 @@ const Header = ({ port }) => {
               </Box>
             </Tooltip>
 
+            {vramUsage && (
             <Tooltip label={`${Number(vramUsage).toFixed(1)}%`}>
               <Box>
                 <CircularProgress
@@ -248,6 +249,7 @@ const Header = ({ port }) => {
                 </CircularProgress>
               </Box>
             </Tooltip>
+            )}
 
             <Menu isLazy>
               <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">

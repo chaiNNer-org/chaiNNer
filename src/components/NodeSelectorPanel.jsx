@@ -193,10 +193,6 @@ const NodeSelector = ({ data, height }) => {
                                           const nodeData = {
                                             category,
                                             type: node.name,
-                                            // inputs: node.inputs,
-                                            // outputs: node.outputs,
-                                            // icon: node.icon,
-                                            // subcategory: node.subcategory,
                                           };
 
                                           createNode({ type: 'regularNode', position, data: nodeData });
