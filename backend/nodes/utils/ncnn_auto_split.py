@@ -11,7 +11,6 @@ from torch import Tensor
 def ncnn_auto_split_process(
     lr_img: np.ndarray,
     net,
-    scale: int = 4,
     overlap: int = 32,
     max_depth: int = None,
     current_depth: int = 1,
@@ -65,7 +64,11 @@ def ncnn_auto_split_process(
             else:
                 raise RuntimeError(e)
 
-    h, w, c = lr_img.shape
+    h, w = lr_img.shape[:2]
+    if lr_img.ndim > 2:
+        c = lr_img.shape[2]
+    else:
+        c = 1
 
     # Split image into 4ths
     top_left = lr_img[: h // 2 + overlap, : w // 2 + overlap, ...]
@@ -106,6 +109,9 @@ def ncnn_auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+
+    up_h, _ = top_left_rlt.shape[:2]
+    scale = int(up_h / h)
 
     # Define output shape
     out_h = h * scale

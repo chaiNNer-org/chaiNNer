@@ -101,8 +101,10 @@ const DependencyManager = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isRunningShell) {
       setIsLoadingPipList(true);
+      exec(`${pythonKeys.python} -m pip install --upgrade pip`);
       exec(`${pythonKeys.python} -m pip list`, (error, stdout, stderr) => {
         if (error || stderr) {
+          setIsLoadingPipList(false);
           return;
         }
         const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
@@ -337,8 +339,8 @@ const DependencyManager = ({ isOpen, onClose }) => {
             </Button>
             <Button
               variant="ghost"
-              onClick={() => {
-                ipcRenderer.invoke('relaunch-application');
+              onClick={async () => {
+                await ipcRenderer.invoke('relaunch-application');
               }}
             >
               Restart chaiNNer

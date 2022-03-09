@@ -39,10 +39,10 @@ class NcnnLoadModelNode(NodeBase):
 
             assert not 'MemoryData' in lines, "This NCNN param file contains invalid layers" 
 
-            # Scale
-            regex = 'Interp\s*\w*\s*.*2=(\d.?\d*)'
-            matches = re.findall(regex, lines)
-            scale = int(np.prod([float(n) for n in matches]))
+            # # Scale
+            # regex = 'Interp\s*\w*\s*.*2=(\d.?\d*)'
+            # matches = re.findall(regex, lines)
+            # scale = int(np.prod([float(n) for n in matches]))
 
             # Input name
             regex = 'Input\s+([\w.]+)\s+0\s1\s(\w+)'
@@ -53,19 +53,20 @@ class NcnnLoadModelNode(NodeBase):
                 _, input_name = matches
 
             # Output name & out nc
-            regex = '\w+\s+([\w.]+)\s+\d+\s+\d+\s+\d+\s+([^\d\s]+)\s0=(\d)'
+            # regex = '\w+\s+([\w.]+)\s+\d+\s+\d+\s+\d+\s+([^\d\s]+)\s0=(\d)'
+            regex = '\s([^\s]+)\s0=(\d)'
             matches = re.findall(regex, lines)
             if len(matches) > 0:
                 if any(isinstance(el, tuple) for el in matches):
                     matches = matches[-1]
-                _, output_name, out_nc = matches
+                output_name, out_nc = matches
         
-        return scale, input_name, output_name, out_nc
+        return input_name, output_name, out_nc
 
 
     def run(self, param_path: str, bin_path: str) -> np.ndarray:
-        scale, input_name, output_name, out_nc = self.get_param_info(param_path)
-        logger.info(f'{scale}, {input_name}, {output_name}')
+        input_name, output_name, out_nc = self.get_param_info(param_path)
+        logger.info(f'{input_name}, {output_name}')
 
         net = ncnn.Net()
 
@@ -78,7 +79,7 @@ class NcnnLoadModelNode(NodeBase):
 
 
         # Put all this info with the net and disguise it as just the net
-        return [(net, scale, input_name, output_name)]
+        return [(net, input_name, output_name)]
 
 
 
@@ -114,11 +115,11 @@ class NcnnUpscaleImageNode(NodeBase):
             logger.warn("Expanding image channels")
             img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-        net, scale, input_name, output_name = net_tuple
+        net, input_name, output_name = net_tuple
 
         # Try/except block to catch errors
         try:
-            output, _ = ncnn_auto_split_process(img, net, scale, input_name=input_name, output_name=output_name)
+            output, _ = ncnn_auto_split_process(img, net, input_name=input_name, output_name=output_name)
             net.clear()
             if gray:
                 output = np.average(output, axis=2)
