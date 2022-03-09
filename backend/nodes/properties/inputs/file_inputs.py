@@ -6,7 +6,7 @@ from .generic_inputs import DropDownInput
 def FileInput(
     input_type: str, label: str, accepts: List[str], filetypes: List[str]
 ) -> Dict:
-    """ Input for submitting a local file """
+    """Input for submitting a local file"""
     return {
         "type": f"file::{input_type}",
         "label": label,
@@ -16,29 +16,29 @@ def FileInput(
 
 
 def ImageFileInput() -> Dict:
-    """ Input for submitting a local image file """
+    """Input for submitting a local image file"""
     return FileInput(
         "image", "Image File", None, ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
     )
 
 
 def PthFileInput() -> Dict:
-    """ Input for submitting a local .pth file """
+    """Input for submitting a local .pth file"""
     return FileInput("pth", "Pretrained Model", None, ["pth"])
 
 
 def TorchFileInput() -> Dict:
-    """ Input for submitting a local .pth or .pt file """
+    """Input for submitting a local .pth or .pt file"""
     return FileInput("pth", "Pretrained Model", None, ["pth", "pt"])
 
 
 def DirectoryInput() -> Dict:
-    """ Input for submitting a local directory """
+    """Input for submitting a local directory"""
     return FileInput("directory", "Directory", None, ["directory"])
 
 
 def ImageExtensionDropdown() -> Dict:
-    """ Input for selecting file type from dropdown """
+    """Input for selecting file type from dropdown"""
     return DropDownInput(
         "image-extensions",
         "Image Extension",
@@ -66,14 +66,17 @@ def ImageExtensionDropdown() -> Dict:
         ],
     )
 
+
 def BinFileInput() -> Dict:
-    """ Input for submitting a local .bin file """
+    """Input for submitting a local .bin file"""
     return FileInput("bin", "NCNN Bin File", None, ["bin"])
 
+
 def ParamFileInput() -> Dict:
-    """ Input for submitting a local .param file """
+    """Input for submitting a local .param file"""
     return FileInput("param", "NCNN Param File", None, ["param"])
 
+
 def OnnxFileInput() -> Dict:
-    """ Input for submitting a local .onnx file """
+    """Input for submitting a local .onnx file"""
     return FileInput("param", "NCNN Param File", None, ["param"])

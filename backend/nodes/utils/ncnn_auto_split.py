@@ -7,6 +7,17 @@ from sanic.log import logger
 from torch import Tensor
 
 
+def fix_dtype_range(img):
+    dtype_max = 1
+    try:
+        dtype_max = np.iinfo(img.dtype).max
+    except:
+        logger.info("img dtype is not an int")
+
+    img = (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255).astype(np.uint8)
+    return img
+
+
 # NCNN version of the 'auto_split_upscale' function
 def ncnn_auto_split_process(
     lr_img: np.ndarray,
@@ -14,8 +25,8 @@ def ncnn_auto_split_process(
     overlap: int = 32,
     max_depth: int = None,
     current_depth: int = 1,
-    input_name = 'data',
-    output_name = 'output',
+    input_name: str = "data",
+    output_name: str = "output",
 ) -> Tuple[Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
@@ -36,17 +47,17 @@ def ncnn_auto_split_process(
         # ex.set_light_mode(True)
         try:
             mat_in = ncnn.Mat.from_pixels(
-                (lr_img.copy() * 255).astype(np.uint8),
+                lr_img.copy(),
                 ncnn.Mat.PixelType.PIXEL_BGR,
                 lr_img.shape[1],
-                lr_img.shape[0]
+                lr_img.shape[0],
             )
             mean_vals = []
             norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
             mat_in.substract_mean_normalize(mean_vals, norm_vals)
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
-            result = np.array(mat_out).transpose(1, 2, 0)
+            result = fix_dtype_range(np.array(mat_out).transpose(1, 2, 0))
             del ex, mat_in, mat_out
             # Clear VRAM
             blob_vkallocator.clear()
@@ -115,9 +126,7 @@ def ncnn_auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = np.zeros(
-        (out_h, out_w, c), dtype=lr_img.dtype
-    )
+    output_img = np.zeros((out_h, out_w, c), dtype=lr_img.dtype)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[

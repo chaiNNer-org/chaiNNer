@@ -2,7 +2,7 @@ from typing import Dict, List
 
 
 def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
-    """ Input for a dropdown """
+    """Input for a dropdown"""
     return {
         "type": f"dropdown::{input_type}",
         "label": label,
@@ -11,7 +11,7 @@ def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
 
 
 def TextInput(label: str) -> Dict:
-    """ Input for arbitrary text """
+    """Input for arbitrary text"""
     return {
         "type": "text::any",
         "label": label,
@@ -20,7 +20,7 @@ def TextInput(label: str) -> Dict:
 
 
 def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
-    """ Input for arbitrary number """
+    """Input for arbitrary number"""
     return {
         "type": "number::any",
         "label": label,
@@ -32,7 +32,7 @@ def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
 
 
 def IntegerInput(label: str) -> Dict:
-    """ Input for integer number """
+    """Input for integer number"""
     return {
         "type": "number::integer",
         "label": label,
@@ -43,7 +43,7 @@ def IntegerInput(label: str) -> Dict:
 
 
 def OddIntegerInput(label: str) -> Dict:
-    """ Input for integer number """
+    """Input for integer number"""
     return {
         "type": "number::integer::odd",
         "label": label,
@@ -55,7 +55,7 @@ def OddIntegerInput(label: str) -> Dict:
 
 
 def BoundlessIntegerInput(label: str) -> Dict:
-    """ Input for integer number """
+    """Input for integer number"""
     return {
         "type": "number::integer",
         "label": label,
@@ -67,7 +67,7 @@ def BoundlessIntegerInput(label: str) -> Dict:
 
 
 def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
-    """ Input for integer number via slider"""
+    """Input for integer number via slider"""
     return {
         "type": "number::slider",
         "label": label,
@@ -78,7 +78,7 @@ def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
 
 
 def NoteTextAreaInput() -> Dict:
-    """ Input for note text """
+    """Input for note text"""
     return {
         "type": "textarea::note",
         "label": "Note Text",
@@ -89,7 +89,7 @@ def NoteTextAreaInput() -> Dict:
 
 
 def MathOpsDropdown() -> Dict:
-    """ Input for selecting math operation type from dropdown """
+    """Input for selecting math operation type from dropdown"""
     return DropDownInput(
         "math-operations",
         "Math Operation",
@@ -117,11 +117,12 @@ def MathOpsDropdown() -> Dict:
         ],
     )
 
+
 def StackOrientationDropdown() -> Dict:
-    """ Input for selecting stack orientation from dropdown """
+    """Input for selecting stack orientation from dropdown"""
     return DropDownInput(
-        'generic',
-        'Orientation',
+        "generic",
+        "Orientation",
         [
             {
                 "option": "Horizontal",
@@ -130,6 +131,6 @@ def StackOrientationDropdown() -> Dict:
             {
                 "option": "Vertical",
                 "value": "vertical",
-            }
-        ]
+            },
+        ],
     )

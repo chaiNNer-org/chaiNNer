@@ -1,4 +1,3 @@
-
 import gc
 import os
 from typing import Tuple
@@ -110,4 +109,3 @@ def auto_split_process(
     ]
 
     return output_img, depth
-

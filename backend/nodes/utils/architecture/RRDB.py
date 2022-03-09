@@ -222,7 +222,7 @@ class RRDBNet(nn.Module):
                 part_num = int(parts[0])
                 if part_num > min_part and parts[1] == "weight":
                     n += 1
-        return 2 ** n
+        return 2**n
 
     def get_num_blocks(self) -> int:
         nbs = []
