@@ -177,4 +177,3 @@ def tensor2np(
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32
     return img_np.astype(imtype)
-

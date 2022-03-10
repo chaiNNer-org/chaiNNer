@@ -297,7 +297,7 @@ class SPSRNet(nn.Module):
                 part_num = int(parts[1])
                 if part_num > min_part and parts[0] == "model" and parts[2] == "weight":
                     n += 1
-        return 2 ** n
+        return 2**n
 
     def get_num_blocks(self) -> int:
         nb = 0

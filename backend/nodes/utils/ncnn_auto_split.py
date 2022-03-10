@@ -7,16 +7,26 @@ from sanic.log import logger
 from torch import Tensor
 
 
+def fix_dtype_range(img):
+    dtype_max = 1
+    try:
+        dtype_max = np.iinfo(img.dtype).max
+    except:
+        logger.info("img dtype is not an int")
+
+    img = (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255).astype(np.uint8)
+    return img
+
+
 # NCNN version of the 'auto_split_upscale' function
 def ncnn_auto_split_process(
     lr_img: np.ndarray,
     net,
-    scale: int = 4,
     overlap: int = 32,
     max_depth: int = None,
     current_depth: int = 1,
-    input_name = 'data',
-    output_name = 'output',
+    input_name: str = "data",
+    output_name: str = "output",
 ) -> Tuple[Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
@@ -37,17 +47,17 @@ def ncnn_auto_split_process(
         # ex.set_light_mode(True)
         try:
             mat_in = ncnn.Mat.from_pixels(
-                (lr_img.copy() * 255).astype(np.uint8),
+                lr_img.copy(),
                 ncnn.Mat.PixelType.PIXEL_BGR,
                 lr_img.shape[1],
-                lr_img.shape[0]
+                lr_img.shape[0],
             )
             mean_vals = []
             norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
             mat_in.substract_mean_normalize(mean_vals, norm_vals)
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
-            result = np.array(mat_out).transpose(1, 2, 0)
+            result = fix_dtype_range(np.array(mat_out).transpose(1, 2, 0))
             del ex, mat_in, mat_out
             # Clear VRAM
             blob_vkallocator.clear()
@@ -65,7 +75,11 @@ def ncnn_auto_split_process(
             else:
                 raise RuntimeError(e)
 
-    h, w, c = lr_img.shape
+    h, w = lr_img.shape[:2]
+    if lr_img.ndim > 2:
+        c = lr_img.shape[2]
+    else:
+        c = 1
 
     # Split image into 4ths
     top_left = lr_img[: h // 2 + overlap, : w // 2 + overlap, ...]
@@ -78,14 +92,12 @@ def ncnn_auto_split_process(
     top_left_rlt, depth = ncnn_auto_split_process(
         top_left,
         net,
-        scale=scale,
         overlap=overlap,
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = ncnn_auto_split_process(
         top_right,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
@@ -93,7 +105,6 @@ def ncnn_auto_split_process(
     bottom_left_rlt, _ = ncnn_auto_split_process(
         bottom_left,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
@@ -101,20 +112,21 @@ def ncnn_auto_split_process(
     bottom_right_rlt, _ = ncnn_auto_split_process(
         bottom_right,
         net,
-        scale=scale,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+
+    tl_h, _ = top_left.shape[:2]
+    up_h, _ = top_left_rlt.shape[:2]
+    scale = int(up_h / tl_h)
 
     # Define output shape
     out_h = h * scale
     out_w = w * scale
 
     # Create blank output image
-    output_img = np.zeros(
-        (out_h, out_w, c), dtype=lr_img.dtype
-    )
+    output_img = np.zeros((out_h, out_w, c), dtype=lr_img.dtype)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[

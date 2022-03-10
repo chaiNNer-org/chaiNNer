@@ -461,7 +461,7 @@ def pixelshuffle_block(
     """
     conv = conv_block(
         in_nc,
-        out_nc * (upscale_factor ** 2),
+        out_nc * (upscale_factor**2),
         kernel_size,
         stride,
         bias=bias,

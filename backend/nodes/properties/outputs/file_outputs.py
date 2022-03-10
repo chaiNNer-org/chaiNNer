@@ -2,7 +2,7 @@ from typing import Dict, List
 
 
 def FileOutput(input_type: str, label: str, filetypes: List[str]) -> Dict:
-    """ Output for saving a local file """
+    """Output for saving a local file"""
     return {
         "type": f"file::{input_type}",
         "label": label,
@@ -11,13 +11,12 @@ def FileOutput(input_type: str, label: str, filetypes: List[str]) -> Dict:
 
 
 def ImageFileOutput(label: str = "image") -> Dict:
-    """ Output for saving a local image file """
+    """Output for saving a local image file"""
     return FileOutput(
         label, "Image File", ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
     )
 
+
 def OnnxFileOutput() -> Dict:
-    """ Output for saving a .onnx file """
-    return FileOutput(
-        'onnx', "ONNX Model", ["onnx"]
-    )
+    """Output for saving a .onnx file"""
+    return FileOutput("onnx", "ONNX Model", ["onnx"])

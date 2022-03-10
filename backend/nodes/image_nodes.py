@@ -39,15 +39,11 @@ class ImReadNode(NodeBase):
 
         logger.info(f"Reading image from path: {path}")
         try:
-            img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         except:
-            logger.warn(
-                f"Error loading image, assuming image had unicode characters in path"
-            )
+            logger.warn(f"Error loading image, trying with imread.")
             try:
-                img = cv2.imdecode(
-                    np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
-                )
+                img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             except Exception as e:
                 logger.error("Error loading image.")
                 raise RuntimeError(
@@ -194,7 +190,9 @@ class ImResizeByFactorNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%)."
+        self.description = (
+            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%)."
+        )
         self.inputs = [
             ImageInput(),
             NumberInput("Scale Factor", default=1.0, step=0.5),
@@ -438,7 +436,7 @@ class StackNode(NodeBase):
         im2: np.ndarray = None,
         im3: np.ndarray = None,
         im4: np.ndarray = None,
-        orientation: str = 'horizontal',
+        orientation: str = "horizontal",
     ) -> np.ndarray:
         """Concatenate multiple images horizontally"""
 
@@ -460,17 +458,21 @@ class StackNode(NodeBase):
 
             fixed_img = img
             # Fix images so they resize proportionally to the max image
-            if orientation == 'horizontal':
+            if orientation == "horizontal":
                 if h < max_h:
                     ratio = max_h / h
                     fixed_img = cv2.resize(
-                        img, (math.ceil(w * ratio), max_h), interpolation=cv2.INTER_NEAREST
+                        img,
+                        (math.ceil(w * ratio), max_h),
+                        interpolation=cv2.INTER_NEAREST,
                     )
-            elif orientation == 'vertical':
+            elif orientation == "vertical":
                 if w < max_w:
                     ratio = max_w / w
                     fixed_img = cv2.resize(
-                        img, (max_w, math.ceil(h * ratio)), interpolation=cv2.INTER_NEAREST
+                        img,
+                        (max_w, math.ceil(h * ratio)),
+                        interpolation=cv2.INTER_NEAREST,
                     )
 
             # Expand channel dims if necessary
@@ -481,7 +483,7 @@ class StackNode(NodeBase):
 
             fixed_imgs.append(fixed_img.astype("float32"))
 
-        if orientation == 'horizontal':
+        if orientation == "horizontal":
             for i in range(len(fixed_imgs)):
                 assert (
                     fixed_imgs[i].shape[0] == fixed_imgs[0].shape[0]
@@ -490,7 +492,7 @@ class StackNode(NodeBase):
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
             img = cv2.hconcat(fixed_imgs)
-        elif orientation == 'vertical':
+        elif orientation == "vertical":
             for i in range(len(fixed_imgs)):
                 assert (
                     fixed_imgs[i].shape[1] == fixed_imgs[0].shape[1]
@@ -501,7 +503,6 @@ class StackNode(NodeBase):
             img = cv2.vconcat(fixed_imgs)
 
         return img
-
 
 
 @NodeFactory.register("Image (Effect)", "Brightness & Contrast")
@@ -752,7 +753,9 @@ class BorderCropNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Crop an image based on a constant border margin around the entire image."
+        self.description = (
+            "Crop an image based on a constant border margin around the entire image."
+        )
         self.inputs = [
             ImageInput(),
             IntegerInput("Amount"),
@@ -776,6 +779,7 @@ class BorderCropNode(NodeBase):
 
         return result
 
+
 @NodeFactory.register("Image (Utility)", "Crop (Edges)")
 class EdgeCropNode(NodeBase):
     """NumPy Edge Crop node"""
@@ -796,7 +800,9 @@ class EdgeCropNode(NodeBase):
         self.icon = "MdCrop"
         self.sub = "Resizing & Reshaping"
 
-    def run(self, img: np.ndarray, top: str, left: str, right: str, bottom: str) -> np.ndarray:
+    def run(
+        self, img: np.ndarray, top: str, left: str, right: str, bottom: str
+    ) -> np.ndarray:
         """Crop an image"""
 
         h, w = img.shape[:2]

@@ -138,8 +138,12 @@ const Header = ({ port }) => {
           data,
           isCpu,
           isFp16: isFp16 && !isCpu,
-          resolutionX: window.screen.width * window.devicePixelRatio,
-          resolutionY: window.screen.height * window.devicePixelRatio,
+          // We actually do not want to adjust for scaling here,
+          // as imshow does not take that into account
+          // resolutionX: Math.floor(window.screen.width * window.devicePixelRatio),
+          // resolutionY: Math.floor(window.screen.height * window.devicePixelRatio),
+          resolutionX: window.screen.width,
+          resolutionY: window.screen.height,
         });
       } catch (err) {
         setErrorMessage(err.exception);
@@ -185,6 +189,8 @@ const Header = ({ port }) => {
     }
   }
 
+  const trackColor = useColorModeValue('gray.300', 'gray.700');
+
   return (
     <>
       <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg">
@@ -214,7 +220,7 @@ const Header = ({ port }) => {
                   color={cpuUsage < 90 ? 'blue.400' : 'red.400'}
                   size="42px"
                   capIsRound
-                  trackColor={useColorModeValue('gray.300', 'gray.700')}
+                  trackColor={trackColor}
                 >
                   <CircularProgressLabel>CPU</CircularProgressLabel>
                 </CircularProgress>
@@ -228,13 +234,14 @@ const Header = ({ port }) => {
                   color={ramUsage < 90 ? 'blue.400' : 'red.400'}
                   size="42px"
                   capIsRound
-                  trackColor={useColorModeValue('gray.300', 'gray.700')}
+                  trackColor={trackColor}
                 >
                   <CircularProgressLabel>RAM</CircularProgressLabel>
                 </CircularProgress>
               </Box>
             </Tooltip>
 
+            {vramUsage && (
             <Tooltip label={`${Number(vramUsage).toFixed(1)}%`}>
               <Box>
                 <CircularProgress
@@ -242,12 +249,13 @@ const Header = ({ port }) => {
                   color={vramUsage < 90 ? 'blue.400' : 'red.400'}
                   size="42px"
                   capIsRound
-                  trackColor={useColorModeValue('gray.300', 'gray.700')}
+                  trackColor={trackColor}
                 >
                   <CircularProgressLabel>VRAM</CircularProgressLabel>
                 </CircularProgress>
               </Box>
             </Tooltip>
+            )}
 
             <Menu isLazy>
               <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">

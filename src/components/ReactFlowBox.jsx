@@ -19,7 +19,7 @@ const ReactFlowBox = ({
 }) => {
   const {
     elements, createNode, createConnection, reactFlowInstance,
-    setReactFlowInstance, removeElements, updateRfi, setSelectedElements,
+    setReactFlowInstance, removeElements, updateRfi,
     useSnapToGrid,
   } = useContext(GlobalContext);
 
@@ -103,7 +103,7 @@ const ReactFlowBox = ({
         edgeTypes={edgeTypes}
         onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
-        onSelectionChange={setSelectedElements}
+        // onSelectionChange={setSelectedElements}
         maxZoom={8}
         minZoom={0.125}
         snapToGrid={isSnapToGrid}

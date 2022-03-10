@@ -97,7 +97,8 @@ def InterpolationInput() -> Dict:
             },
         ],
     )
-    
+
+
 def BlurInput() -> Dict:
     """Blur option dropdown"""
     return DropDownInput(

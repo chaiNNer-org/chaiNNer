@@ -35,14 +35,12 @@ def check_env():
         else:
             logger.warn("Something isn't set right with the device env var")
 
+
 def load_state_dict(state_dict):
     logger.info(f"Loading state dict into ESRGAN model")
 
     # SRVGGNet Real-ESRGAN (v2)
-    if (
-        "params" in state_dict.keys()
-        and "body.0.weight" in state_dict["params"].keys()
-    ):
+    if "params" in state_dict.keys() and "body.0.weight" in state_dict["params"].keys():
         model = RealESRGANv2(state_dict)
     # SPSR (ESRGAN with lots of extra layers)
     elif "f_HR_conv1.0.weight" in state_dict:
@@ -54,7 +52,8 @@ def load_state_dict(state_dict):
         except:
             raise ValueError("Model unsupported by chaiNNer. Please try another.")
     return model
-    
+
+
 @NodeFactory.register("PyTorch", "Load Model")
 class LoadModelNode(NodeBase):
     """Load Model node"""
@@ -84,6 +83,7 @@ class LoadModelNode(NodeBase):
         model = model.to(torch.device(os.environ["device"]))
 
         return model
+
 
 @NodeFactory.register("PyTorch", "Upscale Image")
 @torch.inference_mode()
@@ -179,8 +179,8 @@ class InterpolateNode(NodeBase):
         super().__init__()
         self.description = "Interpolate two of the same kind of model state-dict together. Note: models must share a common 'pretrained model' ancestor in order to be interpolatable."
         self.inputs = [
-            ModelInput('Model A'),
-            ModelInput('Model B'),
+            ModelInput("Model A"),
+            ModelInput("Model B"),
             SliderInput("Amount", 0, 100, 50),
         ]
         self.outputs = [ModelOutput()]
@@ -354,6 +354,7 @@ class PthSaveNode(NodeBase):
 
 #         return out
 
+
 @NodeFactory.register("PyTorch", "Convert To ONNX")
 class ConvertTorchToONNXNode(NodeBase):
     """ONNX node"""
@@ -370,7 +371,19 @@ class ConvertTorchToONNXNode(NodeBase):
     def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
         model.eval().cuda()
         # https://github.com/onnx/onnx/issues/654
-        dynamic_axes= {'data':{0: 'batch_size', 2:'width', 3:'height'}, 'output':{0:'batch_size' , 2:'width', 3:'height'}}
+        dynamic_axes = {
+            "data": {0: "batch_size", 2: "width", 3: "height"},
+            "output": {0: "batch_size", 2: "width", 3: "height"},
+        }
         dummy_input = torch.rand(1, model.in_nc, 64, 64).cuda()
 
-        torch.onnx.export(model, dummy_input, os.path.join(directory, f'{model_name}.onnx'), opset_version=14, verbose=False, input_names=["data"], output_names=["output"], dynamic_axes=dynamic_axes)
+        torch.onnx.export(
+            model,
+            dummy_input,
+            os.path.join(directory, f"{model_name}.onnx"),
+            opset_version=14,
+            verbose=False,
+            input_names=["data"],
+            output_names=["output"],
+            dynamic_axes=dynamic_axes,
+        )

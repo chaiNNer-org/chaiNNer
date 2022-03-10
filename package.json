@@ -1,7 +1,7 @@
 {
   "name": "chainner",
   "productName": "chaiNNer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A flowchart based image processing GUI",
   "main": ".webpack/main",
   "scripts": {

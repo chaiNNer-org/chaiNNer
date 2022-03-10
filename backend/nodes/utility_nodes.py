@@ -57,4 +57,3 @@ class NoteNode(NodeBase):
 #             return in1 / in2
 #         elif op == "pow":
 #             return in1 ** in2
-

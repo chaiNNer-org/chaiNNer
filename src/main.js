@@ -90,10 +90,10 @@ const registerEventHandlers = () => {
     app.exit();
   });
 
-  ipcMain.handle('relaunch-application', async () => {
-    app.relaunch();
-    app.exit();
-  });
+  // ipcMain.handle('relaunch-application', async () => {
+  //   app.relaunch();
+  //   app.exit();
+  // });
 
   ipcMain.handle('get-gpu-info', async () => {
     if (!gpuInfo) {
@@ -401,6 +401,22 @@ const spawnBackend = async (port) => {
       log.error(`Python subprocess exited with code ${code} and signal ${signal}`);
     });
 
+    ipcMain.handle('relaunch-application', async () => {
+      log.info('Attempting to kill backend...');
+      try {
+        const success = backend.kill();
+        if (success) {
+          log.error('Successfully killed backend.');
+        } else {
+          log.error('Error killing backend.');
+        }
+      } catch (error) {
+        log.error('Error killing backend.');
+      }
+      app.relaunch();
+      app.exit();
+    });
+
     ipcMain.handle('kill-backend', () => {
       log.info('Attempting to kill backend...');
       try {
@@ -457,7 +473,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     width: 400,
     height: 400,
     frame: false,
-    // backgroundColor: '#2D3748',
+    backgroundColor: '#2D3748',
     center: true,
     minWidth: 400,
     minHeight: 400,

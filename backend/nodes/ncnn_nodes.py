@@ -30,22 +30,24 @@ class NcnnLoadModelNode(NodeBase):
 
     def get_param_info(self, param_path):
         scale = 4
-        input_name = 'data'
-        output_name = 'output'
+        input_name = "data"
+        output_name = "output"
         out_nc = 3
 
         with open(param_path) as f:
             lines = f.read()
 
-            assert not 'MemoryData' in lines, "This NCNN param file contains invalid layers" 
+            assert (
+                not "MemoryData" in lines
+            ), "This NCNN param file contains invalid layers"
 
-            # Scale
-            regex = 'Interp\s*\w*\s*.*2=(\d.?\d*)'
-            matches = re.findall(regex, lines)
-            scale = int(np.prod([float(n) for n in matches]))
+            # # Scale
+            # regex = 'Interp\s*\w*\s*.*2=(\d.?\d*)'
+            # matches = re.findall(regex, lines)
+            # scale = int(np.prod([float(n) for n in matches]))
 
             # Input name
-            regex = 'Input\s+([\w.]+)\s+0\s1\s(\w+)'
+            regex = "Input\s+([\w.]+)\s+0\s1\s(\w+)"
             matches = re.findall(regex, lines)
             if len(matches) > 0:
                 if any(isinstance(el, tuple) for el in matches):
@@ -53,19 +55,19 @@ class NcnnLoadModelNode(NodeBase):
                 _, input_name = matches
 
             # Output name & out nc
-            regex = '\w+\s+([\w.]+)\s+\d+\s+\d+\s+\d+\s+([^\d\s]+)\s0=(\d)'
+            # regex = '\w+\s+([\w.]+)\s+\d+\s+\d+\s+\d+\s+([^\d\s]+)\s0=(\d)'
+            regex = "\s([^\s]+)\s0=(\d)"
             matches = re.findall(regex, lines)
             if len(matches) > 0:
                 if any(isinstance(el, tuple) for el in matches):
                     matches = matches[-1]
-                _, output_name, out_nc = matches
-        
-        return scale, input_name, output_name, out_nc
+                output_name, out_nc = matches
+        logger.info(f"{input_name}, {output_name}, {out_nc}")
 
+        return input_name, output_name, out_nc
 
     def run(self, param_path: str, bin_path: str) -> np.ndarray:
-        scale, input_name, output_name, out_nc = self.get_param_info(param_path)
-        logger.info(f'{scale}, {input_name}, {output_name}')
+        input_name, output_name, out_nc = self.get_param_info(param_path)
 
         net = ncnn.Net()
 
@@ -76,11 +78,8 @@ class NcnnLoadModelNode(NodeBase):
         net.load_param(param_path)
         net.load_model(bin_path)
 
-
         # Put all this info with the net and disguise it as just the net
-        return [(net, scale, input_name, output_name)]
-
-
+        return [(param_path, bin_path, input_name, output_name, net)]
 
 
 @NodeFactory.register("NCNN", "Upscale Image")
@@ -96,8 +95,17 @@ class NcnnUpscaleImageNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "NCNN"
 
-
     def run(self, net_tuple: tuple, img: np.ndarray) -> np.ndarray:
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.info("img dtype is not an int")
+
+        img = (img.astype("float32") / dtype_max * 255).astype(
+            np.uint8
+        )  # don't ask lol
+
         # ncnn only supports 3 apparently
         in_nc = 3
         gray = False
@@ -114,18 +122,17 @@ class NcnnUpscaleImageNode(NodeBase):
             logger.warn("Expanding image channels")
             img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-        net, scale, input_name, output_name = net_tuple
+        param_path, bin_path, input_name, output_name, net = net_tuple
 
         # Try/except block to catch errors
         try:
-            output, _ = ncnn_auto_split_process(img, net, scale, input_name=input_name, output_name=output_name)
-            net.clear()
+            output, _ = ncnn_auto_split_process(
+                img, net, input_name=input_name, output_name=output_name
+            )
+            # net.clear() # don't do this, it makes chaining break
             if gray:
                 output = np.average(output, axis=2)
-            return output
+            return np.clip(output.astype(np.float32) / 255, 0, 1)
         except Exception as e:
             logger.error(e)
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
-
-
-
