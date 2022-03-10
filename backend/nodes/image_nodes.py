@@ -443,13 +443,17 @@ class StackNode(NodeBase):
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
-            if img is not None:
+            if img is not None and type(img) != str:
                 h, w = img.shape[:2]
                 c = img.shape[2] or 1
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
                 imgs.append(img)
+            # dirty fix for problem with optional inputs and them just being positional
+            # TODO: make the inputs named instead of positional
+            elif type(img) == str and img in ["horizontal", "vertical"]:
+                orientation = img
 
         fixed_imgs = []
         for img in imgs:
