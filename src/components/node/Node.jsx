@@ -1,6 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
-import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
+import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
+import {
+  Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
+} from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useMemo, useState,
 } from 'react';
@@ -70,41 +73,100 @@ const Node = ({ data, selected }) => {
 
   const [, toggleLock] = useNodeLock(id);
 
+  // eslint-disable-next-line no-unused-vars
+  const [showMenu, setShowMenu] = useState(false);
+  // const [menuPosition, setMenuPosition] = useState({});
+
+  // useEffect(() => {
+  //   if (!selected) {
+  //     setShowMenu(false);
+  //   }
+  // }, [selected]);
+
   return (
-    <Center
-      bg={useColorModeValue('gray.300', 'gray.700')}
-      borderWidth="0.5px"
-      borderColor={borderColor}
-      borderRadius="lg"
-      py={2}
-      boxShadow="lg"
-      transition="0.15s ease-in-out"
-      // opacity="0.95"
-    >
-      <VStack minWidth="240px">
-        <NodeHeader
-          category={category}
-          type={type}
-          accentColor={accentColor}
-          icon={icon}
-          selected={selected}
-        />
-        <NodeBody
-          inputs={inputs}
-          outputs={outputs}
-          id={id}
-          accentColor={accentColor}
-          isLocked={isLocked}
-        />
-        <NodeFooter
-          id={id}
-          accentColor={accentColor}
-          validity={validity}
-          isLocked={isLocked}
-          toggleLock={toggleLock}
-        />
-      </VStack>
-    </Center>
+    <>
+      <Menu isOpen={showMenu}>
+        <Center
+          bg={useColorModeValue('gray.300', 'gray.700')}
+          borderWidth="0.5px"
+          borderColor={borderColor}
+          borderRadius="lg"
+          py={2}
+          boxShadow="lg"
+          transition="0.15s ease-in-out"
+          onContextMenu={() => {
+            // WIP
+            // if (selected) {
+            //   if (showMenu) {
+            //     setShowMenu(false);
+            //   } else {
+            //     setMenuPosition({ x: event.clientX, y: event.clientY });
+            //     setShowMenu(true);
+            //   }
+            // }
+          }}
+          onClick={() => {
+            // setShowMenu(false);
+          }}
+        >
+          <VStack minWidth="240px">
+            <NodeHeader
+              category={category}
+              type={type}
+              accentColor={accentColor}
+              icon={icon}
+              selected={selected}
+            />
+            <NodeBody
+              inputs={inputs}
+              outputs={outputs}
+              id={id}
+              accentColor={accentColor}
+              isLocked={isLocked}
+            />
+            <NodeFooter
+              id={id}
+              accentColor={accentColor}
+              validity={validity}
+              isLocked={isLocked}
+              toggleLock={toggleLock}
+            />
+          </VStack>
+        </Center>
+        <Portal>
+          <MenuList
+            position="fixed"
+            // top={menuPosition.y}
+            // left={menuPosition.x}
+          >
+            <MenuItem
+              icon={<CopyIcon />}
+              onClick={() => {
+              // duplicateNode(id);
+              }}
+            >
+              Duplicate
+            </MenuItem>
+            <MenuItem
+              icon={<CloseIcon />}
+              onClick={() => {
+              //  clearNode(id);
+              }}
+            >
+              Clear
+            </MenuItem>
+            <MenuItem
+              icon={<DeleteIcon />}
+              onClick={() => {
+              // removeNodeById(id);
+              }}
+            >
+              Delete
+            </MenuItem>
+          </MenuList>
+        </Portal>
+      </Menu>
+    </>
   );
 };
 
