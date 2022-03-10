@@ -21,8 +21,12 @@ const useSystemUsage = (delay) => {
     });
 
     // GPU/VRAM
-    const vramPercent = await ipcRenderer.invoke('get-vram-usage');
-    setVramUsage(vramPercent);
+    try {
+      const vramPercent = await ipcRenderer.invoke('get-vram-usage');
+      setVramUsage(vramPercent);
+    } catch (_) {
+      // Sometimes this will fire before it's done registering the event handlers
+    }
   };
 
   useEffect(() => {
