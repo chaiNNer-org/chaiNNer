@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState
+  createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper
+  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -488,7 +488,7 @@ export const GlobalProvider = ({
     };
 
     let isInputLocked = false;
-    if (index) {
+    if (index !== undefined && index !== null) {
       const edge = edges.find((e) => e.target === id && String(e.targetHandle.split('-').slice(-1)) === String(index));
       isInputLocked = !!edge;
     }

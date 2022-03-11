@@ -15,3 +15,12 @@ def IntegerOutput(label: str) -> Dict:
         "type": "number::integer",
         "label": label,
     }
+
+
+def TextOutput(label: str) -> Dict:
+    """Output for arbitrary text"""
+    return {
+        "type": "text::any",
+        "label": label,
+        "hasHandle": True,
+    }

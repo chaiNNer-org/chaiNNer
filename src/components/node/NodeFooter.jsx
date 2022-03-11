@@ -36,7 +36,7 @@ const NodeFooter = ({
         gutter={24}
         textAlign="center"
       >
-        <Center>
+        <Center bgColor={useColorModeValue('gray.600', 'gray.600')} borderRadius={100} width={3.5}>
           <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.400', 'gray.800')} cursor="default" />
         </Center>
       </Tooltip>

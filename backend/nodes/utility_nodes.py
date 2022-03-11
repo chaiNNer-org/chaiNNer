@@ -57,3 +57,26 @@ class NoteNode(NodeBase):
 #             return in1 / in2
 #         elif op == "pow":
 #             return in1 ** in2
+
+
+@NodeFactory.register("Utility", "Text Append")
+class TextAppendNode(NodeBase):
+    """Text Append node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Perform mathematical operations on numbers."
+        self.inputs = [
+            TextInput("Text A"),
+            TextInput("Text B"),
+            TextInput("Text C"),
+            TextInput("Text D"),
+            TextInput("Separator", has_handle=False, max_length=3),
+        ]
+        self.outputs = [TextOutput("Output Text")]
+        self.icon = "MdTextFields"
+        self.sub = "Text"
+
+    def run(self, str1: str, str2: str, str3: str, str4, separator: str) -> int:
+        return separator.join([str1, str2, str3, str4])

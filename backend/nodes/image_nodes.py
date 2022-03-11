@@ -30,6 +30,7 @@ class ImReadNode(NodeBase):
             # IntegerOutput("Height"),
             # IntegerOutput("Width"),
             # IntegerOutput("Channels"),
+            TextOutput("Image Name"),
         ]
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
@@ -61,7 +62,9 @@ class ImReadNode(NodeBase):
         h, w = img.shape[:2]
         c = img.shape[2] if img.ndim > 2 else 1
 
-        return img, h, w, c
+        # return img, h, w, c
+        basename = os.path.basename(path)
+        return img, basename
 
 
 @NodeFactory.register("Image", "Save Image")

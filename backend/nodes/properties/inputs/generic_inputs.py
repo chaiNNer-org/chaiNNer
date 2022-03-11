@@ -10,12 +10,13 @@ def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
     }
 
 
-def TextInput(label: str) -> Dict:
+def TextInput(label: str, has_handle=True, max_length=None) -> Dict:
     """Input for arbitrary text"""
     return {
         "type": "text::any",
         "label": label,
-        "hasHandle": True,
+        "hasHandle": has_handle,
+        "maxLength": max_length,
     }
 
 

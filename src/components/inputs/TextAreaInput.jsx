@@ -11,7 +11,9 @@ const TextAreaInput = memo(({
   const [input, setInput] = useInputData(id, index);
 
   useEffect(() => {
-    setInput('');
+    if (!input) {
+      setInput('');
+    }
   }, []);
 
   const handleChange = (event) => {

@@ -63,7 +63,7 @@ class LoadModelNode(NodeBase):
         super().__init__()
         self.description = "Load PyTorch state dict file (.pth) into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture."
         self.inputs = [PthFileInput()]
-        self.outputs = [ModelOutput()]
+        self.outputs = [ModelOutput(), TextOutput("Model Name")]
 
         self.icon = "PyTorch"
         self.sub = "Input & Output"
@@ -82,7 +82,9 @@ class LoadModelNode(NodeBase):
         model.eval()
         model = model.to(torch.device(os.environ["device"]))
 
-        return model
+        basename = os.path.basename(path)
+
+        return model, basename
 
 
 @NodeFactory.register("PyTorch", "Upscale Image")
@@ -247,17 +249,17 @@ class PthSaveNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = "Save a PyTorch model to specified directory."
-        self.inputs = [StateDictInput(), DirectoryInput(), TextInput("Model Name")]
+        self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-    def run(self, model: OrderedDict(), directory: str, name: str) -> bool:
+    def run(self, model: torch.nn.Module, directory: str, name: str) -> bool:
         fullFile = f"{name}.pth"
         fullPath = os.path.join(directory, fullFile)
         logger.info(f"Writing model to path: {fullPath}")
-        status = torch.save(model, fullPath)
+        status = torch.save(model.state, fullPath)
 
         return status
 
