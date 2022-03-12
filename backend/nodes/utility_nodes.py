@@ -68,16 +68,23 @@ class TextAppendNode(NodeBase):
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
         self.inputs = [
-            TextInput("Text A"),
-            TextInput("Text B"),
-            TextInput("Text C"),
-            TextInput("Text D"),
             TextInput("Separator", has_handle=False, max_length=3),
+            TextInput("Text A"),
+            TextInput("Text B", optional=True),
+            TextInput("Text C", optional=True),
+            TextInput("Text D", optional=True),
         ]
         self.outputs = [TextOutput("Output Text")]
         self.icon = "MdTextFields"
         self.sub = "Text"
 
-    def run(self, str1: str, str2: str, str3: str, str4, separator: str) -> int:
+    def run(
+        self,
+        separator: str,
+        str1: str,
+        str2: str = None,
+        str3: str = None,
+        str4: str = None,
+    ) -> int:
         strings = [x for x in [str1, str2, str3, str4] if x != "" and x is not None]
         return separator.join(strings)

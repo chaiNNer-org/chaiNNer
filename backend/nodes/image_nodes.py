@@ -554,7 +554,7 @@ class BlurNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Blur an image"
+        self.description = "Apply blur to an image"
         self.inputs = [
             ImageInput(),
             IntegerInput("Amount X"),
@@ -567,16 +567,73 @@ class BlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amountX: int,
-        amountY: int,
+        amount_x: int,
+        amount_y: int,
         # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
-        # ksize=(math.floor(int(amountX)/2)*2+1,math.floor(int(amountY)/2)*2+1)
-        # img=cv2.GaussianBlur(img,ksize,int(sigma))
-        ksize = (int(amountX), int(amountY))
+        ksize = (int(amount_x), int(amount_y))
         for __i in range(16):
             img = cv2.blur(img, ksize)
+
+        return img
+
+
+@NodeFactory.register("Image (Effect)", "Gaussian Blur")
+class GaussianBlurNode(NodeBase):
+    """OpenCV Gaussian Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply Gaussian Blur to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.icon = "MdBlurOn"
+        self.sub = "Adjustment"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: str,
+        amount_y: str,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+        blurred = cv2.GaussianBlur(
+            img, (0, 0), sigmaX=float(amount_x), sigmaY=float(amount_y)
+        )
+
+        return blurred
+
+
+@NodeFactory.register("Image (Effect)", "Sharpen")
+class SharpenNode(NodeBase):
+    """OpenCV Sharpen Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply sharpening to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.icon = "MdBlurOff"
+        self.sub = "Adjustment"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: int,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+        blurred = cv2.GaussianBlur(img, (0, 0), float(amount))
+        img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
         return img
 
@@ -822,3 +879,53 @@ class EdgeCropNode(NodeBase):
         result = img[top : h - bottom, left : w - right]
 
         return result
+
+
+@NodeFactory.register("Image (Utility)", "Add Caption")
+class CaptionNode(NodeBase):
+    """Caption node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Add a caption to an image."
+        self.inputs = [
+            ImageInput(),
+            TextInput("Caption"),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdVideoLabel"
+        self.sub = "Miscellaneous"
+
+    def run(self, img: np.ndarray, caption: str) -> np.ndarray:
+        """Add caption an image"""
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_size = 1
+        font_thickness = 1
+
+        textsize = cv2.getTextSize(caption, font, font_size, font_thickness)
+        logger.info(textsize)
+        textsize = textsize[0]
+
+        caption_height = textsize[1] + 20
+
+        img = cv2.copyMakeBorder(
+            img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 255)
+        )
+
+        textX = math.floor((img.shape[1] - textsize[0]) / 2)
+        textY = math.ceil(img.shape[0] - ((caption_height - textsize[1]) / 2))
+
+        cv2.putText(
+            img,
+            caption,
+            (textX, textY),
+            font,
+            font_size,
+            color=(255, 255, 255, 255),
+            thickness=font_thickness,
+            lineType=cv2.LINE_AA,
+        )
+        return img
