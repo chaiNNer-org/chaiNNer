@@ -1,12 +1,15 @@
 from typing import Dict, List
 
 
-def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
+def DropDownInput(
+    input_type: str, label: str, options: List[str], optional: bool = False
+) -> Dict:
     """Input for a dropdown"""
     return {
         "type": f"dropdown::{input_type}",
         "label": label,
         "options": options,
+        "optional": optional,
     }
 
 
@@ -134,4 +137,5 @@ def StackOrientationDropdown() -> Dict:
                 "value": "vertical",
             },
         ],
+        optional=True,
     )
