@@ -82,7 +82,7 @@ class LoadModelNode(NodeBase):
         model.eval()
         model = model.to(torch.device(os.environ["device"]))
 
-        basename = os.path.basename(path)
+        basename = os.path.splitext(os.path.basename(path))[0]
 
         return model, basename
 

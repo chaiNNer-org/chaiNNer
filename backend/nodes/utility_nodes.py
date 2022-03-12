@@ -79,4 +79,5 @@ class TextAppendNode(NodeBase):
         self.sub = "Text"
 
     def run(self, str1: str, str2: str, str3: str, str4, separator: str) -> int:
-        return separator.join([str1, str2, str3, str4])
+        strings = [x for x in [str1, str2, str3, str4] if x != "" and x is not None]
+        return separator.join(strings)

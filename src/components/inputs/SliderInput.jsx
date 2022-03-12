@@ -49,6 +49,9 @@ const SliderInput = memo(({
           placement="top"
           isOpen={showTooltip}
           label={`${sliderValue}%`}
+          borderRadius={8}
+          py={1}
+          px={2}
         >
           <SliderThumb />
         </Tooltip>

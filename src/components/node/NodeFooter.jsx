@@ -15,7 +15,7 @@ import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const NodeFooter = ({
-  id, validity, isLocked, toggleLock,
+  id, validity, isLocked, toggleLock, accentColor,
 }) => {
   const {
     removeNodeById, duplicateNode, clearNode,
@@ -23,10 +23,16 @@ const NodeFooter = ({
 
   const [isValid, invalidReason] = validity;
 
+  const iconShade = useColorModeValue('gray.400', 'gray.800');
+  const validShade = useColorModeValue('gray.900', 'gray.100');
+  // const invalidShade = useColorModeValue('red.200', 'red.900');
+  const invalidShade = useColorModeValue('red.400', 'red.600');
+  // const iconShade = useColorModeValue('gray.400', 'gray.800');
+
   return (
     <Flex w="full" pl={2} pr={2}>
       <Center>
-        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={useColorModeValue('gray.400', 'gray.800')} onClick={() => toggleLock()} cursor="pointer" />
+        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={iconShade} onClick={() => toggleLock()} cursor="pointer" />
       </Center>
       <Spacer />
       <Tooltip
@@ -35,9 +41,26 @@ const NodeFooter = ({
         hasArrow
         gutter={24}
         textAlign="center"
+        borderRadius={8}
+        py={1}
+        px={2}
       >
-        <Center bgColor={useColorModeValue('gray.600', 'gray.600')} borderRadius={100} width={3.5}>
-          <Icon as={isValid ? CheckCircleIcon : WarningIcon} mt={-1} mb={-1} color={useColorModeValue('gray.400', 'gray.800')} cursor="default" />
+        <Center my={-2}>
+          <Center
+            bgColor={isValid ? validShade : iconShade}
+            borderRadius={100}
+            p={1.5}
+            mr={-3.5}
+            my={-2}
+          />
+          <Icon
+            as={isValid ? CheckCircleIcon : WarningIcon}
+            // color={useColorModeValue('gray.400', 'gray.800')}
+            color={isValid ? iconShade : invalidShade}
+            cursor="default"
+            my={-2}
+          />
+
         </Center>
       </Tooltip>
       <Spacer />
@@ -45,7 +68,7 @@ const NodeFooter = ({
         <Menu>
           <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle">
             <Center>
-              <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={useColorModeValue('gray.400', 'gray.800')} />
+              <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={iconShade} />
             </Center>
           </MenuButton>
           <Portal>

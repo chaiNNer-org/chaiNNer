@@ -63,7 +63,7 @@ class ImReadNode(NodeBase):
         c = img.shape[2] if img.ndim > 2 else 1
 
         # return img, h, w, c
-        basename = os.path.basename(path)
+        basename = os.path.splitext(os.path.basename(path))[0]
         return img, basename
 
 
