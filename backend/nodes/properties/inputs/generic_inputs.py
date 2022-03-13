@@ -59,6 +59,21 @@ def OddIntegerInput(label: str) -> Dict:
     }
 
 
+def BoundedIntegerInput(
+        label: str, minimum: int = 0, maximum: int = 100,
+        default: int = 50, optional: bool = False) -> Dict:
+    """Bounded input for integer number"""
+    return {
+        "type": "number::integer",
+        "label": label,
+        "min": minimum,
+        "max": maximum,
+        "def": default,
+        "hasHandle": True,
+        "optional": optional
+    }
+
+
 def BoundlessIntegerInput(label: str) -> Dict:
     """Input for integer number"""
     return {

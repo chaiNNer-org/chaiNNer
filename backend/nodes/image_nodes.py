@@ -251,6 +251,85 @@ class ImResizeToResolutionNode(NodeBase):
         return result
 
 
+@NodeFactory.register("Image (Utility)", "Overlay Images")
+class ImOverlay(NodeBase):
+    """OpenCV transparency overlay node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Overlay transparent images on base image."
+        self.inputs = [
+            ImageInput("Base"),
+            ImageInput("Overlay A"),
+            BoundedIntegerInput("Opacity A (%)", minimum=1, maximum=99),
+            ImageInput("Overlay B ", optional=True),
+            BoundedIntegerInput("Opacity B (%)", minimum=1, maximum=99, optional=True)
+        ]
+        self.outputs = [ImageOutput()]
+        self.icon = "BsLayersHalf"
+        self.sub = "Miscellaneous"
+
+    def run(
+        self,
+        base: np.ndarray = None,
+        ov1: np.ndarray = None,
+        op1: int = 50,
+        ov2: np.ndarray = None,
+        op2: int = 50
+    ) -> np.ndarray:
+        """Overlay transparent images on base image"""
+
+        # Convert to 0.0-1.0 range
+        op1 = int(op1) / 100
+        op2 = int(op2) / 100
+
+        imgs = []
+        max_h, max_w, max_c = 0, 0, 1
+        for img in base, ov1, ov2:
+            if img is not None and type(img) not in (int, str):
+                h, w = img.shape[:2]
+                if img.ndim == 2:  # len(img.shape) needs to be 3, grayscale len only 2
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                c = img.shape[2]
+                max_h = max(h, max_h)
+                max_w = max(w, max_w)
+                max_c = max(c, max_c)
+                imgs.append(img)
+        else:
+            assert base.shape[0] >= max_h and base.shape[1] >= max_w, "Base must be largest image."
+
+        # Expand channels if necessary
+        channel_fixed_imgs = []
+        for img in imgs:
+            c = img.shape[2]
+            fixed_img = img
+            if c < max_c:
+                h, w = img.shape[:2]
+                temp_img = np.ones((h, w, max_c))
+                temp_img[:, :, :c] = fixed_img
+                fixed_img = temp_img
+            channel_fixed_imgs.append(fixed_img.astype("float32"))
+        imgout = channel_fixed_imgs[0]
+        imgs = channel_fixed_imgs[1:]
+
+        center_x = imgout.shape[0] // 2
+        center_y = imgout.shape[1] // 2
+        for img, op in zip(imgs, (op1, op2)):
+            h, w = img.shape[:2]
+
+            # Center overlay
+            x_offset = center_x - (w // 2)
+            y_offset = center_y - (h // 2)
+
+            cv2.addWeighted(
+                imgout[y_offset:y_offset+h, x_offset:x_offset+w],
+                1-op, img, op, 0, img)
+            imgout[y_offset:y_offset+h, x_offset:x_offset+w] = img
+
+        return imgout
+
+
 @NodeFactory.register("Image (Utility)", "Change Colorspace")
 class ColorConvertNode(NodeBase):
     """OpenCV color conversion node"""
@@ -448,7 +527,9 @@ class StackNode(NodeBase):
         for img in im1, im2, im3, im4:
             if img is not None and type(img) != str:
                 h, w = img.shape[:2]
-                c = img.shape[2] or 1
+                if img.ndim == 2:  # len(img.shape) needs to be 3, grayscale len only 2
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                c = img.shape[2]
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
@@ -658,12 +739,12 @@ class ShiftNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amountX: int,
-        amountY: int,
+        amount_x: int,
+        amount_y: int,
     ) -> np.ndarray:
         """Adjusts the position of an image"""
         num_rows, num_cols = img.shape[:2]
-        translation_matrix = np.float32([[1, 0, amountX], [0, 1, amountY]])
+        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
         img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
         return img
 
@@ -915,13 +996,13 @@ class CaptionNode(NodeBase):
             img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 255)
         )
 
-        textX = math.floor((img.shape[1] - textsize[0]) / 2)
-        textY = math.ceil(img.shape[0] - ((caption_height - textsize[1]) / 2))
+        text_x = math.floor((img.shape[1] - textsize[0]) / 2)
+        text_y = math.ceil(img.shape[0] - ((caption_height - textsize[1]) / 2))
 
         cv2.putText(
             img,
             caption,
-            (textX, textY),
+            (text_x, text_y),
             font,
             font_size,
             color=(255, 255, 255, 255),
