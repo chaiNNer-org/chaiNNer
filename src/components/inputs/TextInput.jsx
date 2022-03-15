@@ -24,7 +24,6 @@ const TextInput = memo(({
   }, []);
 
   const handleChange = useDebouncedCallback((event) => {
-    console.log('hit');
     let text = event.target.value;
     text = maxLength ? text.slice(0, maxLength) : text;
     setInput(text);

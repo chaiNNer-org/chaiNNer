@@ -60,8 +60,12 @@ def OddIntegerInput(label: str) -> Dict:
 
 
 def BoundedIntegerInput(
-        label: str, minimum: int = 0, maximum: int = 100,
-        default: int = 50, optional: bool = False) -> Dict:
+    label: str,
+    minimum: int = 0,
+    maximum: int = 100,
+    default: int = 50,
+    optional: bool = False,
+) -> Dict:
     """Bounded input for integer number"""
     return {
         "type": "number::integer",
@@ -70,7 +74,7 @@ def BoundedIntegerInput(
         "max": maximum,
         "def": default,
         "hasHandle": True,
-        "optional": optional
+        "optional": optional,
     }
 
 
@@ -86,7 +90,9 @@ def BoundlessIntegerInput(label: str) -> Dict:
     }
 
 
-def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
+def SliderInput(
+    label: str, min: int, max: int, default: int, optional: bool = False
+) -> Dict:
     """Input for integer number via slider"""
     return {
         "type": "number::slider",
@@ -94,6 +100,7 @@ def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
         "min": min,
         "max": max,
         "def": default,
+        "optional": optional,
     }
 
 

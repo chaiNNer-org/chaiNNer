@@ -55,7 +55,7 @@ class ImReadNode(NodeBase):
         try:
             dtype_max = np.iinfo(img.dtype).max
         except:
-            logger.info("img dtype is not an int")
+            logger.debug("img dtype is not an int")
 
         img = img.astype("float32") / dtype_max
 
@@ -262,9 +262,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            BoundedIntegerInput("Opacity A (%)", minimum=1, maximum=99),
+            SliderInput("Opacity A", default=50, min=1, max=99),
             ImageInput("Overlay B ", optional=True),
-            BoundedIntegerInput("Opacity B (%)", minimum=1, maximum=99, optional=True)
+            SliderInput("Opacity B", default=50, min=1, max=99, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsLayersHalf"
@@ -276,7 +276,7 @@ class ImOverlay(NodeBase):
         ov1: np.ndarray = None,
         op1: int = 50,
         ov2: np.ndarray = None,
-        op2: int = 50
+        op2: int = 50,
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
@@ -297,7 +297,9 @@ class ImOverlay(NodeBase):
                 max_c = max(c, max_c)
                 imgs.append(img)
         else:
-            assert base.shape[0] >= max_h and base.shape[1] >= max_w, "Base must be largest image."
+            assert (
+                base.shape[0] >= max_h and base.shape[1] >= max_w
+            ), "Base must be largest image."
 
         # Expand channels if necessary
         channel_fixed_imgs = []
@@ -323,9 +325,14 @@ class ImOverlay(NodeBase):
             y_offset = center_y - (h // 2)
 
             cv2.addWeighted(
-                imgout[y_offset:y_offset+h, x_offset:x_offset+w],
-                1-op, img, op, 0, img)
-            imgout[y_offset:y_offset+h, x_offset:x_offset+w] = img
+                imgout[y_offset : y_offset + h, x_offset : x_offset + w],
+                1 - op,
+                img,
+                op,
+                0,
+                img,
+            )
+            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         return imgout
 

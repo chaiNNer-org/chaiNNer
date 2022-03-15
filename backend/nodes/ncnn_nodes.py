@@ -100,7 +100,7 @@ class NcnnUpscaleImageNode(NodeBase):
         try:
             dtype_max = np.iinfo(img.dtype).max
         except:
-            logger.info("img dtype is not an int")
+            logger.debug("img dtype is not an int")
 
         img = (img.astype("float32") / dtype_max * 255).astype(
             np.uint8
@@ -126,9 +126,19 @@ class NcnnUpscaleImageNode(NodeBase):
 
         # Try/except block to catch errors
         try:
+            vkdev = ncnn.get_gpu_device(0)
+            blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
+            staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(
-                img, net, input_name=input_name, output_name=output_name
+                img,
+                net,
+                input_name=input_name,
+                output_name=output_name,
+                blob_vkallocator=blob_vkallocator,
+                staging_vkallocator=staging_vkallocator,
             )
+            # blob_vkallocator.clear()
+            # staging_vkallocator.clear()
             # net.clear() # don't do this, it makes chaining break
             if gray:
                 output = np.average(output, axis=2)

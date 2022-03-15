@@ -12,7 +12,7 @@ def fix_dtype_range(img):
     try:
         dtype_max = np.iinfo(img.dtype).max
     except:
-        logger.info("img dtype is not an int")
+        logger.debug("img dtype is not an int")
 
     img = (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255).astype(np.uint8)
     return img
@@ -27,6 +27,8 @@ def ncnn_auto_split_process(
     current_depth: int = 1,
     input_name: str = "data",
     output_name: str = "output",
+    blob_vkallocator=None,
+    staging_vkallocator=None,
 ) -> Tuple[Tensor, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
@@ -38,9 +40,6 @@ def ncnn_auto_split_process(
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         ex = net.create_extractor()
-        vkdev = ncnn.get_gpu_device(0)
-        blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
-        staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
         ex.set_blob_vkallocator(blob_vkallocator)
         ex.set_workspace_vkallocator(blob_vkallocator)
         ex.set_staging_vkallocator(staging_vkallocator)
@@ -59,9 +58,9 @@ def ncnn_auto_split_process(
             _, mat_out = ex.extract(output_name)
             result = fix_dtype_range(np.array(mat_out).transpose(1, 2, 0))
             del ex, mat_in, mat_out
-            # Clear VRAM
-            blob_vkallocator.clear()
-            staging_vkallocator.clear()
+            # # Clear VRAM
+            # blob_vkallocator.clear()
+            # staging_vkallocator.clear()
             return result, current_depth
         except Exception as e:
             # Check to see if its actually the NCNN out of memory error
@@ -69,7 +68,7 @@ def ncnn_auto_split_process(
                 # clear VRAM
                 blob_vkallocator.clear()
                 staging_vkallocator.clear()
-                del ex, vkdev
+                del ex
                 gc.collect()
             # Re-raise the exception if not an OOM error
             else:
@@ -94,6 +93,8 @@ def ncnn_auto_split_process(
         net,
         overlap=overlap,
         current_depth=current_depth + 1,
+        blob_vkallocator=blob_vkallocator,
+        staging_vkallocator=staging_vkallocator,
     )
     top_right_rlt, _ = ncnn_auto_split_process(
         top_right,
@@ -101,6 +102,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        blob_vkallocator=blob_vkallocator,
+        staging_vkallocator=staging_vkallocator,
     )
     bottom_left_rlt, _ = ncnn_auto_split_process(
         bottom_left,
@@ -108,6 +111,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        blob_vkallocator=blob_vkallocator,
+        staging_vkallocator=staging_vkallocator,
     )
     bottom_right_rlt, _ = ncnn_auto_split_process(
         bottom_right,
@@ -115,6 +120,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        blob_vkallocator=blob_vkallocator,
+        staging_vkallocator=staging_vkallocator,
     )
 
     tl_h, _ = top_left.shape[:2]
