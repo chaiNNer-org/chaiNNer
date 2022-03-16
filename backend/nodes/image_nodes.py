@@ -758,12 +758,12 @@ class ShiftNode(NodeBase):
 
 @NodeFactory.register("Image (Utility)", "Split Channels")
 class ChannelSplitRGBANode(NodeBase):
-    """NumPy  Splitter node"""
+    """NumPy Splitter node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Split numpy image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
+        self.description = "Split image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
         self.inputs = [ImageInput()]
         self.outputs = [
             ImageOutput("Blue Channel"),
@@ -773,7 +773,7 @@ class ChannelSplitRGBANode(NodeBase):
         ]
 
         self.icon = "MdCallSplit"
-        self.sub = "Miscellaneous"
+        self.sub = "Splitting & Merging"
 
     def run(self, img: np.ndarray) -> np.ndarray:
         """Split a multi-channel image into separate channels"""
@@ -799,6 +799,41 @@ class ChannelSplitRGBANode(NodeBase):
         return out
 
 
+@NodeFactory.register("Image (Utility)", "Split Transparency")
+class TransparencySplitNode(NodeBase):
+    """Transparency-specific Splitter node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Split image channels into RGB and Alpha (transparency) channels."
+        )
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            ImageOutput("RGB Channels"),
+            ImageOutput("Alpha Channel"),
+        ]
+
+        self.icon = "MdCallSplit"
+        self.sub = "Splitting & Merging"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Split a multi-channel image into separate channels"""
+        if img.ndim == 2:
+            logger.debug("Expanding image channels")
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
+        # Pad with solid alpha channel if needed (i.e three channel image)
+        elif img.shape[2] == 3:
+            logger.debug("Expanding image channels")
+            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+
+        rgb = img[:, :, :3]
+        alpha = img[:, :, 3]
+
+        return rgb, alpha
+
+
 @NodeFactory.register("Image (Utility)", "Merge Channels")
 class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
@@ -806,7 +841,7 @@ class ChannelMergeRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Merge numpy channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
+        self.description = "Merge image channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
         self.inputs = [
             ImageInput("Channel(s) A"),
             ImageInput("Channel(s) B", optional=True),
@@ -816,7 +851,7 @@ class ChannelMergeRGBANode(NodeBase):
         self.outputs = [ImageOutput()]
 
         self.icon = "MdCallMerge"
-        self.sub = "Miscellaneous"
+        self.sub = "Splitting & Merging"
 
     def run(
         self,
@@ -854,6 +889,54 @@ class ChannelMergeRGBANode(NodeBase):
                 img = cv2.merge((b, g, g))
             if c > 4:
                 img = img[:, :, :4]
+
+        return img
+
+
+@NodeFactory.register("Image (Utility)", "Merge Transparency")
+class TransparencyMergeNode(NodeBase):
+    """Transparency-specific Merge node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
+        self.inputs = [ImageInput("RGB Channels"), ImageInput("Alpha Channel")]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdCallMerge"
+        self.sub = "Splitting & Merging"
+
+    def run(self, rgb: np.ndarray, a: np.ndarray) -> np.ndarray:
+        """Combine separate channels into a multi-chanel image"""
+
+        start_shape = rgb.shape[:2]
+        logger.info(start_shape)
+
+        for im in rgb, a:
+            if im is not None:
+                logger.info(im.shape[:2])
+                assert (
+                    im.shape[:2] == start_shape
+                ), "All images to be merged must be the same resolution"
+
+        if rgb.ndim == 2:
+            rgb = cv2.merge((rgb, rgb, rgb))
+        elif rgb.ndim > 2 and rgb.shape[2] == 2:
+            rgb = cv2.merge(
+                (rgb, np.zeros((rgb.shape[0], rgb.shape[1], 1), dtype=rgb.dtype))
+            )
+        elif rgb.shape[2] > 3:
+            rgb = rgb[:, :, :3]
+
+        if a.ndim > 2:
+            a = a[:, :, 0]
+        a = np.expand_dims(a, axis=2)
+
+        imgs = [rgb, a]
+        for img in imgs:
+            logger.info(img.shape)
+        img = np.concatenate(imgs, axis=2)
 
         return img
 

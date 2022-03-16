@@ -1,4 +1,9 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+
 const rules = require('./webpack.rules');
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 rules.push({
   test: /\.css$/,
@@ -10,4 +15,9 @@ module.exports = {
   module: {
     rules,
   },
+  mode: isDevelopment ? 'development' : 'production',
+  devServer: {
+    hot: true,
+  },
+  plugins: [isDevelopment && new ReactRefreshWebpackPlugin()].filter(Boolean),
 };
