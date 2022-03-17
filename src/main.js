@@ -18,10 +18,41 @@ import { downloadPython, extractPython, installSanic } from './setupIntegratedPy
 
 const exec = util.promisify(_exec);
 
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
+  app.quit();
+}
+
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 // eslint-disable-next-line max-len
 log.transports.file.resolvePath = (variables) => path.join(variables.electronDefaultDir, variables.fileName);
 log.transports.file.level = 'info';
+
+log.catchErrors({
+  showDialog: false,
+  onError(error, versions, submitIssue) {
+    dialog.showMessageBox({
+      title: 'An error occurred',
+      message: error.message,
+      detail: error.stack,
+      type: 'error',
+      buttons: ['Ignore', 'Report', 'Exit'],
+    })
+      .then((result) => {
+        if (result.response === 1) {
+          submitIssue('https://github.com/joeyballentine/chaiNNer/issues/new', {
+            title: `Error report for ${versions.app}`,
+            body: `Error:\n\`\`\`${error.stack}\n\`\`\`\nOS: ${versions.os}`,
+          });
+          return;
+        }
+
+        if (result.response === 2) {
+          app.quit();
+        }
+      });
+  },
+});
 
 let gpuInfo;
 
@@ -32,11 +63,6 @@ const isMac = process.platform === 'darwin';
 const pythonKeys = {
   python: 'python',
 };
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
-  app.quit();
-}
 
 // Check for update
 if (app.isPackaged) {
