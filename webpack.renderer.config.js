@@ -5,7 +5,7 @@ const log = require('electron-log');
 const rules = require('./webpack.rules');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
-log.info(`starting in${isDevelopment ? 'development' : 'production'} mode`);
+log.info(`starting in ${isDevelopment ? 'development' : 'production'} mode`);
 
 rules.push({
   test: /\.css$/,

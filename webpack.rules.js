@@ -2,7 +2,7 @@ const log = require('electron-log');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-log.info(`starting in${isDevelopment ? 'development' : 'production'} mode`);
+log.info(`starting in ${isDevelopment ? 'development' : 'production'} mode`);
 
 module.exports = [
   // ... existing loader config ...
