@@ -315,8 +315,8 @@ class ImOverlay(NodeBase):
         imgout = channel_fixed_imgs[0]
         imgs = channel_fixed_imgs[1:]
 
-        center_x = imgout.shape[0] // 2
-        center_y = imgout.shape[1] // 2
+        center_x = imgout.shape[1] // 2
+        center_y = imgout.shape[0] // 2
         for img, op in zip(imgs, (op1, op2)):
             h, w = img.shape[:2]
 
