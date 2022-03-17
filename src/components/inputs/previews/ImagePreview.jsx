@@ -3,8 +3,14 @@
 import {
   Center, HStack, Image, Spinner, Tag, VStack,
 } from '@chakra-ui/react';
+import { constants } from 'fs';
+import { access } from 'fs/promises';
 import { Image as ImageJS } from 'image-js';
 import React, { memo, useEffect, useState } from 'react';
+
+const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
+  .then(() => resolve(true))
+  .catch(() => resolve(false)));
 
 const getColorMode = (img) => {
   if (!img) {
@@ -32,8 +38,10 @@ export default memo(({
     (async () => {
       if (path) {
         setIsLoading(true);
-        const loadedImg = await ImageJS.load(path);
-        setImg(loadedImg);
+        if (await checkFileExists(path)) {
+          const loadedImg = await ImageJS.load(path);
+          setImg(loadedImg);
+        }
         setIsLoading(false);
       }
     })();

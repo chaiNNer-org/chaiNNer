@@ -60,7 +60,8 @@ export const GlobalProvider = ({
         (element) => isNode(element),
       );
       const validNodes = justNodes.filter(
-        (node) => availableNodes[node.data.category][node.data.type],
+        (node) => availableNodes[node.data.category]
+        && availableNodes[node.data.category][node.data.type],
       ) || [];
       if (justNodes.length !== validNodes.length) {
         await ipcRenderer.invoke(
