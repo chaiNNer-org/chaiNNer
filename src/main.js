@@ -39,7 +39,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 // Check for update
-if (!app.isPackaged) {
+if (app.isPackaged) {
   const options = {
     hostname: 'api.github.com',
     path: '/repos/joeyballentine/chaiNNer/releases',
