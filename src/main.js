@@ -6,6 +6,7 @@ import log from 'electron-log';
 import {
   access, readFile, writeFile,
 } from 'fs/promises';
+import https from 'https';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
@@ -35,6 +36,60 @@ const pythonKeys = {
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
+}
+
+// Check for update
+if (!app.isPackaged) {
+  const options = {
+    hostname: 'api.github.com',
+    path: '/repos/joeyballentine/chaiNNer/releases',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'chaiNNer',
+    },
+  };
+  const req = https.request(options, (res) => {
+    let response = '';
+
+    res.on('data', (data) => {
+      response += String(data);
+    });
+
+    res.on('close', async () => {
+      try {
+        const releases = JSON.parse(response);
+        const gtVersions = releases.filter(
+          (v) => semver.gt(semver.coerce(v.tag_name), app.getVersion()),
+        );
+        if (gtVersions.length > 0) {
+          const sorted = gtVersions.sort((a, b) => semver.gt(a, b));
+          const latestVersion = sorted[0];
+          const releaseUrl = latestVersion.html_url;
+          const latestVersionNum = semver.coerce(latestVersion.tag_name);
+          const buttonResult = dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
+            type: 'info',
+            title: 'An update is available for chaiNNer!',
+            message: `Version ${latestVersionNum} is available for download from GitHub.`,
+            buttons: [`Get version ${latestVersionNum}`, 'Ok'],
+            defaultId: 1,
+          });
+          if (buttonResult === 0) {
+            await shell.openExternal(releaseUrl);
+            app.exit();
+          }
+        }
+      } catch (error) {
+        log.error(error);
+      }
+    });
+  });
+
+  req.on('error', (error) => {
+    log.error(error);
+  });
+
+  req.end();
 }
 
 if (app.isPackaged) {
