@@ -213,7 +213,12 @@ const Header = ({ port }) => {
           </HStack>
           <Spacer />
           <HStack>
-            <Tooltip label={`${Number(cpuUsage).toFixed(1)}%`}>
+            <Tooltip
+              label={`${Number(cpuUsage).toFixed(1)}%`}
+              borderRadius={8}
+              py={1}
+              px={2}
+            >
               <Box>
                 <CircularProgress
                   value={cpuUsage}
@@ -227,7 +232,12 @@ const Header = ({ port }) => {
               </Box>
             </Tooltip>
 
-            <Tooltip label={`${Number(ramUsage).toFixed(1)}%`}>
+            <Tooltip
+              label={`${Number(ramUsage).toFixed(1)}%`}
+              borderRadius={8}
+              py={1}
+              px={2}
+            >
               <Box>
                 <CircularProgress
                   value={ramUsage}
@@ -242,7 +252,12 @@ const Header = ({ port }) => {
             </Tooltip>
 
             {vramUsage && (
-            <Tooltip label={`${Number(vramUsage).toFixed(1)}%`}>
+            <Tooltip
+              label={`${Number(vramUsage).toFixed(1)}%`}
+              borderRadius={8}
+              py={1}
+              px={2}
+            >
               <Box>
                 <CircularProgress
                   value={vramUsage}

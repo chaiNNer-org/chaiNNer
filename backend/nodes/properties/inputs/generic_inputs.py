@@ -1,21 +1,26 @@
 from typing import Dict, List
 
 
-def DropDownInput(input_type: str, label: str, options: List[str]) -> Dict:
+def DropDownInput(
+    input_type: str, label: str, options: List[str], optional: bool = False
+) -> Dict:
     """Input for a dropdown"""
     return {
         "type": f"dropdown::{input_type}",
         "label": label,
         "options": options,
+        "optional": optional,
     }
 
 
-def TextInput(label: str) -> Dict:
+def TextInput(label: str, has_handle=True, max_length=None, optional=False) -> Dict:
     """Input for arbitrary text"""
     return {
         "type": "text::any",
         "label": label,
-        "hasHandle": True,
+        "hasHandle": has_handle,
+        "maxLength": max_length,
+        "optional": optional,
     }
 
 
@@ -54,6 +59,25 @@ def OddIntegerInput(label: str) -> Dict:
     }
 
 
+def BoundedIntegerInput(
+    label: str,
+    minimum: int = 0,
+    maximum: int = 100,
+    default: int = 50,
+    optional: bool = False,
+) -> Dict:
+    """Bounded input for integer number"""
+    return {
+        "type": "number::integer",
+        "label": label,
+        "min": minimum,
+        "max": maximum,
+        "def": default,
+        "hasHandle": True,
+        "optional": optional,
+    }
+
+
 def BoundlessIntegerInput(label: str) -> Dict:
     """Input for integer number"""
     return {
@@ -66,7 +90,9 @@ def BoundlessIntegerInput(label: str) -> Dict:
     }
 
 
-def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
+def SliderInput(
+    label: str, min: int, max: int, default: int, optional: bool = False
+) -> Dict:
     """Input for integer number via slider"""
     return {
         "type": "number::slider",
@@ -74,6 +100,7 @@ def SliderInput(label: str, min: int, max: int, default: int) -> Dict:
         "min": min,
         "max": max,
         "def": default,
+        "optional": optional,
     }
 
 
@@ -133,4 +160,5 @@ def StackOrientationDropdown() -> Dict:
                 "value": "vertical",
             },
         ],
+        optional=True,
     )

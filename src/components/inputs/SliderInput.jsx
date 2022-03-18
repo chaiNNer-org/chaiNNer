@@ -1,7 +1,8 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  HStack, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Text, Tooltip,
+  HStack, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
+  NumberInputStepper, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Text, Tooltip,
 } from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useState,
@@ -13,6 +14,7 @@ const SliderInput = memo(({
 }) => {
   const { useInputData } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
+  console.log('🚀 ~ file: SliderInput.jsx ~ line 17 ~ input', input);
   const [sliderValue, setSliderValue] = useState(input ?? def);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -38,6 +40,7 @@ const SliderInput = memo(({
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         isDisabled={isLocked}
+        focusThumbOnChange={false}
       >
         <SliderTrack>
           <SliderFilledTrack bg={accentColor} />
@@ -49,6 +52,9 @@ const SliderInput = memo(({
           placement="top"
           isOpen={showTooltip}
           label={`${sliderValue}%`}
+          borderRadius={8}
+          py={1}
+          px={2}
         >
           <SliderThumb />
         </Tooltip>
@@ -58,6 +64,28 @@ const SliderInput = memo(({
       >
         {max}
       </Text>
+      <NumberInput
+        default={def}
+        min={min ?? -Infinity}
+        max={max ?? Infinity}
+        // precision={precision}
+        placeholder={def}
+        value={sliderValue ?? def}
+        onChange={(v) => {
+          setInput(Math.min(Math.max(v, min), max));
+        }}
+        draggable={false}
+        className="nodrag"
+        disabled={isLocked}
+        step={1}
+        size="xs"
+      >
+        <NumberInputField w="3.1rem" p={1} m={0} />
+        <NumberInputStepper w={4}>
+          <NumberIncrementStepper />
+          <NumberDecrementStepper />
+        </NumberInputStepper>
+      </NumberInput>
     </HStack>
   );
 });

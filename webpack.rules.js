@@ -1,13 +1,18 @@
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
+console.log(`\nbuilding in ${isDevelopment ? 'development' : 'production'} mode`);
+
 module.exports = [
   // ... existing loader config ...
   {
     test: /\.jsx?$/,
+    exclude: /node_modules/,
     use: {
-      loader: 'babel-loader',
+      loader: require.resolve('babel-loader'),
       options: {
         exclude: /node_modules/,
         presets: ['@babel/preset-react'],
-        cacheDirectory: true,
+        plugins: [isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
       },
     },
   },
