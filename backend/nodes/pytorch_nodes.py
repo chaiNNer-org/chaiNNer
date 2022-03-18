@@ -155,16 +155,23 @@ class ImageUpscaleNode(NodeBase):
 
         # Transparency hack (white/black background difference alpha)
         if in_nc == 3 and c == 4:
-            img1 = np.copy(img[:, :, :3])
-            img2 = np.copy(img[:, :, :3])
-            for c in range(3):
-                img1[:, :, c] *= img[:, :, 3]
-                img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
+            # Ignore single-color alpha
+            unique = np.unique(img[:, :, 3])
+            if len(unique) == 1:
+                logger.info("Single color alpha channel, ignoring.")
+                output = self.upscale(img[:, :, :3], model, model.scale)
+                output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
+            else:
+                img1 = np.copy(img[:, :, :3])
+                img2 = np.copy(img[:, :, :3])
+                for c in range(3):
+                    img1[:, :, c] *= img[:, :, 3]
+                    img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
-            output1 = self.upscale(img1, model, model.scale)
-            output2 = self.upscale(img2, model, model.scale)
-            alpha = 1 - np.mean(output2 - output1, axis=2)
-            output = np.dstack((output1, alpha))
+                output1 = self.upscale(img1, model, model.scale)
+                output2 = self.upscale(img2, model, model.scale)
+                alpha = 1 - np.mean(output2 - output1, axis=2)
+                output = np.dstack((output1, alpha))
         else:
             # # Add extra channels if not enough (i.e single channel img, three channel model)
             gray = False
