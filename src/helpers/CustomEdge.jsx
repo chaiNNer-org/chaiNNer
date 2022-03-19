@@ -49,9 +49,9 @@ const CustomEdge = ({
       return selectedColor;
     }
 
-    if (data.complete) {
-      return accentColor;
-    }
+    // if (data.complete) {
+    //   return accentColor;
+    // }
 
     return accentColor;
   };

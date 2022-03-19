@@ -15,13 +15,13 @@ import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const NodeFooter = ({
-  id, validity, isLocked, toggleLock, accentColor,
+  id, isValid = false, invalidReason = '', isLocked,
 }) => {
   const {
-    removeNodeById, duplicateNode, clearNode,
+    removeNodeById, duplicateNode, clearNode, useNodeLock,
   } = useContext(GlobalContext);
 
-  const [isValid, invalidReason] = validity;
+  const [, toggleLock] = useNodeLock(id);
 
   const iconShade = useColorModeValue('gray.400', 'gray.800');
   const validShade = useColorModeValue('gray.900', 'gray.100');

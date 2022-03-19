@@ -36,7 +36,7 @@ const getSchema = (availableNodes, category, type) => {
 
 const Node = ({ data, selected }) => {
   const {
-    edges, useNodeLock, availableNodes,
+    edges, availableNodes,
   } = useContext(GlobalContext);
 
   const {
@@ -64,15 +64,12 @@ const Node = ({ data, selected }) => {
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
-    console.log('perf check validity');
     if (inputs && inputs.length) {
       setValidity(checkNodeValidity({
         id, inputs, inputData, edges,
       }));
     }
   }, [inputData, edges.length]);
-
-  const [, toggleLock] = useNodeLock(id);
 
   // eslint-disable-next-line no-unused-vars
   const [showMenu, setShowMenu] = useState(false);
@@ -128,9 +125,10 @@ const Node = ({ data, selected }) => {
             <NodeFooter
               id={id}
               accentColor={accentColor}
-              validity={validity}
+              isValid={validity[0]}
+              invalidReason={validity[1]}
               isLocked={isLocked}
-              toggleLock={toggleLock}
+              // toggleLock={toggleLock}
             />
           </VStack>
         </Center>

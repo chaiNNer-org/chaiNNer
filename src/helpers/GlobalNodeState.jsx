@@ -309,11 +309,12 @@ export const GlobalProvider = ({
       target,
       type: 'main',
       animated: false,
-      style: { strokeWidth: 2 },
-      data: {
-        sourceType: sourceNode?.data.category,
-        sourceSubCategory: sourceNode?.data.subcategory,
-      },
+      data: {},
+      // style: { strokeWidth: 2 },
+      // data: {
+      //   sourceType: sourceNode?.data.category,
+      //   sourceSubCategory: sourceNode?.data.subcategory,
+      // },
     };
     setEdges([
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
@@ -461,7 +462,7 @@ export const GlobalProvider = ({
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id, index = null) => {
-    // console.log('perf check (node lock)');
+    console.log('perf check (node lock)');
     const node = nodes.find((n) => n.id === id);
     if (!node) {
       return [];
