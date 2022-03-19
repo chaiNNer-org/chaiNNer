@@ -33,7 +33,6 @@ export const GlobalProvider = ({
   const [cachedEdges, setCachedEdges] = useSessionStorage('cachedEdges', []);
   const [cachedViewport, setCachedViewport] = useSessionStorage('cachedViewport', {});
   useEffect(() => {
-    // console.log('perf check set elements');
     setCachedNodes(nodes);
     setCachedEdges(edges);
     setCachedViewport(getViewport());
@@ -324,7 +323,6 @@ export const GlobalProvider = ({
 
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 307 ~ useEffect ~ flow', flow);
     if (flow) {
       const { x = 0, y = 0, zoom = 2 } = flow.viewport;
       setNodes(flow.nodes || []);
@@ -462,7 +460,6 @@ export const GlobalProvider = ({
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id, index = null) => {
-    console.log('perf check (node lock)');
     const node = nodes.find((n) => n.id === id);
     if (!node) {
       return [];
