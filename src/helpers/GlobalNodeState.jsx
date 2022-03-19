@@ -5,8 +5,7 @@ import React, {
   createContext, useCallback, useEffect, useMemo, useState,
 } from 'react';
 import {
-  getOutgoers,
-  isEdge, isNode, useEdgesState, useNodesState, useReactFlow,
+  getOutgoers, useEdgesState, useNodesState, useReactFlow,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,28 +67,27 @@ export const GlobalProvider = ({
 
   const setStateFromJSON = async (savedData, loadPosition = false) => {
     if (savedData) {
-      const justNodes = savedData.elements.filter(
-        (element) => isNode(element),
-      );
-      const validNodes = justNodes.filter(
+      const validNodes = savedData.nodes.filter(
         (node) => availableNodes[node.data.category]
         && availableNodes[node.data.category][node.data.type],
       ) || [];
-      if (justNodes.length !== validNodes.length) {
+      if (savedData.nodes.length !== validNodes.length) {
         await ipcRenderer.invoke(
           'show-warning-message-box',
           'File contains invalid nodes',
           'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
         );
       }
-      setEdges([]);
+      // setEdges([]);
       setNodes(validNodes);
       setEdges(
-        savedData.elements
-          .filter((element) => isEdge(element) && (
-            validNodes.some((el) => el.id === element.target)
-        && validNodes.some((el) => el.id === element.source)
+        savedData.edges
+          // Filter out any edges that do not have a source or target node associated with it
+          .filter((edge) => (
+            validNodes.some((el) => el.id === edge.target)
+              && validNodes.some((el) => el.id === edge.source)
           ))
+          // Un-animate all edges, if was accidentally saved when animated
           .map((edge) => ({
             ...edge,
             animated: false,
@@ -97,8 +95,7 @@ export const GlobalProvider = ({
       || [],
       );
       if (loadPosition) {
-        const [x = 0, y = 0] = savedData.position;
-        setViewport({ x, y, zoom: savedData.zoom || 0 });
+        setViewport(savedData.viewport || { x: 0, y: 0, zoom: 1 });
       }
     }
   };
