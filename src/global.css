@@ -13,3 +13,7 @@
 body {
     overflow: hidden;
 }
+
+.react-flow__attribution {
+    display: none;
+}

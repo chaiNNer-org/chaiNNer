@@ -6,7 +6,7 @@ import {
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
 import React, {
-  createContext, useCallback, useContext,
+  createContext, useCallback, useContext, useMemo,
 } from 'react';
 import ReactFlow, { Background, Controls } from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
@@ -18,14 +18,17 @@ const ReactFlowBox = ({
   wrapperRef, nodeTypes, edgeTypes,
 }) => {
   const {
-    elements, createNode, createConnection, reactFlowInstance,
-    setReactFlowInstance, removeElements, updateRfi,
-    useSnapToGrid,
+    nodes, edges, createNode, createConnection, reactFlowInstance,
+    setReactFlowInstance, updateRfi,
+    useSnapToGrid, onNodesChange, onEdgesChange,
   } = useContext(GlobalContext);
+
+  const memoNodeTypes = useMemo(() => (nodeTypes), []);
+  const memoEdgeTypes = useMemo(() => (edgeTypes), []);
 
   const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-  const onLoad = useCallback(
+  const onInit = useCallback(
     (rfi) => {
       if (!reactFlowInstance) {
         setReactFlowInstance(rfi);
@@ -92,15 +95,17 @@ const ReactFlowBox = ({
   return (
     <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef}>
       <ReactFlow
-        elements={elements}
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onConnect={createConnection}
-        onElementsRemove={removeElements}
-        onLoad={onLoad}
+        onInit={onInit}
         onDrop={onDrop}
         onDragOver={onDragOver}
         onNodeDragStop={updateRfi}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
+        nodeTypes={memoNodeTypes}
+        edgeTypes={memoEdgeTypes}
         onNodeContextMenu={onNodeContextMenu}
         style={{ zIndex: 0 }}
         // onSelectionChange={setSelectedElements}
@@ -108,6 +113,7 @@ const ReactFlowBox = ({
         minZoom={0.125}
         snapToGrid={isSnapToGrid}
         snapGrid={[snapToGridAmount, snapToGridAmount]}
+        fitView
       >
         <Background
           variant="dots"

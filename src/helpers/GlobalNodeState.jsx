@@ -6,7 +6,7 @@ import React, {
 } from 'react';
 import {
   getOutgoers,
-  isEdge, isNode, removeElements as rfRemoveElements, useZoomPanHelper,
+  isEdge, isNode, useEdgesState, useNodesState, useReactFlow,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,8 +22,10 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({
   children, nodeTypes, availableNodes, reactFlowWrapper,
 }) => {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+  const [initialNodes, setInitialNodes] = useSessionStorage('initialNodes', []);
+  const [initialEdges, setInitialEdges] = useSessionStorage('initialEdges', []);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
   const [savePath, setSavePath] = useState();
@@ -36,14 +38,10 @@ export const GlobalProvider = ({
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
-  // cut/copy/paste
-  // const [selectedElements, setSelectedElements] = useState([]);
-  // const [copiedElements, setCopiedElements] = useState([]);
-
   // eslint-disable-next-line no-unused-vars
   const [undo, redo, push, current] = useUndoHistory(10);
 
-  const { transform } = useZoomPanHelper();
+  const { setViewport } = useReactFlow();
 
   const dumpStateToJSON = async () => {
     const output = JSON.stringify({
@@ -90,26 +88,6 @@ export const GlobalProvider = ({
       }
     }
   };
-
-  // const setRfiState = (rfi) => {
-  //   const [x = 0, y = 0] = rfi.position;
-  //   setNodes(rfi.elements.filter((element) => isNode(element)) || []);
-  //   setEdges(rfi.elements.filter((element) => isEdge(element)) || []);
-  //   transform({ x, y, zoom: rfi.zoom || 0 });
-  // };
-
-  // TODO: Potential performance issue. Gets called every time rfi state changes
-  // Ideally, this would only change when an undo or redo has been performed
-  // useEffect(() => {
-  //   if (current) {
-  //     const data = JSON.parse(current);
-  //     setStateFromJSON(data, false);
-  //   }
-  // }, [current]);
-
-  // useEffect(() => {
-  //   push(dumpStateToJSON());
-  // }, [reactFlowInstanceRfi]);
 
   const clearState = () => {
     setEdges([]);
@@ -256,23 +234,17 @@ export const GlobalProvider = ({
     return result;
   };
 
-  const removeElements = (elements) => {
-    const removedElements = rfRemoveElements(elements, [...nodes, ...edges]);
-    setEdges(removedElements.filter((element) => isEdge(element)));
-    setNodes(removedElements.filter((element) => isNode(element)));
-  };
-
   const removeNodeById = (id) => {
-    const nodeToRemove = nodes.find((node) => node.id === id);
-    const newElements = rfRemoveElements([nodeToRemove], [...nodes, ...edges]);
-    setEdges(newElements.filter((element) => isEdge(element)));
-    setNodes(newElements.filter((element) => isNode(element)));
+    // const nodeToRemove = nodes.find((node) => node.id === id);
+    const newNodes = nodes.filter((n) => n.id !== id);
+    // setEdges(newElements.filter((element) => isEdge(element)));
+    setNodes(newNodes);
   };
 
   const removeEdgeById = (id) => {
-    const edgeToRemove = edges.find((node) => node.id === id);
-    const newElements = rfRemoveElements([edgeToRemove], [...edges]);
-    setEdges(newElements.filter((element) => isEdge(element)));
+    // const edgeToRemove = edges.find((node) => node.id === id);
+    const newEdges = edges.filter((e) => e.id !== id);
+    setEdges(newEdges);
   };
 
   const getInputDefaults = ({ category, type }) => {
@@ -337,10 +309,10 @@ export const GlobalProvider = ({
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
     if (flow) {
-      const [x = 0, y = 0] = flow.position;
-      setNodes(flow.elements.filter((element) => isNode(element)) || []);
-      setEdges(flow.elements.filter((element) => isEdge(element)) || []);
-      transform({ x, y, zoom: flow.zoom || 0 });
+      const { x, y, zoom } = flow.viewport;
+      setNodes(flow.nodes || []);
+      setEdges(flow.edges || []);
+      setViewport({ x, y, zoom });
     }
   }, []);
 
@@ -380,7 +352,7 @@ export const GlobalProvider = ({
     const targetInput = inputs[targetHandleIndex];
 
     const checkTargetChildren = (parentNode) => {
-      const targetChildren = getOutgoers(parentNode, [...nodes, ...edges]);
+      const targetChildren = getOutgoers(parentNode, nodes, edges);
       if (!targetChildren.length) {
         return false;
       }
@@ -497,7 +469,6 @@ export const GlobalProvider = ({
   }, [nodes, edges]);
 
   const duplicateNode = (id) => {
-    // const rfiNodes = reactFlowInstance.getElements();
     const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
     const y = node.position.y + 200;
@@ -515,35 +486,6 @@ export const GlobalProvider = ({
       node,
     ]);
   };
-
-  // const cut = () => {
-  //   setCopiedElements(selectedElements);
-  //   removeElements(selectedElements);
-  //   setSelectedElements([]);
-  // };
-
-  // const copy = () => {
-  //   setCopiedElements(selectedElements);
-  // };
-
-  // const paste = () => {
-  //   copiedElements.forEach((element) => {
-  //     if (isNode(element)) {
-  //       const node = { ...element };
-  //       const x = node.position.x + 200;
-  //       const y = node.position.y + 200;
-  //       createNode({
-  //         type: node.type, position: { x, y }, data: node.data,
-  //       });
-  //     } else if (isEdge(element)) {
-  //       // Can't do this yet
-  //     }
-  //   });
-  // };
-
-  // useHotkeys('ctrl+x', cut, {}, [reactFlowInstanceRfi, selectedElements]);
-  // useHotkeys('ctrl+c', copy, {}, [reactFlowInstanceRfi, selectedElements]);
-  // useHotkeys('ctrl+v', paste, {}, [reactFlowInstanceRfi, selectedElements]);
 
   const outlineInvalidNodes = (invalidNodes) => {
     const invalidIds = invalidNodes.map((node) => node.id);
@@ -575,11 +517,11 @@ export const GlobalProvider = ({
     availableNodes,
     nodes,
     edges,
-    elements: [...nodes, ...edges],
+    onNodesChange,
+    onEdgesChange,
     createNode,
     createConnection,
     convertToUsableFormat,
-    removeElements,
     reactFlowInstance,
     setReactFlowInstance,
     updateRfi,
