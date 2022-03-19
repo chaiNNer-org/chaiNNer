@@ -41,7 +41,7 @@ const Node = ({ data, selected }) => {
 
   const {
     id, inputData, isLocked, category, type,
-  } = data;
+  } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
@@ -64,6 +64,7 @@ const Node = ({ data, selected }) => {
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
+    console.log('perf check validity');
     if (inputs && inputs.length) {
       setValidity(checkNodeValidity({
         id, inputs, inputData, edges,

@@ -6,9 +6,11 @@ import {
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
 import React, {
-  createContext, useCallback, useContext, useMemo,
+  createContext, memo, useCallback, useContext, useEffect, useMemo,
 } from 'react';
-import ReactFlow, { Background, Controls } from 'react-flow-renderer';
+import ReactFlow, {
+  Background, Controls, useEdgesState, useNodesState,
+} from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
 export const NodeDataContext = createContext({});
@@ -17,11 +19,25 @@ export const NodeDataContext = createContext({});
 const ReactFlowBox = ({
   wrapperRef, nodeTypes, edgeTypes,
 }) => {
+  // console.log('flow box rerender');
   const {
-    nodes, edges, createNode, createConnection, reactFlowInstance,
-    setReactFlowInstance, updateRfi,
-    useSnapToGrid, onNodesChange, onEdgesChange,
+    nodes, edges, createNode, createConnection,
+    reactFlowInstance, setReactFlowInstance,
+    useSnapToGrid, setNodes, setEdges,
   } = useContext(GlobalContext);
+
+  const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
+  const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
+
+  useEffect(() => {
+    _setNodes(nodes);
+    _setEdges(edges);
+  }, [nodes, edges]);
+
+  const onNodeDragStop = useCallback(() => {
+    setNodes(_nodes);
+    setEdges(_edges);
+  }, [_nodes, _edges]);
 
   const memoNodeTypes = useMemo(() => (nodeTypes), []);
   const memoEdgeTypes = useMemo(() => (edgeTypes), []);
@@ -38,13 +54,13 @@ const ReactFlowBox = ({
     [reactFlowInstance],
   );
 
-  const onDragOver = (event) => {
+  const onDragOver = useCallback((event) => {
     event.preventDefault();
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.dropEffect = 'move';
-  };
+  }, []);
 
-  const onDrop = (event) => {
+  const onDrop = useCallback((event) => {
     // log.info('dropped');
     event.preventDefault();
 
@@ -80,11 +96,11 @@ const ReactFlowBox = ({
       log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');
     }
-  };
+  }, [createNode, wrapperRef.current]);
 
-  const onNodeContextMenu = (event, node) => {
+  const onNodeContextMenu = useCallback((event, node) => {
     console.log(event, node);
-  };
+  }, []);
 
   // const onConnect = useCallback(
   //   (params) => {
@@ -95,15 +111,15 @@ const ReactFlowBox = ({
   return (
     <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef}>
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={_nodes}
+        edges={_edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={createConnection}
         onInit={onInit}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        onNodeDragStop={updateRfi}
+        onNodeDragStop={onNodeDragStop}
         nodeTypes={memoNodeTypes}
         edgeTypes={memoEdgeTypes}
         onNodeContextMenu={onNodeContextMenu}
@@ -114,6 +130,11 @@ const ReactFlowBox = ({
         snapToGrid={isSnapToGrid}
         snapGrid={[snapToGridAmount, snapToGridAmount]}
         fitView
+        fitViewOptions={{
+          minZoom: 1,
+          maxZoom: 1,
+          padding: 40,
+        }}
       >
         <Background
           variant="dots"
@@ -139,4 +160,4 @@ const ReactFlowBox = ({
   );
 };
 
-export default ReactFlowBox;
+export default memo(ReactFlowBox);

@@ -3,7 +3,7 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import React, {
-  memo, useCallback, useContext, useMemo, useState,
+  memo, useContext, useMemo, useState,
 } from 'react';
 import { getBezierPath, getEdgeCenter, getMarkerEnd } from 'react-flow-renderer';
 import getNodeAccentColors from './getNodeAccentColors';
@@ -31,7 +31,7 @@ const CustomEdge = ({
 
   const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
 
-  const edge = edges.find((e) => e.id === id);
+  const edge = useMemo(() => edges.find((e) => e.id === id), []);
   const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
 
   const [isHovered, setIsHovered] = useState(false);
@@ -70,33 +70,41 @@ const CustomEdge = ({
     removeEdgeById(edgeId);
   };
 
-  const getEdgePath = useCallback((curvature) => {
-    const distanceX = sourceX - targetX;
-    const scalar = Math.min(curvature, Math.max(0, distanceX / 10000));
-    const hx1 = sourceX + Math.abs(targetX - sourceX) * (curvature - scalar);
-    const hx2 = targetX - Math.abs(targetX - sourceX) * (curvature - scalar);
-    return `M${sourceX},${sourceY} C${hx1},${sourceY} ${hx2},${targetY}, ${targetX},${targetY}`;
-  }, [sourceX, targetX, sourceY, targetY]);
+  const GhostPath = ({ d }) => (
+    <path
+      d={d}
+      style={{
+        strokeWidth: 10,
+        fill: 'none',
+        stroke: 'none',
+        cursor: isHovered ? 'pointer' : 'default',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    />
+  );
 
   return (
     <>
-      <path
-        id={id}
-        style={{
-          ...style,
-          strokeWidth: isHovered ? '4px' : '2px',
-          stroke: getCurrentColor(),
-          transitionDuration: '0.15s',
-          transitionProperty: 'stroke-width, stroke',
-          transitionTimingFunction: 'ease-in-out',
-        }}
-        className="react-flow__edge-path"
-        d={getEdgePath(0.5)}
-        markerEnd={markerEnd}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      />
-
+      <g>
+        <path
+          id={id}
+          style={{
+            ...style,
+            strokeWidth: isHovered ? '4px' : '2px',
+            stroke: getCurrentColor(),
+            transitionDuration: '0.15s',
+            transitionProperty: 'stroke-width, stroke',
+            transitionTimingFunction: 'ease-in-out',
+          }}
+          className="react-flow__edge-path"
+          d={edgePath}
+          markerEnd={markerEnd}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        />
+        <GhostPath d={edgePath} />
+      </g>
       <foreignObject
         width={buttonSize}
         height={buttonSize}

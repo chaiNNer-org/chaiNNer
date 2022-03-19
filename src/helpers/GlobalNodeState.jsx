@@ -11,7 +11,6 @@ import {
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
 import useLocalStorage from './hooks/useLocalStorage.js';
-import useUndoHistory from './hooks/useMultipleUndoHistory.js';
 import useSessionStorage from './hooks/useSessionStorage.js';
 import { migrate } from './migrations.js';
 
@@ -22,12 +21,31 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({
   children, nodeTypes, availableNodes, reactFlowWrapper,
 }) => {
-  const [initialNodes, setInitialNodes] = useSessionStorage('initialNodes', []);
-  const [initialEdges, setInitialEdges] = useSessionStorage('initialEdges', []);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  // console.log('global state rerender');
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const {
+    setViewport, getViewport,
+  } = useReactFlow();
+
+  // Cache node state to avoid clearing state when refreshing
+  const [cachedNodes, setCachedNodes] = useSessionStorage('cachedNodes', []);
+  const [cachedEdges, setCachedEdges] = useSessionStorage('cachedEdges', []);
+  const [cachedViewport, setCachedViewport] = useSessionStorage('cachedViewport', {});
+  useEffect(() => {
+    // console.log('perf check set elements');
+    setCachedNodes(nodes);
+    setCachedEdges(edges);
+    setCachedViewport(getViewport());
+  }, [nodes, edges]);
+  useEffect(() => {
+    setViewport(cachedViewport);
+    setNodes(cachedNodes);
+    setEdges(cachedEdges);
+  }, []);
+
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
-  const [reactFlowInstanceRfi, setRfi] = useSessionStorage('rfi', null);
+  // const [reactFlowInstanceRfi, setRfi] = useState(null);
   const [savePath, setSavePath] = useState();
 
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
@@ -38,15 +56,12 @@ export const GlobalProvider = ({
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
-  // eslint-disable-next-line no-unused-vars
-  const [undo, redo, push, current] = useUndoHistory(10);
-
-  const { setViewport } = useReactFlow();
-
   const dumpStateToJSON = async () => {
     const output = JSON.stringify({
       version: await ipcRenderer.invoke('get-app-version'),
-      content: reactFlowInstanceRfi,
+      content: {
+        nodes, edges, viewport: getViewport(),
+      },
       timestamp: new Date(),
     });
     return output;
@@ -84,7 +99,7 @@ export const GlobalProvider = ({
       );
       if (loadPosition) {
         const [x = 0, y = 0] = savedData.position;
-        transform({ x, y, zoom: savedData.zoom || 0 });
+        setViewport({ x, y, zoom: savedData.zoom || 0 });
       }
     }
   };
@@ -93,7 +108,7 @@ export const GlobalProvider = ({
     setEdges([]);
     setNodes([]);
     setSavePath(undefined);
-    transform({ x: 0, y: 0, zoom: 0 });
+    setViewport({ x: 0, y: 0, zoom: 0 });
   };
 
   const performSave = useCallback(async () => {
@@ -104,12 +119,12 @@ export const GlobalProvider = ({
       const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
       setSavePath(savedAsPath);
     }
-  }, [reactFlowInstanceRfi, savePath]);
+  }, [savePath]);
 
-  useHotkeys('ctrl+s', performSave, {}, [reactFlowInstanceRfi, nodes, edges, savePath]);
-  useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodes, edges]);
-  useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
-  useHotkeys('ctrl+shift+z', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
+  useHotkeys('ctrl+s', performSave, {}, [savePath]);
+  // useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodes, edges]);
+  // useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
+  // useHotkeys('ctrl+shift+z', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
   useHotkeys('ctrl+n', clearState, {}, []);
 
   // Register New File event handler
@@ -177,7 +192,7 @@ export const GlobalProvider = ({
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [reactFlowInstanceRfi, nodes, edges, savePath]);
+  }, [savePath]);
 
   // Push state to undo history
   // useEffect(() => {
@@ -308,8 +323,9 @@ export const GlobalProvider = ({
 
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 307 ~ useEffect ~ flow', flow);
     if (flow) {
-      const { x, y, zoom } = flow.viewport;
+      const { x = 0, y = 0, zoom = 2 } = flow.viewport;
       setNodes(flow.nodes || []);
       setEdges(flow.edges || []);
       setViewport({ x, y, zoom });
@@ -317,20 +333,21 @@ export const GlobalProvider = ({
   }, []);
 
   // Updates the saved reactFlowInstance object
-  useEffect(() => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      setRfi(flow);
-    }
-  }, [nodes, edges]);
+  // useEffect(() => {
+  //   console.log('perf check setRfi');
+  //   if (reactFlowInstance) {
+  //     const flow = reactFlowInstance.toObject();
+  //     setRfi(flow);
+  //   }
+  // }, [nodes, edges]);
 
   // Update rfi when drag and drop on drag end
-  const updateRfi = () => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      setRfi(flow);
-    }
-  };
+  // const updateRfi = () => {
+  //   if (reactFlowInstance) {
+  //     const flow = reactFlowInstance.toObject();
+  //     setRfi(flow);
+  //   }
+  // };
 
   const isValidConnection = ({
     target, targetHandle, source, sourceHandle,
@@ -517,6 +534,8 @@ export const GlobalProvider = ({
     availableNodes,
     nodes,
     edges,
+    setNodes,
+    setEdges,
     onNodesChange,
     onEdgesChange,
     createNode,
@@ -524,7 +543,7 @@ export const GlobalProvider = ({
     convertToUsableFormat,
     reactFlowInstance,
     setReactFlowInstance,
-    updateRfi,
+    // updateRfi,
     reactFlowWrapper,
     isValidConnection,
     useInputData,
@@ -542,7 +561,7 @@ export const GlobalProvider = ({
     useIsSystemPython: [isSystemPython, setIsSystemPython],
     useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
   }), [
-    reactFlowInstance, nodes, edges,
+    nodes, edges, reactFlowInstance,
     isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
   ]);
 
