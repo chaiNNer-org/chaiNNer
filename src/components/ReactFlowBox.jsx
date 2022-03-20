@@ -135,6 +135,8 @@ const ReactFlowBox = ({
           maxZoom: 1,
           padding: 40,
         }}
+        // onlyRenderVisibleElements
+        deleteKeyCode={['Backspace', 'Delete']}
       >
         <Background
           variant="dots"

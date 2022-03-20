@@ -78,7 +78,6 @@ export const GlobalProvider = ({
           'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
         );
       }
-      // setEdges([]);
       setNodes(validNodes);
       setEdges(
         savedData.edges
@@ -230,8 +229,10 @@ export const GlobalProvider = ({
         id, sourceHandle, targetHandle, source, target, type,
       } = element;
       // Connection
-      result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: targetHandle };
-      result[target].inputs[targetHandle.split('-').slice(-1)] = { id: sourceHandle };
+      if (result[source] && result[target]) {
+        result[source].outputs[sourceHandle.split('-').slice(-1)] = { id: targetHandle };
+        result[target].inputs[targetHandle.split('-').slice(-1)] = { id: sourceHandle };
+      }
     });
 
     // Convert inputs and outputs to arrays
@@ -296,7 +297,6 @@ export const GlobalProvider = ({
     source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
-    const sourceNode = nodes.find((n) => n.id === source);
     const newEdge = {
       id,
       sourceHandle,
@@ -306,11 +306,6 @@ export const GlobalProvider = ({
       type: 'main',
       animated: false,
       data: {},
-      // style: { strokeWidth: 2 },
-      // data: {
-      //   sourceType: sourceNode?.data.category,
-      //   sourceSubCategory: sourceNode?.data.subcategory,
-      // },
     };
     setEdges([
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),

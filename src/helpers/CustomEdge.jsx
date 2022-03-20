@@ -1,11 +1,15 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import { DeleteIcon } from '@chakra-ui/icons';
-import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
+import {
+  Center, IconButton, useColorModeValue,
+} from '@chakra-ui/react';
 import React, {
   memo, useContext, useMemo, useState,
 } from 'react';
-import { getBezierPath, getEdgeCenter, getMarkerEnd } from 'react-flow-renderer';
+import {
+  getBezierPath, getEdgeCenter,
+} from 'react-flow-renderer';
 import getNodeAccentColors from './getNodeAccentColors';
 import { GlobalContext } from './GlobalNodeState.jsx';
 import shadeColor from './shadeColor.js';
@@ -20,14 +24,12 @@ const CustomEdge = ({
   targetPosition,
   style = {},
   data,
-  arrowHeadType,
-  markerEndId,
+  // markerEnd,
   selected,
 }) => {
   const edgePath = getBezierPath({
     sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
   });
-  const markerEnd = getMarkerEnd(arrowHeadType, markerEndId);
 
   const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
 
@@ -56,6 +58,10 @@ const CustomEdge = ({
     return accentColor;
   };
 
+  const currentColor = useMemo(() => getCurrentColor(), [accentColor, selected]);
+
+  // const markerEnd = `url(#color=${getCurrentColor()}&type=${MarkerType.ArrowClosed})`;
+
   const [edgeCenterX, edgeCenterY] = getEdgeCenter({
     sourceX,
     sourceY,
@@ -81,6 +87,8 @@ const CustomEdge = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onMouseOver={() => setIsHovered(true)}
+      onMouseOut={() => setIsHovered(false)}
     />
   );
 
@@ -92,18 +100,22 @@ const CustomEdge = ({
           style={{
             ...style,
             strokeWidth: isHovered ? '4px' : '2px',
-            stroke: getCurrentColor(),
+            stroke: currentColor,
             transitionDuration: '0.15s',
             transitionProperty: 'stroke-width, stroke',
             transitionTimingFunction: 'ease-in-out',
+            zIndex: -1,
+            cursor: isHovered ? 'pointer' : 'default',
           }}
           className="react-flow__edge-path"
           d={edgePath}
-          markerEnd={markerEnd}
+          // markerEnd={markerEnd}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          onMouseOver={() => setIsHovered(true)}
+          onMouseOut={() => setIsHovered(false)}
         />
-        <GhostPath d={edgePath} />
+        {/* <GhostPath d={edgePath} /> */}
       </g>
       <foreignObject
         width={buttonSize}
@@ -121,11 +133,13 @@ const CustomEdge = ({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onMouseOver={() => setIsHovered(true)}
+        onMouseOut={() => setIsHovered(false)}
       >
         <Center
           w="full"
           h="full"
-          backgroundColor={getCurrentColor()}
+          backgroundColor={currentColor}
           borderColor={useColorModeValue('gray.100', 'gray.800')}
           borderWidth={2}
           borderRadius={100}
