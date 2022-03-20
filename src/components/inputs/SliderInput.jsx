@@ -14,7 +14,6 @@ const SliderInput = memo(({
 }) => {
   const { useInputData } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
-  console.log('🚀 ~ file: SliderInput.jsx ~ line 17 ~ input', input);
   const [sliderValue, setSliderValue] = useState(input ?? def);
   const [showTooltip, setShowTooltip] = useState(false);
 
