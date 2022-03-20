@@ -16,6 +16,15 @@ from .properties.inputs import *
 from .properties.outputs import *
 
 
+def normalize(img):
+    dtype_max = 1
+    try:
+        dtype_max = np.iinfo(img.dtype).max
+    except:
+        logger.debug("img dtype is not int")
+    return img.astype(np.float32) / dtype_max
+
+
 @NodeFactory.register("Image", "Load Image")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
@@ -280,9 +289,19 @@ class ImOverlay(NodeBase):
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
+        base = normalize(base)
+        ov1 = normalize(ov1)
+        # overlay2 was not passed in and therefore ov2 is actually op2
+        if isinstance(ov2, str) or isinstance(ov2, int):
+            ov2 = None
+            op2 = None
+        else:
+            ov2 = normalize(ov2)
+
         # Convert to 0.0-1.0 range
         op1 = int(op1) / 100
-        op2 = int(op2) / 100
+        if op2 is not None:
+            op2 = int(op2) / 100
 
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
@@ -318,21 +337,23 @@ class ImOverlay(NodeBase):
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
         for img, op in zip(imgs, (op1, op2)):
-            h, w = img.shape[:2]
+            if img is not None and op is not None:
+                h, w = img.shape[:2]
 
-            # Center overlay
-            x_offset = center_x - (w // 2)
-            y_offset = center_y - (h // 2)
+                # Center overlay
+                x_offset = center_x - (w // 2)
+                y_offset = center_y - (h // 2)
 
-            cv2.addWeighted(
-                imgout[y_offset : y_offset + h, x_offset : x_offset + w],
-                1 - op,
-                img,
-                op,
-                0,
-                img,
-            )
-            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+                img = cv2.addWeighted(
+                    imgout[y_offset : y_offset + h, x_offset : x_offset + w],
+                    1 - op,
+                    img,
+                    op,
+                    0,
+                )
+                imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+
+        imgout = np.clip(imgout, 0, 1)
 
         return imgout
 
