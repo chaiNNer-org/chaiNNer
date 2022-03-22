@@ -566,8 +566,8 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     closable: false,
     alwaysOnTop: true,
     titleBarStyle: 'hidden',
-    // transparent: true,
-    // roundedCorners: true,
+    transparent: true,
+    roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nativeWindowOpen: true,

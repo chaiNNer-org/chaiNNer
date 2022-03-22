@@ -30,14 +30,28 @@ const ReactFlowBox = ({
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
+    console.log('setting internal node state');
     _setNodes(nodes);
     _setEdges(edges);
   }, [nodes, edges]);
 
   const onNodeDragStop = useCallback(() => {
+    console.log('setting global node state');
     setNodes(_nodes);
     setEdges(_edges);
   }, [_nodes, _edges]);
+
+  const onNodesDelete = useCallback((nodesToDelete) => {
+    const nodeIds = nodesToDelete.map((n) => n.id);
+    const newNodes = _nodes.filter((n) => nodeIds.includes(n.id));
+    setNodes(newNodes);
+  }, [setNodes]);
+
+  const onEdgesDelete = useCallback((edgesToDelete) => {
+    const edgeIds = edgesToDelete.map((e) => e.id);
+    const newEdges = _edges.filter((e) => edgeIds.includes(e.id));
+    setEdges(newEdges);
+  }, [setEdges]);
 
   const memoNodeTypes = useMemo(() => (nodeTypes), []);
   const memoEdgeTypes = useMemo(() => (edgeTypes), []);
@@ -115,6 +129,8 @@ const ReactFlowBox = ({
         edges={_edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onEdgesDelete={onEdgesDelete}
+        onNodesDelete={onNodesDelete}
         onConnect={createConnection}
         onInit={onInit}
         onDrop={onDrop}

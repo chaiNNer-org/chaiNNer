@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import Header from '../components/Header.jsx';
+import IteratorNode from '../components/node/InteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
@@ -40,6 +41,7 @@ const Main = ({ port }) => {
     if (response.ok && data && !loading && !error && !backendReady) {
       setNodeTypes({
         regularNode: Node,
+        iterator: IteratorNode,
       });
       const availableNodeMap = {};
       data.forEach(({ category, nodes }) => {

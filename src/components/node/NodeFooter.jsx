@@ -2,14 +2,14 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
+  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon
 } from '@chakra-ui/icons';
 import {
   Center, Flex, Icon, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Tooltip, useColorModeValue,
+  MenuList, Portal, Spacer, Tooltip, useColorModeValue
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext,
+  memo, useContext
 } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';

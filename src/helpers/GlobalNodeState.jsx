@@ -22,6 +22,7 @@ export const GlobalProvider = ({
 }) => {
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 25 ~ nodes', nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const {
     setViewport, getViewport,
@@ -255,7 +256,9 @@ export const GlobalProvider = ({
 
   const removeEdgeById = (id) => {
     // const edgeToRemove = edges.find((node) => node.id === id);
+    console.log({ edges });
     const newEdges = edges.filter((e) => e.id !== id);
+    console.log({ newEdges });
     setEdges(newEdges);
   };
 
@@ -281,10 +284,12 @@ export const GlobalProvider = ({
   }) => {
     const id = createUniqueId();
     const newNode = {
-      type,
+      type: 'iterator',
       id,
       position,
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
+      // parentNode: '264c7e69-2685-4a57-84d1-b663d8f6fa48',
+      // extent: 'parent',
     };
     setNodes([
       ...nodes,
