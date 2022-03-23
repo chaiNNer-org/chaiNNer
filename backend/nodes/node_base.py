@@ -12,6 +12,7 @@ class NodeBase(metaclass=ABCMeta):
         self.description = ""
         self.icon = ""
         self.sub = "Miscellaneous"
+        self.type = "regularNode"
 
     @abstractmethod
     def run(self, **kwargs) -> Any:
@@ -32,3 +33,6 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_sub_category(self):
         return self.sub
+
+    def get_type(self):
+        return self.type

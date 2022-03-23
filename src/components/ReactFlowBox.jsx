@@ -82,6 +82,8 @@ const ReactFlowBox = ({
 
     try {
       const type = event.dataTransfer.getData('application/reactflow/type');
+      const nodeType = event.dataTransfer.getData('application/reactflow/nodeType');
+      console.log('🚀 ~ file: ReactFlowBox.jsx ~ line 85 ~ onDrop ~ type', type);
       // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
       // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
       const category = event.dataTransfer.getData('application/reactflow/category');
@@ -99,13 +101,13 @@ const ReactFlowBox = ({
       const nodeData = {
         category,
         type,
-        // inputs,
-        // outputs,
         icon,
         subcategory,
       };
 
-      createNode({ type: 'regularNode', position, data: nodeData });
+      createNode({
+        type, position, data: nodeData, nodeType,
+      });
     } catch (error) {
       log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');

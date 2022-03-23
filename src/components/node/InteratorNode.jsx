@@ -171,6 +171,7 @@ const IteratorNode = ({ data, selected }) => {
             scale={zoom}
             style={{
               margin: 6,
+              marginBottom: 0,
             }}
           >
             <Box

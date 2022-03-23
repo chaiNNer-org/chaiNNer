@@ -2,7 +2,7 @@
 /* eslint-disable import/extensions */
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';

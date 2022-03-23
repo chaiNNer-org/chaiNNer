@@ -263,6 +263,8 @@ export const GlobalProvider = ({
   };
 
   const getInputDefaults = ({ category, type }) => {
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 266 ~ getInputDefaults ~ { category, type }', { category, type });
+    console.log(availableNodes[category][type]);
     const defaultData = {};
     const { inputs } = availableNodes[category][type];
     if (inputs) {
@@ -280,11 +282,14 @@ export const GlobalProvider = ({
   };
 
   const createNode = ({
-    type, position, data,
+    type, position, data, nodeType,
   }) => {
+    console.log({
+      type, position, data,
+    });
     const id = createUniqueId();
     const newNode = {
-      type: 'iterator',
+      type: nodeType,
       id,
       position,
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
@@ -384,6 +389,7 @@ export const GlobalProvider = ({
   const useInputData = (id, index) => {
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 392 ~ useInputData ~ nodeData', nodeData);
 
     if (!nodeData) {
       return [];

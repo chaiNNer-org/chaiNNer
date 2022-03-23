@@ -5,6 +5,7 @@ Nodes that provide functionality for opencv image manipulation
 import math
 import os
 import sys
+from msilib.schema import Directory
 
 import cv2
 import numpy as np
@@ -1121,3 +1122,25 @@ class CaptionNode(NodeBase):
             lineType=cv2.LINE_AA,
         )
         return img
+
+
+@NodeFactory.register("Image", "Image File Iterator")
+class ImageFileIteratorNode(NodeBase):
+    """Image File Iterator node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Iterate over all files in a directory and run the provided nodes on just the image files."
+        self.inputs = [
+            DirectoryInput(),
+        ]
+        self.outputs = []
+
+        self.icon = "MdLoop"
+        self.sub = "Iteration"
+
+        self.type = "iterator"
+
+    def run(self) -> any:
+        return ""
