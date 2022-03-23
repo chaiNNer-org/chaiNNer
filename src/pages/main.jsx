@@ -2,11 +2,12 @@
 /* eslint-disable import/extensions */
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { app, ipcRenderer } from 'electron';
+import log from 'electron-log';
 import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
@@ -58,7 +59,11 @@ const Main = ({ port }) => {
     (async () => {
       if (nodeTypes && !backendReady) {
         setBackendReady(true);
-        await ipcRenderer.invoke('backend-ready');
+        try {
+          await ipcRenderer.invoke('backend-ready');
+        } catch (err) {
+          log.error(err);
+        }
       }
     })();
   }, [nodeTypes]);

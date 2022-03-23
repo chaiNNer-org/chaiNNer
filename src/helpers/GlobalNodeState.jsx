@@ -525,6 +525,11 @@ export const GlobalProvider = ({
     ]);
   };
 
+  const [zoom, setZoom] = useState(1);
+  const onMoveEnd = (event, viewport) => {
+    setZoom(viewport.zoom);
+  };
+
   const contextValue = useMemo(() => ({
     availableNodes,
     nodes,
@@ -551,6 +556,8 @@ export const GlobalProvider = ({
     // setSelectedElements,
     outlineInvalidNodes,
     unOutlineInvalidNodes,
+    zoom,
+    onMoveEnd,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
@@ -558,6 +565,7 @@ export const GlobalProvider = ({
   }), [
     nodes, edges, reactFlowInstance,
     isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
+    zoom,
   ]);
 
   return (

@@ -1,14 +1,12 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
-import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-  Box, Center, Menu, MenuItem, MenuList, Portal, Text, useColorModeValue, VStack,
+  Box, Center, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import React, {
   memo, useContext, useEffect, useMemo, useState,
 } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
@@ -19,6 +17,36 @@ import NodeInputs from './NodeInputs.jsx';
 import NodeOutputs from './NodeOutputs.jsx';
 
 const createGridDotsPath = (size, fill) => <circle cx={size} cy={size} r={size} fill={fill} />;
+
+const DotPattern = ({ id }) => {
+  const gap = 15;
+  const size = 0.5;
+  const scaledGap = gap * 1;
+  const path = createGridDotsPath(size, '#81818a');
+  const patternId = `pattern-${id}`;
+
+  return (
+    <svg
+      style={{
+        width: '100%',
+        height: '100%',
+        borderRadius: '0.5rem',
+      }}
+    >
+      <pattern
+        id={patternId}
+        x={6}
+        y={6}
+        width={scaledGap}
+        height={scaledGap}
+        patternUnits="userSpaceOnUse"
+      >
+        {path}
+      </pattern>
+      <rect x="0" y="0" width="100%" height="100%" fill={`url(#${patternId})`} />
+    </svg>
+  );
+};
 
 const blankSchema = {
   inputs: [],
@@ -41,12 +69,8 @@ const getSchema = (availableNodes, category, type) => {
 
 const IteratorNode = ({ data, selected }) => {
   const {
-    edges, availableNodes,
+    edges, availableNodes, zoom,
   } = useContext(GlobalContext);
-
-  const {
-    getViewport,
-  } = useReactFlow();
 
   const {
     id, inputData, isLocked, category, type,
@@ -92,171 +116,106 @@ const IteratorNode = ({ data, selected }) => {
 
   return (
     <>
-      <Menu isOpen={showMenu}>
-        <Center boxShadow="lg">
-          <VStack
-            onContextMenu={() => {
-            // WIP
-            // if (selected) {
-            //   if (showMenu) {
-            //     setShowMenu(false);
-            //   } else {
-            //     setMenuPosition({ x: event.clientX, y: event.clientY });
-            //     setShowMenu(true);
-            //   }
-            // }
+      <Center
+        bg={useColorModeValue('gray.300', 'gray.700')}
+        borderWidth="0.5px"
+        borderColor={borderColor}
+        borderRadius="xl"
+        py={2}
+        boxShadow="lg"
+        transition="0.15s ease-in-out"
+        onClick={() => {
+          // setShowMenu(false);
+        }}
+      >
+        <VStack minWidth="240px">
+          <NodeHeader
+            category={category}
+            type={type}
+            accentColor={accentColor}
+            icon={icon}
+            selected={selected}
+          />
+          {inputs.length && (
+          <Center>
+            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+              INPUTS
+            </Text>
+          </Center>
+          )}
+          <NodeInputs inputs={inputs} id={id} accentColor={accentColor} isLocked={isLocked} />
+          <Center>
+            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+              ITERATION
+            </Text>
+          </Center>
+          <Resizable
+            className="nodrag"
+            defaultSize={{
+              width: 480,
+              height: 480,
             }}
-            onClick={() => {
-            // setShowMenu(false);
+            minWidth="280px"
+            minHeight="280px"
+            draggable={false}
+            enable={{
+              top: false,
+              right: true,
+              bottom: true,
+              left: false,
+              topRight: false,
+              bottomRight: true,
+              bottomLeft: false,
+              topLeft: false,
             }}
-            spacing={0}
+            scale={zoom}
+            style={{
+              margin: 6,
+            }}
           >
-            <Center
-              bg={useColorModeValue('gray.300', 'gray.700')}
+            <Box
+              className="nodrag"
+              draggable={false}
+              // bg={useColorModeValue('gray.200', 'gray.800')}
+              // p={2}
+              h="full"
               w="full"
-              pt={2}
-              borderTopRadius="lg"
-              mb={0}
-              borderWidth="0.5px"
-              borderColor={borderColor}
-              borderBottomWidth={0}
-              transition="0.15s ease-in-out"
+              my={0}
+              // boxShadow="inset 0 0 15px var(--chakra-colors-gray-700)"
+              // borderWidth={4}
+              borderColor="gray.700"
+              // borderRadius="xl"
             >
-              <VStack minWidth="240px" w="full">
-                <NodeHeader
-                  category={category}
-                  type={type}
-                  accentColor={accentColor}
-                  icon={icon}
-                  selected={selected}
-                />
-                {inputs.length && (
-                <Center>
-                  <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
-                    INPUTS
-                  </Text>
-                </Center>
-                )}
-                <NodeInputs inputs={inputs} id={id} accentColor={accentColor} isLocked={isLocked} />
-              </VStack>
-            </Center>
-            <VStack
-              borderWidth="0.5px"
-              borderColor={borderColor}
-              borderBottomWidth={0}
-              borderTopWidth={0}
-              transition="0.15s ease-in-out"
-              spacing={0}
-            >
-              <Center
-                bg={useColorModeValue('gray.300', 'gray.700')}
+              <Box
+                bg={useColorModeValue('gray.200', 'gray.800')}
+                h="full"
                 w="full"
-                py={2}
-                mt={0}
+                borderWidth={2}
+                borderColor="gray.600"
+                borderRadius="lg"
               >
-                <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
-                  ITERATION
-                </Text>
-              </Center>
-              <Resizable
-                className="nodrag"
-                defaultSize={{
-                  width: 480,
-                  height: 480,
-                }}
-                minWidth="280px"
-                minHeight="280px"
-                draggable={false}
-                // p={4}
-                enable={{
-                  top: false,
-                  right: true,
-                  bottom: true,
-                  left: false,
-                  topRight: false,
-                  bottomRight: true,
-                  bottomLeft: false,
-                  topLeft: false,
-                }}
-                scale={getViewport().zoom}
-              >
-                <Box
-                  className="nodrag"
-                  draggable={false}
-              // bg="rgba(74, 85, 104, 0.05)"
-                  h="full"
-                  w="full"
-                  my={0}
-                  boxShadow="inset 0 0 15px var(--chakra-colors-gray-700)"
-                >
-                  {/* Test */}
-                </Box>
-              </Resizable>
-            </VStack>
-            <Center
-              bg={useColorModeValue('gray.300', 'gray.700')}
-              w="full"
-              py={2}
-              borderBottomRadius="lg"
-              mt={0}
-              borderWidth="0.5px"
-              borderColor={borderColor}
-              borderTopWidth={0}
-              transition="0.15s ease-in-out"
-            >
-              <VStack minWidth="240px" w="full">
-                {outputs.length > 0 && (
-                <Center>
-                  <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
-                    OUTPUTS
-                  </Text>
-                </Center>
-                )}
-                <NodeOutputs outputs={outputs} id={id} accentColor={accentColor} />
-                <NodeFooter
-                  id={id}
-                  accentColor={accentColor}
-                  isValid={validity[0]}
-                  invalidReason={validity[1]}
-                  isLocked={isLocked}
-                />
-              </VStack>
-            </Center>
-          </VStack>
-        </Center>
-        <Portal>
-          <MenuList
-            position="fixed"
-            // top={menuPosition.y}
-            // left={menuPosition.x}
-          >
-            <MenuItem
-              icon={<CopyIcon />}
-              onClick={() => {
-              // duplicateNode(id);
-              }}
-            >
-              Duplicate
-            </MenuItem>
-            <MenuItem
-              icon={<CloseIcon />}
-              onClick={() => {
-              //  clearNode(id);
-              }}
-            >
-              Clear
-            </MenuItem>
-            <MenuItem
-              icon={<DeleteIcon />}
-              onClick={() => {
-              // removeNodeById(id);
-              }}
-            >
-              Delete
-            </MenuItem>
-          </MenuList>
-        </Portal>
-      </Menu>
+                <DotPattern id={id} />
+              </Box>
+              {/* Test */}
+            </Box>
+          </Resizable>
+          {outputs.length > 0 && (
+          <Center>
+            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+              OUTPUTS
+            </Text>
+          </Center>
+          )}
+          <NodeOutputs outputs={outputs} id={id} accentColor={accentColor} />
+          <NodeFooter
+            id={id}
+            accentColor={accentColor}
+            isValid={validity[0]}
+            invalidReason={validity[1]}
+            isLocked={isLocked}
+          />
+        </VStack>
+      </Center>
     </>
   );
 };

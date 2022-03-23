@@ -23,7 +23,7 @@ const ReactFlowBox = ({
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
-    useSnapToGrid, setNodes, setEdges,
+    useSnapToGrid, setNodes, setEdges, onMoveEnd,
   } = useContext(GlobalContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -153,6 +153,7 @@ const ReactFlowBox = ({
         }}
         // onlyRenderVisibleElements
         deleteKeyCode={['Backspace', 'Delete']}
+        onMoveEnd={onMoveEnd}
       >
         <Background
           variant="dots"

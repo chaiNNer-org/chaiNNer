@@ -624,10 +624,11 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
   ipcMain.handle('backend-ready', () => {
     mainWindow.webContents.once('dom-ready', async () => {
       splash.webContents.send('finish-loading');
-      await sleep(500);
       splash.on('close', () => {});
+      await sleep(500);
       splash.destroy();
       mainWindow.show();
+      ipcMain.removeHandler('backend-ready');
     });
   });
 
@@ -635,10 +636,11 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     ipcMain.removeHandler('backend-ready');
     ipcMain.handle('backend-ready', async () => {
       splash.webContents.send('finish-loading');
-      await sleep(500);
       splash.on('close', () => {});
+      await sleep(500);
       splash.destroy();
       mainWindow.show();
+      ipcMain.removeHandler('backend-ready');
     });
   });
 });

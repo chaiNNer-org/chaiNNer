@@ -104,7 +104,7 @@ const CustomEdge = ({
             transitionDuration: '0.15s',
             transitionProperty: 'stroke-width, stroke',
             transitionTimingFunction: 'ease-in-out',
-            zIndex: -1,
+            // zIndex: -1,
             cursor: isHovered ? 'pointer' : 'default',
           }}
           className="react-flow__edge-path"
