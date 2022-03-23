@@ -17,3 +17,9 @@ body {
 .react-flow__attribution {
     display: none;
 }
+
+@keyframes _dashdraw {
+    from {
+        stroke-dashoffset: 10;
+    }
+}
