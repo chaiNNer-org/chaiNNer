@@ -140,6 +140,8 @@ class NcnnUpscaleImageNode(NodeBase):
         # TODO: This can prob just be a shared function tbh
         # Transparency hack (white/black background difference alpha)
         if in_nc == 3 and c == 4:
+            # NCNN expects RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
             # Ignore single-color alpha
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
@@ -149,6 +151,7 @@ class NcnnUpscaleImageNode(NodeBase):
                     (output, np.full(output.shape[:-1], (unique[0] * 255)))
                 )
                 output = np.clip(output.astype(np.float32) / 255, 0, 1)
+                output = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             else:
                 img1 = np.copy(img[:, :, :3])
                 img2 = np.copy(img[:, :, :3])
@@ -176,12 +179,19 @@ class NcnnUpscaleImageNode(NodeBase):
             elif img.shape[2] == 3 and in_nc == 4:
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             output = self.upscale(img, net, input_name, output_name)
 
             if gray:
                 output = np.average(output, axis=2)
 
             output = output.astype(np.float32) / 255
+
+        if output.ndim > 2:
+            if output.shape[2] == 4:
+                output = cv2.cvtColor(output, cv2.COLOR_BGRA2RGBA)
+            elif output.shape[2] == 3:
+                output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
 
         output = np.clip(output, 0, 1)
 
