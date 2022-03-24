@@ -2,14 +2,14 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon
+  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
 } from '@chakra-ui/icons';
 import {
   Center, Flex, Icon, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Tooltip, useColorModeValue
+  MenuList, Portal, Spacer, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext
+  memo, useContext,
 } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
@@ -31,7 +31,7 @@ const NodeFooter = ({
 
   return (
     <Flex w="full" pl={2} pr={2}>
-      <Center>
+      <Center className="nodrag">
         <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={iconShade} onClick={() => toggleLock()} cursor="pointer" />
       </Center>
       <Spacer />
@@ -45,7 +45,7 @@ const NodeFooter = ({
         py={1}
         px={2}
       >
-        <Center my={-2}>
+        <Center my={-2} className="nodrag">
           <Center
             bgColor={isValid ? validShade : iconShade}
             borderRadius={100}
@@ -66,7 +66,7 @@ const NodeFooter = ({
       <Spacer />
       <Center>
         <Menu>
-          <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle">
+          <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle" className="nodrag">
             <Center>
               <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={iconShade} />
             </Center>

@@ -9,7 +9,7 @@ import front from '../public/splash_imgs/front.png';
 
 const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
   <Box display="block" boxSize={size} draggable={false}>
-    <Image src={bg} alt="bg" position="relative" top={0} draggable={false} />
+    <Image src={bg} alt="bg" position="relative" top={0} draggable={false} boxSize={size} />
     <Center
       w={size}
       h={size}
@@ -29,7 +29,7 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
             pathLength="100"
             style={{
               fill: 'none',
-              strokeWidth: '22px',
+              strokeWidth: '20px',
               stroke: 'var(--chakra-colors-gray-500)',
               strokeDasharray: 5,
               animation: '_dashdraw 0.5s linear infinite',
@@ -67,7 +67,7 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
         </g>
       </svg>
     </Center>
-    <Image src={front} alt="front" position="relative" top={-size * 3} draggable={false} />
+    <Image src={front} alt="front" position="relative" top={-size * 3} draggable={false} boxSize={size} />
   </Box>
 );
 

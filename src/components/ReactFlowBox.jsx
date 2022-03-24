@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Box,
+  Box, useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
@@ -125,7 +125,7 @@ const ReactFlowBox = ({
   // );
 
   return (
-    <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef}>
+    <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef} bg={useColorModeValue('gray.100', 'gray.800')}>
       <ReactFlow
         nodes={_nodes}
         edges={_edges}
@@ -141,7 +141,10 @@ const ReactFlowBox = ({
         nodeTypes={memoNodeTypes}
         edgeTypes={memoEdgeTypes}
         onNodeContextMenu={onNodeContextMenu}
-        style={{ zIndex: 0 }}
+        style={{
+          zIndex: 0,
+          borderRadius: '0.5rem',
+        }}
         // onSelectionChange={setSelectedElements}
         maxZoom={8}
         minZoom={0.125}
@@ -156,6 +159,7 @@ const ReactFlowBox = ({
         // onlyRenderVisibleElements
         deleteKeyCode={['Backspace', 'Delete']}
         onMoveEnd={onMoveEnd}
+        defaultEdgeOptions={{ zIndex: 1001 }}
       >
         <Background
           variant="dots"

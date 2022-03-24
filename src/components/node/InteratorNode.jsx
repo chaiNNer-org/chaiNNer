@@ -69,12 +69,14 @@ const getSchema = (availableNodes, category, type) => {
 
 const IteratorNode = ({ data, selected }) => {
   const {
-    edges, availableNodes, zoom,
+    edges, availableNodes, zoom, useIteratorSize,
   } = useContext(GlobalContext);
 
   const {
     id, inputData, isLocked, category, type,
   } = useMemo(() => data, [data]);
+
+  const [{ width, height }, setIteratorSize, defaultSize] = useIteratorSize(id);
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
@@ -120,7 +122,7 @@ const IteratorNode = ({ data, selected }) => {
         bg={useColorModeValue('gray.300', 'gray.700')}
         borderWidth="0.5px"
         borderColor={borderColor}
-        borderRadius="xl"
+        borderRadius="lg"
         py={2}
         boxShadow="lg"
         transition="0.15s ease-in-out"
@@ -151,10 +153,7 @@ const IteratorNode = ({ data, selected }) => {
           </Center>
           <Resizable
             className="nodrag"
-            defaultSize={{
-              width: 480,
-              height: 480,
-            }}
+            defaultSize={defaultSize}
             minWidth="280px"
             minHeight="280px"
             draggable={false}
@@ -170,8 +169,16 @@ const IteratorNode = ({ data, selected }) => {
             }}
             scale={zoom}
             style={{
-              margin: 6,
+              margin: 8,
               marginBottom: 0,
+            }}
+            size={{ width, height }}
+            onResizeStop={(e, direction, ref, d) => {
+              console.log('resize stop called');
+              setIteratorSize({
+                width: width + d.width,
+                height: height + d.height,
+              });
             }}
           >
             <Box
@@ -191,7 +198,7 @@ const IteratorNode = ({ data, selected }) => {
                 bg={useColorModeValue('gray.200', 'gray.800')}
                 h="full"
                 w="full"
-                borderWidth={2}
+                borderWidth={1}
                 borderColor="gray.600"
                 borderRadius="lg"
               >

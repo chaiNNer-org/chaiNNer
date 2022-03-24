@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack,
+  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogOverlay, Box, Button, Center, HStack, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
@@ -11,6 +11,7 @@ import log from 'electron-log';
 import React, { useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
+import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
 import Header from '../components/Header.jsx';
 import IteratorNode from '../components/node/InteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
@@ -70,9 +71,12 @@ const Main = ({ port }) => {
 
   if (!nodeTypes) {
     return (
-      <Box w="full" h="full">
+      <Box w="100vw" h="100vh">
         <Center w="full" h="full">
-          <Spinner />
+          <VStack>
+            <ChaiNNerLogo size={256} percent={0} />
+            <Text>Loading...</Text>
+          </VStack>
         </Center>
       </Box>
     );
@@ -122,7 +126,7 @@ const Main = ({ port }) => {
         availableNodes={availableNodes}
         reactFlowWrapper={reactFlowWrapper}
       >
-        <VStack p={2} overflow="hidden">
+        <VStack p={2} overflow="hidden" bg={useColorModeValue('gray.200', '#151a24')}>
           <Header port={port} />
           <HStack
             as={Split}

@@ -193,7 +193,7 @@ const Header = ({ port }) => {
 
   return (
     <>
-      <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg">
+      <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg" bg={useColorModeValue('gray.100', 'gray.800')}>
         <Flex align="center" h="100%" p={2}>
           <HStack>
             {/* <LinkIcon /> */}

@@ -293,8 +293,8 @@ export const GlobalProvider = ({
       id,
       position,
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
-      // parentNode: '264c7e69-2685-4a57-84d1-b663d8f6fa48',
-      // extent: 'parent',
+      parentNode: '2fa23908-c9f5-45cc-a74d-bf9eb349bae5',
+      extent: 'parent',
     };
     setNodes([
       ...nodes,
@@ -316,6 +316,7 @@ export const GlobalProvider = ({
       type: 'main',
       animated: false,
       data: {},
+      zIndex: 1001,
     };
     setEdges([
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
@@ -486,6 +487,23 @@ export const GlobalProvider = ({
     return [isLocked, toggleLock, isInputLocked];
   }, [nodes, edges]);
 
+  const useIteratorSize = useCallback((id) => {
+    console.log('perf check iterator size');
+    const defaultSize = { width: 480, height: 480 };
+    const node = nodes.find((n) => n.id === id);
+
+    const { width, height } = node?.data?.iteratorSize ?? defaultSize;
+    const setIteratorSize = (size) => {
+      node.data.iteratorSize = size;
+      setNodes([
+        ...nodes.filter((n) => n.id !== id),
+        node,
+      ]);
+    };
+
+    return [{ width, height }, setIteratorSize, defaultSize];
+  }, [nodes]);
+
   const duplicateNode = (id) => {
     const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
@@ -564,6 +582,7 @@ export const GlobalProvider = ({
     unOutlineInvalidNodes,
     zoom,
     onMoveEnd,
+    useIteratorSize,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],

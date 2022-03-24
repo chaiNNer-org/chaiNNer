@@ -69,6 +69,7 @@ const NodeSelector = ({ data, height }) => {
       h="100%"
       borderWidth="1px"
       borderRadius="lg"
+      bg={useColorModeValue('gray.100', 'gray.800')}
     >
       <Tabs
         w="100%"

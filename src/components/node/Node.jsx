@@ -88,7 +88,7 @@ const Node = ({ data, selected }) => {
           bg={useColorModeValue('gray.300', 'gray.700')}
           borderWidth="0.5px"
           borderColor={borderColor}
-          borderRadius="xl"
+          borderRadius="lg"
           py={2}
           boxShadow="lg"
           transition="0.15s ease-in-out"
