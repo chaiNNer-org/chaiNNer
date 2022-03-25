@@ -96,16 +96,6 @@ class NcnnUpscaleImageNode(NodeBase):
         self.sub = "NCNN"
 
     def upscale(self, img: np.ndarray, net: tuple, input_name: str, output_name: str):
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not an int")
-
-        img = (img.astype("float32") / dtype_max * 255).astype(
-            np.uint8
-        )  # don't ask lol
-
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(0)
@@ -140,15 +130,14 @@ class NcnnUpscaleImageNode(NodeBase):
         # TODO: This can prob just be a shared function tbh
         # Transparency hack (white/black background difference alpha)
         if in_nc == 3 and c == 4:
+            # NCNN expects RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
             # Ignore single-color alpha
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
                 output = self.upscale(img[:, :, :3], net, input_name, output_name)
-                output = np.dstack(
-                    (output, np.full(output.shape[:-1], (unique[0] * 255)))
-                )
-                output = np.clip(output.astype(np.float32) / 255, 0, 1)
+                output = np.dstack((output, np.full(output.shape[:-1], (unique[0]))))
             else:
                 img1 = np.copy(img[:, :, :3])
                 img2 = np.copy(img[:, :, :3])
@@ -158,8 +147,6 @@ class NcnnUpscaleImageNode(NodeBase):
 
                 output1 = self.upscale(img1, net, input_name, output_name)
                 output2 = self.upscale(img2, net, input_name, output_name)
-                output1 = np.clip(output1.astype(np.float32) / 255, 0, 1)
-                output2 = np.clip(output2.astype(np.float32) / 255, 0, 1)
                 alpha = 1 - np.mean(output2 - output1, axis=2)
                 output = np.dstack((output1, alpha))
         else:
@@ -176,12 +163,17 @@ class NcnnUpscaleImageNode(NodeBase):
             elif img.shape[2] == 3 and in_nc == 4:
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             output = self.upscale(img, net, input_name, output_name)
 
             if gray:
                 output = np.average(output, axis=2)
 
-            output = output.astype(np.float32) / 255
+        if output.ndim > 2:
+            if output.shape[2] == 4:
+                output = cv2.cvtColor(output, cv2.COLOR_BGRA2RGBA)
+            elif output.shape[2] == 3:
+                output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
 
         output = np.clip(output, 0, 1)
 

@@ -12,7 +12,7 @@ def auto_split_process(
     lr_img: Tensor,
     model: torch.nn.Module,
     scale: int = 4,
-    overlap: int = 32,
+    overlap: int = 16,
     max_depth: int = None,
     current_depth: int = 1,
 ) -> Tuple[Tensor, int]:
