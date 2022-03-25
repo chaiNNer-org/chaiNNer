@@ -23,7 +23,7 @@ const ReactFlowBox = ({
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
-    useSnapToGrid, setNodes, setEdges, onMoveEnd,
+    useSnapToGrid, setNodes, setEdges, onMoveEnd, zoom,
   } = useContext(GlobalContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -83,7 +83,6 @@ const ReactFlowBox = ({
     try {
       const type = event.dataTransfer.getData('application/reactflow/type');
       const nodeType = event.dataTransfer.getData('application/reactflow/nodeType');
-      console.log('🚀 ~ file: ReactFlowBox.jsx ~ line 85 ~ onDrop ~ type', type);
       // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
       // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
       const category = event.dataTransfer.getData('application/reactflow/category');
@@ -94,8 +93,8 @@ const ReactFlowBox = ({
       // log.info(type, inputs, outputs, category);
 
       const position = reactFlowInstance.project({
-        x: event.clientX - reactFlowBounds.left - offsetX,
-        y: event.clientY - reactFlowBounds.top - offsetY,
+        x: event.clientX - reactFlowBounds.left - (offsetX * zoom),
+        y: event.clientY - reactFlowBounds.top - (offsetY * zoom),
       });
 
       const nodeData = {
@@ -112,7 +111,7 @@ const ReactFlowBox = ({
       log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');
     }
-  }, [createNode, wrapperRef.current]);
+  }, [createNode, wrapperRef.current, zoom]);
 
   const onNodeContextMenu = useCallback((event, node) => {
     console.log(event, node);

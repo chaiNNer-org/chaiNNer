@@ -17,7 +17,6 @@ import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
-  console.log('🚀 ~ file: NodeSelectorPanel.jsx ~ line 20 ~ onDragStart ~ node', node);
   event.dataTransfer.setData('application/reactflow/type', node.name);
   event.dataTransfer.setData('application/reactflow/nodeType', node.nodeType);
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);

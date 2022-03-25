@@ -293,8 +293,8 @@ export const GlobalProvider = ({
       id,
       position,
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
-      parentNode: '2fa23908-c9f5-45cc-a74d-bf9eb349bae5',
-      extent: 'parent',
+      // parentNode: '2fa23908-c9f5-45cc-a74d-bf9eb349bae5',
+      // extent: 'parent',
     };
     setNodes([
       ...nodes,
@@ -492,7 +492,6 @@ export const GlobalProvider = ({
     const defaultSize = { width: 480, height: 480 };
     const node = nodes.find((n) => n.id === id);
 
-    const { width, height } = node?.data?.iteratorSize ?? defaultSize;
     const setIteratorSize = (size) => {
       node.data.iteratorSize = size;
       setNodes([
@@ -501,7 +500,7 @@ export const GlobalProvider = ({
       ]);
     };
 
-    return [{ width, height }, setIteratorSize, defaultSize];
+    return [setIteratorSize, defaultSize];
   }, [nodes]);
 
   const duplicateNode = (id) => {

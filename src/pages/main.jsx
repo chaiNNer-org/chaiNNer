@@ -8,7 +8,9 @@ import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { app, ipcRenderer } from 'electron';
 import log from 'electron-log';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  memo, useEffect, useRef, useState,
+} from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
@@ -38,6 +40,8 @@ const Main = ({ port }) => {
   const {
     loading, error, data, response,
   } = useFetch(`http://localhost:${port}/nodes`, options, [port]);
+
+  const bgColor = useColorModeValue('gray.200', '#151a24');
 
   useEffect(() => {
     if (response.ok && data && !loading && !error && !backendReady) {
@@ -69,12 +73,14 @@ const Main = ({ port }) => {
     })();
   }, [nodeTypes]);
 
+  const loadingLogo = (<ChaiNNerLogo size={256} percent={0} />);
+
   if (!nodeTypes) {
     return (
       <Box w="100vw" h="100vh">
         <Center w="full" h="full">
           <VStack>
-            <ChaiNNerLogo size={256} percent={0} />
+            {loadingLogo}
             <Text>Loading...</Text>
           </VStack>
         </Center>
@@ -126,7 +132,7 @@ const Main = ({ port }) => {
         availableNodes={availableNodes}
         reactFlowWrapper={reactFlowWrapper}
       >
-        <VStack p={2} overflow="hidden" bg={useColorModeValue('gray.200', '#151a24')}>
+        <VStack p={2} overflow="hidden" bg={bgColor}>
           <Header port={port} />
           <HStack
             as={Split}
@@ -156,4 +162,4 @@ const Main = ({ port }) => {
   );
 };
 
-export default Main;
+export default memo(Main);
