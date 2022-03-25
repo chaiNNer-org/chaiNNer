@@ -4,7 +4,6 @@ from typing import Tuple
 import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
-from torch import Tensor
 
 
 def fix_dtype_range(img):
@@ -14,7 +13,11 @@ def fix_dtype_range(img):
     except:
         logger.debug("img dtype is not an int")
 
-    img = (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255).astype(np.uint8)
+    img = (
+        (np.clip(img.astype("float32") / dtype_max, 0, 1) * 255)
+        .round()
+        .astype(np.uint8)
+    )
     return img
 
 
@@ -22,14 +25,14 @@ def fix_dtype_range(img):
 def ncnn_auto_split_process(
     lr_img: np.ndarray,
     net,
-    overlap: int = 32,
+    overlap: int = 16,
     max_depth: int = None,
     current_depth: int = 1,
     input_name: str = "data",
     output_name: str = "output",
     blob_vkallocator=None,
     staging_vkallocator=None,
-) -> Tuple[Tensor, int]:
+) -> Tuple[np.ndarray, int]:
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
     # Prevent splitting from causing an infinite out-of-vram loop
@@ -45,18 +48,19 @@ def ncnn_auto_split_process(
         ex.set_staging_vkallocator(staging_vkallocator)
         # ex.set_light_mode(True)
         try:
+            lr_img_fix = fix_dtype_range(lr_img.copy())
             mat_in = ncnn.Mat.from_pixels(
-                lr_img.copy(),
-                ncnn.Mat.PixelType.PIXEL_BGR,
-                lr_img.shape[1],
-                lr_img.shape[0],
+                lr_img_fix,
+                ncnn.Mat.PixelType.PIXEL_RGB,
+                lr_img_fix.shape[1],
+                lr_img_fix.shape[0],
             )
             mean_vals = []
             norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
             mat_in.substract_mean_normalize(mean_vals, norm_vals)
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
-            result = fix_dtype_range(np.array(mat_out).transpose(1, 2, 0))
+            result = np.array(mat_out).transpose(1, 2, 0).astype(np.float32)
             del ex, mat_in, mat_out
             # # Clear VRAM
             # blob_vkallocator.clear()
