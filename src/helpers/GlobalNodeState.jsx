@@ -388,7 +388,9 @@ export const GlobalProvider = ({
     };
     const isLoop = checkTargetChildren(targetNode);
 
-    return sourceOutput.type === targetInput.type && !isLoop;
+    const iteratorLock = !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
+
+    return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
   };
 
   const useInputData = (id, index) => {
