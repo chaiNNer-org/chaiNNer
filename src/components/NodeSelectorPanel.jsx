@@ -37,8 +37,10 @@ const NodeSelector = ({ data, height }) => {
   const [namespaces, setNamespaces] = useState([]);
 
   const {
-    createNode, reactFlowInstance, reactFlowWrapper,
+    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
   } = useContext(GlobalContext);
+
+  const [, setHoveredNode] = useHoveredNode;
 
   useEffect(() => {
     const set = {};
@@ -175,8 +177,12 @@ const NodeSelector = ({ data, height }) => {
                                         onDragStart={
                                             (event) => {
                                               onDragStart(event, category, node);
+                                              setHoveredNode(null);
                                             }
                                           }
+                                        onDragEnd={() => {
+                                          setHoveredNode(null);
+                                        }}
                                         draggable
                                         display="block"
                                         w="100%"

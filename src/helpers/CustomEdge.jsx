@@ -87,8 +87,8 @@ const CustomEdge = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onMouseOver={() => setIsHovered(true)}
-      onMouseOut={() => setIsHovered(false)}
+      // onMouseOver={() => setIsHovered(true)}
+      // onMouseOut={() => setIsHovered(false)}
     />
   );
 
@@ -112,8 +112,8 @@ const CustomEdge = ({
           // markerEnd={markerEnd}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onMouseOver={() => setIsHovered(true)}
-          onMouseOut={() => setIsHovered(false)}
+          // onMouseOver={() => setIsHovered(true)}
+          // onMouseOut={() => setIsHovered(false)}
         />
         {/* <GhostPath d={edgePath} /> */}
       </g>
@@ -133,8 +133,8 @@ const CustomEdge = ({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onMouseOver={() => setIsHovered(true)}
-        onMouseOut={() => setIsHovered(false)}
+        // onMouseOver={() => setIsHovered(true)}
+        // onMouseOut={() => setIsHovered(false)}
       >
         <Center
           w="full"

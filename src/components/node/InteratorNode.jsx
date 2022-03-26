@@ -4,7 +4,7 @@ import {
   Center, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useMemo, useState,
+  memo, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -41,7 +41,7 @@ const IteratorNode = ({ data, selected }) => {
   } = useContext(GlobalContext);
 
   const {
-    id, inputData, isLocked, category, type, iteratorSize,
+    id, inputData, isLocked, category, type, iteratorSize, maxWidth, maxHeight,
   } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
@@ -63,6 +63,8 @@ const IteratorNode = ({ data, selected }) => {
   );
 
   const [validity, setValidity] = useState([false, '']);
+
+  const iteratorBoxRef = useRef();
 
   useEffect(() => {
     if (inputs && inputs.length) {
@@ -104,10 +106,14 @@ const IteratorNode = ({ data, selected }) => {
               ITERATION
             </Text>
           </Center>
-          <IteratorNodeBody
-            id={id}
-            iteratorSize={iteratorSize}
-          />
+          <Center ref={iteratorBoxRef}>
+            <IteratorNodeBody
+              id={id}
+              iteratorSize={iteratorSize}
+              maxWidth={maxWidth}
+              maxHeight={maxHeight}
+            />
+          </Center>
           {outputs.length > 0 && (
           <Center>
             <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>

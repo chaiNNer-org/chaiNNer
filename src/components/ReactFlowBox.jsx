@@ -19,7 +19,6 @@ export const NodeDataContext = createContext({});
 const ReactFlowBox = ({
   wrapperRef, nodeTypes, edgeTypes,
 }) => {
-  // console.log('flow box rerender');
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
@@ -30,13 +29,12 @@ const ReactFlowBox = ({
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    console.log('setting internal node state');
-    _setNodes(nodes);
+    const sorted = nodes.sort((a, b) => (a.type === 'iterator' ? -1 : 1));
+    _setNodes(sorted);
     _setEdges(edges);
   }, [nodes, edges]);
 
   const onNodeDragStop = useCallback(() => {
-    console.log('setting global node state');
     setNodes(_nodes);
     setEdges(_edges);
   }, [_nodes, _edges]);
@@ -159,6 +157,9 @@ const ReactFlowBox = ({
         deleteKeyCode={['Backspace', 'Delete']}
         onMoveEnd={onMoveEnd}
         defaultEdgeOptions={{ zIndex: 1001 }}
+        // connectionLineStyle={{
+        //   zIndex: 99999999,
+        // }}
       >
         <Background
           variant="dots"

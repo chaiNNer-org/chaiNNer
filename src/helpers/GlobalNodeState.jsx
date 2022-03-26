@@ -22,7 +22,6 @@ export const GlobalProvider = ({
 }) => {
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 25 ~ nodes', nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const {
     setViewport, getViewport,
@@ -54,6 +53,8 @@ export const GlobalProvider = ({
   const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
+
+  const [hoveredNode, setHoveredNode] = useState(null);
 
   const dumpStateToJSON = async () => {
     const output = JSON.stringify({
@@ -248,23 +249,16 @@ export const GlobalProvider = ({
   };
 
   const removeNodeById = (id) => {
-    // const nodeToRemove = nodes.find((node) => node.id === id);
-    const newNodes = nodes.filter((n) => n.id !== id);
-    // setEdges(newElements.filter((element) => isEdge(element)));
+    const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
     setNodes(newNodes);
   };
 
   const removeEdgeById = (id) => {
-    // const edgeToRemove = edges.find((node) => node.id === id);
-    console.log({ edges });
     const newEdges = edges.filter((e) => e.id !== id);
-    console.log({ newEdges });
     setEdges(newEdges);
   };
 
   const getInputDefaults = ({ category, type }) => {
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 266 ~ getInputDefaults ~ { category, type }', { category, type });
-    console.log(availableNodes[category][type]);
     const defaultData = {};
     const { inputs } = availableNodes[category][type];
     if (inputs) {
@@ -284,9 +278,6 @@ export const GlobalProvider = ({
   const createNode = ({
     type, position, data, nodeType,
   }) => {
-    console.log({
-      type, position, data,
-    });
     const id = createUniqueId();
     const newNode = {
       type: nodeType,
@@ -296,6 +287,17 @@ export const GlobalProvider = ({
       // parentNode: '2fa23908-c9f5-45cc-a74d-bf9eb349bae5',
       // extent: 'parent',
     };
+    if (hoveredNode) {
+      const parentNode = nodes.find((n) => n.id === hoveredNode);
+      const {
+        width, height, offsetTop, offsetLeft,
+      } = parentNode.data.iteratorSize;
+      newNode.position.x = position.x - parentNode.position.x;
+      newNode.position.y = position.y - parentNode.position.y;
+      newNode.parentNode = hoveredNode;
+      newNode.data.parentNode = hoveredNode;
+      newNode.extent = [[offsetLeft, offsetTop], [width, height]];
+    }
     setNodes([
       ...nodes,
       newNode,
@@ -390,7 +392,6 @@ export const GlobalProvider = ({
   const useInputData = (id, index) => {
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 392 ~ useInputData ~ nodeData', nodeData);
 
     if (!nodeData) {
       return [];
@@ -503,6 +504,38 @@ export const GlobalProvider = ({
     return [setIteratorSize, defaultSize];
   }, [nodes]);
 
+  const updateIteratorBounds = useCallback((id, iteratorSize, dimensions) => {
+    const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
+    const iteratorNode = nodes.find((n) => n.id === id);
+    if (nodesToUpdate.length > 0) {
+      const {
+        width, height, offsetTop, offsetLeft,
+      } = iteratorSize;
+      let maxWidth = 256;
+      let maxHeight = 256;
+      const newNodes = nodesToUpdate.map((n) => {
+        const newNode = { ...n };
+        const wBound = width - (n.width || dimensions?.width || 0) + offsetLeft;
+        const hBound = height - (n.height || dimensions?.height || 0) + offsetTop;
+        newNode.extent = [[offsetLeft, offsetTop], [wBound, hBound]];
+        newNode.position.x = Math.min(newNode.position.x, wBound);
+        newNode.position.y = Math.min(newNode.position.y, hBound);
+        maxWidth = Math.max(n.width || dimensions?.width || 0, maxWidth);
+        maxHeight = Math.max(n.height || dimensions?.height || 0, maxHeight);
+        return newNode;
+      });
+      const newIteratorNode = { ...iteratorNode };
+
+      newIteratorNode.data.maxWidth = maxWidth;
+      newIteratorNode.data.maxHeight = maxHeight;
+      setNodes([
+        newIteratorNode,
+        ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
+        ...newNodes,
+      ]);
+    }
+  }, [nodes]);
+
   const duplicateNode = (id) => {
     const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
@@ -582,14 +615,16 @@ export const GlobalProvider = ({
     zoom,
     onMoveEnd,
     useIteratorSize,
+    updateIteratorBounds,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
     useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
+    useHoveredNode: [hoveredNode, setHoveredNode],
   }), [
     nodes, edges, reactFlowInstance,
     isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
-    zoom,
+    zoom, hoveredNode,
   ]);
 
   return (

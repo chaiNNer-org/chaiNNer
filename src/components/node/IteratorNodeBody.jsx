@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import React, {
-  memo, useContext,
+  memo, useContext, useEffect, useState,
 } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
@@ -41,20 +41,40 @@ const DotPattern = ({ id }) => {
   );
 };
 
-const IteratorNodeBody = ({ id, iteratorSize }) => {
+const IteratorNodeBody = ({
+  id, iteratorSize, maxWidth = 256, maxHeight = 256,
+}) => {
   const {
-    zoom, useIteratorSize,
+    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds,
   } = useContext(GlobalContext);
 
+  const [, setHoveredNode] = useHoveredNode;
   const [setIteratorSize, defaultSize] = useIteratorSize(id);
   const { width, height } = iteratorSize ?? defaultSize;
+
+  const [resizeRef, setResizeRef] = useState(null);
+
+  useEffect(() => {
+    if (resizeRef) {
+      const { resizable } = resizeRef;
+      //   resizeRef.updateSize({ width, height });
+      const size = {
+        offsetTop: resizable.offsetTop,
+        offsetLeft: resizable.offsetLeft,
+        width: width || defaultSize.width,
+        height: height || defaultSize.height,
+      };
+      setIteratorSize(size);
+      updateIteratorBounds(id, size);
+    }
+  }, [resizeRef]);
 
   return (
     <Resizable
       className="nodrag"
-      defaultSize={defaultSize}
-      minWidth="280px"
-      minHeight="280px"
+      defaultSize={{ width: 128, height: 128 }}
+      minWidth={maxWidth}
+      minHeight={maxHeight}
       draggable={false}
       enable={{
         top: false,
@@ -73,11 +93,16 @@ const IteratorNodeBody = ({ id, iteratorSize }) => {
       }}
       size={{ width, height }}
       onResizeStop={(e, direction, ref, d) => {
-        setIteratorSize({
+        const size = {
+          offsetTop: ref.offsetTop,
+          offsetLeft: ref.offsetLeft,
           width: width + d.width,
           height: height + d.height,
-        });
+        };
+        setIteratorSize(size);
+        updateIteratorBounds(id, size);
       }}
+      ref={(r) => { setResizeRef(r); }}
     >
       <Box
         className="nodrag"
@@ -90,6 +115,12 @@ const IteratorNodeBody = ({ id, iteratorSize }) => {
                 // boxShadow="inset 0 0 15px var(--chakra-colors-gray-700)"
                 // borderWidth={4}
         borderColor="gray.700"
+        onDragEnter={() => {
+          setHoveredNode(id);
+        }}
+        onDragLeave={() => {
+          setHoveredNode(null);
+        }}
       >
         <Box
           bg={useColorModeValue('gray.200', 'gray.800')}

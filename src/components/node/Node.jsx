@@ -5,7 +5,7 @@ import {
   Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useMemo, useState,
+  memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -34,13 +34,15 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const Node = ({ data, selected }) => {
+const Node = ({
+  data, selected,
+}) => {
   const {
-    edges, availableNodes,
+    nodes, edges, availableNodes, updateIteratorBounds,
   } = useContext(GlobalContext);
 
   const {
-    id, inputData, isLocked, category, type,
+    id, inputData, isLocked, category, type, parentNode,
   } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
@@ -70,6 +72,31 @@ const Node = ({ data, selected }) => {
       }));
     }
   }, [inputData, edges.length]);
+
+  const targetRef = useRef();
+  const [checkedSize, setCheckedSize] = useState(false);
+
+  useLayoutEffect(() => {
+    if (targetRef.current) {
+      const parent = nodes.find((n) => n.id === parentNode);
+      if (parent) {
+        updateIteratorBounds(parentNode, parent.data.iteratorSize, {
+          width: targetRef.current.offsetWidth,
+          height: targetRef.current.offsetHeight,
+        });
+        setCheckedSize(true);
+      }
+    }
+  }, [nodes && !checkedSize]);
+
+  // useEffect(() => {
+  //   const parent = nodes.find((n) => n.id === parentNode);
+  //   console.log('🚀 ~ file: Node.jsx ~ line 76 ~ useEffect ~ parentNode', parentNode);
+  //   console.log('🚀 ~ file: Node.jsx ~ line 76 ~ useEffect ~ parent', parent);
+  //   if (parent && width && height) {
+  //     updateIteratorBounds(parentNode, parent.data.iteratorSize);
+  //   }
+  // }, [width !== undefined && height !== undefined]);
 
   // eslint-disable-next-line no-unused-vars
   const [showMenu, setShowMenu] = useState(false);
@@ -106,6 +133,7 @@ const Node = ({ data, selected }) => {
           onClick={() => {
             // setShowMenu(false);
           }}
+          ref={targetRef}
         >
           <VStack minWidth="240px">
             <NodeHeader
