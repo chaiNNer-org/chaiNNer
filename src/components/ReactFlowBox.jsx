@@ -29,7 +29,26 @@ const ReactFlowBox = ({
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    const sorted = nodes.sort((a, b) => (a.type === 'iterator' ? -1 : 1));
+    const iterators = nodes.filter((n) => n.type === 'iterator').sort((i) => (i.selected ? 1 : -1));
+    const sorted = [];
+
+    // Sort the nodes in a way that makes iterators stack on each other correctly
+    // Put iterators below their children
+    iterators.forEach((i) => {
+      sorted.push(i);
+      const children = nodes.filter((n) => n.parentNode === i.id);
+      // sorted.concat(children);
+      children.forEach((c) => {
+        sorted.push(c);
+      });
+    });
+
+    // Put nodes not in iterators on top of the iterators
+    const freeNodes = nodes.filter((n) => n.type !== 'iterator' && !n.parentNode);
+    freeNodes.forEach((f) => {
+      sorted.push(f);
+    });
+
     _setNodes(sorted);
     _setEdges(edges);
   }, [nodes, edges]);
