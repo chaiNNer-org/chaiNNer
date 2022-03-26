@@ -106,7 +106,7 @@ const IteratorNode = ({ data, selected }) => {
               ITERATION
             </Text>
           </Center>
-          <Center ref={iteratorBoxRef}>
+          <Center ref={iteratorBoxRef} m={0} p={0}>
             <IteratorNodeBody
               id={id}
               iteratorSize={iteratorSize}

@@ -95,6 +95,7 @@ const CustomEdge = ({
   return (
     <>
       <g>
+        <GhostPath d={edgePath} />
         <path
           id={id}
           style={{
@@ -115,7 +116,6 @@ const CustomEdge = ({
           // onMouseOver={() => setIsHovered(true)}
           // onMouseOut={() => setIsHovered(false)}
         />
-        {/* <GhostPath d={edgePath} /> */}
       </g>
       <foreignObject
         width={buttonSize}

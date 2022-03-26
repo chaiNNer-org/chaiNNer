@@ -289,14 +289,16 @@ export const GlobalProvider = ({
     };
     if (hoveredNode) {
       const parentNode = nodes.find((n) => n.id === hoveredNode);
-      const {
-        width, height, offsetTop, offsetLeft,
-      } = parentNode.data.iteratorSize;
-      newNode.position.x = position.x - parentNode.position.x;
-      newNode.position.y = position.y - parentNode.position.y;
-      newNode.parentNode = hoveredNode;
-      newNode.data.parentNode = hoveredNode;
-      newNode.extent = [[offsetLeft, offsetTop], [width, height]];
+      if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
+        const {
+          width, height, offsetTop, offsetLeft,
+        } = parentNode.data.iteratorSize;
+        newNode.position.x = position.x - parentNode.position.x;
+        newNode.position.y = position.y - parentNode.position.y;
+        newNode.parentNode = hoveredNode;
+        newNode.data.parentNode = hoveredNode;
+        newNode.extent = [[offsetLeft, offsetTop], [width, height]];
+      }
     }
     setNodes([
       ...nodes,
@@ -489,7 +491,6 @@ export const GlobalProvider = ({
   }, [nodes, edges]);
 
   const useIteratorSize = useCallback((id) => {
-    console.log('perf check iterator size');
     const defaultSize = { width: 480, height: 480 };
     const node = nodes.find((n) => n.id === id);
 
@@ -504,6 +505,7 @@ export const GlobalProvider = ({
     return [setIteratorSize, defaultSize];
   }, [nodes]);
 
+  // TODO: this can probably be cleaned up but its good enough for now
   const updateIteratorBounds = useCallback((id, iteratorSize, dimensions) => {
     const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
     const iteratorNode = nodes.find((n) => n.id === id);
@@ -513,21 +515,25 @@ export const GlobalProvider = ({
       } = iteratorSize;
       let maxWidth = 256;
       let maxHeight = 256;
+      nodesToUpdate.forEach((n) => {
+        maxWidth = Math.max(n.width || dimensions?.width || maxWidth, maxWidth);
+        maxHeight = Math.max(n.height || dimensions?.height || maxHeight, maxHeight);
+      });
       const newNodes = nodesToUpdate.map((n) => {
         const newNode = { ...n };
-        const wBound = width - (n.width || dimensions?.width || 0) + offsetLeft;
-        const hBound = height - (n.height || dimensions?.height || 0) + offsetTop;
+        const wBound = width - (n.width || dimensions?.width) + offsetLeft;
+        const hBound = height - (n.height || dimensions?.height) + offsetTop;
         newNode.extent = [[offsetLeft, offsetTop], [wBound, hBound]];
-        newNode.position.x = Math.min(newNode.position.x, wBound);
-        newNode.position.y = Math.min(newNode.position.y, hBound);
-        maxWidth = Math.max(n.width || dimensions?.width || 0, maxWidth);
-        maxHeight = Math.max(n.height || dimensions?.height || 0, maxHeight);
+        newNode.position.x = Math.min(Math.max(newNode.position.x, offsetLeft), wBound);
+        newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
         return newNode;
       });
       const newIteratorNode = { ...iteratorNode };
 
       newIteratorNode.data.maxWidth = maxWidth;
       newIteratorNode.data.maxHeight = maxHeight;
+      newIteratorNode.data.iteratorSize.width = width < maxWidth ? maxWidth : width;
+      newIteratorNode.data.iteratorSize.height = height < maxHeight ? maxHeight : height;
       setNodes([
         newIteratorNode,
         ...nodes.filter((n) => n.parentNode !== id && n.id !== id),

@@ -89,15 +89,6 @@ const Node = ({
     }
   }, [nodes && !checkedSize]);
 
-  // useEffect(() => {
-  //   const parent = nodes.find((n) => n.id === parentNode);
-  //   console.log('🚀 ~ file: Node.jsx ~ line 76 ~ useEffect ~ parentNode', parentNode);
-  //   console.log('🚀 ~ file: Node.jsx ~ line 76 ~ useEffect ~ parent', parent);
-  //   if (parent && width && height) {
-  //     updateIteratorBounds(parentNode, parent.data.iteratorSize);
-  //   }
-  // }, [width !== undefined && height !== undefined]);
-
   // eslint-disable-next-line no-unused-vars
   const [showMenu, setShowMenu] = useState(false);
   // const [menuPosition, setMenuPosition] = useState({});

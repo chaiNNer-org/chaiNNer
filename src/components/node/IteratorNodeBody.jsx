@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import React, {
-  memo, useContext, useEffect, useState,
+  memo, useContext, useLayoutEffect, useState,
 } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
@@ -54,10 +54,9 @@ const IteratorNodeBody = ({
 
   const [resizeRef, setResizeRef] = useState(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (resizeRef) {
       const { resizable } = resizeRef;
-      //   resizeRef.updateSize({ width, height });
       const size = {
         offsetTop: resizable.offsetTop,
         offsetLeft: resizable.offsetLeft,
@@ -72,7 +71,7 @@ const IteratorNodeBody = ({
   return (
     <Resizable
       className="nodrag"
-      defaultSize={{ width: 128, height: 128 }}
+      defaultSize={defaultSize}
       minWidth={maxWidth}
       minHeight={maxHeight}
       draggable={false}
@@ -90,14 +89,18 @@ const IteratorNodeBody = ({
       style={{
         margin: 8,
         marginBottom: 0,
+        marginTop: 0,
       }}
-      size={{ width, height }}
+      size={{
+        width: width < maxWidth ? maxWidth : width,
+        height: height < maxHeight ? maxHeight : height,
+      }}
       onResizeStop={(e, direction, ref, d) => {
         const size = {
           offsetTop: ref.offsetTop,
           offsetLeft: ref.offsetLeft,
-          width: width + d.width,
-          height: height + d.height,
+          width: (width < maxWidth ? maxWidth : width) + d.width,
+          height: (height < maxHeight ? maxHeight : height) + d.height,
         };
         setIteratorSize(size);
         updateIteratorBounds(id, size);
