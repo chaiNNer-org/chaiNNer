@@ -107,6 +107,7 @@ const ReactFlowBox = ({
       const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
       const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
       const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
+      const defaultNodes = nodeType === 'iterator' ? JSON.parse(event.dataTransfer.getData('application/reactflow/defaultNodes')) : null;
       // log.info(type, inputs, outputs, category);
 
       const position = reactFlowInstance.project({
@@ -122,7 +123,7 @@ const ReactFlowBox = ({
       };
 
       createNode({
-        type, position, data: nodeData, nodeType,
+        type, position, data: nodeData, nodeType, defaultNodes,
       });
     } catch (error) {
       log.error(error);

@@ -11,8 +11,8 @@ import getAccentColor from '../../helpers/getNodeAccentColors.js';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import shadeColor from '../../helpers/shadeColor.js';
 import IteratorNodeBody from './IteratorNodeBody.jsx';
+import IteratorNodeHeader from './IteratorNodeHeader.jsx';
 import NodeFooter from './NodeFooter.jsx';
-import NodeHeader from './NodeHeader.jsx';
 import NodeInputs from './NodeInputs.jsx';
 import NodeOutputs from './NodeOutputs.jsx';
 
@@ -86,7 +86,7 @@ const IteratorNode = ({ data, selected }) => {
         transition="0.15s ease-in-out"
       >
         <VStack minWidth="240px">
-          <NodeHeader
+          <IteratorNodeHeader
             category={category}
             type={type}
             accentColor={accentColor}

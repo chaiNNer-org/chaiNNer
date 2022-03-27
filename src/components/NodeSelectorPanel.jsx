@@ -22,6 +22,8 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
+  event.dataTransfer.setData('application/reactflow/defaultNodes', node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null);
+
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign
@@ -158,6 +160,7 @@ const NodeSelector = ({ data, height }) => {
                                     .toUpperCase()
                                     .includes(namespace.toUpperCase()),
                                 )
+                                .filter((e) => e.nodeType !== 'iteratorHelper')
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
                                     .localeCompare(b.name.toUpperCase()),

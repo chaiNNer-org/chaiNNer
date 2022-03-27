@@ -15,7 +15,7 @@ from sanic_cors import CORS
 try:
     import cv2
 
-    from nodes import image_nodes
+    from nodes import image_iterator_nodes, image_nodes
 except Exception as e:
     logger.warning(e)
     logger.info("OpenCV most likely not installed")
@@ -83,7 +83,8 @@ async def nodes(_):
             node_dict["icon"] = node_object.get_icon()
             node_dict["subcategory"] = node_object.get_sub_category()
             node_dict["nodeType"] = node_object.get_type()
-
+            if node_object.get_type() == "iterator":
+                node_dict["defaultNodes"] = node_object.get_default_nodes()
             category_dict["nodes"].append(node_dict)
             del node_object, node_dict
         nodes.append(category_dict)

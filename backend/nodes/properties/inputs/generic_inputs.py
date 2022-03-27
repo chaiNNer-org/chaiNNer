@@ -162,3 +162,13 @@ def StackOrientationDropdown() -> Dict:
         ],
         optional=True,
     )
+
+
+def IteratorInput() -> Dict:
+    """Input for showing that an iterator automatically handles the input"""
+    return {
+        "type": "iterator::auto",
+        "label": "Auto (Iterator)",
+        "hasHandle": False,
+        "optional": True,
+    }

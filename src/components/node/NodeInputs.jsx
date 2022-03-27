@@ -67,7 +67,7 @@ const pickInput = (type, props) => {
           id={props.id}
           index={props.index}
           label={null}
-          hasHandle
+          hasHandle={props.hasHandle === undefined ? true : props.hasHandle}
         >
           <GenericInput label={props.label} />
         </InputContainer>

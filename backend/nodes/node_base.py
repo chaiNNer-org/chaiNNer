@@ -36,3 +36,20 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_type(self):
         return self.type
+
+
+class IteratorNodeBase(NodeBase):
+    """Base class for an iterator node"""
+
+    def __init__(self):
+        """Constructor"""
+        self.inputs = []
+        self.outputs = []
+        self.description = ""
+        self.icon = "MdLoop"
+        self.sub = "Iteration"
+        self.type = "iterator"
+        self.default_nodes = []
+
+    def get_default_nodes(self):
+        return self.default_nodes

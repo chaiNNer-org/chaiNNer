@@ -20,6 +20,7 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({
   children, nodeTypes, availableNodes, reactFlowWrapper,
 }) => {
+  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 23 ~ availableNodes', availableNodes);
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -57,6 +58,7 @@ export const GlobalProvider = ({
   const [hoveredNode, setHoveredNode] = useState(null);
 
   const dumpStateToJSON = async () => {
+    console.log({ nodes, edges, viewport: getViewport() });
     const output = JSON.stringify({
       version: await ipcRenderer.invoke('get-app-version'),
       content: {
@@ -116,7 +118,7 @@ export const GlobalProvider = ({
       const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
       setSavePath(savedAsPath);
     }
-  }, [savePath]);
+  }, [nodes, edges, savePath]);
 
   useHotkeys('ctrl+s', performSave, {}, [savePath]);
   // useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodes, edges]);
@@ -189,7 +191,7 @@ export const GlobalProvider = ({
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [savePath]);
+  }, [nodes, edges, savePath]);
 
   // Push state to undo history
   // useEffect(() => {
@@ -201,7 +203,7 @@ export const GlobalProvider = ({
 
     // Set up each node in the result
     nodes.forEach((element) => {
-      const { id, data } = element;
+      const { id, data, type: nodeType } = element;
       const { category, type } = data;
       // Node
       result[id] = {
@@ -211,6 +213,9 @@ export const GlobalProvider = ({
         inputs: {},
         outputs: {},
       };
+      if (nodeType === 'iterator') {
+        result[id].children = [];
+      }
     });
 
     // Apply input data to inputs when applicable
@@ -220,6 +225,9 @@ export const GlobalProvider = ({
         Object.keys(inputData).forEach((index) => {
           result[node.id].inputs[index] = inputData[index];
         });
+      }
+      if (node.parentNode) {
+        result[node.parentNode].children.push(node.id);
       }
     });
 
@@ -243,7 +251,7 @@ export const GlobalProvider = ({
       result[id].outputs = Object.values(result[id].outputs);
     });
 
-    // console.log(JSON.stringify(result));
+    // console.log('convert', result);
 
     return result;
   };
@@ -276,7 +284,7 @@ export const GlobalProvider = ({
   };
 
   const createNode = ({
-    type, position, data, nodeType,
+    position, data, nodeType, defaultNodes, parent = null,
   }) => {
     const id = createUniqueId();
     const newNode = {
@@ -284,27 +292,51 @@ export const GlobalProvider = ({
       id,
       position,
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
-      // parentNode: '2fa23908-c9f5-45cc-a74d-bf9eb349bae5',
-      // extent: 'parent',
     };
-    if (hoveredNode) {
-      const parentNode = nodes.find((n) => n.id === hoveredNode);
+    if (hoveredNode || parent) {
+      const parentNode = parent || nodes.find((n) => n.id === hoveredNode);
       if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
         const {
           width, height, offsetTop, offsetLeft,
-        } = parentNode.data.iteratorSize;
+        } = parentNode.data.iteratorSize ? parentNode.data.iteratorSize : {
+          width: 480, height: 480, offsetTop: 0, offsetLeft: 0,
+        };
         newNode.position.x = position.x - parentNode.position.x;
         newNode.position.y = position.y - parentNode.position.y;
-        newNode.parentNode = hoveredNode;
-        newNode.data.parentNode = hoveredNode;
+        newNode.parentNode = parent?.id || hoveredNode;
+        newNode.data.parentNode = parent?.id || hoveredNode;
         newNode.extent = [[offsetLeft, offsetTop], [width, height]];
       }
     }
-    setNodes([
-      ...nodes,
-      newNode,
-    ]);
-    return id;
+    const extraNodes = [];
+    if (nodeType === 'iterator') {
+      newNode.data.iteratorSize = {
+        width: 480, height: 480, offsetTop: 0, offsetLeft: 0,
+      };
+      defaultNodes.forEach(({ category, name }) => {
+        const subNodeData = availableNodes[category][name];
+        const subNode = createNode({
+          nodeType: 'regularNode',
+          position: newNode.position,
+          data: {
+            category,
+            type: name,
+            subcategory: subNodeData.subcategory,
+            icon: subNodeData.icon,
+          },
+          parent: newNode,
+        });
+        extraNodes.push(subNode);
+      });
+    }
+    if (!parent) {
+      setNodes([
+        ...nodes,
+        newNode,
+        ...extraNodes,
+      ]);
+    }
+    return newNode;
   };
 
   const createConnection = ({
@@ -523,8 +555,8 @@ export const GlobalProvider = ({
       });
       const newNodes = nodesToUpdate.map((n) => {
         const newNode = { ...n };
-        const wBound = width - (n.width || dimensions?.width) + offsetLeft;
-        const hBound = height - (n.height || dimensions?.height) + offsetTop;
+        const wBound = width - (n.width || dimensions?.width || 0) + offsetLeft;
+        const hBound = height - (n.height || dimensions?.height || 0) + offsetTop;
         newNode.extent = [[offsetLeft, offsetTop], [wBound, hBound]];
         newNode.position.x = Math.min(Math.max(newNode.position.x, offsetLeft), wBound);
         newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
