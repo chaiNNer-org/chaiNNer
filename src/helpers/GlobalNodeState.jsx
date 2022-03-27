@@ -211,6 +211,7 @@ export const GlobalProvider = ({
         inputs: {},
         outputs: {},
         child: false,
+        nodeType,
       };
       if (nodeType === 'iterator') {
         result[id].children = [];

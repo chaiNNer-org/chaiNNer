@@ -2,9 +2,11 @@ import math
 import os
 import sys
 from msilib.schema import Directory
+from posixpath import splitext
 
 import cv2
 import numpy as np
+from process import Executor
 from sanic.log import logger
 
 from .node_base import IteratorNodeBase, NodeBase
@@ -29,8 +31,8 @@ class ImageFileIteratorPathNode(NodeBase):
 
         self.type = "iteratorHelper"
 
-    def run(self) -> any:
-        return ""
+    def run(self, directory: str = "") -> any:
+        return directory
 
 
 @NodeFactory.register("Image", "Image File Iterator")
@@ -53,5 +55,47 @@ class ImageFileIteratorNode(IteratorNodeBase):
             },
         ]
 
-    def run(self) -> any:
+    async def run(
+        self,
+        directory: str,
+        nodes: dict = {},
+        external_cache: dict = {},
+        loop=None,
+        queue=None,
+    ) -> any:
+        logger.info(f"Iterating over images in directory: {directory}")
+        logger.info(nodes)
+
+        img_path_node_id = None
+        for k, v in nodes.items():
+            if v["category"] == "Image" and v["node"] == "Image Path":
+                img_path_node_id = v["id"]
+            # Set this to false to actually allow processing to happen
+            nodes[k]["child"] = False
+
+        supported_filetypes = [
+            ".png",
+            ".jpg",
+            ".jpeg",
+        ]  # TODO: Make a method to get these dynamically based on the installed deps
+
+        def walk_error_handler(exception_instance):
+            logger.warn(
+                f"Exception occurred during walk: {exception_instance} Continuing..."
+            )
+
+        for root, dirs, files in os.walk(
+            directory, topdown=False, onerror=walk_error_handler
+        ):
+            for name in files:
+                filepath = os.path.join(root, name)
+                base, ext = os.path.splitext(filepath)
+                if ext.lower() in supported_filetypes:
+                    try:
+                        # Replace the input filepath with the filepath from the loop
+                        nodes[img_path_node_id]["inputs"] = [filepath]
+                        executor = Executor(nodes, loop, queue, {})
+                        await executor.run()
+                    except Exception as e:
+                        logger.warn(f"Something went wrong iterating: {e}")
         return ""

@@ -59,15 +59,42 @@ class Executor:
             return None
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(node["category"], node["node"])
-        # Run the node and pass in inputs as args
-        run_func = functools.partial(node_instance.run, *inputs)
-        output = await self.loop.run_in_executor(None, run_func)
-        # Cache the output of the node
-        self.output_cache[node_id] = output
-        finish_data = await self.check()
-        await self.queue.put({"event": "node-finish", "data": finish_data})
-        del node_instance, run_func, finish_data
-        return output
+        if node["nodeType"] == "iterator":
+            logger.info("this is where an iterator would run")
+            sub_nodes = {}
+            for child in node["children"]:
+                sub_nodes[child] = self.nodes[child]
+            # Run the node and pass in inputs as args
+            # run_func = functools.partial(
+            #     node_instance.run,
+            #     *inputs,
+            #     nodes=sub_nodes,
+            #     loop=self.loop,
+            #     queue=self.queue,
+            # )
+            # output = await self.loop.run_in_executor(None, run_func)
+            output = await node_instance.run(
+                *inputs,
+                nodes=sub_nodes,
+                loop=self.loop,
+                queue=self.queue,
+            )
+            # Cache the output of the node
+            self.output_cache[node_id] = output
+            finish_data = await self.check()
+            await self.queue.put({"event": "node-finish", "data": finish_data})
+            del node_instance, finish_data
+            return output
+        else:
+            # Run the node and pass in inputs as args
+            run_func = functools.partial(node_instance.run, *inputs)
+            output = await self.loop.run_in_executor(None, run_func)
+            # Cache the output of the node
+            self.output_cache[node_id] = output
+            finish_data = await self.check()
+            await self.queue.put({"event": "node-finish", "data": finish_data})
+            del node_instance, run_func, finish_data
+            return output
 
     async def process_nodes(self):
         # Create a list of all output nodes
