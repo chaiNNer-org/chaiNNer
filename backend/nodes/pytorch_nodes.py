@@ -397,13 +397,17 @@ class ConvertTorchToONNXNode(NodeBase):
         self.sub = "Utility"
 
     def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
-        model.eval().cuda()
+        model = model.eval()
+        if os.environ["device"] == "cuda":
+            model = model.cuda()
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
             "data": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64).cuda()
+        if os.environ["device"] == "cuda":
+            dummy_input = dummy_input.cuda()
 
         torch.onnx.export(
             model,
