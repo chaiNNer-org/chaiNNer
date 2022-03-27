@@ -15,7 +15,8 @@ import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
 import Header from '../components/Header.jsx';
-import IteratorNode from '../components/node/InteratorNode.jsx';
+import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
+import IteratorNode from '../components/node/IteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
@@ -48,6 +49,7 @@ const Main = ({ port }) => {
       setNodeTypes({
         regularNode: Node,
         iterator: IteratorNode,
+        iteratorHelper: IteratorHelperNode,
       });
       const availableNodeMap = {};
       data.forEach(({ category, nodes }) => {

@@ -24,7 +24,7 @@ class ImageFileIteratorPathNode(NodeBase):
         self.inputs = [IteratorInput()]
         self.outputs = [ImageFileOutput()]
 
-        self.icon = "MdLoop"
+        self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
         self.type = "iteratorHelper"

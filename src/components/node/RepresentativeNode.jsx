@@ -14,9 +14,6 @@ const RepresentativeNode = (
     category, subcategory, type, icon,
   },
 ) => {
-  console.log({
-    category, subcategory, type, icon,
-  });
   const borderColor = useColorModeValue('gray.400', 'gray.600');
   const accentColor = useMemo(
     () => (getAccentColor(category, subcategory)), [category, subcategory],

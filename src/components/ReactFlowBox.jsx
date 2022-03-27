@@ -58,17 +58,21 @@ const ReactFlowBox = ({
     setEdges(_edges);
   }, [_nodes, _edges]);
 
-  const onNodesDelete = useCallback((nodesToDelete) => {
+  const onNodesDelete = useCallback((_nodesToDelete) => {
+    // Prevent iterator helpers from being deleted
+    const iteratorsToDelete = _nodesToDelete.filter((n) => n.type === 'iterator').map((n) => n.id);
+    const nodesToDelete = _nodesToDelete.filter((n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode)));
+
     const nodeIds = nodesToDelete.map((n) => n.id);
-    const newNodes = _nodes.filter((n) => nodeIds.includes(n.id));
+    const newNodes = _nodes.filter((n) => !nodeIds.includes(n.id));
     setNodes(newNodes);
-  }, [setNodes]);
+  }, [setNodes, _nodes]);
 
   const onEdgesDelete = useCallback((edgesToDelete) => {
     const edgeIds = edgesToDelete.map((e) => e.id);
-    const newEdges = _edges.filter((e) => edgeIds.includes(e.id));
+    const newEdges = _edges.filter((e) => !edgeIds.includes(e.id));
     setEdges(newEdges);
-  }, [setEdges]);
+  }, [setEdges, _edges]);
 
   const memoNodeTypes = useMemo(() => (nodeTypes), []);
   const memoEdgeTypes = useMemo(() => (edgeTypes), []);

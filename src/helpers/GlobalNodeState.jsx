@@ -20,7 +20,6 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({
   children, nodeTypes, availableNodes, reactFlowWrapper,
 }) => {
-  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 23 ~ availableNodes', availableNodes);
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -58,7 +57,6 @@ export const GlobalProvider = ({
   const [hoveredNode, setHoveredNode] = useState(null);
 
   const dumpStateToJSON = async () => {
-    console.log({ nodes, edges, viewport: getViewport() });
     const output = JSON.stringify({
       version: await ipcRenderer.invoke('get-app-version'),
       content: {
@@ -257,8 +255,10 @@ export const GlobalProvider = ({
   };
 
   const removeNodeById = (id) => {
-    const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
-    setNodes(newNodes);
+    if (nodes.find((n) => n.id === id).nodeType !== 'iteratorHelper') {
+      const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
+      setNodes(newNodes);
+    }
   };
 
   const removeEdgeById = (id) => {
@@ -316,7 +316,7 @@ export const GlobalProvider = ({
       defaultNodes.forEach(({ category, name }) => {
         const subNodeData = availableNodes[category][name];
         const subNode = createNode({
-          nodeType: 'regularNode',
+          nodeType: subNodeData.nodeType,
           position: newNode.position,
           data: {
             category,
@@ -369,23 +369,6 @@ export const GlobalProvider = ({
       setViewport({ x, y, zoom });
     }
   }, []);
-
-  // Updates the saved reactFlowInstance object
-  // useEffect(() => {
-  //   console.log('perf check setRfi');
-  //   if (reactFlowInstance) {
-  //     const flow = reactFlowInstance.toObject();
-  //     setRfi(flow);
-  //   }
-  // }, [nodes, edges]);
-
-  // Update rfi when drag and drop on drag end
-  // const updateRfi = () => {
-  //   if (reactFlowInstance) {
-  //     const flow = reactFlowInstance.toObject();
-  //     setRfi(flow);
-  //   }
-  // };
 
   const isValidConnection = ({
     target, targetHandle, source, sourceHandle,
