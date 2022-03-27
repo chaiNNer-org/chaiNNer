@@ -210,6 +210,7 @@ export const GlobalProvider = ({
         id,
         inputs: {},
         outputs: {},
+        child: false,
       };
       if (nodeType === 'iterator') {
         result[id].children = [];
@@ -226,6 +227,7 @@ export const GlobalProvider = ({
       }
       if (node.parentNode) {
         result[node.parentNode].children.push(node.id);
+        result[node.id].child = true;
       }
     });
 

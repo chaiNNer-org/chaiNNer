@@ -15,8 +15,10 @@ import ImagePreview from './previews/ImagePreview.jsx';
 const FileInput = memo(({
   filetypes, id, index, label, type, isLocked,
 }) => {
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
+
+  const [, , isInputLocked] = useNodeLock(id, index);
 
   const onButtonClick = async () => {
     const fileDir = filePath ? path.dirname(filePath) : undefined;
@@ -57,7 +59,7 @@ const FileInput = memo(({
           draggable={false}
           cursor="pointer"
           className="nodrag"
-          disabled={isLocked}
+          disabled={isLocked || isInputLocked}
         />
       </InputGroup>
       {filePath && (
