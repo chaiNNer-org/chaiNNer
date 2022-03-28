@@ -42,15 +42,17 @@ const DotPattern = ({ id }) => {
 };
 
 const IteratorNodeBody = ({
-  id, iteratorSize, maxWidth = 256, maxHeight = 256,
+  id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256,
 }) => {
   const {
     zoom, useIteratorSize, useHoveredNode, updateIteratorBounds,
   } = useContext(GlobalContext);
 
-  const [, setHoveredNode] = useHoveredNode;
+  const [hoveredNode, setHoveredNode] = useHoveredNode;
   const [setIteratorSize, defaultSize] = useIteratorSize(id);
   const { width, height } = iteratorSize ?? defaultSize;
+
+  const [dragging, setDragging] = useState(false);
 
   const [resizeRef, setResizeRef] = useState(null);
 
@@ -110,19 +112,16 @@ const IteratorNodeBody = ({
       <Box
         className="nodrag"
         draggable={false}
-                // bg={useColorModeValue('gray.200', 'gray.800')}
-                // p={2}
         h="full"
         w="full"
         my={0}
-                // boxShadow="inset 0 0 15px var(--chakra-colors-gray-700)"
-                // borderWidth={4}
-        borderColor="gray.700"
         onDragEnter={() => {
           setHoveredNode(id);
+          setDragging(true);
         }}
         onDragLeave={() => {
           setHoveredNode(null);
+          setDragging(false);
         }}
       >
         <Box
@@ -130,8 +129,9 @@ const IteratorNodeBody = ({
           h="full"
           w="full"
           borderWidth={1}
-          borderColor="gray.600"
+          borderColor={hoveredNode === id ? accentColor : useColorModeValue('gray.400', 'gray.600')}
           borderRadius="lg"
+          transition="0.15s ease-in-out"
         >
           <DotPattern id={id} />
         </Box>

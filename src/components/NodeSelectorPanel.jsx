@@ -204,7 +204,12 @@ const NodeSelector = ({ data, height }) => {
                                             type: node.name,
                                           };
 
-                                          createNode({ type: 'regularNode', position, data: nodeData });
+                                          createNode({
+                                            nodeType: node.nodeType,
+                                            position,
+                                            data: nodeData,
+                                            defaultNodes: node.defaultNodes,
+                                          });
                                         }}
                                       >
                                         <RepresentativeNode

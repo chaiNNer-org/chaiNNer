@@ -126,6 +126,7 @@ const IteratorNode = ({ data, selected }) => {
               iteratorSize={iteratorSize}
               maxWidth={maxWidth}
               maxHeight={maxHeight}
+              accentColor={accentColor}
             />
           </Center>
           {outputs.length > 0 && (

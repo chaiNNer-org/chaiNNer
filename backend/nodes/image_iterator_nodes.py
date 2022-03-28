@@ -9,13 +9,16 @@ import numpy as np
 from process import Executor
 from sanic.log import logger
 
+from .image_nodes import ImReadNode
 from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 
+IMAGE_ITERATOR_DEFAULT_NODE_NAME = "Load Image (Iterator)"
 
-@NodeFactory.register("Image", "Image Path")
+
+@NodeFactory.register("Image", IMAGE_ITERATOR_DEFAULT_NODE_NAME)
 class ImageFileIteratorPathNode(NodeBase):
     """Image File Iterator node"""
 
@@ -24,7 +27,7 @@ class ImageFileIteratorPathNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput()]
-        self.outputs = [ImageFileOutput()]
+        self.outputs = ImReadNode().get_outputs()
 
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -32,7 +35,8 @@ class ImageFileIteratorPathNode(NodeBase):
         self.type = "iteratorHelper"
 
     def run(self, directory: str = "") -> any:
-        return directory
+        imread = ImReadNode()
+        return imread.run(directory)
 
 
 @NodeFactory.register("Image", "Image File Iterator")
@@ -51,7 +55,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
             # TODO: Figure out a better way to do this
             {
                 "category": "Image",
-                "name": "Image Path",
+                "name": IMAGE_ITERATOR_DEFAULT_NODE_NAME,
             },
         ]
 
@@ -71,7 +75,10 @@ class ImageFileIteratorNode(IteratorNodeBase):
         img_path_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if v["category"] == "Image" and v["node"] == "Image Path":
+            if (
+                v["category"] == "Image"
+                and v["node"] == IMAGE_ITERATOR_DEFAULT_NODE_NAME
+            ):
                 img_path_node_id = v["id"]
             if nodes[k]["child"]:
                 child_nodes.append(v["id"])

@@ -289,14 +289,16 @@ export const GlobalProvider = ({
   const createNode = ({
     position, data, nodeType, defaultNodes, parent = null,
   }) => {
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 292 ~ position', position);
     const id = createUniqueId();
     const newNode = {
       type: nodeType,
       id,
-      position,
+      // This looks stupid, but the child position was overwriting the parent's because shallow copy
+      position: { ...position },
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
     };
-    if (hoveredNode || parent) {
+    if (parent || (hoveredNode && nodeType !== 'iterator')) {
       const parentNode = parent || nodes.find((n) => n.id === hoveredNode);
       if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
         const {
@@ -332,6 +334,7 @@ export const GlobalProvider = ({
         extraNodes.push(subNode);
       });
     }
+    console.log({ newNode });
     if (!parent) {
       setNodes([
         ...nodes,

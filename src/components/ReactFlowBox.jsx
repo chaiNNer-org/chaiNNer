@@ -29,7 +29,7 @@ const ReactFlowBox = ({
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    const iterators = nodes.filter((n) => n.type === 'iterator').sort((i) => (i.selected ? 1 : -1));
+    const iterators = nodes.filter((n) => n.type === 'iterator'); // .sort((i) => (i.selected ? 1 : -1));
     const sorted = [];
 
     // Sort the nodes in a way that makes iterators stack on each other correctly
@@ -64,9 +64,12 @@ const ReactFlowBox = ({
     const nodesToDelete = _nodesToDelete.filter((n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode)));
 
     const nodeIds = nodesToDelete.map((n) => n.id);
-    const newNodes = _nodes.filter((n) => !nodeIds.includes(n.id));
+    // eslint-disable-next-line no-underscore-dangle
+    // const _newNodes = _nodes.filter((n) => !nodeIds.includes(n.id));
+    const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
+    // _setNodes(_newNodes);
     setNodes(newNodes);
-  }, [setNodes, _nodes]);
+  }, [_setNodes, _nodes, setNodes, nodes]);
 
   const onEdgesDelete = useCallback((edgesToDelete) => {
     const edgeIds = edgesToDelete.map((e) => e.id);
