@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  Center, Text, useColorModeValue, VStack,
+  Box, Center, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useMemo, useRef, useState,
@@ -41,7 +41,7 @@ const IteratorNode = ({ data, selected }) => {
   } = useContext(GlobalContext);
 
   const {
-    id, inputData, isLocked, category, type, iteratorSize, maxWidth, maxHeight,
+    id, inputData, isLocked, category, type, iteratorSize, maxWidth, maxHeight, percentComplete,
   } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
@@ -106,6 +106,20 @@ const IteratorNode = ({ data, selected }) => {
               ITERATION
             </Text>
           </Center>
+          {percentComplete !== undefined && (
+          <Box
+            bgColor="gray.500"
+            w="full"
+            h={1}
+          >
+            <Box
+              w={`${percentComplete * 100}%`}
+              bgColor={accentColor}
+              h="full"
+              transition="all 0.15s ease-in-out"
+            />
+          </Box>
+          )}
           <Center ref={iteratorBoxRef} m={0} p={0}>
             <IteratorNodeBody
               id={id}

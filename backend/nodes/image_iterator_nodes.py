@@ -62,14 +62,18 @@ class ImageFileIteratorNode(IteratorNodeBase):
         external_cache: dict = {},
         loop=None,
         queue=None,
+        id="",
     ) -> any:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
 
         img_path_node_id = None
+        child_nodes = []
         for k, v in nodes.items():
             if v["category"] == "Image" and v["node"] == "Image Path":
                 img_path_node_id = v["id"]
+            if nodes[k]["child"]:
+                child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
@@ -87,15 +91,37 @@ class ImageFileIteratorNode(IteratorNodeBase):
         for root, dirs, files in os.walk(
             directory, topdown=False, onerror=walk_error_handler
         ):
-            for name in files:
+            file_len = len(files)
+            for idx, name in enumerate(files):
+                await queue.put(
+                    {
+                        "event": "iterator-progress-update",
+                        "data": {
+                            "percent": idx / file_len,
+                            "iteratorId": id,
+                            "running": child_nodes,
+                        },
+                    }
+                )
                 filepath = os.path.join(root, name)
                 base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
                     try:
                         # Replace the input filepath with the filepath from the loop
                         nodes[img_path_node_id]["inputs"] = [filepath]
-                        executor = Executor(nodes, loop, queue, {})
+                        logger.info(external_cache)
+                        executor = Executor(nodes, loop, queue, external_cache.copy())
                         await executor.run()
                     except Exception as e:
                         logger.warn(f"Something went wrong iterating: {e}")
+                await queue.put(
+                    {
+                        "event": "iterator-progress-update",
+                        "data": {
+                            "percent": (idx + 1) / file_len,
+                            "iteratorId": id,
+                            "running": None,
+                        },
+                    }
+                )
         return ""

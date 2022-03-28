@@ -36,6 +36,7 @@ const Header = ({ port }) => {
     useIsCpu,
     useIsFp16,
     availableNodes,
+    setIteratorPercent,
   } = useContext(GlobalContext);
 
   const [isCpu] = useIsCpu;
@@ -92,6 +93,18 @@ const Header = ({ port }) => {
       log.error(err);
     }
   }, [eventSource, completeEdges]);
+
+  useEventSourceListener(eventSource, ['iterator-progress-update'], ({ data }) => {
+    try {
+      const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
+      if (runningNodes) {
+        unAnimateEdges(runningNodes);
+      }
+      setIteratorPercent(iteratorId, percent);
+    } catch (err) {
+      log.error(err);
+    }
+  }, [eventSource, unAnimateEdges]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {

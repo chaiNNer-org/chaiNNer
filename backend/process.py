@@ -27,10 +27,12 @@ class Executor:
 
     async def process(self, node: Dict):
         """Process a single node"""
+        logger.debug(f"node: {node}")
         node_id = node["id"]
         logger.info(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
+            logger.debug(f"cached: {self.output_cache[node_id]}")
             return self.output_cache[node_id]
 
         inputs = []
@@ -64,20 +66,29 @@ class Executor:
             sub_nodes = {}
             for child in node["children"]:
                 sub_nodes[child] = self.nodes[child]
-            # Run the node and pass in inputs as args
-            # run_func = functools.partial(
-            #     node_instance.run,
-            #     *inputs,
-            #     nodes=sub_nodes,
-            #     loop=self.loop,
-            #     queue=self.queue,
-            # )
-            # output = await self.loop.run_in_executor(None, run_func)
+            sub_nodes_ids = sub_nodes.keys()
+            for k, v in sub_nodes.copy().items():
+                # TODO: this might be something to do in the frontend before processing instead
+                for node_input in v["inputs"]:
+                    logger.info(f"node_input, {node_input}")
+                    if isinstance(node_input, dict) and node_input.get("id", None):
+                        next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                        logger.info(f"next_node_id, {next_node_id}")
+                        # Run all the connected nodes that are outside the iterator and cache the outputs
+                        if not next_node_id in sub_nodes_ids:
+                            logger.info(f"not in sub_node_ids, caching {next_node_id}")
+                            output = await self.process(self.nodes[next_node_id])
+                            logger.info(f"output, {output}")
+                            self.output_cache[next_node_id] = output
+                            # Add this to the sub node dict as well so it knows it exists
+                            sub_nodes[next_node_id] = self.nodes[next_node_id]
             output = await node_instance.run(
                 *inputs,
                 nodes=sub_nodes,
                 loop=self.loop,
                 queue=self.queue,
+                external_cache=self.output_cache,
+                id=node["id"],
             )
             # Cache the output of the node
             self.output_cache[node_id] = output

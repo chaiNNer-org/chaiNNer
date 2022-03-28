@@ -450,11 +450,24 @@ export const GlobalProvider = ({
       })));
     };
 
-    const unAnimateEdges = () => {
-      setEdges(edges.map((edge) => ({
-        ...edge,
-        animated: false,
-      })));
+    const unAnimateEdges = (nodeIdsToUnAnimate) => {
+      if (nodeIdsToUnAnimate) {
+        const edgesToUnAnimate = edges.filter((e) => nodeIdsToUnAnimate.includes(e.source));
+        const unanimatedEdges = edgesToUnAnimate.map((edge) => ({
+          ...edge,
+          animated: false,
+        }));
+        const otherEdges = edges.filter((e) => !nodeIdsToUnAnimate.includes(e.source));
+        setEdges([
+          ...otherEdges,
+          ...unanimatedEdges,
+        ]);
+      } else {
+        setEdges(edges.map((edge) => ({
+          ...edge,
+          animated: false,
+        })));
+      }
     };
 
     const completeEdges = (finished) => {
@@ -562,6 +575,18 @@ export const GlobalProvider = ({
     }
   }, [nodes]);
 
+  const setIteratorPercent = useCallback((id, percent) => {
+    const iterator = nodes.find((n) => n.id === id);
+    if (iterator && iterator.data) {
+      iterator.data.percentComplete = percent;
+    }
+    const filteredNodes = nodes.filter((n) => n.id !== id);
+    setNodes([
+      iterator,
+      ...filteredNodes,
+    ]);
+  }, [nodes]);
+
   const duplicateNode = (id) => {
     const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
@@ -642,6 +667,7 @@ export const GlobalProvider = ({
     onMoveEnd,
     useIteratorSize,
     updateIteratorBounds,
+    setIteratorPercent,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
