@@ -63,6 +63,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         loop=None,
         queue=None,
         id="",
+        parent_executor=None,
     ) -> any:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
@@ -91,6 +92,8 @@ class ImageFileIteratorNode(IteratorNodeBase):
         for root, dirs, files in os.walk(
             directory, topdown=False, onerror=walk_error_handler
         ):
+            if parent_executor.is_killed():
+                return
             file_len = len(files)
             for idx, name in enumerate(files):
                 await queue.put(
@@ -110,7 +113,13 @@ class ImageFileIteratorNode(IteratorNodeBase):
                         # Replace the input filepath with the filepath from the loop
                         nodes[img_path_node_id]["inputs"] = [filepath]
                         logger.info(external_cache)
-                        executor = Executor(nodes, loop, queue, external_cache.copy())
+                        executor = Executor(
+                            nodes,
+                            loop,
+                            queue,
+                            external_cache.copy(),
+                            parent_executor=parent_executor,
+                        )
                         await executor.run()
                     except Exception as e:
                         logger.warn(f"Something went wrong iterating: {e}")

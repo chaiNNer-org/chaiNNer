@@ -11,7 +11,12 @@ from nodes.node_factory import NodeFactory
 
 class Executor:
     def __init__(
-        self, nodes: List[Dict], loop, queue: asyncio.Queue, existing_cache: Dict
+        self,
+        nodes: List[Dict],
+        loop,
+        queue: asyncio.Queue,
+        existing_cache: Dict,
+        parent_executor=None,
     ):
         """Constructor"""
         self.execution_id = uuid.uuid4().hex
@@ -25,6 +30,8 @@ class Executor:
         self.loop = loop
         self.queue = queue
 
+        self.parent_executor = parent_executor
+
     async def process(self, node: Dict):
         """Process a single node"""
         logger.debug(f"node: {node}")
@@ -37,7 +44,7 @@ class Executor:
 
         inputs = []
         for node_input in node["inputs"]:
-            if self.killed or self.paused:
+            if self.should_stop_running():
                 return None
             # If input is a dict indicating another node, use that node's output value
             if isinstance(node_input, dict) and node_input.get("id", None):
@@ -52,12 +59,12 @@ class Executor:
                     index = next_index  # next_input["outputs"].index({"id": node_id})
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
-                if self.killed or self.paused:
+                if self.should_stop_running():
                     return None
             # Otherwise, just use the given input (number, string, etc)
             else:
                 inputs.append(node_input)
-        if self.killed or self.paused:
+        if self.should_stop_running():
             return None
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(node["category"], node["node"])
@@ -89,6 +96,7 @@ class Executor:
                 queue=self.queue,
                 external_cache=self.output_cache,
                 id=node["id"],
+                parent_executor=self,
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
@@ -145,3 +153,13 @@ class Executor:
         """Kill the executor"""
         logger.info(f"Killing executor {self.execution_id}")
         self.killed = True
+
+    def is_killed(self):
+        return self.killed
+
+    def should_stop_running(self):
+        return (
+            self.killed
+            or self.paused
+            or (self.parent_executor is not None and self.parent_executor.is_killed())
+        )
