@@ -196,7 +196,7 @@ export const GlobalProvider = ({
   //   push(dumpStateToJSON());
   // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
 
-  const convertToUsableFormat = () => {
+  const convertToUsableFormat = useCallback(() => {
     const result = {};
 
     // Set up each node in the result
@@ -255,21 +255,21 @@ export const GlobalProvider = ({
     // console.log('convert', result);
 
     return result;
-  };
+  }, [nodes, edges]);
 
-  const removeNodeById = (id) => {
+  const removeNodeById = useCallback((id) => {
     if (nodes.find((n) => n.id === id).nodeType !== 'iteratorHelper') {
       const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
       setNodes(newNodes);
     }
-  };
+  }, [nodes, setNodes]);
 
-  const removeEdgeById = (id) => {
+  const removeEdgeById = useCallback((id) => {
     const newEdges = edges.filter((e) => e.id !== id);
     setEdges(newEdges);
-  };
+  }, [edges, setEdges]);
 
-  const getInputDefaults = ({ category, type }) => {
+  const getInputDefaults = useCallback(({ category, type }) => {
     const defaultData = {};
     const { inputs } = availableNodes[category][type];
     if (inputs) {
@@ -284,12 +284,11 @@ export const GlobalProvider = ({
       });
     }
     return defaultData;
-  };
+  }, [availableNodes]);
 
-  const createNode = ({
-    position, data, nodeType, defaultNodes, parent = null,
+  const createNode = useCallback(({
+    position, data, nodeType, defaultNodes = [], parent = null,
   }) => {
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 292 ~ position', position);
     const id = createUniqueId();
     const newNode = {
       type: nodeType,
@@ -299,7 +298,16 @@ export const GlobalProvider = ({
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
     };
     if (parent || (hoveredNode && nodeType !== 'iterator')) {
-      const parentNode = parent || nodes.find((n) => n.id === hoveredNode);
+      let parentNode;
+      if (typeof parent === 'string' || parent instanceof String) {
+        parentNode = nodes.find((n) => n.id === parent);
+        // eslint-disable-next-line no-param-reassign
+        parent = null; // This is so it actually set the nodes
+      } else if (parent) {
+        parentNode = parent;
+      } else {
+        parentNode = nodes.find((n) => n.id === hoveredNode);
+      }
       if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
         const {
           width, height, offsetTop, offsetLeft,
@@ -308,8 +316,8 @@ export const GlobalProvider = ({
         };
         newNode.position.x = position.x - parentNode.position.x;
         newNode.position.y = position.y - parentNode.position.y;
-        newNode.parentNode = parent?.id || hoveredNode;
-        newNode.data.parentNode = parent?.id || hoveredNode;
+        newNode.parentNode = parentNode?.id || hoveredNode;
+        newNode.data.parentNode = parentNode?.id || hoveredNode;
         newNode.extent = [[offsetLeft, offsetTop], [width, height]];
       }
     }
@@ -334,7 +342,7 @@ export const GlobalProvider = ({
         extraNodes.push(subNode);
       });
     }
-    console.log({ newNode });
+    console.log({ newNode, extraNodes });
     if (!parent) {
       setNodes([
         ...nodes,
@@ -343,7 +351,7 @@ export const GlobalProvider = ({
       ]);
     }
     return newNode;
-  };
+  }, [nodes, setNodes, availableNodes, hoveredNode]);
 
   const createConnection = ({
     source, sourceHandle, target, targetHandle,
@@ -376,7 +384,7 @@ export const GlobalProvider = ({
     }
   }, []);
 
-  const isValidConnection = ({
+  const isValidConnection = useCallback(({
     target, targetHandle, source, sourceHandle,
   }) => {
     if (source === target) {
@@ -412,9 +420,9 @@ export const GlobalProvider = ({
     const iteratorLock = !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
     return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
-  };
+  }, [nodes, edges, availableNodes]);
 
-  const useInputData = (id, index) => {
+  const useInputData = useCallback((id, index) => {
     const nodeById = nodes.find((node) => node.id === id) ?? {};
     const nodeData = nodeById?.data;
 
@@ -443,9 +451,9 @@ export const GlobalProvider = ({
       ]);
     };
     return [inputDataByIndex, setInputData];
-  };
+  }, [nodes]);
 
-  const useAnimateEdges = () => {
+  const useAnimateEdges = useCallback(() => {
     const animateEdges = () => {
       setEdges(edges.map((edge) => ({
         ...edge,
@@ -499,7 +507,7 @@ export const GlobalProvider = ({
     };
 
     return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges];
-  };
+  }, [edges]);
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id, index = null) => {
@@ -590,14 +598,23 @@ export const GlobalProvider = ({
     ]);
   }, [nodes]);
 
-  const duplicateNode = (id) => {
+  const duplicateNode = useCallback((id) => {
     const node = nodes.find((n) => n.id === id);
     const x = node.position.x + 200;
     const y = node.position.y + 200;
+    let defaultNodes = [];
+    if (node.type === 'iterator') {
+      const childNodes = nodes.filter((n) => n.parentNode === id);
+      defaultNodes = childNodes.map((c) => ({ category: c.data.category, name: c.data.type }));
+    }
     createNode({
-      type: node.type, position: { x, y }, data: node.data,
+      nodeType: node.type,
+      position: { x, y },
+      data: node.data,
+      defaultNodes,
+      parent: node.parentNode,
     });
-  };
+  }, [nodes, availableNodes]);
 
   const clearNode = (id) => {
     const nodesCopy = [...nodes];

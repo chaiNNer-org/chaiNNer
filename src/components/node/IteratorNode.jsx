@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  Box, Center, Text, useColorModeValue, VStack,
+  Center, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useMemo, useRef, useState,
@@ -35,7 +35,11 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const IteratorNode = ({ data, selected }) => {
+const IteratorNodeWrapper = memo(
+  ({ data, selected }) => (<IteratorNode data={data} selected={selected} />),
+);
+
+const IteratorNode = memo(({ data, selected }) => {
   const {
     edges, availableNodes,
   } = useContext(GlobalContext);
@@ -92,6 +96,7 @@ const IteratorNode = ({ data, selected }) => {
             accentColor={accentColor}
             icon={icon}
             selected={selected}
+            percentComplete={percentComplete}
           />
           {inputs.length && (
           <Center>
@@ -106,20 +111,6 @@ const IteratorNode = ({ data, selected }) => {
               ITERATION
             </Text>
           </Center>
-          {percentComplete !== undefined && (
-          <Box
-            bgColor="gray.500"
-            w="full"
-            h={1}
-          >
-            <Box
-              w={`${percentComplete * 100}%`}
-              bgColor={accentColor}
-              h="full"
-              transition="all 0.15s ease-in-out"
-            />
-          </Box>
-          )}
           <Center ref={iteratorBoxRef} m={0} p={0}>
             <IteratorNodeBody
               id={id}
@@ -148,6 +139,6 @@ const IteratorNode = ({ data, selected }) => {
       </Center>
     </>
   );
-};
+});
 
-export default memo(IteratorNode);
+export default memo(IteratorNodeWrapper);

@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
-import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-  Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
+  Center, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
   memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -100,90 +99,44 @@ const IteratorHelperNode = ({
   // }, [selected]);
 
   return (
-    <>
-      <Menu isOpen={showMenu}>
-        <Center
-          bg={useColorModeValue('gray.300', 'gray.700')}
-          borderWidth="0.5px"
-          borderColor={borderColor}
-          borderRadius="lg"
-          py={2}
-          boxShadow="lg"
-          transition="0.15s ease-in-out"
-          onContextMenu={() => {
-            // WIP
-            // if (selected) {
-            //   if (showMenu) {
-            //     setShowMenu(false);
-            //   } else {
-            //     setMenuPosition({ x: event.clientX, y: event.clientY });
-            //     setShowMenu(true);
-            //   }
-            // }
-          }}
-          onClick={() => {
-            // setShowMenu(false);
-          }}
-          ref={targetRef}
-        >
-          <VStack minWidth="240px">
-            <NodeHeader
-              category={category}
-              type={type}
-              accentColor={accentColor}
-              icon={icon}
-              selected={selected}
-            />
-            <NodeBody
-              inputs={inputs}
-              outputs={outputs}
-              id={id}
-              accentColor={accentColor}
-              isLocked={isLocked}
-            />
-            <IteratorHelperNodeFooter
-              id={id}
-              accentColor={accentColor}
-              isValid={validity[0]}
-              invalidReason={validity[1]}
-              // toggleLock={toggleLock}
-            />
-          </VStack>
-        </Center>
-        <Portal>
-          <MenuList
-            position="fixed"
-            // top={menuPosition.y}
-            // left={menuPosition.x}
-          >
-            <MenuItem
-              icon={<CopyIcon />}
-              onClick={() => {
-              // duplicateNode(id);
-              }}
-            >
-              Duplicate
-            </MenuItem>
-            <MenuItem
-              icon={<CloseIcon />}
-              onClick={() => {
-              //  clearNode(id);
-              }}
-            >
-              Clear
-            </MenuItem>
-            <MenuItem
-              icon={<DeleteIcon />}
-              onClick={() => {
-              // removeNodeById(id);
-              }}
-            >
-              Delete
-            </MenuItem>
-          </MenuList>
-        </Portal>
-      </Menu>
-    </>
+    <Center
+      bg={useColorModeValue('gray.300', 'gray.700')}
+      borderWidth="0.5px"
+      borderColor={borderColor}
+      borderRadius="lg"
+      py={2}
+      boxShadow="lg"
+      transition="0.15s ease-in-out"
+      onContextMenu={() => {
+      }}
+      onClick={() => {
+      }}
+      ref={targetRef}
+    >
+      <VStack minWidth="240px">
+        <NodeHeader
+          category={category}
+          type={type}
+          accentColor={accentColor}
+          icon={icon}
+          selected={selected}
+          parentNode={parentNode}
+        />
+        <NodeBody
+          inputs={inputs}
+          outputs={outputs}
+          id={id}
+          accentColor={accentColor}
+          isLocked={isLocked}
+        />
+        <IteratorHelperNodeFooter
+          id={id}
+          accentColor={accentColor}
+          isValid={validity[0]}
+          invalidReason={validity[1]}
+        />
+      </VStack>
+    </Center>
   );
 };
 

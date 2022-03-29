@@ -34,9 +34,14 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const Node = ({
+const NodeWrapper = ({
+  data, selected,
+}) => (<Node data={data} selected={selected} />);
+
+const Node = memo(({
   data, selected,
 }) => {
+  console.log('node rerender');
   const {
     nodes, edges, availableNodes, updateIteratorBounds,
   } = useContext(GlobalContext);
@@ -133,6 +138,7 @@ const Node = ({
               accentColor={accentColor}
               icon={icon}
               selected={selected}
+              parentNode={parentNode}
             />
             <NodeBody
               inputs={inputs}
@@ -186,6 +192,6 @@ const Node = ({
       </Menu>
     </>
   );
-};
+});
 
-export default memo(Node);
+export default memo(NodeWrapper);

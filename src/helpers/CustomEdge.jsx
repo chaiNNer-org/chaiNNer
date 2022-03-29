@@ -14,7 +14,7 @@ import getNodeAccentColors from './getNodeAccentColors';
 import { GlobalContext } from './GlobalNodeState.jsx';
 import shadeColor from './shadeColor.js';
 
-const CustomEdge = ({
+const EdgeWrapper = memo(({
   id,
   sourceX,
   sourceY,
@@ -23,8 +23,30 @@ const CustomEdge = ({
   sourcePosition,
   targetPosition,
   style = {},
-  data,
-  // markerEnd,
+  selected,
+}) => (
+  <CustomEdge
+    id={id}
+    sourceX={sourceX}
+    sourceY={sourceY}
+    targetX={targetX}
+    targetY={targetY}
+    sourcePosition={sourcePosition}
+    targetPosition={targetPosition}
+    style={style}
+    selected={selected}
+  />
+));
+
+const CustomEdge = memo(({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style = {},
   selected,
 }) => {
   const edgePath = getBezierPath({
@@ -80,7 +102,7 @@ const CustomEdge = ({
     <path
       d={d}
       style={{
-        strokeWidth: 10,
+        strokeWidth: 14,
         fill: 'none',
         stroke: 'none',
         cursor: isHovered ? 'pointer' : 'default',
@@ -88,14 +110,14 @@ const CustomEdge = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       // onMouseOver={() => setIsHovered(true)}
-      // onMouseOut={() => setIsHovered(false)}
+      onMouseOut={() => setIsHovered(false)}
     />
   );
 
   return (
     <>
       <g>
-        <GhostPath d={edgePath} />
+        {/* <GhostPath d={edgePath} /> */}
         <path
           id={id}
           style={{
@@ -114,7 +136,7 @@ const CustomEdge = ({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           // onMouseOver={() => setIsHovered(true)}
-          // onMouseOut={() => setIsHovered(false)}
+          onMouseOut={() => setIsHovered(false)}
         />
       </g>
       <foreignObject
@@ -133,8 +155,6 @@ const CustomEdge = ({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        // onMouseOver={() => setIsHovered(true)}
-        // onMouseOut={() => setIsHovered(false)}
       >
         <Center
           w="full"
@@ -146,6 +166,8 @@ const CustomEdge = ({
           transitionDuration="0.15s"
           transitionProperty="background-color"
           transitionTimingFunction="ease-in-out"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           <IconButton
             className="edgebutton"
@@ -156,6 +178,8 @@ const CustomEdge = ({
             borderColor={useColorModeValue('gray.100', 'gray.800')}
             borderWidth={2}
             borderRadius={100}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             ×
           </IconButton>
@@ -163,6 +187,6 @@ const CustomEdge = ({
       </foreignObject>
     </>
   );
-};
+});
 
-export default memo(CustomEdge);
+export default memo(EdgeWrapper);

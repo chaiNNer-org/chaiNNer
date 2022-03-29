@@ -9,13 +9,14 @@ import React, {
 import { IconFactory } from '../CustomIcons.jsx';
 
 const NodeHeader = ({
-  category, type, width, icon, accentColor, selected,
+  category, type, width, icon, accentColor, selected, parentNode,
 }) => (
   <Center
     w={width || 'full'}
     h="auto"
     borderBottomColor={accentColor}
     borderBottomWidth="4px"
+    borderBottomStyle={parentNode ? 'double' : 'default'}
     verticalAlign="middle"
   >
     <HStack

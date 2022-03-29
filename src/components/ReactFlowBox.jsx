@@ -64,10 +64,7 @@ const ReactFlowBox = ({
     const nodesToDelete = _nodesToDelete.filter((n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode)));
 
     const nodeIds = nodesToDelete.map((n) => n.id);
-    // eslint-disable-next-line no-underscore-dangle
-    // const _newNodes = _nodes.filter((n) => !nodeIds.includes(n.id));
     const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
-    // _setNodes(_newNodes);
     setNodes(newNodes);
   }, [_setNodes, _nodes, setNodes, nodes]);
 
@@ -181,7 +178,7 @@ const ReactFlowBox = ({
           padding: 40,
         }}
         // onlyRenderVisibleElements
-        deleteKeyCode={['Backspace', 'Delete']}
+        deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         onMoveEnd={onMoveEnd}
         defaultEdgeOptions={{ zIndex: 1001 }}
         // connectionLineStyle={{
