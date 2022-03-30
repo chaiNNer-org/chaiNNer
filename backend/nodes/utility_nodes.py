@@ -66,7 +66,7 @@ class TextAppendNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Perform mathematical operations on numbers."
+        self.description = "Append different text together using a separator string."
         self.inputs = [
             TextInput("Separator", has_handle=False, max_length=3),
             TextInput("Text A"),

@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Box, Input, InputGroup, InputLeftElement, VStack,
+  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import path from 'path';
@@ -44,24 +44,35 @@ const FileInput = memo(({
 
   return (
     <VStack>
-      <InputGroup>
-        <InputLeftElement
-          pointerEvents="none"
-        >
-          <BsFileEarmarkPlus />
-        </InputLeftElement>
-        <Input
-          placeholder="Select a file..."
-          value={filePath ? path.parse(filePath).base : ''}
-          isReadOnly
-          onClick={onButtonClick}
-          isTruncated
-          draggable={false}
-          cursor="pointer"
-          className="nodrag"
-          disabled={isLocked || isInputLocked}
-        />
-      </InputGroup>
+      <Tooltip
+        label={filePath}
+        borderRadius={8}
+        py={1}
+        px={2}
+        maxW="auto"
+      >
+        <InputGroup>
+          <InputLeftElement
+            pointerEvents="none"
+          >
+            <BsFileEarmarkPlus />
+          </InputLeftElement>
+
+          <Input
+            placeholder="Select a file..."
+            value={filePath ? path.parse(filePath).base : ''}
+            isReadOnly
+            onClick={onButtonClick}
+            isTruncated
+            draggable={false}
+            cursor="pointer"
+            className="nodrag"
+            disabled={isLocked}
+            alt={filePath}
+          />
+
+        </InputGroup>
+      </Tooltip>
       {filePath && (
         <Box>
           { preview() }
