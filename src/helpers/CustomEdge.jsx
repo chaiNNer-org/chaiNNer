@@ -10,6 +10,7 @@ import React, {
 import {
   getBezierPath, getEdgeCenter,
 } from 'react-flow-renderer';
+import { useDebouncedCallback } from 'use-debounce';
 import getNodeAccentColors from './getNodeAccentColors';
 import { GlobalContext } from './GlobalNodeState.jsx';
 import shadeColor from './shadeColor.js';
@@ -98,6 +99,10 @@ const CustomEdge = memo(({
     removeEdgeById(edgeId);
   };
 
+  const hoverTimeout = useDebouncedCallback(() => {
+    setIsHovered(false);
+  }, 5000);
+
   const GhostPath = ({ d }) => (
     <path
       d={d}
@@ -109,7 +114,7 @@ const CustomEdge = memo(({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      // onMouseOver={() => setIsHovered(true)}
+      onMouseOver={() => hoverTimeout()}
       onMouseOut={() => setIsHovered(false)}
     />
   );
@@ -117,7 +122,7 @@ const CustomEdge = memo(({
   return (
     <>
       <g>
-        {/* <GhostPath d={edgePath} /> */}
+        <GhostPath d={edgePath} />
         <path
           id={id}
           style={{
@@ -134,7 +139,7 @@ const CustomEdge = memo(({
           // markerEnd={markerEnd}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          // onMouseOver={() => setIsHovered(true)}
+          onMouseOver={() => hoverTimeout()}
           onMouseOut={() => setIsHovered(false)}
         />
       </g>
@@ -154,6 +159,7 @@ const CustomEdge = memo(({
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onMouseOver={() => hoverTimeout()}
       >
         <Center
           w="full"
@@ -167,6 +173,7 @@ const CustomEdge = memo(({
           transitionTimingFunction="ease-in-out"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          onMouseOver={() => hoverTimeout()}
         >
           <IconButton
             className="edgebutton"
@@ -179,6 +186,7 @@ const CustomEdge = memo(({
             borderRadius={100}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onMouseOver={() => hoverTimeout()}
           >
             ×
           </IconButton>

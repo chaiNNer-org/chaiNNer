@@ -5,6 +5,73 @@ from typing import Tuple
 import torch
 from sanic.log import logger
 from torch import Tensor
+from torch.nn import functional as F
+
+
+def torch_center_crop(tensor, crop_x, crop_y):
+    x, y = tensor.size()[-2:]
+    start_x = x // 2 - (crop_x // 2)
+    start_y = y // 2 - (crop_y // 2)
+    return tensor[..., start_x : start_x + crop_x, start_y : start_y + crop_y]
+
+
+def torch_center_replace(tensor, crop_x, crop_y, replacement):
+    x, y = tensor.size()[-2:]
+    start_x = x // 2 - (crop_x // 2)
+    start_y = y // 2 - (crop_y // 2)
+    tensor[..., start_x : start_x + crop_x, start_y : start_y + crop_y] = replacement
+    return tensor
+
+
+@torch.inference_mode()
+def preview_upscale(
+    lr_img: Tensor,
+    model: torch.nn.Module,
+    scale: int = 4,
+    preview_size: int = 64,
+) -> Tensor:
+    try:
+        full_img = lr_img.clone()
+        full_img = F.interpolate(
+            full_img,
+            None,
+            1 / scale,
+            "nearest",
+        )
+        logger.info(full_img.size())
+        cropped_img = torch_center_crop(lr_img, preview_size, preview_size)
+        logger.info(cropped_img.size())
+        d_img = cropped_img.to(torch.device(os.environ["device"]))
+        d_img_2 = full_img.to(torch.device(os.environ["device"]))
+        if os.environ["isFp16"] == "True":
+            d_img = d_img.half()
+            d_img_2 = d_img_2.half()
+
+        result = model(d_img).detach().cpu()
+        result_2 = model(d_img_2).detach().cpu().to(torch.float32)
+        del d_img, d_img_2
+        result_2 = F.interpolate(
+            result_2,
+            None,
+            scale,
+            "nearest",
+        )
+        return (
+            torch_center_replace(
+                result_2, scale * preview_size, scale * preview_size, result
+            ),
+            None,
+        )
+    except RuntimeError as e:
+        # Check to see if its actually the CUDA out of memory error
+        if "allocate" in str(e) or "CUDA" in str(e):
+            # Collect garbage (clear VRAM)
+            torch.cuda.empty_cache()
+            gc.collect()
+            raise RuntimeError(e)
+        # Re-raise the exception if not an OOM error
+        else:
+            raise RuntimeError(e)
 
 
 @torch.inference_mode()
@@ -26,6 +93,7 @@ def auto_split_process(
 
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
+        d_img = None
         try:
             d_img = lr_img.to(torch.device(os.environ["device"]))
             if os.environ["isFp16"] == "True":
@@ -39,6 +107,8 @@ def auto_split_process(
                 # Collect garbage (clear VRAM)
                 torch.cuda.empty_cache()
                 gc.collect()
+                if d_img is not None:
+                    del d_img
             # Re-raise the exception if not an OOM error
             else:
                 raise RuntimeError(e)
