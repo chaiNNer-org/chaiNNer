@@ -24,6 +24,7 @@ import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const Main = ({ port }) => {
+  console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
   const [availableNodes, setAvailableNodes] = useState(null);
   const [nodeTypes, setNodeTypes] = useState(null);
   const edgeTypes = {
@@ -133,6 +134,7 @@ const Main = ({ port }) => {
         nodeTypes={nodeTypes}
         availableNodes={availableNodes}
         reactFlowWrapper={reactFlowWrapper}
+        port={port}
       >
         <VStack p={2} overflow="hidden" bg={bgColor}>
           <Header port={port} />

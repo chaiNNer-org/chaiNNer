@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from ...utils.image_utils import get_available_image_formats
 from .generic_inputs import DropDownInput
 
 
@@ -26,8 +27,8 @@ def ImageFileInput() -> Dict:
         "image",
         "Image File",
         None,
-        ["png", "jpg", "jpeg", "gif", "tiff", "webp"],
-        hasHandle=True,
+        get_available_image_formats(),
+        hasHandle=False,
     )
 
 

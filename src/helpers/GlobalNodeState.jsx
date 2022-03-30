@@ -18,8 +18,9 @@ export const GlobalContext = createContext({});
 const createUniqueId = () => uuidv4();
 
 export const GlobalProvider = ({
-  children, nodeTypes, availableNodes, reactFlowWrapper,
+  children, availableNodes, reactFlowWrapper, port,
 }) => {
+  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 23 ~ port', port);
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -342,7 +343,6 @@ export const GlobalProvider = ({
         extraNodes.push(subNode);
       });
     }
-    console.log({ newNode, extraNodes });
     if (!parent) {
       setNodes([
         ...nodes,
@@ -351,9 +351,9 @@ export const GlobalProvider = ({
       ]);
     }
     return newNode;
-  }, [nodes, setNodes, availableNodes, hoveredNode]);
+  }, [nodes, setNodes, availableNodes, hoveredNode, getInputDefaults]);
 
-  const createConnection = ({
+  const createConnection = useCallback(({
     source, sourceHandle, target, targetHandle,
   }) => {
     const id = createUniqueId();
@@ -366,13 +366,12 @@ export const GlobalProvider = ({
       type: 'main',
       animated: false,
       data: {},
-      zIndex: 1001,
     };
     setEdges([
       ...(edges.filter((edge) => edge.targetHandle !== targetHandle)),
       newEdge,
     ]);
-  };
+  }, [edges, setEdges]);
 
   useEffect(() => {
     const flow = JSON.parse(sessionStorage.getItem('rfi'));
@@ -451,7 +450,7 @@ export const GlobalProvider = ({
       ]);
     };
     return [inputDataByIndex, setInputData];
-  }, [nodes]);
+  }, [nodes, setNodes]);
 
   const useAnimateEdges = useCallback(() => {
     const animateEdges = () => {
@@ -507,7 +506,7 @@ export const GlobalProvider = ({
     };
 
     return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges];
-  }, [edges]);
+  }, [edges, setEdges]);
 
   // TODO: performance concern? runs twice when deleting node
   const useNodeLock = useCallback((id, index = null) => {
@@ -532,7 +531,7 @@ export const GlobalProvider = ({
       isInputLocked = !!edge;
     }
     return [isLocked, toggleLock, isInputLocked];
-  }, [nodes, edges]);
+  }, [nodes, edges, setNodes]);
 
   const useIteratorSize = useCallback((id) => {
     const defaultSize = { width: 480, height: 480 };
@@ -547,7 +546,7 @@ export const GlobalProvider = ({
     };
 
     return [setIteratorSize, defaultSize];
-  }, [nodes]);
+  }, [nodes, setNodes]);
 
   // TODO: this can probably be cleaned up but its good enough for now
   const updateIteratorBounds = useCallback((id, iteratorSize, dimensions) => {
@@ -584,7 +583,7 @@ export const GlobalProvider = ({
         ...newNodes,
       ]);
     }
-  }, [nodes]);
+  }, [nodes, setNodes]);
 
   const setIteratorPercent = useCallback((id, percent) => {
     const iterator = nodes.find((n) => n.id === id);
@@ -596,7 +595,7 @@ export const GlobalProvider = ({
       iterator,
       ...filteredNodes,
     ]);
-  }, [nodes]);
+  }, [nodes, setNodes]);
 
   const duplicateNode = useCallback((id) => {
     const node = nodes.find((n) => n.id === id);
@@ -693,10 +692,11 @@ export const GlobalProvider = ({
     useIsSystemPython: [isSystemPython, setIsSystemPython],
     useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
     useHoveredNode: [hoveredNode, setHoveredNode],
+    port,
   }), [
     nodes, edges, reactFlowInstance,
     isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
-    zoom, hoveredNode,
+    zoom, hoveredNode, port,
   ]);
 
   return (

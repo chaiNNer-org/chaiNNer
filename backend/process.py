@@ -40,6 +40,8 @@ class Executor:
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
             logger.debug(f"cached: {self.output_cache[node_id]}")
+            finish_data = await self.check()
+            await self.queue.put({"event": "node-finish", "data": finish_data})
             return self.output_cache[node_id]
 
         inputs = []

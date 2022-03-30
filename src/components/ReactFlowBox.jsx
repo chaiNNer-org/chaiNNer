@@ -15,6 +15,8 @@ import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 
 export const NodeDataContext = createContext({});
 
+const STARTING_Z_INDEX = 50;
+
 // eslint-disable-next-line react/prop-types
 const ReactFlowBox = ({
   wrapperRef, nodeTypes, edgeTypes,
@@ -29,17 +31,22 @@ const ReactFlowBox = ({
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
+    console.log('useeffect firing');
     const iterators = nodes.filter((n) => n.type === 'iterator'); // .sort((i) => (i.selected ? 1 : -1));
     const sorted = [];
 
     // Sort the nodes in a way that makes iterators stack on each other correctly
     // Put iterators below their children
-    iterators.forEach((i) => {
-      sorted.push(i);
-      const children = nodes.filter((n) => n.parentNode === i.id);
+    iterators.forEach((_iterator, index) => {
+      const iterator = _iterator;
+      iterator.zIndex = STARTING_Z_INDEX + (index * 5);
+      sorted.push(iterator);
+      const children = nodes.filter((n) => n.parentNode === iterator.id);
       // sorted.concat(children);
-      children.forEach((c) => {
-        sorted.push(c);
+      children.forEach((_child) => {
+        const child = _child;
+        child.zIndex = STARTING_Z_INDEX + (index * 5) + 1;
+        sorted.push(child);
       });
     });
 
@@ -49,8 +56,13 @@ const ReactFlowBox = ({
       sorted.push(f);
     });
 
+    const indexedEdges = edges.map((e) => {
+      const index = (sorted.find((n) => n.id === e.target)?.zIndex || 1000);
+      return ({ ...e, zIndex: index });
+    });
+
     _setNodes(sorted);
-    _setEdges(edges);
+    _setEdges(indexedEdges);
   }, [nodes, edges]);
 
   const onNodeDragStop = useCallback(() => {
@@ -133,7 +145,7 @@ const ReactFlowBox = ({
       log.error(error);
       console.log('Oops! This probably means something was dragged here that should not have been.');
     }
-  }, [createNode, wrapperRef.current, zoom]);
+  }, [createNode, wrapperRef.current, zoom, reactFlowInstance]);
 
   const onNodeContextMenu = useCallback((event, node) => {
     console.log(event, node);
@@ -180,10 +192,7 @@ const ReactFlowBox = ({
         // onlyRenderVisibleElements
         deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         onMoveEnd={onMoveEnd}
-        defaultEdgeOptions={{ zIndex: 1001 }}
-        // connectionLineStyle={{
-        //   zIndex: 99999999,
-        // }}
+        // defaultEdgeOptions={{ zIndex: 1001 }}
       >
         <Background
           variant="dots"

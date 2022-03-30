@@ -15,6 +15,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .utils.image_utils import get_opencv_formats, get_pil_formats
 
 
 def normalize(img):
@@ -49,17 +50,39 @@ class ImReadNode(NodeBase):
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
-        try:
-            img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-        except:
-            logger.warn(f"Error loading image, trying with imread.")
+        base, ext = os.path.splitext(path)
+        if ext.replace(".", "") in get_opencv_formats():
             try:
-                img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-            except Exception as e:
-                logger.error("Error loading image.")
-                raise RuntimeError(
-                    f'Error reading image image from path "{path}". Image may be corrupt.'
+                img = cv2.imdecode(
+                    np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
                 )
+            except:
+                logger.warn(f"Error loading image, trying with imread.")
+                try:
+                    img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+                except Exception as e:
+                    logger.error("Error loading image.")
+                    raise RuntimeError(
+                        f'Error reading image image from path "{path}". Image may be corrupt.'
+                    )
+        elif ext.replace(".", "") in get_pil_formats():
+            try:
+                from PIL import Image
+
+                im = Image.open(path)
+                img = np.array(im)
+                if img.ndim > 2:
+                    h, w, c = img.shape
+                    if c == 3:
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    elif c == 4:
+                        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
+            except:
+                raise RuntimeError(
+                    f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
+                )
+        else:
+            img = None
 
         dtype_max = 1
         try:

@@ -134,8 +134,8 @@ const IteratorNodeBody = ({
           transition="0.15s ease-in-out"
         >
           <DotPattern id={id} />
+          {/* <Icon as={GrBottomCorner} color="red.500" position="absolute" right={0} bottom={0} m={1} size="sm" /> */}
         </Box>
-        {/* Test */}
       </Box>
     </Resizable>
 

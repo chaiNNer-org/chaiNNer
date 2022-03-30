@@ -13,7 +13,7 @@ import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
 
 const FileInput = memo(({
-  filetypes, id, index, label, type, isLocked,
+  filetypes, id, index, label, type, isLocked, category, nodeType,
 }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
@@ -36,7 +36,7 @@ const FileInput = memo(({
   const preview = () => {
     switch (type) {
       case 'file::image':
-        return <ImagePreview path={filePath} />;
+        return <ImagePreview path={filePath} category={category} nodeType={nodeType} id={id} />;
       default:
         return <></>;
     }

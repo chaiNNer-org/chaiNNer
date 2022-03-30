@@ -146,6 +146,8 @@ const Node = memo(({
               id={id}
               accentColor={accentColor}
               isLocked={isLocked}
+              category={category}
+              nodeType={type}
             />
             <NodeFooter
               id={id}

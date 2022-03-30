@@ -3,10 +3,14 @@
 import {
   Center, HStack, Image, Spinner, Tag, VStack,
 } from '@chakra-ui/react';
+import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
-import { Image as ImageJS } from 'image-js';
-import React, { memo, useEffect, useState } from 'react';
+import React, {
+  memo, useContext, useEffect, useState,
+} from 'react';
+import useFetch from 'use-http';
+import { GlobalContext } from '../../../helpers/GlobalNodeState.jsx';
 
 const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
   .then(() => resolve(true))
@@ -29,18 +33,38 @@ const getColorMode = (img) => {
 };
 
 export default memo(({
-  path,
+  path, category, nodeType, id,
 }) => {
   const [img, setImg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { port } = useContext(GlobalContext);
+
+  const { post, error, loading } = useFetch(`http://localhost:${port}`, {
+    cachePolicy: 'no-cache',
+    timeout: 0,
+  }, [port]);
 
   useEffect(() => {
     (async () => {
       if (path) {
         setIsLoading(true);
         if (await checkFileExists(path)) {
-          const loadedImg = await ImageJS.load(path);
-          setImg(loadedImg);
+          try {
+            // const loadedImg = await ImageJS.load(path);
+            // setImg(loadedImg);
+            const result = await post('/run/individual', {
+              category,
+              node: nodeType,
+              id,
+              inputs: [path],
+            });
+            if (result) {
+              setImg(result);
+            }
+          } catch (err) {
+            log.error(err);
+          }
         }
         setIsLoading(false);
       }
@@ -51,7 +75,7 @@ export default memo(({
     <Center
       w="full"
     >
-      {isLoading
+      {isLoading || loading
         ? <Spinner />
         : (
           <VStack>
@@ -60,9 +84,9 @@ export default memo(({
           // boxSize="150px"
               maxW="200px"
               maxH="200px"
-              src={path || ''}
+              src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
               // fallbackSrc="https://via.placeholder.com/200"
-              alt="Image Output"
+              alt="Image preview failed to load, probably unsupported file type."
               draggable={false}
             />
             {
