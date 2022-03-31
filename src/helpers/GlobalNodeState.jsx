@@ -20,7 +20,6 @@ const createUniqueId = () => uuidv4();
 export const GlobalProvider = ({
   children, availableNodes, reactFlowWrapper, port,
 }) => {
-  console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 23 ~ port', port);
   // console.log('global state rerender');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);

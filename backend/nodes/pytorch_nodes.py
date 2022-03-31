@@ -70,6 +70,10 @@ class LoadModelNode(NodeBase):
 
     def run(self, path: str) -> Any:
         """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
+        assert os.path.exists(path), f"Model file at location {path} does not exist"
+
+        assert os.path.isfile(path), f"Path {path} is not a file"
+
         check_env()
 
         logger.info(f"Reading state dict from path: {path}")

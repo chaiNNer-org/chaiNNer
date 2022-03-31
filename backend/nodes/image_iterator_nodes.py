@@ -119,7 +119,6 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     try:
                         # Replace the input filepath with the filepath from the loop
                         nodes[img_path_node_id]["inputs"] = [filepath]
-                        logger.info(external_cache)
                         executor = Executor(
                             nodes,
                             loop,

@@ -42,7 +42,6 @@ export default memo(({
 
   const { post, error, loading } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
-    timeout: 0,
   }, [port]);
 
   useEffect(() => {

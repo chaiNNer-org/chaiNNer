@@ -39,7 +39,6 @@ class Executor:
         logger.info(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
-            logger.debug(f"cached: {self.output_cache[node_id]}")
             finish_data = await self.check()
             await self.queue.put({"event": "node-finish", "data": finish_data})
             return self.output_cache[node_id]
@@ -85,9 +84,8 @@ class Executor:
                         logger.info(f"next_node_id, {next_node_id}")
                         # Run all the connected nodes that are outside the iterator and cache the outputs
                         if not next_node_id in sub_nodes_ids:
-                            logger.info(f"not in sub_node_ids, caching {next_node_id}")
+                            logger.debug(f"not in sub_node_ids, caching {next_node_id}")
                             output = await self.process(self.nodes[next_node_id])
-                            logger.info(f"output, {output}")
                             self.output_cache[next_node_id] = output
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]

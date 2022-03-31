@@ -2,6 +2,7 @@
 Nodes that provide NCNN support
 """
 
+import os
 import re
 
 import numpy as np
@@ -67,6 +68,16 @@ class NcnnLoadModelNode(NodeBase):
         return input_name, output_name, out_nc
 
     def run(self, param_path: str, bin_path: str) -> np.ndarray:
+        assert os.path.exists(
+            param_path
+        ), f"Param file at location {param_path} does not exist"
+        assert os.path.exists(
+            bin_path
+        ), f"Bin file at location {param_path} does not exist"
+
+        assert os.path.isfile(param_path), f"Path {param_path} is not a file"
+        assert os.path.isfile(bin_path), f"Path {param_path} is not a file"
+
         input_name, output_name, out_nc = self.get_param_info(param_path)
 
         net = ncnn.Net()

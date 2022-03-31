@@ -34,14 +34,13 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const NodeWrapper = ({
+const NodeWrapper = memo(({
   data, selected,
-}) => (<Node data={data} selected={selected} />);
+}) => (<Node data={data} selected={selected} />));
 
 const Node = memo(({
   data, selected,
 }) => {
-  console.log('node rerender');
   const {
     nodes, edges, availableNodes, updateIteratorBounds,
   } = useContext(GlobalContext);
@@ -92,7 +91,7 @@ const Node = memo(({
         setCheckedSize(true);
       }
     }
-  }, [nodes && !checkedSize]);
+  }, [nodes && !checkedSize, targetRef?.current?.offsetHeight]);
 
   // eslint-disable-next-line no-unused-vars
   const [showMenu, setShowMenu] = useState(false);

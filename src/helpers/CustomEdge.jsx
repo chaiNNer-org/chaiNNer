@@ -5,7 +5,7 @@ import {
   Center, IconButton, useColorModeValue,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useMemo, useState,
+  memo, useCallback, useContext, useMemo, useState,
 } from 'react';
 import {
   getBezierPath, getEdgeCenter,
@@ -50,9 +50,9 @@ const CustomEdge = memo(({
   style = {},
   selected,
 }) => {
-  const edgePath = getBezierPath({
+  const edgePath = useMemo(() => getBezierPath({
     sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
-  });
+  }), [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]);
 
   const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
 
@@ -60,16 +60,17 @@ const CustomEdge = memo(({
   const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
 
   const [isHovered, setIsHovered] = useState(false);
+
   // const accentColor = getNodeAccentColors(data.sourceType, data.sourceSubCategory);
   // We dynamically grab this data instead since storing the types makes transitioning harder
   const accentColor = useMemo(
     () => getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory),
     [parentNode],
   );
-  const selectedColor = shadeColor(accentColor, -40);
+  const selectedColor = useMemo(() => shadeColor(accentColor, -40), [accentColor]);
   // const normalColor = useColorModeValue('gray.600', 'gray.400');
 
-  const getCurrentColor = () => {
+  const getCurrentColor = useCallback(() => {
     if (selected) {
       return selectedColor;
     }
@@ -79,50 +80,34 @@ const CustomEdge = memo(({
     // }
 
     return accentColor;
-  };
+  }, [selected, selectedColor, accentColor]);
 
   const currentColor = useMemo(() => getCurrentColor(), [accentColor, selected]);
 
   // const markerEnd = `url(#color=${getCurrentColor()}&type=${MarkerType.ArrowClosed})`;
 
-  const [edgeCenterX, edgeCenterY] = getEdgeCenter({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-  });
+  const [edgeCenterX, edgeCenterY] = useMemo(() => getEdgeCenter({
+    sourceX, sourceY, targetX, targetY,
+  }), [sourceX, sourceY, targetX, targetY]);
 
   const buttonSize = 32;
 
-  const onEdgeClick = (evt, edgeId) => {
-    evt.stopPropagation();
-    removeEdgeById(edgeId);
-  };
-
+  // Prevent hovered state from getting stuck
   const hoverTimeout = useDebouncedCallback(() => {
     setIsHovered(false);
-  }, 5000);
-
-  const GhostPath = ({ d }) => (
-    <path
-      d={d}
-      style={{
-        strokeWidth: 14,
-        fill: 'none',
-        stroke: 'none',
-        cursor: isHovered ? 'pointer' : 'default',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onMouseOver={() => hoverTimeout()}
-      onMouseOut={() => setIsHovered(false)}
-    />
-  );
+  }, 7500);
 
   return (
     <>
-      <g>
-        <GhostPath d={edgePath} />
+      <g
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onMouseOver={() => hoverTimeout()}
+        // onMouseOut={() => setIsHovered(false)}
+        style={{
+          cursor: isHovered ? 'pointer' : 'default',
+        }}
+      >
         <path
           id={id}
           style={{
@@ -136,62 +121,57 @@ const CustomEdge = memo(({
           }}
           className="react-flow__edge-path"
           d={edgePath}
-          // markerEnd={markerEnd}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onMouseOver={() => hoverTimeout()}
-          onMouseOut={() => setIsHovered(false)}
         />
-      </g>
-      <foreignObject
-        width={buttonSize}
-        height={buttonSize}
-        x={edgeCenterX - (buttonSize) / 2}
-        y={edgeCenterY - (buttonSize) / 2}
-        className="edgebutton-foreignobject"
-        requiredExtensions="http://www.w3.org/1999/xhtml"
-        style={{
-          borderRadius: 100,
-          opacity: isHovered ? 1 : 0,
-          transitionDuration: '0.15s',
-          transitionProperty: 'opacity, background-color',
-          transitionTimingFunction: 'ease-in-out',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseOver={() => hoverTimeout()}
-      >
-        <Center
-          w="full"
-          h="full"
-          backgroundColor={currentColor}
-          borderColor={useColorModeValue('gray.100', 'gray.800')}
-          borderWidth={2}
-          borderRadius={100}
-          transitionDuration="0.15s"
-          transitionProperty="background-color"
-          transitionTimingFunction="ease-in-out"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onMouseOver={() => hoverTimeout()}
+        <path
+          d={edgePath}
+          style={{
+            strokeWidth: 18,
+            fill: 'none',
+            stroke: 'none',
+            cursor: isHovered ? 'pointer' : 'default',
+          }}
+        />
+        <foreignObject
+          width={buttonSize}
+          height={buttonSize}
+          x={edgeCenterX - (buttonSize) / 2}
+          y={edgeCenterY - (buttonSize) / 2}
+          className="edgebutton-foreignobject"
+          requiredExtensions="http://www.w3.org/1999/xhtml"
+          style={{
+            borderRadius: 100,
+            opacity: isHovered ? 1 : 0,
+            transitionDuration: '0.15s',
+            transitionProperty: 'opacity, background-color',
+            transitionTimingFunction: 'ease-in-out',
+          }}
         >
-          <IconButton
-            className="edgebutton"
-            icon={<DeleteIcon />}
-            onClick={(event) => onEdgeClick(event, id)}
-            isRound
-            size="sm"
+          <Center
+            w="full"
+            h="full"
+            backgroundColor={currentColor}
             borderColor={useColorModeValue('gray.100', 'gray.800')}
             borderWidth={2}
             borderRadius={100}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onMouseOver={() => hoverTimeout()}
+            transitionDuration="0.15s"
+            transitionProperty="background-color"
+            transitionTimingFunction="ease-in-out"
           >
-            ×
-          </IconButton>
-        </Center>
-      </foreignObject>
+            <IconButton
+              className="edgebutton"
+              icon={<DeleteIcon />}
+              onClick={() => removeEdgeById(id)}
+              isRound
+              size="sm"
+              borderColor={useColorModeValue('gray.100', 'gray.800')}
+              borderWidth={2}
+              borderRadius={100}
+            >
+              ×
+            </IconButton>
+          </Center>
+        </foreignObject>
+      </g>
     </>
   );
 });
