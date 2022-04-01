@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import React, {
-  memo, useContext, useLayoutEffect, useState,
+  memo, useContext, useLayoutEffect, useMemo, useState,
 } from 'react';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
@@ -45,8 +45,9 @@ const IteratorNodeBody = ({
   id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256,
 }) => {
   const {
-    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds,
+    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds, useSnapToGrid,
   } = useContext(GlobalContext);
+  const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
   const [hoveredNode, setHoveredNode] = useHoveredNode;
   const [setIteratorSize, defaultSize] = useIteratorSize(id);
@@ -77,6 +78,10 @@ const IteratorNodeBody = ({
       minWidth={maxWidth}
       minHeight={maxHeight}
       draggable={false}
+      grid={useMemo(
+        () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
+        [isSnapToGrid, snapToGridAmount],
+      )}
       enable={{
         top: false,
         right: true,

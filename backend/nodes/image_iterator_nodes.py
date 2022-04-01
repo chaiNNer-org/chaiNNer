@@ -116,19 +116,16 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 filepath = os.path.join(root, name)
                 base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
-                    try:
-                        # Replace the input filepath with the filepath from the loop
-                        nodes[img_path_node_id]["inputs"] = [filepath]
-                        executor = Executor(
-                            nodes,
-                            loop,
-                            queue,
-                            external_cache.copy(),
-                            parent_executor=parent_executor,
-                        )
-                        await executor.run()
-                    except Exception as e:
-                        logger.warn(f"Something went wrong iterating: {e}")
+                    # Replace the input filepath with the filepath from the loop
+                    nodes[img_path_node_id]["inputs"] = [filepath]
+                    executor = Executor(
+                        nodes,
+                        loop,
+                        queue,
+                        external_cache.copy(),
+                        parent_executor=parent_executor,
+                    )
+                    await executor.run()
                 await queue.put(
                     {
                         "event": "iterator-progress-update",

@@ -45,6 +45,8 @@ const ReactFlowBox = ({
       children.forEach((_child) => {
         const child = _child;
         child.zIndex = STARTING_Z_INDEX + (index * 5) + 1;
+        // child.position.x = Math.min(Math.max(child.position.x, 0), iterator.width);
+        // child.position.y = Math.min(Math.max(child.position.y, 0), iterator.height);
         sorted.push(child);
       });
     });
@@ -81,14 +83,32 @@ const ReactFlowBox = ({
 
   const onEdgesDelete = useCallback((edgesToDelete) => {
     const edgeIds = edgesToDelete.map((e) => e.id);
-    const newEdges = _edges.filter((e) => !edgeIds.includes(e.id));
+    const newEdges = edges.filter((e) => !edgeIds.includes(e.id));
     setEdges(newEdges);
-  }, [setEdges, _edges]);
+  }, [setEdges, _edges, edges]);
 
   const memoNodeTypes = useMemo(() => (nodeTypes), []);
   const memoEdgeTypes = useMemo(() => (edgeTypes), []);
 
   const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+
+  useEffect(() => {
+    if (isSnapToGrid) {
+      const alignedNodes = nodes.map((n) => {
+        if (n.parentNode) {
+          return n;
+        }
+        return {
+          ...n,
+          position: {
+            x: n.position.x - (n.position.x % snapToGridAmount),
+            y: n.position.y - (n.position.y % snapToGridAmount),
+          },
+        };
+      });
+      _setNodes(alignedNodes);
+    }
+  }, [snapToGridAmount, nodes]);
 
   const onInit = useCallback(
     (rfi) => {
@@ -181,7 +201,7 @@ const ReactFlowBox = ({
         maxZoom={8}
         minZoom={0.125}
         snapToGrid={isSnapToGrid}
-        snapGrid={[snapToGridAmount, snapToGridAmount]}
+        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
         fitView
         fitViewOptions={{
           minZoom: 1,

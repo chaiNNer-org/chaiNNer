@@ -294,7 +294,10 @@ export const GlobalProvider = ({
       type: nodeType,
       id,
       // This looks stupid, but the child position was overwriting the parent's because shallow copy
-      position: { ...position },
+      position: {
+        x: position.x - (position.x % snapToGridAmount),
+        y: position.y - (position.y % snapToGridAmount),
+      },
       data: { ...data, id, inputData: (data.inputData ? data.inputData : getInputDefaults(data)) },
     };
     if (parent || (hoveredNode && nodeType !== 'iterator')) {
