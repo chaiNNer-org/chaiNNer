@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
-import * as ReactDOMClient from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import ChaiNNerLogo from './components/chaiNNerLogo.jsx';
 // eslint-disable-next-line import/extensions
 import './global.css';
@@ -118,9 +118,6 @@ const Splash = () => {
   );
 };
 
-const container = document.getElementById('root');
-const root = ReactDOMClient.createRoot(container);
-
-root.render(<Splash />);
+ReactDOM.render(<Splash />, document.getElementById('root'));
 
 export default Splash;
