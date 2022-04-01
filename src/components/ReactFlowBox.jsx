@@ -202,12 +202,12 @@ const ReactFlowBox = ({
         minZoom={0.125}
         snapToGrid={isSnapToGrid}
         snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
-        fitView
-        fitViewOptions={{
-          minZoom: 1,
-          maxZoom: 1,
-          padding: 40,
-        }}
+        // fitView
+        // fitViewOptions={{
+        //   minZoom: 1,
+        //   maxZoom: 1,
+        //   padding: 40,
+        // }}
         // onlyRenderVisibleElements
         deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         onMoveEnd={onMoveEnd}

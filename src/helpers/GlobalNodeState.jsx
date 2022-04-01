@@ -601,21 +601,82 @@ export const GlobalProvider = ({
 
   const duplicateNode = useCallback((id) => {
     const node = nodes.find((n) => n.id === id);
-    const x = node.position.x + 200;
-    const y = node.position.y + 200;
-    let defaultNodes = [];
+    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 604 ~ duplicateNode ~ node', node);
+    const newId = createUniqueId();
+    const newNode = {
+      ...node,
+      id: newId,
+      position: {
+        x: (node.position.x || 0) + 200,
+        y: (node.position.y || 0) + 200,
+      },
+      data: {
+        ...node.data,
+        id: newId,
+      },
+      selected: false,
+    };
+    const newNodes = [newNode];
+    const newEdges = [];
     if (node.type === 'iterator') {
+      const oldToNewIdMap = {};
       const childNodes = nodes.filter((n) => n.parentNode === id);
-      defaultNodes = childNodes.map((c) => ({ category: c.data.category, name: c.data.type }));
+      childNodes.forEach(((c) => {
+        const newChildId = createUniqueId();
+        oldToNewIdMap[c.id] = newChildId;
+        const newChild = {
+          ...c,
+          id: newChildId,
+          position: { ...c.position },
+          data: {
+            ...c.data,
+            id: newChildId,
+          },
+          parentNode: newId,
+          selected: false,
+        };
+        newNodes.push(newChild);
+      }));
+      const oldChildIds = Object.keys(oldToNewIdMap);
+      const childEdges = edges.filter((e) => oldChildIds.includes(e.target));
+      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 642 ~ duplicateNode ~ childEdges', childEdges);
+      childEdges.forEach((e) => {
+        const newEdgeId = createUniqueId();
+        const {
+          source, sourceHandle, target, targetHandle,
+        } = e;
+        const newSource = oldToNewIdMap[source];
+        const newTarget = oldToNewIdMap[target];
+        const newSourceHandle = sourceHandle.replace(source, newSource);
+        const newTargetHandle = targetHandle.replace(target, newTarget);
+        const newEdge = {
+          ...e,
+          id: newEdgeId,
+          source: newSource,
+          sourceHandle: newSourceHandle,
+          target: newTarget,
+          targetHandle: newTargetHandle,
+        };
+        newEdges.push(newEdge);
+      });
     }
-    createNode({
-      nodeType: node.type,
-      position: { x, y },
-      data: node.data,
-      defaultNodes,
-      parent: node.parentNode,
-    });
-  }, [nodes, availableNodes]);
+    console.log('new nodes', [
+      ...nodes,
+      ...newNodes,
+    ]);
+    setNodes([
+      ...nodes,
+      ...newNodes,
+    ]);
+    console.log('new edges', [
+      ...edges,
+      ...newEdges,
+    ]);
+    setEdges([
+      ...edges,
+      ...newEdges,
+    ]);
+  }, [nodes, edges, availableNodes]);
 
   const clearNode = (id) => {
     const nodesCopy = [...nodes];
