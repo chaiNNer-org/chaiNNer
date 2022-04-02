@@ -97,6 +97,7 @@ class Executor:
                 external_cache=self.output_cache,
                 id=node["id"],
                 parent_executor=self,
+                percent=node["percent"],
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
@@ -157,9 +158,13 @@ class Executor:
     def is_killed(self):
         return self.killed
 
+    def is_paused(self):
+        return self.paused
+
     def should_stop_running(self):
         return (
             self.killed
             or self.paused
             or (self.parent_executor is not None and self.parent_executor.is_killed())
+            or (self.parent_executor is not None and self.parent_executor.is_paused())
         )

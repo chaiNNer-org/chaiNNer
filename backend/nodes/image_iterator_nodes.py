@@ -68,6 +68,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         queue=None,
         id="",
         parent_executor=None,
+        percent=0,
     ) -> any:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
@@ -102,38 +103,42 @@ class ImageFileIteratorNode(IteratorNodeBase):
             if parent_executor.is_killed():
                 return
             file_len = len(files)
+            start_idx = math.floor(float(percent) * file_len)
             for idx, name in enumerate(files):
-                await queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": idx / file_len,
-                            "iteratorId": id,
-                            "running": child_nodes,
-                        },
-                    }
-                )
-                filepath = os.path.join(root, name)
-                base, ext = os.path.splitext(filepath)
-                if ext.lower() in supported_filetypes:
-                    # Replace the input filepath with the filepath from the loop
-                    nodes[img_path_node_id]["inputs"] = [filepath]
-                    executor = Executor(
-                        nodes,
-                        loop,
-                        queue,
-                        external_cache.copy(),
-                        parent_executor=parent_executor,
+                if parent_executor.is_killed():
+                    return
+                if idx >= start_idx:
+                    await queue.put(
+                        {
+                            "event": "iterator-progress-update",
+                            "data": {
+                                "percent": idx / file_len,
+                                "iteratorId": id,
+                                "running": child_nodes,
+                            },
+                        }
                     )
-                    await executor.run()
-                await queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": (idx + 1) / file_len,
-                            "iteratorId": id,
-                            "running": None,
-                        },
-                    }
-                )
+                    filepath = os.path.join(root, name)
+                    base, ext = os.path.splitext(filepath)
+                    if ext.lower() in supported_filetypes:
+                        # Replace the input filepath with the filepath from the loop
+                        nodes[img_path_node_id]["inputs"] = [filepath]
+                        executor = Executor(
+                            nodes,
+                            loop,
+                            queue,
+                            external_cache.copy(),
+                            parent_executor=parent_executor,
+                        )
+                        await executor.run()
+                    await queue.put(
+                        {
+                            "event": "iterator-progress-update",
+                            "data": {
+                                "percent": (idx + 1) / file_len,
+                                "iteratorId": id,
+                                "running": None,
+                            },
+                        }
+                    )
         return ""

@@ -215,6 +215,7 @@ export const GlobalProvider = ({
       };
       if (nodeType === 'iterator') {
         result[id].children = [];
+        result[id].percent = data.percentComplete || 0;
       }
     });
 
@@ -601,7 +602,6 @@ export const GlobalProvider = ({
 
   const duplicateNode = useCallback((id) => {
     const node = nodes.find((n) => n.id === id);
-    console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 604 ~ duplicateNode ~ node', node);
     const newId = createUniqueId();
     const newNode = {
       ...node,
@@ -639,7 +639,6 @@ export const GlobalProvider = ({
       }));
       const oldChildIds = Object.keys(oldToNewIdMap);
       const childEdges = edges.filter((e) => oldChildIds.includes(e.target));
-      console.log('🚀 ~ file: GlobalNodeState.jsx ~ line 642 ~ duplicateNode ~ childEdges', childEdges);
       childEdges.forEach((e) => {
         const newEdgeId = createUniqueId();
         const {
@@ -660,17 +659,9 @@ export const GlobalProvider = ({
         newEdges.push(newEdge);
       });
     }
-    console.log('new nodes', [
-      ...nodes,
-      ...newNodes,
-    ]);
     setNodes([
       ...nodes,
       ...newNodes,
-    ]);
-    console.log('new edges', [
-      ...edges,
-      ...newEdges,
     ]);
     setEdges([
       ...edges,
