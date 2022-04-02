@@ -103,7 +103,7 @@ async def run(request: Request):
         if request.app.ctx.executor:
             logger.info("Resuming existing executor...")
             executor = request.app.ctx.executor
-            await executor.run()
+            await executor.resume()
         else:
             logger.info("Running new executor...")
             full_data = request.json

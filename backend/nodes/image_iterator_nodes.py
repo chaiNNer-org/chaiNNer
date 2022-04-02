@@ -100,12 +100,12 @@ class ImageFileIteratorNode(IteratorNodeBase):
         for root, dirs, files in os.walk(
             directory, topdown=False, onerror=walk_error_handler
         ):
-            if parent_executor.is_killed():
+            if parent_executor.should_stop_running():
                 return
             file_len = len(files)
-            start_idx = math.floor(float(percent) * file_len)
+            start_idx = math.ceil(float(percent) * file_len)
             for idx, name in enumerate(files):
-                if parent_executor.is_killed():
+                if parent_executor.should_stop_running():
                     return
                 if idx >= start_idx:
                     await queue.put(

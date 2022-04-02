@@ -26,6 +26,7 @@ class Executor:
         self.process_task = None
         self.killed = False
         self.paused = False
+        self.resumed = False
 
         self.loop = loop
         self.queue = queue
@@ -97,7 +98,7 @@ class Executor:
                 external_cache=self.output_cache,
                 id=node["id"],
                 parent_executor=self,
-                percent=node["percent"],
+                percent=node["percent"] if self.resumed else 0,
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
@@ -135,7 +136,13 @@ class Executor:
     async def run(self):
         """Run the executor"""
         logger.info(f"Running executor {self.execution_id}")
+        await self.process_nodes()
+
+    async def resume(self):
+        """Run the executor"""
+        logger.info(f"Rusuming executor {self.execution_id}")
         self.paused = False
+        self.resumed = True
         await self.process_nodes()
 
     async def check(self):
