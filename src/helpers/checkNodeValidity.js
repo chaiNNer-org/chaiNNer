@@ -21,7 +21,7 @@ const checkNodeValidity = ({
     && !edgeTargetIndexes.includes(String(key)),
     )
     .map(([key]) => String(key));
-  const enteredOptionalInputs = inputs.filter((input, i) => input.optional && Object.keys(inputData).map((index) => String(index)).includes(String(i)));
+  const enteredOptionalInputs = inputs.filter((input, i) => input.optional && Object.keys(inputData).map((index) => String(index)).includes(String(i)) && inputData[i] !== '');
   const filteredInputDataKeys = Object.entries(inputData).filter(([key, value]) => !edgeTargetIndexes.includes(String(key)) && value !== '').map((([key]) => key));
   const isMissingInputs = nonOptionalInputs.length + enteredOptionalInputs.length > filteredInputDataKeys.length + filteredEdges.length;
   if (isMissingInputs || emptyInputs.length > 0) {
