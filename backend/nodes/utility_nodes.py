@@ -70,7 +70,7 @@ class TextAppendNode(NodeBase):
         self.inputs = [
             TextInput("Separator", has_handle=False, max_length=3),
             TextInput("Text A"),
-            TextInput("Text B", optional=True),
+            TextInput("Text B"),
             TextInput("Text C", optional=True),
             TextInput("Text D", optional=True),
         ]
@@ -82,7 +82,7 @@ class TextAppendNode(NodeBase):
         self,
         separator: str,
         str1: str,
-        str2: str = None,
+        str2: str,
         str3: str = None,
         str4: str = None,
     ) -> int:

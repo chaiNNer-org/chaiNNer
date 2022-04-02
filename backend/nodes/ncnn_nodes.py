@@ -67,7 +67,7 @@ class NcnnLoadModelNode(NodeBase):
 
         return input_name, output_name, out_nc
 
-    def run(self, param_path: str, bin_path: str) -> np.ndarray:
+    def run(self, param_path: str, bin_path: str) -> Any:
         assert os.path.exists(
             param_path
         ), f"Param file at location {param_path} does not exist"
@@ -89,8 +89,10 @@ class NcnnLoadModelNode(NodeBase):
         net.load_param(param_path)
         net.load_model(bin_path)
 
+        model_name = os.path.splitext(os.path.basename(param_path))[0]
+
         # Put all this info with the net and disguise it as just the net
-        return [(param_path, bin_path, input_name, output_name, net)]
+        return [(param_path, bin_path, input_name, output_name, net)], model_name
 
 
 @NodeFactory.register("NCNN", "Upscale Image")
