@@ -72,12 +72,13 @@ const pipInstallWithProgress = async (
   (resolve, reject) => {
     log.info('Beginning pip install...');
     onProgress(0);
-    let args = ['install', ...(upgrade ? ['--upgrade'] : []), `${dep.packageName}==${dep.version}`];
+    let args = ['install', ...(upgrade ? ['--upgrade'] : []), `${dep.packageName}==${dep.version}`, '--disable-pip-version-check'];
     if (dep.findLink) {
       args = [
         ...args,
         '-f',
         dep.findLink,
+        '--disable-pip-version-check',
       ];
     }
     const pipRequest = spawn(python, ['-m', 'pip', ...args]);
@@ -145,7 +146,9 @@ const pipInstallWithProgress = async (
     });
 
     pipRequest.on('close', (code) => {
-      // console.log(`child process exited with code ${code}`);
+      if (code === 0) {
+        resolve();
+      }
     });
   },
 );

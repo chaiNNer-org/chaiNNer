@@ -492,7 +492,7 @@ const spawnBackend = async (port) => {
           log.error('Error killing backend.');
         }
       } catch (error) {
-        log.error('Error killing backend.');
+        log.error('Error killing backend.', error);
       }
       app.relaunch();
       app.exit();
@@ -508,7 +508,7 @@ const spawnBackend = async (port) => {
           log.error('Error killing backend.');
         }
       } catch (error) {
-        log.error('Error killing backend.');
+        log.error('Error killing backend.', error);
       }
     });
 
@@ -524,7 +524,7 @@ const spawnBackend = async (port) => {
         ipcMain.removeHandler('kill-backend');
         await spawnBackend(port);
       } catch (error) {
-        log.error('Error restarting backend.');
+        log.error('Error restarting backend.', error);
       }
     });
 

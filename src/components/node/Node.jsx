@@ -75,7 +75,7 @@ const Node = memo(({
         id, inputs, inputData, edges,
       }));
     }
-  }, [inputData, edges.length]);
+  }, [inputData, edges.length, nodes.length]);
 
   const targetRef = useRef();
   const [checkedSize, setCheckedSize] = useState(false);

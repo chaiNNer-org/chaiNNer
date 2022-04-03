@@ -6,19 +6,29 @@ import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, IconButton, Modal,
   ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Progress, Spinner, StackDivider, Text, Textarea, Tooltip, useColorModeValue, useDisclosure, VStack,
+  ModalOverlay, Progress, Spinner, StackDivider, Tag,
+  TagLabel, Text, Textarea, Tooltip, useColorModeValue, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
 import React, {
-  memo, useContext, useEffect, useRef, useState,
+  memo, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import semver from 'semver';
 import getAvailableDeps from '../helpers/dependencies.js';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
-const DependencyManager = ({ isOpen, onClose }) => {
+const checkSemver = (v1, v2) => {
+  try {
+    return !semver.gt(semver.coerce(v1).version, semver.coerce(v2).version);
+  } catch (error) {
+    console.log(error);
+    return true;
+  }
+};
+
+const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   const {
     useIsSystemPython,
   } = useContext(GlobalContext);
@@ -81,7 +91,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
         ...deps,
         pythonVersion: pKeys.version,
       });
-      exec(`${pKeys.python} -m pip list`, (error, stdout, stderr) => {
+      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout, stderr) => {
         if (error) {
           setIsLoadingPipList(false);
           return;
@@ -92,6 +102,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
           pipObj[dep] = version;
         });
         setPipList(pipObj);
+        onPipListUpdate(pipObj);
         setIsLoadingPipList(false);
       });
     })();
@@ -100,8 +111,8 @@ const DependencyManager = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isRunningShell) {
       setIsLoadingPipList(true);
-      exec(`${pythonKeys.python} -m pip install --upgrade pip`);
-      exec(`${pythonKeys.python} -m pip list`, (error, stdout, stderr) => {
+      // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
+      exec(`${pythonKeys.python} -m pip list --disable-pip-version-check`, (error, stdout, stderr) => {
         if (error || stderr) {
           setIsLoadingPipList(false);
           return;
@@ -112,6 +123,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
           pipObj[dep] = version;
         });
         setPipList(pipObj);
+        onPipListUpdate(pipObj);
         setIsLoadingPipList(false);
       });
     }
@@ -128,7 +140,7 @@ const DependencyManager = ({ isOpen, onClose }) => {
   const runPipCommand = (args) => {
     setShellOutput('');
     setIsRunningShell(true);
-    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args]);
+    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args, '--disable-pip-version-check']);
 
     let outputString = '';
 
@@ -195,18 +207,17 @@ const DependencyManager = ({ isOpen, onClose }) => {
     }
   }, [shellOutput]);
 
-  const checkSemver = (v1, v2) => {
-    try {
-      return !semver.gt(semver.coerce(v1).version, semver.coerce(v2).version);
-    } catch (error) {
-      console.log(error);
-      return true;
-    }
-  };
-
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl" closeOnOverlayClick={!depChanged}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        isCentered
+        scrollBehavior="inside"
+        size="xl"
+        closeOnOverlayClick={!depChanged}
+        returnFocusOnClose={false}
+      >
         <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
         <ModalContent maxW="750px">
           <ModalHeader>
@@ -391,6 +402,39 @@ const DependencyManager = ({ isOpen, onClose }) => {
 
 export const DependencyManagerButton = memo(() => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [pipList, setPipList] = useState({});
+
+  const [availableDeps, setAvailableDeps] = useState([]);
+  const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
+  useEffect(() => {
+    const depsArr = getAvailableDeps(isNvidiaAvailable);
+    setAvailableDeps(depsArr);
+  }, [isNvidiaAvailable]);
+
+  useEffect(() => {
+    (async () => {
+      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+      if (hasNvidia) {
+        setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
+      }
+    })();
+  }, []);
+
+  const availableUpdates = useMemo(
+    () => availableDeps.filter(
+      ({ packageName, version }) => {
+        if (Object.keys(pipList).length === 0) {
+          return false;
+        }
+        console.log({ packageName, version, pip: pipList[packageName] });
+        return !checkSemver(version, pipList[packageName]);
+      },
+    ),
+    [availableDeps, pipList, isNvidiaAvailable],
+  );
+
+  console.log(availableUpdates);
+
   return (
     <>
       <Tooltip
@@ -399,13 +443,36 @@ export const DependencyManagerButton = memo(() => {
         py={1}
         px={2}
         closeOnClick
+        closeOnMouseDown
       >
-        <IconButton icon={<DownloadIcon />} onClick={onOpen} variant="outline" size="md" />
+        <VStack
+          m={0}
+          spacing={0}
+        >
+          {availableUpdates.length ? (
+            <Tag
+              borderRadius="full"
+              colorScheme="red"
+              size="sm"
+              mt={-1}
+              ml={-7}
+              position="fixed"
+            >
+              <TagLabel
+                textAlign="center"
+              >
+                {availableUpdates.length}
+              </TagLabel>
+            </Tag>
+          ) : <></>}
+          <IconButton icon={<DownloadIcon />} onClick={onOpen} variant="outline" size="md" position="relative" />
+        </VStack>
       </Tooltip>
       <DependencyManager
         isOpen={isOpen}
         onOpen={onOpen}
         onClose={onClose}
+        onPipListUpdate={useCallback((pipObj) => setPipList(pipObj), [setPipList])}
       />
     </>
   );

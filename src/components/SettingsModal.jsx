@@ -2,9 +2,12 @@
 /* eslint-disable import/extensions */
 import { SettingsIcon } from '@chakra-ui/icons';
 import {
-  Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-  NumberInputStepper, StackDivider, Switch, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useColorMode, useDisclosure, VStack,
+  Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton,
+  ModalContent, ModalFooter, ModalHeader,
+  ModalOverlay, NumberDecrementStepper, NumberIncrementStepper,
+  NumberInput, NumberInputField, NumberInputStepper, StackDivider,
+  Switch, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Tooltip,
+  useColorMode, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
@@ -162,7 +165,14 @@ const SettingsModal = ({ isOpen, onClose }) => {
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      isCentered
+      scrollBehavior="inside"
+      size="xl"
+      returnFocusOnClose={false}
+    >
       <ModalOverlay />
       <ModalContent maxW="750px" minW="750px" maxH="500px" minH="500px">
         <ModalHeader>Settings</ModalHeader>
@@ -214,9 +224,18 @@ export const SettingsButton = memo(() => {
   } = useDisclosure();
   return (
     <>
-      <IconButton icon={<SettingsIcon />} onClick={onSettingsOpen} variant="outline" size="md">
-        Settings
-      </IconButton>
+      <Tooltip
+        label="Settings"
+        borderRadius={8}
+        py={1}
+        px={2}
+        closeOnClick
+        closeOnMouseDown
+      >
+        <IconButton icon={<SettingsIcon />} onClick={onSettingsOpen} variant="outline" size="md">
+          Settings
+        </IconButton>
+      </Tooltip>
       <SettingsModal
         isOpen={isSettingsOpen}
         onOpen={onSettingsOpen}
