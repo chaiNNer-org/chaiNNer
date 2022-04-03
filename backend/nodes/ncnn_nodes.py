@@ -92,7 +92,7 @@ class NcnnLoadModelNode(NodeBase):
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         # Put all this info with the net and disguise it as just the net
-        return [(param_path, bin_path, input_name, output_name, net)], model_name
+        return (param_path, bin_path, input_name, output_name, net), model_name
 
 
 @NodeFactory.register("NCNN", "Upscale Image")

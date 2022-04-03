@@ -406,10 +406,6 @@ export const DependencyManagerButton = memo(() => {
 
   const [availableDeps, setAvailableDeps] = useState([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-  useEffect(() => {
-    const depsArr = getAvailableDeps(isNvidiaAvailable);
-    setAvailableDeps(depsArr);
-  }, [isNvidiaAvailable]);
 
   useEffect(() => {
     (async () => {
@@ -419,6 +415,11 @@ export const DependencyManagerButton = memo(() => {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    const depsArr = getAvailableDeps(isNvidiaAvailable);
+    setAvailableDeps(depsArr);
+  }, [isNvidiaAvailable]);
 
   const availableUpdates = useMemo(
     () => availableDeps.filter(
@@ -434,8 +435,6 @@ export const DependencyManagerButton = memo(() => {
     ),
     [availableDeps, pipList, isNvidiaAvailable],
   );
-
-  console.log(availableUpdates);
 
   return (
     <>
