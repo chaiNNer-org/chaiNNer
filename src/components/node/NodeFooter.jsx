@@ -9,7 +9,7 @@ import {
   MenuList, Portal, Spacer, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext,
+  memo, useContext, useEffect, useState,
 } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
@@ -18,7 +18,7 @@ const NodeFooter = ({
   id, isValid = false, invalidReason = '', isLocked,
 }) => {
   const {
-    removeNodeById, duplicateNode, clearNode, useNodeLock,
+    removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions,
   } = useContext(GlobalContext);
 
   const [, toggleLock] = useNodeLock(id);
@@ -28,6 +28,19 @@ const NodeFooter = ({
   // const invalidShade = useColorModeValue('red.200', 'red.900');
   const invalidShade = useColorModeValue('red.400', 'red.600');
   // const iconShade = useColorModeValue('gray.400', 'gray.800');
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [, addMenuCloseFunction] = useMenuCloseFunctions;
+  useEffect(() => {
+    addMenuCloseFunction(() => {
+      setIsOpen(false);
+    }, id);
+  }, [isOpen]);
+  useEffect(() => {
+    addMenuCloseFunction(() => {
+      setIsOpen(false);
+    }, id);
+  }, []);
 
   return (
     <Flex w="full" pl={2} pr={2}>
@@ -65,7 +78,16 @@ const NodeFooter = ({
       </Tooltip>
       <Spacer />
       <Center>
-        <Menu>
+        <Menu
+          onClose={() => {
+            setIsOpen(false);
+          }}
+          onOpen={() => {
+            setIsOpen(true);
+          }}
+          isOpen={isOpen}
+          isLazy
+        >
           <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle" className="nodrag">
             <Center>
               <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={iconShade} />

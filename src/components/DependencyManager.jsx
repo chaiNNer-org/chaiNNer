@@ -4,10 +4,9 @@ import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, Modal,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, IconButton, Modal,
   ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Progress, Spinner, StackDivider, Text,
-  Textarea, useColorModeValue, useDisclosure, VStack,
+  ModalOverlay, Progress, Spinner, StackDivider, Text, Textarea, Tooltip, useColorModeValue, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
@@ -210,7 +209,9 @@ const DependencyManager = ({ isOpen, onClose }) => {
       <Modal isOpen={isOpen} onClose={onClose} isCentered scrollBehavior="inside" size="xl" closeOnOverlayClick={!depChanged}>
         <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
         <ModalContent maxW="750px">
-          <ModalHeader>Dependency Manager</ModalHeader>
+          <ModalHeader>
+            Dependency Manager
+          </ModalHeader>
           <ModalCloseButton disabled={depChanged} />
           <ModalBody>
             <VStack w="full" divider={<StackDivider />}>
@@ -387,5 +388,27 @@ const DependencyManager = ({ isOpen, onClose }) => {
     </>
   );
 };
+
+export const DependencyManagerButton = memo(() => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  return (
+    <>
+      <Tooltip
+        label="Manage Dependencies"
+        borderRadius={8}
+        py={1}
+        px={2}
+        closeOnClick
+      >
+        <IconButton icon={<DownloadIcon />} onClick={onOpen} variant="outline" size="md" />
+      </Tooltip>
+      <DependencyManager
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
+      />
+    </>
+  );
+});
 
 export default memo(DependencyManager);

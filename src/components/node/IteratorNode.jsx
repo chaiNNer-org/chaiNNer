@@ -41,7 +41,7 @@ const IteratorNodeWrapper = memo(
 
 const IteratorNode = memo(({ data, selected }) => {
   const {
-    edges, availableNodes,
+    edges, availableNodes, useHoveredNode,
   } = useContext(GlobalContext);
 
   const {

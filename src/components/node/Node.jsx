@@ -42,7 +42,7 @@ const Node = memo(({
   data, selected,
 }) => {
   const {
-    nodes, edges, availableNodes, updateIteratorBounds,
+    nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode,
   } = useContext(GlobalContext);
 
   const {
@@ -103,6 +103,8 @@ const Node = memo(({
   //   }
   // }, [selected]);
 
+  const [, setHoveredNode] = useHoveredNode;
+
   return (
     <>
       <Menu isOpen={showMenu}>
@@ -129,6 +131,11 @@ const Node = memo(({
             // setShowMenu(false);
           }}
           ref={targetRef}
+          onDragEnter={() => {
+            if (parentNode) {
+              setHoveredNode(parentNode);
+            }
+          }}
         >
           <VStack minWidth="240px">
             <NodeHeader

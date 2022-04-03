@@ -37,7 +37,7 @@ const IteratorHelperNode = ({
   data, selected,
 }) => {
   const {
-    nodes, edges, availableNodes, updateIteratorBounds,
+    nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode,
   } = useContext(GlobalContext);
 
   const {
@@ -88,15 +88,7 @@ const IteratorHelperNode = ({
     }
   }, [nodes && !checkedSize]);
 
-  // eslint-disable-next-line no-unused-vars
-  const [showMenu, setShowMenu] = useState(false);
-  // const [menuPosition, setMenuPosition] = useState({});
-
-  // useEffect(() => {
-  //   if (!selected) {
-  //     setShowMenu(false);
-  //   }
-  // }, [selected]);
+  const [, setHoveredNode] = useHoveredNode;
 
   return (
     <Center
@@ -112,6 +104,11 @@ const IteratorHelperNode = ({
       onClick={() => {
       }}
       ref={targetRef}
+      onDragEnter={() => {
+        if (parentNode) {
+          setHoveredNode(parentNode);
+        }
+      }}
     >
       <VStack minWidth="240px">
         <NodeHeader

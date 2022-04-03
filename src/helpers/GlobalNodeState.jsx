@@ -54,6 +54,8 @@ export const GlobalProvider = ({
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
+  const [menuCloseFunctions, setMenuCloseFunctions] = useState({});
+
   const [hoveredNode, setHoveredNode] = useState(null);
 
   const dumpStateToJSON = async () => {
@@ -710,6 +712,18 @@ export const GlobalProvider = ({
     setZoom(viewport.zoom);
   };
 
+  const addMenuCloseFunction = useCallback((func, id) => {
+    const menuFuncs = { ...menuCloseFunctions };
+    menuFuncs[id] = func;
+    setMenuCloseFunctions(menuFuncs);
+  }, [menuCloseFunctions, setMenuCloseFunctions]);
+
+  const closeAllMenus = useCallback(() => {
+    Object.keys(menuCloseFunctions).forEach((id) => {
+      menuCloseFunctions[id]();
+    });
+  }, [menuCloseFunctions]);
+
   const contextValue = useMemo(() => ({
     availableNodes,
     nodes,
@@ -741,16 +755,18 @@ export const GlobalProvider = ({
     useIteratorSize,
     updateIteratorBounds,
     setIteratorPercent,
+    closeAllMenus,
     useIsCpu: [isCpu, setIsCpu],
     useIsFp16: [isFp16, setIsFp16],
     useIsSystemPython: [isSystemPython, setIsSystemPython],
     useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
     useHoveredNode: [hoveredNode, setHoveredNode],
     port,
+    useMenuCloseFunctions: [closeAllMenus, addMenuCloseFunction],
   }), [
     nodes, edges, reactFlowInstance,
     isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
-    zoom, hoveredNode, port,
+    zoom, hoveredNode, port, menuCloseFunctions,
   ]);
 
   return (

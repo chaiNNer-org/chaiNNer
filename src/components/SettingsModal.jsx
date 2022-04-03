@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
+import { SettingsIcon } from '@chakra-ui/icons';
 import {
-  Button, Flex, HStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
+  Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
   ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-  NumberInputStepper, StackDivider, Switch, Tab, TabList,
-  TabPanel, TabPanels, Tabs, Text, useColorMode, VStack,
+  NumberInputStepper, StackDivider, Switch, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useColorMode, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, {
@@ -207,5 +207,23 @@ const SettingsModal = ({ isOpen, onClose }) => {
     </Modal>
   );
 };
+
+export const SettingsButton = memo(() => {
+  const {
+    isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose,
+  } = useDisclosure();
+  return (
+    <>
+      <IconButton icon={<SettingsIcon />} onClick={onSettingsOpen} variant="outline" size="md">
+        Settings
+      </IconButton>
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onOpen={onSettingsOpen}
+        onClose={onSettingsClose}
+      />
+    </>
+  );
+});
 
 export default memo(SettingsModal);

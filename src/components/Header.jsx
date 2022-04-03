@@ -1,15 +1,10 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  DownloadIcon, HamburgerIcon, MoonIcon, SettingsIcon, SunIcon,
-} from '@chakra-ui/icons';
-import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, CircularProgress,
-  CircularProgressLabel, Flex, Heading, HStack, IconButton,
-  Image, Menu, MenuButton, MenuItem, MenuList,
-  Portal, Spacer, Tag, Tooltip, useColorMode, useColorModeValue, useDisclosure,
+  AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack, IconButton,
+  Image, Spacer, Tag, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
 import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
@@ -21,13 +16,12 @@ import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
-import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 import logo from '../public/icons/png/256x256.png';
-import DependencyManager from './DependencyManager.jsx';
-import SettingsModal from './SettingsModal.jsx';
+import { DependencyManagerButton } from './DependencyManager.jsx';
+import { SettingsButton } from './SettingsModal.jsx';
+import SystemStats from './SystemStats.jsx';
 
 const Header = ({ port }) => {
-  const { colorMode, toggleColorMode } = useColorMode();
   const {
     convertToUsableFormat,
     useAnimateEdges,
@@ -106,11 +100,6 @@ const Header = ({ port }) => {
     }
   }, [eventSource, unAnimateEdges]);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose,
-  } = useDisclosure();
-
   const [appVersion, setAppVersion] = useState('#.#.#');
   useEffect(() => {
     (async () => {
@@ -118,8 +107,6 @@ const Header = ({ port }) => {
       setAppVersion(version);
     })();
   }, []);
-
-  const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
 
   async function run() {
     setRunning(true);
@@ -202,8 +189,6 @@ const Header = ({ port }) => {
     }
   }
 
-  const trackColor = useColorModeValue('gray.300', 'gray.700');
-
   return (
     <>
       <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg" bg={useColorModeValue('gray.100', 'gray.800')}>
@@ -226,98 +211,12 @@ const Header = ({ port }) => {
           </HStack>
           <Spacer />
           <HStack>
-            <Tooltip
-              label={`${Number(cpuUsage).toFixed(1)}%`}
-              borderRadius={8}
-              py={1}
-              px={2}
-            >
-              <Box>
-                <CircularProgress
-                  value={cpuUsage}
-                  color={cpuUsage < 90 ? 'blue.400' : 'red.400'}
-                  size="42px"
-                  capIsRound
-                  trackColor={trackColor}
-                >
-                  <CircularProgressLabel>CPU</CircularProgressLabel>
-                </CircularProgress>
-              </Box>
-            </Tooltip>
-
-            <Tooltip
-              label={`${Number(ramUsage).toFixed(1)}%`}
-              borderRadius={8}
-              py={1}
-              px={2}
-            >
-              <Box>
-                <CircularProgress
-                  value={ramUsage}
-                  color={ramUsage < 90 ? 'blue.400' : 'red.400'}
-                  size="42px"
-                  capIsRound
-                  trackColor={trackColor}
-                >
-                  <CircularProgressLabel>RAM</CircularProgressLabel>
-                </CircularProgress>
-              </Box>
-            </Tooltip>
-
-            {vramUsage && (
-            <Tooltip
-              label={`${Number(vramUsage).toFixed(1)}%`}
-              borderRadius={8}
-              py={1}
-              px={2}
-            >
-              <Box>
-                <CircularProgress
-                  value={vramUsage}
-                  color={vramUsage < 90 ? 'blue.400' : 'red.400'}
-                  size="42px"
-                  capIsRound
-                  trackColor={trackColor}
-                >
-                  <CircularProgressLabel>VRAM</CircularProgressLabel>
-                </CircularProgress>
-              </Box>
-            </Tooltip>
-            )}
-
-            <Menu isLazy>
-              <MenuButton as={IconButton} icon={<HamburgerIcon />} variant="outline" size="md">
-                Settings
-              </MenuButton>
-              <Portal>
-                <MenuList>
-                  <MenuItem icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />} onClick={() => toggleColorMode()}>
-                    Toggle Theme
-                  </MenuItem>
-                  <MenuItem icon={<DownloadIcon />} onClick={onOpen}>
-                    Manage Dependencies
-                  </MenuItem>
-                  <MenuItem icon={<SettingsIcon />} onClick={onSettingsOpen}>
-                    Settings
-                  </MenuItem>
-                </MenuList>
-              </Portal>
-            </Menu>
+            <SystemStats />
+            <DependencyManagerButton />
+            <SettingsButton />
           </HStack>
         </Flex>
       </Box>
-
-      <DependencyManager
-        isOpen={isOpen}
-        onOpen={onOpen}
-        onClose={onClose}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onOpen={onSettingsOpen}
-        onClose={onSettingsClose}
-      />
 
       <AlertDialog
         leastDestructiveRef={cancelRef}

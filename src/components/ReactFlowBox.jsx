@@ -25,21 +25,22 @@ const ReactFlowBox = ({
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
     useSnapToGrid, setNodes, setEdges, onMoveEnd, zoom,
+    useMenuCloseFunctions,
   } = useContext(GlobalContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
-  useEffect(() => {
+  const sortNodesAndEdges = useCallback(() => {
     const iterators = nodes.filter((n) => n.type === 'iterator'); // .sort((i) => (i.selected ? 1 : -1));
-    const sorted = [];
+    let sortedNodes = [];
 
     // Sort the nodes in a way that makes iterators stack on each other correctly
     // Put iterators below their children
     iterators.forEach((_iterator, index) => {
       const iterator = _iterator;
       iterator.zIndex = STARTING_Z_INDEX + (index * 5);
-      sorted.push(iterator);
+      sortedNodes.push(iterator);
       const children = nodes.filter((n) => n.parentNode === iterator.id);
       // sorted.concat(children);
       children.forEach((_child) => {
@@ -47,23 +48,32 @@ const ReactFlowBox = ({
         child.zIndex = STARTING_Z_INDEX + (index * 5) + 1;
         // child.position.x = Math.min(Math.max(child.position.x, 0), iterator.width);
         // child.position.y = Math.min(Math.max(child.position.y, 0), iterator.height);
-        sorted.push(child);
+        sortedNodes.push(child);
       });
     });
 
     // Put nodes not in iterators on top of the iterators
     const freeNodes = nodes.filter((n) => n.type !== 'iterator' && !n.parentNode);
     freeNodes.forEach((f) => {
-      sorted.push(f);
+      sortedNodes.push(f);
     });
 
     const indexedEdges = edges.map((e) => {
-      const index = (sorted.find((n) => n.id === e.target)?.zIndex || 1000);
+      const index = (sortedNodes.find((n) => n.id === e.target)?.zIndex || 1000);
       return ({ ...e, zIndex: index });
     });
 
-    _setNodes(sorted);
+    // This fixes the connection line being behind iterators if no edges are present
+    if (indexedEdges.length === 0) {
+      sortedNodes = sortedNodes.map((n) => ({ ...n, zIndex: -1 }));
+    }
+
+    _setNodes(sortedNodes);
     _setEdges(indexedEdges);
+  }, [nodes, edges, _setNodes, _setEdges]);
+
+  useEffect(() => {
+    sortNodesAndEdges();
   }, [nodes, edges]);
 
   const onNodeDragStop = useCallback(() => {
@@ -170,6 +180,8 @@ const ReactFlowBox = ({
     console.log(event, node);
   }, []);
 
+  const [closeAllMenus] = useMenuCloseFunctions;
+
   // const onConnect = useCallback(
   //   (params) => {
   //     createConnection(params);
@@ -211,7 +223,7 @@ const ReactFlowBox = ({
         // onlyRenderVisibleElements
         deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         onMoveEnd={onMoveEnd}
-        // defaultEdgeOptions={{ zIndex: 1001 }}
+        onPaneClick={closeAllMenus}
       >
         <Background
           variant="dots"

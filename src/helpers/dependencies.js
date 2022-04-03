@@ -17,7 +17,7 @@ export default (isNvidiaAvailable) => [
   }, {
     name: 'NCNN',
     packageName: 'ncnn-vulkan',
-    version: '2022.3.23',
+    version: '2022.4.1',
   },
   {
     name: 'Pillow (PIL)',
