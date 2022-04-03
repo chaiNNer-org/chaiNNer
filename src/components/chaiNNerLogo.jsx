@@ -9,7 +9,7 @@ import front from '../public/splash_imgs/front.png';
 
 const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
   <Box display="block" boxSize={size} draggable={false}>
-    <Image src={bg} alt="bg" position="relative" top={0} draggable={false} boxSize={size} />
+    <Image src={bg} alt="bg" position="relative" top={0} draggable={false} boxSize={size} loading="eager" />
     <Center
       w={size}
       h={size}
@@ -67,7 +67,7 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
         </g>
       </svg>
     </Center>
-    <Image src={front} alt="front" position="relative" top={-size * 3} draggable={false} boxSize={size} />
+    <Image src={front} alt="front" position="relative" top={-size * 3} draggable={false} boxSize={size} loading="eager" />
   </Box>
 );
 
