@@ -426,7 +426,9 @@ export const DependencyManagerButton = memo(() => {
         if (Object.keys(pipList).length === 0) {
           return false;
         }
-        console.log({ packageName, version, pip: pipList[packageName] });
+        if (!pipList[packageName]) {
+          return true;
+        }
         return !checkSemver(version, pipList[packageName]);
       },
     ),

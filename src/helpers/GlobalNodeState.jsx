@@ -633,6 +633,7 @@ export const GlobalProvider = ({
           data: {
             ...c.data,
             id: newChildId,
+            parentNode: newId,
           },
           parentNode: newId,
           selected: false,
