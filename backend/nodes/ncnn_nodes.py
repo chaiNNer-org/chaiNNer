@@ -25,7 +25,7 @@ class NcnnLoadModelNode(NodeBase):
         super().__init__()
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
-        self.outputs = [NcnnNetOutput()]
+        self.outputs = [NcnnNetOutput(), TextOutput("Model Name")]
         self.icon = "NCNN"
         self.sub = "NCNN"
 
