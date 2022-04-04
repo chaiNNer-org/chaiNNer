@@ -3,7 +3,7 @@
 ![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer) ![GitHub Total Downloads](https://img.shields.io/github/downloads/joeyballentine/chaiNNer/total) ![License](https://img.shields.io/github/license/joeyballentine/chaiNNer) ![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)
 
 <p align="center">
-    <img src="src/public/chaiNNer screenshot.png" width="600" />
+    <img src="src/public/chaiNNer screenshot.png" width="720" />
 </p>
 
 A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially those done by neural networks) easy, intuitive, and customizable.
@@ -16,7 +16,7 @@ For help, suggestions, or just to hang out, you can join the [chaiNNer Discord s
 
 ## Installation
 
-Download the latest release from Github and run the installer. Simple as that.
+Download the latest release from the [Github releases page](https://github.com/joeyballentine/chaiNNer/releases) and run the installer. Simple as that.
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
