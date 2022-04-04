@@ -18,11 +18,12 @@ import RepresentativeNode from './node/RepresentativeNode.jsx';
 
 const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/type', node.name);
-  // event.dataTransfer.setData('application/reactflow/inputs', JSON.stringify(node.inputs));
-  // event.dataTransfer.setData('application/reactflow/outputs', JSON.stringify(node.outputs));
+  event.dataTransfer.setData('application/reactflow/nodeType', node.nodeType);
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
+  event.dataTransfer.setData('application/reactflow/defaultNodes', node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null);
+
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
   // eslint-disable-next-line no-param-reassign
@@ -38,8 +39,10 @@ const NodeSelector = ({ data, height }) => {
   const [namespaces, setNamespaces] = useState([]);
 
   const {
-    createNode, reactFlowInstance, reactFlowWrapper,
+    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
   } = useContext(GlobalContext);
+
+  const [, setHoveredNode] = useHoveredNode;
 
   useEffect(() => {
     const set = {};
@@ -69,6 +72,7 @@ const NodeSelector = ({ data, height }) => {
       h="100%"
       borderWidth="1px"
       borderRadius="lg"
+      bg={useColorModeValue('gray.100', 'gray.800')}
     >
       <Tabs
         w="100%"
@@ -156,6 +160,7 @@ const NodeSelector = ({ data, height }) => {
                                     .toUpperCase()
                                     .includes(namespace.toUpperCase()),
                                 )
+                                .filter((e) => e.nodeType !== 'iteratorHelper')
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
                                     .localeCompare(b.name.toUpperCase()),
@@ -175,8 +180,12 @@ const NodeSelector = ({ data, height }) => {
                                         onDragStart={
                                             (event) => {
                                               onDragStart(event, category, node);
+                                              setHoveredNode(null);
                                             }
                                           }
+                                        onDragEnd={() => {
+                                          setHoveredNode(null);
+                                        }}
                                         draggable
                                         display="block"
                                         w="100%"
@@ -195,7 +204,12 @@ const NodeSelector = ({ data, height }) => {
                                             type: node.name,
                                           };
 
-                                          createNode({ type: 'regularNode', position, data: nodeData });
+                                          createNode({
+                                            nodeType: node.nodeType,
+                                            position,
+                                            data: nodeData,
+                                            defaultNodes: node.defaultNodes,
+                                          });
                                         }}
                                       >
                                         <RepresentativeNode

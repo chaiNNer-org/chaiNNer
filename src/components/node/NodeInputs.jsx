@@ -67,7 +67,7 @@ const pickInput = (type, props) => {
           id={props.id}
           index={props.index}
           label={null}
-          hasHandle
+          hasHandle={props.hasHandle === undefined ? true : props.hasHandle}
         >
           <GenericInput label={props.label} />
         </InputContainer>
@@ -87,10 +87,10 @@ const pickInput = (type, props) => {
 };
 
 const NodeInputs = ({
-  inputs, id, accentColor, isLocked,
+  inputs, id, accentColor, isLocked, category, nodeType,
 }) => inputs.map((input, i) => {
   const props = {
-    ...input, id, index: i, type: input.type, accentColor, isLocked,
+    ...input, id, index: i, type: input.type, accentColor, isLocked, category, nodeType,
   };
   return pickInput(input.type, props);
 });

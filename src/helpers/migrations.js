@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
-import { isNode } from 'react-flow-renderer';
+import { isEdge, isNode } from 'react-flow-renderer';
 import semver from 'semver';
 
 // ==============
@@ -120,18 +120,48 @@ const toV03 = (data) => {
 };
 
 // ==============
+//    v0.5.0
+// ==============
 
-export const migrate = (version, data) => {
+const toV05 = (data) => {
+  const nodes = data.elements.filter((e) => isNode(e));
+  const edges = data.elements.filter((e) => isEdge(e)).map((e) => {
+    const newEdge = { ...e };
+    delete newEdge.style;
+    newEdge.data = {};
+    return newEdge;
+  });
+  const viewport = {
+    x: data.position[0],
+    y: data.position[1],
+    zoom: data.zoom,
+  };
+  const newData = {
+    nodes, edges, viewport,
+  };
+  return newData;
+};
+
+// ==============
+
+export const migrate = (_version, data) => {
   let convertedData = data;
+  let version = _version;
 
   // Legacy files
   if (!version || semver.lt(version, '0.1.0')) {
     convertedData = preAlpha(convertedData);
+    version = '0.0.0';
   }
 
-  // V1&2 to V3
+  // v0.1.x & v0.2.x to v0.3.0
   if (semver.lt(version, '0.3.0')) {
     convertedData = toV03(convertedData);
+  }
+
+  // v0.3.x & v0.4.x to v0.5.0
+  if (semver.lt(version, '0.5.0')) {
+    convertedData = toV05(convertedData);
   }
 
   return convertedData;

@@ -15,7 +15,7 @@ from sanic_cors import CORS
 try:
     import cv2
 
-    from nodes import image_nodes
+    from nodes import image_iterator_nodes, image_nodes
 except Exception as e:
     logger.warning(e)
     logger.info("OpenCV most likely not installed")
@@ -82,7 +82,9 @@ async def nodes(_):
             node_dict["description"] = node_object.get_description()
             node_dict["icon"] = node_object.get_icon()
             node_dict["subcategory"] = node_object.get_sub_category()
-
+            node_dict["nodeType"] = node_object.get_type()
+            if node_object.get_type() == "iterator":
+                node_dict["defaultNodes"] = node_object.get_default_nodes()
             category_dict["nodes"].append(node_dict)
             del node_object, node_dict
         nodes.append(category_dict)
@@ -101,7 +103,7 @@ async def run(request: Request):
         if request.app.ctx.executor:
             logger.info("Resuming existing executor...")
             executor = request.app.ctx.executor
-            await executor.run()
+            await executor.resume()
         else:
             logger.info("Running new executor...")
             full_data = request.json
@@ -146,6 +148,31 @@ async def run(request: Request):
         )
 
 
+# Gets extra information from node output data before sending to frontend
+def get_extra_data(category, node, node_output):
+    if category == "Image":
+        if node == "Load Image":
+            img, name = node_output
+
+            if img.ndim == 2:
+                h, w, c = img.shape[:2], 1
+            else:
+                h, w, c = img.shape
+
+            import base64
+
+            _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
+            base64_img = base64.b64encode(encoded_img).decode("utf8")
+
+            return {
+                "image": base64_img,
+                "height": h,
+                "width": w,
+                "channels": c,
+            }
+    return node_output
+
+
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
@@ -154,12 +181,12 @@ async def run_individual(request: Request):
     # Create node based on given category/name information
     node_instance = NodeFactory.create_node(full_data["category"], full_data["node"])
     # Run the node and pass in inputs as args
-    run_func = functools.partial(node_instance.run, full_data["inputs"])
+    run_func = functools.partial(node_instance.run, *full_data["inputs"])
     output = await app.loop.run_in_executor(None, run_func)
     # Cache the output of the node
     app.ctx.cache[full_data["id"]] = output
     del node_instance, run_func
-    return json(output)
+    return json(get_extra_data(full_data["category"], full_data["node"], output))
 
 
 @app.get("/sse")

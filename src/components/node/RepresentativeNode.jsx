@@ -37,6 +37,7 @@ const RepresentativeNode = (
         borderBottomColor={accentColor}
         borderBottomWidth="4px"
         verticalAlign="middle"
+        borderStyle={subcategory === 'Iteration' ? 'double' : 'default'}
       >
         <HStack
           pl={4}

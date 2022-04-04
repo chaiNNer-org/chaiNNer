@@ -11,7 +11,7 @@ import NodeOutputs from './NodeOutputs.jsx';
 // useContext, useEffect, useMemo,
 
 const NodeBody = ({
-  accentColor, inputs, outputs, id, isLocked,
+  accentColor, inputs, outputs, id, isLocked, category, nodeType,
 }) => (
   <>
     {inputs.length && (
@@ -21,7 +21,14 @@ const NodeBody = ({
       </Text>
     </Center>
     )}
-    <NodeInputs inputs={inputs} id={id} accentColor={accentColor} isLocked={isLocked} />
+    <NodeInputs
+      inputs={inputs}
+      id={id}
+      accentColor={accentColor}
+      isLocked={isLocked}
+      category={category}
+      nodeType={nodeType}
+    />
 
     {outputs.length > 0 && (
     <Center>

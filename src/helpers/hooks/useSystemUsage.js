@@ -11,8 +11,8 @@ const useSystemUsage = (delay) => {
   const setInfo = async () => {
     // RAM
     const totalMem = os.totalmem();
-    const usedMem = os.freemem();
-    const ramPercent = Number((usedMem / totalMem) * 100).toFixed(1);
+    const freeMem = os.freemem();
+    const ramPercent = Number((1 - (freeMem / totalMem)) * 100).toFixed(1);
     setRamUsage(ramPercent);
 
     // CPU

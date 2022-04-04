@@ -2,6 +2,7 @@
 Nodes that provide NCNN support
 """
 
+import os
 import re
 
 import numpy as np
@@ -24,7 +25,7 @@ class NcnnLoadModelNode(NodeBase):
         super().__init__()
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
-        self.outputs = [NcnnNetOutput()]
+        self.outputs = [NcnnNetOutput(), TextOutput("Model Name")]
         self.icon = "NCNN"
         self.sub = "NCNN"
 
@@ -66,7 +67,17 @@ class NcnnLoadModelNode(NodeBase):
 
         return input_name, output_name, out_nc
 
-    def run(self, param_path: str, bin_path: str) -> np.ndarray:
+    def run(self, param_path: str, bin_path: str) -> Any:
+        assert os.path.exists(
+            param_path
+        ), f"Param file at location {param_path} does not exist"
+        assert os.path.exists(
+            bin_path
+        ), f"Bin file at location {param_path} does not exist"
+
+        assert os.path.isfile(param_path), f"Path {param_path} is not a file"
+        assert os.path.isfile(bin_path), f"Path {param_path} is not a file"
+
         input_name, output_name, out_nc = self.get_param_info(param_path)
 
         net = ncnn.Net()
@@ -78,8 +89,10 @@ class NcnnLoadModelNode(NodeBase):
         net.load_param(param_path)
         net.load_model(bin_path)
 
+        model_name = os.path.splitext(os.path.basename(param_path))[0]
+
         # Put all this info with the net and disguise it as just the net
-        return [(param_path, bin_path, input_name, output_name, net)]
+        return (param_path, bin_path, input_name, output_name, net), model_name
 
 
 @NodeFactory.register("NCNN", "Upscale Image")

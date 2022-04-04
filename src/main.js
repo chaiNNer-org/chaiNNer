@@ -492,7 +492,7 @@ const spawnBackend = async (port) => {
           log.error('Error killing backend.');
         }
       } catch (error) {
-        log.error('Error killing backend.');
+        log.error('Error killing backend.', error);
       }
       app.relaunch();
       app.exit();
@@ -508,7 +508,7 @@ const spawnBackend = async (port) => {
           log.error('Error killing backend.');
         }
       } catch (error) {
-        log.error('Error killing backend.');
+        log.error('Error killing backend.', error);
       }
     });
 
@@ -524,7 +524,7 @@ const spawnBackend = async (port) => {
         ipcMain.removeHandler('kill-backend');
         await spawnBackend(port);
       } catch (error) {
-        log.error('Error restarting backend.');
+        log.error('Error restarting backend.', error);
       }
     });
 
@@ -554,7 +554,7 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     width: 400,
     height: 400,
     frame: false,
-    backgroundColor: '#2D3748',
+    // backgroundColor: '#2D3748',
     center: true,
     minWidth: 400,
     minHeight: 400,
@@ -566,8 +566,8 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     closable: false,
     alwaysOnTop: true,
     titleBarStyle: 'hidden',
-    // transparent: true,
-    // roundedCorners: true,
+    transparent: true,
+    roundedCorners: true,
     webPreferences: {
       webSecurity: false,
       nativeWindowOpen: true,
@@ -590,19 +590,25 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     }
   });
 
+  // Look, I just wanna see the cool animation
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   // Send events to splash screen renderer as they happen
   // Added some sleep functions so I can see that this is doing what I want it to
   // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
   splash.webContents.once('dom-ready', async () => {
     splash.webContents.send('checking-port');
     const port = await getValidPort(splash);
+    await sleep(250);
 
     splash.webContents.send('checking-python');
     await checkPythonEnv(splash);
+    await sleep(250);
 
     splash.webContents.send('checking-deps');
     await checkPythonDeps(splash);
     await checkNvidiaSmi();
+    await sleep(250);
 
     splash.webContents.send('spawning-backend');
     await spawnBackend(port);
@@ -610,24 +616,31 @@ const doSplashScreenChecks = async () => new Promise((resolve) => {
     registerEventHandlers();
 
     splash.webContents.send('splash-finish');
+    await sleep(250);
 
     resolve();
   });
 
   ipcMain.handle('backend-ready', () => {
     mainWindow.webContents.once('dom-ready', async () => {
+      splash.webContents.send('finish-loading');
       splash.on('close', () => {});
+      await sleep(500);
       splash.destroy();
       mainWindow.show();
+      ipcMain.removeHandler('backend-ready');
     });
   });
 
   mainWindow.webContents.once('dom-ready', async () => {
     ipcMain.removeHandler('backend-ready');
-    ipcMain.handle('backend-ready', () => {
+    ipcMain.handle('backend-ready', async () => {
+      splash.webContents.send('finish-loading');
       splash.on('close', () => {});
+      await sleep(500);
       splash.destroy();
       mainWindow.show();
+      ipcMain.removeHandler('backend-ready');
     });
   });
 });

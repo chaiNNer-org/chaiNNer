@@ -9,19 +9,19 @@ import {
   MenuList, Portal, Spacer, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext,
+  memo, useContext, useEffect, useState,
 } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 
 const NodeFooter = ({
-  id, validity, isLocked, toggleLock, accentColor,
+  id, isValid = false, invalidReason = '', isLocked,
 }) => {
   const {
-    removeNodeById, duplicateNode, clearNode,
+    removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions,
   } = useContext(GlobalContext);
 
-  const [isValid, invalidReason] = validity;
+  const [, toggleLock] = useNodeLock(id);
 
   const iconShade = useColorModeValue('gray.400', 'gray.800');
   const validShade = useColorModeValue('gray.900', 'gray.100');
@@ -29,9 +29,22 @@ const NodeFooter = ({
   const invalidShade = useColorModeValue('red.400', 'red.600');
   // const iconShade = useColorModeValue('gray.400', 'gray.800');
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [, addMenuCloseFunction] = useMenuCloseFunctions;
+  useEffect(() => {
+    addMenuCloseFunction(() => {
+      setIsOpen(false);
+    }, id);
+  }, [isOpen]);
+  useEffect(() => {
+    addMenuCloseFunction(() => {
+      setIsOpen(false);
+    }, id);
+  }, []);
+
   return (
     <Flex w="full" pl={2} pr={2}>
-      <Center>
+      <Center className="nodrag">
         <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={iconShade} onClick={() => toggleLock()} cursor="pointer" />
       </Center>
       <Spacer />
@@ -45,7 +58,7 @@ const NodeFooter = ({
         py={1}
         px={2}
       >
-        <Center my={-2}>
+        <Center my={-2} className="nodrag">
           <Center
             bgColor={isValid ? validShade : iconShade}
             borderRadius={100}
@@ -65,8 +78,17 @@ const NodeFooter = ({
       </Tooltip>
       <Spacer />
       <Center>
-        <Menu>
-          <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle">
+        <Menu
+          onClose={() => {
+            setIsOpen(false);
+          }}
+          onOpen={() => {
+            setIsOpen(true);
+          }}
+          isOpen={isOpen}
+          // isLazy
+        >
+          <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle" className="nodrag">
             <Center>
               <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={iconShade} />
             </Center>

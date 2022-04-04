@@ -1,16 +1,22 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, HStack, Spinner, VStack,
+  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogOverlay, Box, Button, Center, HStack, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { app, ipcRenderer } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import log from 'electron-log';
+import React, {
+  memo, useEffect, useRef, useState,
+} from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
+import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
 import Header from '../components/Header.jsx';
+import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
+import IteratorNode from '../components/node/IteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
@@ -18,6 +24,7 @@ import CustomEdge from '../helpers/CustomEdge.jsx';
 import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
 
 const Main = ({ port }) => {
+  // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
   const [availableNodes, setAvailableNodes] = useState(null);
   const [nodeTypes, setNodeTypes] = useState(null);
   const edgeTypes = {
@@ -36,10 +43,14 @@ const Main = ({ port }) => {
     loading, error, data, response,
   } = useFetch(`http://localhost:${port}/nodes`, options, [port]);
 
+  const bgColor = useColorModeValue('gray.200', '#151a24');
+
   useEffect(() => {
     if (response.ok && data && !loading && !error && !backendReady) {
       setNodeTypes({
         regularNode: Node,
+        iterator: IteratorNode,
+        iteratorHelper: IteratorHelperNode,
       });
       const availableNodeMap = {};
       data.forEach(({ category, nodes }) => {
@@ -56,16 +67,25 @@ const Main = ({ port }) => {
     (async () => {
       if (nodeTypes && !backendReady) {
         setBackendReady(true);
-        await ipcRenderer.invoke('backend-ready');
+        try {
+          await ipcRenderer.invoke('backend-ready');
+        } catch (err) {
+          log.error(err);
+        }
       }
     })();
   }, [nodeTypes]);
 
+  const loadingLogo = (<ChaiNNerLogo size={256} percent={0} />);
+
   if (!nodeTypes) {
     return (
-      <Box w="full" h="full">
+      <Box w="100vw" h="100vh">
         <Center w="full" h="full">
-          <Spinner />
+          <VStack>
+            {loadingLogo}
+            <Text>Loading...</Text>
+          </VStack>
         </Center>
       </Box>
     );
@@ -114,8 +134,9 @@ const Main = ({ port }) => {
         nodeTypes={nodeTypes}
         availableNodes={availableNodes}
         reactFlowWrapper={reactFlowWrapper}
+        port={port}
       >
-        <VStack p={2} overflow="hidden">
+        <VStack p={2} overflow="hidden" bg={bgColor}>
           <Header port={port} />
           <HStack
             as={Split}
@@ -145,4 +166,4 @@ const Main = ({ port }) => {
   );
 };
 
-export default Main;
+export default memo(Main);

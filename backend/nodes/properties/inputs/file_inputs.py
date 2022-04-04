@@ -1,10 +1,15 @@
 from typing import Dict, List
 
+from ...utils.image_utils import get_available_image_formats
 from .generic_inputs import DropDownInput
 
 
 def FileInput(
-    input_type: str, label: str, accepts: List[str], filetypes: List[str]
+    input_type: str,
+    label: str,
+    accepts: List[str],
+    filetypes: List[str],
+    hasHandle: bool = False,
 ) -> Dict:
     """Input for submitting a local file"""
     return {
@@ -12,13 +17,18 @@ def FileInput(
         "label": label,
         "accepts": None,
         "filetypes": filetypes,
+        "hasHandle": hasHandle,
     }
 
 
 def ImageFileInput() -> Dict:
     """Input for submitting a local image file"""
     return FileInput(
-        "image", "Image File", None, ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
+        "image",
+        "Image File",
+        None,
+        get_available_image_formats(),
+        hasHandle=False,
     )
 
 

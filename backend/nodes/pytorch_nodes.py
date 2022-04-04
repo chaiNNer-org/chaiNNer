@@ -18,7 +18,7 @@ from .properties.outputs import *
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from .utils.pytorch_auto_split import auto_split_process
+from .utils.pytorch_auto_split import auto_split_process, preview_upscale
 from .utils.utils import np2tensor, tensor2np
 
 
@@ -70,6 +70,10 @@ class LoadModelNode(NodeBase):
 
     def run(self, path: str) -> Any:
         """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
+        assert os.path.exists(path), f"Model file at location {path} does not exist"
+
+        assert os.path.isfile(path), f"Path {path} is not a file"
+
         check_env()
 
         logger.info(f"Reading state dict from path: {path}")
@@ -110,6 +114,27 @@ class ImageUpscaleNode(NodeBase):
             model = model.half()
         logger.info("Upscaling image")
         t_out, _ = auto_split_process(
+            img_tensor,
+            model,
+            scale,
+        )
+        del img_tensor, model
+        logger.info("Converting tensor to image")
+        img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
+        logger.info("Done upscaling")
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        del t_out
+        return img_out
+
+    def preview(self, img: np.ndarray, model: torch.nn.Module, scale: int):
+        # Borrowed from iNNfer
+        logger.info("Converting image to tensor")
+        img_tensor = np2tensor(img, change_range=True)
+        if os.environ["isFp16"] == "True":
+            model = model.half()
+        logger.info("Upscaling image")
+        t_out, _ = preview_upscale(
             img_tensor,
             model,
             scale,

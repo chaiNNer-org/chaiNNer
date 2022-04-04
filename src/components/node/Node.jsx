@@ -5,7 +5,7 @@ import {
   Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useMemo, useState,
+  memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -34,14 +34,20 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const Node = ({ data, selected }) => {
+const NodeWrapper = memo(({
+  data, selected,
+}) => (<Node data={data} selected={selected} />));
+
+const Node = memo(({
+  data, selected,
+}) => {
   const {
-    edges, useNodeLock, availableNodes,
+    nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode,
   } = useContext(GlobalContext);
 
   const {
-    id, inputData, isLocked, category, type,
-  } = data;
+    id, inputData, isLocked, category, type, parentNode,
+  } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
@@ -69,9 +75,23 @@ const Node = ({ data, selected }) => {
         id, inputs, inputData, edges,
       }));
     }
-  }, [inputData, edges.length]);
+  }, [inputData, edges.length, nodes.length]);
 
-  const [, toggleLock] = useNodeLock(id);
+  const targetRef = useRef();
+  const [checkedSize, setCheckedSize] = useState(false);
+
+  useLayoutEffect(() => {
+    if (targetRef.current) {
+      const parent = nodes.find((n) => n.id === parentNode);
+      if (parent) {
+        updateIteratorBounds(parentNode, parent.data.iteratorSize, {
+          width: targetRef.current.offsetWidth,
+          height: targetRef.current.offsetHeight,
+        });
+        setCheckedSize(true);
+      }
+    }
+  }, [nodes && !checkedSize, targetRef?.current?.offsetHeight]);
 
   // eslint-disable-next-line no-unused-vars
   const [showMenu, setShowMenu] = useState(false);
@@ -82,6 +102,8 @@ const Node = ({ data, selected }) => {
   //     setShowMenu(false);
   //   }
   // }, [selected]);
+
+  const [, setHoveredNode] = useHoveredNode;
 
   return (
     <>
@@ -108,6 +130,12 @@ const Node = ({ data, selected }) => {
           onClick={() => {
             // setShowMenu(false);
           }}
+          ref={targetRef}
+          onDragEnter={() => {
+            if (parentNode) {
+              setHoveredNode(parentNode);
+            }
+          }}
         >
           <VStack minWidth="240px">
             <NodeHeader
@@ -116,6 +144,7 @@ const Node = ({ data, selected }) => {
               accentColor={accentColor}
               icon={icon}
               selected={selected}
+              parentNode={parentNode}
             />
             <NodeBody
               inputs={inputs}
@@ -123,13 +152,16 @@ const Node = ({ data, selected }) => {
               id={id}
               accentColor={accentColor}
               isLocked={isLocked}
+              category={category}
+              nodeType={type}
             />
             <NodeFooter
               id={id}
               accentColor={accentColor}
-              validity={validity}
+              isValid={validity[0]}
+              invalidReason={validity[1]}
               isLocked={isLocked}
-              toggleLock={toggleLock}
+              // toggleLock={toggleLock}
             />
           </VStack>
         </Center>
@@ -168,6 +200,6 @@ const Node = ({ data, selected }) => {
       </Menu>
     </>
   );
-};
+});
 
-export default memo(Node);
+export default memo(NodeWrapper);

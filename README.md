@@ -3,7 +3,7 @@
 ![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer) ![GitHub Total Downloads](https://img.shields.io/github/downloads/joeyballentine/chaiNNer/total) ![License](https://img.shields.io/github/license/joeyballentine/chaiNNer) ![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)
 
 <p align="center">
-    <img src="src/public/chaiNNer screenshot.png" width="600" />
+    <img src="src/public/chaiNNer screenshot.png" width="720" />
 </p>
 
 A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially those done by neural networks) easy, intuitive, and customizable.
@@ -16,7 +16,7 @@ For help, suggestions, or just to hang out, you can join the [chaiNNer Discord s
 
 ## Installation
 
-Download the latest release from Github and run the installer. Simple as that.
+Download the latest release from the [Github releases page](https://github.com/joeyballentine/chaiNNer/releases) and run the installer. Simple as that.
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
@@ -30,6 +30,8 @@ To select multiple nodes, hold down shift and drag around all the nodes you want
 
 Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively.
 
+To batch upscale, create an Image Iterator node and drag the nodes you want to use into the iterator's editor area. You can expand the iterator by clicking and dragging the bottom right corner outwards (like you would a UI window). Simply wire up a chain in an iterator the same as you would normally, and when you click run it will run on every image in the folder you chose.
+
 ## Building chaiNNer Yourself
 
 I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` to install all the nodejs dependencies, and `npm run make` to build the application.
@@ -40,15 +42,21 @@ For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvi
 
 If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch model to ONNX, and then convert that to NCNN (via convertmodel.com). Conversion straight from PyTorch to NCNN may come in the future, however I currently have no easy way of doing this.
 
+## Model Architecture Support
+
+chaiNNer currently supports a limited amount of neural network architectures. More architectures will be supported in the future.
+
+### Pytorch
+
+* ESRGAN (RRDBNet)
+  * This includes regular ESRGAN, ESRGAN+, "new-arch ESRGAN" (RealSR, BSRGAN), SPSR, and Real-ESRGAN
+* Real-ESRGAN Compact (SRVGGNet)
+
+### NCNN
+
+* Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
+
 ## Planned Features
-
-**DDS (and other filetype) Support**
-
-* Support for DDS files will come when I add PIL as an extra dependency in the future. This will also allow many other input filetypes, as well as a lot of other image effects.
-
-**Batch Processing**
-
-* I am waiting to add this until the node-graph library I use supports nested flows (which is coming relatively soon). The way I will be doing this will be similar to how for-loops work, in that you will have iterator panels that will iterate over some sort of loaded array of items (i.e. folder input or frames of a video)
 
 **Undo History, Copy & Paste**
 
@@ -80,7 +88,7 @@ If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now support
 
 * All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
 
-* This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like batch processing images or running ESRGAN on video.
+* This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like running ESRGAN on video.
 
 **Wouldn't this make it more difficult to do things?**
 
