@@ -36,18 +36,22 @@ const FileInput = memo(({
   const preview = () => {
     switch (type) {
       case 'file::image':
-        return <ImagePreview path={filePath} category={category} nodeType={nodeType} id={id} />;
+        return (
+          <Box mt={2}>
+            <ImagePreview path={filePath} category={category} nodeType={nodeType} id={id} />
+          </Box>
+        );
       default:
         return <></>;
     }
   };
 
   return (
-    <VStack>
+    <VStack spacing={0}>
       <Tooltip
         label={filePath}
         borderRadius={8}
-        py={1}
+        py={0}
         px={2}
         maxW="auto"
       >

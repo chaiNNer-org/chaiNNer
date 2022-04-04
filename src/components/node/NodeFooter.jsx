@@ -86,7 +86,7 @@ const NodeFooter = ({
             setIsOpen(true);
           }}
           isOpen={isOpen}
-          isLazy
+          // isLazy
         >
           <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle" className="nodrag">
             <Center>
