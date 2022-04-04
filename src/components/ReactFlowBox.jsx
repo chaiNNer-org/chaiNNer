@@ -25,7 +25,7 @@ const ReactFlowBox = ({
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
     useSnapToGrid, setNodes, setEdges, onMoveEnd, zoom,
-    useMenuCloseFunctions,
+    useMenuCloseFunctions, useHoveredNode,
   } = useContext(GlobalContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -136,6 +136,12 @@ const ReactFlowBox = ({
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
+  const [, setHoveredNode] = useHoveredNode;
+
+  const onDragStart = useCallback(() => {
+    setHoveredNode(null);
+  }, []);
+
   const onDrop = useCallback((event) => {
     // log.info('dropped');
     event.preventDefault();
@@ -201,6 +207,7 @@ const ReactFlowBox = ({
         onInit={onInit}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onDragStart={onDragStart}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={memoNodeTypes}
         edgeTypes={memoEdgeTypes}
