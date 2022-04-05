@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List
 
 
@@ -16,6 +17,12 @@ def ImageFileOutput(label: str = "image") -> Dict:
         label, "Image File", ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
     )
 
+
+def DirectoryOutput(label: str = "directory") -> Dict:
+    """Output for saving to a directory"""
+    return FileOutput(
+        label, "Image Directory", ["directory"]
+    )
 
 def OnnxFileOutput() -> Dict:
     """Output for saving a .onnx file"""

@@ -42,11 +42,12 @@ class ImReadNode(NodeBase):
             # IntegerOutput("Width"),
             # IntegerOutput("Channels"),
             TextOutput("Image Name"),
+            DirectoryOutput()
         ]
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> np.ndarray:
+    def run(self, path: str) -> tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -96,8 +97,8 @@ class ImReadNode(NodeBase):
         c = img.shape[2] if img.ndim > 2 else 1
 
         # return img, h, w, c
-        basename = os.path.splitext(os.path.basename(path))[0]
-        return img, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        return img, basename, dirname
 
 
 @NodeFactory.register("Image", "Save Image")
@@ -110,7 +111,7 @@ class ImWriteNode(NodeBase):
         self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
-            DirectoryInput(),
+            DirectoryInput(hasHandle=True),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
@@ -128,6 +129,8 @@ class ImWriteNode(NodeBase):
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+
+        os.makedirs(directory, exist_ok=True)
 
         status = cv2.imwrite(fullPath, img)
 
