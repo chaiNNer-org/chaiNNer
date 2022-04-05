@@ -1,8 +1,6 @@
 import math
 import os
 import sys
-from msilib.schema import Directory
-from posixpath import splitext
 
 import cv2
 import numpy as np
