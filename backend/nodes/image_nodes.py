@@ -5,7 +5,6 @@ Nodes that provide functionality for opencv image manipulation
 import math
 import os
 import sys
-from msilib.schema import Directory
 
 import cv2
 import numpy as np
