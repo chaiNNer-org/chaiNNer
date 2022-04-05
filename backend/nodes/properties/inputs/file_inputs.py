@@ -44,7 +44,7 @@ def TorchFileInput() -> Dict:
 
 def DirectoryInput(hasHandle: bool = False) -> Dict:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Directory", None, ["directory"], hasHandle)
+    return FileInput("directory", "Base Directory", None, ["directory"], hasHandle)
 
 
 def ImageExtensionDropdown() -> Dict:
