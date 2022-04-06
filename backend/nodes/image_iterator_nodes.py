@@ -26,7 +26,7 @@ class ImageFileIteratorPathNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput()]
         self.outputs = ImReadNode().get_outputs()
-        self.outputs.insert(2, TextOutput("Relative Path"))
+        self.outputs.insert(2, TextOutput("Relative Path"))  # Add relative path to outputs outside ImReadNode
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
@@ -36,8 +36,10 @@ class ImageFileIteratorPathNode(NodeBase):
         imread = ImReadNode()
         imread_output = imread.run(directory)
 
+        # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(imread_output[1], root_dir)
 
+        # Set ImRead directory output to root/base directory and insert relative path into outputs
         imread_output[1] = root_dir
         imread_output.insert(2, rel_path)
 
@@ -74,7 +76,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         id="",
         parent_executor=None,
         percent=0,
-    ) -> any:
+    ) -> Any:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
 

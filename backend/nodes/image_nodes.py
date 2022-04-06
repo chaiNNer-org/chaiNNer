@@ -135,7 +135,7 @@ class ImWriteNode(NodeBase):
             relative_path = '.'
 
         full_file = f"{filename}.{extension}"
-        if relative_path != '.':
+        if relative_path and relative_path != '.':
             base_directory = os.path.join(base_directory, relative_path)
         full_path = os.path.join(base_directory, full_file)
 
