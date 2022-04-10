@@ -19,6 +19,11 @@ class NodeBase(metaclass=ABCMeta):
         """Abstract method to run a node's logic"""
         return
 
+    @abstractmethod
+    def get_extra_data(self, **kwargs) -> Any:
+        """Abstract method for getting extra data the frontend needs"""
+        return
+
     def get_inputs(self):
         return self.inputs
 

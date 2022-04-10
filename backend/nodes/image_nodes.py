@@ -5,6 +5,7 @@ Nodes that provide functionality for opencv image manipulation
 import math
 import os
 import sys
+from typing import Dict, List
 
 import cv2
 import numpy as np
@@ -41,12 +42,32 @@ class ImReadNode(NodeBase):
             # IntegerOutput("Width"),
             # IntegerOutput("Channels"),
             DirectoryOutput(),
-            TextOutput("Image Name")
+            TextOutput("Image Name"),
         ]
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> [np.ndarray, str, str]:
+    def get_extra_data(self) -> Dict:
+        img, name, dirname = self.output
+
+        if img.ndim == 2:
+            h, w, c = img.shape[:2], 1
+        else:
+            h, w, c = img.shape
+
+        import base64
+
+        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
+        base64_img = base64.b64encode(encoded_img).decode("utf8")
+
+        return {
+            "image": base64_img,
+            "height": h,
+            "width": w,
+            "channels": c,
+        }
+
+    def run(self, path: str) -> List[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -97,7 +118,8 @@ class ImReadNode(NodeBase):
 
         # return img, h, w, c
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        return [img, dirname, basename]
+        self.output = [img, dirname, basename]
+        return self.output
 
 
 @NodeFactory.register("Image", "Save Image")
@@ -123,19 +145,19 @@ class ImWriteNode(NodeBase):
         self,
         img: np.ndarray = None,
         base_directory: str = None,
-        relative_path: str = '.',
+        relative_path: str = ".",
         filename: str = None,
-        extension: str = None
+        extension: str = None,
     ) -> bool:
         """Write an image to the specified path and return write status"""
         # Shift inputs if relative path is missing
         if extension is None:
             extension = filename
             filename = relative_path
-            relative_path = '.'
+            relative_path = "."
 
         full_file = f"{filename}.{extension}"
-        if relative_path and relative_path != '.':
+        if relative_path and relative_path != ".":
             base_directory = os.path.join(base_directory, relative_path)
         full_path = os.path.join(base_directory, full_file)
 

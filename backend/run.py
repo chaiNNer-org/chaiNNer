@@ -149,31 +149,6 @@ async def run(request: Request):
         )
 
 
-# Gets extra information from node output data before sending to frontend
-def get_extra_data(category, node, node_output):
-    if category == "Image":
-        if node == "Load Image":
-            img, name, dirname = node_output
-
-            if img.ndim == 2:
-                h, w, c = img.shape[:2], 1
-            else:
-                h, w, c = img.shape
-
-            import base64
-
-            _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
-            base64_img = base64.b64encode(encoded_img).decode("utf8")
-
-            return {
-                "image": base64_img,
-                "height": h,
-                "width": w,
-                "channels": c,
-            }
-    return node_output
-
-
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
@@ -186,8 +161,9 @@ async def run_individual(request: Request):
     output = await app.loop.run_in_executor(None, run_func)
     # Cache the output of the node
     app.ctx.cache[full_data["id"]] = output
+    extra_data = node_instance.get_extra_data()
     del node_instance, run_func
-    return json(get_extra_data(full_data["category"], full_data["node"], output))
+    return json(extra_data)
 
 
 @app.get("/sse")
