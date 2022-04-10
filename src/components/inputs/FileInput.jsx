@@ -1,22 +1,59 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-    Box, Input, InputGroup, InputLeftElement, Tooltip, VStack
+  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
+import { constants } from 'fs';
+import { access } from 'fs/promises';
 import path from 'path';
 import React, {
-    memo, useContext
+  memo, useContext, useEffect
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
+
+const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
+  .then(() => resolve(true))
+  .catch(() => resolve(false)));
 
 const FileInput = memo(({
   filetypes, id, index, label, type, isLocked, category, nodeType,
 }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
+
+  // Handle case of NCNN model selection where param and bin files are named in pairs
+  // Eventually, these should be combined into a single input type instead of using the file inputs directly
+  if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
+    const [paramFilePath] = useInputData(id, index - 1);
+    useEffect(() => {
+      (async () => {
+        if (paramFilePath) {
+          const binFilePath = paramFilePath?.replace('.param', '.bin');
+          const binFileExists = await checkFileExists(binFilePath);
+          if (binFileExists) {
+            setFilePath(paramFilePath?.replace('.param', '.bin'))
+          }
+        }
+      })();
+    }, [paramFilePath])
+  }
+  if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
+    const [binFilePath] = useInputData(id, index + 1);
+    useEffect(() => {
+      (async () => {
+        if (binFilePath) {
+          const paramFilePath = binFilePath?.replace('.param', '.bin');
+          const paramFileExists = await checkFileExists(paramFilePath);
+          if (paramFileExists) {
+            setFilePath(paramFilePath?.replace('.bin', '.param'));
+          }
+        }
+      })();
+    }, [binFilePath])
+  }
 
   const [, , isInputLocked] = useNodeLock(id, index);
 

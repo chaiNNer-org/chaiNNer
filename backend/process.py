@@ -170,12 +170,15 @@ class Executor:
         os.environ["killed"] = "True"
 
     def is_killed(self):
+        """Return if the executor is killed"""
         return self.killed
 
     def is_paused(self):
+        """Return if the executor is paused"""
         return self.paused
 
     def should_stop_running(self):
+        """Return if the executor should stop running"""
         return (
             self.killed
             or self.paused

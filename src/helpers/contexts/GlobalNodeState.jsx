@@ -2,10 +2,10 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useState
 } from 'react';
 import {
-  getOutgoers, useEdgesState, useNodesState, useReactFlow,
+  getOutgoers, useEdgesState, useNodesState, useReactFlow
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';

@@ -5,7 +5,7 @@ Nodes that provide functionality for opencv image manipulation
 import math
 import os
 import sys
-from typing import Dict, List
+from typing import Dict, Tuple
 
 import cv2
 import numpy as np
@@ -67,7 +67,7 @@ class ImReadNode(NodeBase):
             "channels": c,
         }
 
-    def run(self, path: str) -> List[np.ndarray, str, str]:
+    def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -118,7 +118,7 @@ class ImReadNode(NodeBase):
 
         # return img, h, w, c
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        self.output = [img, dirname, basename]
+        self.output = (img, dirname, basename)
         return self.output
 
 

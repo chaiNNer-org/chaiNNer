@@ -104,6 +104,16 @@ const Header = ({ port }) => {
     }
   }, [eventSource, unAnimateEdges]);
 
+  useEffect(() => {
+    console.log({eventSourceStatus})
+    if (eventSourceStatus === 500) {
+      setErrorMessage('An unexpected error occurred. You may need to restart chaiNNer.');
+      onErrorOpen();
+      unAnimateEdges();
+      setRunning(false);
+    }
+  }, [eventSourceStatus])
+
   const [appVersion, setAppVersion] = useState('#.#.#');
   useEffect(() => {
     (async () => {

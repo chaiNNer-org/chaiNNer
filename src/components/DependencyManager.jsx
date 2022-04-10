@@ -346,17 +346,23 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose} disabled={depChanged}>
+            <Button
+              colorScheme="blue"
+              variant={depChanged ? 'ghost' : 'solid'}
+              mr={3}
+              onClick={onClose}
+              disabled={depChanged}
+            >
               Close
             </Button>
             <Button
-              variant="ghost"
+              colorScheme="blue"
+              variant={depChanged ? 'solid' : 'ghost'}
               onClick={async () => {
                 await ipcRenderer.invoke('relaunch-application');
               }}
             >
               Restart chaiNNer
-
             </Button>
           </ModalFooter>
         </ModalContent>
