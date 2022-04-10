@@ -2,14 +2,14 @@
 /* eslint-disable import/extensions */
 import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-  Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
+    Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
+    memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import shadeColor from '../../helpers/shadeColor.js';
 import NodeBody from './NodeBody.jsx';
 import NodeFooter from './NodeFooter.jsx';

@@ -15,8 +15,8 @@ import React, {
   memo, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import semver from 'semver';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import getAvailableDeps from '../helpers/dependencies.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
 const checkSemver = (v1, v2) => {
@@ -31,7 +31,7 @@ const checkSemver = (v1, v2) => {
 const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   const {
     useIsSystemPython,
-  } = useContext(GlobalContext);
+  } = useContext(SettingsContext);
 
   const [isSystemPython] = useIsSystemPython;
 

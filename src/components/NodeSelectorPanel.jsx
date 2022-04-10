@@ -2,16 +2,16 @@
 /* eslint-disable react/prop-types */
 import { SearchIcon } from '@chakra-ui/icons';
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading, HStack, Input,
-  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
-  TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
+    Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
+    Box, Center, Divider, Heading, HStack, Input,
+    InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+    TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useState,
+    memo, useContext, useEffect, useState
 } from 'react';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';

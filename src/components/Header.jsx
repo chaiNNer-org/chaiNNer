@@ -15,7 +15,8 @@ import React, {
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import logo from '../public/icons/png/256x256.png';
 import { DependencyManagerButton } from './DependencyManager.jsx';
 import { SettingsButton } from './SettingsModal.jsx';
@@ -27,11 +28,14 @@ const Header = ({ port }) => {
     useAnimateEdges,
     nodes,
     edges,
-    useIsCpu,
-    useIsFp16,
     availableNodes,
     setIteratorPercent,
   } = useContext(GlobalContext);
+
+  const {
+    useIsCpu,
+    useIsFp16,
+  } = useContext(SettingsContext);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;

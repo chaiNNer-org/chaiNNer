@@ -11,7 +11,8 @@ import React, {
 import ReactFlow, {
   Background, Controls, useEdgesState, useNodesState,
 } from 'react-flow-renderer';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 export const NodeDataContext = createContext({});
 
@@ -24,9 +25,13 @@ const ReactFlowBox = ({
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
-    useSnapToGrid, setNodes, setEdges, onMoveEnd, zoom,
+    setNodes, setEdges, onMoveEnd, zoom,
     useMenuCloseFunctions, useHoveredNode,
   } = useContext(GlobalContext);
+
+  const {
+    useSnapToGrid,
+  } = useContext(SettingsContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);

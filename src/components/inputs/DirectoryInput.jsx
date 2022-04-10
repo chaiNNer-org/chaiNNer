@@ -4,7 +4,7 @@ import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import React, { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const DirectoryInput = memo(({
   label, id, index, isLocked,

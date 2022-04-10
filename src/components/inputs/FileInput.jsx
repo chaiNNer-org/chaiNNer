@@ -1,15 +1,15 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack,
+    Box, Input, InputGroup, InputLeftElement, Tooltip, VStack
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import path from 'path';
 import React, {
-  memo, useContext,
+    memo, useContext
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
 
 const FileInput = memo(({

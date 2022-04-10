@@ -1,11 +1,11 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Box, HStack, Text, useColorModeValue,
+    Box, HStack, Text, useColorModeValue
 } from '@chakra-ui/react';
 import React, { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const InputContainer = memo(({
   children, hasHandle, id, index, label,

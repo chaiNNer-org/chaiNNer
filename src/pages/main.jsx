@@ -14,14 +14,15 @@ import React, {
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
+import CustomEdge from '../components/CustomEdge.jsx';
 import Header from '../components/Header.jsx';
 import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
 import IteratorNode from '../components/node/IteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import CustomEdge from '../helpers/CustomEdge.jsx';
-import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
+import { GlobalProvider } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsProvider } from '../helpers/contexts/SettingsContext.jsx';
 
 const Main = ({ port }) => {
   // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
@@ -130,37 +131,38 @@ const Main = ({ port }) => {
 
   return (
     <ReactFlowProvider>
-      <GlobalProvider
-        nodeTypes={nodeTypes}
-        availableNodes={availableNodes}
-        reactFlowWrapper={reactFlowWrapper}
-        port={port}
-      >
-        <VStack p={2} overflow="hidden" bg={bgColor}>
-          <Header port={port} />
-          <HStack
-            as={Split}
-            initialPrimarySize="380px"
-            minPrimarySize="290px"
-            minSecondarySize="75%"
-            splitterSize="10px"
-            defaultSplitterColors={{
-              color: '#71809633',
-              hover: '#71809666',
-              drag: '#718096EE',
-            }}
-          >
-            <NodeSelector data={data} height={height} />
+      <SettingsProvider port={port}>
+        <GlobalProvider
+          nodeTypes={nodeTypes}
+          availableNodes={availableNodes}
+          reactFlowWrapper={reactFlowWrapper}
+        >
+          <VStack p={2} overflow="hidden" bg={bgColor}>
+            <Header port={port} />
+            <HStack
+              as={Split}
+              initialPrimarySize="380px"
+              minPrimarySize="290px"
+              minSecondarySize="75%"
+              splitterSize="10px"
+              defaultSplitterColors={{
+                color: '#71809633',
+                hover: '#71809666',
+                drag: '#718096EE',
+              }}
+            >
+              <NodeSelector data={data} height={height} />
 
-            <ReactFlowBox
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              className="reactflow-wrapper"
-              wrapperRef={reactFlowWrapper}
-            />
-          </HStack>
-        </VStack>
-      </GlobalProvider>
+              <ReactFlowBox
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                className="reactflow-wrapper"
+                wrapperRef={reactFlowWrapper}
+              />
+            </HStack>
+          </VStack>
+        </GlobalProvider>
+      </SettingsProvider>
     </ReactFlowProvider>
 
   );

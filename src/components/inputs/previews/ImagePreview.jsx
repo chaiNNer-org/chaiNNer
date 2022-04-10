@@ -10,7 +10,7 @@ import React, {
   memo, useContext, useEffect, useState,
 } from 'react';
 import useFetch from 'use-http';
-import { GlobalContext } from '../../../helpers/GlobalNodeState.jsx';
+import { SettingsContext } from '../../../helpers/contexts/SettingsContext.jsx';
 
 const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
   .then(() => resolve(true))
@@ -38,7 +38,7 @@ export default memo(({
   const [img, setImg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { port } = useContext(GlobalContext);
+  const { port } = useContext(SettingsContext);
 
   const { post, error, loading } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',

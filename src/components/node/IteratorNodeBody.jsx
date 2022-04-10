@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  Box, useColorModeValue,
+  Box, useColorModeValue
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import React, {
-  memo, useContext, useLayoutEffect, useMemo, useState,
+  memo, useContext, useLayoutEffect, useMemo, useState
 } from 'react';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../../helpers/contexts/SettingsContext.jsx';
 
 const createGridDotsPath = (size, fill) => <circle cx={size} cy={size} r={size} fill={fill} />;
 
@@ -45,8 +46,12 @@ const IteratorNodeBody = ({
   id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256,
 }) => {
   const {
-    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds, useSnapToGrid,
+    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds,
   } = useContext(GlobalContext);
+
+  const {
+    useSnapToGrid,
+  } = useContext(SettingsContext);
   const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
   const [hoveredNode, setHoveredNode] = useHoveredNode;

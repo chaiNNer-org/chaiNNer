@@ -2,10 +2,10 @@
 /* eslint-disable react/prop-types */
 import { Input } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useState,
+    memo, useContext, useEffect, useState
 } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const TextInput = memo(({
   label, id, index, isLocked, maxLength,

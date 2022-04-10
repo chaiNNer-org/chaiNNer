@@ -13,7 +13,7 @@ import { ipcRenderer } from 'electron';
 import React, {
   memo, useContext, useEffect, useState,
 } from 'react';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 const SettingsModal = ({ isOpen, onClose }) => {
   const {
@@ -21,7 +21,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     useIsFp16,
     useIsSystemPython,
     useSnapToGrid,
-  } = useContext(GlobalContext);
+  } = useContext(SettingsContext);
 
   const { colorMode, toggleColorMode } = useColorMode();
 

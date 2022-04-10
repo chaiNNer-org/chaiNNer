@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { Textarea } from '@chakra-ui/react';
 import React, { memo, useContext, useEffect } from 'react';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const TextAreaInput = memo(({
   label, id, index, isLocked, resizable,

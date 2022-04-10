@@ -1,14 +1,14 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable import/extensions */
 import {
-  Center, Text, useColorModeValue, VStack,
+    Center, Text, useColorModeValue, VStack
 } from '@chakra-ui/react';
 import React, {
-  memo, useContext, useEffect, useMemo, useRef, useState,
+    memo, useContext, useEffect, useMemo, useRef, useState
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import shadeColor from '../../helpers/shadeColor.js';
 import IteratorNodeBody from './IteratorNodeBody.jsx';
 import IteratorNodeHeader from './IteratorNodeHeader.jsx';

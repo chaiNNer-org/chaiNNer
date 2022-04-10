@@ -2,25 +2,30 @@
 /* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
-  createContext, useCallback, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react';
 import {
   getOutgoers, useEdgesState, useNodesState, useReactFlow,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-import useLocalStorage from './hooks/useLocalStorage.js';
-import useSessionStorage from './hooks/useSessionStorage.js';
-import { migrate } from './migrations.js';
+import useSessionStorage from '../hooks/useSessionStorage.js';
+import { migrate } from '../migrations.js';
+import { SettingsContext } from './SettingsContext.jsx';
 
 export const GlobalContext = createContext({});
 
 const createUniqueId = () => uuidv4();
 
 export const GlobalProvider = ({
-  children, availableNodes, reactFlowWrapper, port,
+  children, availableNodes, reactFlowWrapper,
 }) => {
   // console.log('global state rerender');
+
+  const {
+    snapToGridAmount,
+  } = useContext(SettingsContext);
+
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const {
@@ -45,12 +50,6 @@ export const GlobalProvider = ({
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   // const [reactFlowInstanceRfi, setRfi] = useState(null);
   const [savePath, setSavePath] = useState();
-
-  const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
-  const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
-  const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
-  const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
-  const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
 
   const [loadedFromCli, setLoadedFromCli] = useSessionStorage('loaded-from-cli', false);
 
@@ -757,17 +756,11 @@ export const GlobalProvider = ({
     updateIteratorBounds,
     setIteratorPercent,
     closeAllMenus,
-    useIsCpu: [isCpu, setIsCpu],
-    useIsFp16: [isFp16, setIsFp16],
-    useIsSystemPython: [isSystemPython, setIsSystemPython],
-    useSnapToGrid: [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
     useHoveredNode: [hoveredNode, setHoveredNode],
-    port,
     useMenuCloseFunctions: [closeAllMenus, addMenuCloseFunction],
   }), [
     nodes, edges, reactFlowInstance,
-    isCpu, isFp16, isSystemPython, isSnapToGrid, snapToGridAmount,
-    zoom, hoveredNode, port, menuCloseFunctions,
+    zoom, hoveredNode, menuCloseFunctions,
   ]);
 
   return (
