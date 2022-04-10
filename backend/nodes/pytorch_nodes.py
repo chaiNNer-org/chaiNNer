@@ -430,7 +430,7 @@ class ConvertTorchToONNXNode(NodeBase):
             "data": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
-        dummy_input = torch.rand(1, model.in_nc, 64, 64).cuda()
+        dummy_input = torch.rand(1, model.in_nc, 64, 64)
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
 
