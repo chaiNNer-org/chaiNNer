@@ -1,4 +1,5 @@
 import gc
+import os
 from typing import Tuple
 
 import numpy as np
@@ -33,10 +34,19 @@ def ncnn_auto_split_process(
     blob_vkallocator=None,
     staging_vkallocator=None,
 ) -> Tuple[np.ndarray, int]:
+    """
+    Run NCNN upscaling with automatic recursive tile splitting based on ability to process with current size
+    """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
+
+    if os.environ["killed"] == "True":
+        ncnn.destroy_gpu_instance()
+        gc.collect()
+        raise RuntimeError("Upscaling killed mid-processing")
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
+        ncnn.destroy_gpu_instance()
         gc.collect()
         raise RuntimeError("Splitting stopped to prevent infinite loop")
 

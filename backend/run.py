@@ -100,6 +100,7 @@ async def run(request: Request):
     queue = request.app.ctx.queue
 
     try:
+        os.environ["killed"] = "False"
         if request.app.ctx.executor:
             logger.info("Resuming existing executor...")
             executor = request.app.ctx.executor

@@ -4,13 +4,13 @@ import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
   AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack, IconButton,
-  Image, Spacer, Tag, useColorModeValue, useDisclosure,
+  Image, Spacer, Tag, useColorModeValue, useDisclosure
 } from '@chakra-ui/react';
 import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
 import log from 'electron-log';
 import React, {
-  memo, useContext, useEffect, useState,
+  memo, useContext, useEffect, useState
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
@@ -150,7 +150,7 @@ const Header = ({ port }) => {
           resolutionY: window.screen.height,
         });
       } catch (err) {
-        setErrorMessage(err.exception);
+        setErrorMessage(err.exception || 'An unexpected error occurred.');
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -164,11 +164,11 @@ const Header = ({ port }) => {
       setRunning(false);
       unAnimateEdges();
       if (!res.ok) {
-        setErrorMessage(response.exception);
+        setErrorMessage(response.exception || 'An unexpected error occurred.');
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception);
+      setErrorMessage(err.exception || 'An unexpected error occurred.');
       onErrorOpen();
       setRunning(false);
       unAnimateEdges();
@@ -182,11 +182,11 @@ const Header = ({ port }) => {
       unAnimateEdges();
       setRunning(false);
       if (!res.ok) {
-        setErrorMessage(response.exception);
+        setErrorMessage(response.exception || 'An unexpected error occurred.');
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception);
+      setErrorMessage(err.exception || 'An unexpected error occurred.');
       onErrorOpen();
       unAnimateEdges();
       setRunning(false);

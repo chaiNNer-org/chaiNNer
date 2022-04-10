@@ -83,7 +83,15 @@ def auto_split_process(
     max_depth: int = None,
     current_depth: int = 1,
 ) -> Tuple[Tensor, int]:
+    """
+    Run PyTorch upscaling with automatic recursive tile splitting based on ability to process with current size
+    """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
+
+    if os.environ["killed"] == "True":
+        torch.cuda.empty_cache()
+        gc.collect()
+        raise RuntimeError("Upscaling killed mid-processing")
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:

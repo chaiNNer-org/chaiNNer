@@ -1,5 +1,6 @@
 import asyncio
 import functools
+import os
 import uuid
 from typing import Dict, List
 
@@ -10,6 +11,10 @@ from nodes.node_factory import NodeFactory
 
 
 class Executor:
+    """
+    Class for executing chaiNNer's processing logic
+    """
+
     def __init__(
         self,
         nodes: List[Dict],
@@ -143,6 +148,7 @@ class Executor:
         logger.info(f"Rusuming executor {self.execution_id}")
         self.paused = False
         self.resumed = True
+        os.environ["killed"] = "False"
         await self.process_nodes()
 
     async def check(self):
@@ -161,6 +167,7 @@ class Executor:
         """Kill the executor"""
         logger.info(f"Killing executor {self.execution_id}")
         self.killed = True
+        os.environ["killed"] = "True"
 
     def is_killed(self):
         return self.killed
