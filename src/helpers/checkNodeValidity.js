@@ -16,7 +16,7 @@ const checkNodeValidity = ({
   // Finds all empty inputs
   const emptyInputs = Object.entries(inputData)
     .filter(
-      ([key, value]) => Object.keys(nonOptionalInputs).includes(String(key))
+      ([key, value]) => !inputs[key].optional
     && (value === '' || value === undefined || value === null)
     && !edgeTargetIndexes.includes(String(key)),
     )

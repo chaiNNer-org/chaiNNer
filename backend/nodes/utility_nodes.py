@@ -85,6 +85,6 @@ class TextAppendNode(NodeBase):
         str2: str,
         str3: str = None,
         str4: str = None,
-    ) -> int:
+    ) -> str:
         strings = [x for x in [str1, str2, str3, str4] if x != "" and x is not None]
         return separator.join(strings)

@@ -4,11 +4,11 @@ export default (isNvidiaAvailable) => [
   {
     name: 'OpenCV',
     packageName: 'opencv-python',
-    version: '4.5.5.62',
+    version: '4.5.5.64',
   }, {
     name: 'NumPy',
     packageName: 'numpy',
-    version: '1.22.1',
+    version: '1.22.3',
   }, {
     name: 'PyTorch',
     packageName: 'torch',
@@ -18,10 +18,9 @@ export default (isNvidiaAvailable) => [
     name: 'NCNN',
     packageName: 'ncnn-vulkan',
     version: '2022.4.1',
-  },
-  {
+  }, {
     name: 'Pillow (PIL)',
     packageName: 'Pillow',
-    version: '9.0.1',
+    version: '9.1.0',
   },
 ];

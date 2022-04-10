@@ -9,8 +9,9 @@ import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 const DirectoryInput = memo(({
   label, id, index, isLocked,
 }) => {
-  const { useInputData } = useContext(GlobalContext);
+  const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [directory, setDirectory] = useInputData(id, index);
+  const [, , isInputLocked] = useNodeLock(id, index);
 
   const onButtonClick = async () => {
     const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');
@@ -36,7 +37,7 @@ const DirectoryInput = memo(({
         draggable={false}
         cursor="pointer"
         className="nodrag"
-        disabled={isLocked}
+        disabled={isLocked || isInputLocked}
       />
     </InputGroup>
   );

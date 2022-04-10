@@ -26,15 +26,24 @@ class ImageFileIteratorPathNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput()]
         self.outputs = ImReadNode().get_outputs()
-
+        self.outputs.insert(2, TextOutput("Relative Path"))  # Add relative path to outputs outside ImReadNode
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
         self.type = "iteratorHelper"
 
-    def run(self, directory: str = "") -> any:
+    def run(self, directory: str = "", root_dir: str = "") -> any:
         imread = ImReadNode()
-        return imread.run(directory)
+        imread_output = imread.run(directory)
+
+        # Get relative path from root directory passed by Iterator directory input
+        rel_path = os.path.relpath(imread_output[1], root_dir)
+
+        # Set ImRead directory output to root/base directory and insert relative path into outputs
+        imread_output[1] = root_dir
+        imread_output.insert(2, rel_path)
+
+        return imread_output
 
 
 @NodeFactory.register("Image", "Image File Iterator")
@@ -67,7 +76,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         id="",
         parent_executor=None,
         percent=0,
-    ) -> any:
+    ) -> Any:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
 
@@ -120,7 +129,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     base, ext = os.path.splitext(filepath)
                     if ext.lower() in supported_filetypes:
                         # Replace the input filepath with the filepath from the loop
-                        nodes[img_path_node_id]["inputs"] = [filepath]
+                        nodes[img_path_node_id]["inputs"] = [filepath, directory]
                         executor = Executor(
                             nodes,
                             loop,

@@ -152,7 +152,7 @@ async def run(request: Request):
 def get_extra_data(category, node, node_output):
     if category == "Image":
         if node == "Load Image":
-            img, name = node_output
+            img, name, dirname = node_output
 
             if img.ndim == 2:
                 h, w, c = img.shape[:2], 1

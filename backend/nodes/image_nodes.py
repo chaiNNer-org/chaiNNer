@@ -40,12 +40,13 @@ class ImReadNode(NodeBase):
             # IntegerOutput("Height"),
             # IntegerOutput("Width"),
             # IntegerOutput("Channels"),
-            TextOutput("Image Name"),
+            DirectoryOutput(),
+            TextOutput("Image Name")
         ]
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> np.ndarray:
+    def run(self, path: str) -> [np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -95,8 +96,8 @@ class ImReadNode(NodeBase):
         c = img.shape[2] if img.ndim > 2 else 1
 
         # return img, h, w, c
-        basename = os.path.splitext(os.path.basename(path))[0]
-        return img, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        return [img, dirname, basename]
 
 
 @NodeFactory.register("Image", "Save Image")
@@ -109,7 +110,8 @@ class ImWriteNode(NodeBase):
         self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
-            DirectoryInput(),
+            DirectoryInput(hasHandle=True),
+            TextInput("Relative Path", optional=True),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
@@ -118,17 +120,33 @@ class ImWriteNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(
-        self, img: np.ndarray, directory: str, filename: str, extension: str
+        self,
+        img: np.ndarray = None,
+        base_directory: str = None,
+        relative_path: str = '.',
+        filename: str = None,
+        extension: str = None
     ) -> bool:
         """Write an image to the specified path and return write status"""
-        fullFile = f"{filename}.{extension}"
-        fullPath = os.path.join(directory, fullFile)
-        logger.info(f"Writing image to path: {fullPath}")
+        # Shift inputs if relative path is missing
+        if extension is None:
+            extension = filename
+            filename = relative_path
+            relative_path = '.'
+
+        full_file = f"{filename}.{extension}"
+        if relative_path and relative_path != '.':
+            base_directory = os.path.join(base_directory, relative_path)
+        full_path = os.path.join(base_directory, full_file)
+
+        logger.info(f"Writing image to path: {full_path}")
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
-        status = cv2.imwrite(fullPath, img)
+        os.makedirs(base_directory, exist_ok=True)
+
+        status = cv2.imwrite(full_path, img)
 
         return status
 
