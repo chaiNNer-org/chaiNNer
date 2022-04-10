@@ -1,13 +1,13 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/prop-types */
 import {
-  Center, HStack, Image, Spinner, Tag, VStack,
+  Center, HStack, Image, Spinner, Tag, VStack
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import React, {
-  memo, useContext, useEffect, useState,
+  memo, useContext, useEffect, useState
 } from 'react';
 import useFetch from 'use-http';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext.jsx';
@@ -48,10 +48,8 @@ export default memo(({
     (async () => {
       if (path) {
         setIsLoading(true);
-        if (await checkFileExists(path)) {
+        if ((await checkFileExists(path))) {
           try {
-            // const loadedImg = await ImageJS.load(path);
-            // setImg(loadedImg);
             const result = await post('/run/individual', {
               category,
               node: nodeType,
