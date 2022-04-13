@@ -1,10 +1,9 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
+
 import {
   Box, useColorModeValue
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import React, {
+import {
   memo, useContext, useLayoutEffect, useMemo, useState
 } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';

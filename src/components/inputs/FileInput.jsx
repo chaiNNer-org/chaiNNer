@@ -1,5 +1,4 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import {
   Box, Input, InputGroup, InputLeftElement, Tooltip, VStack
 } from '@chakra-ui/react';
@@ -7,7 +6,7 @@ import { ipcRenderer } from 'electron';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import path from 'path';
-import React, {
+import {
   memo, useContext, useEffect
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
@@ -34,11 +33,11 @@ const FileInput = memo(({
           const binFilePath = paramFilePath?.replace('.param', '.bin');
           const binFileExists = await checkFileExists(binFilePath);
           if (binFileExists) {
-            setFilePath(paramFilePath?.replace('.param', '.bin'))
+            setFilePath(paramFilePath?.replace('.param', '.bin'));
           }
         }
       })();
-    }, [paramFilePath])
+    }, [paramFilePath]);
   }
   if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
     const [binFilePath] = useInputData(id, index + 1);
@@ -52,7 +51,7 @@ const FileInput = memo(({
           }
         }
       })();
-    }, [binFilePath])
+    }, [binFilePath]);
   }
 
   const [, , isInputLocked] = useNodeLock(id, index);
@@ -75,7 +74,12 @@ const FileInput = memo(({
       case 'file::image':
         return (
           <Box mt={2}>
-            <ImagePreview path={filePath} category={category} nodeType={nodeType} id={id} />
+            <ImagePreview
+              category={category}
+              id={id}
+              nodeType={nodeType}
+              path={filePath}
+            />
           </Box>
         );
       default:
@@ -86,11 +90,11 @@ const FileInput = memo(({
   return (
     <VStack spacing={0}>
       <Tooltip
-        label={filePath}
         borderRadius={8}
-        py={0}
-        px={2}
+        label={filePath}
         maxW="auto"
+        px={2}
+        py={0}
       >
         <InputGroup>
           <InputLeftElement
@@ -100,16 +104,16 @@ const FileInput = memo(({
           </InputLeftElement>
 
           <Input
+            alt={filePath}
+            className="nodrag"
+            cursor="pointer"
+            disabled={isLocked}
+            draggable={false}
+            isReadOnly
+            isTruncated
+            onClick={onButtonClick}
             placeholder="Select a file..."
             value={filePath ? path.parse(filePath).base : ''}
-            isReadOnly
-            onClick={onButtonClick}
-            isTruncated
-            draggable={false}
-            cursor="pointer"
-            className="nodrag"
-            disabled={isLocked}
-            alt={filePath}
           />
 
         </InputGroup>

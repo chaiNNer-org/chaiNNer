@@ -1,10 +1,9 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import {
-  Box, Center, Heading, HStack, Tooltip, useColorModeValue, VStack,
+  Box, Center, Heading, HStack, Tooltip, useColorModeValue, VStack
 } from '@chakra-ui/react';
-import React, {
-  memo,
+import {
+  memo
 } from 'react';
 import { IconFactory } from '../CustomIcons.jsx';
 

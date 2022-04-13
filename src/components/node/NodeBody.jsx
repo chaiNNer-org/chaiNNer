@@ -1,10 +1,9 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
+
 import {
-  Center, Text,
+  Center, Text
 } from '@chakra-ui/react';
-import React, {
-  memo,
+import {
+  memo
 } from 'react';
 import NodeInputs from './NodeInputs.jsx';
 import NodeOutputs from './NodeOutputs.jsx';

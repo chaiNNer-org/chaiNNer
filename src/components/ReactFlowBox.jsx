@@ -1,15 +1,13 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import {
-  Box, useColorModeValue,
+  Box, useColorModeValue
 } from '@chakra-ui/react';
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
-import React, {
-  createContext, memo, useCallback, useContext, useEffect, useMemo,
+import {
+  createContext, memo, useCallback, useContext, useEffect, useMemo
 } from 'react';
 import ReactFlow, {
-  Background, Controls, useEdgesState, useNodesState,
+  Background, Controls, useEdgesState, useNodesState
 } from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
@@ -20,17 +18,17 @@ const STARTING_Z_INDEX = 50;
 
 // eslint-disable-next-line react/prop-types
 const ReactFlowBox = ({
-  wrapperRef, nodeTypes, edgeTypes,
+  wrapperRef, nodeTypes, edgeTypes
 }) => {
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
     setNodes, setEdges, onMoveEnd, zoom,
-    useMenuCloseFunctions, useHoveredNode,
+    useMenuCloseFunctions, useHoveredNode
   } = useContext(GlobalContext);
 
   const {
-    useSnapToGrid,
+    useSnapToGrid
   } = useContext(SettingsContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -117,8 +115,8 @@ const ReactFlowBox = ({
           ...n,
           position: {
             x: n.position.x - (n.position.x % snapToGridAmount),
-            y: n.position.y - (n.position.y % snapToGridAmount),
-          },
+            y: n.position.y - (n.position.y % snapToGridAmount)
+          }
         };
       });
       _setNodes(alignedNodes);
@@ -132,7 +130,7 @@ const ReactFlowBox = ({
         console.log('flow loaded:', rfi);
       }
     },
-    [reactFlowInstance],
+    [reactFlowInstance]
   );
 
   const onDragOver = useCallback((event) => {
@@ -168,18 +166,18 @@ const ReactFlowBox = ({
 
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left - (offsetX * zoom),
-        y: event.clientY - reactFlowBounds.top - (offsetY * zoom),
+        y: event.clientY - reactFlowBounds.top - (offsetY * zoom)
       });
 
       const nodeData = {
         category,
         type,
         icon,
-        subcategory,
+        subcategory
       };
 
       createNode({
-        type, position, data: nodeData, nodeType, defaultNodes,
+        type, position, data: nodeData, nodeType, defaultNodes
       });
     } catch (error) {
       log.error(error);
@@ -200,32 +198,36 @@ const ReactFlowBox = ({
   // );
 
   return (
-    <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef} bg={useColorModeValue('gray.100', 'gray.800')}>
+    <Box
+      bg={useColorModeValue('gray.100', 'gray.800')}
+      borderRadius="lg"
+      borderWidth="1px"
+      h="100%"
+      ref={wrapperRef}
+      w="100%"
+    >
       <ReactFlow
-        nodes={_nodes}
-        edges={_edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onEdgesDelete={onEdgesDelete}
-        onNodesDelete={onNodesDelete}
-        onConnect={createConnection}
-        onInit={onInit}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragStart={onDragStart}
-        onNodeDragStop={onNodeDragStop}
-        nodeTypes={memoNodeTypes}
+        deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         edgeTypes={memoEdgeTypes}
-        onNodeContextMenu={onNodeContextMenu}
-        style={{
-          zIndex: 0,
-          borderRadius: '0.5rem',
-        }}
-        // onSelectionChange={setSelectedElements}
+        edges={_edges}
         maxZoom={8}
         minZoom={0.125}
-        snapToGrid={isSnapToGrid}
-        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+        nodeTypes={memoNodeTypes}
+        nodes={_nodes}
+        onConnect={createConnection}
+        onDragOver={onDragOver}
+        onDragStart={onDragStart}
+        onDrop={onDrop}
+        onEdgesChange={onEdgesChange}
+        onEdgesDelete={onEdgesDelete}
+        onInit={onInit}
+        onMoveEnd={onMoveEnd}
+        onNodeContextMenu={onNodeContextMenu}
+        // onSelectionChange={setSelectedElements}
+        onNodeDragStop={onNodeDragStop}
+        onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
+        onPaneClick={closeAllMenus}
         // fitView
         // fitViewOptions={{
         //   minZoom: 1,
@@ -233,14 +235,17 @@ const ReactFlowBox = ({
         //   padding: 40,
         // }}
         // onlyRenderVisibleElements
-        deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
-        onMoveEnd={onMoveEnd}
-        onPaneClick={closeAllMenus}
+        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+        snapToGrid={isSnapToGrid}
+        style={{
+          zIndex: 0,
+          borderRadius: '0.5rem'
+        }}
       >
         <Background
-          variant="dots"
           gap={16}
           size={0.5}
+          variant="dots"
         />
         {/* Would be cool to use this in the future */}
         {/* <PillPity

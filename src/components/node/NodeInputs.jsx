@@ -1,8 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
-import React, {
-  memo,
+
+import {
+  memo
 } from 'react';
 import DirectoryInput from '../inputs/DirectoryInput.jsx';
 import DropDownInput from '../inputs/DropDownInput.jsx';

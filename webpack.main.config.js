@@ -4,11 +4,11 @@ module.exports = {
    * that runs in the main process.
    */
   entry: {
-    main: './src/main.js',
+    main: './src/main.js'
   },
   // Put your normal webpack config below here
   module: {
     // eslint-disable-next-line global-require
-    rules: require('./webpack.rules'),
-  },
+    rules: require('./webpack.rules')
+  }
 };

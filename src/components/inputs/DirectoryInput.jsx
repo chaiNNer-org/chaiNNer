@@ -1,8 +1,7 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, { memo, useContext } from 'react';
+import { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 

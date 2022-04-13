@@ -1,14 +1,13 @@
-/* eslint-disable import/extensions */
+
 /* eslint-disable import/prefer-default-export */
-/* eslint-disable react/prop-types */
 import {
-  CheckCircleIcon, WarningIcon,
+  CheckCircleIcon, WarningIcon
 } from '@chakra-ui/icons';
 import {
-  Center, Flex, Icon, Spacer, Tooltip, useColorModeValue,
+  Center, Flex, Icon, Spacer, Tooltip, useColorModeValue
 } from '@chakra-ui/react';
-import React, {
-  memo,
+import {
+  memo
 } from 'react';
 
 const NodeFooter = ({

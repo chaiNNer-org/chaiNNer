@@ -1,4 +1,5 @@
 import { exec as _exec, spawn } from 'child_process';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
@@ -663,7 +664,7 @@ const createWindow = async () => {
       nativeWindowOpen: true,
     },
     // icon: `${__dirname}/public/icons/cross_platform/icon`,
-    show: false,
+    show: true,
   });
 
   const menu = Menu.buildFromTemplate([

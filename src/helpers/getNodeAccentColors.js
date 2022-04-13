@@ -1,4 +1,4 @@
-export default (category, subcategory) => {
+export default (category) => {
   // if (subcategory) {
   //   switch (`${category}|${subcategory}`) {
   //     case 'Image|I/O':

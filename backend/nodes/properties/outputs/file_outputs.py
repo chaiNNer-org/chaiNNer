@@ -19,9 +19,7 @@ def ImageFileOutput(label: str = "image") -> Dict:
 
 def DirectoryOutput(label: str = "directory") -> Dict:
     """Output for saving to a directory"""
-    return FileOutput(
-        label, "Image Directory", ["directory"]
-    )
+    return FileOutput(label, "Image Directory", ["directory"])
 
 
 def OnnxFileOutput() -> Dict:

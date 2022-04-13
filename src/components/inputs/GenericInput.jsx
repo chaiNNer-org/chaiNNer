@@ -1,14 +1,21 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import { Box, Text } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 const GenericInput = memo(({
   label, hasHandle = true, id, index,
 }) => (
   // These both need to have -1 margins to thin it out... I don't know why
-  <Box mt={-1} mb={-1}>
-    <Text w="full" textAlign="left" mt={-1} mb={-1}>
+  <Box
+    mb={-1}
+    mt={-1}
+  >
+    <Text
+      mb={-1}
+      mt={-1}
+      textAlign="left"
+      w="full"
+    >
       {label}
     </Text>
   </Box>

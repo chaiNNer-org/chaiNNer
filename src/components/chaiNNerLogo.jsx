@@ -1,27 +1,38 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
+
 import {
-  Box, Center, Image,
+  Box, Center, Image
 } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import bg from '../public/splash_imgs/background.png';
 import front from '../public/splash_imgs/front.png';
 
 const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
-  <Box display="block" boxSize={size} draggable={false}>
-    <Image src={bg} alt="bg" position="relative" top={0} draggable={false} boxSize={size} loading="eager" />
+  <Box
+    boxSize={size}
+    display="block"
+    draggable={false}
+  >
+    <Image
+      alt="bg"
+      boxSize={size}
+      draggable={false}
+      loading="eager"
+      position="relative"
+      src={bg}
+      top={0}
+    />
     <Center
-      w={size}
       h={size}
       style={{
         position: 'relative',
         top: -size,
       }}
+      w={size}
     >
       <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 780.92 352.18"
         height={0.35 * size}
+        viewBox="0 0 780.92 352.18"
+        xmlns="http://www.w3.org/2000/svg"
       >
         <g data-name="Layer 2">
           <path
@@ -39,17 +50,17 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
       </svg>
     </Center>
     <Center
-      w={size}
       h={size}
       style={{
         position: 'relative',
         top: -size * 2,
       }}
+      w={size}
     >
       <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 780.92 352.18"
         height={0.35 * size}
+        viewBox="0 0 780.92 352.18"
+        xmlns="http://www.w3.org/2000/svg"
       >
         <g data-name="Layer 2">
           <path
@@ -67,7 +78,15 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
         </g>
       </svg>
     </Center>
-    <Image src={front} alt="front" position="relative" top={-size * 3} draggable={false} boxSize={size} loading="eager" />
+    <Image
+      alt="front"
+      boxSize={size}
+      draggable={false}
+      loading="eager"
+      position="relative"
+      src={front}
+      top={-size * 3}
+    />
   </Box>
 );
 

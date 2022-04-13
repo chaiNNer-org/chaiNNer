@@ -1,11 +1,10 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
+
 import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-    Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack
+  Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack
 } from '@chakra-ui/react';
-import React, {
-    memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
+import {
+  memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';

@@ -1,9 +1,9 @@
-/* eslint-disable import/extensions */
 import {
   Center, ChakraProvider, Flex, Progress, Text, VStack,
 } from '@chakra-ui/react';
-import { ipcRenderer } from 'electron';
-import React, { useEffect, useState } from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { ipcRenderer, } from 'electron';
+import { useEffect, useState, } from 'react';
 import ReactDOM from 'react-dom';
 import ChaiNNerLogo from './components/chaiNNerLogo.jsx';
 // eslint-disable-next-line import/extensions
@@ -85,30 +85,46 @@ const Splash = () => {
 
   return (
     <ChakraProvider theme={theme}>
-      <Center w="full" bg="gray.800" h="400px" color="white" borderRadius="xl">
-        <Flex w="full" flexDirection="column">
+      <Center
+        bg="gray.800"
+        borderRadius="xl"
+        color="white"
+        h="400px"
+        w="full"
+      >
+        <Flex
+          flexDirection="column"
+          w="full"
+        >
           <Center>
             <ChaiNNerLogo
-              size={256}
               percent={overallProgressPercentage}
+              size={256}
             />
           </Center>
           <VStack
-            w="full"
-            position="relative"
             bottom={0}
-            top={8}
+            position="relative"
             spacing={2}
+            top={8}
+            w="full"
 
           >
             <Center>
-              <Text color="gray.500" isTruncated>
+              <Text
+                color="gray.500"
+                isTruncated
+              >
                 {status}
               </Text>
             </Center>
             {(showProgressBar) && (
             <Center>
-              <Progress w="350px" hasStripe value={progressPercentage} />
+              <Progress
+                hasStripe
+                value={progressPercentage}
+                w="350px"
+              />
             </Center>
             )}
           </VStack>

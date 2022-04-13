@@ -1,11 +1,10 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import {
-    HStack, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-    NumberInputStepper, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Text, Tooltip
+  HStack, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
+  NumberInputStepper, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Text, Tooltip
 } from '@chakra-ui/react';
-import React, {
-    memo, useContext, useEffect, useState
+import {
+  memo, useContext, useEffect, useState
 } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 

@@ -136,7 +136,7 @@ const pipInstallWithProgress = async (
       }
     });
 
-    pipRequest.stderr.on('data', (data) => {
+    pipRequest.stderr.on('data', () => {
       // console.log(String(data));
     });
 

@@ -1,12 +1,11 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import {
   Center, HStack, Image, Spinner, Tag, VStack
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
-import React, {
+import {
   memo, useContext, useEffect, useState
 } from 'react';
 import useFetch from 'use-http';

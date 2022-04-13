@@ -1,18 +1,16 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
-import { SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon, } from '@chakra-ui/icons';
 import {
-    Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-    Box, Center, Divider, Heading, HStack, Input,
-    InputGroup, InputLeftElement, Tab, TabList, TabPanel,
-    TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem
+  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
+  Box, Center, Divider, Heading, HStack, Input,
+  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
+  TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, {
-    memo, useContext, useEffect, useState
+import {
+  memo, useContext, useEffect, useState,
 } from 'react';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext, } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
-import { IconFactory } from './CustomIcons.jsx';
+import { IconFactory, } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';
 
@@ -39,7 +37,7 @@ const NodeSelector = ({ data, height }) => {
   const [namespaces, setNamespaces] = useState([]);
 
   const {
-    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
+    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode
   } = useContext(GlobalContext);
 
   const [, setHoveredNode] = useHoveredNode;
@@ -51,7 +49,7 @@ const NodeSelector = ({ data, height }) => {
         .sort(
           (a, b) => (a.subcategory + a.name)
             .toUpperCase()
-            .localeCompare((b.subcategory + b.name).toUpperCase()),
+            .localeCompare((b.subcategory + b.name).toUpperCase())
         )
         .forEach((node) => {
           const namespace = node.subcategory;
@@ -68,23 +66,26 @@ const NodeSelector = ({ data, height }) => {
 
   return (
     <Box
-      w="auto"
-      h="100%"
-      borderWidth="1px"
-      borderRadius="lg"
       bg={useColorModeValue('gray.100', 'gray.800')}
+      borderRadius="lg"
+      borderWidth="1px"
+      h="100%"
+      w="auto"
     >
       <Tabs
-        w="100%"
         h="100%"
         isFitted
+        w="100%"
       >
         <TabList>
           <Tab>Nodes</Tab>
           <Tab isDisabled>Presets</Tab>
         </TabList>
         <TabPanels>
-          <TabPanel m={0} p={0}>
+          <TabPanel
+            m={0}
+            p={0}
+          >
             <InputGroup
               borderRadius={0}
             >
@@ -96,11 +97,11 @@ const NodeSelector = ({ data, height }) => {
                 />
               </InputLeftElement>
               <Input
-                variant="filled"
-                type="text"
-                placeholder="Search..."
-                onChange={handleChange}
                 borderRadius={0}
+                onChange={handleChange}
+                placeholder="Search..."
+                type="text"
+                variant="filled"
               />
             </InputGroup>
             <Box
@@ -110,24 +111,30 @@ const NodeSelector = ({ data, height }) => {
                 '&::-webkit-scrollbar': {
                   width: '6px',
                   borderRadius: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0)',
+                  backgroundColor: 'rgba(0, 0, 0, 0)'
                 },
                 '&::-webkit-scrollbar-track': {
                   borderRadius: '8px',
-                  width: '8px',
+                  width: '8px'
                 },
                 '&::-webkit-scrollbar-thumb': {
                   borderRadius: '8px',
-                  backgroundColor: useColorModeValue('gray.300', 'gray.700'),
-                },
+                  backgroundColor: useColorModeValue('gray.300', 'gray.700')
+                }
               }}
             >
 
-              <Accordion allowMultiple defaultIndex={data.map((item, index) => index)}>
+              <Accordion
+                allowMultiple
+                defaultIndex={data.map((item, index) => index)}
+              >
                 {data.map(({ category, nodes }) => (
                   <AccordionItem key={category}>
                     <AccordionButton>
-                      <HStack flex="1" textAlign="left">
+                      <HStack
+                        flex="1"
+                        textAlign="left"
+                      >
                         {IconFactory(category, getNodeAccentColor(category))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
@@ -139,84 +146,96 @@ const NodeSelector = ({ data, height }) => {
                       // This is super terrible but I have no better way of filtering for these at the moment
                       // I could probably cache this in the namespace object but w/e
                         .filter(
-                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase())
                         )
                         .map((namespace) => (
                           <Box key={namespace}>
                             <Center w="full">
                               <HStack w="full">
                                 <Divider orientation="horizontal" />
-                                <Text fontSize="sm" color="#71809699" casing="uppercase" w="auto" whiteSpace="nowrap">{namespace}</Text>
+                                <Text
+                                  casing="uppercase"
+                                  color="#71809699"
+                                  fontSize="sm"
+                                  w="auto"
+                                  whiteSpace="nowrap"
+                                >
+                                  {namespace}
+                                </Text>
                                 <Divider orientation="horizontal" />
                               </HStack>
                             </Center>
                             <Wrap>
                               {nodes
                                 .filter(
-                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
+                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase())
                                 )
                                 .filter(
                                   (e) => e.subcategory
                                     .toUpperCase()
-                                    .includes(namespace.toUpperCase()),
+                                    .includes(namespace.toUpperCase())
                                 )
                                 .filter((e) => e.nodeType !== 'iteratorHelper')
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
-                                    .localeCompare(b.name.toUpperCase()),
+                                    .localeCompare(b.name.toUpperCase())
                                 )
                                 .map((node) => (
-                                  <WrapItem key={node.name} p={1} w="full">
+                                  <WrapItem
+                                    key={node.name}
+                                    p={1}
+                                    w="full"
+                                  >
                                     <Tooltip
-                                      label={node.description}
-                                      hasArrow
-                                      closeOnMouseDown
                                       borderRadius={8}
-                                      py={1}
+                                      closeOnMouseDown
+                                      hasArrow
+                                      label={node.description}
                                       px={2}
+                                      py={1}
                                     >
                                       <Center
                                         boxSizing="content-box"
-                                        onDragStart={
-                                            (event) => {
-                                              onDragStart(event, category, node);
-                                              setHoveredNode(null);
-                                            }
-                                          }
-                                        onDragEnd={() => {
-                                          setHoveredNode(null);
-                                        }}
-                                        draggable
                                         display="block"
-                                        w="100%"
+                                        draggable
                                         onDoubleClick={() => {
                                           const {
-                                            height: wHeight, width,
+                                            height: wHeight, width
                                           } = reactFlowWrapper.current.getBoundingClientRect();
 
                                           const position = reactFlowInstance.project({
                                             x: width / 2,
-                                            y: wHeight / 2,
+                                            y: wHeight / 2
                                           });
 
                                           const nodeData = {
                                             category,
-                                            type: node.name,
+                                            type: node.name
                                           };
 
                                           createNode({
                                             nodeType: node.nodeType,
                                             position,
                                             data: nodeData,
-                                            defaultNodes: node.defaultNodes,
+                                            defaultNodes: node.defaultNodes
                                           });
                                         }}
+                                        onDragEnd={() => {
+                                          setHoveredNode(null);
+                                        }}
+                                        onDragStart={
+                                            (event) => {
+                                              onDragStart(event, category, node);
+                                              setHoveredNode(null);
+                                            }
+                                          }
+                                        w="100%"
                                       >
                                         <RepresentativeNode
                                           category={category}
-                                          type={node.name}
                                           icon={node.icon}
                                           subcategory={node.subcategory}
+                                          type={node.name}
                                         />
                                       </Center>
                                     </Tooltip>
@@ -230,28 +249,31 @@ const NodeSelector = ({ data, height }) => {
                   </AccordionItem>
                 ))}
                 <AccordionItem>
-                  <Center p={10} textOverflow="ellipsis">
+                  <Center
+                    p={10}
+                    textOverflow="ellipsis"
+                  >
                     <Box
-                      onClick={onOpen}
-                      cursor="pointer"
-                      sx={{
-                        cursor: 'pointer !important',
-                        transition: '0.15s ease-in-out',
+                      _hover={{
+                        backgroundColor: 'gray.600'
                       }}
                       bg={useColorModeValue('gray.200', 'gray.700')}
+                      borderRadius={10}
+                      cursor="pointer"
+                      onClick={onOpen}
                       p={2}
                       pl={4}
                       pr={4}
-                      borderRadius={10}
-                      _hover={{
-                        backgroundColor: 'gray.600',
+                      sx={{
+                        cursor: 'pointer !important',
+                        transition: '0.15s ease-in-out'
                       }}
                     >
                       <Text
-                        fontWeight="bold"
                         cursor="pointer"
+                        fontWeight="bold"
                         sx={{
-                          cursor: 'pointer !important',
+                          cursor: 'pointer !important'
                         }}
                         textAlign="center"
                       >
@@ -263,8 +285,8 @@ const NodeSelector = ({ data, height }) => {
                    dep manager that shares a global open/close state */}
                   <DependencyManager
                     isOpen={isOpen}
-                    onOpen={onOpen}
                     onClose={onClose}
+                    onOpen={onOpen}
                   />
                 </AccordionItem>
               </Accordion>

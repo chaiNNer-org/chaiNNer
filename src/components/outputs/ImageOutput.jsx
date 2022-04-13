@@ -1,6 +1,5 @@
-// /* eslint-disable import/extensions */
-// /* eslint-disable react/prop-types */
-// import React, {
+//
+// // import {
 //   memo, useContext, useEffect, useState,
 // } from 'react';
 // import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';

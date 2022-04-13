@@ -1,6 +1,4 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
-import React, {
+import {
   createContext, useMemo,
 } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage.js';
@@ -21,7 +19,7 @@ export const SettingsProvider = ({
   const useIsSystemPython = useMemo(() => [isSystemPython, setIsSystemPython], [isSystemPython]);
   const useSnapToGrid = useMemo(
     () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
-    [isSnapToGrid, snapToGridAmount],
+    [isSnapToGrid, snapToGridAmount]
   );
 
   const contextValue = useMemo(() => ({

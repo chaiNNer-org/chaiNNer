@@ -1,9 +1,8 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
+
 import {
-    NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
+  NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
 } from '@chakra-ui/react';
-import React, { memo, useContext } from 'react';
+import { memo, useContext } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const NumericalInput = memo(({
