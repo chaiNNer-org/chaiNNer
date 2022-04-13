@@ -39,10 +39,10 @@ def ncnn_auto_split_process(
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
-    if os.environ["killed"] == "True":
-        ncnn.destroy_gpu_instance()
-        gc.collect()
-        raise RuntimeError("Upscaling killed mid-processing")
+    # if os.environ["killed"] == "True":
+    #     ncnn.destroy_gpu_instance()
+    #     gc.collect()
+    #     raise RuntimeError("Upscaling killed mid-processing")
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:

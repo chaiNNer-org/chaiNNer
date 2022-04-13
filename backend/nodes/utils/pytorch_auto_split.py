@@ -88,10 +88,10 @@ def auto_split_process(
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
-    if os.environ["killed"] == "True":
-        torch.cuda.empty_cache()
-        gc.collect()
-        raise RuntimeError("Upscaling killed mid-processing")
+    # if os.environ["killed"] == "True":
+    #     torch.cuda.empty_cache()
+    #     gc.collect()
+    #     raise RuntimeError("Upscaling killed mid-processing")
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:

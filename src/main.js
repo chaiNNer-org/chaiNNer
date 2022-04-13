@@ -663,7 +663,7 @@ const createWindow = async () => {
       nativeWindowOpen: true,
     },
     // icon: `${__dirname}/public/icons/cross_platform/icon`,
-    show: true,
+    show: false,
   });
 
   const menu = Menu.buildFromTemplate([

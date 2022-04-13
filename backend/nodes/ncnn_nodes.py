@@ -151,7 +151,9 @@ class NcnnUpscaleImageNode(NodeBase):
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
                 output = self.upscale(img[:, :, :3], net, input_name, output_name)
-                output = np.dstack((output, np.full(output.shape[:-1], (unique[0]))))
+                output = np.dstack(
+                    (output, np.full(output.shape[:-1], (unique[0])))
+                )
             else:
                 img1 = np.copy(img[:, :, :3])
                 img2 = np.copy(img[:, :, :3])
