@@ -52,7 +52,9 @@ const CustomEdge = memo(({
     sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
   }), [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]);
 
-  const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
+  const {
+    removeEdgeById, nodes, edges, useHoveredNode,
+  } = useContext(GlobalContext);
 
   const edge = useMemo(() => edges.find((e) => e.id === id), []);
   const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
@@ -95,82 +97,86 @@ const CustomEdge = memo(({
     setIsHovered(false);
   }, 7500);
 
+  const [, setHoveredNode] = useHoveredNode;
+
   return (
-    <>
-      <g
+    <g
+      style={{
+        cursor: isHovered ? 'pointer' : 'default',
+      }}
+      onDragEnter={() => {
+        if (parentNode) {
+          setHoveredNode(parentNode.parentNode);
+        }
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onMouseOver={() => hoverTimeout()}
+    >
+      <path
+        className="react-flow__edge-path"
+        d={edgePath}
+        id={id}
         style={{
+          ...style,
+          strokeWidth: isHovered ? '4px' : '2px',
+          stroke: currentColor,
+          transitionDuration: '0.15s',
+          transitionProperty: 'stroke-width, stroke',
+          transitionTimingFunction: 'ease-in-out',
           cursor: isHovered ? 'pointer' : 'default',
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        // onMouseOut={() => setIsHovered(false)}
-        onMouseOver={() => hoverTimeout()}
+      />
+      <path
+        d={edgePath}
+        style={{
+          strokeWidth: 18,
+          fill: 'none',
+          stroke: 'none',
+          cursor: isHovered ? 'pointer' : 'default',
+        }}
+      />
+      <foreignObject
+        className="edgebutton-foreignobject"
+        height={buttonSize}
+        requiredExtensions="http://www.w3.org/1999/xhtml"
+        style={{
+          borderRadius: 100,
+          opacity: isHovered ? 1 : 0,
+          transitionDuration: '0.15s',
+          transitionProperty: 'opacity, background-color',
+          transitionTimingFunction: 'ease-in-out',
+        }}
+        width={buttonSize}
+        x={edgeCenterX - (buttonSize) / 2}
+        y={edgeCenterY - (buttonSize) / 2}
       >
-        <path
-          className="react-flow__edge-path"
-          d={edgePath}
-          id={id}
-          style={{
-            ...style,
-            strokeWidth: isHovered ? '4px' : '2px',
-            stroke: currentColor,
-            transitionDuration: '0.15s',
-            transitionProperty: 'stroke-width, stroke',
-            transitionTimingFunction: 'ease-in-out',
-            cursor: isHovered ? 'pointer' : 'default',
-          }}
-        />
-        <path
-          d={edgePath}
-          style={{
-            strokeWidth: 18,
-            fill: 'none',
-            stroke: 'none',
-            cursor: isHovered ? 'pointer' : 'default',
-          }}
-        />
-        <foreignObject
-          className="edgebutton-foreignobject"
-          height={buttonSize}
-          requiredExtensions="http://www.w3.org/1999/xhtml"
-          style={{
-            borderRadius: 100,
-            opacity: isHovered ? 1 : 0,
-            transitionDuration: '0.15s',
-            transitionProperty: 'opacity, background-color',
-            transitionTimingFunction: 'ease-in-out',
-          }}
-          width={buttonSize}
-          x={edgeCenterX - (buttonSize) / 2}
-          y={edgeCenterY - (buttonSize) / 2}
+        <Center
+          backgroundColor={currentColor}
+          borderColor={useColorModeValue('gray.100', 'gray.800')}
+          borderRadius={100}
+          borderWidth={2}
+          h="full"
+          transitionDuration="0.15s"
+          transitionProperty="background-color"
+          transitionTimingFunction="ease-in-out"
+          w="full"
         >
-          <Center
-            backgroundColor={currentColor}
+          <IconButton
+            isRound
             borderColor={useColorModeValue('gray.100', 'gray.800')}
             borderRadius={100}
             borderWidth={2}
-            h="full"
-            transitionDuration="0.15s"
-            transitionProperty="background-color"
-            transitionTimingFunction="ease-in-out"
-            w="full"
+            className="edgebutton"
+            icon={<DeleteIcon />}
+            size="sm"
+            onClick={() => removeEdgeById(id)}
           >
-            <IconButton
-              isRound
-              borderColor={useColorModeValue('gray.100', 'gray.800')}
-              borderRadius={100}
-              borderWidth={2}
-              className="edgebutton"
-              icon={<DeleteIcon />}
-              size="sm"
-              onClick={() => removeEdgeById(id)}
-            >
-              ×
-            </IconButton>
-          </Center>
-        </foreignObject>
-      </g>
-    </>
+            ×
+          </IconButton>
+        </Center>
+      </foreignObject>
+    </g>
   );
 });
 
