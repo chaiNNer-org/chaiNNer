@@ -126,6 +126,7 @@
     "electron-installer-common": "^0.10.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-react": "^7.29.4",
     "file-loader": "^6.2.0",
     "image-webpack-loader": "^8.1.0",
     "node-loader": "^2.0.0",

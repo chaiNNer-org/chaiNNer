@@ -1,10 +1,10 @@
 import { exec as _exec, spawn } from 'child_process';
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell
+  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
 import {
-  access, readFile, writeFile
+  access, readFile, writeFile,
 } from 'fs/promises';
 import https from 'https';
 import os from 'os';
