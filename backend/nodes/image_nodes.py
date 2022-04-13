@@ -72,7 +72,7 @@ class ImReadNode(NodeBase):
 
         logger.info(f"Reading image from path: {path}")
         base, ext = os.path.splitext(path)
-        if ext.replace(".", "") in get_opencv_formats():
+        if ext in get_opencv_formats():
             try:
                 img = cv2.imdecode(
                     np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
@@ -86,7 +86,7 @@ class ImReadNode(NodeBase):
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     )
-        elif ext.replace(".", "") in get_pil_formats():
+        elif ext in get_pil_formats():
             try:
                 from PIL import Image
 
