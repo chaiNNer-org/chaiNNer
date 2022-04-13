@@ -145,6 +145,7 @@ const toV05 = (data) => {
 // ==============
 //    v0.5.2
 // ==============
+
 const toV052 = (data) => {
   const newData = { ...data };
   newData.nodes.forEach((node) => {
@@ -156,6 +157,7 @@ const toV052 = (data) => {
         // Image Name node moves different amounts in different Load Image types
         const newEdgeIndex = (node.data.type === 'Load Image') ? '2' : '3';
         if (edgeIndex === '-1') {
+          // eslint-disable-next-line no-param-reassign
           edge.sourceHandle = edge.source.concat('-', newEdgeIndex);
         }
       });
@@ -164,15 +166,20 @@ const toV052 = (data) => {
     // Update any connections and inputs to Save Image Node
     if (node.data.type === 'Save Image') {
       // Shift text input values >=2 down one place and set Relative Path to empty string
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
       node.data.inputData[4] = node.data.inputData[3];
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
       node.data.inputData[3] = node.data.inputData[2];
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
       node.data.inputData[2] = '';
       // Move Image Name connection if it exists
       const edges = newData.edges.filter((e) => e.target === node.id);
       edges.forEach((edge) => {
         const edgeIndex = edge.targetHandle.slice(-2);
-        if (edgeIndex === '-2')
+        if (edgeIndex === '-2') {
+          // eslint-disable-next-line no-param-reassign, prefer-destructuring
           edge.targetHandle = edge.target.concat('-', '3');
+        }
       });
     }
   });

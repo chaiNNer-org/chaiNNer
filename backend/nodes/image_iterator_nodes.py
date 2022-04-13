@@ -12,6 +12,7 @@ from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .utils.image_utils import get_available_image_formats
 
 IMAGE_ITERATOR_DEFAULT_NODE_NAME = "Load Image (Iterator)"
 
@@ -26,7 +27,9 @@ class ImageFileIteratorPathNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput()]
         self.outputs = ImReadNode().get_outputs()
-        self.outputs.insert(2, TextOutput("Relative Path"))  # Add relative path to outputs outside ImReadNode
+        self.outputs.insert(
+            2, TextOutput("Relative Path")
+        )  # Add relative path to outputs outside ImReadNode
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
@@ -93,11 +96,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
-        supported_filetypes = [
-            ".png",
-            ".jpg",
-            ".jpeg",
-        ]  # TODO: Make a method to get these dynamically based on the installed deps
+        supported_filetypes = get_available_image_formats()
 
         def walk_error_handler(exception_instance):
             logger.warn(

@@ -10,5 +10,10 @@
   },
   "parserOptions": {
     "ecmaVersion": 2020
+  },
+  "rules": {
+    "react/jsx-sort-props": [2],
+    "import/extensions": "off",
+    "react/prop-types": "off"
   }
 }

@@ -1,5 +1,3 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import { ipcRenderer } from 'electron';
 import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useState
@@ -23,7 +21,7 @@ export const GlobalProvider = ({
   // console.log('global state rerender');
 
   const {
-    snapToGridAmount,
+    useSnapToGrid,
   } = useContext(SettingsContext);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -56,6 +54,8 @@ export const GlobalProvider = ({
   const [menuCloseFunctions, setMenuCloseFunctions] = useState({});
 
   const [hoveredNode, setHoveredNode] = useState(null);
+
+  const [, , snapToGridAmount] = useSnapToGrid;
 
   const dumpStateToJSON = async () => {
     const output = JSON.stringify({
