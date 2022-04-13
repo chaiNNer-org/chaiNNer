@@ -2,14 +2,14 @@ import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
   AlertDialogOverlay, Box, Button, Center, HStack, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import { Split, } from '@geoffcox/react-splitter';
-import { useWindowSize, } from '@react-hook/window-size';
-import { app, ipcRenderer, } from 'electron';
+import { Split } from '@geoffcox/react-splitter';
+import { useWindowSize } from '@react-hook/window-size';
+import { app, ipcRenderer } from 'electron';
 import log from 'electron-log';
 import {
   memo, useEffect, useRef, useState,
 } from 'react';
-import { ReactFlowProvider, } from 'react-flow-renderer';
+import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
 import CustomEdge from '../components/CustomEdge.jsx';
@@ -19,8 +19,8 @@ import IteratorNode from '../components/node/IteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import { GlobalProvider, } from '../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsProvider, } from '../helpers/contexts/SettingsContext.jsx';
+import { GlobalProvider } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsProvider } from '../helpers/contexts/SettingsContext.jsx';
 
 const Main = ({ port }) => {
   // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
@@ -30,7 +30,7 @@ const Main = ({ port }) => {
     main: CustomEdge,
   };
   // const { colorMode, toggleColorMode } = useColorMode();
-  const [width, height] = useWindowSize();
+  const [, height] = useWindowSize();
 
   const reactFlowWrapper = useRef(null);
 

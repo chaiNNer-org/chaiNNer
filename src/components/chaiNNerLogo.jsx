@@ -1,6 +1,5 @@
-
 import {
-  Box, Center, Image
+  Box, Center, Image,
 } from '@chakra-ui/react';
 import { memo } from 'react';
 import bg from '../public/splash_imgs/background.png';

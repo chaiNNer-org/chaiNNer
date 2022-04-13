@@ -1,45 +1,50 @@
-
 import {
-  Center, Heading, HStack, useColorModeValue
+  Center, Heading, HStack, useColorModeValue,
 } from '@chakra-ui/react';
 import {
-  memo
+  memo,
 } from 'react';
 import { IconFactory } from '../CustomIcons.jsx';
 
 const NodeHeader = ({
-  category, type, width, icon, accentColor, selected, parentNode,
+  type, width, icon, accentColor, selected, parentNode,
 }) => (
   <Center
-    w={width || 'full'}
-    h="auto"
     borderBottomColor={accentColor}
-    borderBottomWidth="4px"
     borderBottomStyle={parentNode ? 'double' : 'default'}
+    borderBottomWidth="4px"
+    h="auto"
     verticalAlign="middle"
+    w={width || 'full'}
   >
     <HStack
+      mb={-1}
+      mt={-1}
+      pb={2}
       pl={6}
       pr={6}
-      pb={2}
-      mt={-1}
-      mb={-1}
       verticalAlign="middle"
     >
-      <Center h={4} w={4} alignContent="center" alignItems="center" verticalAlign="middle">
+      <Center
+        alignContent="center"
+        alignItems="center"
+        h={4}
+        verticalAlign="middle"
+        w={4}
+      >
         {IconFactory(icon, selected ? accentColor : useColorModeValue('gray.600', 'gray.400'))}
       </Center>
       <Center verticalAlign="middle">
         <Heading
+          alignContent="center"
           as="h5"
-          size="sm"
+          fontWeight={700}
+          lineHeight="auto"
           m={0}
           p={0}
-          fontWeight={700}
+          size="sm"
           textAlign="center"
           verticalAlign="middle"
-          alignContent="center"
-          lineHeight="auto"
         >
           {type.toUpperCase()}
         </Heading>

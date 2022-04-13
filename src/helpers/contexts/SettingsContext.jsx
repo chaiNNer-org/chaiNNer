@@ -19,7 +19,7 @@ export const SettingsProvider = ({
   const useIsSystemPython = useMemo(() => [isSystemPython, setIsSystemPython], [isSystemPython]);
   const useSnapToGrid = useMemo(
     () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
-    [isSnapToGrid, snapToGridAmount]
+    [isSnapToGrid, snapToGridAmount],
   );
 
   const contextValue = useMemo(() => ({

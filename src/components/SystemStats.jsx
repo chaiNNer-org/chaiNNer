@@ -1,7 +1,7 @@
 import {
   Box, CircularProgress, CircularProgressLabel, HStack, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
-import { memo, } from 'react';
+import { memo } from 'react';
 import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 
 const SystemStats = () => {

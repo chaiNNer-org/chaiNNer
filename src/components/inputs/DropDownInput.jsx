@@ -1,10 +1,9 @@
-
 import { Select } from '@chakra-ui/react';
 import { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const DropDownInput = memo(({
-  label, options, id, index, isLocked,
+  options, id, index, isLocked,
 }) => {
   const { useInputData } = useContext(GlobalContext);
   const [selection, setSelection] = useInputData(id, index);
@@ -22,14 +21,19 @@ const DropDownInput = memo(({
 
   return (
     <Select
-      value={selection}
-      onChange={handleChange}
-      draggable={false}
       className="nodrag"
       disabled={isLocked}
+      draggable={false}
+      onChange={handleChange}
+      value={selection}
     >
       {options.map(({ option, value }) => (
-        <option key={option} value={value}>{option}</option>
+        <option
+          key={option}
+          value={value}
+        >
+          {option}
+        </option>
       ))}
     </Select>
   );

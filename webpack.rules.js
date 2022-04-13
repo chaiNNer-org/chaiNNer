@@ -15,10 +15,10 @@ module.exports = [
         plugins: [
           ...[isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
           ['@babel/plugin-transform-react-jsx', {
-            runtime: 'automatic'
-          }]]
-      }
-    }
+            runtime: 'automatic',
+          }]],
+      },
+    },
   },
   {
     test: /\.(jpe?g|png|gif|svg)$/i,
@@ -27,26 +27,26 @@ module.exports = [
         loader: 'file-loader',
         options: {
           query: {
-            name: 'assets/[name].[ext]'
-          }
-        }
+            name: 'assets/[name].[ext]',
+          },
+        },
       },
       {
         loader: 'image-webpack-loader',
         options: {
           query: {
             mozjpeg: {
-              progressive: true
+              progressive: true,
             },
             gifsicle: {
-              interlaced: true
+              interlaced: true,
             },
             optipng: {
-              optimizationLevel: 7
-            }
-          }
-        }
-      }]
-  }
+              optimizationLevel: 7,
+            },
+          },
+        },
+      }],
+  },
   // ... existing loader config ...
 ];

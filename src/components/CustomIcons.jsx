@@ -1,13 +1,13 @@
 /* eslint-disable global-require */
-import { createIcon, } from '@chakra-ui/icons';
-import { Icon, } from '@chakra-ui/react';
+import { createIcon } from '@chakra-ui/icons';
+import { Icon } from '@chakra-ui/react';
 import * as bs from 'react-icons/bs';
 import * as cg from 'react-icons/cg';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
 
 const libraries = {
-  bs, cg, md, im
+  bs, cg, md, im,
 };
 
 export const NumPyIcon = createIcon({
@@ -25,26 +25,8 @@ export const NumPyIcon = createIcon({
         fill="#3182ce"
       />
     </>
-  )
+  ),
 });
-
-// export const PyTorchIcon = createIcon({
-//   displayName: 'PyTorchIcon',
-//   viewBox: '0 0 20.97 24.99',
-//   // path can also be an array of elements, if you have multiple paths, lines, shapes, etc.
-//   path: (
-//     <>
-//       <path
-//         fill="#dd6b20"
-//         d="M17.88 7.31 16 9.17a7.61 7.61 0 0 1 0 11 7.89 7.89 0 0 1-11.11 0 7.61 7.61 0 0 1 0-11l4.9-4.84.7-.69V0l-7.4 7.29a10.24 10.24 0 0 0 0 14.71 10.53 10.53 0 0 0 14.81 0 10.25 10.25 0 0 0-.02-14.69Z"
-//       />
-//       <path
-//         fill="#dd6b20"
-//         d="M14.18 6.87a1.35 1.35 0 1 0-1.37-1.35 1.36 1.36 0 0 0 1.37 1.35Z"
-//       />
-//     </>
-//   ),
-// });
 
 export const PyTorchIcon = createIcon({
   displayName: 'PyTorchIcon',
@@ -63,7 +45,7 @@ export const PyTorchIcon = createIcon({
         fill="currentColor"
       />
     </>
-  )
+  ),
 });
 
 export const OpenCVIcon = createIcon({
@@ -85,7 +67,7 @@ export const OpenCVIcon = createIcon({
         fill="#c53030"
       />
     </>
-  )
+  ),
 });
 
 // eslint-disable-next-line no-underscore-dangle
@@ -123,7 +105,7 @@ export const _OnnxIcon = createIcon({
         fill="#b2b2b2"
       />
     </>
-  )
+  ),
 });
 
 export const OnnxIcon = createIcon({
@@ -136,7 +118,7 @@ export const OnnxIcon = createIcon({
         fill="currentColor"
       />
     </>
-  )
+  ),
 });
 
 export const NcnnIcon = createIcon({
@@ -148,7 +130,7 @@ export const NcnnIcon = createIcon({
       // fill="#ED64A6"
       fill="currentColor"
     />
-  )
+  ),
 });
 
 export const IconFactoryOld = (category) => {

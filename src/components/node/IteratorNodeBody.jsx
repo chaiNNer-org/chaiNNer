@@ -1,15 +1,21 @@
-
 import {
-  Box, useColorModeValue
+  Box, useColorModeValue,
 } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import {
-  memo, useContext, useLayoutEffect, useMemo, useState
+  memo, useContext, useLayoutEffect, useMemo, useState,
 } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext.jsx';
 
-const createGridDotsPath = (size, fill) => <circle cx={size} cy={size} r={size} fill={fill} />;
+const createGridDotsPath = (size, fill) => (
+  <circle
+    cx={size}
+    cy={size}
+    fill={fill}
+    r={size}
+  />
+);
 
 const DotPattern = ({ id }) => {
   const gap = 15;
@@ -27,16 +33,22 @@ const DotPattern = ({ id }) => {
       }}
     >
       <pattern
+        height={scaledGap}
         id={patternId}
+        patternUnits="userSpaceOnUse"
+        width={scaledGap}
         x={6}
         y={6}
-        width={scaledGap}
-        height={scaledGap}
-        patternUnits="userSpaceOnUse"
       >
         {path}
       </pattern>
-      <rect x="0" y="0" width="100%" height="100%" fill={`url(#${patternId})`} />
+      <rect
+        fill={`url(#${patternId})`}
+        height="100%"
+        width="100%"
+        x="0"
+        y="0"
+      />
     </svg>
   );
 };
@@ -56,8 +68,6 @@ const IteratorNodeBody = ({
   const [hoveredNode, setHoveredNode] = useHoveredNode;
   const [setIteratorSize, defaultSize] = useIteratorSize(id);
   const { width, height } = iteratorSize ?? defaultSize;
-
-  const [dragging, setDragging] = useState(false);
 
   const [resizeRef, setResizeRef] = useState(null);
 
@@ -79,13 +89,7 @@ const IteratorNodeBody = ({
     <Resizable
       className="nodrag"
       defaultSize={defaultSize}
-      minWidth={maxWidth}
-      minHeight={maxHeight}
       draggable={false}
-      grid={useMemo(
-        () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
-        [isSnapToGrid, snapToGridAmount],
-      )}
       enable={{
         top: false,
         right: true,
@@ -96,16 +100,12 @@ const IteratorNodeBody = ({
         bottomLeft: false,
         topLeft: false,
       }}
-      scale={zoom}
-      style={{
-        margin: 8,
-        marginBottom: 0,
-        marginTop: 0,
-      }}
-      size={{
-        width: width < maxWidth ? maxWidth : width,
-        height: height < maxHeight ? maxHeight : height,
-      }}
+      grid={useMemo(
+        () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
+        [isSnapToGrid, snapToGridAmount],
+      )}
+      minHeight={maxHeight}
+      minWidth={maxWidth}
       onResizeStop={(e, direction, ref, d) => {
         const size = {
           offsetTop: ref.offsetTop,
@@ -117,33 +117,40 @@ const IteratorNodeBody = ({
         updateIteratorBounds(id, size);
       }}
       ref={(r) => { setResizeRef(r); }}
+      scale={zoom}
+      size={{
+        width: width < maxWidth ? maxWidth : width,
+        height: height < maxHeight ? maxHeight : height,
+      }}
+      style={{
+        margin: 8,
+        marginBottom: 0,
+        marginTop: 0,
+      }}
     >
       <Box
         className="nodrag"
         draggable={false}
         h="full"
-        w="full"
         my={0}
         onDragEnter={() => {
           setHoveredNode(id);
-          setDragging(true);
         }}
         onDragLeave={() => {
           setHoveredNode(null);
-          setDragging(false);
         }}
+        w="full"
       >
         <Box
           bg={useColorModeValue('gray.200', 'gray.800')}
-          h="full"
-          w="full"
-          borderWidth={1}
           borderColor={hoveredNode === id ? accentColor : useColorModeValue('gray.400', 'gray.600')}
           borderRadius="lg"
+          borderWidth={1}
+          h="full"
           transition="0.15s ease-in-out"
+          w="full"
         >
           <DotPattern id={id} />
-          {/* <Icon as={GrBottomCorner} color="red.500" position="absolute" right={0} bottom={0} m={1} size="sm" /> */}
         </Box>
       </Box>
     </Resizable>

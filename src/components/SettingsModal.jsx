@@ -1,4 +1,4 @@
-import { SettingsIcon, } from '@chakra-ui/icons';
+import { SettingsIcon } from '@chakra-ui/icons';
 import {
   Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader,
@@ -7,11 +7,11 @@ import {
   Switch, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Tooltip,
   useColorMode, useDisclosure, VStack,
 } from '@chakra-ui/react';
-import { ipcRenderer, } from 'electron';
+import { ipcRenderer } from 'electron';
 import {
   memo, useContext, useEffect, useState,
 } from 'react';
-import { SettingsContext, } from '../helpers/contexts/SettingsContext.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 const SettingsModal = ({ isOpen, onClose }) => {
   const {

@@ -1,13 +1,12 @@
-
 import {
-  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack
+  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import path from 'path';
 import {
-  memo, useContext, useEffect
+  memo, useContext, useEffect,
 } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
@@ -24,7 +23,8 @@ const FileInput = memo(({
   const [filePath, setFilePath] = useInputData(id, index);
 
   // Handle case of NCNN model selection where param and bin files are named in pairs
-  // Eventually, these should be combined into a single input type instead of using the file inputs directly
+  // Eventually, these should be combined into a single input type instead of using
+  // the file inputs directly
   if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
     const [paramFilePath] = useInputData(id, index - 1);
     useEffect(() => {
@@ -107,7 +107,7 @@ const FileInput = memo(({
             alt={filePath}
             className="nodrag"
             cursor="pointer"
-            disabled={isLocked}
+            disabled={isLocked || isInputLocked}
             draggable={false}
             isReadOnly
             isTruncated

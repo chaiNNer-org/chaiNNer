@@ -4,20 +4,20 @@ import {
   AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack, IconButton,
   Image, Spacer, Tag, useColorModeValue, useDisclosure,
 } from '@chakra-ui/react';
-import { useEventSource, useEventSourceListener, } from '@react-nano/use-event-source';
-import { clipboard, ipcRenderer, } from 'electron';
+import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
+import { clipboard, ipcRenderer } from 'electron';
 import log from 'electron-log';
 import {
   memo, useContext, useEffect, useRef, useState,
 } from 'react';
-import { IoPause, IoPlay, IoStop, } from 'react-icons/io5';
+import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity.js';
-import { GlobalContext, } from '../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsContext, } from '../helpers/contexts/SettingsContext.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import logo from '../public/icons/png/256x256.png';
-import { DependencyManagerButton, } from './DependencyManager.jsx';
-import { SettingsButton, } from './SettingsModal.jsx';
+import { DependencyManagerButton } from './DependencyManager.jsx';
+import { SettingsButton } from './SettingsModal.jsx';
 import SystemStats from './SystemStats.jsx';
 
 const Header = ({ port }) => {
@@ -41,7 +41,7 @@ const Header = ({ port }) => {
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
-  const { post, error, response: res } = useFetch(`http://localhost:${port}`, {
+  const { post, response: res } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
     timeout: 0,
   });
@@ -53,6 +53,7 @@ const Header = ({ port }) => {
   const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
   useEventSourceListener(eventSource, ['finish'], ({ data }) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(data);
       // console.log(parsedData);
     } catch (err) {
@@ -133,7 +134,7 @@ const Header = ({ port }) => {
           return [...checkNodeValidity({
             id: node.id, inputData: node.data.inputData, edges, inputs,
           }), node.data.type];
-        }
+        },
       );
       const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
       if (invalidNodes.length > 0) {

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
 import {
-  memo
+  memo,
 } from 'react';
 import DirectoryInput from '../inputs/DirectoryInput.jsx';
 import DropDownInput from '../inputs/DropDownInput.jsx';
@@ -62,11 +62,11 @@ const pickInput = (type, props) => {
     default:
       return (
         <InputContainer
-          key={`${props.id}-${props.index}`}
+          hasHandle={props.hasHandle === undefined ? true : props.hasHandle}
           id={props.id}
           index={props.index}
+          key={`${props.id}-${props.index}`}
           label={null}
-          hasHandle={props.hasHandle === undefined ? true : props.hasHandle}
         >
           <GenericInput label={props.label} />
         </InputContainer>
@@ -74,11 +74,11 @@ const pickInput = (type, props) => {
   }
   return (
     <InputContainer
-      key={`${props.id}-${props.index}`}
+      hasHandle={props.hasHandle}
       id={props.id}
       index={props.index}
+      key={`${props.id}-${props.index}`}
       label={props.label}
-      hasHandle={props.hasHandle}
     >
       <InputType {...props} />
     </InputContainer>

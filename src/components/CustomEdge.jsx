@@ -1,4 +1,4 @@
-import { DeleteIcon, } from '@chakra-ui/icons';
+import { DeleteIcon } from '@chakra-ui/icons';
 import {
   Center, IconButton, useColorModeValue,
 } from '@chakra-ui/react';
@@ -8,8 +8,8 @@ import {
 import {
   getBezierPath, getEdgeCenter,
 } from 'react-flow-renderer';
-import { useDebouncedCallback, } from 'use-debounce';
-import { GlobalContext, } from '../helpers/contexts/GlobalNodeState.jsx';
+import { useDebouncedCallback } from 'use-debounce';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor.js';
 
@@ -22,7 +22,7 @@ const EdgeWrapper = memo(({
   sourcePosition,
   targetPosition,
   style = {},
-  selected
+  selected,
 }) => (
   <CustomEdge
     id={id}
@@ -46,10 +46,10 @@ const CustomEdge = memo(({
   sourcePosition,
   targetPosition,
   style = {},
-  selected
+  selected,
 }) => {
   const edgePath = useMemo(() => getBezierPath({
-    sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition
+    sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
   }), [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]);
 
   const { removeEdgeById, nodes, edges } = useContext(GlobalContext);
@@ -63,7 +63,7 @@ const CustomEdge = memo(({
   // We dynamically grab this data instead since storing the types makes transitioning harder
   const accentColor = useMemo(
     () => getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory),
-    [parentNode]
+    [parentNode],
   );
   const selectedColor = useMemo(() => shadeColor(accentColor, -40), [accentColor]);
   // const normalColor = useColorModeValue('gray.600', 'gray.400');
@@ -85,7 +85,7 @@ const CustomEdge = memo(({
   // const markerEnd = `url(#color=${getCurrentColor()}&type=${MarkerType.ArrowClosed})`;
 
   const [edgeCenterX, edgeCenterY] = useMemo(() => getEdgeCenter({
-    sourceX, sourceY, targetX, targetY
+    sourceX, sourceY, targetX, targetY,
   }), [sourceX, sourceY, targetX, targetY]);
 
   const buttonSize = 32;
@@ -103,7 +103,7 @@ const CustomEdge = memo(({
         onMouseOver={() => hoverTimeout()}
         // onMouseOut={() => setIsHovered(false)}
         style={{
-          cursor: isHovered ? 'pointer' : 'default'
+          cursor: isHovered ? 'pointer' : 'default',
         }}
       >
         <path
@@ -117,7 +117,7 @@ const CustomEdge = memo(({
             transitionDuration: '0.15s',
             transitionProperty: 'stroke-width, stroke',
             transitionTimingFunction: 'ease-in-out',
-            cursor: isHovered ? 'pointer' : 'default'
+            cursor: isHovered ? 'pointer' : 'default',
           }}
         />
         <path
@@ -126,7 +126,7 @@ const CustomEdge = memo(({
             strokeWidth: 18,
             fill: 'none',
             stroke: 'none',
-            cursor: isHovered ? 'pointer' : 'default'
+            cursor: isHovered ? 'pointer' : 'default',
           }}
         />
         <foreignObject
@@ -138,7 +138,7 @@ const CustomEdge = memo(({
             opacity: isHovered ? 1 : 0,
             transitionDuration: '0.15s',
             transitionProperty: 'opacity, background-color',
-            transitionTimingFunction: 'ease-in-out'
+            transitionTimingFunction: 'ease-in-out',
           }}
           width={buttonSize}
           x={edgeCenterX - (buttonSize) / 2}

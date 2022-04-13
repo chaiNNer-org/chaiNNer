@@ -1,5 +1,4 @@
 import { exec as _exec, spawn } from 'child_process';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';

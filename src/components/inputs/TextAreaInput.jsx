@@ -1,4 +1,3 @@
-
 import { Textarea } from '@chakra-ui/react';
 import { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
@@ -22,14 +21,14 @@ const TextAreaInput = memo(({
 
   return (
     <Textarea
-      placeholder={label}
-      resize={resizable ? 'both' : 'none'}
-      draggable={false}
       className="nodrag"
       disabled={isLocked}
-      onChange={handleChange}
-      value={input ?? ''}
+      draggable={false}
       minW={240}
+      onChange={handleChange}
+      placeholder={label}
+      resize={resizable ? 'both' : 'none'}
+      value={input ?? ''}
     />
   );
 });

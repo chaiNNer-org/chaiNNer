@@ -1,8 +1,8 @@
 import {
   Box, Center, ChakraProvider, ColorModeScript, Spinner,
 } from '@chakra-ui/react';
-import { ipcRenderer, } from 'electron';
-import { useEffect, useState, } from 'react';
+import { ipcRenderer } from 'electron';
+import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/extensions
 import './global.css';
 // eslint-disable-next-line import/extensions

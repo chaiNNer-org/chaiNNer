@@ -1,4 +1,3 @@
-
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { memo, useContext } from 'react';
@@ -6,7 +5,7 @@ import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const DirectoryInput = memo(({
-  label, id, index, isLocked,
+  id, index, isLocked,
 }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [directory, setDirectory] = useInputData(id, index);
@@ -28,15 +27,15 @@ const DirectoryInput = memo(({
         <BsFolderPlus />
       </InputLeftElement>
       <Input
+        className="nodrag"
+        cursor="pointer"
+        disabled={isLocked || isInputLocked}
+        draggable={false}
+        isReadOnly
+        isTruncated
+        onClick={onButtonClick}
         placeholder="Select a directory..."
         value={directory ?? ''}
-        isReadOnly
-        onClick={onButtonClick}
-        isTruncated
-        draggable={false}
-        cursor="pointer"
-        className="nodrag"
-        disabled={isLocked || isInputLocked}
       />
     </InputGroup>
   );

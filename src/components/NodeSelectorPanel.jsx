@@ -1,4 +1,4 @@
-import { SearchIcon, } from '@chakra-ui/icons';
+import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
   Box, Center, Divider, Heading, HStack, Input,
@@ -8,9 +8,9 @@ import {
 import {
   memo, useContext, useEffect, useState,
 } from 'react';
-import { GlobalContext, } from '../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
-import { IconFactory, } from './CustomIcons.jsx';
+import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';
 
@@ -37,7 +37,7 @@ const NodeSelector = ({ data, height }) => {
   const [namespaces, setNamespaces] = useState([]);
 
   const {
-    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode
+    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
   } = useContext(GlobalContext);
 
   const [, setHoveredNode] = useHoveredNode;
@@ -49,7 +49,7 @@ const NodeSelector = ({ data, height }) => {
         .sort(
           (a, b) => (a.subcategory + a.name)
             .toUpperCase()
-            .localeCompare((b.subcategory + b.name).toUpperCase())
+            .localeCompare((b.subcategory + b.name).toUpperCase()),
         )
         .forEach((node) => {
           const namespace = node.subcategory;
@@ -111,16 +111,16 @@ const NodeSelector = ({ data, height }) => {
                 '&::-webkit-scrollbar': {
                   width: '6px',
                   borderRadius: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0)'
+                  backgroundColor: 'rgba(0, 0, 0, 0)',
                 },
                 '&::-webkit-scrollbar-track': {
                   borderRadius: '8px',
-                  width: '8px'
+                  width: '8px',
                 },
                 '&::-webkit-scrollbar-thumb': {
                   borderRadius: '8px',
-                  backgroundColor: useColorModeValue('gray.300', 'gray.700')
-                }
+                  backgroundColor: useColorModeValue('gray.300', 'gray.700'),
+                },
               }}
             >
 
@@ -146,7 +146,7 @@ const NodeSelector = ({ data, height }) => {
                       // This is super terrible but I have no better way of filtering for these at the moment
                       // I could probably cache this in the namespace object but w/e
                         .filter(
-                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase())
+                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
                         )
                         .map((namespace) => (
                           <Box key={namespace}>
@@ -168,17 +168,17 @@ const NodeSelector = ({ data, height }) => {
                             <Wrap>
                               {nodes
                                 .filter(
-                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase())
+                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
                                 )
                                 .filter(
                                   (e) => e.subcategory
                                     .toUpperCase()
-                                    .includes(namespace.toUpperCase())
+                                    .includes(namespace.toUpperCase()),
                                 )
                                 .filter((e) => e.nodeType !== 'iteratorHelper')
                                 .sort(
                                   (a, b) => a.name.toUpperCase()
-                                    .localeCompare(b.name.toUpperCase())
+                                    .localeCompare(b.name.toUpperCase()),
                                 )
                                 .map((node) => (
                                   <WrapItem
@@ -200,24 +200,24 @@ const NodeSelector = ({ data, height }) => {
                                         draggable
                                         onDoubleClick={() => {
                                           const {
-                                            height: wHeight, width
+                                            height: wHeight, width,
                                           } = reactFlowWrapper.current.getBoundingClientRect();
 
                                           const position = reactFlowInstance.project({
                                             x: width / 2,
-                                            y: wHeight / 2
+                                            y: wHeight / 2,
                                           });
 
                                           const nodeData = {
                                             category,
-                                            type: node.name
+                                            type: node.name,
                                           };
 
                                           createNode({
                                             nodeType: node.nodeType,
                                             position,
                                             data: nodeData,
-                                            defaultNodes: node.defaultNodes
+                                            defaultNodes: node.defaultNodes,
                                           });
                                         }}
                                         onDragEnd={() => {
@@ -255,7 +255,7 @@ const NodeSelector = ({ data, height }) => {
                   >
                     <Box
                       _hover={{
-                        backgroundColor: 'gray.600'
+                        backgroundColor: 'gray.600',
                       }}
                       bg={useColorModeValue('gray.200', 'gray.700')}
                       borderRadius={10}
@@ -266,14 +266,14 @@ const NodeSelector = ({ data, height }) => {
                       pr={4}
                       sx={{
                         cursor: 'pointer !important',
-                        transition: '0.15s ease-in-out'
+                        transition: '0.15s ease-in-out',
                       }}
                     >
                       <Text
                         cursor="pointer"
                         fontWeight="bold"
                         sx={{
-                          cursor: 'pointer !important'
+                          cursor: 'pointer !important',
                         }}
                         textAlign="center"
                       >

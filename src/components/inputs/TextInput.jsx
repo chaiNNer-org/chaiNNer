@@ -1,7 +1,6 @@
-
 import { Input } from '@chakra-ui/react';
 import {
-  memo, useContext, useEffect, useState
+  memo, useContext, useEffect, useState,
 } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
@@ -30,16 +29,16 @@ const TextInput = memo(({
 
   return (
     <Input
-      placeholder={label}
-      value={tempText ?? ''}
+      className="nodrag"
+      disabled={isLocked || isInputLocked}
+      draggable={false}
+      maxLength={maxLength}
       onChange={(event) => {
         setTempText(event.target.value);
         handleChange(event);
       }}
-      draggable={false}
-      className="nodrag"
-      disabled={isLocked || isInputLocked}
-      maxLength={maxLength}
+      placeholder={label}
+      value={tempText ?? ''}
     />
   );
 });

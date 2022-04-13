@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 
 import {
-  memo
+  memo,
 } from 'react';
 import GenericOutput from '../outputs/GenericOutput.jsx';
 

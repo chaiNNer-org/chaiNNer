@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { ipcRenderer } from 'electron';
 import os from 'os-utils';
 import { useEffect, useMemo, useState } from 'react';

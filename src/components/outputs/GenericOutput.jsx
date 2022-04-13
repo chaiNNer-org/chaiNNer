@@ -1,7 +1,7 @@
 import {
   Text,
 } from '@chakra-ui/react';
-import { memo, } from 'react';
+import { memo } from 'react';
 import OutputContainer from './OutputContainer.jsx';
 
 const GenericOutput = memo(({ label, id, index }) => (

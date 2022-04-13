@@ -1,4 +1,4 @@
-import { DeleteIcon, DownloadIcon, } from '@chakra-ui/icons';
+import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
@@ -7,13 +7,13 @@ import {
   ModalOverlay, Progress, Spinner, StackDivider, Tag,
   TagLabel, Text, Textarea, Tooltip, useColorModeValue, useDisclosure, VStack,
 } from '@chakra-ui/react';
-import { exec, spawn, } from 'child_process';
-import { ipcRenderer, } from 'electron';
+import { exec, spawn } from 'child_process';
+import { ipcRenderer } from 'electron';
 import {
   memo, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import semver from 'semver';
-import { SettingsContext, } from '../helpers/contexts/SettingsContext.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import getAvailableDeps from '../helpers/dependencies.js';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
@@ -89,7 +89,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
         ...deps,
         pythonVersion: pKeys.version,
       });
-      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout, stderr) => {
+      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout) => {
         if (error) {
           setIsLoadingPipList(false);
           return;
@@ -484,9 +484,9 @@ export const DependencyManagerButton = memo(() => {
           return true;
         }
         return !checkSemver(version, pipList[packageName]);
-      }
+      },
     ),
-    [availableDeps, pipList, isNvidiaAvailable]
+    [availableDeps, pipList, isNvidiaAvailable],
   );
 
   return (

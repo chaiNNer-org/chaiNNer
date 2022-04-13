@@ -9,17 +9,17 @@ console.log(`\nbuilding in ${isDevelopment ? 'development' : 'production'} mode`
 
 rules.push({
   test: /\.css$/,
-  use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
+  use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
 });
 
 module.exports = {
   // Put your normal webpack config below here
   module: {
-    rules
+    rules,
   },
   mode: isDevelopment ? 'development' : 'production',
   devServer: {
-    hot: isDevelopment
+    hot: isDevelopment,
   },
-  plugins: [isDevelopment && new ReactRefreshWebpackPlugin()].filter(Boolean)
+  plugins: [isDevelopment && new ReactRefreshWebpackPlugin()].filter(Boolean),
 };

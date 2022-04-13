@@ -20,4 +20,7 @@ module.exports = {
     'import/extensions': 'off',
     'react/prop-types': 'off',
   },
+  settings: {
+    'import/core-modules': ['electron'],
+  },
 };

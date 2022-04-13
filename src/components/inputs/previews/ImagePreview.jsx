@@ -1,12 +1,11 @@
-
 import {
-  Center, HStack, Image, Spinner, Tag, VStack
+  Center, HStack, Image, Spinner, Tag, VStack,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import {
-  memo, useContext, useEffect, useState
+  memo, useContext, useEffect, useState,
 } from 'react';
 import useFetch from 'use-http';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext.jsx';
@@ -39,7 +38,7 @@ export default memo(({
 
   const { port } = useContext(SettingsContext);
 
-  const { post, error, loading } = useFetch(`http://localhost:${port}`, {
+  const { post, loading } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
   }, [port]);
 
@@ -76,14 +75,14 @@ export default memo(({
         : (
           <VStack>
             <Image
-              borderRadius="md"
-          // boxSize="150px"
-              maxW="200px"
-              maxH="200px"
-              src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
-              // fallbackSrc="https://via.placeholder.com/200"
               alt="Image preview failed to load, probably unsupported file type."
+          // boxSize="150px"
+              borderRadius="md"
               draggable={false}
+              maxH="200px"
+              // fallbackSrc="https://via.placeholder.com/200"
+              maxW="200px"
+              src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
             />
             {
             img && (

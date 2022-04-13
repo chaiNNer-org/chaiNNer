@@ -1,9 +1,8 @@
-
 import {
-  Center, Text, useColorModeValue, VStack
+  Center, Text, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import {
-  memo, useContext, useEffect, useMemo, useRef, useState
+  memo, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
@@ -35,12 +34,17 @@ const getSchema = (availableNodes, category, type) => {
 };
 
 const IteratorNodeWrapper = memo(
-  ({ data, selected }) => (<IteratorNode data={data} selected={selected} />),
+  ({ data, selected }) => (
+    <IteratorNode
+      data={data}
+      selected={selected}
+    />
+  ),
 );
 
 const IteratorNode = memo(({ data, selected }) => {
   const {
-    edges, availableNodes, useHoveredNode,
+    edges, availableNodes,
   } = useContext(GlobalContext);
 
   const {
@@ -81,58 +85,95 @@ const IteratorNode = memo(({ data, selected }) => {
     <>
       <Center
         bg={useColorModeValue('gray.300', 'gray.700')}
-        borderWidth="0.5px"
         borderColor={borderColor}
         borderRadius="lg"
-        py={2}
+        borderWidth="0.5px"
         boxShadow="lg"
+        py={2}
         transition="0.15s ease-in-out"
       >
         <VStack minWidth="240px">
           <IteratorNodeHeader
-            category={category}
-            type={type}
             accentColor={accentColor}
+            category={category}
             icon={icon}
-            selected={selected}
             percentComplete={percentComplete}
+            selected={selected}
+            type={type}
           />
           {inputs.length && (
           <Center>
-            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+            <Text
+              fontSize="xs"
+              m={0}
+              mb={-1}
+              mt={-1}
+              p={0}
+              pb={-1}
+              pt={-1}
+            >
               INPUTS
             </Text>
           </Center>
           )}
-          <NodeInputs inputs={inputs} id={id} accentColor={accentColor} isLocked={isLocked} />
+          <NodeInputs
+            accentColor={accentColor}
+            id={id}
+            inputs={inputs}
+            isLocked={isLocked}
+          />
           <Center>
-            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+            <Text
+              fontSize="xs"
+              m={0}
+              mb={-1}
+              mt={-1}
+              p={0}
+              pb={-1}
+              pt={-1}
+            >
               ITERATION
             </Text>
           </Center>
-          <Center ref={iteratorBoxRef} m={0} p={0}>
+          <Center
+            m={0}
+            p={0}
+            ref={iteratorBoxRef}
+          >
             <IteratorNodeBody
+              accentColor={accentColor}
               id={id}
               iteratorSize={iteratorSize}
-              maxWidth={maxWidth}
               maxHeight={maxHeight}
-              accentColor={accentColor}
+              maxWidth={maxWidth}
             />
           </Center>
           {outputs.length > 0 && (
           <Center>
-            <Text fontSize="xs" p={0} m={0} mt={-1} mb={-1} pt={-1} pb={-1}>
+            <Text
+              fontSize="xs"
+              m={0}
+              mb={-1}
+              mt={-1}
+              p={0}
+              pb={-1}
+              pt={-1}
+            >
               OUTPUTS
             </Text>
           </Center>
           )}
-          <NodeOutputs outputs={outputs} id={id} accentColor={accentColor} />
-          <NodeFooter
-            id={id}
+          <NodeOutputs
             accentColor={accentColor}
-            isValid={validity[0]}
+            id={id}
+            outputs={outputs}
+          />
+          <NodeFooter
+            accentColor={accentColor}
+            id={id}
             invalidReason={validity[1]}
             isLocked={isLocked}
+            isValid={validity[0]}
           />
         </VStack>
       </Center>

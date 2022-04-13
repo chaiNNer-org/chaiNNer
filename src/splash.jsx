@@ -1,9 +1,8 @@
 import {
   Center, ChakraProvider, Flex, Progress, Text, VStack,
 } from '@chakra-ui/react';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { ipcRenderer, } from 'electron';
-import { useEffect, useState, } from 'react';
+import { ipcRenderer } from 'electron';
+import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ChaiNNerLogo from './components/chaiNNerLogo.jsx';
 // eslint-disable-next-line import/extensions

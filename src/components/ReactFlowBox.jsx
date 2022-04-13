@@ -1,13 +1,13 @@
 import {
-  Box, useColorModeValue
+  Box, useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
 import {
-  createContext, memo, useCallback, useContext, useEffect, useMemo
+  createContext, memo, useCallback, useContext, useEffect, useMemo,
 } from 'react';
 import ReactFlow, {
-  Background, Controls, useEdgesState, useNodesState
+  Background, Controls, useEdgesState, useNodesState,
 } from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
@@ -18,17 +18,17 @@ const STARTING_Z_INDEX = 50;
 
 // eslint-disable-next-line react/prop-types
 const ReactFlowBox = ({
-  wrapperRef, nodeTypes, edgeTypes
+  wrapperRef, nodeTypes, edgeTypes,
 }) => {
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
     setNodes, setEdges, onMoveEnd, zoom,
-    useMenuCloseFunctions, useHoveredNode
+    useMenuCloseFunctions, useHoveredNode,
   } = useContext(GlobalContext);
 
   const {
-    useSnapToGrid
+    useSnapToGrid,
   } = useContext(SettingsContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -115,8 +115,8 @@ const ReactFlowBox = ({
           ...n,
           position: {
             x: n.position.x - (n.position.x % snapToGridAmount),
-            y: n.position.y - (n.position.y % snapToGridAmount)
-          }
+            y: n.position.y - (n.position.y % snapToGridAmount),
+          },
         };
       });
       _setNodes(alignedNodes);
@@ -130,7 +130,7 @@ const ReactFlowBox = ({
         console.log('flow loaded:', rfi);
       }
     },
-    [reactFlowInstance]
+    [reactFlowInstance],
   );
 
   const onDragOver = useCallback((event) => {
@@ -166,18 +166,18 @@ const ReactFlowBox = ({
 
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left - (offsetX * zoom),
-        y: event.clientY - reactFlowBounds.top - (offsetY * zoom)
+        y: event.clientY - reactFlowBounds.top - (offsetY * zoom),
       });
 
       const nodeData = {
         category,
         type,
         icon,
-        subcategory
+        subcategory,
       };
 
       createNode({
-        type, position, data: nodeData, nodeType, defaultNodes
+        type, position, data: nodeData, nodeType, defaultNodes,
       });
     } catch (error) {
       log.error(error);
@@ -239,7 +239,7 @@ const ReactFlowBox = ({
         snapToGrid={isSnapToGrid}
         style={{
           zIndex: 0,
-          borderRadius: '0.5rem'
+          borderRadius: '0.5rem',
         }}
       >
         <Background
