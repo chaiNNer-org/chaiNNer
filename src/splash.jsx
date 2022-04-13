@@ -111,8 +111,8 @@ const Splash = () => {
           >
             <Center>
               <Text
-                color="gray.500"
                 isTruncated
+                color="gray.500"
               >
                 {status}
               </Text>

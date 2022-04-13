@@ -15,7 +15,10 @@ module.exports = {
     ecmaVersion: 2020,
   },
   rules: {
-    'react/jsx-sort-props': ['error', {}],
+    'react/jsx-sort-props': ['error', {
+      callbacksLast: true,
+      shorthandFirst: true,
+    }],
     'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
     'import/extensions': 'off',
     'react/prop-types': 'off',

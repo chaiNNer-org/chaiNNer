@@ -236,25 +236,25 @@ const Header = ({ port }) => {
               colorScheme="green"
               disabled={running}
               icon={<IoPlay />}
-              onClick={() => { run(); }}
               size="md"
               variant="outline"
+              onClick={() => { run(); }}
             />
             <IconButton
               colorScheme="yellow"
               disabled={!running}
               icon={<IoPause />}
-              onClick={() => { pause(); }}
               size="md"
               variant="outline"
+              onClick={() => { pause(); }}
             />
             <IconButton
               colorScheme="red"
               disabled={!running}
               icon={<IoStop />}
-              onClick={() => { kill(); }}
               size="md"
               variant="outline"
+              onClick={() => { kill(); }}
             />
           </HStack>
           <Spacer />
@@ -291,8 +291,8 @@ const Header = ({ port }) => {
                 Copy to Clipboard
               </Button>
               <Button
-                onClick={onErrorClose}
                 ref={cancelRef}
+                onClick={onErrorClose}
               >
                 OK
               </Button>

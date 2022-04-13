@@ -208,13 +208,13 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   return (
     <>
       <Modal
-        closeOnOverlayClick={!depChanged}
         isCentered
+        closeOnOverlayClick={!depChanged}
         isOpen={isOpen}
-        onClose={onClose}
         returnFocusOnClose={false}
         scrollBehavior="inside"
         size="xl"
+        onClose={onClose}
       >
         <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
         <ModalContent maxW="750px">
@@ -281,11 +281,11 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                               || isRunningShell}
                               isLoading={isRunningShell}
                               leftIcon={<DownloadIcon />}
+                              size="sm"
                               onClick={async () => {
                                 setDepChanged(true);
                                 await updatePackage(dep);
                               }}
-                              size="sm"
                             >
                               {`Update${!checkSemver(dep.version, pipList[dep.packageName]) ? ` (${dep.version})` : ''}`}
                             </Button>
@@ -293,11 +293,11 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                               colorScheme="red"
                               disabled={isRunningShell}
                               leftIcon={<DeleteIcon />}
+                              size="sm"
                               onClick={() => {
                                 setUninstallingPackage(dep);
                                 onUninstallOpen();
                               }}
-                              size="sm"
                             >
                               Uninstall
                             </Button>
@@ -309,11 +309,11 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                               disabled={isRunningShell}
                               isLoading={isRunningShell}
                               leftIcon={<DownloadIcon />}
+                              size="sm"
                               onClick={async () => {
                                 setDepChanged(true);
                                 await installPackage(dep);
                               }}
-                              size="sm"
                             >
                               Install
                             </Button>
@@ -352,15 +352,12 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                   </h2>
                   <AccordionPanel pb={4}>
                     <Textarea
+                      readOnly
                       cursor="default"
                       fontFamily="monospace"
                       h="150"
-                      onChange={(e) => e.preventDefault()}
-                      onClick={(e) => e.preventDefault()}
-                      onFocus={(e) => e.preventDefault()}
                       overflowY="scroll"
                       placeholder=""
-                      readOnly
                       ref={consoleRef}
                       sx={{
                         '&::-webkit-scrollbar': {
@@ -379,6 +376,9 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                       }}
                       value={shellOutput}
                       w="full"
+                      onChange={(e) => e.preventDefault()}
+                      onClick={(e) => e.preventDefault()}
+                      onFocus={(e) => e.preventDefault()}
                     />
                   </AccordionPanel>
                 </AccordionItem>
@@ -391,17 +391,17 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
               colorScheme="blue"
               disabled={depChanged}
               mr={3}
-              onClick={onClose}
               variant={depChanged ? 'ghost' : 'solid'}
+              onClick={onClose}
             >
               Close
             </Button>
             <Button
               colorScheme="blue"
+              variant={depChanged ? 'solid' : 'ghost'}
               onClick={async () => {
                 await ipcRenderer.invoke('relaunch-application');
               }}
-              variant={depChanged ? 'solid' : 'ghost'}
             >
               Restart chaiNNer
             </Button>
@@ -429,8 +429,8 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
 
             <AlertDialogFooter>
               <Button
-                onClick={onUninstallClose}
                 ref={cancelRef}
+                onClick={onUninstallClose}
               >
                 Cancel
               </Button>
@@ -492,9 +492,9 @@ export const DependencyManagerButton = memo(() => {
   return (
     <>
       <Tooltip
-        borderRadius={8}
         closeOnClick
         closeOnMouseDown
+        borderRadius={8}
         label="Manage Dependencies"
         px={2}
         py={1}
@@ -521,10 +521,10 @@ export const DependencyManagerButton = memo(() => {
           ) : <></>}
           <IconButton
             icon={<DownloadIcon />}
-            onClick={onOpen}
             position="relative"
             size="md"
             variant="outline"
+            onClick={onOpen}
           />
         </VStack>
       </Tooltip>

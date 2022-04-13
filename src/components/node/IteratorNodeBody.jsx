@@ -106,16 +106,6 @@ const IteratorNodeBody = ({
       )}
       minHeight={maxHeight}
       minWidth={maxWidth}
-      onResizeStop={(e, direction, ref, d) => {
-        const size = {
-          offsetTop: ref.offsetTop,
-          offsetLeft: ref.offsetLeft,
-          width: (width < maxWidth ? maxWidth : width) + d.width,
-          height: (height < maxHeight ? maxHeight : height) + d.height,
-        };
-        setIteratorSize(size);
-        updateIteratorBounds(id, size);
-      }}
       ref={(r) => { setResizeRef(r); }}
       scale={zoom}
       size={{
@@ -127,19 +117,29 @@ const IteratorNodeBody = ({
         marginBottom: 0,
         marginTop: 0,
       }}
+      onResizeStop={(e, direction, ref, d) => {
+        const size = {
+          offsetTop: ref.offsetTop,
+          offsetLeft: ref.offsetLeft,
+          width: (width < maxWidth ? maxWidth : width) + d.width,
+          height: (height < maxHeight ? maxHeight : height) + d.height,
+        };
+        setIteratorSize(size);
+        updateIteratorBounds(id, size);
+      }}
     >
       <Box
         className="nodrag"
         draggable={false}
         h="full"
         my={0}
+        w="full"
         onDragEnter={() => {
           setHoveredNode(id);
         }}
         onDragLeave={() => {
           setHoveredNode(null);
         }}
-        w="full"
       >
         <Box
           bg={useColorModeValue('gray.200', 'gray.800')}

@@ -15,7 +15,10 @@
     "ecmaVersion": 2020
   },
   "rules": {
-    "react/jsx-sort-props": [2, {}],
+    "react/jsx-sort-props": [2, {
+      "callbacksLast": true,
+      "shorthandFirst": true
+    }],
     "react/jsx-max-props-per-line": [2, { "maximum": 1, "when": "always" }],
     "import/extensions": "off",
     "react/prop-types": "off"

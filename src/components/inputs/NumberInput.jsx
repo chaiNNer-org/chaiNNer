@@ -28,11 +28,11 @@ const NumericalInput = memo(({
       draggable={false}
       max={max ?? Infinity}
       min={min ?? -Infinity}
-      onChange={handleChange}
       placeholder={label}
       precision={precision}
       step={step ?? 1}
       value={String(input)}
+      onChange={handleChange}
     >
       <NumberInputField />
       <NumberInputStepper>

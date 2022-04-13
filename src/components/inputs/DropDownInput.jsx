@@ -24,8 +24,8 @@ const DropDownInput = memo(({
       className="nodrag"
       disabled={isLocked}
       draggable={false}
-      onChange={handleChange}
       value={selection}
+      onChange={handleChange}
     >
       {options.map(({ option, value }) => (
         <option

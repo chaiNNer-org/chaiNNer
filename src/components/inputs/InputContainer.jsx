@@ -30,16 +30,16 @@ const InputContainer = memo(({
           style={{ position: 'absolute', left: '-4px', width: 0 }}
         >
           <Handle
+            isConnectable
             className="input-handle"
             id={`${id}-${index}`}
-            isConnectable
             isValidConnection={isValidConnection}
-            onConnect={(params) => console.log('handle onConnect', params)}
             position="left"
             style={{
               width: '15px', height: '15px', borderWidth: '1px', borderColor, transition: '0.25s ease-in-out', background: handleColor,
             }}
             type="target"
+            onConnect={(params) => console.log('handle onConnect', params)}
           />
         </div>
         {children}

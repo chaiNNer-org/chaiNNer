@@ -32,15 +32,15 @@ const OutputContainer = memo(({
           style={{ position: 'absolute', right: '-4px', width: 0 }}
         >
           <Handle
-            id={`${id}-${index}`}
             isConnectable
+            id={`${id}-${index}`}
             isValidConnection={isValidConnection}
-            onConnect={(params) => console.log('handle onConnect', params)}
             position="right"
             style={{
               width: '15px', height: '15px', borderWidth: '1px', borderColor, transition: '0.25s ease-in-out', background: handleColor,
             }}
             type="source"
+            onConnect={(params) => console.log('handle onConnect', params)}
           />
         </div>
       </HStack>

@@ -117,6 +117,9 @@ const Node = memo(({
           borderRadius="lg"
           borderWidth="0.5px"
           boxShadow="lg"
+          py={2}
+          ref={targetRef}
+          transition="0.15s ease-in-out"
           onClick={() => {
             // setShowMenu(false);
           }}
@@ -136,9 +139,6 @@ const Node = memo(({
               setHoveredNode(parentNode);
             }
           }}
-          py={2}
-          ref={targetRef}
-          transition="0.15s ease-in-out"
         >
           <VStack minWidth="240px">
             <NodeHeader

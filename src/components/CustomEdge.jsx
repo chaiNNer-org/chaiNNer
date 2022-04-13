@@ -98,13 +98,13 @@ const CustomEdge = memo(({
   return (
     <>
       <g
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseOver={() => hoverTimeout()}
-        // onMouseOut={() => setIsHovered(false)}
         style={{
           cursor: isHovered ? 'pointer' : 'default',
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        // onMouseOut={() => setIsHovered(false)}
+        onMouseOver={() => hoverTimeout()}
       >
         <path
           className="react-flow__edge-path"
@@ -156,14 +156,14 @@ const CustomEdge = memo(({
             w="full"
           >
             <IconButton
+              isRound
               borderColor={useColorModeValue('gray.100', 'gray.800')}
               borderRadius={100}
               borderWidth={2}
               className="edgebutton"
               icon={<DeleteIcon />}
-              isRound
-              onClick={() => removeEdgeById(id)}
               size="sm"
+              onClick={() => removeEdgeById(id)}
             >
               ×
             </IconButton>

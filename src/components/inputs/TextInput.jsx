@@ -33,12 +33,12 @@ const TextInput = memo(({
       disabled={isLocked || isInputLocked}
       draggable={false}
       maxLength={maxLength}
+      placeholder={label}
+      value={tempText ?? ''}
       onChange={(event) => {
         setTempText(event.target.value);
         handleChange(event);
       }}
-      placeholder={label}
-      value={tempText ?? ''}
     />
   );
 });

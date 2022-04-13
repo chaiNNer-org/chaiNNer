@@ -27,15 +27,15 @@ const DirectoryInput = memo(({
         <BsFolderPlus />
       </InputLeftElement>
       <Input
+        isReadOnly
+        isTruncated
         className="nodrag"
         cursor="pointer"
         disabled={isLocked || isInputLocked}
         draggable={false}
-        isReadOnly
-        isTruncated
-        onClick={onButtonClick}
         placeholder="Select a directory..."
         value={directory ?? ''}
+        onClick={onButtonClick}
       />
     </InputGroup>
   );

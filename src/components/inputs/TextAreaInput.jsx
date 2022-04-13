@@ -25,10 +25,10 @@ const TextAreaInput = memo(({
       disabled={isLocked}
       draggable={false}
       minW={240}
-      onChange={handleChange}
       placeholder={label}
       resize={resizable ? 'both' : 'none'}
       value={input ?? ''}
+      onChange={handleChange}
     />
   );
 });

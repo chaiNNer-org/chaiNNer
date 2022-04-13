@@ -84,9 +84,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <HStack>
           <Switch
             defaultChecked={colorMode === 'dark'}
-            onChange={() => { toggleColorMode(); }}
             size="lg"
             value={colorMode === 'dark'}
+            onChange={() => { toggleColorMode(); }}
           />
         </HStack>
       </Flex>
@@ -118,9 +118,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <HStack>
           <Switch
             defaultChecked={isSnapToGrid}
-            onChange={() => { setIsSnapToGrid(!isSnapToGrid); }}
             size="lg"
             value={isSnapToGrid}
+            onChange={() => { setIsSnapToGrid(!isSnapToGrid); }}
           />
         </HStack>
       </Flex>
@@ -154,8 +154,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultValue={snapToGridAmount}
             max={45}
             min={1}
-            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
             value={snapToGridAmount ?? 1}
+            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
           >
             <NumberInputField />
             <NumberInputStepper>
@@ -202,9 +202,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={isCpu}
             isDisabled={!isNvidiaAvailable}
-            onChange={() => { setIsCpu(!isCpu); }}
             size="lg"
             value={isCpu}
+            onChange={() => { setIsCpu(!isCpu); }}
           />
         </HStack>
       </Flex>
@@ -238,9 +238,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={isFp16}
             isDisabled={isCpu}
-            onChange={() => { setIsFp16(!isFp16); }}
             size="lg"
             value={isFp16}
+            onChange={() => { setIsFp16(!isFp16); }}
           />
         </HStack>
       </Flex>
@@ -279,9 +279,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <HStack>
           <Switch
             defaultChecked={isSystemPython}
-            onChange={() => { setIsSystemPython(!isSystemPython); }}
             size="lg"
             value={isSystemPython}
+            onChange={() => { setIsSystemPython(!isSystemPython); }}
           />
         </HStack>
       </Flex>
@@ -292,10 +292,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
     <Modal
       isCentered
       isOpen={isOpen}
-      onClose={onClose}
       returnFocusOnClose={false}
       scrollBehavior="inside"
       size="xl"
+      onClose={onClose}
     >
       <ModalOverlay />
       <ModalContent
@@ -330,10 +330,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <ModalFooter>
           <HStack>
             <Button
+              variant="ghost"
               onClick={() => {
                 ipcRenderer.invoke('relaunch-application');
               }}
-              variant="ghost"
             >
               Restart chaiNNer
             </Button>
@@ -358,18 +358,18 @@ export const SettingsButton = memo(() => {
   return (
     <>
       <Tooltip
-        borderRadius={8}
         closeOnClick
         closeOnMouseDown
+        borderRadius={8}
         label="Settings"
         px={2}
         py={1}
       >
         <IconButton
           icon={<SettingsIcon />}
-          onClick={onSettingsOpen}
           size="md"
           variant="outline"
+          onClick={onSettingsOpen}
         >
           Settings
         </IconButton>

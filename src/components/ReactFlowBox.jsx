@@ -214,20 +214,23 @@ const ReactFlowBox = ({
         minZoom={0.125}
         nodeTypes={memoNodeTypes}
         nodes={_nodes}
+        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+        snapToGrid={isSnapToGrid}
+        style={{
+          zIndex: 0,
+          borderRadius: '0.5rem',
+        }}
         onConnect={createConnection}
         onDragOver={onDragOver}
         onDragStart={onDragStart}
         onDrop={onDrop}
         onEdgesChange={onEdgesChange}
         onEdgesDelete={onEdgesDelete}
+        // onSelectionChange={setSelectedElements}
         onInit={onInit}
         onMoveEnd={onMoveEnd}
         onNodeContextMenu={onNodeContextMenu}
-        // onSelectionChange={setSelectedElements}
         onNodeDragStop={onNodeDragStop}
-        onNodesChange={onNodesChange}
-        onNodesDelete={onNodesDelete}
-        onPaneClick={closeAllMenus}
         // fitView
         // fitViewOptions={{
         //   minZoom: 1,
@@ -235,12 +238,9 @@ const ReactFlowBox = ({
         //   padding: 40,
         // }}
         // onlyRenderVisibleElements
-        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
-        snapToGrid={isSnapToGrid}
-        style={{
-          zIndex: 0,
-          borderRadius: '0.5rem',
-        }}
+        onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
+        onPaneClick={closeAllMenus}
       >
         <Background
           gap={16}

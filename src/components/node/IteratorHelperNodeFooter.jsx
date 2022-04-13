@@ -26,10 +26,10 @@ const NodeFooter = ({
     >
       <Spacer />
       <Tooltip
+        hasArrow
         borderRadius={8}
         closeOnClick={false}
         gutter={24}
-        hasArrow
         label={isValid ? 'Node valid' : invalidReason}
         px={2}
         py={1}

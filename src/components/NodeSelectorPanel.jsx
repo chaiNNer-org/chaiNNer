@@ -73,8 +73,8 @@ const NodeSelector = ({ data, height }) => {
       w="auto"
     >
       <Tabs
-        h="100%"
         isFitted
+        h="100%"
         w="100%"
       >
         <TabList>
@@ -98,10 +98,10 @@ const NodeSelector = ({ data, height }) => {
               </InputLeftElement>
               <Input
                 borderRadius={0}
-                onChange={handleChange}
                 placeholder="Search..."
                 type="text"
                 variant="filled"
+                onChange={handleChange}
               />
             </InputGroup>
             <Box
@@ -187,17 +187,18 @@ const NodeSelector = ({ data, height }) => {
                                     w="full"
                                   >
                                     <Tooltip
-                                      borderRadius={8}
                                       closeOnMouseDown
                                       hasArrow
+                                      borderRadius={8}
                                       label={node.description}
                                       px={2}
                                       py={1}
                                     >
                                       <Center
+                                        draggable
                                         boxSizing="content-box"
                                         display="block"
-                                        draggable
+                                        w="100%"
                                         onDoubleClick={() => {
                                           const {
                                             height: wHeight, width,
@@ -229,7 +230,6 @@ const NodeSelector = ({ data, height }) => {
                                               setHoveredNode(null);
                                             }
                                           }
-                                        w="100%"
                                       >
                                         <RepresentativeNode
                                           category={category}
@@ -260,7 +260,6 @@ const NodeSelector = ({ data, height }) => {
                       bg={useColorModeValue('gray.200', 'gray.700')}
                       borderRadius={10}
                       cursor="pointer"
-                      onClick={onOpen}
                       p={2}
                       pl={4}
                       pr={4}
@@ -268,6 +267,7 @@ const NodeSelector = ({ data, height }) => {
                         cursor: 'pointer !important',
                         transition: '0.15s ease-in-out',
                       }}
+                      onClick={onOpen}
                     >
                       <Text
                         cursor="pointer"

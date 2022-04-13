@@ -95,6 +95,9 @@ const IteratorHelperNode = ({
       borderRadius="lg"
       borderWidth="0.5px"
       boxShadow="lg"
+      py={2}
+      ref={targetRef}
+      transition="0.15s ease-in-out"
       onClick={() => {
       }}
       onContextMenu={() => {
@@ -104,9 +107,6 @@ const IteratorHelperNode = ({
           setHoveredNode(parentNode);
         }
       }}
-      py={2}
-      ref={targetRef}
-      transition="0.15s ease-in-out"
     >
       <VStack minWidth="240px">
         <NodeHeader

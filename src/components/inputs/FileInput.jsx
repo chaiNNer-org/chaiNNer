@@ -104,16 +104,16 @@ const FileInput = memo(({
           </InputLeftElement>
 
           <Input
+            isReadOnly
+            isTruncated
             alt={filePath}
             className="nodrag"
             cursor="pointer"
             disabled={isLocked || isInputLocked}
             draggable={false}
-            isReadOnly
-            isTruncated
-            onClick={onButtonClick}
             placeholder="Select a file..."
             value={filePath ? path.parse(filePath).base : ''}
+            onClick={onButtonClick}
           />
 
         </InputGroup>

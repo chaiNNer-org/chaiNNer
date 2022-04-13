@@ -32,21 +32,21 @@ const SliderInput = memo(({
         isDisabled={isLocked}
         max={max}
         min={min}
+        step={1}
+        value={sliderValue ?? def}
         onChange={(v) => setSliderValue(v)}
         onChangeEnd={(v) => { setInput(v); }}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        step={1}
-        value={sliderValue ?? def}
       >
         <SliderTrack>
           <SliderFilledTrack bg={accentColor} />
         </SliderTrack>
         <Tooltip
+          hasArrow
           bg={accentColor}
           borderRadius={8}
           color="white"
-          hasArrow
           isOpen={showTooltip}
           label={`${sliderValue}%`}
           placement="top"
@@ -69,13 +69,13 @@ const SliderInput = memo(({
         draggable={false}
         max={max ?? Infinity}
         min={min ?? -Infinity}
-        onChange={(v) => {
-          setInput(Math.min(Math.max(v, min), max));
-        }}
         placeholder={def}
         size="xs"
         step={1}
         value={sliderValue ?? def}
+        onChange={(v) => {
+          setInput(Math.min(Math.max(v, min), max));
+        }}
       >
         <NumberInputField
           m={0}
