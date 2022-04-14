@@ -2,7 +2,7 @@ import asyncio
 import functools
 import os
 import uuid
-from typing import Dict, List
+from typing import Dict
 
 from sanic import app
 from sanic.log import logger
@@ -17,7 +17,7 @@ class Executor:
 
     def __init__(
         self,
-        nodes: List[Dict],
+        nodes: list[Dict],
         loop,
         queue: asyncio.Queue,
         existing_cache: Dict,

@@ -60,7 +60,7 @@ const FileInput = memo(({
     const fileDir = filePath ? path.dirname(filePath) : undefined;
     const fileFilter = [{
       name: label,
-      extensions: filetypes ?? ['*'],
+      extensions: filetypes.map((e) => e.replace('.', '')) ?? ['*'],
     }];
     const { canceled, filePaths } = await ipcRenderer.invoke('file-select', fileFilter, false, fileDir);
     const selectedPath = filePaths[0];

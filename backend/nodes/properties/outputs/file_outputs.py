@@ -1,7 +1,7 @@
-from typing import Dict, List
+from typing import Dict
 
 
-def FileOutput(input_type: str, label: str, filetypes: List[str]) -> Dict:
+def FileOutput(input_type: str, label: str, filetypes: list[str]) -> Dict:
     """Output for saving a local file"""
     return {
         "type": f"file::{input_type}",

@@ -67,12 +67,12 @@ class ImReadNode(NodeBase):
             "channels": c,
         }
 
-    def run(self, path: str) -> [np.ndarray, str, str]:
+    def run(self, path: str) -> list[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
         base, ext = os.path.splitext(path)
-        if ext in get_opencv_formats():
+        if ext.lower() in get_opencv_formats():
             try:
                 img = cv2.imdecode(
                     np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
@@ -86,7 +86,7 @@ class ImReadNode(NodeBase):
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     )
-        elif ext in get_pil_formats():
+        elif ext.lower() in get_pil_formats():
             try:
                 from PIL import Image
 
@@ -103,7 +103,9 @@ class ImReadNode(NodeBase):
                     f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
                 )
         else:
-            img = None
+            raise NotImplementedError(
+                "The image you are trying to read cannot be read by chaiNNer."
+            )
 
         dtype_max = 1
         try:
