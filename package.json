@@ -13,7 +13,8 @@
     "make-win-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform win32",
     "make-mac-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform darwin",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
-    "lint": "eslint --fix --ext \".js,.jsx\" . && black ./backend"
+    "lint": "eslint . --ext \".js,.jsx\" && black --check ./backend",
+    "lint-fix": "eslint . --fix --ext \".js,.jsx\" && black ./backend"
   },
   "pre-commit": [
     "lint"
