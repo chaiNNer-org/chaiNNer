@@ -103,48 +103,53 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 f"Exception occurred during walk: {exception_instance} Continuing..."
             )
 
+        just_image_files = []
         for root, dirs, files in os.walk(
-            directory, topdown=False, onerror=walk_error_handler
+            directory, topdown=True, onerror=walk_error_handler
         ):
             if parent_executor.should_stop_running():
                 return
-            file_len = len(files)
-            start_idx = math.ceil(float(percent) * file_len)
-            for idx, name in enumerate(files):
-                if parent_executor.should_stop_running():
-                    return
-                if idx >= start_idx:
-                    await queue.put(
-                        {
-                            "event": "iterator-progress-update",
-                            "data": {
-                                "percent": idx / file_len,
-                                "iteratorId": id,
-                                "running": child_nodes,
-                            },
-                        }
-                    )
-                    filepath = os.path.join(root, name)
-                    base, ext = os.path.splitext(filepath)
-                    if ext.lower() in supported_filetypes:
-                        # Replace the input filepath with the filepath from the loop
-                        nodes[img_path_node_id]["inputs"] = [filepath, directory]
-                        executor = Executor(
-                            nodes,
-                            loop,
-                            queue,
-                            external_cache.copy(),
-                            parent_executor=parent_executor,
-                        )
-                        await executor.run()
-                    await queue.put(
-                        {
-                            "event": "iterator-progress-update",
-                            "data": {
-                                "percent": (idx + 1) / file_len,
-                                "iteratorId": id,
-                                "running": None,
-                            },
-                        }
-                    )
+
+            for name in files:
+                filepath = os.path.join(root, name)
+                base, ext = os.path.splitext(filepath)
+                if ext.lower() in supported_filetypes:
+                    just_image_files.append(filepath)
+
+        file_len = len(just_image_files)
+        start_idx = math.ceil(float(percent) * file_len)
+        for idx, filepath in enumerate(just_image_files):
+            if parent_executor.should_stop_running():
+                return
+            if idx >= start_idx:
+                await queue.put(
+                    {
+                        "event": "iterator-progress-update",
+                        "data": {
+                            "percent": idx / file_len,
+                            "iteratorId": id,
+                            "running": child_nodes,
+                        },
+                    }
+                )
+                # Replace the input filepath with the filepath from the loop
+                nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                executor = Executor(
+                    nodes,
+                    loop,
+                    queue,
+                    external_cache.copy(),
+                    parent_executor=parent_executor,
+                )
+                await executor.run()
+                await queue.put(
+                    {
+                        "event": "iterator-progress-update",
+                        "data": {
+                            "percent": (idx + 1) / file_len,
+                            "iteratorId": id,
+                            "running": None,
+                        },
+                    }
+                )
         return ""
