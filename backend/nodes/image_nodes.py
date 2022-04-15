@@ -178,89 +178,91 @@ class ImWriteNode(NodeBase):
         return status
 
 
-@NodeFactory.register("Image", "Preview Image")
-class ImShowNode(NodeBase):
-    """OpenCV Imshow node"""
+if platform.system() != "Linux":
 
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Show image preview in a new window."
-        self.inputs = [ImageInput()]
-        self.outputs = []
-        self.icon = "BsEyeFill"
-        self.sub = "Input & Output"
+    @NodeFactory.register("Image", "Preview Image")
+    class ImShowNode(NodeBase):
+        """OpenCV Imshow node"""
 
-    def checkerboard(self, h, w):
-        square_size = 8
-        new_h = (h // square_size) + 1
-        new_w = (w // square_size) + 1
-        # Black and white checkerboard
-        # from https://stackoverflow.com/questions/2169478/how-to-make-a-checkerboard-in-numpy
-        checkerboard = (np.indices((new_h, new_w)).sum(axis=0) % 2).astype("uint8")
-        # Modify to a mixed grayish color
-        checkerboard = ((checkerboard * 127) + 128) // 2
-        # Resize to full size
-        checkerboard = cv2.resize(
-            checkerboard,
-            (new_w * square_size, new_h * square_size),
-            interpolation=cv2.INTER_NEAREST,
-        )
-        # Crop to fit original resolution
-        checkerboard = checkerboard[:h, :w]
-        return checkerboard.astype("float32") / 255
+        def __init__(self):
+            """Constructor"""
+            super().__init__()
+            self.description = "Show image preview in a new window."
+            self.inputs = [ImageInput()]
+            self.outputs = []
+            self.icon = "BsEyeFill"
+            self.sub = "Input & Output"
 
-    def run(self, img: np.ndarray) -> bool:
-        """Show image"""
-        try:
-            # Theoretically this isn't necessary, but just in case
-            dtype_max = 1
+        def checkerboard(self, h, w):
+            square_size = 8
+            new_h = (h // square_size) + 1
+            new_w = (w // square_size) + 1
+            # Black and white checkerboard
+            # from https://stackoverflow.com/questions/2169478/how-to-make-a-checkerboard-in-numpy
+            checkerboard = (np.indices((new_h, new_w)).sum(axis=0) % 2).astype("uint8")
+            # Modify to a mixed grayish color
+            checkerboard = ((checkerboard * 127) + 128) // 2
+            # Resize to full size
+            checkerboard = cv2.resize(
+                checkerboard,
+                (new_w * square_size, new_h * square_size),
+                interpolation=cv2.INTER_NEAREST,
+            )
+            # Crop to fit original resolution
+            checkerboard = checkerboard[:h, :w]
+            return checkerboard.astype("float32") / 255
+
+        def run(self, img: np.ndarray) -> bool:
+            """Show image"""
             try:
-                dtype_max = np.iinfo(img.dtype).max
-            except:
-                logger.debug("img dtype is not int")
+                # Theoretically this isn't necessary, but just in case
+                dtype_max = 1
+                try:
+                    dtype_max = np.iinfo(img.dtype).max
+                except:
+                    logger.debug("img dtype is not int")
 
-            show_img = img.astype("float32") / dtype_max
-            # logger.info(dtype_max)
-            if img.ndim > 2 and img.shape[2] == 4:
-                h, w, _ = img.shape
-                checkerboard = self.checkerboard(h, w)
-                checkerboard = cv2.cvtColor(checkerboard, cv2.COLOR_GRAY2BGR)
-                alpha = cv2.cvtColor(show_img[:, :, 3], cv2.COLOR_GRAY2BGR)
+                show_img = img.astype("float32") / dtype_max
+                # logger.info(dtype_max)
+                if img.ndim > 2 and img.shape[2] == 4:
+                    h, w, _ = img.shape
+                    checkerboard = self.checkerboard(h, w)
+                    checkerboard = cv2.cvtColor(checkerboard, cv2.COLOR_GRAY2BGR)
+                    alpha = cv2.cvtColor(show_img[:, :, 3], cv2.COLOR_GRAY2BGR)
 
-                foreground = cv2.multiply(alpha, show_img[:, :, :3])
-                background = cv2.multiply(1.0 - alpha, checkerboard)
-                show_img = cv2.add(foreground, background)
+                    foreground = cv2.multiply(alpha, show_img[:, :, :3])
+                    background = cv2.multiply(1.0 - alpha, checkerboard)
+                    show_img = cv2.add(foreground, background)
 
-            h, w = show_img.shape[:2]
-            x = int(0.85 * int(os.environ["resolutionX"]))
-            y = int(0.85 * int(os.environ["resolutionY"]))
-            if h > y and w > x:
-                ratio = min(y / h, x / w)
-                new_h = int(ratio * h)
-                new_w = int(ratio * w)
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            elif h > y:
-                ratio = y / h
-                new_h = y
-                new_w = int(ratio * w)
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            elif w > x:
-                ratio = x / w
-                new_h = int(ratio * h)
-                new_w = x
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            cv2.imshow("Image Preview", show_img)
-            cv2.waitKey(0)
-        except Exception as e:
-            logger.fatal(e)
-            logger.fatal("Imshow had a critical error")
+                h, w = show_img.shape[:2]
+                x = int(0.85 * int(os.environ["resolutionX"]))
+                y = int(0.85 * int(os.environ["resolutionY"]))
+                if h > y and w > x:
+                    ratio = min(y / h, x / w)
+                    new_h = int(ratio * h)
+                    new_w = int(ratio * w)
+                    show_img = cv2.resize(
+                        show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                    )
+                elif h > y:
+                    ratio = y / h
+                    new_h = y
+                    new_w = int(ratio * w)
+                    show_img = cv2.resize(
+                        show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                    )
+                elif w > x:
+                    ratio = x / w
+                    new_h = int(ratio * h)
+                    new_w = x
+                    show_img = cv2.resize(
+                        show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
+                    )
+                cv2.imshow("Image Preview", show_img)
+                cv2.waitKey(0)
+            except Exception as e:
+                logger.fatal(e)
+                logger.fatal("Imshow had a critical error")
 
 
 @NodeFactory.register("Image", "Preview Image (External)")

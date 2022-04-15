@@ -2,6 +2,7 @@ import asyncio
 import functools
 import gc
 import os
+import platform
 import sys
 import traceback
 from json import dumps as stringify
@@ -14,6 +15,10 @@ from sanic_cors import CORS
 
 try:
     import cv2
+
+    # Remove broken QT env var
+    if platform.system() == "Linux":
+        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
     from nodes import image_iterator_nodes, image_nodes
 except Exception as e:

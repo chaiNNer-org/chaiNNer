@@ -1,5 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
+import os from 'os';
 import { isEdge, isNode } from 'react-flow-renderer';
 import semver from 'semver';
 
@@ -181,6 +182,11 @@ const toV052 = (data) => {
           edge.targetHandle = edge.target.concat('-', '3');
         }
       });
+    }
+    // Replace any Preview Image nodes on Linux
+    if (node.data.type === 'Preview Image' && os.platform() === 'linux') {
+      // eslint-disable-next-line no-param-reassign
+      node.data.type = 'Preview Image (External)';
     }
   });
   return newData;
