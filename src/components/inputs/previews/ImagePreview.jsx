@@ -46,7 +46,8 @@ export default memo(({
     (async () => {
       if (path) {
         setIsLoading(true);
-        if ((await checkFileExists(path))) {
+        const fileExists = await checkFileExists(path);
+        if (fileExists) {
           try {
             const result = await post('/run/individual', {
               category,

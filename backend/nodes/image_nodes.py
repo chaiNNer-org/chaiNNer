@@ -4,7 +4,10 @@ Nodes that provide functionality for opencv image manipulation
 
 import math
 import os
-import sys
+import platform
+import subprocess
+import time
+from tempfile import TemporaryDirectory, mkdtemp
 
 import cv2
 import numpy as np
@@ -258,6 +261,51 @@ class ImShowNode(NodeBase):
         except Exception as e:
             logger.fatal(e)
             logger.fatal("Imshow had a critical error")
+
+
+@NodeFactory.register("Image", "Preview Image (External)")
+class ImOpenNode(NodeBase):
+    """Image Open Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Open the image in your default image viewer."
+        self.inputs = [ImageInput()]
+        self.outputs = []
+        self.icon = "BsEyeFill"
+        self.sub = "Input & Output"
+
+    def run(self, img: np.ndarray) -> bool:
+        """Show image"""
+
+        # Theoretically this isn't necessary, but just in case
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+
+        img = img.astype("float32") / dtype_max
+
+        # Put image back in int range
+        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+
+        tempdir = mkdtemp(prefix="chaiNNer-")
+        logger.info(f"Writing image to temp path: {tempdir}")
+        imName = f"{time.time()}.png"
+        tempSaveDir = os.path.join(tempdir, imName)
+        status = cv2.imwrite(
+            tempSaveDir,
+            img,
+        )
+        if status:
+            if platform.system() == "Darwin":  # macOS
+                subprocess.call(("open", tempSaveDir))
+            elif platform.system() == "Windows":  # Windows
+                os.startfile(tempSaveDir)
+            else:  # linux variants
+                subprocess.call(("xdg-open", tempSaveDir))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Factor)")

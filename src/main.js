@@ -3,6 +3,7 @@ import {
   app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
+import { readdirSync, rmSync } from 'fs';
 import {
   access, readFile, writeFile,
 } from 'fs/promises';
@@ -860,6 +861,20 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+  log.info('Cleaning up temp folders...');
+  const tempDir = os.tmpdir();
+  // find all the folders starting with 'chaiNNer-'
+  const tempFolders = (readdirSync(tempDir, { withFileTypes: true }))
+    .filter((dir) => dir.isDirectory())
+    .map((dir) => dir.name)
+    .filter((name) => name.includes('chaiNNer-'));
+  tempFolders.forEach((folder) => {
+    try {
+      rmSync(path.join(tempDir, folder), { force: true, recursive: true });
+    } catch (error) {
+      log.error(`Error removing temp folder. ${error}`);
+    }
+  });
 });
 
 app.on('activate', () => {
