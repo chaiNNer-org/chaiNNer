@@ -1,6 +1,4 @@
-/* eslint-disable import/extensions */
 /* eslint-disable import/prefer-default-export */
-/* eslint-disable react/prop-types */
 import {
   CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
 } from '@chakra-ui/icons';
@@ -8,11 +6,11 @@ import {
   Center, Flex, Icon, Menu, MenuButton, MenuItem,
   MenuList, Portal, Spacer, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
-import React, {
+import {
   memo, useContext, useEffect, useState,
 } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const NodeFooter = ({
   id, isValid = false, invalidReason = '', isLocked,
@@ -43,28 +41,42 @@ const NodeFooter = ({
   }, []);
 
   return (
-    <Flex w="full" pl={2} pr={2}>
+    <Flex
+      pl={2}
+      pr={2}
+      w="full"
+    >
       <Center className="nodrag">
-        <Icon as={isLocked ? LockIcon : UnlockIcon} mt={-1} mb={-1} color={iconShade} onClick={() => toggleLock()} cursor="pointer" />
+        <Icon
+          as={isLocked ? LockIcon : UnlockIcon}
+          color={iconShade}
+          cursor="pointer"
+          mb={-1}
+          mt={-1}
+          onClick={() => toggleLock()}
+        />
       </Center>
       <Spacer />
       <Tooltip
-        label={isValid ? 'Node valid' : invalidReason}
-        closeOnClick={false}
         hasArrow
-        gutter={24}
-        textAlign="center"
         borderRadius={8}
-        py={1}
+        closeOnClick={false}
+        gutter={24}
+        label={isValid ? 'Node valid' : invalidReason}
         px={2}
+        py={1}
+        textAlign="center"
       >
-        <Center my={-2} className="nodrag">
+        <Center
+          className="nodrag"
+          my={-2}
+        >
           <Center
             bgColor={isValid ? validShade : iconShade}
             borderRadius={100}
-            p={1.5}
             mr={-3.5}
             my={-2}
+            p={1.5}
           />
           <Icon
             as={isValid ? CheckCircleIcon : WarningIcon}
@@ -79,18 +91,34 @@ const NodeFooter = ({
       <Spacer />
       <Center>
         <Menu
+          isOpen={isOpen}
           onClose={() => {
             setIsOpen(false);
           }}
           onOpen={() => {
             setIsOpen(true);
           }}
-          isOpen={isOpen}
           // isLazy
         >
-          <MenuButton as={Center} mb={-2} mt={-2} w={6} h={6} cursor="pointer" verticalAlign="middle" className="nodrag">
+          <MenuButton
+            as={Center}
+            className="nodrag"
+            cursor="pointer"
+            h={6}
+            mb={-2}
+            mt={-2}
+            verticalAlign="middle"
+            w={6}
+          >
             <Center>
-              <Icon as={MdMoreHoriz} mb={-2} mt={-2} w={6} h={6} color={iconShade} />
+              <Icon
+                as={MdMoreHoriz}
+                color={iconShade}
+                h={6}
+                mb={-2}
+                mt={-2}
+                w={6}
+              />
             </Center>
           </MenuButton>
           <Portal>

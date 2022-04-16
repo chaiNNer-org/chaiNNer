@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import {
   AlertDialog,
   AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
@@ -9,13 +7,14 @@ import {
 import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
 import log from 'electron-log';
-import React, {
-  memo, useContext, useEffect, useState,
+import {
+  memo, useContext, useEffect, useRef, useState,
 } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import logo from '../public/icons/png/256x256.png';
 import { DependencyManagerButton } from './DependencyManager.jsx';
 import { SettingsButton } from './SettingsModal.jsx';
@@ -27,11 +26,14 @@ const Header = ({ port }) => {
     useAnimateEdges,
     nodes,
     edges,
-    useIsCpu,
-    useIsFp16,
     availableNodes,
     setIteratorPercent,
   } = useContext(GlobalContext);
+
+  const {
+    useIsCpu,
+    useIsFp16,
+  } = useContext(SettingsContext);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
@@ -39,18 +41,19 @@ const Header = ({ port }) => {
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
-  const { post, error, response: res } = useFetch(`http://localhost:${port}`, {
+  const { post, response: res } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
     timeout: 0,
   });
 
   const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('');
-  const cancelRef = React.useRef();
+  const cancelRef = useRef();
 
   const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
   useEventSourceListener(eventSource, ['finish'], ({ data }) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const parsedData = JSON.parse(data);
       // console.log(parsedData);
     } catch (err) {
@@ -100,6 +103,16 @@ const Header = ({ port }) => {
     }
   }, [eventSource, unAnimateEdges]);
 
+  useEffect(() => {
+    console.log({ eventSourceStatus });
+    if (eventSourceStatus === 500) {
+      setErrorMessage('An unexpected error occurred. You may need to restart chaiNNer.');
+      onErrorOpen();
+      unAnimateEdges();
+      setRunning(false);
+    }
+  }, [eventSourceStatus]);
+
   const [appVersion, setAppVersion] = useState('#.#.#');
   useEffect(() => {
     (async () => {
@@ -146,7 +159,7 @@ const Header = ({ port }) => {
           resolutionY: window.screen.height,
         });
       } catch (err) {
-        setErrorMessage(err.exception);
+        setErrorMessage(err.exception || 'An unexpected error occurred.');
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -160,11 +173,11 @@ const Header = ({ port }) => {
       setRunning(false);
       unAnimateEdges();
       if (!res.ok) {
-        setErrorMessage(response.exception);
+        setErrorMessage(response.exception || 'An unexpected error occurred.');
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception);
+      setErrorMessage(err.exception || 'An unexpected error occurred.');
       onErrorOpen();
       setRunning(false);
       unAnimateEdges();
@@ -178,11 +191,11 @@ const Header = ({ port }) => {
       unAnimateEdges();
       setRunning(false);
       if (!res.ok) {
-        setErrorMessage(response.exception);
+        setErrorMessage(response.exception || 'An unexpected error occurred.');
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception);
+      setErrorMessage(err.exception || 'An unexpected error occurred.');
       onErrorOpen();
       unAnimateEdges();
       setRunning(false);
@@ -191,11 +204,25 @@ const Header = ({ port }) => {
 
   return (
     <>
-      <Box w="100%" h="56px" borderWidth="1px" borderRadius="lg" bg={useColorModeValue('gray.100', 'gray.800')}>
-        <Flex align="center" h="100%" p={2}>
+      <Box
+        bg={useColorModeValue('gray.100', 'gray.800')}
+        borderRadius="lg"
+        borderWidth="1px"
+        h="56px"
+        w="100%"
+      >
+        <Flex
+          align="center"
+          h="100%"
+          p={2}
+        >
           <HStack>
             {/* <LinkIcon /> */}
-            <Image boxSize="36px" src={logo} draggable={false} />
+            <Image
+              boxSize="36px"
+              draggable={false}
+              src={logo}
+            />
             <Heading size="md">
               chaiNNer
             </Heading>
@@ -205,9 +232,30 @@ const Header = ({ port }) => {
           <Spacer />
 
           <HStack>
-            <IconButton icon={<IoPlay />} variant="outline" size="md" colorScheme="green" onClick={() => { run(); }} disabled={running} />
-            <IconButton icon={<IoPause />} variant="outline" size="md" colorScheme="yellow" onClick={() => { pause(); }} disabled={!running} />
-            <IconButton icon={<IoStop />} variant="outline" size="md" colorScheme="red" onClick={() => { kill(); }} disabled={!running} />
+            <IconButton
+              colorScheme="green"
+              disabled={running}
+              icon={<IoPlay />}
+              size="md"
+              variant="outline"
+              onClick={() => { run(); }}
+            />
+            <IconButton
+              colorScheme="yellow"
+              disabled={!running}
+              icon={<IoPause />}
+              size="md"
+              variant="outline"
+              onClick={() => { pause(); }}
+            />
+            <IconButton
+              colorScheme="red"
+              disabled={!running}
+              icon={<IoStop />}
+              size="md"
+              variant="outline"
+              onClick={() => { kill(); }}
+            />
           </HStack>
           <Spacer />
           <HStack>
@@ -219,10 +267,10 @@ const Header = ({ port }) => {
       </Box>
 
       <AlertDialog
+        isCentered
+        isOpen={isErrorOpen}
         leastDestructiveRef={cancelRef}
         onClose={onErrorClose}
-        isOpen={isErrorOpen}
-        isCentered
       >
         <AlertDialogOverlay />
 
@@ -242,7 +290,10 @@ const Header = ({ port }) => {
               >
                 Copy to Clipboard
               </Button>
-              <Button ref={cancelRef} onClick={onErrorClose}>
+              <Button
+                ref={cancelRef}
+                onClick={onErrorClose}
+              >
                 OK
               </Button>
             </HStack>

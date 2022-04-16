@@ -4,25 +4,25 @@ def get_opencv_formats():
         import cv2
 
         # Bitmaps
-        available_formats.extend(["bmp", "dib"])
+        available_formats.extend([".bmp", ".dib"])
 
         # JPEG
-        available_formats.extend(["jpg", "jpeg", "jpe", "jp2"])
+        available_formats.extend([".jpg", ".jpeg", ".jpe", ".jp2"])
 
         # PNG, WebP, Tiff
-        available_formats.extend(["png", "webp", "tiff"])
+        available_formats.extend([".png", ".webp", ".tiff"])
 
         # Portable image format
-        available_formats.extend(["pbm", "pgm", "ppm", "pxm", "pnm"])
+        available_formats.extend([".pbm", ".pgm", ".ppm", ".pxm", ".pnm"])
 
         # Sun Rasters
-        available_formats.extend(["sr", "ras"])
+        available_formats.extend([".sr", ".ras"])
 
         # OpenEXR
-        available_formats.extend(["exr"])
+        available_formats.extend([".exr"])
 
         # Radiance HDR
-        available_formats.extend(["hdr", "pic"])
+        available_formats.extend([".hdr", ".pic"])
     except:
         print("OpenCV not installed")
     return available_formats
@@ -34,40 +34,37 @@ def get_pil_formats():
         from PIL import Image
 
         # Bitmaps
-        available_formats.extend(["bmp", "dib", "xbm"])
+        available_formats.extend([".bmp", ".dib", ".xbm"])
 
         # DDS
-        available_formats.extend(["dds"])
+        available_formats.extend([".dds"])
 
         # EPS
-        available_formats.extend(["eps"])
+        available_formats.extend([".eps"])
 
         # GIF
-        # available_formats.extend(["gif"])
+        # available_formats.extend([".gif"])
 
         # Icons
-        available_formats.extend(["icns", "ico"])
+        available_formats.extend([".icns", ".ico"])
 
         # JPEG
-        available_formats.extend(["jpg", "jpeg", "jfif", "jp2", "jpx"])
+        available_formats.extend([".jpg", ".jpeg", ".jfif", ".jp2", ".jpx"])
 
         # Randoms
-        available_formats.extend(["msp", "pcx", "sgi"])
+        available_formats.extend([".msp", ".pcx", ".sgi"])
 
         # PNG, WebP, TIFF
-        available_formats.extend(["png", "webp", "tiff"])
+        available_formats.extend([".png", ".webp", ".tiff"])
 
         # APNG
-        # available_formats.extend(["apng"])
+        # available_formats.extend([".apng"])
 
         # Portable image format
-        available_formats.extend(["pbm", "pgm", "ppm", "pnm"])
+        available_formats.extend([".pbm", ".pgm", ".ppm", ".pnm"])
 
         # TGA
-        available_formats.extend(["tga"])
-
-        # TGA
-        available_formats.extend(["tga"])
+        available_formats.extend([".tga"])
     except:
         print("Pillow not installed")
     return available_formats

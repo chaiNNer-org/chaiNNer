@@ -1,7 +1,7 @@
-from typing import Dict, List
+from typing import Dict
 
 
-def FileOutput(input_type: str, label: str, filetypes: List[str]) -> Dict:
+def FileOutput(input_type: str, label: str, filetypes: list[str]) -> Dict:
     """Output for saving a local file"""
     return {
         "type": f"file::{input_type}",
@@ -15,6 +15,11 @@ def ImageFileOutput(label: str = "image") -> Dict:
     return FileOutput(
         label, "Image File", ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
     )
+
+
+def DirectoryOutput(label: str = "directory") -> Dict:
+    """Output for saving to a directory"""
+    return FileOutput(label, "Image Directory", ["directory"])
 
 
 def OnnxFileOutput() -> Dict:

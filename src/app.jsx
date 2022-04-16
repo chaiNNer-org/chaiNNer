@@ -2,7 +2,7 @@ import {
   Box, Center, ChakraProvider, ColorModeScript, Spinner,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/extensions
 import './global.css';
 // eslint-disable-next-line import/extensions
@@ -22,8 +22,14 @@ const App = () => {
 
   if (!port) {
     Component = () => (
-      <Box w="full" h="full">
-        <Center w="full" h="full">
+      <Box
+        h="full"
+        w="full"
+      >
+        <Center
+          h="full"
+          w="full"
+        >
           <Spinner />
         </Center>
       </Box>

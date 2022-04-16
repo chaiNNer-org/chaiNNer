@@ -143,6 +143,50 @@ const toV05 = (data) => {
 };
 
 // ==============
+//    v0.5.2
+// ==============
+
+const toV052 = (data) => {
+  const newData = { ...data };
+  newData.nodes.forEach((node) => {
+    // Update any connections coming out of a Load Image or Load Image (Iterator)
+    if (['Load Image', 'Load Image (Iterator)'].includes(node.data.type)) {
+      const edges = newData.edges.filter((e) => e.source === node.id);
+      edges.forEach((edge) => {
+        const edgeIndex = edge.sourceHandle.slice(-2);
+        // Image Name node moves different amounts in different Load Image types
+        const newEdgeIndex = (node.data.type === 'Load Image') ? '2' : '3';
+        if (edgeIndex === '-1') {
+          // eslint-disable-next-line no-param-reassign
+          edge.sourceHandle = edge.source.concat('-', newEdgeIndex);
+        }
+      });
+    }
+
+    // Update any connections and inputs to Save Image Node
+    if (node.data.type === 'Save Image') {
+      // Shift text input values >=2 down one place and set Relative Path to empty string
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
+      node.data.inputData[4] = node.data.inputData[3];
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
+      node.data.inputData[3] = node.data.inputData[2];
+      // eslint-disable-next-line no-param-reassign, prefer-destructuring
+      node.data.inputData[2] = '';
+      // Move Image Name connection if it exists
+      const edges = newData.edges.filter((e) => e.target === node.id);
+      edges.forEach((edge) => {
+        const edgeIndex = edge.targetHandle.slice(-2);
+        if (edgeIndex === '-2') {
+          // eslint-disable-next-line no-param-reassign, prefer-destructuring
+          edge.targetHandle = edge.target.concat('-', '3');
+        }
+      });
+    }
+  });
+  return newData;
+};
+
+// ==============
 
 export const migrate = (_version, data) => {
   let convertedData = data;
@@ -162,6 +206,11 @@ export const migrate = (_version, data) => {
   // v0.3.x & v0.4.x to v0.5.0
   if (semver.lt(version, '0.5.0')) {
     convertedData = toV05(convertedData);
+  }
+
+  // v0.5.0 & v0.5.1 to v0.5.2
+  if (semver.lt(version, '0.5.2')) {
+    convertedData = toV052(convertedData);
   }
 
   return convertedData;

@@ -1,10 +1,8 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import {
   NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
 } from '@chakra-ui/react';
-import React, { memo, useContext } from 'react';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { memo, useContext } from 'react';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const NumericalInput = memo(({
   label, id, index, def, min, max, precision, step, type, isLocked,
@@ -24,17 +22,17 @@ const NumericalInput = memo(({
 
   return (
     <NumberInput
+      className="nodrag"
       default={def}
-      min={min ?? -Infinity}
+      disabled={isLocked || isInputLocked}
+      draggable={false}
       max={max ?? Infinity}
-      precision={precision}
+      min={min ?? -Infinity}
       placeholder={label}
+      precision={precision}
+      step={step ?? 1}
       value={String(input)}
       onChange={handleChange}
-      draggable={false}
-      className="nodrag"
-      disabled={isLocked || isInputLocked}
-      step={step ?? 1}
     >
       <NumberInputField />
       <NumberInputStepper>

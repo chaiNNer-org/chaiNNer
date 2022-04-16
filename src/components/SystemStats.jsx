@@ -1,9 +1,7 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import {
   Box, CircularProgress, CircularProgressLabel, HStack, Tooltip, useColorModeValue,
 } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
 
 const SystemStats = () => {
@@ -12,18 +10,18 @@ const SystemStats = () => {
   return (
     <HStack>
       <Tooltip
-        label={`${Number(cpuUsage).toFixed(1)}%`}
         borderRadius={8}
-        py={1}
+        label={`${Number(cpuUsage).toFixed(1)}%`}
         px={2}
+        py={1}
       >
         <Box>
           <CircularProgress
-            value={cpuUsage}
+            capIsRound
             color={cpuUsage < 90 ? 'blue.400' : 'red.400'}
             size="42px"
-            capIsRound
             trackColor={trackColor}
+            value={cpuUsage}
           >
             <CircularProgressLabel>CPU</CircularProgressLabel>
           </CircularProgress>
@@ -31,18 +29,18 @@ const SystemStats = () => {
       </Tooltip>
 
       <Tooltip
-        label={`${Number(ramUsage).toFixed(1)}%`}
         borderRadius={8}
-        py={1}
+        label={`${Number(ramUsage).toFixed(1)}%`}
         px={2}
+        py={1}
       >
         <Box>
           <CircularProgress
-            value={ramUsage}
+            capIsRound
             color={ramUsage < 90 ? 'blue.400' : 'red.400'}
             size="42px"
-            capIsRound
             trackColor={trackColor}
+            value={ramUsage}
           >
             <CircularProgressLabel>RAM</CircularProgressLabel>
           </CircularProgress>
@@ -51,18 +49,18 @@ const SystemStats = () => {
 
       {vramUsage && (
         <Tooltip
-          label={`${Number(vramUsage).toFixed(1)}%`}
           borderRadius={8}
-          py={1}
+          label={`${Number(vramUsage).toFixed(1)}%`}
           px={2}
+          py={1}
         >
           <Box>
             <CircularProgress
-              value={vramUsage}
+              capIsRound
               color={vramUsage < 90 ? 'blue.400' : 'red.400'}
               size="42px"
-              capIsRound
               trackColor={trackColor}
+              value={vramUsage}
             >
               <CircularProgressLabel>VRAM</CircularProgressLabel>
             </CircularProgress>

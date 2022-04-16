@@ -54,6 +54,7 @@ module.exports = {
   //     }
 
   //     execSync(`${pythonPath} -m pip install --upgrade pip`);
+  // eslint-disable-next-line max-len
   //     execSync(`${pythonPath} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1 --no-warn-script-location`);
 
   //     console.log('All done');

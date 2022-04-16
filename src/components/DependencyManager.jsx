@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
@@ -11,12 +9,12 @@ import {
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
-import React, {
+import {
   memo, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import semver from 'semver';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import getAvailableDeps from '../helpers/dependencies.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
 
 const checkSemver = (v1, v2) => {
@@ -31,7 +29,7 @@ const checkSemver = (v1, v2) => {
 const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   const {
     useIsSystemPython,
-  } = useContext(GlobalContext);
+  } = useContext(SettingsContext);
 
   const [isSystemPython] = useIsSystemPython;
 
@@ -91,7 +89,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
         ...deps,
         pythonVersion: pKeys.version,
       });
-      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout, stderr) => {
+      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout) => {
         if (error) {
           setIsLoadingPipList(false);
           return;
@@ -210,13 +208,13 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   return (
     <>
       <Modal
-        isOpen={isOpen}
-        onClose={onClose}
         isCentered
+        closeOnOverlayClick={!depChanged}
+        isOpen={isOpen}
+        returnFocusOnClose={false}
         scrollBehavior="inside"
         size="xl"
-        closeOnOverlayClick={!depChanged}
-        returnFocusOnClose={false}
+        onClose={onClose}
       >
         <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
         <ModalContent maxW="750px">
@@ -225,51 +223,81 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
           </ModalHeader>
           <ModalCloseButton disabled={depChanged} />
           <ModalBody>
-            <VStack w="full" divider={<StackDivider />}>
-              <VStack w="full" divider={<StackDivider />}>
-                <Flex align="center" w="full">
-                  <Text flex="1" textAlign="left" color={isNvidiaAvailable ? 'inherit' : 'red.500'}>
+            <VStack
+              divider={<StackDivider />}
+              w="full"
+            >
+              <VStack
+                divider={<StackDivider />}
+                w="full"
+              >
+                <Flex
+                  align="center"
+                  w="full"
+                >
+                  <Text
+                    color={isNvidiaAvailable ? 'inherit' : 'red.500'}
+                    flex="1"
+                    textAlign="left"
+                  >
                     {`GPU (${isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'})`}
                   </Text>
                 </Flex>
-                <Flex align="center" w="full">
-                  <Text flex="1" textAlign="left">
+                <Flex
+                  align="center"
+                  w="full"
+                >
+                  <Text
+                    flex="1"
+                    textAlign="left"
+                  >
                     {`Python (${deps.pythonVersion}) [${isSystemPython ? 'System' : 'Integrated'}]`}
                   </Text>
                 </Flex>
                 {isLoadingPipList ? <Spinner />
                   : availableDeps.map((dep) => (
-                    <VStack w="full" key={dep.name}>
-                      <Flex align="center" w="full" key={dep.name}>
+                    <VStack
+                      key={dep.name}
+                      w="full"
+                    >
+                      <Flex
+                        align="center"
+                        key={dep.name}
+                        w="full"
+                      >
                         {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
-                        <Text flex="1" textAlign="left" color={pipList[dep.packageName] ? 'inherit' : 'red.500'}>
+                        <Text
+                          color={pipList[dep.packageName] ? 'inherit' : 'red.500'}
+                          flex="1"
+                          textAlign="left"
+                        >
                           {`${dep.name} (${pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'})`}
                         </Text>
                         {pipList[dep.packageName] ? (
                           <HStack>
                             <Button
                               colorScheme="blue"
-                              onClick={async () => {
-                                setDepChanged(true);
-                                await updatePackage(dep);
-                              }}
-                              size="sm"
                               disabled={checkSemver(dep.version, pipList[dep.packageName])
                               || isRunningShell}
                               isLoading={isRunningShell}
                               leftIcon={<DownloadIcon />}
+                              size="sm"
+                              onClick={async () => {
+                                setDepChanged(true);
+                                await updatePackage(dep);
+                              }}
                             >
                               {`Update${!checkSemver(dep.version, pipList[dep.packageName]) ? ` (${dep.version})` : ''}`}
                             </Button>
                             <Button
                               colorScheme="red"
+                              disabled={isRunningShell}
+                              leftIcon={<DeleteIcon />}
+                              size="sm"
                               onClick={() => {
                                 setUninstallingPackage(dep);
                                 onUninstallOpen();
                               }}
-                              size="sm"
-                              leftIcon={<DeleteIcon />}
-                              disabled={isRunningShell}
                             >
                               Uninstall
                             </Button>
@@ -278,32 +306,45 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                           : (
                             <Button
                               colorScheme="blue"
+                              disabled={isRunningShell}
+                              isLoading={isRunningShell}
+                              leftIcon={<DownloadIcon />}
+                              size="sm"
                               onClick={async () => {
                                 setDepChanged(true);
                                 await installPackage(dep);
                               }}
-                              size="sm"
-                              leftIcon={<DownloadIcon />}
-                              disabled={isRunningShell}
-                              isLoading={isRunningShell}
                             >
                               Install
                             </Button>
                           )}
                       </Flex>
                       {isRunningShell && installingPackage?.name === dep.name && (
-                        <Center h={8} w="full">
-                          <Progress w="full" hasStripe value={progress} />
+                        <Center
+                          h={8}
+                          w="full"
+                        >
+                          <Progress
+                            hasStripe
+                            value={progress}
+                            w="full"
+                          />
                         </Center>
                       )}
                     </VStack>
                   ))}
               </VStack>
-              <Accordion w="full" allowToggle>
+              <Accordion
+                allowToggle
+                w="full"
+              >
                 <AccordionItem>
                   <h2>
                     <AccordionButton>
-                      <Box flex="1" textAlign="left">
+                      <Box
+                        flex="1"
+                        textAlign="left"
+                      >
                         Console Output
                       </Box>
                       <AccordionIcon />
@@ -311,18 +352,13 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                   </h2>
                   <AccordionPanel pb={4}>
                     <Textarea
-                      placeholder=""
-                      w="full"
-                      h="150"
-                      value={shellOutput}
-                      fontFamily="monospace"
-                      cursor="default"
-                      ref={consoleRef}
-                      onClick={(e) => e.preventDefault()}
-                      onChange={(e) => e.preventDefault()}
-                      onFocus={(e) => e.preventDefault()}
                       readOnly
+                      cursor="default"
+                      fontFamily="monospace"
+                      h="150"
                       overflowY="scroll"
+                      placeholder=""
+                      ref={consoleRef}
                       sx={{
                         '&::-webkit-scrollbar': {
                           width: '8px',
@@ -338,6 +374,11 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                           backgroundColor: useColorModeValue('gray.300', 'gray.600'),
                         },
                       }}
+                      value={shellOutput}
+                      w="full"
+                      onChange={(e) => e.preventDefault()}
+                      onClick={(e) => e.preventDefault()}
+                      onFocus={(e) => e.preventDefault()}
                     />
                   </AccordionPanel>
                 </AccordionItem>
@@ -346,17 +387,23 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose} disabled={depChanged}>
+            <Button
+              colorScheme="blue"
+              disabled={depChanged}
+              mr={3}
+              variant={depChanged ? 'ghost' : 'solid'}
+              onClick={onClose}
+            >
               Close
             </Button>
             <Button
-              variant="ghost"
+              colorScheme="blue"
+              variant={depChanged ? 'solid' : 'ghost'}
               onClick={async () => {
                 await ipcRenderer.invoke('relaunch-application');
               }}
             >
               Restart chaiNNer
-
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -369,7 +416,10 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            <AlertDialogHeader
+              fontSize="lg"
+              fontWeight="bold"
+            >
               Uninstall
             </AlertDialogHeader>
 
@@ -378,17 +428,20 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onUninstallClose}>
+              <Button
+                ref={cancelRef}
+                onClick={onUninstallClose}
+              >
                 Cancel
               </Button>
               <Button
                 colorScheme="red"
+                ml={3}
                 onClick={() => {
                   setDepChanged(true);
                   onUninstallClose();
                   uninstallPackage(uninstallingPackage);
                 }}
-                ml={3}
               >
                 Uninstall
               </Button>
@@ -439,12 +492,12 @@ export const DependencyManagerButton = memo(() => {
   return (
     <>
       <Tooltip
-        label="Manage Dependencies"
-        borderRadius={8}
-        py={1}
-        px={2}
         closeOnClick
         closeOnMouseDown
+        borderRadius={8}
+        label="Manage Dependencies"
+        px={2}
+        py={1}
       >
         <VStack
           m={0}
@@ -454,10 +507,10 @@ export const DependencyManagerButton = memo(() => {
             <Tag
               borderRadius="full"
               colorScheme="red"
-              size="sm"
-              mt={-1}
               ml={-7}
+              mt={-1}
               position="fixed"
+              size="sm"
             >
               <TagLabel
                 textAlign="center"
@@ -466,13 +519,19 @@ export const DependencyManagerButton = memo(() => {
               </TagLabel>
             </Tag>
           ) : <></>}
-          <IconButton icon={<DownloadIcon />} onClick={onOpen} variant="outline" size="md" position="relative" />
+          <IconButton
+            icon={<DownloadIcon />}
+            position="relative"
+            size="md"
+            variant="outline"
+            onClick={onOpen}
+          />
         </VStack>
       </Tooltip>
       <DependencyManager
         isOpen={isOpen}
-        onOpen={onOpen}
         onClose={onClose}
+        onOpen={onOpen}
         onPipListUpdate={useCallback((pipObj) => setPipList(pipObj), [setPipList])}
       />
     </>

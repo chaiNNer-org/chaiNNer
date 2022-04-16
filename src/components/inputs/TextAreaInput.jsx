@@ -1,8 +1,6 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import { Textarea } from '@chakra-ui/react';
-import React, { memo, useContext, useEffect } from 'react';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { memo, useContext, useEffect } from 'react';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const TextAreaInput = memo(({
   label, id, index, isLocked, resizable,
@@ -23,14 +21,14 @@ const TextAreaInput = memo(({
 
   return (
     <Textarea
-      placeholder={label}
-      resize={resizable ? 'both' : 'none'}
-      draggable={false}
       className="nodrag"
       disabled={isLocked}
-      onChange={handleChange}
-      value={input ?? ''}
+      draggable={false}
       minW={240}
+      placeholder={label}
+      resize={resizable ? 'both' : 'none'}
+      value={input ?? ''}
+      onChange={handleChange}
     />
   );
 });

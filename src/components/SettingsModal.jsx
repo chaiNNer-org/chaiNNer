@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import { SettingsIcon } from '@chakra-ui/icons';
 import {
   Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton,
@@ -10,10 +8,10 @@ import {
   useColorMode, useDisclosure, VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import React, {
+import {
   memo, useContext, useEffect, useState,
 } from 'react';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 const SettingsModal = ({ isOpen, onClose }) => {
   const {
@@ -21,7 +19,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     useIsFp16,
     useIsSystemPython,
     useSnapToGrid,
-  } = useContext(GlobalContext);
+  } = useContext(SettingsContext);
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -54,52 +52,110 @@ const SettingsModal = ({ isOpen, onClose }) => {
   }, [isCpu]);
 
   const AppearanceSettings = () => (
-    <VStack w="full" divider={<StackDivider />}>
+    <VStack
+      divider={<StackDivider />}
+      w="full"
+    >
       {/* Dark Theme */}
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             Dark theme
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             Use dark mode throughout chaiNNer.
           </Text>
         </VStack>
         <HStack>
-          <Switch size="lg" value={colorMode === 'dark'} defaultChecked={colorMode === 'dark'} onChange={() => { toggleColorMode(); }} />
+          <Switch
+            defaultChecked={colorMode === 'dark'}
+            size="lg"
+            value={colorMode === 'dark'}
+            onChange={() => { toggleColorMode(); }}
+          />
         </HStack>
       </Flex>
       {/* Snap To Grid */}
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             Snap to grid
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             Enable node grid snapping.
           </Text>
         </VStack>
         <HStack>
-          <Switch size="lg" value={isSnapToGrid} defaultChecked={isSnapToGrid} onChange={() => { setIsSnapToGrid(!isSnapToGrid); }} />
+          <Switch
+            defaultChecked={isSnapToGrid}
+            size="lg"
+            value={isSnapToGrid}
+            onChange={() => { setIsSnapToGrid(!isSnapToGrid); }}
+          />
         </HStack>
       </Flex>
       {/* Snap To Grid Amount */}
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             Snap to grid amount
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             The amount to snap the grid to.
           </Text>
         </VStack>
         <HStack>
           <NumberInput
             defaultValue={snapToGridAmount}
-            min={1}
             max={45}
-            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
+            min={1}
             value={snapToGridAmount ?? 1}
+            onChange={(number) => setSnapToGridAmount(Number(number ?? 1))}
           >
             <NumberInputField />
             <NumberInputStepper>
@@ -113,52 +169,120 @@ const SettingsModal = ({ isOpen, onClose }) => {
   );
 
   const EnvironmentSettings = () => (
-    <VStack w="full" divider={<StackDivider />}>
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+    <VStack
+      divider={<StackDivider />}
+      w="full"
+    >
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             CPU mode
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             Use CPU for PyTorch inference instead of GPU.
             Forced if Nvidia (CUDA) GPU not detected.
           </Text>
         </VStack>
         <HStack>
-          <Switch size="lg" isDisabled={!isNvidiaAvailable} value={isCpu} defaultChecked={isCpu} onChange={() => { setIsCpu(!isCpu); }} />
+          <Switch
+            defaultChecked={isCpu}
+            isDisabled={!isNvidiaAvailable}
+            size="lg"
+            value={isCpu}
+            onChange={() => { setIsCpu(!isCpu); }}
+          />
         </HStack>
       </Flex>
 
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             FP16 mode
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage.
             RTX GPUs also get an inference speedup.
           </Text>
         </VStack>
         <HStack>
-          <Switch size="lg" isDisabled={isCpu} value={isFp16} defaultChecked={isFp16} onChange={() => { setIsFp16(!isFp16); }} />
+          <Switch
+            defaultChecked={isFp16}
+            isDisabled={isCpu}
+            size="lg"
+            value={isFp16}
+            onChange={() => { setIsFp16(!isFp16); }}
+          />
         </HStack>
       </Flex>
     </VStack>
   );
 
   const PythonSettings = () => (
-    <VStack w="full" divider={<StackDivider />}>
-      <Flex align="center" w="full">
-        <VStack w="full" alignItems="left" alignContent="left">
-          <Text flex="1" textAlign="left">
+    <VStack
+      divider={<StackDivider />}
+      w="full"
+    >
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
             Use system Python (requires restart)
           </Text>
-          <Text flex="1" textAlign="left" fontSize="xs" marginTop={0}>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
             {'Use system Python for chaiNNer\'s processing instead of the bundled Python (not recommended)'}
           </Text>
         </VStack>
         <HStack>
-          <Switch size="lg" value={isSystemPython} defaultChecked={isSystemPython} onChange={() => { setIsSystemPython(!isSystemPython); }} />
+          <Switch
+            defaultChecked={isSystemPython}
+            size="lg"
+            value={isSystemPython}
+            onChange={() => { setIsSystemPython(!isSystemPython); }}
+          />
         </HStack>
       </Flex>
     </VStack>
@@ -166,15 +290,20 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
   return (
     <Modal
-      isOpen={isOpen}
-      onClose={onClose}
       isCentered
+      isOpen={isOpen}
+      returnFocusOnClose={false}
       scrollBehavior="inside"
       size="xl"
-      returnFocusOnClose={false}
+      onClose={onClose}
     >
       <ModalOverlay />
-      <ModalContent maxW="750px" minW="750px" maxH="500px" minH="500px">
+      <ModalContent
+        maxH="500px"
+        maxW="750px"
+        minH="500px"
+        minW="750px"
+      >
         <ModalHeader>Settings</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -208,7 +337,11 @@ const SettingsModal = ({ isOpen, onClose }) => {
             >
               Restart chaiNNer
             </Button>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={onClose}
+            >
               Close
             </Button>
           </HStack>
@@ -225,21 +358,26 @@ export const SettingsButton = memo(() => {
   return (
     <>
       <Tooltip
-        label="Settings"
-        borderRadius={8}
-        py={1}
-        px={2}
         closeOnClick
         closeOnMouseDown
+        borderRadius={8}
+        label="Settings"
+        px={2}
+        py={1}
       >
-        <IconButton icon={<SettingsIcon />} onClick={onSettingsOpen} variant="outline" size="md">
+        <IconButton
+          icon={<SettingsIcon />}
+          size="md"
+          variant="outline"
+          onClick={onSettingsOpen}
+        >
           Settings
         </IconButton>
       </Tooltip>
       <SettingsModal
         isOpen={isSettingsOpen}
-        onOpen={onSettingsOpen}
         onClose={onSettingsClose}
+        onOpen={onSettingsOpen}
       />
     </>
   );

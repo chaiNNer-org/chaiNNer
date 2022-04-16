@@ -1,11 +1,9 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import { Input } from '@chakra-ui/react';
-import React, {
+import {
   memo, useContext, useEffect, useState,
 } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const TextInput = memo(({
   label, id, index, isLocked, maxLength,
@@ -31,16 +29,16 @@ const TextInput = memo(({
 
   return (
     <Input
+      className="nodrag"
+      disabled={isLocked || isInputLocked}
+      draggable={false}
+      maxLength={maxLength}
       placeholder={label}
       value={tempText ?? ''}
       onChange={(event) => {
         setTempText(event.target.value);
         handleChange(event);
       }}
-      draggable={false}
-      className="nodrag"
-      disabled={isLocked || isInputLocked}
-      maxLength={maxLength}
     />
   );
 });

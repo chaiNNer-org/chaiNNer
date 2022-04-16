@@ -1,9 +1,7 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import {
   Box, Center, Heading, HStack, useColorModeValue,
 } from '@chakra-ui/react';
-import React, {
+import {
   memo, useMemo,
 } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -22,54 +20,60 @@ const RepresentativeNode = (
   return (
     <Center
       bg={useColorModeValue('gray.300', 'gray.700')}
-      borderWidth="0.5px"
       borderColor={borderColor}
       borderRadius="lg"
-      py={2}
+      borderWidth="0.5px"
       boxShadow="lg"
+      py={2}
       transition="0.15s ease-in-out"
       w="full"
       // opacity="0.95"
     >
       <Box
-        w="full"
-        h="auto"
         borderBottomColor={accentColor}
         borderBottomWidth="4px"
-        verticalAlign="middle"
         borderStyle={subcategory === 'Iteration' ? 'double' : 'default'}
+        h="auto"
+        verticalAlign="middle"
+        w="full"
       >
         <HStack
+          mb={-1}
+          mt={-1}
+          overflow="hidden"
+          pb={2}
           pl={4}
           pr={4}
-          pb={2}
-          mt={-1}
-          mb={-1}
-          verticalAlign="middle"
           textOverflow="ellipsis"
-          overflow="hidden"
+          verticalAlign="middle"
         >
-          <Center h={4} w={4} alignContent="center" alignItems="center" verticalAlign="middle">
+          <Center
+            alignContent="center"
+            alignItems="center"
+            h={4}
+            verticalAlign="middle"
+            w={4}
+          >
             {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
           </Center>
           <Center
-            verticalAlign="middle"
-            textOverflow="ellipsis"
             overflow="hidden"
+            textOverflow="ellipsis"
+            verticalAlign="middle"
           >
             <Heading
-              as="h5"
-              size="sm"
-              m={0}
-              p={0}
-              fontWeight={700}
-              textAlign="center"
-              whiteSpace="nowrap"
-              textOverflow="ellipsis"
-              overflow="hidden"
-              verticalAlign="middle"
               alignContent="center"
+              as="h5"
+              fontWeight={700}
               lineHeight="auto"
+              m={0}
+              overflow="hidden"
+              p={0}
+              size="sm"
+              textAlign="center"
+              textOverflow="ellipsis"
+              verticalAlign="middle"
+              whiteSpace="nowrap"
             >
               {type.toUpperCase()}
             </Heading>

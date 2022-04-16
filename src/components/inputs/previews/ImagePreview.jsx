@@ -1,16 +1,14 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import {
   Center, HStack, Image, Spinner, Tag, VStack,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
-import React, {
+import {
   memo, useContext, useEffect, useState,
 } from 'react';
 import useFetch from 'use-http';
-import { GlobalContext } from '../../../helpers/GlobalNodeState.jsx';
+import { SettingsContext } from '../../../helpers/contexts/SettingsContext.jsx';
 
 const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
   .then(() => resolve(true))
@@ -38,9 +36,9 @@ export default memo(({
   const [img, setImg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { port } = useContext(GlobalContext);
+  const { port } = useContext(SettingsContext);
 
-  const { post, error, loading } = useFetch(`http://localhost:${port}`, {
+  const { post, loading } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
   }, [port]);
 
@@ -48,10 +46,9 @@ export default memo(({
     (async () => {
       if (path) {
         setIsLoading(true);
-        if (await checkFileExists(path)) {
+        const fileExists = await checkFileExists(path);
+        if (fileExists) {
           try {
-            // const loadedImg = await ImageJS.load(path);
-            // setImg(loadedImg);
             const result = await post('/run/individual', {
               category,
               node: nodeType,
@@ -79,14 +76,14 @@ export default memo(({
         : (
           <VStack>
             <Image
-              borderRadius="md"
-          // boxSize="150px"
-              maxW="200px"
-              maxH="200px"
-              src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
-              // fallbackSrc="https://via.placeholder.com/200"
               alt="Image preview failed to load, probably unsupported file type."
+          // boxSize="150px"
+              borderRadius="md"
               draggable={false}
+              maxH="200px"
+              // fallbackSrc="https://via.placeholder.com/200"
+              maxW="200px"
+              src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
             />
             {
             img && (

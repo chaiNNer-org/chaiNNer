@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
   AlertDialogOverlay, Box, Button, Center, HStack, Text, useColorModeValue, VStack,
@@ -8,20 +6,21 @@ import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { app, ipcRenderer } from 'electron';
 import log from 'electron-log';
-import React, {
+import {
   memo, useEffect, useRef, useState,
 } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
+import CustomEdge from '../components/CustomEdge.jsx';
 import Header from '../components/Header.jsx';
 import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
 import IteratorNode from '../components/node/IteratorNode.jsx';
 import Node from '../components/node/Node.jsx';
 import NodeSelector from '../components/NodeSelectorPanel.jsx';
 import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import CustomEdge from '../helpers/CustomEdge.jsx';
-import { GlobalProvider } from '../helpers/GlobalNodeState.jsx';
+import { GlobalProvider } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsProvider } from '../helpers/contexts/SettingsContext.jsx';
 
 const Main = ({ port }) => {
   // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
@@ -31,7 +30,7 @@ const Main = ({ port }) => {
     main: CustomEdge,
   };
   // const { colorMode, toggleColorMode } = useColorMode();
-  const [width, height] = useWindowSize();
+  const [, height] = useWindowSize();
 
   const reactFlowWrapper = useRef(null);
 
@@ -76,12 +75,23 @@ const Main = ({ port }) => {
     })();
   }, [nodeTypes]);
 
-  const loadingLogo = (<ChaiNNerLogo size={256} percent={0} />);
+  const loadingLogo = (
+    <ChaiNNerLogo
+      percent={0}
+      size={256}
+    />
+  );
 
   if (!nodeTypes) {
     return (
-      <Box w="100vw" h="100vh">
-        <Center w="full" h="full">
+      <Box
+        h="100vh"
+        w="100vw"
+      >
+        <Center
+          h="full"
+          w="full"
+        >
           <VStack>
             {loadingLogo}
             <Text>Loading...</Text>
@@ -102,7 +112,10 @@ const Main = ({ port }) => {
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            <AlertDialogHeader
+              fontSize="lg"
+              fontWeight="bold"
+            >
               Critical Error
             </AlertDialogHeader>
 
@@ -113,11 +126,11 @@ const Main = ({ port }) => {
             <AlertDialogFooter>
               <Button
                 colorScheme="red"
+                ml={3}
                 onClick={() => {
                   window.close();
                   app.quit();
                 }}
-                ml={3}
               >
                 Exit Application
               </Button>
@@ -130,37 +143,45 @@ const Main = ({ port }) => {
 
   return (
     <ReactFlowProvider>
-      <GlobalProvider
-        nodeTypes={nodeTypes}
-        availableNodes={availableNodes}
-        reactFlowWrapper={reactFlowWrapper}
-        port={port}
-      >
-        <VStack p={2} overflow="hidden" bg={bgColor}>
-          <Header port={port} />
-          <HStack
-            as={Split}
-            initialPrimarySize="380px"
-            minPrimarySize="290px"
-            minSecondarySize="75%"
-            splitterSize="10px"
-            defaultSplitterColors={{
-              color: '#71809633',
-              hover: '#71809666',
-              drag: '#718096EE',
-            }}
+      <SettingsProvider port={port}>
+        <GlobalProvider
+          availableNodes={availableNodes}
+          nodeTypes={nodeTypes}
+          reactFlowWrapper={reactFlowWrapper}
+        >
+          <VStack
+            bg={bgColor}
+            overflow="hidden"
+            p={2}
           >
-            <NodeSelector data={data} height={height} />
+            <Header port={port} />
+            <HStack
+              as={Split}
+              defaultSplitterColors={{
+                color: '#71809633',
+                hover: '#71809666',
+                drag: '#718096EE',
+              }}
+              initialPrimarySize="380px"
+              minPrimarySize="290px"
+              minSecondarySize="75%"
+              splitterSize="10px"
+            >
+              <NodeSelector
+                data={data}
+                height={height}
+              />
 
-            <ReactFlowBox
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              className="reactflow-wrapper"
-              wrapperRef={reactFlowWrapper}
-            />
-          </HStack>
-        </VStack>
-      </GlobalProvider>
+              <ReactFlowBox
+                className="reactflow-wrapper"
+                edgeTypes={edgeTypes}
+                nodeTypes={nodeTypes}
+                wrapperRef={reactFlowWrapper}
+              />
+            </HStack>
+          </VStack>
+        </GlobalProvider>
+      </SettingsProvider>
     </ReactFlowProvider>
 
   );

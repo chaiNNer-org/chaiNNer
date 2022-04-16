@@ -12,7 +12,11 @@ module.exports = [
       options: {
         exclude: /node_modules/,
         presets: ['@babel/preset-react'],
-        plugins: [isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
+        plugins: [
+          ...[isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
+          ['@babel/plugin-transform-react-jsx', {
+            runtime: 'automatic',
+          }]],
       },
     },
   },

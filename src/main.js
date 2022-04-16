@@ -3,6 +3,7 @@ import {
   app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
 } from 'electron';
 import log from 'electron-log';
+import { readdirSync, rmSync } from 'fs';
 import {
   access, readFile, writeFile,
 } from 'fs/promises';
@@ -423,26 +424,43 @@ const checkNvidiaSmi = async () => {
   // Try using nvidia-smi from path
   let nvidiaSmi = null;
   try {
-    const { stdout: nvidiaSmiTest } = await exec('nvidia-smi');
-    if (nvidiaSmiTest) {
-      nvidiaSmi = 'nvidia-smi';
+    if (os.platform() === 'win32') {
+      const { stdout: nvidiaSmiTest } = await exec('where nvidia-smi');
+      if (nvidiaSmiTest) {
+        nvidiaSmi = 'nvidia-smi';
+      }
+    } else {
+      const { stdout: nvidiaSmiTest } = await exec('which nvidia-smi');
+      if (nvidiaSmiTest) {
+        nvidiaSmi = 'nvidia-smi';
+      }
     }
   } catch (_) {
-    // pass
+    log.warn('nvidia-smi binary could not be located, attempting to run directly...');
+    try {
+      const { stdout: nvidiaSmiTest } = await exec('nvidia-smi');
+      if (nvidiaSmiTest) {
+        nvidiaSmi = 'nvidia-smi';
+      }
+    } catch (__) {
+      log.warn('nvidia-smi failed to run.');
+    }
   }
 
   // If nvidia-smi not in path, it might still exist on windows
   if (!nvidiaSmi) {
     if (os.platform() === 'win32') {
+      log.info('Checking manually for nvidia-smi...');
       // Check an easy command to see what the name of the gpu is
       try {
         const { stdout } = await exec('wmic path win32_VideoController get name');
-        if (stdout.toLowerCase().includes('geforce') || stdout.toLowerCase().includes('nvidia')) {
+        const checks = ['geforce', 'nvidia', 'gtx', 'rtx', 'quadro'];
+        if (checks.some((keyword) => stdout.toLowerCase().includes(keyword))) {
         // Find the path to nvidia-smi
           nvidiaSmi = await getNvidiaSmi();
         }
       } catch (_) {
-      // pass
+        log.warn('Error occurred while checking for nvidia-smi');
       }
     }
   }
@@ -843,6 +861,20 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+  log.info('Cleaning up temp folders...');
+  const tempDir = os.tmpdir();
+  // find all the folders starting with 'chaiNNer-'
+  const tempFolders = (readdirSync(tempDir, { withFileTypes: true }))
+    .filter((dir) => dir.isDirectory())
+    .map((dir) => dir.name)
+    .filter((name) => name.includes('chaiNNer-'));
+  tempFolders.forEach((folder) => {
+    try {
+      rmSync(path.join(tempDir, folder), { force: true, recursive: true });
+    } catch (error) {
+      log.error(`Error removing temp folder. ${error}`);
+    }
+  });
 });
 
 app.on('activate', () => {

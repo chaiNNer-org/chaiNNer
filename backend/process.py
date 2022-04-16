@@ -1,7 +1,8 @@
 import asyncio
 import functools
+import os
 import uuid
-from typing import Dict, List
+from typing import Dict
 
 from sanic import app
 from sanic.log import logger
@@ -10,9 +11,13 @@ from nodes.node_factory import NodeFactory
 
 
 class Executor:
+    """
+    Class for executing chaiNNer's processing logic
+    """
+
     def __init__(
         self,
-        nodes: List[Dict],
+        nodes: list[Dict],
         loop,
         queue: asyncio.Queue,
         existing_cache: Dict,
@@ -143,6 +148,7 @@ class Executor:
         logger.info(f"Rusuming executor {self.execution_id}")
         self.paused = False
         self.resumed = True
+        os.environ["killed"] = "False"
         await self.process_nodes()
 
     async def check(self):
@@ -161,14 +167,18 @@ class Executor:
         """Kill the executor"""
         logger.info(f"Killing executor {self.execution_id}")
         self.killed = True
+        os.environ["killed"] = "True"
 
     def is_killed(self):
+        """Return if the executor is killed"""
         return self.killed
 
     def is_paused(self):
+        """Return if the executor is paused"""
         return self.paused
 
     def should_stop_running(self):
+        """Return if the executor should stop running"""
         return (
             self.killed
             or self.paused

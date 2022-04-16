@@ -4,7 +4,10 @@ Nodes that provide functionality for opencv image manipulation
 
 import math
 import os
-import sys
+import platform
+import subprocess
+import time
+from tempfile import TemporaryDirectory, mkdtemp
 
 import cv2
 import numpy as np
@@ -40,17 +43,39 @@ class ImReadNode(NodeBase):
             # IntegerOutput("Height"),
             # IntegerOutput("Width"),
             # IntegerOutput("Channels"),
+            DirectoryOutput(),
             TextOutput("Image Name"),
         ]
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
+        self.result = []
 
-    def run(self, path: str) -> np.ndarray:
+    def get_extra_data(self) -> Dict:
+        img = self.result[0]
+
+        if img.ndim == 2:
+            h, w, c = img.shape[:2], 1
+        else:
+            h, w, c = img.shape
+
+        import base64
+
+        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
+        base64_img = base64.b64encode(encoded_img).decode("utf8")
+
+        return {
+            "image": base64_img,
+            "height": h,
+            "width": w,
+            "channels": c,
+        }
+
+    def run(self, path: str) -> list[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
         base, ext = os.path.splitext(path)
-        if ext.replace(".", "") in get_opencv_formats():
+        if ext.lower() in get_opencv_formats():
             try:
                 img = cv2.imdecode(
                     np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
@@ -64,7 +89,7 @@ class ImReadNode(NodeBase):
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     )
-        elif ext.replace(".", "") in get_pil_formats():
+        elif ext.lower() in get_pil_formats():
             try:
                 from PIL import Image
 
@@ -81,7 +106,9 @@ class ImReadNode(NodeBase):
                     f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
                 )
         else:
-            img = None
+            raise NotImplementedError(
+                "The image you are trying to read cannot be read by chaiNNer."
+            )
 
         dtype_max = 1
         try:
@@ -95,8 +122,9 @@ class ImReadNode(NodeBase):
         c = img.shape[2] if img.ndim > 2 else 1
 
         # return img, h, w, c
-        basename = os.path.splitext(os.path.basename(path))[0]
-        return img, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        self.result = [img, dirname, basename]
+        return self.result
 
 
 @NodeFactory.register("Image", "Save Image")
@@ -109,7 +137,8 @@ class ImWriteNode(NodeBase):
         self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
-            DirectoryInput(),
+            DirectoryInput(hasHandle=True),
+            TextInput("Relative Path", optional=True),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
@@ -118,104 +147,80 @@ class ImWriteNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(
-        self, img: np.ndarray, directory: str, filename: str, extension: str
+        self,
+        img: np.ndarray = None,
+        base_directory: str = None,
+        relative_path: str = ".",
+        filename: str = None,
+        extension: str = None,
     ) -> bool:
         """Write an image to the specified path and return write status"""
-        fullFile = f"{filename}.{extension}"
-        fullPath = os.path.join(directory, fullFile)
-        logger.info(f"Writing image to path: {fullPath}")
+        # Shift inputs if relative path is missing
+        if extension is None:
+            extension = filename
+            filename = relative_path
+            relative_path = "."
+
+        full_file = f"{filename}.{extension}"
+        if relative_path and relative_path != ".":
+            base_directory = os.path.join(base_directory, relative_path)
+        full_path = os.path.join(base_directory, full_file)
+
+        logger.info(f"Writing image to path: {full_path}")
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
-        status = cv2.imwrite(fullPath, img)
+        os.makedirs(base_directory, exist_ok=True)
+
+        status = cv2.imwrite(full_path, img)
 
         return status
 
 
 @NodeFactory.register("Image", "Preview Image")
-class ImShowNode(NodeBase):
-    """OpenCV Imshow node"""
+class ImOpenNode(NodeBase):
+    """Image Open Node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Show image preview in a new window."
+        self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]
         self.outputs = []
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 
-    def checkerboard(self, h, w):
-        square_size = 8
-        new_h = (h // square_size) + 1
-        new_w = (w // square_size) + 1
-        # Black and white checkerboard
-        # from https://stackoverflow.com/questions/2169478/how-to-make-a-checkerboard-in-numpy
-        checkerboard = (np.indices((new_h, new_w)).sum(axis=0) % 2).astype("uint8")
-        # Modify to a mixed grayish color
-        checkerboard = ((checkerboard * 127) + 128) // 2
-        # Resize to full size
-        checkerboard = cv2.resize(
-            checkerboard,
-            (new_w * square_size, new_h * square_size),
-            interpolation=cv2.INTER_NEAREST,
-        )
-        # Crop to fit original resolution
-        checkerboard = checkerboard[:h, :w]
-        return checkerboard.astype("float32") / 255
-
     def run(self, img: np.ndarray) -> bool:
         """Show image"""
+
+        # Theoretically this isn't necessary, but just in case
+        dtype_max = 1
         try:
-            # Theoretically this isn't necessary, but just in case
-            dtype_max = 1
-            try:
-                dtype_max = np.iinfo(img.dtype).max
-            except:
-                logger.debug("img dtype is not int")
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
 
-            show_img = img.astype("float32") / dtype_max
-            # logger.info(dtype_max)
-            if img.ndim > 2 and img.shape[2] == 4:
-                h, w, _ = img.shape
-                checkerboard = self.checkerboard(h, w)
-                checkerboard = cv2.cvtColor(checkerboard, cv2.COLOR_GRAY2BGR)
-                alpha = cv2.cvtColor(show_img[:, :, 3], cv2.COLOR_GRAY2BGR)
+        img = img.astype("float32") / dtype_max
 
-                foreground = cv2.multiply(alpha, show_img[:, :, :3])
-                background = cv2.multiply(1.0 - alpha, checkerboard)
-                show_img = cv2.add(foreground, background)
+        # Put image back in int range
+        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
-            h, w = show_img.shape[:2]
-            x = int(0.85 * int(os.environ["resolutionX"]))
-            y = int(0.85 * int(os.environ["resolutionY"]))
-            if h > y and w > x:
-                ratio = min(y / h, x / w)
-                new_h = int(ratio * h)
-                new_w = int(ratio * w)
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            elif h > y:
-                ratio = y / h
-                new_h = y
-                new_w = int(ratio * w)
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            elif w > x:
-                ratio = x / w
-                new_h = int(ratio * h)
-                new_w = x
-                show_img = cv2.resize(
-                    show_img, (new_w, new_h), interpolation=cv2.INTER_AREA
-                )
-            cv2.imshow("Image Preview", show_img)
-            cv2.waitKey(0)
-        except Exception as e:
-            logger.fatal(e)
-            logger.fatal("Imshow had a critical error")
+        tempdir = mkdtemp(prefix="chaiNNer-")
+        logger.info(f"Writing image to temp path: {tempdir}")
+        imName = f"{time.time()}.png"
+        tempSaveDir = os.path.join(tempdir, imName)
+        status = cv2.imwrite(
+            tempSaveDir,
+            img,
+        )
+        if status:
+            if platform.system() == "Darwin":  # macOS
+                subprocess.call(("open", tempSaveDir))
+            elif platform.system() == "Windows":  # Windows
+                os.startfile(tempSaveDir)
+            else:  # linux variants
+                subprocess.call(("xdg-open", tempSaveDir))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Factor)")

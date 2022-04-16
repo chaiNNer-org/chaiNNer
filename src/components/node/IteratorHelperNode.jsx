@@ -1,14 +1,12 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable import/extensions */
 import {
   Center, useColorModeValue, VStack,
 } from '@chakra-ui/react';
-import React, {
+import {
   memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
 import shadeColor from '../../helpers/shadeColor.js';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter.jsx';
 import NodeBody from './NodeBody.jsx';
@@ -93,17 +91,17 @@ const IteratorHelperNode = ({
   return (
     <Center
       bg={useColorModeValue('gray.300', 'gray.700')}
-      borderWidth="0.5px"
       borderColor={borderColor}
       borderRadius="lg"
-      py={2}
+      borderWidth="0.5px"
       boxShadow="lg"
+      py={2}
+      ref={targetRef}
       transition="0.15s ease-in-out"
-      onContextMenu={() => {
-      }}
       onClick={() => {
       }}
-      ref={targetRef}
+      onContextMenu={() => {
+      }}
       onDragEnter={() => {
         if (parentNode) {
           setHoveredNode(parentNode);
@@ -112,25 +110,25 @@ const IteratorHelperNode = ({
     >
       <VStack minWidth="240px">
         <NodeHeader
-          category={category}
-          type={type}
           accentColor={accentColor}
+          category={category}
           icon={icon}
-          selected={selected}
           parentNode={parentNode}
+          selected={selected}
+          type={type}
         />
         <NodeBody
-          inputs={inputs}
-          outputs={outputs}
-          id={id}
           accentColor={accentColor}
+          id={id}
+          inputs={inputs}
           isLocked={isLocked}
+          outputs={outputs}
         />
         <IteratorHelperNodeFooter
-          id={id}
           accentColor={accentColor}
-          isValid={validity[0]}
+          id={id}
           invalidReason={validity[1]}
+          isValid={validity[0]}
         />
       </VStack>
     </Center>

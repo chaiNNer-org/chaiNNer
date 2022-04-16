@@ -84,6 +84,7 @@ class NcnnLoadModelNode(NodeBase):
 
         # Use vulkan compute
         net.opt.use_vulkan_compute = True
+        net.set_vulkan_device(ncnn.get_default_gpu_index())
 
         # Load model param and bin
         net.load_param(param_path)
@@ -111,7 +112,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(self, img: np.ndarray, net: tuple, input_name: str, output_name: str):
         # Try/except block to catch errors
         try:
-            vkdev = ncnn.get_gpu_device(0)
+            vkdev = ncnn.get_gpu_device(ncnn.get_default_gpu_index())
             blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
             staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { spawn } from 'child_process';
 import decompress from 'decompress';
 import log from 'electron-log';

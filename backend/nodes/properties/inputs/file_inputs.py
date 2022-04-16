@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from ...utils.image_utils import get_available_image_formats
 from .generic_inputs import DropDownInput
@@ -7,8 +7,8 @@ from .generic_inputs import DropDownInput
 def FileInput(
     input_type: str,
     label: str,
-    accepts: List[str],
-    filetypes: List[str],
+    accepts: list[str],
+    filetypes: list[str],
     hasHandle: bool = False,
 ) -> Dict:
     """Input for submitting a local file"""
@@ -42,9 +42,9 @@ def TorchFileInput() -> Dict:
     return FileInput("pth", "Pretrained Model", None, ["pth", "pt"])
 
 
-def DirectoryInput() -> Dict:
+def DirectoryInput(hasHandle: bool = False) -> Dict:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Directory", None, ["directory"])
+    return FileInput("directory", "Base Directory", None, ["directory"], hasHandle)
 
 
 def ImageExtensionDropdown() -> Dict:

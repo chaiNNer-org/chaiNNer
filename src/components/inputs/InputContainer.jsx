@@ -1,11 +1,9 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import {
   Box, HStack, Text, useColorModeValue,
 } from '@chakra-ui/react';
-import React, { memo, useContext } from 'react';
+import { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
-import { GlobalContext } from '../../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
 const InputContainer = memo(({
   children, hasHandle, id, index, label,
@@ -32,16 +30,16 @@ const InputContainer = memo(({
           style={{ position: 'absolute', left: '-4px', width: 0 }}
         >
           <Handle
+            isConnectable
             className="input-handle"
-            type="target"
             id={`${id}-${index}`}
+            isValidConnection={isValidConnection}
             position="left"
             style={{
               width: '15px', height: '15px', borderWidth: '1px', borderColor, transition: '0.25s ease-in-out', background: handleColor,
             }}
+            type="target"
             onConnect={(params) => console.log('handle onConnect', params)}
-            isConnectable
-            isValidConnection={isValidConnection}
           />
         </div>
         {children}
@@ -51,11 +49,18 @@ const InputContainer = memo(({
 
   return (
     <Box
-      p={2}
       bg={useColorModeValue('gray.100', 'gray.600')}
+      p={2}
       w="full"
     >
-      <Text textAlign="center" fontSize="xs" p={1} pt={-1} mt={-1} display={label ? 'block' : 'none'}>
+      <Text
+        display={label ? 'block' : 'none'}
+        fontSize="xs"
+        mt={-1}
+        p={1}
+        pt={-1}
+        textAlign="center"
+      >
         {label}
       </Text>
       {contents}

@@ -1,5 +1,3 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
@@ -7,11 +5,11 @@ import {
   InputGroup, InputLeftElement, Tab, TabList, TabPanel,
   TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
 } from '@chakra-ui/react';
-import React, {
+import {
   memo, useContext, useEffect, useState,
 } from 'react';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
 import { IconFactory } from './CustomIcons.jsx';
 import DependencyManager from './DependencyManager.jsx';
 import RepresentativeNode from './node/RepresentativeNode.jsx';
@@ -68,23 +66,26 @@ const NodeSelector = ({ data, height }) => {
 
   return (
     <Box
-      w="auto"
-      h="100%"
-      borderWidth="1px"
-      borderRadius="lg"
       bg={useColorModeValue('gray.100', 'gray.800')}
+      borderRadius="lg"
+      borderWidth="1px"
+      h="100%"
+      w="auto"
     >
       <Tabs
-        w="100%"
-        h="100%"
         isFitted
+        h="100%"
+        w="100%"
       >
         <TabList>
           <Tab>Nodes</Tab>
           <Tab isDisabled>Presets</Tab>
         </TabList>
         <TabPanels>
-          <TabPanel m={0} p={0}>
+          <TabPanel
+            m={0}
+            p={0}
+          >
             <InputGroup
               borderRadius={0}
             >
@@ -96,11 +97,11 @@ const NodeSelector = ({ data, height }) => {
                 />
               </InputLeftElement>
               <Input
-                variant="filled"
-                type="text"
-                placeholder="Search..."
-                onChange={handleChange}
                 borderRadius={0}
+                placeholder="Search..."
+                type="text"
+                variant="filled"
+                onChange={handleChange}
               />
             </InputGroup>
             <Box
@@ -123,11 +124,17 @@ const NodeSelector = ({ data, height }) => {
               }}
             >
 
-              <Accordion allowMultiple defaultIndex={data.map((item, index) => index)}>
+              <Accordion
+                allowMultiple
+                defaultIndex={data.map((item, index) => index)}
+              >
                 {data.map(({ category, nodes }) => (
                   <AccordionItem key={category}>
                     <AccordionButton>
-                      <HStack flex="1" textAlign="left">
+                      <HStack
+                        flex="1"
+                        textAlign="left"
+                      >
                         {IconFactory(category, getNodeAccentColor(category))}
                         <Heading size="5xl">{category}</Heading>
                       </HStack>
@@ -146,7 +153,15 @@ const NodeSelector = ({ data, height }) => {
                             <Center w="full">
                               <HStack w="full">
                                 <Divider orientation="horizontal" />
-                                <Text fontSize="sm" color="#71809699" casing="uppercase" w="auto" whiteSpace="nowrap">{namespace}</Text>
+                                <Text
+                                  casing="uppercase"
+                                  color="#71809699"
+                                  fontSize="sm"
+                                  w="auto"
+                                  whiteSpace="nowrap"
+                                >
+                                  {namespace}
+                                </Text>
                                 <Divider orientation="horizontal" />
                               </HStack>
                             </Center>
@@ -166,27 +181,22 @@ const NodeSelector = ({ data, height }) => {
                                     .localeCompare(b.name.toUpperCase()),
                                 )
                                 .map((node) => (
-                                  <WrapItem key={node.name} p={1} w="full">
+                                  <WrapItem
+                                    key={node.name}
+                                    p={1}
+                                    w="full"
+                                  >
                                     <Tooltip
-                                      label={node.description}
-                                      hasArrow
                                       closeOnMouseDown
+                                      hasArrow
                                       borderRadius={8}
-                                      py={1}
+                                      label={node.description}
                                       px={2}
+                                      py={1}
                                     >
                                       <Center
-                                        boxSizing="content-box"
-                                        onDragStart={
-                                            (event) => {
-                                              onDragStart(event, category, node);
-                                              setHoveredNode(null);
-                                            }
-                                          }
-                                        onDragEnd={() => {
-                                          setHoveredNode(null);
-                                        }}
                                         draggable
+                                        boxSizing="content-box"
                                         display="block"
                                         w="100%"
                                         onDoubleClick={() => {
@@ -211,12 +221,21 @@ const NodeSelector = ({ data, height }) => {
                                             defaultNodes: node.defaultNodes,
                                           });
                                         }}
+                                        onDragEnd={() => {
+                                          setHoveredNode(null);
+                                        }}
+                                        onDragStart={
+                                            (event) => {
+                                              onDragStart(event, category, node);
+                                              setHoveredNode(null);
+                                            }
+                                          }
                                       >
                                         <RepresentativeNode
                                           category={category}
-                                          type={node.name}
                                           icon={node.icon}
                                           subcategory={node.subcategory}
+                                          type={node.name}
                                         />
                                       </Center>
                                     </Tooltip>
@@ -230,26 +249,29 @@ const NodeSelector = ({ data, height }) => {
                   </AccordionItem>
                 ))}
                 <AccordionItem>
-                  <Center p={10} textOverflow="ellipsis">
+                  <Center
+                    p={10}
+                    textOverflow="ellipsis"
+                  >
                     <Box
-                      onClick={onOpen}
+                      _hover={{
+                        backgroundColor: 'gray.600',
+                      }}
+                      bg={useColorModeValue('gray.200', 'gray.700')}
+                      borderRadius={10}
                       cursor="pointer"
+                      p={2}
+                      pl={4}
+                      pr={4}
                       sx={{
                         cursor: 'pointer !important',
                         transition: '0.15s ease-in-out',
                       }}
-                      bg={useColorModeValue('gray.200', 'gray.700')}
-                      p={2}
-                      pl={4}
-                      pr={4}
-                      borderRadius={10}
-                      _hover={{
-                        backgroundColor: 'gray.600',
-                      }}
+                      onClick={onOpen}
                     >
                       <Text
-                        fontWeight="bold"
                         cursor="pointer"
+                        fontWeight="bold"
                         sx={{
                           cursor: 'pointer !important',
                         }}
@@ -263,8 +285,8 @@ const NodeSelector = ({ data, height }) => {
                    dep manager that shares a global open/close state */}
                   <DependencyManager
                     isOpen={isOpen}
-                    onOpen={onOpen}
                     onClose={onClose}
+                    onOpen={onOpen}
                   />
                 </AccordionItem>
               </Accordion>

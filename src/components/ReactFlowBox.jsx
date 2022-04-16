@@ -1,17 +1,16 @@
-/* eslint-disable import/extensions */
-/* eslint-disable react/prop-types */
 import {
   Box, useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
-import React, {
+import {
   createContext, memo, useCallback, useContext, useEffect, useMemo,
 } from 'react';
 import ReactFlow, {
   Background, Controls, useEdgesState, useNodesState,
 } from 'react-flow-renderer';
-import { GlobalContext } from '../helpers/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 export const NodeDataContext = createContext({});
 
@@ -24,9 +23,13 @@ const ReactFlowBox = ({
   const {
     nodes, edges, createNode, createConnection,
     reactFlowInstance, setReactFlowInstance,
-    useSnapToGrid, setNodes, setEdges, onMoveEnd, zoom,
+    setNodes, setEdges, onMoveEnd, zoom,
     useMenuCloseFunctions, useHoveredNode,
   } = useContext(GlobalContext);
+
+  const {
+    useSnapToGrid,
+  } = useContext(SettingsContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
@@ -195,32 +198,39 @@ const ReactFlowBox = ({
   // );
 
   return (
-    <Box w="100%" h="100%" borderWidth="1px" borderRadius="lg" ref={wrapperRef} bg={useColorModeValue('gray.100', 'gray.800')}>
+    <Box
+      bg={useColorModeValue('gray.100', 'gray.800')}
+      borderRadius="lg"
+      borderWidth="1px"
+      h="100%"
+      ref={wrapperRef}
+      w="100%"
+    >
       <ReactFlow
-        nodes={_nodes}
-        edges={_edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onEdgesDelete={onEdgesDelete}
-        onNodesDelete={onNodesDelete}
-        onConnect={createConnection}
-        onInit={onInit}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragStart={onDragStart}
-        onNodeDragStop={onNodeDragStop}
-        nodeTypes={memoNodeTypes}
+        deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
         edgeTypes={memoEdgeTypes}
-        onNodeContextMenu={onNodeContextMenu}
+        edges={_edges}
+        maxZoom={8}
+        minZoom={0.125}
+        nodeTypes={memoNodeTypes}
+        nodes={_nodes}
+        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+        snapToGrid={isSnapToGrid}
         style={{
           zIndex: 0,
           borderRadius: '0.5rem',
         }}
+        onConnect={createConnection}
+        onDragOver={onDragOver}
+        onDragStart={onDragStart}
+        onDrop={onDrop}
+        onEdgesChange={onEdgesChange}
+        onEdgesDelete={onEdgesDelete}
         // onSelectionChange={setSelectedElements}
-        maxZoom={8}
-        minZoom={0.125}
-        snapToGrid={isSnapToGrid}
-        snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+        onInit={onInit}
+        onMoveEnd={onMoveEnd}
+        onNodeContextMenu={onNodeContextMenu}
+        onNodeDragStop={onNodeDragStop}
         // fitView
         // fitViewOptions={{
         //   minZoom: 1,
@@ -228,14 +238,14 @@ const ReactFlowBox = ({
         //   padding: 40,
         // }}
         // onlyRenderVisibleElements
-        deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
-        onMoveEnd={onMoveEnd}
+        onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
         onPaneClick={closeAllMenus}
       >
         <Background
-          variant="dots"
           gap={16}
           size={0.5}
+          variant="dots"
         />
         {/* Would be cool to use this in the future */}
         {/* <PillPity
