@@ -299,9 +299,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min=1, max=99),
+            SliderInput("Opacity A", default=50, min_val=1, max_val=99),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min=1, max=99, optional=True),
+            SliderInput("Opacity B", default=50, min_val=1, max_val=99, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsLayersHalf"
@@ -645,6 +645,65 @@ class StackNode(NodeBase):
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
             img = cv2.vconcat(fixed_imgs)
+
+        return img
+
+
+@NodeFactory.register("Image (Effect)", "Hue & Saturation")
+class HueAndSaturationNode(NodeBase):
+    """OpenCV Hue and Saturation Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Adjust the hue and saturation of an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Hue", -180, 180, 0),
+            SliderInput("Saturation (%)", -255, 255, 0),
+        ]
+        self.outputs = [ImageOutput()]
+        self.icon = "MdOutlineColorLens"
+        self.sub = "Adjustment"
+
+    def add_and_wrap_hue(self, img: np.ndarray, add_val: float) -> np.ndarray:
+        """Adds hue change value to image and wraps on range overflow"""
+
+        img += add_val
+        img[img >= 360] -= 360  # Wrap positive overflow
+        img[img < 0] += 360  # Wrap negative overflow
+        return img
+
+    def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
+        """Adjust the hue and saturation of an image"""
+
+        # Pass through grayscale and unadjusted images
+        hue = int(hue)
+        saturation = int(saturation)
+        if (img.ndim < 3 or img.shape[2] == 1
+                or (int(hue) == 0 and int(saturation) == 0)):
+            return img
+
+        img = normalize(img)
+
+        # Preserve alpha channel if it exists
+        c = img.shape[2]
+        alpha = None
+        if c > 3:
+            alpha = img[:, :, 3]
+
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        h, l, s = cv2.split(hls)
+
+        # Adjust hue and saturation
+        hnew = self.add_and_wrap_hue(h, hue)
+        smod = 1 + (saturation / 255)
+        snew = np.clip((s * smod), 0, 1)
+
+        hlsnew = cv2.merge([hnew, l, snew])
+        img = cv2.cvtColor(hlsnew, cv2.COLOR_HLS2BGR)
+        if alpha is not None:  # Re-add alpha, if it exists
+            img = np.dstack((img, alpha))
 
         return img
 

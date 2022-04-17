@@ -91,14 +91,14 @@ def BoundlessIntegerInput(label: str) -> Dict:
 
 
 def SliderInput(
-    label: str, min: int, max: int, default: int, optional: bool = False
+    label: str, min_val: int, max_val: int, default: int, optional: bool = False
 ) -> Dict:
     """Input for integer number via slider"""
     return {
         "type": "number::slider",
         "label": label,
-        "min": min,
-        "max": max,
+        "min": min_val,
+        "max": max_val,
         "def": default,
         "optional": optional,
     }
