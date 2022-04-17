@@ -710,7 +710,7 @@ class HueAndSaturationNode(NodeBase):
 
 @NodeFactory.register("Image (Effect)", "Brightness & Contrast")
 class BrightnessAndContrastNode(NodeBase):
-    """OpenCV Brightness Node"""
+    """OpenCV Brightness and Contrast Node"""
 
     def __init__(self):
         """Constructor"""
@@ -718,8 +718,8 @@ class BrightnessAndContrastNode(NodeBase):
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Brightness", -100, 100, 0),
-            SliderInput("Contrast", 0, 200, 100),
+            SliderInput("Brightness", -255, 255, 0),
+            SliderInput("Contrast", -255, 255, 0),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "ImBrightnessContrast"
@@ -728,17 +728,29 @@ class BrightnessAndContrastNode(NodeBase):
     def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-        f_img = img.astype("float32") / dtype_max
-        b_amount = int(b_amount) / 100
-        c_amount = int(c_amount) / 100
+        b_amount = int(b_amount) / 255
+        c_amount = int(c_amount) / 255
 
-        f_img = (f_img * c_amount) + b_amount
-        img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
+        # Pass through unadjusted image
+        if b_amount == 0 and c_amount == 0:
+            return img
+
+        img = normalize(img)
+
+        # Calculate brightness adjustment
+        if b_amount > 0:
+            shadow = b_amount
+            highlight = 1
+        else:
+            shadow = 0
+            highlight = 1 + b_amount
+        alpha_b = highlight - shadow
+        img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow)
+
+        # Calculate contrast adjustment
+        alpha_c = ((259/255) * (c_amount + 1)) / ((259/255) - c_amount)  # contrast correction factor
+        gamma_c = 0.5 * (1 - alpha_c)
+        img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c)
 
         return img
 
