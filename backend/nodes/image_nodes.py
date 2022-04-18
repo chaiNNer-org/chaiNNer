@@ -110,6 +110,13 @@ class ImReadNode(NodeBase):
                 "The image you are trying to read cannot be read by chaiNNer."
             )
 
+        # Uncomment if wild 2-channel image is encountered
+        """self.shape = img.shape
+        if img.shape[2] == 2:
+            color_channel = img[:, :, 0]
+            alpha_channel = img[:, :, 1]
+            img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)"""
+
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
@@ -280,9 +287,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min_val=1, max_val=99),
+            SliderInput("Opacity A", default=50, min_val=1, max_val=100),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min_val=1, max_val=99, optional=True),
+            SliderInput("Opacity B", default=50, min_val=1, max_val=100, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsLayersHalf"
@@ -315,11 +322,10 @@ class ImOverlay(NodeBase):
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
         for img in base, ov1, ov2:
-            if img is not None and type(img) not in (int, str):
-                h, w = img.shape[:2]
-                if img.ndim == 2:  # len(img.shape) needs to be 3, grayscale len only 2
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-                c = img.shape[2]
+            if img is not None:
+                if img.ndim == 2:  # Overlay needs 3 dimensions for ease
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                h, w, c = img.shape
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
@@ -347,7 +353,11 @@ class ImOverlay(NodeBase):
         center_y = imgout.shape[0] // 2
         for img, op in zip(imgs, (op1, op2)):
             if img is not None and op is not None:
-                h, w = img.shape[:2]
+                h, w, c = img.shape
+                if c == 4:
+                    is_opaque = np.all(np.isclose(img[:, :, 3], [1.0]))
+                else:
+                    is_opaque = True
 
                 # Center overlay
                 x_offset = center_x - (w // 2)
@@ -360,7 +370,19 @@ class ImOverlay(NodeBase):
                     op,
                     0,
                 )
-                imgout[y_offset: y_offset + h, x_offset: x_offset + w] = img
+
+                # If an image with native opacity is overlayed, the colors in the transparent areas
+                # need to be modified by the alpha channel of the image being overlayed, or the
+                # alpha channel will be incorrectly applied to the final image.
+                if max_c == 4 and not is_opaque:
+                    for channel in range(0, 3):
+                        imgout[y_offset: y_offset + h, x_offset: x_offset + w, channel] = \
+                            (img[:, :, 3] * img[:, :, channel]
+                             + imgout[y_offset: y_offset + h, x_offset: x_offset + w, 3]
+                             * imgout[y_offset: y_offset + h, x_offset: x_offset + w, channel]
+                             * (1 - img[:, :, 3]))
+                else:
+                    imgout[y_offset: y_offset + h, x_offset: x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
@@ -727,12 +749,19 @@ class BrightnessAndContrastNode(NodeBase):
             shadow = 0
             highlight = 1 + b_amount
         alpha_b = highlight - shadow
-        img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow)
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
+        else:
+            img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow)
 
         # Calculate contrast adjustment
-        alpha_c = ((259/255) * (c_amount + 1)) / ((259/255) - c_amount)  # contrast correction factor
+        alpha_c = ((259/255) * (c_amount + 1)) / ((259/255) - c_amount)  # Contrast correction factor
         gamma_c = 0.5 * (1 - alpha_c)
-        img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c)
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_c, img, 0, gamma_c)
+        else:
+            img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c)
+        img = np.clip(img, 0, 1).astype("float32")
 
         return img
 
