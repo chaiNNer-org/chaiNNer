@@ -110,18 +110,8 @@ class ImReadNode(NodeBase):
                 "The image you are trying to read cannot be read by chaiNNer."
             )
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not an int")
+        img = normalize(img)
 
-        img = img.astype("float32") / dtype_max
-
-        h, w = img.shape[:2]
-        c = img.shape[2] if img.ndim > 2 else 1
-
-        # return img, h, w, c
         dirname, basename = os.path.split(os.path.splitext(path)[0])
         self.result = [img, dirname, basename]
         return self.result
@@ -191,36 +181,27 @@ class ImOpenNode(NodeBase):
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 
-    def run(self, img: np.ndarray) -> bool:
+    def run(self, img: np.ndarray):
         """Show image"""
 
-        # Theoretically this isn't necessary, but just in case
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-
-        img = img.astype("float32") / dtype_max
+        img = normalize(img)
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         tempdir = mkdtemp(prefix="chaiNNer-")
         logger.info(f"Writing image to temp path: {tempdir}")
-        imName = f"{time.time()}.png"
-        tempSaveDir = os.path.join(tempdir, imName)
-        status = cv2.imwrite(
-            tempSaveDir,
-            img,
-        )
+        im_name = f"{time.time()}.png"
+        temp_save_dir = os.path.join(tempdir, im_name)
+        status = cv2.imwrite(temp_save_dir, img, )
+
         if status:
             if platform.system() == "Darwin":  # macOS
-                subprocess.call(("open", tempSaveDir))
+                subprocess.call(("open", temp_save_dir))
             elif platform.system() == "Windows":  # Windows
-                os.startfile(tempSaveDir)
+                os.startfile(temp_save_dir)
             else:  # linux variants
-                subprocess.call(("xdg-open", tempSaveDir))
+                subprocess.call(("xdg-open", temp_save_dir))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Factor)")
@@ -235,7 +216,7 @@ class ImResizeByFactorNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Scale Factor", default=1.0, step=0.5),
+            NumberInput("Scale Factor", default=1.0, step=0.25),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -373,13 +354,13 @@ class ImOverlay(NodeBase):
                 y_offset = center_y - (h // 2)
 
                 img = cv2.addWeighted(
-                    imgout[y_offset : y_offset + h, x_offset : x_offset + w],
+                    imgout[y_offset: y_offset + h, x_offset: x_offset + w],
                     1 - op,
                     img,
                     op,
                     0,
                 )
-                imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+                imgout[y_offset: y_offset + h, x_offset: x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
@@ -393,7 +374,8 @@ class ColorConvertNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Convert the colorspace of an image to a different one. Also can convert to different channel-spaces."
+        self.description = "Convert the colorspace of an image to a different one. " \
+                           "Also can convert to different channel-spaces."
         self.inputs = [
             ImageInput(),
             ColorModeInput(),
@@ -780,6 +762,7 @@ class BlurNode(NodeBase):
         # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
+
         ksize = (int(amount_x), int(amount_y))
         for __i in range(16):
             img = cv2.blur(img, ksize)
@@ -811,6 +794,7 @@ class GaussianBlurNode(NodeBase):
         amount_y: str,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
+
         blurred = cv2.GaussianBlur(
             img, (0, 0), sigmaX=float(amount_x), sigmaY=float(amount_y)
         )
@@ -840,6 +824,7 @@ class SharpenNode(NodeBase):
         amount: int,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
+
         blurred = cv2.GaussianBlur(img, (0, 0), float(amount))
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
@@ -870,6 +855,7 @@ class ShiftNode(NodeBase):
         amount_y: int,
     ) -> np.ndarray:
         """Adjusts the position of an image"""
+
         num_rows, num_cols = img.shape[:2]
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
         img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
@@ -883,7 +869,8 @@ class ChannelSplitRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Split image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
+        self.description = "Split image channels into separate channels. " \
+                           "Typically used for splitting off an alpha (transparency) layer."
         self.inputs = [ImageInput()]
         self.outputs = [
             ImageOutput("Blue Channel"),
@@ -895,8 +882,9 @@ class ChannelSplitRGBANode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray) -> [np.ndarray]:
         """Split a multi-channel image into separate channels"""
+
         c = 1
         dtype_max = 1
         try:
@@ -938,8 +926,9 @@ class TransparencySplitNode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray) -> (np.ndarray, np.ndarray):
         """Split a multi-channel image into separate channels"""
+
         if img.ndim == 2:
             logger.debug("Expanding image channels")
             img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
@@ -961,7 +950,8 @@ class ChannelMergeRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Merge image channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
+        self.description = "Merge image channels together into a <= 4 channel image. " \
+                           "Typically used for combining an image with an alpha layer."
         self.inputs = [
             ImageInput("Channel(s) A"),
             ImageInput("Channel(s) B", optional=True),
@@ -1096,7 +1086,7 @@ class CropNode(NodeBase):
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
 
-        result = img[top : top + height, left : left + width]
+        result = img[top: top + height, left: left + width]
 
         return result
 
@@ -1130,7 +1120,7 @@ class BorderCropNode(NodeBase):
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
 
-        result = img[amount : h - amount, amount : w - amount]
+        result = img[amount: h - amount, amount: w - amount]
 
         return result
 
@@ -1167,7 +1157,7 @@ class EdgeCropNode(NodeBase):
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"
 
-        result = img[top : h - bottom, left : w - right]
+        result = img[top: h - bottom, left: w - right]
 
         return result
 
