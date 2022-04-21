@@ -19,11 +19,10 @@ from .utils.image_utils import get_opencv_formats, get_pil_formats
 
 try:
     from PIL import Image
-    il = Image
+    pil = Image
 except ImportError:
     logger.error("No PIL found, defaulting to cv2 for resizing")
-    Image = None
-    il = cv2
+    pil = Image = None
 
 
 def normalize(img):
@@ -248,12 +247,12 @@ class ImResizeByFactorNode(NodeBase):
         out_dims = (math.floor(w * float(scale)), math.floor(h * float(scale)))
 
         # Try PIL first, otherwise fall back to cv2
-        if il is Image:
-            pimg = il.fromarray((img * 255).astype("uint8"))
+        if pil is Image:
+            pimg = pil.fromarray((img * 255).astype("uint8"))
             pimg = pimg.resize(out_dims, resample=interpolation)
             result = np.array(pimg).astype("float32") / 255
         else:
-            result = il.resize(img, out_dims, interpolation=interpolation)
+            result = cv2.resize(img, out_dims, interpolation=interpolation)
 
         return result
 
@@ -289,12 +288,12 @@ class ImResizeToResolutionNode(NodeBase):
         out_dims = (int(width), int(height))
 
         # Try PIL first, otherwise fall back to cv2
-        if il is Image:
-            pimg = il.fromarray((img * 255).astype("uint8"))
+        if pil is Image:
+            pimg = pil.fromarray((img * 255).astype("uint8"))
             pimg = pimg.resize(out_dims, resample=interpolation)
             result = np.array(pimg).astype("float32") / 255
         else:
-            result = il.resize(img, out_dims, interpolation=interpolation)
+            result = cv2.resize(img, out_dims, interpolation=interpolation)
 
         return result
 
