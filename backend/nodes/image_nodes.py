@@ -244,7 +244,7 @@ class ImResizeByFactorNode(NodeBase):
         interpolation = int(interpolation)
 
         h, w = img.shape[:2]
-        out_dims = (math.floor(w * float(scale)), math.floor(h * float(scale)))
+        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
 
         # Try PIL first, otherwise fall back to cv2
         if pil is Image:
