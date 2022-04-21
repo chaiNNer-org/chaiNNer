@@ -1,8 +1,27 @@
 from typing import Dict
-
 import cv2
-
+from sanic.log import logger
 from .generic_inputs import DropDownInput
+
+try:
+    from PIL.Image import Resampling
+    INTERP_METHODS = {
+        "Nearest": Resampling.NEAREST,
+        "Box": Resampling.BOX,
+        "Linear": Resampling.BILINEAR,
+        "Cubic": Resampling.BICUBIC,
+        "Lanczos": Resampling.LANCZOS
+    }
+except ImportError:
+    logger.error("No PIL found, defaulting to cv2 for resizing")
+    Resampling = None
+    INTERP_METHODS = {
+        "Nearest": cv2.INTER_NEAREST,
+        "Box": cv2.INTER_AREA,
+        "Linear": cv2.INTER_LINEAR,
+        "Cubic": cv2.INTER_CUBIC,
+        "Lanczos": cv2.INTER_LANCZOS4
+    }
 
 
 def ColorModeInput() -> Dict:
@@ -76,24 +95,24 @@ def InterpolationInput() -> Dict:
         "Interpolation Mode",
         [
             {
-                "option": "Area (Box)",
-                "value": cv2.INTER_AREA,
+                "option": "Nearest Neighbor",
+                "value": INTERP_METHODS["Nearest"],
             },
             {
-                "option": "Nearest Neighbor",
-                "value": cv2.INTER_NEAREST,
+                "option": "Area (Box)",
+                "value": INTERP_METHODS["Box"],
             },
             {
                 "option": "Linear",
-                "value": cv2.INTER_LINEAR,
+                "value": INTERP_METHODS["Linear"],
             },
             {
                 "option": "Cubic",
-                "value": cv2.INTER_CUBIC,
+                "value": INTERP_METHODS["Cubic"],
             },
             {
                 "option": "Lanczos",
-                "value": cv2.INTER_LANCZOS4,
+                "value": INTERP_METHODS["Lanczos"]
             },
         ],
     )

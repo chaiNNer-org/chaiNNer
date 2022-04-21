@@ -8,16 +8,22 @@ import platform
 import subprocess
 import time
 from tempfile import TemporaryDirectory, mkdtemp
-
 import cv2
 import numpy as np
 from sanic.log import logger
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_opencv_formats, get_pil_formats
+
+try:
+    from PIL import Image
+    il = Image
+except ImportError:
+    logger.error("No PIL found, defaulting to cv2 for resizing")
+    Image = None
+    il = cv2
 
 
 def normalize(img):
@@ -234,13 +240,20 @@ class ImResizeByFactorNode(NodeBase):
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
-        result = cv2.resize(
-            img,
-            None,
-            fx=float(scale),
-            fy=float(scale),
-            interpolation=int(interpolation),
-        )
+
+        img = normalize(img)
+        interpolation = int(interpolation)
+
+        h, w = img.shape[:2]
+        out_dims = (math.floor(w * float(scale)), math.floor(h * float(scale)))
+
+        # Try PIL first, otherwise fall back to cv2
+        if il is Image:
+            pimg = il.fromarray((img * 255).astype("uint8"))
+            pimg = pimg.resize(out_dims, resample=interpolation)
+            result = np.array(pimg).astype("float32") / 255
+        else:
+            result = il.resize(img, out_dims, interpolation=interpolation)
 
         return result
 
@@ -269,9 +282,19 @@ class ImResizeToResolutionNode(NodeBase):
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
-        result = cv2.resize(
-            img, (int(width), int(height)), interpolation=int(interpolation)
-        )
+
+        img = normalize(img)
+        interpolation = int(interpolation)
+
+        out_dims = (int(width), int(height))
+
+        # Try PIL first, otherwise fall back to cv2
+        if il is Image:
+            pimg = il.fromarray((img * 255).astype("uint8"))
+            pimg = pimg.resize(out_dims, resample=interpolation)
+            result = np.array(pimg).astype("float32") / 255
+        else:
+            result = il.resize(img, out_dims, interpolation=interpolation)
 
         return result
 

@@ -2,7 +2,7 @@ from typing import Dict
 
 
 def DropDownInput(
-    input_type: str, label: str, options: list[str], optional: bool = False
+    input_type: str, label: str, options: list, optional: bool = False
 ) -> Dict:
     """Input for a dropdown"""
     return {
