@@ -21,9 +21,12 @@ jobs:
                 line-length: '88'
                 path: './backend'
                 # sanity-check: 'safe'
-                only-check: 'yes'
+                only-check: 'no'
     eslint:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
             - uses: bradennapier/eslint-plus-action@v3.4.2
+              with: 
+                issueSummaryType: full
+                fix: true
