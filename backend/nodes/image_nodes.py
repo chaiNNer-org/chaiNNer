@@ -19,6 +19,7 @@ from .utils.image_utils import get_opencv_formats, get_pil_formats
 
 try:
     from PIL import Image
+
     pil = Image
 except ImportError:
     logger.error("No PIL found, defaulting to cv2 for resizing")
@@ -205,7 +206,10 @@ class ImOpenNode(NodeBase):
         logger.info(f"Writing image to temp path: {tempdir}")
         im_name = f"{time.time()}.png"
         temp_save_dir = os.path.join(tempdir, im_name)
-        status = cv2.imwrite(temp_save_dir, img, )
+        status = cv2.imwrite(
+            temp_save_dir,
+            img,
+        )
 
         if status:
             if platform.system() == "Darwin":  # macOS
@@ -386,7 +390,7 @@ class ImOverlay(NodeBase):
                 y_offset = center_y - (h // 2)
 
                 img = cv2.addWeighted(
-                    imgout[y_offset: y_offset + h, x_offset: x_offset + w],
+                    imgout[y_offset : y_offset + h, x_offset : x_offset + w],
                     1 - op,
                     img,
                     op,
@@ -398,13 +402,17 @@ class ImOverlay(NodeBase):
                 # alpha channel will be incorrectly applied to the final image.
                 if max_c == 4 and not is_opaque:
                     for channel in range(0, 3):
-                        imgout[y_offset: y_offset + h, x_offset: x_offset + w, channel] = \
-                            (img[:, :, 3] * img[:, :, channel]
-                             + imgout[y_offset: y_offset + h, x_offset: x_offset + w, 3]
-                             * imgout[y_offset: y_offset + h, x_offset: x_offset + w, channel]
-                             * (1 - img[:, :, 3]))
+                        imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, channel
+                        ] = img[:, :, 3] * img[:, :, channel] + imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, 3
+                        ] * imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, channel
+                        ] * (
+                            1 - img[:, :, 3]
+                        )
                 else:
-                    imgout[y_offset: y_offset + h, x_offset: x_offset + w] = img
+                    imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
@@ -418,8 +426,10 @@ class ColorConvertNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Convert the colorspace of an image to a different one. " \
-                           "Also can convert to different channel-spaces."
+        self.description = (
+            "Convert the colorspace of an image to a different one. "
+            "Also can convert to different channel-spaces."
+        )
         self.inputs = [
             ImageInput(),
             ColorModeInput(),
@@ -706,8 +716,11 @@ class HueAndSaturationNode(NodeBase):
         # Pass through grayscale and unadjusted images
         hue = int(hue)
         saturation = int(saturation)
-        if (img.ndim < 3 or img.shape[2] == 1
-                or (int(hue) == 0 and int(saturation) == 0)):
+        if (
+            img.ndim < 3
+            or img.shape[2] == 1
+            or (int(hue) == 0 and int(saturation) == 0)
+        ):
             return img
 
         img = normalize(img)
@@ -774,15 +787,21 @@ class BrightnessAndContrastNode(NodeBase):
         if img.ndim == 2:
             img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
         else:
-            img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow)
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow
+            )
 
         # Calculate contrast adjustment
-        alpha_c = ((259/255) * (c_amount + 1)) / ((259/255) - c_amount)  # Contrast correction factor
+        alpha_c = ((259 / 255) * (c_amount + 1)) / (
+            (259 / 255) - c_amount
+        )  # Contrast correction factor
         gamma_c = 0.5 * (1 - alpha_c)
         if img.ndim == 2:
             img = cv2.addWeighted(img, alpha_c, img, 0, gamma_c)
         else:
-            img[:, :, :3] = cv2.addWeighted(img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c)
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c
+            )
         img = np.clip(img, 0, 1).astype("float32")
 
         return img
@@ -920,8 +939,10 @@ class ChannelSplitRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Split image channels into separate channels. " \
-                           "Typically used for splitting off an alpha (transparency) layer."
+        self.description = (
+            "Split image channels into separate channels. "
+            "Typically used for splitting off an alpha (transparency) layer."
+        )
         self.inputs = [ImageInput()]
         self.outputs = [
             ImageOutput("Blue Channel"),
@@ -1001,8 +1022,10 @@ class ChannelMergeRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Merge image channels together into a <= 4 channel image. " \
-                           "Typically used for combining an image with an alpha layer."
+        self.description = (
+            "Merge image channels together into a <= 4 channel image. "
+            "Typically used for combining an image with an alpha layer."
+        )
         self.inputs = [
             ImageInput("Channel(s) A"),
             ImageInput("Channel(s) B", optional=True),
@@ -1137,7 +1160,7 @@ class CropNode(NodeBase):
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
 
-        result = img[top: top + height, left: left + width]
+        result = img[top : top + height, left : left + width]
 
         return result
 
@@ -1171,7 +1194,7 @@ class BorderCropNode(NodeBase):
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
 
-        result = img[amount: h - amount, amount: w - amount]
+        result = img[amount : h - amount, amount : w - amount]
 
         return result
 
@@ -1208,7 +1231,7 @@ class EdgeCropNode(NodeBase):
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"
 
-        result = img[top: h - bottom, left: w - right]
+        result = img[top : h - bottom, left : w - right]
 
         return result
 

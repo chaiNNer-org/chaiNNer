@@ -5,12 +5,13 @@ from .generic_inputs import DropDownInput
 
 try:
     from PIL.Image import Resampling
+
     INTERP_METHODS = {
         "Nearest": Resampling.NEAREST,
         "Box": Resampling.BOX,
         "Linear": Resampling.BILINEAR,
         "Cubic": Resampling.BICUBIC,
-        "Lanczos": Resampling.LANCZOS
+        "Lanczos": Resampling.LANCZOS,
     }
 except ImportError:
     logger.error("No PIL found, defaulting to cv2 for resizing")
@@ -20,7 +21,7 @@ except ImportError:
         "Box": cv2.INTER_AREA,
         "Linear": cv2.INTER_LINEAR,
         "Cubic": cv2.INTER_CUBIC,
-        "Lanczos": cv2.INTER_LANCZOS4
+        "Lanczos": cv2.INTER_LANCZOS4,
     }
 
 
@@ -110,10 +111,7 @@ def InterpolationInput() -> Dict:
                 "option": "Cubic",
                 "value": INTERP_METHODS["Cubic"],
             },
-            {
-                "option": "Lanczos",
-                "value": INTERP_METHODS["Lanczos"]
-            },
+            {"option": "Lanczos", "value": INTERP_METHODS["Lanczos"]},
         ],
     )
 
