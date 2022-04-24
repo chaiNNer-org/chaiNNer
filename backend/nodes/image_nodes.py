@@ -8,9 +8,11 @@ import platform
 import subprocess
 import time
 from tempfile import TemporaryDirectory, mkdtemp
+
 import cv2
 import numpy as np
 from sanic.log import logger
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -954,7 +956,7 @@ class ChannelSplitRGBANode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> [np.ndarray]:
+    def run(self, img: np.ndarray) -> np.ndarray:
         """Split a multi-channel image into separate channels"""
 
         c = 1
@@ -998,7 +1000,7 @@ class TransparencySplitNode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> (np.ndarray, np.ndarray):
+    def run(self, img: np.ndarray) -> Any:
         """Split a multi-channel image into separate channels"""
 
         if img.ndim == 2:

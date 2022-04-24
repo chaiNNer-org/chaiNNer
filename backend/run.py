@@ -159,6 +159,9 @@ async def run_individual(request: Request):
     """Runs a single node"""
     full_data = request.json
     logger.info(full_data)
+    os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
+    os.environ["isFp16"] = "False" if full_data["isCpu"] else str(full_data["isFp16"])
+    logger.info(f"Using device: {os.environ['device']}")
     # Create node based on given category/name information
     node_instance = NodeFactory.create_node(full_data["category"], full_data["node"])
     # Run the node and pass in inputs as args

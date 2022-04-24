@@ -68,6 +68,23 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
+    def get_extra_data(self) -> Dict:
+        if "SRVGG" in self.model.model_type:
+            size = [f"{self.model.num_feat}nf", f"{self.model.num_convs}nc"]
+        else:
+            size = [
+                f"{self.model.num_filters}nf",
+                f"{self.model.num_blocks}nb",
+            ]
+
+        return {
+            "modelType": self.model.model_type,
+            "inNc": self.model.in_nc,
+            "outNc": self.model.out_nc,
+            "size": size,
+            "scale": self.model.scale,
+        }
+
     def run(self, path: str) -> Any:
         """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
         assert os.path.exists(path), f"Model file at location {path} does not exist"
@@ -79,16 +96,16 @@ class LoadModelNode(NodeBase):
         logger.info(f"Reading state dict from path: {path}")
         state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
 
-        model = load_state_dict(state_dict)
+        self.model = load_state_dict(state_dict)
 
-        for _, v in model.named_parameters():
+        for _, v in self.model.named_parameters():
             v.requires_grad = False
-        model.eval()
-        model = model.to(torch.device(os.environ["device"]))
+        self.model.eval()
+        self.model = self.model.to(torch.device(os.environ["device"]))
 
         basename = os.path.splitext(os.path.basename(path))[0]
 
-        return model, basename
+        return self.model, basename
 
 
 @NodeFactory.register("PyTorch", "Upscale Image")
@@ -315,21 +332,27 @@ class PthSaveNode(NodeBase):
         return status
 
 
-# @NodeFactory.register("PyTorch", "JIT::Trace")
-# class JitTraceNode(NodeBase):
-#     """JIT trace node"""
+@NodeFactory.register("PyTorch", "JIT Trace")
+class JitTraceNode(NodeBase):
+    """JIT trace node"""
 
-#     def __init__(self):
-#         """Constructor"""
-#         self.description = "JIT trace a pytorch model"
-#         self.inputs = [ModelInput(), ImageInput("Example Input")]
-#         self.outputs = [TorchScriptOutput()]
+    def __init__(self):
+        super().__init__()
+        self.description = "JIT trace a pytorch model"
+        self.inputs = [ModelInput(), ImageInput("Example Input")]
+        self.outputs = [TorchScriptOutput()]
 
-#     def run(self, model: any, image: np.ndarray) -> torch.ScriptModule:
-#         tensor = np2tensor(image)
-#         traced = torch.jit.trace(model.cpu(), tensor.cpu())
+        self.icon = "PyTorch"
+        self.sub = "JIT"
 
-#         return traced
+    def run(self, model: any, image: np.ndarray) -> torch.ScriptModule:
+        tensor = np2tensor(image)
+        if os.environ["device"] == "cuda":
+            model = model.cuda()
+            tensor = tensor.cuda()
+        traced = torch.jit.trace(model, tensor)
+
+        return traced
 
 
 # @NodeFactory.register("PyTorch", "JIT::Optimize")
@@ -348,64 +371,66 @@ class PthSaveNode(NodeBase):
 #         return optimized
 
 
-# @NodeFactory.register("PyTorch", "JIT::Save")
-# class JitSaveNode(NodeBase):
-#     """JIT save node"""
+@NodeFactory.register("PyTorch", "JIT Save")
+class JitSaveNode(NodeBase):
+    """JIT save node"""
 
-#     def __init__(self):
-#         """Constructor"""
-#         self.description = "Save a JIT traced pytorch model to a file"
-#         self.inputs = [TorchScriptInput(), DirectoryInput(), TextInput("Model Name")]
-#         self.outputs = []
+    def __init__(self):
+        super().__init__()
+        self.description = "Save a JIT traced pytorch model to a file"
+        self.inputs = [TorchScriptInput(), DirectoryInput(), TextInput("Model Name")]
+        self.outputs = []
 
-#     def run(self, model: torch.ScriptModule, directory: str, name: str):
-#         fullFile = f"{name}.pt"
-#         fullPath = os.path.join(directory, fullFile)
-#         logger.info(f"Writing model to path: {fullPath}")
-#         torch.jit.save(model, fullPath)
+        self.icon = "PyTorch"
+        self.sub = "JIT"
 
-
-# @NodeFactory.register("PyTorch", "JIT::Load")
-# class JitLoadNode(NodeBase):
-#     """JIT load node"""
-
-#     def __init__(self):
-#         """Constructor"""
-#         self.description = "Load a JIT traced pytorch model from a file"
-#         self.inputs = [TorchFileInput()]
-#         self.outputs = [TorchScriptOutput()]
-
-#     def run(self, path: str) -> torch.ScriptModule:
-#         # device = (
-#         #     f"cuda:0"
-#         #     if torch.cuda.is_available() and os.environ["device"] != "cpu"
-#         #     else "cpu"
-#         # )
-#         model = torch.jit.load(
-#             path, map_location=torch.device("cpu")
-#         )  # , map_location=device)
-
-#         return model
+    def run(self, model: torch.ScriptModule, directory: str, name: str):
+        fullFile = f"{name}.pt"
+        fullPath = os.path.join(directory, fullFile)
+        logger.info(f"Writing model to path: {fullPath}")
+        torch.jit.save(model, fullPath)
 
 
-# @NodeFactory.register("PyTorch", "JIT::Run")
-# class JitRunNode(NodeBase):
-#     """JIT run node"""
+@NodeFactory.register("PyTorch", "JIT Load")
+class JitLoadNode(NodeBase):
+    """JIT load node"""
 
-#     def __init__(self):
-#         """Constructor"""
-#         self.description = "Run a JIT traced pytorch model"
-#         self.inputs = [TorchScriptInput(), ImageInput()]
-#         self.outputs = [ImageOutput()]
+    def __init__(self):
+        super().__init__()
+        self.description = "Load a JIT traced pytorch model from a file"
+        self.inputs = [TorchFileInput()]
+        self.outputs = [TorchScriptOutput()]
 
-#     def run(self, model: torch.ScriptModule, image: np.ndarray) -> np.ndarray:
-#         tensor = np2tensor(image).cpu()
-#         # if os.environ["device"] == "cuda":
-#         #     model = model.cuda()
-#         #     tensor = tensor.cuda()
-#         out = model.cpu()(tensor)
+        self.icon = "PyTorch"
+        self.sub = "JIT"
 
-#         return out
+    def run(self, path: str) -> torch.ScriptModule:
+        model = torch.jit.load(path, map_location=torch.device(os.environ["device"]))
+
+        return model
+
+
+@NodeFactory.register("PyTorch", "JIT Run")
+class JitRunNode(NodeBase):
+    """JIT run node"""
+
+    def __init__(self):
+        super().__init__()
+        self.description = "Run a JIT traced pytorch model"
+        self.inputs = [TorchScriptInput(), ImageInput()]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "PyTorch"
+        self.sub = "JIT"
+
+    def run(self, model: torch.ScriptModule, image: np.ndarray) -> np.ndarray:
+        tensor = np2tensor(image)
+        if os.environ["device"] == "cuda":
+            model = model.cuda()
+            tensor = tensor.cuda()
+        out = model(tensor)
+
+        return out
 
 
 @NodeFactory.register("PyTorch", "Convert To ONNX")
