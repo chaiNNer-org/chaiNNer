@@ -36,7 +36,14 @@ export default memo(({
   const [img, setImg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { port } = useContext(SettingsContext);
+  const {
+    useIsCpu,
+    useIsFp16,
+    port,
+  } = useContext(SettingsContext);
+
+  const [isCpu] = useIsCpu;
+  const [isFp16] = useIsFp16;
 
   const { post, loading } = useFetch(`http://localhost:${port}`, {
     cachePolicy: 'no-cache',
@@ -54,6 +61,8 @@ export default memo(({
               node: nodeType,
               id,
               inputs: [path],
+              isCpu,
+              isFp16,
             });
             if (result) {
               setImg(result);

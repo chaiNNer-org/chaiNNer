@@ -38,7 +38,8 @@ export default memo(({
 
   const {
     useIsCpu,
-    useIsFp16, port,
+    useIsFp16,
+    port,
   } = useContext(SettingsContext);
 
   const [isCpu] = useIsCpu;
@@ -64,7 +65,6 @@ export default memo(({
               isFp16,
             });
             if (result) {
-              console.log('🚀 ~ file: TorchModelPreview.jsx ~ line 59 ~ result', result);
               setModelData(result);
             }
           } catch (err) {
