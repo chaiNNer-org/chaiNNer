@@ -4,6 +4,8 @@ Nodes that provide NCNN support
 
 import os
 import re
+import struct
+import tempfile
 
 import numpy as np
 from ncnn_vulkan import ncnn
@@ -14,6 +16,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
+from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
 
 
 @NodeFactory.register("NCNN", "Load Model")
@@ -67,7 +70,7 @@ class NcnnLoadModelNode(NodeBase):
 
         return input_name, output_name, out_nc
 
-    def run(self, param_path: str, bin_path: str) -> Any:
+    def run(self, param_path: str, bin_path: bytes) -> Any:
         assert os.path.exists(
             param_path
         ), f"Param file at location {param_path} does not exist"
@@ -80,20 +83,14 @@ class NcnnLoadModelNode(NodeBase):
 
         input_name, output_name, out_nc = self.get_param_info(param_path)
 
-        net = ncnn.Net()
-
-        # Use vulkan compute
-        net.opt.use_vulkan_compute = True
-        net.set_vulkan_device(ncnn.get_default_gpu_index())
-
-        # Load model param and bin
-        net.load_param(param_path)
-        net.load_model(bin_path)
+        with open(bin_path, "rb") as f:
+            bin_file_data = f.read()
+        bin_data = parse_ncnn_bin_from_buffer(bin_file_data)
 
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         # Put all this info with the net and disguise it as just the net
-        return (param_path, bin_path, input_name, output_name, net), model_name
+        return (param_path, bin_data, input_name, output_name), model_name
 
 
 @NodeFactory.register("NCNN", "Upscale Image")
@@ -136,7 +133,32 @@ class NcnnUpscaleImageNode(NodeBase):
         h, w = img.shape[:2]
         c = img.shape[2] if len(img.shape) > 2 else 1
 
-        param_path, bin_path, input_name, output_name, net = net_tuple
+        param_path, bin_data, input_name, output_name = net_tuple
+
+        net = ncnn.Net()
+
+        # Use vulkan compute
+        net.opt.use_vulkan_compute = True
+        net.set_vulkan_device(ncnn.get_default_gpu_index())
+
+        # Load model param and bin
+        net.load_param(param_path)
+
+        with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
+            bin_file_data = (
+                struct.pack(
+                    "<I",
+                    (FLAG_FLOAT_16 if os.environ["isFp16"] else FLAG_FLOAT_32),
+                )
+            ) + bin_data.astype(
+                np.float16 if os.environ["isFp16"] else np.float32
+            ).tobytes(
+                "F"
+            )
+            temp_file = os.path.join(tempdir, "ncnn.bin")
+            with open(temp_file, "wb") as binary_file:
+                binary_file.write(bin_file_data)
+            net.load_model(temp_file)
 
         # ncnn only supports 3 apparently
         in_nc = 3

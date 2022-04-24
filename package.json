@@ -126,7 +126,7 @@
     "concurrently": "^6.5.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.2.0",
-    "electron": "^18.0.4",
+    "electron": "^18.1.0",
     "electron-installer-common": "^0.10.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
