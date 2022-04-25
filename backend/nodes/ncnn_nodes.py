@@ -144,14 +144,18 @@ class NcnnUpscaleImageNode(NodeBase):
         # Load model param and bin
         net.load_param(param_path)
 
+        bin_is_fp16 = bin_data.dtype == "float16"
+
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
-            bin_file_data = (
-                struct.pack(
-                    "<I",
-                    (FLAG_FLOAT_16 if os.environ["isFp16"] else FLAG_FLOAT_32),
-                )
+            bin_file_data = struct.pack(
+                "<I",
+                (
+                    FLAG_FLOAT_16
+                    if bin_is_fp16 or os.environ["isFp16"]
+                    else FLAG_FLOAT_32
+                ),
             ) + bin_data.astype(
-                np.float16 if os.environ["isFp16"] else np.float32
+                np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
             ).tobytes(
                 "F"
             )
@@ -214,3 +218,110 @@ class NcnnUpscaleImageNode(NodeBase):
         output = np.clip(output, 0, 1)
 
         return output
+
+
+@NodeFactory.register("NCNN", "Interpolate Models")
+class NcnnInterpolateModelsNode(NodeBase):
+    """NCNN interpolate models node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Interpolate two NCNN models of the same type together."
+        self.inputs = [
+            NcnnNetInput("Net A"),
+            NcnnNetInput("Net B"),
+            SliderInput("Amount", 0, 100, 50),
+        ]
+        self.outputs = [NcnnNetOutput()]
+
+        self.icon = "BsTornado"
+        self.sub = "Utility"
+
+    def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
+        try:
+            amount_a = amount / 100
+            amount_b = 1 - amount_a
+
+            bin_a_mult = bin_a * amount_a
+            bin_b_mult = bin_b * amount_b
+            result = bin_a_mult + bin_b_mult
+            return result
+        except Exception as e:
+            raise ValueError(
+                "These models are not compatible and able not able to be interpolated together"
+            )
+
+    def check_can_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, net_tuple_a):
+        param_path_a, _, input_name_a, output_name_a = net_tuple_a
+        interp_50 = self.perform_interp(bin_a, bin_b, 50)
+        fake_img = np.ones((3, 3, 3), dtype=np.float32)
+        new_net_tuple = (param_path_a, interp_50, input_name_a, output_name_a)
+        result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img)
+        del interp_50, new_net_tuple
+        logger.info(result)
+        mean_color = np.mean(result)
+        del result
+        return mean_color > 0.5
+
+    def run(self, net_tuple_a: tuple, net_tuple_b: tuple, amount: str) -> Any:
+
+        param_path_a, bin_data_a, input_name_a, output_name_a = net_tuple_a
+        param_path_b, bin_data_b, input_name_b, output_name_b = net_tuple_b
+
+        logger.info(len(bin_data_a))
+        logger.info(len(bin_data_b))
+        assert len(bin_data_a) == len(
+            bin_data_b
+        ), "The provided model bins are not compatible."
+
+        logger.info(f"Interpolating NCNN models...")
+        if not self.check_can_interp(bin_data_a, bin_data_b, net_tuple_a):
+            raise ValueError(
+                "These NCNN models are not compatible and not able to be interpolated together"
+            )
+
+        interp_bin_data = self.perform_interp(bin_data_a, bin_data_b, int(amount))
+
+        # Put all this info with the net and disguise it as just the net
+        return [(param_path_a, interp_bin_data, input_name_a, output_name_a)]
+
+
+@NodeFactory.register("NCNN", "Save Model")
+class NcnnSaveNode(NodeBase):
+    """Model Save node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Save an NCNN model to specified directory."
+        self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
+        self.outputs = []
+
+        self.icon = "NCNN"
+        self.sub = "NCNN"
+
+    def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
+        param_path, bin_data, input_name, output_name = net_tuple
+        full_bin = f"{name}.bin"
+        full_param = f"{name}.param"
+        full_bin_path = os.path.join(directory, full_bin)
+        full_param_path = os.path.join(directory, full_param)
+
+        logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
+        bin_is_fp16 = bin_data.dtype == "float16"
+        bin_file_data = struct.pack(
+            "<I",
+            (FLAG_FLOAT_16 if bin_is_fp16 or os.environ["isFp16"] else FLAG_FLOAT_32),
+        ) + bin_data.astype(
+            np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
+        ).tobytes(
+            "F"
+        )
+        with open(full_bin_path, "wb") as binary_file:
+            binary_file.write(bin_file_data)
+        with open(full_param_path, "w") as param_file:
+            with open(param_path, "r") as original_param_file:
+                param_file.write(original_param_file)
+
+        return True
