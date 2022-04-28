@@ -8,19 +8,25 @@ import platform
 import subprocess
 import time
 from tempfile import TemporaryDirectory, mkdtemp
-
 import cv2
 import numpy as np
 from sanic.log import logger
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_opencv_formats, get_pil_formats
 
+try:
+    from PIL import Image
 
-def normalize(img):
+    pil = Image
+except ImportError:
+    logger.error("No PIL found, defaulting to cv2 for resizing")
+    pil = Image = None
+
+
+def normalize(img: np.ndarray) -> np.ndarray:
     dtype_max = 1
     try:
         dtype_max = np.iinfo(img.dtype).max
@@ -110,18 +116,15 @@ class ImReadNode(NodeBase):
                 "The image you are trying to read cannot be read by chaiNNer."
             )
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not an int")
+        # Uncomment if wild 2-channel image is encountered
+        """self.shape = img.shape
+        if img.shape[2] == 2:
+            color_channel = img[:, :, 0]
+            alpha_channel = img[:, :, 1]
+            img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)"""
 
-        img = img.astype("float32") / dtype_max
+        img = normalize(img)
 
-        h, w = img.shape[:2]
-        c = img.shape[2] if img.ndim > 2 else 1
-
-        # return img, h, w, c
         dirname, basename = os.path.split(os.path.splitext(path)[0])
         self.result = [img, dirname, basename]
         return self.result
@@ -191,36 +194,30 @@ class ImOpenNode(NodeBase):
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 
-    def run(self, img: np.ndarray) -> bool:
+    def run(self, img: np.ndarray):
         """Show image"""
 
-        # Theoretically this isn't necessary, but just in case
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-
-        img = img.astype("float32") / dtype_max
+        img = normalize(img)
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         tempdir = mkdtemp(prefix="chaiNNer-")
         logger.info(f"Writing image to temp path: {tempdir}")
-        imName = f"{time.time()}.png"
-        tempSaveDir = os.path.join(tempdir, imName)
+        im_name = f"{time.time()}.png"
+        temp_save_dir = os.path.join(tempdir, im_name)
         status = cv2.imwrite(
-            tempSaveDir,
+            temp_save_dir,
             img,
         )
+
         if status:
             if platform.system() == "Darwin":  # macOS
-                subprocess.call(("open", tempSaveDir))
+                subprocess.call(("open", temp_save_dir))
             elif platform.system() == "Windows":  # Windows
-                os.startfile(tempSaveDir)
+                os.startfile(temp_save_dir)
             else:  # linux variants
-                subprocess.call(("xdg-open", tempSaveDir))
+                subprocess.call(("xdg-open", temp_save_dir))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Factor)")
@@ -235,7 +232,7 @@ class ImResizeByFactorNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Scale Factor", default=1.0, step=0.5),
+            NumberInput("Scale Factor", default=1.0, step=0.25),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -246,13 +243,20 @@ class ImResizeByFactorNode(NodeBase):
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
-        result = cv2.resize(
-            img,
-            None,
-            fx=float(scale),
-            fy=float(scale),
-            interpolation=int(interpolation),
-        )
+
+        img = normalize(img)
+        interpolation = int(interpolation)
+
+        h, w = img.shape[:2]
+        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
+
+        # Try PIL first, otherwise fall back to cv2
+        if pil is Image:
+            pimg = pil.fromarray((img * 255).astype("uint8"))
+            pimg = pimg.resize(out_dims, resample=interpolation)
+            result = np.array(pimg).astype("float32") / 255
+        else:
+            result = cv2.resize(img, out_dims, interpolation=interpolation)
 
         return result
 
@@ -281,9 +285,19 @@ class ImResizeToResolutionNode(NodeBase):
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
-        result = cv2.resize(
-            img, (int(width), int(height)), interpolation=int(interpolation)
-        )
+
+        img = normalize(img)
+        interpolation = int(interpolation)
+
+        out_dims = (int(width), int(height))
+
+        # Try PIL first, otherwise fall back to cv2
+        if pil is Image:
+            pimg = pil.fromarray((img * 255).astype("uint8"))
+            pimg = pimg.resize(out_dims, resample=interpolation)
+            result = np.array(pimg).astype("float32") / 255
+        else:
+            result = cv2.resize(img, out_dims, interpolation=interpolation)
 
         return result
 
@@ -299,9 +313,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min=1, max=99),
+            SliderInput("Opacity A", default=50, min_val=1, max_val=100),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min=1, max=99, optional=True),
+            SliderInput("Opacity B", default=50, min_val=1, max_val=100, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "BsLayersHalf"
@@ -334,11 +348,10 @@ class ImOverlay(NodeBase):
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
         for img in base, ov1, ov2:
-            if img is not None and type(img) not in (int, str):
-                h, w = img.shape[:2]
-                if img.ndim == 2:  # len(img.shape) needs to be 3, grayscale len only 2
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-                c = img.shape[2]
+            if img is not None:
+                if img.ndim == 2:  # Overlay needs 3 dimensions for ease
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                h, w, c = img.shape
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
@@ -366,7 +379,11 @@ class ImOverlay(NodeBase):
         center_y = imgout.shape[0] // 2
         for img, op in zip(imgs, (op1, op2)):
             if img is not None and op is not None:
-                h, w = img.shape[:2]
+                h, w, c = img.shape
+                if c == 4:
+                    is_opaque = np.all(np.isclose(img[:, :, 3], [1.0]))
+                else:
+                    is_opaque = True
 
                 # Center overlay
                 x_offset = center_x - (w // 2)
@@ -379,7 +396,23 @@ class ImOverlay(NodeBase):
                     op,
                     0,
                 )
-                imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+
+                # If an image with native opacity is overlayed, the colors in the transparent areas
+                # need to be modified by the alpha channel of the image being overlayed, or the
+                # alpha channel will be incorrectly applied to the final image.
+                if max_c == 4 and not is_opaque:
+                    for channel in range(0, 3):
+                        imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, channel
+                        ] = img[:, :, 3] * img[:, :, channel] + imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, 3
+                        ] * imgout[
+                            y_offset : y_offset + h, x_offset : x_offset + w, channel
+                        ] * (
+                            1 - img[:, :, 3]
+                        )
+                else:
+                    imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
@@ -393,7 +426,10 @@ class ColorConvertNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Convert the colorspace of an image to a different one. Also can convert to different channel-spaces."
+        self.description = (
+            "Convert the colorspace of an image to a different one. "
+            "Also can convert to different channel-spaces."
+        )
         self.inputs = [
             ImageInput(),
             ColorModeInput(),
@@ -649,9 +685,71 @@ class StackNode(NodeBase):
         return img
 
 
+@NodeFactory.register("Image (Effect)", "Hue & Saturation")
+class HueAndSaturationNode(NodeBase):
+    """OpenCV Hue and Saturation Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Adjust the hue and saturation of an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Hue", -180, 180, 0),
+            SliderInput("Saturation (%)", -255, 255, 0),
+        ]
+        self.outputs = [ImageOutput()]
+        self.icon = "MdOutlineColorLens"
+        self.sub = "Adjustment"
+
+    def add_and_wrap_hue(self, img: np.ndarray, add_val: float) -> np.ndarray:
+        """Adds hue change value to image and wraps on range overflow"""
+
+        img += add_val
+        img[img >= 360] -= 360  # Wrap positive overflow
+        img[img < 0] += 360  # Wrap negative overflow
+        return img
+
+    def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
+        """Adjust the hue and saturation of an image"""
+
+        # Pass through grayscale and unadjusted images
+        hue = int(hue)
+        saturation = int(saturation)
+        if (
+            img.ndim < 3
+            or img.shape[2] == 1
+            or (int(hue) == 0 and int(saturation) == 0)
+        ):
+            return img
+
+        img = normalize(img)
+
+        # Preserve alpha channel if it exists
+        c = img.shape[2]
+        alpha = None
+        if c > 3:
+            alpha = img[:, :, 3]
+
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        h, l, s = cv2.split(hls)
+
+        # Adjust hue and saturation
+        hnew = self.add_and_wrap_hue(h, hue)
+        smod = 1 + (saturation / 255)
+        snew = np.clip((s * smod), 0, 1)
+
+        hlsnew = cv2.merge([hnew, l, snew])
+        img = cv2.cvtColor(hlsnew, cv2.COLOR_HLS2BGR)
+        if alpha is not None:  # Re-add alpha, if it exists
+            img = np.dstack((img, alpha))
+
+        return img
+
+
 @NodeFactory.register("Image (Effect)", "Brightness & Contrast")
 class BrightnessAndContrastNode(NodeBase):
-    """OpenCV Brightness Node"""
+    """OpenCV Brightness and Contrast Node"""
 
     def __init__(self):
         """Constructor"""
@@ -659,8 +757,8 @@ class BrightnessAndContrastNode(NodeBase):
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Brightness", -100, 100, 0),
-            SliderInput("Contrast", 0, 200, 100),
+            SliderInput("Brightness", -255, 255, 0),
+            SliderInput("Contrast", -255, 255, 0),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "ImBrightnessContrast"
@@ -669,17 +767,42 @@ class BrightnessAndContrastNode(NodeBase):
     def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-        f_img = img.astype("float32") / dtype_max
-        b_amount = int(b_amount) / 100
-        c_amount = int(c_amount) / 100
+        b_amount = int(b_amount) / 255
+        c_amount = int(c_amount) / 255
 
-        f_img = (f_img * c_amount) + b_amount
-        img = np.clip((f_img * dtype_max), 0, dtype_max).astype(img.dtype)
+        # Pass through unadjusted image
+        if b_amount == 0 and c_amount == 0:
+            return img
+
+        img = normalize(img)
+
+        # Calculate brightness adjustment
+        if b_amount > 0:
+            shadow = b_amount
+            highlight = 1
+        else:
+            shadow = 0
+            highlight = 1 + b_amount
+        alpha_b = highlight - shadow
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
+        else:
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow
+            )
+
+        # Calculate contrast adjustment
+        alpha_c = ((259 / 255) * (c_amount + 1)) / (
+            (259 / 255) - c_amount
+        )  # Contrast correction factor
+        gamma_c = 0.5 * (1 - alpha_c)
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_c, img, 0, gamma_c)
+        else:
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c
+            )
+        img = np.clip(img, 0, 1).astype("float32")
 
         return img
 
@@ -709,6 +832,7 @@ class BlurNode(NodeBase):
         # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
+
         ksize = (int(amount_x), int(amount_y))
         for __i in range(16):
             img = cv2.blur(img, ksize)
@@ -740,6 +864,7 @@ class GaussianBlurNode(NodeBase):
         amount_y: str,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
+
         blurred = cv2.GaussianBlur(
             img, (0, 0), sigmaX=float(amount_x), sigmaY=float(amount_y)
         )
@@ -769,6 +894,7 @@ class SharpenNode(NodeBase):
         amount: int,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
+
         blurred = cv2.GaussianBlur(img, (0, 0), float(amount))
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
@@ -799,6 +925,7 @@ class ShiftNode(NodeBase):
         amount_y: int,
     ) -> np.ndarray:
         """Adjusts the position of an image"""
+
         num_rows, num_cols = img.shape[:2]
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
         img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
@@ -812,7 +939,10 @@ class ChannelSplitRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Split image channels into separate channels. Typically used for splitting off an alpha (transparency) layer."
+        self.description = (
+            "Split image channels into separate channels. "
+            "Typically used for splitting off an alpha (transparency) layer."
+        )
         self.inputs = [ImageInput()]
         self.outputs = [
             ImageOutput("Blue Channel"),
@@ -824,8 +954,9 @@ class ChannelSplitRGBANode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray) -> [np.ndarray]:
         """Split a multi-channel image into separate channels"""
+
         c = 1
         dtype_max = 1
         try:
@@ -867,8 +998,9 @@ class TransparencySplitNode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray) -> (np.ndarray, np.ndarray):
         """Split a multi-channel image into separate channels"""
+
         if img.ndim == 2:
             logger.debug("Expanding image channels")
             img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
@@ -890,7 +1022,10 @@ class ChannelMergeRGBANode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Merge image channels together into a <= 4 channel image. Typically used for combining an image with an alpha layer."
+        self.description = (
+            "Merge image channels together into a <= 4 channel image. "
+            "Typically used for combining an image with an alpha layer."
+        )
         self.inputs = [
             ImageInput("Channel(s) A"),
             ImageInput("Channel(s) B", optional=True),
@@ -1149,6 +1284,148 @@ class CaptionNode(NodeBase):
             lineType=cv2.LINE_AA,
         )
         return img
+
+
+def normalize_normals(
+    x: np.ndarray, y: np.ndarray
+) -> (np.ndarray, np.ndarray, np.ndarray):
+    # the square of the length of X and Y
+    l_sq = np.square(x) + np.square(y)
+
+    # if the length of X and Y is >1, then we have make it 1
+    l = np.sqrt(np.maximum(l_sq, 1))
+    x /= l
+    y /= l
+    l_sq = np.minimum(l_sq, 1, out=l_sq)
+
+    # compute Z
+    z = np.sqrt(1 - l_sq)
+
+    return x, y, z
+
+
+@NodeFactory.register("Image (Utility)", "Normalize")
+class NormalizeNode(NodeBase):
+    """Normalize normal map"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Normalizes the given normal map."
+            " Only the R and G channels of the input image will be used."
+        )
+        self.inputs = [
+            ImageInput("Normal map RG"),
+        ]
+        self.outputs = [ImageOutput("Normal map RGB")]
+        self.icon = "MdOutlineAutoFixHigh"
+        self.sub = "Normal map"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Takes an a normal map and normalize it"""
+
+        logger.info(f"Normalizing image")
+        assert img.ndim == 3, "The input image must be an RGB or RGBA image"
+
+        # convert BGR to XY
+        x = normalize(img[:, :, 2]) * 2 - 1
+        y = normalize(img[:, :, 1]) * 2 - 1
+
+        x, y, z = normalize_normals(x, y)
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))
+
+
+@NodeFactory.register("Image (Utility)", "Normal Addition")
+class NormalAdditionNode(NodeBase):
+    """Add together two normal maps"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Add 2 normal maps together."
+            " Only the R and G channels of the input image will be used."
+            " The output normal map is guaranteed to be normalized."
+        )
+        self.inputs = [
+            ImageInput("Normal map 1"),
+            SliderInput("Strength 1", 0, 100, 100),
+            ImageInput("Normal map 2"),
+            SliderInput("Strength 2", 0, 100, 100),
+        ]
+        self.outputs = [ImageOutput("Normal map")]
+        self.icon = "MdAddCircleOutline"
+        self.sub = "Normal map"
+
+    def run(self, n: np.ndarray, n_strength, m: np.ndarray, m_strength) -> np.ndarray:
+        """
+        Takes 2 normal maps and adds them.
+
+        The addition works by converting the normals into 2D slopes and then adding the slopes.
+        The sum of the slopes is then converted back into normals.
+
+        Why slopes? When adding 2 normal maps, we don't actually want to add the normals
+        themselves. Instead, we want to add the heightmaps that those normals represent.
+        Conceptually, we want to convert the normals into slopes (the derivatives of the
+        heightmap), integrate the slopes to get the heightmaps, add the heightmaps, derive the
+        heightmaps to get slopes, and then convert the slopes into normals again. Luckily,
+        adding together slopes is equivalent to adding together heightmaps, so we don't have to
+        integrate anything.
+        """
+
+        logger.info(f"Adding normal maps")
+        assert (
+            n.ndim == 3 and m.ndim == 3
+        ), "The input images must be RGB or RGBA images"
+
+        n_strength /= 100
+        m_strength /= 100
+
+        # convert BGR to XY
+        n_x = normalize(n[:, :, 2]) * 2 - 1
+        n_y = normalize(n[:, :, 1]) * 2 - 1
+        m_x = normalize(m[:, :, 2]) * 2 - 1
+        m_y = normalize(m[:, :, 1]) * 2 - 1
+
+        n_x, n_y, n_z = normalize_normals(n_x, n_y)
+        m_x, m_y, m_z = normalize_normals(m_x, m_y)
+
+        # slopes aren't defined for z=0, so we use a little trick
+        n_z = np.maximum(n_z, 0.001, out=n_z)
+        m_z = np.maximum(m_z, 0.001, out=m_z)
+
+        # This works as follows:
+        # 1. Use the normals n,m to calculate 3D plans (our slopes) centered at origin p_n,p_m.
+        # 2. Calculate the Z values of those planes at a_xy=(1,0) and b_xy=(0,1).
+        # 3. Add the Z values to together (weighted using their strength):
+        #    a_z = p_n[a_xy] * n_strength + p_m[a_xy] * m_strength, same for b_xy.
+        # 4. Define a=(1,0,a_z), b=(0,1,b_z).
+        # 5. The final normal will be normalize(cross(a,b)).
+
+        # if you do the maths by hand, you'll see that a bunch of things cancel out and
+        # you'll be left with this:
+
+        n_f = n_strength / n_z
+        m_f = m_strength / m_z
+        a_z = n_x * n_f + m_x * m_f
+        b_z = n_y * n_f + m_y * m_f
+
+        l_r = 1 / np.sqrt(np.square(a_z) + np.square(b_z) + 1)
+        x = a_z * l_r
+        y = b_z * l_r
+        z = l_r
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))
 
 
 @NodeFactory.register("Image (Utility)", "Average Color Fix")
