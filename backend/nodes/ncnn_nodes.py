@@ -322,6 +322,6 @@ class NcnnSaveNode(NodeBase):
             binary_file.write(bin_file_data)
         with open(full_param_path, "w") as param_file:
             with open(param_path, "r") as original_param_file:
-                param_file.write(original_param_file)
+                param_file.write(original_param_file.read())
 
         return True
