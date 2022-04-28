@@ -1426,3 +1426,80 @@ class NormalAdditionNode(NodeBase):
         b_norm = z
 
         return cv2.merge((b_norm, g_norm, r_norm))
+
+
+@NodeFactory.register("Image (Utility)", "Average Color Fix")
+class AverageColorFixNode(NodeBase):
+    """Fixes the average color of an upscaled image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Ensure that the average color of the large image is the same as the average color of the small image."
+            "\nSome upscaler models slightly change the overall color of the original image."
+            " Sometimes this is a desirable effect, but often it is just a problem."
+            " This nodes 'fixes' the large image, so that its overall color is the same as that of the small image."
+            "\nIf the small image contain compression artifacts, it must be downscaled or denoised first."
+            " The output image will include the compression artifacts otherwise."
+        )
+        self.inputs = [
+            ImageInput("Large Image"),
+            ImageInput("Small Image"),
+            BoundedIntegerInput("Small Image Downscale Factor", 1, 128, 1),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdAutoFixHigh"
+        self.sub = "Miscellaneous"
+
+    def run(self, large: np.ndarray, small: np.ndarray, down_scale) -> np.ndarray:
+        """Fixes the average color of the large image"""
+
+        down_scale = int(down_scale)
+
+        large = normalize(large)
+        small = normalize(small)
+
+        if down_scale > 1:
+            small = cv2.resize(
+                small,
+                None,
+                fx=float(1 / down_scale),
+                fy=float(1 / down_scale),
+                interpolation=cv2.INTER_AREA,
+            )
+
+        l_h, l_w = large.shape[:2]
+        s_h, s_w = small.shape[:2]
+
+        assert (
+            s_w < l_w and s_h < l_h
+        ), "The large image has to be larger than the small image"
+
+        # find the diff of both images
+
+        # downscale the large image
+        l = cv2.resize(
+            large,
+            None,
+            fx=float(s_w / l_w),
+            fy=float(s_h / l_h),
+            interpolation=cv2.INTER_AREA,
+        )
+
+        # different
+        small_diff = small - l
+
+        # upsample the difference
+        diff = cv2.resize(
+            small_diff,
+            None,
+            fx=float(l_w / s_w),
+            fy=float(l_h / s_h),
+            interpolation=cv2.INTER_CUBIC,
+        )
+
+        result = large + diff
+
+        return np.clip(result, 0, 1)
