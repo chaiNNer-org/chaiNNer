@@ -4,9 +4,7 @@ import { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const DirectoryInput = memo(({
-  id, index, isLocked,
-}) => {
+const DirectoryInput = memo(({ id, index, isLocked }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [directory, setDirectory] = useInputData(id, index);
   const [, , isInputLocked] = useNodeLock(id, index);
@@ -21,9 +19,7 @@ const DirectoryInput = memo(({
 
   return (
     <InputGroup>
-      <InputLeftElement
-        pointerEvents="none"
-      >
+      <InputLeftElement pointerEvents="none">
         <BsFolderPlus />
       </InputLeftElement>
       <Input

@@ -9,9 +9,7 @@ const getSessionStorageOrDefault = (key, defaultValue) => {
 };
 
 const useSessionStorage = (key, defaultValue) => {
-  const [value, setValue] = useState(
-    getSessionStorageOrDefault(key, defaultValue),
-  );
+  const [value, setValue] = useState(getSessionStorageOrDefault(key, defaultValue));
 
   useEffect(() => {
     sessionStorage.setItem(key, JSON.stringify(value));

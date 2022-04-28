@@ -1,13 +1,9 @@
 import { Input } from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useState,
-} from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const TextInput = memo(({
-  label, id, index, isLocked, maxLength,
-}) => {
+const TextInput = memo(({ label, id, index, isLocked, maxLength }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
   const [tempText, setTempText] = useState('');

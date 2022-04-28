@@ -1,6 +1,4 @@
-import {
-  Box, Center, ChakraProvider, ColorModeScript, Spinner,
-} from '@chakra-ui/react';
+import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/extensions
@@ -18,7 +16,7 @@ const App = () => {
     })();
   }, []);
 
-  let Component = () => (<></>);
+  let Component = () => <></>;
 
   if (!port) {
     Component = () => (
@@ -35,7 +33,7 @@ const App = () => {
       </Box>
     );
   } else {
-    Component = () => (<Main port={port} />);
+    Component = () => <Main port={port} />;
   }
 
   return (

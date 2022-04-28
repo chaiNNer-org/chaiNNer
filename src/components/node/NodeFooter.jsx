@@ -1,23 +1,33 @@
 /* eslint-disable import/prefer-default-export */
 import {
-  CheckCircleIcon, CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon, WarningIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  CopyIcon,
+  DeleteIcon,
+  LockIcon,
+  UnlockIcon,
+  WarningIcon,
 } from '@chakra-ui/icons';
 import {
-  Center, Flex, Icon, Menu, MenuButton, MenuItem,
-  MenuList, Portal, Spacer, Tooltip, useColorModeValue,
+  Center,
+  Flex,
+  Icon,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Portal,
+  Spacer,
+  Tooltip,
+  useColorModeValue,
 } from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useState,
-} from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const NodeFooter = ({
-  id, isValid = false, invalidReason = '', isLocked,
-}) => {
-  const {
-    removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions,
-  } = useContext(GlobalContext);
+const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }) => {
+  const { removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions } =
+    useContext(GlobalContext);
 
   const [, toggleLock] = useNodeLock(id);
 
@@ -85,7 +95,6 @@ const NodeFooter = ({
             cursor="default"
             my={-2}
           />
-
         </Center>
       </Tooltip>
       <Spacer />

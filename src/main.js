@@ -1,12 +1,8 @@
 import { exec as _exec, spawn } from 'child_process';
-import {
-  app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell,
-} from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
-import {
-  access, readFile, writeFile,
-} from 'fs/promises';
+import { access, readFile, writeFile } from 'fs/promises';
 import https from 'https';
 import os from 'os';
 import path from 'path';
@@ -20,25 +16,27 @@ import { downloadPython, extractPython, installSanic } from './setupIntegratedPy
 const exec = util.promisify(_exec);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
+// eslint-disable-next-line global-require
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
-// eslint-disable-next-line max-len
-log.transports.file.resolvePath = (variables) => path.join(variables.electronDefaultDir, variables.fileName);
+log.transports.file.resolvePath = (variables) =>
+  path.join(variables.electronDefaultDir, variables.fileName);
 log.transports.file.level = 'info';
 
 log.catchErrors({
   showDialog: false,
   onError(error, versions, submitIssue) {
-    dialog.showMessageBox({
-      title: 'An error occurred',
-      message: error.message,
-      detail: error.stack,
-      type: 'error',
-      buttons: ['Ignore', 'Report', 'Exit'],
-    })
+    dialog
+      .showMessageBox({
+        title: 'An error occurred',
+        message: error.message,
+        detail: error.stack,
+        type: 'error',
+        buttons: ['Ignore', 'Report', 'Exit'],
+      })
       .then((result) => {
         if (result.response === 1) {
           submitIssue('https://github.com/joeyballentine/chaiNNer/issues/new', {
@@ -86,8 +84,8 @@ if (app.isPackaged) {
     res.on('close', async () => {
       try {
         const releases = JSON.parse(response);
-        const gtVersions = releases.filter(
-          (v) => semver.gt(semver.coerce(v.tag_name), app.getVersion()),
+        const gtVersions = releases.filter((v) =>
+          semver.gt(semver.coerce(v.tag_name), app.getVersion())
         );
         if (gtVersions.length > 0) {
           const sorted = gtVersions.sort((a, b) => semver.gt(a, b));
@@ -129,16 +127,20 @@ let splash;
 let mainWindow;
 
 const registerEventHandlers = () => {
-  ipcMain.handle('dir-select', (event, dirPath) => dialog.showOpenDialog({
-    defaultPath: dirPath,
-    properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
-  }));
+  ipcMain.handle('dir-select', (event, dirPath) =>
+    dialog.showOpenDialog({
+      defaultPath: dirPath,
+      properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+    })
+  );
 
-  ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) => dialog.showOpenDialog({
-    filters,
-    defaultPath: dirPath,
-    properties: ['openFile', allowMultiple && 'multiSelections'],
-  }));
+  ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
+    dialog.showOpenDialog({
+      filters,
+      defaultPath: dirPath,
+      properties: ['openFile', allowMultiple && 'multiSelections'],
+    })
+  );
 
   ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
     try {
@@ -189,7 +191,9 @@ const registerEventHandlers = () => {
     const cpu = await currentLoad();
     const ram = await mem();
     return {
-      gpu, cpu, ram,
+      gpu,
+      cpu,
+      ram,
     };
   });
 
@@ -214,7 +218,8 @@ const getValidPort = async (splashWindow) => {
     const messageBoxOptions = {
       type: 'error',
       title: 'No open port',
-      message: 'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
+      message:
+        'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
     };
     dialog.showMessageBoxSync(messageBoxOptions);
     app.exit(1);
@@ -243,12 +248,15 @@ const getPythonVersion = async (pythonBin) => {
   }
 };
 
-const checkPythonVersion = (version) => semver.gte(version, '3.7.0') && semver.lt(version, '3.10.0');
+const checkPythonVersion = (version) =>
+  semver.gte(version, '3.7.0') && semver.lt(version, '3.10.0');
 
 const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');
 
-  const localStorageVars = await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript('({...localStorage});');
+  const localStorageVars = await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
+    '({...localStorage});'
+  );
   const useSystemPython = localStorageVars['use-system-python'];
 
   // User is using system python
@@ -276,7 +284,8 @@ const checkPythonEnv = async (splashWindow) => {
         title: 'Python not installed',
         buttons: ['Get Python', 'Exit'],
         defaultId: 1,
-        message: 'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+        message:
+          'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
       };
       const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
       if (buttonResult === 1) {
@@ -300,7 +309,8 @@ const checkPythonEnv = async (splashWindow) => {
         title: 'Python version invalid',
         buttons: ['Get Python', 'Exit'],
         defaultId: 1,
-        message: 'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
+        message:
+          'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
       };
       const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
       if (buttonResult === 1) {
@@ -342,7 +352,7 @@ const checkPythonEnv = async (splashWindow) => {
     if (!pythonBinExists) {
       log.info('Python not downloaded');
       try {
-      // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line no-unused-vars
         const onProgress = (percentage, _chunk = null, _remainingSize = null) => {
           splash.webContents.send('progress', percentage);
         };
@@ -379,7 +389,9 @@ const checkPythonDeps = async (splashWindow) => {
   log.info('Attempting to check Python deps...');
   try {
     let { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
-    pipList = String(pipList).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+    pipList = String(pipList)
+      .split('\n')
+      .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
     const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
     const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
@@ -401,13 +413,24 @@ const checkNvidiaSmi = async () => {
   };
 
   const registerNvidiaSmiEvents = async (nvidiaSmi) => {
-    const [nvidiaGpu] = (await exec(`${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${process.platform === 'linux' ? '  2>/dev/null' : ''}`)).stdout.split('\n');
+    const [nvidiaGpu] = (
+      await exec(
+        `${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${
+          process.platform === 'linux' ? '  2>/dev/null' : ''
+        }`
+      )
+    ).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
     ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
     let vramChecker;
     ipcMain.handle('setup-vram-checker-process', (event, delay) => {
       if (!vramChecker) {
-        vramChecker = spawn(nvidiaSmi, `-lms ${delay} --query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory --format=csv,noheader,nounits`.split(' '));
+        vramChecker = spawn(
+          nvidiaSmi,
+          `-lms ${delay} --query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory --format=csv,noheader,nounits`.split(
+            ' '
+          )
+        );
       }
 
       vramChecker.stdout.on('data', (data) => {
@@ -456,7 +479,7 @@ const checkNvidiaSmi = async () => {
         const { stdout } = await exec('wmic path win32_VideoController get name');
         const checks = ['geforce', 'nvidia', 'gtx', 'rtx', 'quadro'];
         if (checks.some((keyword) => stdout.toLowerCase().includes(keyword))) {
-        // Find the path to nvidia-smi
+          // Find the path to nvidia-smi
           nvidiaSmi = await getNvidiaSmi();
         }
       } catch (_) {
@@ -479,7 +502,9 @@ const spawnBackend = async (port) => {
   }
   log.info('Attempting to spawn backend...');
   try {
-    const backendPath = app.isPackaged ? path.join(process.resourcesPath, 'backend', 'run.py') : './backend/run.py';
+    const backendPath = app.isPackaged
+      ? path.join(process.resourcesPath, 'backend', 'run.py')
+      : './backend/run.py';
     const backend = spawn(pythonKeys.python, [backendPath, port]);
     backend.stdout.on('data', (data) => {
       const dataString = String(data);
@@ -567,101 +592,102 @@ const spawnBackend = async (port) => {
   }
 };
 
-const doSplashScreenChecks = async () => new Promise((resolve) => {
-  splash = new BrowserWindow({
-    width: 400,
-    height: 400,
-    frame: false,
-    // backgroundColor: '#2D3748',
-    center: true,
-    minWidth: 400,
-    minHeight: 400,
-    maxWidth: 400,
-    maxHeight: 400,
-    resizable: false,
-    minimizable: true,
-    maximizable: false,
-    closable: false,
-    alwaysOnTop: true,
-    titleBarStyle: 'hidden',
-    transparent: true,
-    roundedCorners: true,
-    webPreferences: {
-      webSecurity: false,
-      nativeWindowOpen: true,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    // icon: `${__dirname}/public/icons/cross_platform/icon`,
-    show: false,
-  });
-  splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+const doSplashScreenChecks = async () =>
+  new Promise((resolve) => {
+    splash = new BrowserWindow({
+      width: 400,
+      height: 400,
+      frame: false,
+      // backgroundColor: '#2D3748',
+      center: true,
+      minWidth: 400,
+      minHeight: 400,
+      maxWidth: 400,
+      maxHeight: 400,
+      resizable: false,
+      minimizable: true,
+      maximizable: false,
+      closable: false,
+      alwaysOnTop: true,
+      titleBarStyle: 'hidden',
+      transparent: true,
+      roundedCorners: true,
+      webPreferences: {
+        webSecurity: false,
+        nativeWindowOpen: true,
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+      // icon: `${__dirname}/public/icons/cross_platform/icon`,
+      show: false,
+    });
+    splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
 
-  splash.once('ready-to-show', () => {
-    splash.show();
-    // splash.webContents.openDevTools();
-  });
+    splash.once('ready-to-show', () => {
+      splash.show();
+      // splash.webContents.openDevTools();
+    });
 
-  splash.on('close', () => {
-    if (mainWindow) {
-      mainWindow.destroy();
-    }
-  });
+    splash.on('close', () => {
+      if (mainWindow) {
+        mainWindow.destroy();
+      }
+    });
 
-  // Look, I just wanna see the cool animation
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Look, I just wanna see the cool animation
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  // Send events to splash screen renderer as they happen
-  // Added some sleep functions so I can see that this is doing what I want it to
-  // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
-  splash.webContents.once('dom-ready', async () => {
-    splash.webContents.send('checking-port');
-    const port = await getValidPort(splash);
-    await sleep(250);
+    // Send events to splash screen renderer as they happen
+    // Added some sleep functions so I can see that this is doing what I want it to
+    // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
+    splash.webContents.once('dom-ready', async () => {
+      splash.webContents.send('checking-port');
+      const port = await getValidPort(splash);
+      await sleep(250);
 
-    splash.webContents.send('checking-python');
-    await checkPythonEnv(splash);
-    await sleep(250);
+      splash.webContents.send('checking-python');
+      await checkPythonEnv(splash);
+      await sleep(250);
 
-    splash.webContents.send('checking-deps');
-    await checkPythonDeps(splash);
-    await checkNvidiaSmi();
-    await sleep(250);
+      splash.webContents.send('checking-deps');
+      await checkPythonDeps(splash);
+      await checkNvidiaSmi();
+      await sleep(250);
 
-    splash.webContents.send('spawning-backend');
-    await spawnBackend(port);
+      splash.webContents.send('spawning-backend');
+      await spawnBackend(port);
 
-    registerEventHandlers();
+      registerEventHandlers();
 
-    splash.webContents.send('splash-finish');
-    await sleep(250);
+      splash.webContents.send('splash-finish');
+      await sleep(250);
 
-    resolve();
-  });
+      resolve();
+    });
 
-  ipcMain.handle('backend-ready', () => {
+    ipcMain.handle('backend-ready', () => {
+      mainWindow.webContents.once('dom-ready', async () => {
+        splash.webContents.send('finish-loading');
+        splash.on('close', () => {});
+        await sleep(500);
+        splash.destroy();
+        mainWindow.show();
+        ipcMain.removeHandler('backend-ready');
+      });
+    });
+
     mainWindow.webContents.once('dom-ready', async () => {
-      splash.webContents.send('finish-loading');
-      splash.on('close', () => {});
-      await sleep(500);
-      splash.destroy();
-      mainWindow.show();
       ipcMain.removeHandler('backend-ready');
+      ipcMain.handle('backend-ready', async () => {
+        splash.webContents.send('finish-loading');
+        splash.on('close', () => {});
+        await sleep(500);
+        splash.destroy();
+        mainWindow.show();
+        ipcMain.removeHandler('backend-ready');
+      });
     });
   });
-
-  mainWindow.webContents.once('dom-ready', async () => {
-    ipcMain.removeHandler('backend-ready');
-    ipcMain.handle('backend-ready', async () => {
-      splash.webContents.send('finish-loading');
-      splash.on('close', () => {});
-      await sleep(500);
-      splash.destroy();
-      mainWindow.show();
-      ipcMain.removeHandler('backend-ready');
-    });
-  });
-});
 
 const createWindow = async () => {
   // Create the browser window.
@@ -698,7 +724,10 @@ const createWindow = async () => {
         {
           label: 'Open',
           click: async () => {
-            const { canceled, filePaths: [filepath] } = await dialog.showOpenDialog({
+            const {
+              canceled,
+              filePaths: [filepath],
+            } = await dialog.showOpenDialog({
               title: 'Open Chain File',
               filters: [{ name: 'Chain', extensions: ['chn'] }],
               properties: ['openFile'],
@@ -778,14 +807,9 @@ const createWindow = async () => {
       submenu: [
         { role: 'minimize' },
         { role: 'zoom' },
-        ...(isMac ? [
-          { type: 'separator' },
-          { role: 'front' },
-          { type: 'separator' },
-          { role: 'window' },
-        ] : [
-          { role: 'close' },
-        ]),
+        ...(isMac
+          ? [{ type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' }]
+          : [{ role: 'close' }]),
       ],
     },
     {
@@ -794,7 +818,9 @@ const createWindow = async () => {
         {
           label: 'View README',
           click: async () => {
-            await shell.openExternal('https://github.com/joeyballentine/chaiNNer/blob/main/README.md');
+            await shell.openExternal(
+              'https://github.com/joeyballentine/chaiNNer/blob/main/README.md'
+            );
           },
         },
         {
@@ -864,7 +890,7 @@ app.on('window-all-closed', () => {
   log.info('Cleaning up temp folders...');
   const tempDir = os.tmpdir();
   // find all the folders starting with 'chaiNNer-'
-  const tempFolders = (readdirSync(tempDir, { withFileTypes: true }))
+  const tempFolders = readdirSync(tempDir, { withFileTypes: true })
     .filter((dir) => dir.isDirectory())
     .map((dir) => dir.name)
     .filter((name) => name.includes('chaiNNer-'));
