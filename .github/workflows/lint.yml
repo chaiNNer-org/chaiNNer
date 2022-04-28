@@ -36,6 +36,7 @@ jobs:
               uses: actions/setup-node@v1
               with:
                 node-version: 14.x
+            - run: npm i -g npm@8
             - run: npm ci
             - run: ls node_modules
             - run: npm run lint-js
