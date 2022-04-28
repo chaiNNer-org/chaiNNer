@@ -34,7 +34,7 @@ To batch upscale, create an Image Iterator node and drag the nodes you want to u
 
 ## Building chaiNNer Yourself
 
-I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` to install all the nodejs dependencies, and `npm run make` to build the application.
+I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` (make sure that you have at least npm v7 installed) to install all the nodejs dependencies, and `npm run make` to build the application.
 
 ## GPU Support
 

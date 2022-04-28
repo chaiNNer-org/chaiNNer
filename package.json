@@ -24,6 +24,9 @@
     "name": "Joey Ballentine",
     "email": "joeyjballentine@gmail.com"
   },
+  "engines": {
+    "npm": ">=7.0.0"
+  },
   "license": "GPLv3",
   "config": {
     "forge": {
