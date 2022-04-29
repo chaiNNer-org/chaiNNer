@@ -7,7 +7,7 @@ import useInterval from './useInterval';
 
 const exec = util.promisify(_exec);
 
-const useSystemUsage = (delay) => {
+const useSystemUsage = (delay: number) => {
   const [cpuUsage, setCpuUsage] = useState(0);
   const [ramUsage, setRamUsage] = useState(0);
   const [vramUsage, setVramUsage] = useState(0);
@@ -24,12 +24,12 @@ const useSystemUsage = (delay) => {
       const freeMem = parseFloat(memInfo[3]);
 
       const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
-      setRamUsage(ramPercent);
+      setRamUsage(Number(ramPercent));
     } else {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
       const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
-      setRamUsage(ramPercent);
+      setRamUsage(Number(ramPercent));
     }
 
     // CPU

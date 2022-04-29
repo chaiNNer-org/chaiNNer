@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
-const useUndoHistory = (maxLength) => {
-  const [undoHistory, setUndoHistory] = useState([]);
-  const [redoHistory, setRedoHistory] = useState([]);
+const useUndoHistory = <T>(maxLength: number) => {
+  const [undoHistory, setUndoHistory] = useState<readonly T[]>([]);
+  const [redoHistory, setRedoHistory] = useState<readonly T[]>([]);
 
   const undo = () => {
     if (!undoHistory.length) {
       return undefined;
     }
     const undoHistoryCopy = [...undoHistory];
-    const popped = undoHistoryCopy.pop();
+    const popped = undoHistoryCopy.pop()!;
     setUndoHistory(undoHistoryCopy);
     setRedoHistory([...redoHistory, popped]);
     return popped;
@@ -21,13 +21,13 @@ const useUndoHistory = (maxLength) => {
       return undefined;
     }
     const redoHistoryCopy = [...redoHistory];
-    const popped = redoHistoryCopy.pop();
+    const popped = redoHistoryCopy.pop()!;
     setRedoHistory(redoHistoryCopy);
     setUndoHistory([...undoHistory, popped]);
     return popped;
   };
 
-  const push = (data) => {
+  const push = (data: T) => {
     const [top] = undoHistory.slice(-1);
     // console.log('TEST', data === top);
     if (data !== top) {
@@ -40,7 +40,7 @@ const useUndoHistory = (maxLength) => {
 
   const debouncedPush = useDebouncedCallback(push, 350);
 
-  return [undo, redo, debouncedPush];
+  return [undo, redo, debouncedPush] as const;
 };
 
 export default useUndoHistory;
