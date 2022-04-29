@@ -175,7 +175,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultValue={snapToGridAmount || 1}
             max={45}
             min={1}
-            value={Number(snapToGridAmount || 1) || 1}
+            value={Number(snapToGridAmount || 1)}
             onChange={(number) => setSnapToGridAmount(Number(number || 1))}
           >
             <NumberInputField />
