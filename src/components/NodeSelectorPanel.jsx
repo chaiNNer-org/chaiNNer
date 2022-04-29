@@ -53,7 +53,7 @@ const onDragStart = (event, nodeCategory, node) => {
  * @param {string} query
  * @returns {(name: string) => boolean}
  */
-function createSearchPredicate(query) {
+const createSearchPredicate = (query) => {
   const pattern = new RegExp(
     `^${[...query]
       .map((char) => {
@@ -64,7 +64,7 @@ function createSearchPredicate(query) {
     'iu'
   );
   return (name) => pattern.test(name);
-}
+};
 
 /**
  * Returns a map that maps for sub category name to all nodes of that sub category.
@@ -73,7 +73,7 @@ function createSearchPredicate(query) {
  * @param {any[]} nodes
  * @returns {Map<string, any[]>}
  */
-function getNamespaces(nodes) {
+const getNamespaces = (nodes) => {
   const map = new Map();
   nodes
     .sort((a, b) => {
@@ -90,7 +90,7 @@ function getNamespaces(nodes) {
       list.push(n);
     });
   return map;
-}
+};
 
 // eslint-disable-next-line react/prop-types
 const NodeSelector = ({ data, height }) => {

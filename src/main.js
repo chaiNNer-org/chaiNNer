@@ -38,7 +38,7 @@ log.transports.file.level = 'info';
 
 log.catchErrors({
   showDialog: false,
-  onError(error, versions, submitIssue) {
+  onError: (error, versions, submitIssue) => {
     dialog
       .showMessageBox({
         title: 'An error occurred',
