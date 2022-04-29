@@ -319,6 +319,9 @@ class PthSaveNode(NodeBase):
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
+        if se:
+            pass
+
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
