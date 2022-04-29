@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint
+          pip install -r requirements.txt
       - run: pylint backend/ --output-format=colorized --disable="C,R"
   eslint:
     runs-on: ubuntu-latest

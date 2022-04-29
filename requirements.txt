@@ -1,0 +1,7 @@
+black
+pylint
+numpy
+Pillow
+ncnn_vulkan
+sanic_cors
+sanic
