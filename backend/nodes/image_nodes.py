@@ -17,8 +17,12 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import (get_opencv_formats, get_pil_formats,
-                                normalize, normalize_normals)
+from .utils.image_utils import (
+    get_opencv_formats,
+    get_pil_formats,
+    normalize,
+    normalize_normals,
+)
 
 try:
     from PIL import Image
@@ -1287,10 +1291,8 @@ class NormalizeNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = (
-            """Normalizes the given normal map. 
+        self.description = """Normalizes the given normal map. 
             Only the R and G channels of the input image will be used."""
-        )
         self.inputs = [
             ImageInput("Normal Map"),
         ]
@@ -1324,11 +1326,9 @@ class NormalAdditionNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = (
-            """Add 2 normal maps together. Only the R and G channels 
-            of the input image will be used. The output normal map 
+        self.description = """Add 2 normal maps together. Only the R and G 
+            channels of the input image will be used. The output normal map 
             is guaranteed to be normalized."""
-        )
         self.inputs = [
             ImageInput("Normal Map 1"),
             SliderInput("Strength 1", 0, 100, 100),
@@ -1339,8 +1339,9 @@ class NormalAdditionNode(NodeBase):
         self.icon = "MdAddCircleOutline"
         self.sub = "Normal Map"
 
-    def run(self, n: np.ndarray, n_strength: int,
-            m: np.ndarray, m_strength: int) -> np.ndarray:
+    def run(
+        self, n: np.ndarray, n_strength: int, m: np.ndarray, m_strength: int
+    ) -> np.ndarray:
         """
         Takes 2 normal maps and adds them.
 
