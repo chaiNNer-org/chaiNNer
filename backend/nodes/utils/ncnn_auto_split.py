@@ -1,5 +1,4 @@
 import gc
-import os
 from typing import Tuple
 
 import numpy as np
@@ -84,9 +83,9 @@ def ncnn_auto_split_process(
                 staging_vkallocator.clear()
                 del ex
                 gc.collect()
-            # Re-raise the exception if not an OOM error
             else:
-                raise RuntimeError(e)
+                # Re-raise the exception if not an OOM error
+                raise
 
     h, w = lr_img.shape[:2]
     if lr_img.ndim > 2:

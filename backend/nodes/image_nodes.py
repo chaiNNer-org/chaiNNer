@@ -1,15 +1,10 @@
 from __future__ import annotations
-
-"""
-Nodes that provide functionality for opencv image manipulation
-"""
-
 import math
 import os
 import platform
 import subprocess
 import time
-from tempfile import TemporaryDirectory, mkdtemp
+from tempfile import mkdtemp
 import cv2
 import numpy as np
 from sanic.log import logger
@@ -25,6 +20,10 @@ from .utils.image_utils import (
     normalize,
     with_background,
 )
+
+"""
+Nodes that provide functionality for opencv image manipulation
+"""
 
 try:
     from PIL import Image
@@ -80,14 +79,14 @@ class ImReadNode(NodeBase):
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
-        base, ext = os.path.splitext(path)
+        _base, ext = os.path.splitext(path)
         if ext.lower() in get_opencv_formats():
             try:
                 img = cv2.imdecode(
                     np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
                 )
             except:
-                logger.warn(f"Error loading image, trying with imread.")
+                logger.warning(f"Error loading image, trying with imread.")
                 try:
                     img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
                 except Exception as e:

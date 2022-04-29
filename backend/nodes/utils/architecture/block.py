@@ -271,8 +271,8 @@ class RRDB(nn.Module):
         norm_type=None,
         act_type="leakyrelu",
         mode="CNA",
-        convtype="Conv2D",
-        spectral_norm=False,
+        _convtype="Conv2D",
+        _spectral_norm=False,
         plus=False,
     ):
         super(RRDB, self).__init__()
@@ -425,6 +425,7 @@ class ResidualDenseBlock_5C(nn.Module):
         x1 = self.conv1(x)
         x2 = self.conv2(torch.cat((x, x1), 1))
         if self.conv1x1:
+            # pylint: disable=not-callable
             x2 = x2 + self.conv1x1(x)  # +
         x3 = self.conv3(torch.cat((x, x1, x2), 1))
         x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))

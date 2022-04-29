@@ -1,4 +1,3 @@
-import sys
 from typing import Callable, Dict
 
 from sanic.log import logger

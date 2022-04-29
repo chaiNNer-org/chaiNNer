@@ -68,10 +68,10 @@ def preview_upscale(
             # Collect garbage (clear VRAM)
             torch.cuda.empty_cache()
             gc.collect()
-            raise RuntimeError(e)
+            raise
         # Re-raise the exception if not an OOM error
         else:
-            raise RuntimeError(e)
+            raise
 
 
 @torch.inference_mode()
@@ -119,7 +119,7 @@ def auto_split_process(
                     del d_img
             # Re-raise the exception if not an OOM error
             else:
-                raise RuntimeError(e)
+                raise
 
     b, c, h, w = lr_img.shape
 

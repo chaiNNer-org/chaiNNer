@@ -14,6 +14,7 @@ from sanic.response import json
 from sanic_cors import CORS
 
 try:
+    # pylint: disable=unused-import
     import cv2
 
     # Remove broken QT env var
@@ -28,6 +29,7 @@ except Exception as e:
 try:
     import torch
 
+    # pylint: disable=unused-import,ungrouped-imports
     from nodes import pytorch_nodes
 except Exception as e:
     torch = None
@@ -35,8 +37,10 @@ except Exception as e:
     logger.info("PyTorch most likely not installed")
 
 try:
+    # pylint: disable=unused-import
     import ncnn_vulkan
 
+    # pylint: disable=unused-import,ungrouped-imports
     from nodes import ncnn_nodes
 except Exception as e:
     logger.warning(e)
@@ -44,6 +48,7 @@ except Exception as e:
 
 
 try:
+    # pylint: disable=unused-import
     from nodes import utility_nodes
 except Exception as e:
     logger.warning(e)
@@ -76,7 +81,7 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    nodes = []
+    node_list = []
     for category in registry:
         category_dict = {"category": category, "nodes": []}
         for node in registry[category]:
@@ -92,9 +97,9 @@ async def nodes(_):
                 node_dict["defaultNodes"] = node_object.get_default_nodes()
             category_dict["nodes"].append(node_dict)
             del node_object, node_dict
-        nodes.append(category_dict)
+        node_list.append(category_dict)
         del category_dict
-    return json(nodes)
+    return json(node_list)
 
 
 @app.route("/run", methods=["POST"])
@@ -192,7 +197,7 @@ async def setup_queue(app: Sanic, _):
 
 
 @app.route("/pause", methods=["POST"])
-async def kill(request):
+async def pause(request):
     """Pauses the current execution"""
     try:
         if request.app.ctx.executor:

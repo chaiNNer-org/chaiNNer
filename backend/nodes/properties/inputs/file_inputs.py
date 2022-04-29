@@ -8,7 +8,6 @@ from .generic_inputs import DropDownInput
 def FileInput(
     input_type: str,
     label: str,
-    accepts: list[str],
     filetypes: list[str],
     hasHandle: bool = False,
 ) -> Dict:
@@ -27,7 +26,6 @@ def ImageFileInput() -> Dict:
     return FileInput(
         "image",
         "Image File",
-        None,
         get_available_image_formats(),
         hasHandle=False,
     )
@@ -35,17 +33,17 @@ def ImageFileInput() -> Dict:
 
 def PthFileInput() -> Dict:
     """Input for submitting a local .pth file"""
-    return FileInput("pth", "Pretrained Model", None, ["pth"])
+    return FileInput("pth", "Pretrained Model", ["pth"])
 
 
 def TorchFileInput() -> Dict:
     """Input for submitting a local .pth or .pt file"""
-    return FileInput("pt", "Pretrained Model", None, ["pt"])
+    return FileInput("pt", "Pretrained Model", ["pt"])
 
 
 def DirectoryInput(hasHandle: bool = False) -> Dict:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Base Directory", None, ["directory"], hasHandle)
+    return FileInput("directory", "Base Directory", ["directory"], hasHandle)
 
 
 def ImageExtensionDropdown() -> Dict:
@@ -80,14 +78,14 @@ def ImageExtensionDropdown() -> Dict:
 
 def BinFileInput() -> Dict:
     """Input for submitting a local .bin file"""
-    return FileInput("bin", "NCNN Bin File", None, ["bin"])
+    return FileInput("bin", "NCNN Bin File", ["bin"])
 
 
 def ParamFileInput() -> Dict:
     """Input for submitting a local .param file"""
-    return FileInput("param", "NCNN Param File", None, ["param"])
+    return FileInput("param", "NCNN Param File", ["param"])
 
 
 def OnnxFileInput() -> Dict:
     """Input for submitting a local .onnx file"""
-    return FileInput("param", "NCNN Param File", None, ["param"])
+    return FileInput("param", "NCNN Param File", ["param"])

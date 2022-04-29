@@ -47,9 +47,7 @@ class IteratorNodeBase(NodeBase):
 
     def __init__(self):
         """Constructor"""
-        self.inputs = []
-        self.outputs = []
-        self.description = ""
+        super().__init__()
         self.icon = "MdLoop"
         self.sub = "Iteration"
         self.type = "iterator"

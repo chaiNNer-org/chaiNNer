@@ -4,8 +4,7 @@ Nodes that provide functionality for pytorch inference
 
 
 import os
-import sys
-from typing import Any, OrderedDict, Union
+from typing import Any, OrderedDict
 
 import numpy as np
 import torch
@@ -33,7 +32,7 @@ def check_env():
         elif os.environ["device"] == "cuda":
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         else:
-            logger.warn("Something isn't set right with the device env var")
+            logger.warning("Something isn't set right with the device env var")
 
 
 def load_state_dict(state_dict):
@@ -223,7 +222,7 @@ class ImageUpscaleNode(NodeBase):
                 img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
             # Remove extra channels if too many (i.e three channel image, single channel model)
             elif img.shape[2] > in_nc:
-                logger.warn("Truncating image channels")
+                logger.warning("Truncating image channels")
                 img = img[:, :, :in_nc]
             # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
             elif img.shape[2] == 3 and in_nc == 4:
