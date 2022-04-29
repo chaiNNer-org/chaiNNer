@@ -11,4 +11,7 @@ module.exports = {
     // eslint-disable-next-line global-require
     rules: require('./webpack.rules'),
   },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  },
 };

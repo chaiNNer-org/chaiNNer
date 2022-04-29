@@ -3,7 +3,7 @@ import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
-import shadeColor from '../../helpers/shadeColor.js';
+import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter.jsx';
 import NodeBody from './NodeBody.jsx';
 import NodeHeader from './NodeHeader.jsx';

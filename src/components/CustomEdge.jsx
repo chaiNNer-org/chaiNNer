@@ -5,7 +5,7 @@ import { getBezierPath, getEdgeCenter } from 'react-flow-renderer';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
-import shadeColor from '../helpers/shadeColor.js';
+import shadeColor from '../helpers/shadeColor';
 
 const EdgeWrapper = memo(
   ({
