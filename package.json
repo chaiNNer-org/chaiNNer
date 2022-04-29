@@ -140,6 +140,7 @@
     "file-loader": "^6.2.0",
     "image-webpack-loader": "^8.1.0",
     "node-loader": "^2.0.0",
+    "nodemon": "^2.0.16",
     "pre-commit": "^1.2.2",
     "prettier": "^2.6.2",
     "react-refresh": "^0.11.0",
