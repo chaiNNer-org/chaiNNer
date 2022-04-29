@@ -3,7 +3,6 @@ ncnn_vulkan
 numpy
 opencv-python
 Pillow
-pyinstaller
 pylint
 sanic
 sanic_cors
