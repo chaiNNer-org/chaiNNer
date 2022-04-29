@@ -1,7 +1,10 @@
 black
-pylint
-numpy
-Pillow
 ncnn_vulkan
-sanic_cors
+numpy
+opencv-python
+Pillow
+pyinstaller
+pylint
 sanic
+sanic_cors
+websockets==9.1
