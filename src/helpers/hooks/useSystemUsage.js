@@ -1,7 +1,11 @@
+import { exec as _exec } from 'child_process';
 import { ipcRenderer } from 'electron';
 import os from 'os-utils';
 import { useEffect, useMemo, useState } from 'react';
+import util from 'util';
 import useInterval from './useInterval';
+
+const exec = util.promisify(_exec);
 
 const useSystemUsage = (delay) => {
   const [cpuUsage, setCpuUsage] = useState(0);
@@ -10,10 +14,23 @@ const useSystemUsage = (delay) => {
 
   const setInfo = async () => {
     // RAM
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const ramPercent = Number((1 - (freeMem / totalMem)) * 100).toFixed(1);
-    setRamUsage(ramPercent);
+    if (os.platform() === 'linux') {
+      const { stdout } = await exec('free -m');
+      const lines = stdout.split('\n');
+      const strMemInfo = lines[1].replace(/[\s\n\r]+/g, ' ');
+      const memInfo = strMemInfo.split(' ');
+
+      const totalMem = parseFloat(memInfo[1]);
+      const freeMem = parseFloat(memInfo[3]);
+
+      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      setRamUsage(ramPercent);
+    } else {
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      setRamUsage(ramPercent);
+    }
 
     // CPU
     os.cpuUsage((value) => {
@@ -31,8 +48,8 @@ const useSystemUsage = (delay) => {
 
   useEffect(() => {
     (async () => {
-    // We set this up on mount, letting the main process handle it
-    // By doing it this way we avoid spawning multiple smi shells
+      // We set this up on mount, letting the main process handle it
+      // By doing it this way we avoid spawning multiple smi shells
       await ipcRenderer.invoke('setup-vram-checker-process', delay);
       await setInfo();
     })();
@@ -42,9 +59,7 @@ const useSystemUsage = (delay) => {
     await setInfo();
   }, delay);
 
-  return useMemo(() => ({
-    cpuUsage, ramUsage, vramUsage,
-  }), [cpuUsage, ramUsage, vramUsage]);
+  return useMemo(() => ({ cpuUsage, ramUsage, vramUsage }), [cpuUsage, ramUsage, vramUsage]);
 };
 
 export default useSystemUsage;

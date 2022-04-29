@@ -84,37 +84,42 @@ const toV03 = (data) => {
       }
     }
   });
-  newElements = newElements.filter((element) => !['Model::AutoLoad'].includes(element.data.type)).map((element) => {
-    if (isNode(element)) {
-      const newElement = { ...element };
-      newElement.type = 'regularNode';
-      delete newElement.data.inputs;
-      delete newElement.data.outputs;
-      // Nobody should have these two things but me
-      delete newElement.data.icon;
-      delete newElement.data.subcategory;
-      // Move the contrast data to a B&C node at the right index
-      if (newElement.data.type === 'Adjust::Contrast') {
-        // eslint-disable-next-line prefer-destructuring
-        newElement.data.inputData[1] = newElement.data.inputData[0];
-        delete newElement.data.inputData[0];
-      } else if (newElement.data.type.includes('Concat')) {
-        const newInputData = {};
-        newInputData[4] = newElement.data.type === 'Concat::Horizontal' ? 'horizontal' : 'vertical';
-        newElement.data.inputData = newInputData;
+  newElements = newElements
+    .filter((element) => !['Model::AutoLoad'].includes(element.data.type))
+    .map((element) => {
+      if (isNode(element)) {
+        const newElement = { ...element };
+        newElement.type = 'regularNode';
+        delete newElement.data.inputs;
+        delete newElement.data.outputs;
+        // Nobody should have these two things but me
+        delete newElement.data.icon;
+        delete newElement.data.subcategory;
+        // Move the contrast data to a B&C node at the right index
+        if (newElement.data.type === 'Adjust::Contrast') {
+          // eslint-disable-next-line prefer-destructuring
+          newElement.data.inputData[1] = newElement.data.inputData[0];
+          delete newElement.data.inputData[0];
+        } else if (newElement.data.type.includes('Concat')) {
+          const newInputData = {};
+          newInputData[4] =
+            newElement.data.type === 'Concat::Horizontal' ? 'horizontal' : 'vertical';
+          newElement.data.inputData = newInputData;
+        }
+        // console.log({ newElement });
+        try {
+          const [newCategory, newType] = v03TypeMap[newElement.data.type];
+          newElement.data.type = newType;
+          newElement.data.category = newCategory;
+        } catch (error) {
+          log.warn(
+            `File contains invalid node of type "${newElement.data.type}" that could not be converted.`
+          );
+        }
+        return newElement;
       }
-      // console.log({ newElement });
-      try {
-        const [newCategory, newType] = v03TypeMap[newElement.data.type];
-        newElement.data.type = newType;
-        newElement.data.category = newCategory;
-      } catch (error) {
-        log.warn(`File contains invalid node of type "${newElement.data.type}" that could not be converted.`);
-      }
-      return newElement;
-    }
-    return element;
-  });
+      return element;
+    });
   newData.elements = newElements;
   return newData;
 };
@@ -125,19 +130,23 @@ const toV03 = (data) => {
 
 const toV05 = (data) => {
   const nodes = data.elements.filter((e) => isNode(e));
-  const edges = data.elements.filter((e) => isEdge(e)).map((e) => {
-    const newEdge = { ...e };
-    delete newEdge.style;
-    newEdge.data = {};
-    return newEdge;
-  });
+  const edges = data.elements
+    .filter((e) => isEdge(e))
+    .map((e) => {
+      const newEdge = { ...e };
+      delete newEdge.style;
+      newEdge.data = {};
+      return newEdge;
+    });
   const viewport = {
     x: data.position[0],
     y: data.position[1],
     zoom: data.zoom,
   };
   const newData = {
-    nodes, edges, viewport,
+    nodes,
+    edges,
+    viewport,
   };
   return newData;
 };
@@ -155,7 +164,7 @@ const toV052 = (data) => {
       edges.forEach((edge) => {
         const edgeIndex = edge.sourceHandle.slice(-2);
         // Image Name node moves different amounts in different Load Image types
-        const newEdgeIndex = (node.data.type === 'Load Image') ? '2' : '3';
+        const newEdgeIndex = node.data.type === 'Load Image' ? '2' : '3';
         if (edgeIndex === '-1') {
           // eslint-disable-next-line no-param-reassign
           edge.sourceHandle = edge.source.concat('-', newEdgeIndex);

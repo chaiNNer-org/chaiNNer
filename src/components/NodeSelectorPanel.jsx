@@ -1,9 +1,29 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading, HStack, Input,
-  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
-  TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Center,
+  Divider,
+  Heading,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+  Tooltip,
+  useColorModeValue,
+  useDisclosure,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import { memo, useContext, useState } from 'react';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
@@ -18,7 +38,10 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
-  event.dataTransfer.setData('application/reactflow/defaultNodes', node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null);
+  event.dataTransfer.setData(
+    'application/reactflow/defaultNodes',
+    node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null
+  );
 
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
@@ -31,10 +54,15 @@ const onDragStart = (event, nodeCategory, node) => {
  * @returns {(name: string) => boolean}
  */
 function createSearchPredicate(query) {
-  const pattern = new RegExp(`^${[...query].map((char) => {
-    const hex = `\\u{${char.codePointAt(0).toString(16)}}`;
-    return `[^${hex}]*${hex}`;
-  }).join('')}`, 'iu');
+  const pattern = new RegExp(
+    `^${[...query]
+      .map((char) => {
+        const hex = `\\u{${char.codePointAt(0).toString(16)}}`;
+        return `[^${hex}]*${hex}`;
+      })
+      .join('')}`,
+    'iu'
+  );
   return (name) => pattern.test(name);
 }
 
@@ -70,9 +98,8 @@ const NodeSelector = ({ data, height }) => {
   const handleChange = (event) => setSearchQuery(event.target.value);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const {
-    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
-  } = useContext(GlobalContext);
+  const { createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode } =
+    useContext(GlobalContext);
 
   const [, setHoveredNode] = useHoveredNode;
 
@@ -100,15 +127,9 @@ const NodeSelector = ({ data, height }) => {
             m={0}
             p={0}
           >
-            <InputGroup
-              borderRadius={0}
-            >
-              <InputLeftElement
-                pointerEvents="none"
-              >
-                <SearchIcon
-                  color="gray.300"
-                />
+            <InputGroup borderRadius={0}>
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
                 borderRadius={0}
@@ -137,7 +158,6 @@ const NodeSelector = ({ data, height }) => {
                 },
               }}
             >
-
               <Accordion
                 allowMultiple
                 defaultIndex={data.map((item, index) => index)}
@@ -145,10 +165,11 @@ const NodeSelector = ({ data, height }) => {
                 {data.map(({ category, nodes: categoryNodes }) => {
                   const matchingNodes = matchesSearchQuery(category)
                     ? categoryNodes
-                    : categoryNodes.filter((n) => (
-                      matchesSearchQuery(`${category} ${n.name}`)
-                      || matchesSearchQuery(`${n.subcategory} ${n.name}`)
-                    ));
+                    : categoryNodes.filter(
+                        (n) =>
+                          matchesSearchQuery(`${category} ${n.name}`) ||
+                          matchesSearchQuery(`${n.subcategory} ${n.name}`)
+                      );
 
                   // don't show categories without nodes
                   if (matchingNodes.length === 0) return null;
@@ -168,92 +189,87 @@ const NodeSelector = ({ data, height }) => {
                         <AccordionIcon />
                       </AccordionButton>
                       <AccordionPanel>
-                        {[...namespaceMap]
-                          .map(([namespace, nodes]) => (
-                            <Box key={namespace}>
-                              <Center w="full">
-                                <HStack w="full">
-                                  <Divider orientation="horizontal" />
-                                  <Text
-                                    casing="uppercase"
-                                    color="#71809699"
-                                    fontSize="sm"
-                                    w="auto"
-                                    whiteSpace="nowrap"
+                        {[...namespaceMap].map(([namespace, nodes]) => (
+                          <Box key={namespace}>
+                            <Center w="full">
+                              <HStack w="full">
+                                <Divider orientation="horizontal" />
+                                <Text
+                                  casing="uppercase"
+                                  color="#71809699"
+                                  fontSize="sm"
+                                  w="auto"
+                                  whiteSpace="nowrap"
+                                >
+                                  {namespace}
+                                </Text>
+                                <Divider orientation="horizontal" />
+                              </HStack>
+                            </Center>
+                            <Wrap>
+                              {nodes
+                                .filter((e) => e.nodeType !== 'iteratorHelper')
+                                .map((node) => (
+                                  <WrapItem
+                                    key={node.name}
+                                    p={1}
+                                    w="full"
                                   >
-                                    {namespace}
-                                  </Text>
-                                  <Divider orientation="horizontal" />
-                                </HStack>
-                              </Center>
-                              <Wrap>
-                                {nodes
-                                  .filter((e) => e.nodeType !== 'iteratorHelper')
-                                  .map((node) => (
-                                    <WrapItem
-                                      key={node.name}
-                                      p={1}
-                                      w="full"
+                                    <Tooltip
+                                      closeOnMouseDown
+                                      hasArrow
+                                      borderRadius={8}
+                                      label={node.description}
+                                      px={2}
+                                      py={1}
                                     >
-                                      <Tooltip
-                                        closeOnMouseDown
-                                        hasArrow
-                                        borderRadius={8}
-                                        label={node.description}
-                                        px={2}
-                                        py={1}
+                                      <Center
+                                        draggable
+                                        boxSizing="content-box"
+                                        display="block"
+                                        w="100%"
+                                        onDoubleClick={() => {
+                                          const { height: wHeight, width } =
+                                            reactFlowWrapper.current.getBoundingClientRect();
+
+                                          const position = reactFlowInstance.project({
+                                            x: width / 2,
+                                            y: wHeight / 2,
+                                          });
+
+                                          const nodeData = {
+                                            category,
+                                            type: node.name,
+                                          };
+
+                                          createNode({
+                                            nodeType: node.nodeType,
+                                            position,
+                                            data: nodeData,
+                                            defaultNodes: node.defaultNodes,
+                                          });
+                                        }}
+                                        onDragEnd={() => {
+                                          setHoveredNode(null);
+                                        }}
+                                        onDragStart={(event) => {
+                                          onDragStart(event, category, node);
+                                          setHoveredNode(null);
+                                        }}
                                       >
-                                        <Center
-                                          draggable
-                                          boxSizing="content-box"
-                                          display="block"
-                                          w="100%"
-                                          onDoubleClick={() => {
-                                            const {
-                                              height: wHeight, width,
-                                            } = reactFlowWrapper.current.getBoundingClientRect();
-
-                                            const position = reactFlowInstance.project({
-                                              x: width / 2,
-                                              y: wHeight / 2,
-                                            });
-
-                                            const nodeData = {
-                                              category,
-                                              type: node.name,
-                                            };
-
-                                            createNode({
-                                              nodeType: node.nodeType,
-                                              position,
-                                              data: nodeData,
-                                              defaultNodes: node.defaultNodes,
-                                            });
-                                          }}
-                                          onDragEnd={() => {
-                                            setHoveredNode(null);
-                                          }}
-                                          onDragStart={
-                                              (event) => {
-                                                onDragStart(event, category, node);
-                                                setHoveredNode(null);
-                                              }
-                                            }
-                                        >
-                                          <RepresentativeNode
-                                            category={category}
-                                            icon={node.icon}
-                                            subcategory={node.subcategory}
-                                            type={node.name}
-                                          />
-                                        </Center>
-                                      </Tooltip>
-                                    </WrapItem>
-                                  ))}
-                              </Wrap>
-                            </Box>
-                          ))}
-
+                                        <RepresentativeNode
+                                          category={category}
+                                          icon={node.icon}
+                                          subcategory={node.subcategory}
+                                          type={node.name}
+                                        />
+                                      </Center>
+                                    </Tooltip>
+                                  </WrapItem>
+                                ))}
+                            </Wrap>
+                          </Box>
+                        ))}
                       </AccordionPanel>
                     </AccordionItem>
                   );

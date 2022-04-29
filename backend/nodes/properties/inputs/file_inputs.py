@@ -40,7 +40,7 @@ def PthFileInput() -> Dict:
 
 def TorchFileInput() -> Dict:
     """Input for submitting a local .pth or .pt file"""
-    return FileInput("pth", "Pretrained Model", None, ["pth", "pt"])
+    return FileInput("pt", "Pretrained Model", None, ["pt"])
 
 
 def DirectoryInput(hasHandle: bool = False) -> Dict:

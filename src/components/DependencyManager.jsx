@@ -1,17 +1,44 @@
 import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Flex, HStack, IconButton, Modal,
-  ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, Progress, Spinner, StackDivider, Tag,
-  TagLabel, Text, Textarea, Tooltip, useColorModeValue, useDisclosure, VStack,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Box,
+  Button,
+  Center,
+  Flex,
+  HStack,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Progress,
+  Spinner,
+  StackDivider,
+  Tag,
+  TagLabel,
+  Text,
+  Textarea,
+  Tooltip,
+  useColorModeValue,
+  useDisclosure,
+  VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
-import {
-  memo, useCallback, useContext, useEffect, useMemo, useRef, useState,
-} from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 import getAvailableDeps from '../helpers/dependencies.js';
@@ -27,9 +54,7 @@ const checkSemver = (v1, v2) => {
 };
 
 const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
-  const {
-    useIsSystemPython,
-  } = useContext(SettingsContext);
+  const { useIsSystemPython } = useContext(SettingsContext);
 
   const [isSystemPython] = useIsSystemPython;
 
@@ -94,7 +119,9 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
           setIsLoadingPipList(false);
           return;
         }
-        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+        const tempPipList = String(stdout)
+          .split('\n')
+          .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
         const pipObj = {};
         tempPipList.forEach(([dep, version]) => {
           pipObj[dep] = version;
@@ -110,20 +137,25 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     if (!isRunningShell) {
       setIsLoadingPipList(true);
       // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
-      exec(`${pythonKeys.python} -m pip list --disable-pip-version-check`, (error, stdout, stderr) => {
-        if (error || stderr) {
+      exec(
+        `${pythonKeys.python} -m pip list --disable-pip-version-check`,
+        (error, stdout, stderr) => {
+          if (error || stderr) {
+            setIsLoadingPipList(false);
+            return;
+          }
+          const tempPipList = String(stdout)
+            .split('\n')
+            .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+          const pipObj = {};
+          tempPipList.forEach(([dep, version]) => {
+            pipObj[dep] = version;
+          });
+          setPipList(pipObj);
+          onPipListUpdate(pipObj);
           setIsLoadingPipList(false);
-          return;
         }
-        const tempPipList = String(stdout).split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-        const pipObj = {};
-        tempPipList.forEach(([dep, version]) => {
-          pipObj[dep] = version;
-        });
-        setPipList(pipObj);
-        onPipListUpdate(pipObj);
-        setIsLoadingPipList(false);
-      });
+      );
     }
   }, [isRunningShell, pythonKeys]);
 
@@ -166,14 +198,17 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     setIsRunningShell(true);
     setInstallingPackage(dep);
     let output = '';
-    await pipInstallWithProgress(pythonKeys.python, dep,
+    await pipInstallWithProgress(
+      pythonKeys.python,
+      dep,
       (percentage) => {
         setProgress(percentage);
       },
       (data) => {
         output += String(data);
         setShellOutput(output);
-      });
+      }
+    );
     setIsRunningShell(false);
     setProgress(0);
   };
@@ -182,14 +217,18 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     setIsRunningShell(true);
     setInstallingPackage(dep);
     let output = '';
-    await pipInstallWithProgress(pythonKeys.python, dep,
+    await pipInstallWithProgress(
+      pythonKeys.python,
+      dep,
       (percentage) => {
         setProgress(percentage);
       },
       (data) => {
         output += String(data);
         setShellOutput(output);
-      }, true);
+      },
+      true
+    );
     setIsRunningShell(false);
     setProgress(0);
   };
@@ -218,9 +257,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
       >
         <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
         <ModalContent maxW="750px">
-          <ModalHeader>
-            Dependency Manager
-          </ModalHeader>
+          <ModalHeader>Dependency Manager</ModalHeader>
           <ModalCloseButton disabled={depChanged} />
           <ModalBody>
             <VStack
@@ -240,7 +277,9 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                     flex="1"
                     textAlign="left"
                   >
-                    {`GPU (${isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'})`}
+                    {`GPU (${
+                      isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'
+                    })`}
                   </Text>
                 </Flex>
                 <Flex
@@ -254,8 +293,10 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                     {`Python (${deps.pythonVersion}) [${isSystemPython ? 'System' : 'Integrated'}]`}
                   </Text>
                 </Flex>
-                {isLoadingPipList ? <Spinner />
-                  : availableDeps.map((dep) => (
+                {isLoadingPipList ? (
+                  <Spinner />
+                ) : (
+                  availableDeps.map((dep) => (
                     <VStack
                       key={dep.name}
                       w="full"
@@ -271,14 +312,17 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                           flex="1"
                           textAlign="left"
                         >
-                          {`${dep.name} (${pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'})`}
+                          {`${dep.name} (${
+                            pipList[dep.packageName] ? pipList[dep.packageName] : 'not installed'
+                          })`}
                         </Text>
                         {pipList[dep.packageName] ? (
                           <HStack>
                             <Button
                               colorScheme="blue"
-                              disabled={checkSemver(dep.version, pipList[dep.packageName])
-                              || isRunningShell}
+                              disabled={
+                                checkSemver(dep.version, pipList[dep.packageName]) || isRunningShell
+                              }
                               isLoading={isRunningShell}
                               leftIcon={<DownloadIcon />}
                               size="sm"
@@ -287,7 +331,11 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                                 await updatePackage(dep);
                               }}
                             >
-                              {`Update${!checkSemver(dep.version, pipList[dep.packageName]) ? ` (${dep.version})` : ''}`}
+                              {`Update${
+                                !checkSemver(dep.version, pipList[dep.packageName])
+                                  ? ` (${dep.version})`
+                                  : ''
+                              }`}
                             </Button>
                             <Button
                               colorScheme="red"
@@ -302,22 +350,21 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                               Uninstall
                             </Button>
                           </HStack>
-                        )
-                          : (
-                            <Button
-                              colorScheme="blue"
-                              disabled={isRunningShell}
-                              isLoading={isRunningShell}
-                              leftIcon={<DownloadIcon />}
-                              size="sm"
-                              onClick={async () => {
-                                setDepChanged(true);
-                                await installPackage(dep);
-                              }}
-                            >
-                              Install
-                            </Button>
-                          )}
+                        ) : (
+                          <Button
+                            colorScheme="blue"
+                            disabled={isRunningShell}
+                            isLoading={isRunningShell}
+                            leftIcon={<DownloadIcon />}
+                            size="sm"
+                            onClick={async () => {
+                              setDepChanged(true);
+                              await installPackage(dep);
+                            }}
+                          >
+                            Install
+                          </Button>
+                        )}
                       </Flex>
                       {isRunningShell && installingPackage?.name === dep.name && (
                         <Center
@@ -332,7 +379,8 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                         </Center>
                       )}
                     </VStack>
-                  ))}
+                  ))
+                )}
               </VStack>
               <Accordion
                 allowToggle
@@ -475,8 +523,8 @@ export const DependencyManagerButton = memo(() => {
   }, [isNvidiaAvailable]);
 
   const availableUpdates = useMemo(
-    () => availableDeps.filter(
-      ({ packageName, version }) => {
+    () =>
+      availableDeps.filter(({ packageName, version }) => {
         if (Object.keys(pipList).length === 0) {
           return false;
         }
@@ -484,9 +532,8 @@ export const DependencyManagerButton = memo(() => {
           return true;
         }
         return !checkSemver(version, pipList[packageName]);
-      },
-    ),
-    [availableDeps, pipList, isNvidiaAvailable],
+      }),
+    [availableDeps, pipList, isNvidiaAvailable]
   );
 
   return (
@@ -512,13 +559,11 @@ export const DependencyManagerButton = memo(() => {
               position="fixed"
               size="sm"
             >
-              <TagLabel
-                textAlign="center"
-              >
-                {availableUpdates.length}
-              </TagLabel>
+              <TagLabel textAlign="center">{availableUpdates.length}</TagLabel>
             </Tag>
-          ) : <></>}
+          ) : (
+            <></>
+          )}
           <IconButton
             icon={<DownloadIcon />}
             position="relative"

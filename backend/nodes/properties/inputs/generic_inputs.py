@@ -36,6 +36,25 @@ def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
     }
 
 
+def BoundedNumberInput(
+    label: str,
+    minimum: float = 0.0,
+    maximum: float = 1.0,
+    default: float = 0.5,
+    step: float = 0.25,
+) -> Dict:
+    """Input for bounded number range"""
+    return {
+        "type": "number::any",
+        "label": label,
+        "min": minimum,
+        "max": maximum,
+        "def": default,
+        "step": step,
+        "hasHandle": True,
+    }
+
+
 def IntegerInput(label: str) -> Dict:
     """Input for integer number"""
     return {

@@ -1,10 +1,6 @@
-import {
-  Box, useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import {
-  memo, useContext, useLayoutEffect, useMemo, useState,
-} from 'react';
+import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext.jsx';
 
@@ -53,16 +49,10 @@ const DotPattern = ({ id }) => {
   );
 };
 
-const IteratorNodeBody = ({
-  id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256,
-}) => {
-  const {
-    zoom, useIteratorSize, useHoveredNode, updateIteratorBounds,
-  } = useContext(GlobalContext);
+const IteratorNodeBody = ({ id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256 }) => {
+  const { zoom, useIteratorSize, useHoveredNode, updateIteratorBounds } = useContext(GlobalContext);
 
-  const {
-    useSnapToGrid,
-  } = useContext(SettingsContext);
+  const { useSnapToGrid } = useContext(SettingsContext);
   const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
   const [hoveredNode, setHoveredNode] = useHoveredNode;
@@ -102,11 +92,13 @@ const IteratorNodeBody = ({
       }}
       grid={useMemo(
         () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
-        [isSnapToGrid, snapToGridAmount],
+        [isSnapToGrid, snapToGridAmount]
       )}
       minHeight={maxHeight}
       minWidth={maxWidth}
-      ref={(r) => { setResizeRef(r); }}
+      ref={(r) => {
+        setResizeRef(r);
+      }}
       scale={zoom}
       size={{
         width: width < maxWidth ? maxWidth : width,
@@ -154,7 +146,6 @@ const IteratorNodeBody = ({
         </Box>
       </Box>
     </Resizable>
-
   );
 };
 

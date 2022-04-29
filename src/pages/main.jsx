@@ -1,14 +1,23 @@
 import {
-  AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
-  AlertDialogOverlay, Box, Button, Center, HStack, Text, useColorModeValue, VStack,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Box,
+  Button,
+  Center,
+  HStack,
+  Text,
+  useColorModeValue,
+  VStack,
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
 import { app, ipcRenderer } from 'electron';
 import log from 'electron-log';
-import {
-  memo, useEffect, useRef, useState,
-} from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
@@ -38,9 +47,9 @@ const Main = ({ port }) => {
   const [backendReady, setBackendReady] = useState(false);
 
   const options = { cachePolicy: 'no-cache', retries: 10 };
-  const {
-    loading, error, data, response,
-  } = useFetch(`http://localhost:${port}/nodes`, options, [port]);
+  const { loading, error, data, response } = useFetch(`http://localhost:${port}/nodes`, options, [
+    port,
+  ]);
 
   const bgColor = useColorModeValue('gray.200', '#151a24');
 
@@ -119,9 +128,7 @@ const Main = ({ port }) => {
               Critical Error
             </AlertDialogHeader>
 
-            <AlertDialogBody>
-              {error.message}
-            </AlertDialogBody>
+            <AlertDialogBody>{error.message}</AlertDialogBody>
 
             <AlertDialogFooter>
               <Button
@@ -183,7 +190,6 @@ const Main = ({ port }) => {
         </GlobalProvider>
       </SettingsProvider>
     </ReactFlowProvider>
-
   );
 };
 

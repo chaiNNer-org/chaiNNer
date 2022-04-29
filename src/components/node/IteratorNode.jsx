@@ -1,9 +1,5 @@
-import {
-  Center, Text, useColorModeValue, VStack,
-} from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useMemo, useRef, useState,
-} from 'react';
+import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
+import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -33,40 +29,39 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const IteratorNodeWrapper = memo(
-  ({ data, selected }) => (
-    <IteratorNode
-      data={data}
-      selected={selected}
-    />
-  ),
-);
+const IteratorNodeWrapper = memo(({ data, selected }) => (
+  <IteratorNode
+    data={data}
+    selected={selected}
+  />
+));
 
 const IteratorNode = memo(({ data, selected }) => {
-  const {
-    edges, availableNodes,
-  } = useContext(GlobalContext);
+  const { edges, availableNodes } = useContext(GlobalContext);
 
   const {
-    id, inputData, isLocked, category, type, iteratorSize, maxWidth, maxHeight, percentComplete,
+    id,
+    inputData,
+    isLocked,
+    category,
+    type,
+    iteratorSize,
+    maxWidth,
+    maxHeight,
+    percentComplete,
   } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
-  const schema = useMemo(
-    () => getSchema(availableNodes, category, type), [category, type],
-  ) ?? blankSchema;
-  const {
-    inputs, outputs, icon, subcategory,
-  } = schema;
+  const schema =
+    useMemo(() => getSchema(availableNodes, category, type), [category, type]) ?? blankSchema;
+  const { inputs, outputs, icon, subcategory } = schema;
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
-  const accentColor = useMemo(
-    () => (getAccentColor(category, subcategory)), [category, subcategory],
-  );
+  const accentColor = useMemo(() => getAccentColor(category, subcategory), [category, subcategory]);
   const borderColor = useMemo(
     () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
-    [selected, accentColor, regularBorderColor],
+    [selected, accentColor, regularBorderColor]
   );
 
   const [validity, setValidity] = useState([false, '']);
@@ -75,9 +70,14 @@ const IteratorNode = memo(({ data, selected }) => {
 
   useEffect(() => {
     if (inputs && inputs.length) {
-      setValidity(checkNodeValidity({
-        id, inputs, inputData, edges,
-      }));
+      setValidity(
+        checkNodeValidity({
+          id,
+          inputs,
+          inputData,
+          edges,
+        })
+      );
     }
   }, [inputData, edges.length]);
 
@@ -102,19 +102,19 @@ const IteratorNode = memo(({ data, selected }) => {
             type={type}
           />
           {inputs.length && (
-          <Center>
-            <Text
-              fontSize="xs"
-              m={0}
-              mb={-1}
-              mt={-1}
-              p={0}
-              pb={-1}
-              pt={-1}
-            >
-              INPUTS
-            </Text>
-          </Center>
+            <Center>
+              <Text
+                fontSize="xs"
+                m={0}
+                mb={-1}
+                mt={-1}
+                p={0}
+                pb={-1}
+                pt={-1}
+              >
+                INPUTS
+              </Text>
+            </Center>
           )}
           <NodeInputs
             accentColor={accentColor}
@@ -149,19 +149,19 @@ const IteratorNode = memo(({ data, selected }) => {
             />
           </Center>
           {outputs.length > 0 && (
-          <Center>
-            <Text
-              fontSize="xs"
-              m={0}
-              mb={-1}
-              mt={-1}
-              p={0}
-              pb={-1}
-              pt={-1}
-            >
-              OUTPUTS
-            </Text>
-          </Center>
+            <Center>
+              <Text
+                fontSize="xs"
+                m={0}
+                mb={-1}
+                mt={-1}
+                p={0}
+                pb={-1}
+                pt={-1}
+              >
+                OUTPUTS
+              </Text>
+            </Center>
           )}
           <NodeOutputs
             accentColor={accentColor}

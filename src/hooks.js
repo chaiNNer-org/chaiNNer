@@ -14,7 +14,6 @@
 // };
 
 module.exports = {
-
   // prePackage: async (forgeConfig, options) => {
   //   const platform = os.platform();
   //   const url = downloads.python[platform];
@@ -37,7 +36,7 @@ module.exports = {
   //       fs.writeFileSync(filePath, file.data);
   //     }
   //     fs.rmSync('./backend/python/python.tar.gz');
-
+  //
   //     let pythonPath;
   //     switch (platform) {
   //       case 'win32':
@@ -52,15 +51,15 @@ module.exports = {
   //       default:
   //         break;
   //     }
-
+  //
   //     execSync(`${pythonPath} -m pip install --upgrade pip`);
-  // eslint-disable-next-line max-len
-  //     execSync(`${pythonPath} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1 --no-warn-script-location`);
-
+  //     execSync(
+  //       `${pythonPath} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1 --no-warn-script-location`
+  //     );
+  //
   //     console.log('All done');
   //   } catch (error) {
   //     console.log('Download failed', error);
   //   }
   // },
-
 };
