@@ -14,8 +14,8 @@
     "make-mac-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform darwin",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
     "lint": "npm run lint-js && black --check ./backend",
-    "lint-js": "eslint . --ext \".js,.jsx\"",
-    "lint-fix": "eslint . --fix --ext \".js,.jsx\" && black ./backend"
+    "lint-js": "eslint . --ext \".js,.jsx,.ts,.tsx\"",
+    "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend"
   },
   "pre-commit": [
     "lint"
@@ -128,6 +128,8 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@types/d3": "^7.1.0",
     "@types/react-dom": "^18.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
     "@vercel/webpack-asset-relocator-loader": "^1.7.0",
     "babel-loader": "^8.2.2",
     "concurrently": "^6.5.1",
