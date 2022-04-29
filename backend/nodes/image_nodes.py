@@ -1637,6 +1637,29 @@ def fill_alpha_fragment_blur(img: np.array) -> np.array:
     return result
 
 
+class AlphaFillMethod:
+    EXTEND_TEXTURE = 1
+    EXTEND_COLOR = 2
+
+
+def AlphaFillMethodInput() -> Dict:
+    """Alpha Fill method option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Fill method",
+        [
+            {
+                "option": "Extend texture",
+                "value": AlphaFillMethod.EXTEND_TEXTURE,
+            },
+            {
+                "option": "Extend color",
+                "value": AlphaFillMethod.EXTEND_COLOR,
+            },
+        ],
+    )
+
+
 @NodeFactory.register("Image (Utility)", "Fill Alpha")
 class FillAlphaNode(NodeBase):
     """Fills the transparent pixels of an image with nearby colors"""
