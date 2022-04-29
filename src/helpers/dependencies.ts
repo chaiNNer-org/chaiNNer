@@ -1,6 +1,13 @@
 const isMac = process.platform === 'darwin';
 
-export default (isNvidiaAvailable) => [
+export interface Dependency {
+  name: string;
+  packageName: string;
+  version: string;
+  findLink?: string;
+}
+
+export default (isNvidiaAvailable: boolean): Dependency[] => [
   {
     name: 'OpenCV',
     packageName: 'opencv-python',

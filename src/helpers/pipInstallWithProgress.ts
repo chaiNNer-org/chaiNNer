@@ -1,17 +1,18 @@
-const { spawn, execSync } = require('child_process');
-const Downloader = require('nodejs-file-downloader');
-const { URL } = require('url');
-const fs = require('fs');
-const https = require('https');
-const os = require('os');
-const path = require('path');
-const log = require('electron-log');
+import { spawn, execSync } from 'child_process';
+import Downloader from 'nodejs-file-downloader';
+import { URL } from 'url';
+import fs from 'fs';
+import https from 'https';
+import os from 'os';
+import path from 'path';
+import log from 'electron-log';
+import { Dependency } from './dependencies';
 
 const tempDir = os.tmpdir();
 
-const stringIsAValidUrl = (s) => {
+const isValidUrl = (s: string): boolean => {
   try {
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const url = new URL(s);
     return true;
   } catch (_) {
@@ -19,9 +20,15 @@ const stringIsAValidUrl = (s) => {
   }
 };
 
-const downloadWheelAndInstall = async (pythonPath, url, fileName, onProgress, onOutput) =>
-  new Promise((resolve, reject) => {
-    let lastProgressNum = null;
+const downloadWheelAndInstall = async (
+  pythonPath: string,
+  url: string,
+  fileName: string,
+  onProgress: (percent: number) => void,
+  onOutput: (message: string) => void
+) =>
+  new Promise<void>((resolve, reject) => {
+    let lastProgressNum: number | null = null;
     const downloader = new Downloader({
       url,
       directory: tempDir,
@@ -58,7 +65,7 @@ const downloadWheelAndInstall = async (pythonPath, url, fileName, onProgress, on
           onProgress(100);
           resolve();
         });
-      });
+      }, reject);
     } catch (error) {
       log.error(error);
       reject(error);
@@ -66,13 +73,13 @@ const downloadWheelAndInstall = async (pythonPath, url, fileName, onProgress, on
   });
 
 const pipInstallWithProgress = async (
-  python,
-  dep,
-  onProgress = () => {},
-  onOutput = () => {},
+  python: string,
+  dep: Dependency,
+  onProgress: (percent: number) => void = () => {},
+  onOutput: (message: string) => void = () => {},
   upgrade = false
 ) =>
-  new Promise((resolve, reject) => {
+  new Promise<Buffer | void>((resolve, reject) => {
     log.info('Beginning pip install...');
     onProgress(0);
     let args = [
@@ -86,6 +93,7 @@ const pipInstallWithProgress = async (
     }
     const pipRequest = spawn(python, ['-m', 'pip', ...args]);
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     pipRequest.stdout.on('data', async (data) => {
       const stringData = String(data);
       onOutput(stringData);
@@ -97,7 +105,7 @@ const pipInstallWithProgress = async (
         onProgress(1);
         log.info(`Found whl: ${wheelFileName}`);
 
-        if (stringIsAValidUrl(wheelFileName)) {
+        if (isValidUrl(wheelFileName)) {
           const wheelName = wheelFileName.split('/').slice(-1)[0];
           await downloadWheelAndInstall(
             python,
@@ -118,15 +126,20 @@ const pipInstallWithProgress = async (
 
             res.on('close', () => {
               if (output) {
-                const releases = Array.from(JSON.parse(output).releases[dep.version]);
+                const releaseData = JSON.parse(output) as {
+                  releases: Record<string, { filename: string; url: string }[]>;
+                };
+                const releases = Array.from(releaseData.releases[dep.version]);
                 if (releases) {
-                  const { url } = releases.find((file) => file.filename === wheelFileName);
+                  const find = releases.find((file) => file.filename === wheelFileName);
+                  if (!find)
+                    throw new Error(`Unable for find correct file for ${dep.name} ${dep.version}`);
+                  const { url } = find;
                   onOutput(`Downloading package from PyPi at: ${url}\n`);
                   // console.log('Wheel URL found: ', url);
                   downloadWheelAndInstall(python, url, wheelFileName, onProgress, onOutput).then(
-                    () => {
-                      resolve();
-                    }
+                    () => resolve(),
+                    reject
                   );
                 }
               }
