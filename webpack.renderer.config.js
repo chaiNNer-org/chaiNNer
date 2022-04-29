@@ -22,4 +22,7 @@ module.exports = {
     hot: isDevelopment,
   },
   plugins: [isDevelopment && new ReactRefreshWebpackPlugin()].filter(Boolean),
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  },
 };

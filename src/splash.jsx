@@ -2,7 +2,7 @@ import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui
 import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import ChaiNNerLogo from './components/chaiNNerLogo.jsx';
+import ChaiNNerLogo from './components/chaiNNerLogo';
 // eslint-disable-next-line import/extensions
 import './global.css';
 import theme from './splashTheme';

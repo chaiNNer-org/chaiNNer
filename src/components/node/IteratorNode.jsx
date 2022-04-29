@@ -3,7 +3,7 @@ import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
-import shadeColor from '../../helpers/shadeColor.ts';
+import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody.jsx';
 import IteratorNodeHeader from './IteratorNodeHeader.jsx';
 import NodeFooter from './NodeFooter.jsx';

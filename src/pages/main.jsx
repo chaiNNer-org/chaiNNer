@@ -20,7 +20,7 @@ import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
-import ChaiNNerLogo from '../components/chaiNNerLogo.jsx';
+import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge.jsx';
 import Header from '../components/Header.jsx';
 import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
