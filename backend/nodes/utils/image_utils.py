@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 from sanic.log import logger
 
@@ -93,7 +94,7 @@ def normalize(img: np.ndarray) -> np.ndarray:
 
 def normalize_normals(
     x: np.ndarray, y: np.ndarray
-) -> (np.ndarray, np.ndarray, np.ndarray):
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     # The square of the length of X and Y
     l_sq = np.square(x) + np.square(y)
 
@@ -107,3 +108,23 @@ def normalize_normals(
     z = np.sqrt(1 - l_sq)
 
     return x, y, z
+
+
+def with_background(img: np.array, background: np.array):
+    """Changes the given image to the background overlayed with the image."""
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    assert (
+        background.ndim == 3 and background.shape[2] == 4
+    ), "The background has to be an RGBA image"
+
+    a = 1 - (1 - img[:, :, 3]) * (1 - background[:, :, 3])
+    img_blend = img[:, :, 3] / np.maximum(a, 0.0001)
+
+    img[:, :, 0] *= img_blend
+    img[:, :, 1] *= img_blend
+    img[:, :, 2] *= img_blend
+    img_blend = 1 - img_blend
+    img[:, :, 0] += background[:, :, 0] * img_blend
+    img[:, :, 1] += background[:, :, 1] * img_blend
+    img[:, :, 2] += background[:, :, 2] * img_blend
+    img[:, :, 3] = a
