@@ -17,7 +17,8 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import get_opencv_formats, get_pil_formats
+from .utils.image_utils import (get_opencv_formats, get_pil_formats,
+                                normalize, normalize_normals)
 
 try:
     from PIL import Image
@@ -26,15 +27,6 @@ try:
 except ImportError:
     logger.error("No PIL found, defaulting to cv2 for resizing")
     pil = Image = None
-
-
-def normalize(img: np.ndarray) -> np.ndarray:
-    dtype_max = 1
-    try:
-        dtype_max = np.iinfo(img.dtype).max
-    except:
-        logger.debug("img dtype is not int")
-    return img.astype(np.float32) / dtype_max
 
 
 @NodeFactory.register("Image", "Load Image")
@@ -1288,24 +1280,6 @@ class CaptionNode(NodeBase):
         return img
 
 
-def normalize_normals(
-    x: np.ndarray, y: np.ndarray
-) -> (np.ndarray, np.ndarray, np.ndarray):
-    # the square of the length of X and Y
-    l_sq = np.square(x) + np.square(y)
-
-    # if the length of X and Y is >1, then we have make it 1
-    l = np.sqrt(np.maximum(l_sq, 1))
-    x /= l
-    y /= l
-    l_sq = np.minimum(l_sq, 1, out=l_sq)
-
-    # compute Z
-    z = np.sqrt(1 - l_sq)
-
-    return x, y, z
-
-
 @NodeFactory.register("Image (Utility)", "Normalize")
 class NormalizeNode(NodeBase):
     """Normalize normal map"""
@@ -1314,23 +1288,23 @@ class NormalizeNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Normalizes the given normal map."
-            " Only the R and G channels of the input image will be used."
+            """Normalizes the given normal map. 
+            Only the R and G channels of the input image will be used."""
         )
         self.inputs = [
-            ImageInput("Normal map RG"),
+            ImageInput("Normal Map"),
         ]
-        self.outputs = [ImageOutput("Normal map RGB")]
+        self.outputs = [ImageOutput("Normal Map")]
         self.icon = "MdOutlineAutoFixHigh"
-        self.sub = "Normal map"
+        self.sub = "Normal Map"
 
     def run(self, img: np.ndarray) -> np.ndarray:
-        """Takes an a normal map and normalize it"""
+        """Takes a normal map and normalizes it"""
 
         logger.info(f"Normalizing image")
         assert img.ndim == 3, "The input image must be an RGB or RGBA image"
 
-        # convert BGR to XY
+        # Convert BGR to XY
         x = normalize(img[:, :, 2]) * 2 - 1
         y = normalize(img[:, :, 1]) * 2 - 1
 
@@ -1343,42 +1317,43 @@ class NormalizeNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("Image (Utility)", "Normal Addition")
+@NodeFactory.register("Image (Utility)", "Add Normals")
 class NormalAdditionNode(NodeBase):
-    """Add together two normal maps"""
+    """Add two normal maps together"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Add 2 normal maps together."
-            " Only the R and G channels of the input image will be used."
-            " The output normal map is guaranteed to be normalized."
+            """Add 2 normal maps together. Only the R and G channels 
+            of the input image will be used. The output normal map 
+            is guaranteed to be normalized."""
         )
         self.inputs = [
-            ImageInput("Normal map 1"),
+            ImageInput("Normal Map 1"),
             SliderInput("Strength 1", 0, 100, 100),
-            ImageInput("Normal map 2"),
+            ImageInput("Normal Map 2"),
             SliderInput("Strength 2", 0, 100, 100),
         ]
-        self.outputs = [ImageOutput("Normal map")]
+        self.outputs = [ImageOutput("Normal Map")]
         self.icon = "MdAddCircleOutline"
-        self.sub = "Normal map"
+        self.sub = "Normal Map"
 
-    def run(self, n: np.ndarray, n_strength, m: np.ndarray, m_strength) -> np.ndarray:
+    def run(self, n: np.ndarray, n_strength: int,
+            m: np.ndarray, m_strength: int) -> np.ndarray:
         """
         Takes 2 normal maps and adds them.
 
-        The addition works by converting the normals into 2D slopes and then adding the slopes.
-        The sum of the slopes is then converted back into normals.
+        The addition works by converting the normals into 2D slopes and then adding
+        the slopes. The sum of the slopes is then converted back into normals.
 
-        Why slopes? When adding 2 normal maps, we don't actually want to add the normals
-        themselves. Instead, we want to add the heightmaps that those normals represent.
-        Conceptually, we want to convert the normals into slopes (the derivatives of the
-        heightmap), integrate the slopes to get the heightmaps, add the heightmaps, derive the
-        heightmaps to get slopes, and then convert the slopes into normals again. Luckily,
-        adding together slopes is equivalent to adding together heightmaps, so we don't have to
-        integrate anything.
+        When adding 2 normal maps, the normals themselves are not added;
+        Instead, the heightmaps that those normals represent are added.
+        Conceptually, this entails converting the normals into slopes
+        (the derivatives of the heightmap), integrating the slopes to get
+        the heightmaps, adding the heightmaps, then performing the reverse
+        on the added heightmaps. Practically, this is unnecessary, as adding
+        the slopes together is equivalent to adding the heightmaps.
         """
 
         logger.info(f"Adding normal maps")
@@ -1389,7 +1364,7 @@ class NormalAdditionNode(NodeBase):
         n_strength /= 100
         m_strength /= 100
 
-        # convert BGR to XY
+        # Convert BGR to XY
         n_x = normalize(n[:, :, 2]) * 2 - 1
         n_y = normalize(n[:, :, 1]) * 2 - 1
         m_x = normalize(m[:, :, 2]) * 2 - 1
@@ -1398,20 +1373,18 @@ class NormalAdditionNode(NodeBase):
         n_x, n_y, n_z = normalize_normals(n_x, n_y)
         m_x, m_y, m_z = normalize_normals(m_x, m_y)
 
-        # slopes aren't defined for z=0, so we use a little trick
+        # Slopes aren't defined for z=0, so set to near-zero decimal
         n_z = np.maximum(n_z, 0.001, out=n_z)
         m_z = np.maximum(m_z, 0.001, out=m_z)
 
         # This works as follows:
-        # 1. Use the normals n,m to calculate 3D plans (our slopes) centered at origin p_n,p_m.
+        # 1. Use the normals n,m to calculate 3D planes (the slopes) centered at origin p_n,p_m.
         # 2. Calculate the Z values of those planes at a_xy=(1,0) and b_xy=(0,1).
         # 3. Add the Z values to together (weighted using their strength):
         #    a_z = p_n[a_xy] * n_strength + p_m[a_xy] * m_strength, same for b_xy.
         # 4. Define a=(1,0,a_z), b=(0,1,b_z).
         # 5. The final normal will be normalize(cross(a,b)).
-
-        # if you do the maths by hand, you'll see that a bunch of things cancel out and
-        # you'll be left with this:
+        # This works out as:
 
         n_f = n_strength / n_z
         m_f = m_strength / m_z
@@ -1452,7 +1425,7 @@ class AverageColorFixNode(NodeBase):
         self.sub = "Miscellaneous"
 
     def run(
-        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor
+        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
 
