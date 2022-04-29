@@ -149,7 +149,7 @@ const Header = ({ port }) => {
     })();
   }, []);
 
-  async function run() {
+  const run = async () => {
     setRunning(true);
     animateEdges();
     if (nodes.length === 0) {
@@ -194,9 +194,9 @@ const Header = ({ port }) => {
         setRunning(false);
       }
     }
-  }
+  };
 
-  async function pause() {
+  const pause = async () => {
     try {
       const response = await post('/pause');
       setRunning(false);
@@ -211,9 +211,9 @@ const Header = ({ port }) => {
       setRunning(false);
       unAnimateEdges();
     }
-  }
+  };
 
-  async function kill() {
+  const kill = async () => {
     try {
       const response = await post('/kill');
       clearCompleteEdges();
@@ -229,7 +229,7 @@ const Header = ({ port }) => {
       unAnimateEdges();
       setRunning(false);
     }
-  }
+  };
 
   return (
     <>
