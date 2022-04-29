@@ -23,12 +23,12 @@ const useSystemUsage = (delay: number) => {
       const totalMem = parseFloat(memInfo[1]);
       const freeMem = parseFloat(memInfo[3]);
 
-      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
       setRamUsage(Number(ramPercent));
     } else {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
-      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
       setRamUsage(Number(ramPercent));
     }
 
@@ -39,7 +39,7 @@ const useSystemUsage = (delay: number) => {
 
     // GPU/VRAM
     try {
-      const vramPercent = await ipcRenderer.invoke('get-vram-usage');
+      const vramPercent = Number(await ipcRenderer.invoke('get-vram-usage'));
       setVramUsage(vramPercent);
     } catch (_) {
       // Sometimes this will fire before it's done registering the event handlers
@@ -47,6 +47,7 @@ const useSystemUsage = (delay: number) => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       // We set this up on mount, letting the main process handle it
       // By doing it this way we avoid spawning multiple smi shells
@@ -55,8 +56,11 @@ const useSystemUsage = (delay: number) => {
     })();
   }, []);
 
-  useInterval(async () => {
-    await setInfo();
+  useInterval(() => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async () => {
+      await setInfo();
+    })();
   }, delay);
 
   return useMemo(() => ({ cpuUsage, ramUsage, vramUsage }), [cpuUsage, ramUsage, vramUsage]);

@@ -5,7 +5,7 @@ const getSessionStorageOrDefault = <T>(key: string, defaultValue: T): T => {
   if (!stored) {
     return defaultValue;
   }
-  return JSON.parse(stored);
+  return JSON.parse(stored) as T;
 };
 
 const useSessionStorage = <T>(key: string, defaultValue: T) => {
