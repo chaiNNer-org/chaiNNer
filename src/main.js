@@ -26,7 +26,7 @@ const localStorageLocation = path.join(app.getPath('userData'), 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
 const localStorage = new LocalStorage(localStorageLocation);
 
-const disableHardwareAcceleration = localStorage.getItem('disable-hw-accel');
+const disableHardwareAcceleration = localStorage.getItem('disable-hw-accel') === 'true';
 if (disableHardwareAcceleration) {
   app.disableHardwareAcceleration();
 }
@@ -267,10 +267,12 @@ const checkPythonEnv = async (splashWindow) => {
   const localStorageVars = await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
     '({...localStorage});'
   );
-  const useSystemPython = localStorageVars['use-system-python'];
+  const useSystemPython =
+    localStorageVars['use-system-python'] === 'true' ||
+    localStorage.getItem('use-system-python') === 'true';
 
   // User is using system python
-  if (useSystemPython === 'true') {
+  if (useSystemPython) {
     const pythonVersion = await getPythonVersion('python');
     const python3Version = await getPythonVersion('python3');
     let validPythonVersion;
