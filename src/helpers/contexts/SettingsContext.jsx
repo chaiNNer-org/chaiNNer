@@ -1,5 +1,5 @@
 import { createContext, useMemo } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage.js';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 export const SettingsContext = createContext({});
 

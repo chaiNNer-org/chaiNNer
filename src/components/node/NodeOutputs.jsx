@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 
 import { memo } from 'react';
-import GenericOutput from '../outputs/GenericOutput.jsx';
+import GenericOutput from '../outputs/GenericOutput';
 
 const NodeOutputs = ({ outputs, id }) =>
   outputs.map((output, i) => {

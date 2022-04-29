@@ -23,7 +23,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }) => {
   const { removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions } =

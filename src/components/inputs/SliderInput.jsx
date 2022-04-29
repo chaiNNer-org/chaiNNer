@@ -13,7 +13,7 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 const SliderInput = memo(({ index, def, min, max, id, accentColor, isLocked }) => {
   const { useInputData } = useContext(GlobalContext);

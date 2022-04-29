@@ -1,6 +1,6 @@
 import { Center, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
-import { IconFactory } from '../CustomIcons.jsx';
+import { IconFactory } from '../CustomIcons';
 
 const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }) => (
   <Center

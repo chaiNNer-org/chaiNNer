@@ -7,7 +7,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import useSystemUsage from '../helpers/hooks/useSystemUsage.js';
+import useSystemUsage from '../helpers/hooks/useSystemUsage';
 
 const SystemStats = () => {
   const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);

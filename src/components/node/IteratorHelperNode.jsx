@@ -1,12 +1,12 @@
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import checkNodeValidity from '../../helpers/checkNodeValidity.js';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
-import getAccentColor from '../../helpers/getNodeAccentColors.js';
+import checkNodeValidity from '../../helpers/checkNodeValidity';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
-import IteratorHelperNodeFooter from './IteratorHelperNodeFooter.jsx';
-import NodeBody from './NodeBody.jsx';
-import NodeHeader from './NodeHeader.jsx';
+import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
+import NodeBody from './NodeBody';
+import NodeHeader from './NodeHeader';
 
 const blankSchema = {
   inputs: [],

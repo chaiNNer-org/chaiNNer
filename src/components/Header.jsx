@@ -24,13 +24,13 @@ import log from 'electron-log';
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
-import checkNodeValidity from '../helpers/checkNodeValidity.js';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
+import checkNodeValidity from '../helpers/checkNodeValidity';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import logo from '../public/icons/png/256x256.png';
-import { DependencyManagerButton } from './DependencyManager.jsx';
-import { SettingsButton } from './SettingsModal.jsx';
-import SystemStats from './SystemStats.jsx';
+import { DependencyManagerButton } from './DependencyManager';
+import { SettingsButton } from './SettingsModal';
+import SystemStats from './SystemStats';
 
 const Header = ({ port }) => {
   const {

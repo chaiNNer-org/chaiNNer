@@ -1,8 +1,8 @@
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsContext } from '../../helpers/contexts/SettingsContext.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 
 const createGridDotsPath = (size, fill) => (
   <circle
