@@ -9,6 +9,7 @@ export const SettingsProvider = ({ children, port }) => {
   const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
   const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
   const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
+  const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
 
   const useIsCpu = useMemo(() => [isCpu, setIsCpu], [isCpu]);
   const useIsFp16 = useMemo(() => [isFp16, setIsFp16], [isFp16]);
@@ -17,6 +18,7 @@ export const SettingsProvider = ({ children, port }) => {
     () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
     [isSnapToGrid, snapToGridAmount]
   );
+  const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel], [isDisHwAccel]);
 
   const contextValue = useMemo(
     () => ({
@@ -24,6 +26,7 @@ export const SettingsProvider = ({ children, port }) => {
       useIsFp16,
       useIsSystemPython,
       useSnapToGrid,
+      useDisHwAccel,
       port,
     }),
     [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, port]

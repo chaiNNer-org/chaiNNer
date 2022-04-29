@@ -34,7 +34,8 @@ import { memo, useContext, useEffect, useState } from 'react';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 const SettingsModal = ({ isOpen, onClose }) => {
-  const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid } = useContext(SettingsContext);
+  const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
+    useContext(SettingsContext);
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -42,6 +43,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
   const [isFp16, setIsFp16] = useIsFp16;
   const [isSystemPython, setIsSystemPython] = useIsSystemPython;
   const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
+  const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
 
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
@@ -313,6 +315,51 @@ const SettingsModal = ({ isOpen, onClose }) => {
     </VStack>
   );
 
+  const AdvancedSettings = () => (
+    <VStack
+      divider={<StackDivider />}
+      w="full"
+    >
+      {/* Disable Hardware Acceleration */}
+      <Flex
+        align="center"
+        w="full"
+      >
+        <VStack
+          alignContent="left"
+          alignItems="left"
+          w="full"
+        >
+          <Text
+            flex="1"
+            textAlign="left"
+          >
+            Disable Hardware Acceleration (requires restart)
+          </Text>
+          <Text
+            flex="1"
+            fontSize="xs"
+            marginTop={0}
+            textAlign="left"
+          >
+            Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only disable this is
+            you know hardware acceleration is causing you issues.
+          </Text>
+        </VStack>
+        <HStack>
+          <Switch
+            defaultChecked={isDisHwAccel}
+            size="lg"
+            value={isDisHwAccel}
+            onChange={() => {
+              setIsDisHwAccel(!isDisHwAccel);
+            }}
+          />
+        </HStack>
+      </Flex>
+    </VStack>
+  );
+
   return (
     <Modal
       isCentered
@@ -337,6 +384,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
               <Tab>Appearance</Tab>
               <Tab>Environment</Tab>
               <Tab>Python</Tab>
+              <Tab>Advanced</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -347,6 +395,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
               </TabPanel>
               <TabPanel>
                 <PythonSettings />
+              </TabPanel>
+              <TabPanel>
+                <AdvancedSettings />
               </TabPanel>
             </TabPanels>
           </Tabs>

@@ -7,6 +7,7 @@ import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
+import TorchModelPreview from './previews/TorchModelPreview.jsx';
 
 const checkFileExists = (file) =>
   new Promise((resolve) =>
@@ -79,6 +80,17 @@ const FileInput = memo(({ filetypes, id, index, label, type, isLocked, category,
         return (
           <Box mt={2}>
             <ImagePreview
+              category={category}
+              id={id}
+              nodeType={nodeType}
+              path={filePath}
+            />
+          </Box>
+        );
+      case 'file::pth':
+        return (
+          <Box mt={2}>
+            <TorchModelPreview
               category={category}
               id={id}
               nodeType={nodeType}

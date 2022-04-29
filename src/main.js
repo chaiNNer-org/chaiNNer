@@ -4,6 +4,7 @@ import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
 import { access, readFile, writeFile } from 'fs/promises';
 import https from 'https';
+import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
@@ -19,6 +20,15 @@ const exec = util.promisify(_exec);
 // eslint-disable-next-line global-require
 if (require('electron-squirrel-startup')) {
   app.quit();
+}
+
+const localStorageLocation = path.join(app.getPath('userData'), 'settings');
+ipcMain.handle('get-localstorage-location', () => localStorageLocation);
+const localStorage = new LocalStorage(localStorageLocation);
+
+const disableHardwareAcceleration = localStorage.getItem('disable-hw-accel');
+if (disableHardwareAcceleration) {
+  app.disableHardwareAcceleration();
 }
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');

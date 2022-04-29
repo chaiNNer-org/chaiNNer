@@ -133,8 +133,7 @@ const Header = ({ port }) => {
   );
 
   useEffect(() => {
-    console.log({ eventSourceStatus });
-    if (eventSourceStatus === 500) {
+    if (eventSourceStatus === 'error') {
       setErrorMessage('An unexpected error occurred. You may need to restart chaiNNer.');
       onErrorOpen();
       unAnimateEdges();
