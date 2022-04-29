@@ -1503,3 +1503,176 @@ class AverageColorFixNode(NodeBase):
         result = large + diff
 
         return np.clip(result, 0, 1)
+
+
+class ImageAverage:
+    def __init__(self):
+        """Constructor"""
+        self.total = None
+        self.count = 0
+
+    def add(self, img: np.array):
+        self.count += 1
+        if self.total is None:
+            self.total = img
+        else:
+            # we can't just add the images together, we have to correct the alpha channel
+            a = img[:, :, 3]
+            self.total[:, :, 0] += img[:, :, 0] * a
+            self.total[:, :, 1] += img[:, :, 1] * a
+            self.total[:, :, 2] += img[:, :, 2] * a
+            self.total[:, :, 3] += a
+
+    def get_result(self, average_alpha: bool = True) -> np.array:
+        f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
+        self.total[:, :, 0] *= f
+        self.total[:, :, 1] *= f
+        self.total[:, :, 2] *= f
+        if average_alpha:
+            self.total[:, :, 3] *= 1 / self.count
+        else:
+            self.total[:, :, 3] = np.minimum(self.total[:, :, 3], 1)
+        return self.total
+
+
+def fragment_blur(
+    img: np.array, n: int, startAngle: float, distance: float
+) -> np.array:
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    assert n >= 1
+
+    h, w = img.shape[:2]
+
+    avg = ImageAverage()
+    for i in range(n):
+        angle = math.pi * 2 * i / n + startAngle
+        x_offset = int(math.cos(angle) * distance)
+        y_offset = int(math.sin(angle) * distance)
+        m = np.float32(
+            [
+                [1, 0, x_offset],
+                [0, 1, y_offset],
+            ]
+        )
+        avg.add(cv2.warpAffine(img, m, (w, h)))
+
+    return avg.get_result()
+
+
+def with_self_as_background(img: np.array):
+    """Changes the given image to the image overlayed with itself."""
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    img[:, :, 3] = 1 - np.square(1 - img[:, :, 3])
+
+
+def with_background(img: np.array, background: np.array):
+    """Changes the given image to the background overlayed with the image."""
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    assert (
+        background.ndim == 3 and background.shape[2] == 4
+    ), "The background has to be an RGBA image"
+
+    a = 1 - (1 - img[:, :, 3]) * (1 - background[:, :, 3])
+    img_blend = img[:, :, 3] / np.maximum(a, 0.0001)
+
+    img[:, :, 0] *= img_blend
+    img[:, :, 1] *= img_blend
+    img[:, :, 2] *= img_blend
+    img_blend = 1 - img_blend
+    img[:, :, 0] += background[:, :, 0] * img_blend
+    img[:, :, 1] += background[:, :, 1] * img_blend
+    img[:, :, 2] += background[:, :, 2] * img_blend
+    img[:, :, 3] = a
+
+
+def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    img[:, :, 3] = np.greater(img[:, :, 3], threshold).astype(np.float32)
+
+
+def fill_alpha_edge_extend(img: np.array, distance: int):
+    """Given an image with binary alpha, with will fill transparent pixels by extending the closest color."""
+
+    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+
+    # premultiply alpha
+    # this is fairly trivial, because we assume binary alpha
+    img[:, :, 0] *= img[:, :, 3]
+    img[:, :, 1] *= img[:, :, 3]
+    img[:, :, 2] *= img[:, :, 3]
+
+    proccessed_distance = 0
+    it = 0
+    while proccessed_distance < distance:
+        # the distance by which we will offset the image in this iteration
+        offset_distance = 1 + it // 4
+        proccessed_distance += offset_distance
+        it += 1
+
+        # construct the kernel for the 2D convolution
+        # the kernel will be a "+" of 1s with a 0 at the center
+        k = np.zeros(
+            (offset_distance * 2 + 1, offset_distance * 2 + 1), dtype=np.float32
+        )
+        k[:, offset_distance] = 1
+        k[offset_distance, :] = 1
+        k[offset_distance, offset_distance] = 0
+
+        r = cv2.filter2D(img, -1, k, borderType=cv2.BORDER_REPLICATE)
+
+        # correct alpha and color
+        f = 1 / np.maximum(r[:, :, 3], 0.001)
+        r[:, :, 0] *= f
+        r[:, :, 1] *= f
+        r[:, :, 2] *= f
+        r[:, :, 3] = np.minimum(r[:, :, 3], 1)
+
+        with_background(img, r)
+
+
+def fill_alpha_fragment_blur(img: np.array) -> np.array:
+    result = img.copy()
+    for i in range(0, 6):
+        blurred = fragment_blur(img, 5, i, 1 << i)
+        # blurred tends to be a bit too transparent
+        with_self_as_background(blurred)
+        with_background(result, blurred)
+
+    return result
+
+
+@NodeFactory.register("Image (Utility)", "Fill Alpha")
+class FillAlphaNode(NodeBase):
+    """TODO:"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "TODO:"
+        self.inputs = [ImageInput("RGBA")]
+        self.outputs = [ImageOutput("RGB")]
+
+        self.icon = "MdOutlineFormatColorFill"
+        self.sub = "Miscellaneous"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Fills transparent holes in the given image"""
+
+        assert (
+            img.ndim == 3 and img.shape[2] == 4
+        ), "The image has to be an RGBA image to fill its alpha"
+
+        img = normalize(img)
+
+        # preprocess to convert the image into binary alpha
+        convert_to_binary_alpha(img)
+        img = fill_alpha_fragment_blur(img)
+
+        convert_to_binary_alpha(img)
+        fill_alpha_edge_extend(img, 8)
+
+        # # finally, add a black background and convert to RGB
+        img[:, :, 0] *= img[:, :, 3]
+        img[:, :, 1] *= img[:, :, 3]
+        img[:, :, 2] *= img[:, :, 3]
+        return img[:, :, :3]
