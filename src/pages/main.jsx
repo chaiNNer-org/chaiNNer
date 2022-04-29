@@ -21,15 +21,15 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { ReactFlowProvider } from 'react-flow-renderer';
 import useFetch from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
-import CustomEdge from '../components/CustomEdge.jsx';
-import Header from '../components/Header.jsx';
-import IteratorHelperNode from '../components/node/IteratorHelperNode.jsx';
-import IteratorNode from '../components/node/IteratorNode.jsx';
-import Node from '../components/node/Node.jsx';
-import NodeSelector from '../components/NodeSelectorPanel.jsx';
-import ReactFlowBox from '../components/ReactFlowBox.jsx';
-import { GlobalProvider } from '../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsProvider } from '../helpers/contexts/SettingsContext.jsx';
+import CustomEdge from '../components/CustomEdge';
+import Header from '../components/Header';
+import IteratorHelperNode from '../components/node/IteratorHelperNode';
+import IteratorNode from '../components/node/IteratorNode';
+import Node from '../components/node/Node';
+import NodeSelector from '../components/NodeSelectorPanel';
+import ReactFlowBox from '../components/ReactFlowBox';
+import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
+import { SettingsProvider } from '../helpers/contexts/SettingsContext';
 
 const Main = ({ port }) => {
   // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);

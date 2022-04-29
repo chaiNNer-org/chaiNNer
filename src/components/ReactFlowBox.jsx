@@ -3,8 +3,8 @@ import log from 'electron-log';
 // import PillPity from 'pill-pity';
 import { createContext, memo, useCallback, useContext, useEffect, useMemo } from 'react';
 import ReactFlow, { Background, Controls, useEdgesState, useNodesState } from 'react-flow-renderer';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
-import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { SettingsContext } from '../helpers/contexts/SettingsContext';
 
 export const NodeDataContext = createContext({});
 

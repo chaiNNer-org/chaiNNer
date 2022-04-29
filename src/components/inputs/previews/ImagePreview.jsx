@@ -4,7 +4,7 @@ import { constants } from 'fs';
 import { access } from 'fs/promises';
 import { memo, useContext, useEffect, useState } from 'react';
 import useFetch from 'use-http';
-import { SettingsContext } from '../../../helpers/contexts/SettingsContext.jsx';
+import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
 
 const checkFileExists = (file) =>
   new Promise((resolve) =>

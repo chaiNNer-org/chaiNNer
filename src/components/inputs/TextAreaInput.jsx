@@ -1,6 +1,6 @@
 import { Textarea } from '@chakra-ui/react';
 import { memo, useContext, useEffect } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 const TextAreaInput = memo(({ label, id, index, isLocked, resizable }) => {
   const { useInputData } = useContext(GlobalContext);

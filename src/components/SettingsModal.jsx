@@ -31,7 +31,7 @@ import {
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { memo, useContext, useEffect, useState } from 'react';
-import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
+import { SettingsContext } from '../helpers/contexts/SettingsContext';
 
 const SettingsModal = ({ isOpen, onClose }) => {
   const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =

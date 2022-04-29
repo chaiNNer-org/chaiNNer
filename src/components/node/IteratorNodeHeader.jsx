@@ -1,6 +1,6 @@
 import { Box, Center, Heading, HStack, Tooltip, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
-import { IconFactory } from '../CustomIcons.jsx';
+import { IconFactory } from '../CustomIcons';
 
 const IteratorNodeHeader = ({ type, width, icon, accentColor, selected, percentComplete }) => (
   <VStack

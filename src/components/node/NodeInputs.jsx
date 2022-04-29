@@ -1,15 +1,15 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
 import { memo } from 'react';
-import DirectoryInput from '../inputs/DirectoryInput.jsx';
-import DropDownInput from '../inputs/DropDownInput.jsx';
-import FileInput from '../inputs/FileInput.jsx';
-import GenericInput from '../inputs/GenericInput.jsx';
-import InputContainer from '../inputs/InputContainer.jsx';
-import NumberInput from '../inputs/NumberInput.jsx';
-import SliderInput from '../inputs/SliderInput.jsx';
-import TextAreaInput from '../inputs/TextAreaInput.jsx';
-import TextInput from '../inputs/TextInput.jsx';
+import DirectoryInput from '../inputs/DirectoryInput';
+import DropDownInput from '../inputs/DropDownInput';
+import FileInput from '../inputs/FileInput';
+import GenericInput from '../inputs/GenericInput';
+import InputContainer from '../inputs/InputContainer';
+import NumberInput from '../inputs/NumberInput';
+import SliderInput from '../inputs/SliderInput';
+import TextAreaInput from '../inputs/TextAreaInput';
+import TextInput from '../inputs/TextInput';
 
 // TODO: perhaps make this an object instead of a switch statement
 const pickInput = (type, props) => {

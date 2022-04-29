@@ -1,5 +1,6 @@
 from typing import Tuple
 import numpy as np
+from sanic.log import logger
 
 
 def get_opencv_formats():
@@ -82,19 +83,28 @@ def get_available_image_formats():
     return sorted(list(no_dupes))
 
 
+def normalize(img: np.ndarray) -> np.ndarray:
+    dtype_max = 1
+    try:
+        dtype_max = np.iinfo(img.dtype).max
+    except:
+        logger.debug("img dtype is not int")
+    return img.astype(np.float32) / dtype_max
+
+
 def normalize_normals(
     x: np.ndarray, y: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    # the square of the length of X and Y
+    # The square of the length of X and Y
     l_sq = np.square(x) + np.square(y)
 
-    # if the length of X and Y is >1, then we have make it 1
+    # If the length of X and Y is >1, then make it 1
     l = np.sqrt(np.maximum(l_sq, 1))
     x /= l
     y /= l
     l_sq = np.minimum(l_sq, 1, out=l_sq)
 
-    # compute Z
+    # Compute Z
     z = np.sqrt(1 - l_sq)
 
     return x, y, z

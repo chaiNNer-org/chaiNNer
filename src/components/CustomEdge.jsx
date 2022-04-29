@@ -3,7 +3,7 @@ import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { getBezierPath, getEdgeCenter } from 'react-flow-renderer';
 import { useDebouncedCallback } from 'use-debounce';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
