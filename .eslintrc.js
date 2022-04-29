@@ -42,4 +42,25 @@ module.exports = {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
   },
+
+  overrides: [
+    {
+      files: ['src/**/*.ts', 'src/**/*.tsx'],
+      extends: [
+        'airbnb',
+        'airbnb-typescript',
+        'plugin:react/jsx-runtime',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        'plugin:prettier/recommended',
+      ],
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+      rules: {
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
+      },
+    },
+  ],
 };

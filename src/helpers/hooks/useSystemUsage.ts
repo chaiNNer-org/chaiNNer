@@ -23,12 +23,12 @@ const useSystemUsage = (delay: number) => {
       const totalMem = parseFloat(memInfo[1]);
       const freeMem = parseFloat(memInfo[3]);
 
-      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
       setRamUsage(Number(ramPercent));
     } else {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
-      const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
+      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
       setRamUsage(Number(ramPercent));
     }
 
@@ -39,7 +39,7 @@ const useSystemUsage = (delay: number) => {
 
     // GPU/VRAM
     try {
-      const vramPercent = await ipcRenderer.invoke('get-vram-usage');
+      const vramPercent = Number(await ipcRenderer.invoke('get-vram-usage'));
       setVramUsage(vramPercent);
     } catch (_) {
       // Sometimes this will fire before it's done registering the event handlers
@@ -55,8 +55,10 @@ const useSystemUsage = (delay: number) => {
     })();
   }, []);
 
-  useInterval(async () => {
-    await setInfo();
+  useInterval(() => {
+    (async () => {
+      await setInfo();
+    })();
   }, delay);
 
   return useMemo(() => ({ cpuUsage, ramUsage, vramUsage }), [cpuUsage, ramUsage, vramUsage]);
