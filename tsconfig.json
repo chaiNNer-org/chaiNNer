@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "noEmit": true,
-    "noImplicitAny": false, // some day
+    "noImplicitAny": true,
     "module": "es6",
     "target": "es6",
     "jsx": "react-jsx",
