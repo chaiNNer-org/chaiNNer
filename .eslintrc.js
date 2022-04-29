@@ -29,5 +29,8 @@ module.exports = {
   },
   settings: {
     'import/core-modules': ['electron'],
+    'import/resolver': {
+      typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
+    },
   },
 };
