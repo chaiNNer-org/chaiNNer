@@ -19,10 +19,8 @@ const stringIsAValidUrl = (s) => {
   }
 };
 
-const downloadWheelAndInstall = async (
-  pythonPath, url, fileName, onProgress, onOutput,
-) => new Promise(
-  (resolve, reject) => {
+const downloadWheelAndInstall = async (pythonPath, url, fileName, onProgress, onOutput) =>
+  new Promise((resolve, reject) => {
     let lastProgressNum = null;
     const downloader = new Downloader({
       url,
@@ -36,7 +34,7 @@ const downloadWheelAndInstall = async (
           onOutput(`Download at: ${progressNum}%\n`);
           lastProgressNum = progressNum;
         }
-        onProgress((Number(percentage) * 0.90) + 1);
+        onProgress(Number(percentage) * 0.9 + 1);
       },
     });
 
@@ -44,7 +42,12 @@ const downloadWheelAndInstall = async (
       downloader.download().then(() => {
         onProgress(98);
         onOutput('Installing package from whl...\n');
-        const installProcess = spawn(pythonPath, ['-m', 'pip', 'install', path.join(tempDir, fileName)]);
+        const installProcess = spawn(pythonPath, [
+          '-m',
+          'pip',
+          'install',
+          path.join(tempDir, fileName),
+        ]);
         installProcess.stdout.on('data', (data) => {
           onOutput(String(data));
         });
@@ -60,26 +63,26 @@ const downloadWheelAndInstall = async (
       log.error(error);
       reject(error);
     }
-  },
-);
+  });
 
 const pipInstallWithProgress = async (
-  python, dep,
+  python,
+  dep,
   onProgress = () => {},
   onOutput = () => {},
-  upgrade = false,
-) => new Promise(
-  (resolve, reject) => {
+  upgrade = false
+) =>
+  new Promise((resolve, reject) => {
     log.info('Beginning pip install...');
     onProgress(0);
-    let args = ['install', ...(upgrade ? ['--upgrade'] : []), `${dep.packageName}==${dep.version}`, '--disable-pip-version-check'];
+    let args = [
+      'install',
+      ...(upgrade ? ['--upgrade'] : []),
+      `${dep.packageName}==${dep.version}`,
+      '--disable-pip-version-check',
+    ];
     if (dep.findLink) {
-      args = [
-        ...args,
-        '-f',
-        dep.findLink,
-        '--disable-pip-version-check',
-      ];
+      args = [...args, '-f', dep.findLink, '--disable-pip-version-check'];
     }
     const pipRequest = spawn(python, ['-m', 'pip', ...args]);
 
@@ -96,10 +99,15 @@ const pipInstallWithProgress = async (
 
         if (stringIsAValidUrl(wheelFileName)) {
           const wheelName = wheelFileName.split('/').slice(-1)[0];
-          await downloadWheelAndInstall(python, wheelFileName, wheelName, onProgress, onOutput)
-            .then(() => {
-              resolve();
-            });
+          await downloadWheelAndInstall(
+            python,
+            wheelFileName,
+            wheelName,
+            onProgress,
+            onOutput
+          ).then(() => {
+            resolve();
+          });
         } else {
           const req = https.get(`https://pypi.org/pypi/${dep.packageName}/json`, (res) => {
             let output = '';
@@ -115,10 +123,11 @@ const pipInstallWithProgress = async (
                   const { url } = releases.find((file) => file.filename === wheelFileName);
                   onOutput(`Downloading package from PyPi at: ${url}\n`);
                   // console.log('Wheel URL found: ', url);
-                  downloadWheelAndInstall(python, url, wheelFileName, onProgress, onOutput)
-                    .then(() => {
+                  downloadWheelAndInstall(python, url, wheelFileName, onProgress, onOutput).then(
+                    () => {
                       resolve();
-                    });
+                    }
+                  );
                 }
               }
             });
@@ -150,7 +159,6 @@ const pipInstallWithProgress = async (
         resolve();
       }
     });
-  },
-);
+  });
 
 export default pipInstallWithProgress;

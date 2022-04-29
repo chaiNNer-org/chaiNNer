@@ -51,19 +51,23 @@ export const extractPython = async (directory, pythonPath, onProgress) => {
   }
 };
 
-const upgradePip = async (pythonPath, onProgress) => new Promise((resolve, reject) => {
-  const pipUpgrade = spawn(pythonPath, '-m pip install --upgrade pip --no-warn-script-location'.split(' '));
-  pipUpgrade.stdout.on('data', (data) => {
-    // onProgress(getPipPercentFromData(data));
+const upgradePip = async (pythonPath, onProgress) =>
+  new Promise((resolve, reject) => {
+    const pipUpgrade = spawn(
+      pythonPath,
+      '-m pip install --upgrade pip --no-warn-script-location'.split(' ')
+    );
+    pipUpgrade.stdout.on('data', (data) => {
+      // onProgress(getPipPercentFromData(data));
+    });
+    pipUpgrade.stderr.on('data', (data) => {
+      log.error(`Error updating pip: ${String(data)}`);
+      reject(new Error(`Error updating pip: ${String(data)}`));
+    });
+    pipUpgrade.on('close', () => {
+      resolve();
+    });
   });
-  pipUpgrade.stderr.on('data', (data) => {
-    log.error(`Error updating pip: ${String(data)}`);
-    reject(new Error(`Error updating pip: ${String(data)}`));
-  });
-  pipUpgrade.on('close', () => {
-    resolve();
-  });
-});
 
 const pipInstallSanic = async (pythonPath, onProgress) => {
   const sanicDep = {

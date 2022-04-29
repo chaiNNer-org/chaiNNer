@@ -1,6 +1,4 @@
-import {
-  Center, ChakraProvider, Flex, Progress, Text, VStack,
-} from '@chakra-ui/react';
+import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -107,7 +105,6 @@ const Splash = () => {
             spacing={2}
             top={8}
             w="full"
-
           >
             <Center>
               <Text
@@ -117,14 +114,14 @@ const Splash = () => {
                 {status}
               </Text>
             </Center>
-            {(showProgressBar) && (
-            <Center>
-              <Progress
-                hasStripe
-                value={progressPercentage}
-                w="350px"
-              />
-            </Center>
+            {showProgressBar && (
+              <Center>
+                <Progress
+                  hasStripe
+                  value={progressPercentage}
+                  w="350px"
+                />
+              </Center>
             )}
           </VStack>
         </Flex>

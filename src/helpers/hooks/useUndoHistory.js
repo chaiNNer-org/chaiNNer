@@ -31,7 +31,7 @@ const useUndoHistory = (maxLength) => {
     const [top] = undoHistory.slice(-1);
     // console.log('TEST', data === top);
     if (data !== top) {
-    // Reset the redo history on push
+      // Reset the redo history on push
       setRedoHistory([]);
       // Add new data to the undo history, and makes sure its only maxLength long
       setUndoHistory([...undoHistory, data].slice(-maxLength));

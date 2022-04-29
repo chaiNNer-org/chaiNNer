@@ -1,15 +1,21 @@
 import {
-  HStack, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-  NumberInputStepper, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Text, Tooltip,
+  HStack,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  Slider,
+  SliderFilledTrack,
+  SliderThumb,
+  SliderTrack,
+  Text,
+  Tooltip,
 } from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useState,
-} from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const SliderInput = memo(({
-  index, def, min, max, id, accentColor, isLocked,
-}) => {
+const SliderInput = memo(({ index, def, min, max, id, accentColor, isLocked }) => {
   const { useInputData } = useContext(GlobalContext);
   const [input, setInput] = useInputData(id, index);
   const [sliderValue, setSliderValue] = useState(input ?? def);
@@ -21,11 +27,7 @@ const SliderInput = memo(({
 
   return (
     <HStack>
-      <Text
-        fontSize="xs"
-      >
-        {min}
-      </Text>
+      <Text fontSize="xs">{min}</Text>
       <Slider
         defaultValue={def}
         focusThumbOnChange={false}
@@ -35,7 +37,9 @@ const SliderInput = memo(({
         step={1}
         value={sliderValue ?? def}
         onChange={(v) => setSliderValue(v)}
-        onChangeEnd={(v) => { setInput(v); }}
+        onChangeEnd={(v) => {
+          setInput(v);
+        }}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
@@ -56,11 +60,7 @@ const SliderInput = memo(({
           <SliderThumb />
         </Tooltip>
       </Slider>
-      <Text
-        fontSize="xs"
-      >
-        {max}
-      </Text>
+      <Text fontSize="xs">{max}</Text>
       <NumberInput
         className="nodrag"
         default={def}

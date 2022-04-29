@@ -1,8 +1,6 @@
 module.exports = {
-  extends: [
-    'airbnb',
-    'plugin:react/jsx-runtime',
-  ],
+  extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
+  plugins: ['prettier'],
   globals: {
     MAIN_WINDOW_WEBPACK_ENTRY: true,
     SPLASH_SCREEN_WEBPACK_ENTRY: true,
@@ -15,10 +13,13 @@ module.exports = {
     ecmaVersion: 2020,
   },
   rules: {
-    'react/jsx-sort-props': ['error', {
-      callbacksLast: true,
-      shorthandFirst: true,
-    }],
+    'react/jsx-sort-props': [
+      'error',
+      {
+        callbacksLast: true,
+        shorthandFirst: true,
+      },
+    ],
     'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
     'import/extensions': 'off',
     'react/prop-types': 'off',

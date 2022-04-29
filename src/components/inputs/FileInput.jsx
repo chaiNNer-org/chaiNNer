@@ -1,24 +1,21 @@
-import {
-  Box, Input, InputGroup, InputLeftElement, Tooltip, VStack,
-} from '@chakra-ui/react';
+import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import path from 'path';
-import {
-  memo, useContext, useEffect,
-} from 'react';
+import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import ImagePreview from './previews/ImagePreview.jsx';
 
-const checkFileExists = (file) => new Promise((resolve) => access(file, constants.F_OK)
-  .then(() => resolve(true))
-  .catch(() => resolve(false)));
+const checkFileExists = (file) =>
+  new Promise((resolve) =>
+    access(file, constants.F_OK)
+      .then(() => resolve(true))
+      .catch(() => resolve(false))
+  );
 
-const FileInput = memo(({
-  filetypes, id, index, label, type, isLocked, category, nodeType,
-}) => {
+const FileInput = memo(({ filetypes, id, index, label, type, isLocked, category, nodeType }) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
   const [filePath, setFilePath] = useInputData(id, index);
 
@@ -58,11 +55,18 @@ const FileInput = memo(({
 
   const onButtonClick = async () => {
     const fileDir = filePath ? path.dirname(filePath) : undefined;
-    const fileFilter = [{
-      name: label,
-      extensions: filetypes.map((e) => e.replace('.', '')) ?? ['*'],
-    }];
-    const { canceled, filePaths } = await ipcRenderer.invoke('file-select', fileFilter, false, fileDir);
+    const fileFilter = [
+      {
+        name: label,
+        extensions: filetypes.map((e) => e.replace('.', '')) ?? ['*'],
+      },
+    ];
+    const { canceled, filePaths } = await ipcRenderer.invoke(
+      'file-select',
+      fileFilter,
+      false,
+      fileDir
+    );
     const selectedPath = filePaths[0];
     if (!canceled && selectedPath) {
       setFilePath(selectedPath);
@@ -97,9 +101,7 @@ const FileInput = memo(({
         py={0}
       >
         <InputGroup>
-          <InputLeftElement
-            pointerEvents="none"
-          >
+          <InputLeftElement pointerEvents="none">
             <BsFileEarmarkPlus />
           </InputLeftElement>
 
@@ -115,14 +117,9 @@ const FileInput = memo(({
             value={filePath ? path.parse(filePath).base : ''}
             onClick={onButtonClick}
           />
-
         </InputGroup>
       </Tooltip>
-      {filePath && (
-        <Box>
-          { preview() }
-        </Box>
-      )}
+      {filePath && <Box>{preview()}</Box>}
     </VStack>
   );
 });

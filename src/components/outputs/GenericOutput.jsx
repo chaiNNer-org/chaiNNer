@@ -1,6 +1,4 @@
-import {
-  Text,
-} from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import OutputContainer from './OutputContainer.jsx';
 
