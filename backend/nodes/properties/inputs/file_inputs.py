@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Dict
 
 from ...utils.image_utils import get_available_image_formats

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Nodes that provide functionality for opencv image manipulation
 """
