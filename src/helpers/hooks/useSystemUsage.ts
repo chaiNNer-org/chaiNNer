@@ -47,7 +47,6 @@ const useSystemUsage = (delay: number) => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       // We set this up on mount, letting the main process handle it
       // By doing it this way we avoid spawning multiple smi shells
@@ -57,7 +56,6 @@ const useSystemUsage = (delay: number) => {
   }, []);
 
   useInterval(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       await setInfo();
     })();
