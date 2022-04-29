@@ -1637,19 +1637,21 @@ def fill_alpha_fragment_blur(img: np.array) -> np.array:
 
 @NodeFactory.register("Image (Utility)", "Fill Alpha")
 class FillAlphaNode(NodeBase):
-    """TODO:"""
+    """Fills the transparent pixels of an image with nearby colors"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "TODO:"
-        self.inputs = [ImageInput("RGBA")]
+        self.description = (
+            "Fills the transparent pixels of an image with nearby colors."
+        )
+        self.inputs = [ImageInput("RGBA"), AlphaFillMethodInput()]
         self.outputs = [ImageOutput("RGB")]
 
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray, method: int | str) -> np.ndarray:
         """Fills transparent holes in the given image"""
 
         assert (
@@ -1658,14 +1660,21 @@ class FillAlphaNode(NodeBase):
 
         img = normalize(img)
 
-        # preprocess to convert the image into binary alpha
-        convert_to_binary_alpha(img)
-        img = fill_alpha_fragment_blur(img)
+        method = int(method)
+        if method == AlphaFillMethod.EXTEND_TEXTURE:
+            # preprocess to convert the image into binary alpha
+            convert_to_binary_alpha(img)
+            img = fill_alpha_fragment_blur(img)
 
-        convert_to_binary_alpha(img)
-        fill_alpha_edge_extend(img, 8)
+            convert_to_binary_alpha(img)
+            fill_alpha_edge_extend(img, 8)
+        elif method == AlphaFillMethod.EXTEND_COLOR:
+            convert_to_binary_alpha(img)
+            fill_alpha_edge_extend(img, 40)
+        else:
+            assert False, f"Invalid alpha fill method {type(method)} {method}"
 
-        # # finally, add a black background and convert to RGB
+        # finally, add a black background and convert to RGB
         img[:, :, 0] *= img[:, :, 3]
         img[:, :, 1] *= img[:, :, 3]
         img[:, :, 2] *= img[:, :, 3]
