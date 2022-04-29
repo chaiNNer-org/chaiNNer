@@ -15,12 +15,7 @@ export const SettingsProvider = ({ children, port }) => {
   const useIsFp16 = useMemo(() => [isFp16, setIsFp16], [isFp16]);
   const useIsSystemPython = useMemo(() => [isSystemPython, setIsSystemPython], [isSystemPython]);
   const useSnapToGrid = useMemo(
-    () => [
-      isSnapToGrid,
-      setIsSnapToGrid,
-      isSnapToGrid ? snapToGridAmount || 1 : 1,
-      setSnapToGridAmount,
-    ],
+    () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount || 1, setSnapToGridAmount],
     [isSnapToGrid, snapToGridAmount]
   );
   const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel], [isDisHwAccel]);
