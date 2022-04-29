@@ -1435,12 +1435,10 @@ class AverageColorFixNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = (
-            """Correct for upscaling model color shift by matching average color of 
+        self.description = """Correct for upscaling model color shift by matching average color of 
             Input Image to that of a smaller Reference Image. If Reference Image 
             contains compression artifacts, the node can downscale it to avoid 
             artifacts in the output."""
-        )
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
@@ -1451,7 +1449,9 @@ class AverageColorFixNode(NodeBase):
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"
 
-    def run(self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor) -> np.ndarray:
+    def run(
+        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor
+    ) -> np.ndarray:
         """Fixes the average color of the input image"""
 
         scale_factor = float(scale_factor)
