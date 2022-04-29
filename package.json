@@ -127,6 +127,7 @@
     "@electron-forge/publisher-github": "^6.0.0-beta.63",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@types/d3": "^7.1.0",
+    "@types/os-utils": "^0.0.1",
     "@types/react-dom": "^18.0.3",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
