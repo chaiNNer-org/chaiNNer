@@ -191,3 +191,26 @@ def IteratorInput() -> Dict:
         "hasHandle": False,
         "optional": True,
     }
+
+
+class AlphaFillMethod:
+    EXTEND_TEXTURE = 1
+    EXTEND_COLOR = 2
+
+
+def AlphaFillMethodInput() -> Dict:
+    """Alpha Fill method option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Fill method",
+        [
+            {
+                "option": "Extend texture",
+                "value": AlphaFillMethod.EXTEND_TEXTURE,
+            },
+            {
+                "option": "Extend color",
+                "value": AlphaFillMethod.EXTEND_COLOR,
+            },
+        ],
+    )
