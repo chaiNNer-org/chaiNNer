@@ -8,11 +8,9 @@ import platform
 import subprocess
 import time
 from tempfile import TemporaryDirectory, mkdtemp
-
 import cv2
 import numpy as np
 from sanic.log import logger
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -28,7 +26,7 @@ except ImportError:
     pil = Image = None
 
 
-def normalize(img):
+def normalize(img: np.ndarray) -> np.ndarray:
     dtype_max = 1
     try:
         dtype_max = np.iinfo(img.dtype).max
@@ -956,7 +954,7 @@ class ChannelSplitRGBANode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray) -> [np.ndarray]:
         """Split a multi-channel image into separate channels"""
 
         c = 1
@@ -1000,7 +998,7 @@ class TransparencySplitNode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
-    def run(self, img: np.ndarray) -> Any:
+    def run(self, img: np.ndarray) -> (np.ndarray, np.ndarray):
         """Split a multi-channel image into separate channels"""
 
         if img.ndim == 2:
@@ -1286,3 +1284,222 @@ class CaptionNode(NodeBase):
             lineType=cv2.LINE_AA,
         )
         return img
+
+
+def normalize_normals(
+    x: np.ndarray, y: np.ndarray
+) -> (np.ndarray, np.ndarray, np.ndarray):
+    # the square of the length of X and Y
+    l_sq = np.square(x) + np.square(y)
+
+    # if the length of X and Y is >1, then we have make it 1
+    l = np.sqrt(np.maximum(l_sq, 1))
+    x /= l
+    y /= l
+    l_sq = np.minimum(l_sq, 1, out=l_sq)
+
+    # compute Z
+    z = np.sqrt(1 - l_sq)
+
+    return x, y, z
+
+
+@NodeFactory.register("Image (Utility)", "Normalize")
+class NormalizeNode(NodeBase):
+    """Normalize normal map"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Normalizes the given normal map."
+            " Only the R and G channels of the input image will be used."
+        )
+        self.inputs = [
+            ImageInput("Normal map RG"),
+        ]
+        self.outputs = [ImageOutput("Normal map RGB")]
+        self.icon = "MdOutlineAutoFixHigh"
+        self.sub = "Normal map"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Takes an a normal map and normalize it"""
+
+        logger.info(f"Normalizing image")
+        assert img.ndim == 3, "The input image must be an RGB or RGBA image"
+
+        # convert BGR to XY
+        x = normalize(img[:, :, 2]) * 2 - 1
+        y = normalize(img[:, :, 1]) * 2 - 1
+
+        x, y, z = normalize_normals(x, y)
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))
+
+
+@NodeFactory.register("Image (Utility)", "Normal Addition")
+class NormalAdditionNode(NodeBase):
+    """Add together two normal maps"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Add 2 normal maps together."
+            " Only the R and G channels of the input image will be used."
+            " The output normal map is guaranteed to be normalized."
+        )
+        self.inputs = [
+            ImageInput("Normal map 1"),
+            SliderInput("Strength 1", 0, 100, 100),
+            ImageInput("Normal map 2"),
+            SliderInput("Strength 2", 0, 100, 100),
+        ]
+        self.outputs = [ImageOutput("Normal map")]
+        self.icon = "MdAddCircleOutline"
+        self.sub = "Normal map"
+
+    def run(self, n: np.ndarray, n_strength, m: np.ndarray, m_strength) -> np.ndarray:
+        """
+        Takes 2 normal maps and adds them.
+
+        The addition works by converting the normals into 2D slopes and then adding the slopes.
+        The sum of the slopes is then converted back into normals.
+
+        Why slopes? When adding 2 normal maps, we don't actually want to add the normals
+        themselves. Instead, we want to add the heightmaps that those normals represent.
+        Conceptually, we want to convert the normals into slopes (the derivatives of the
+        heightmap), integrate the slopes to get the heightmaps, add the heightmaps, derive the
+        heightmaps to get slopes, and then convert the slopes into normals again. Luckily,
+        adding together slopes is equivalent to adding together heightmaps, so we don't have to
+        integrate anything.
+        """
+
+        logger.info(f"Adding normal maps")
+        assert (
+            n.ndim == 3 and m.ndim == 3
+        ), "The input images must be RGB or RGBA images"
+
+        n_strength /= 100
+        m_strength /= 100
+
+        # convert BGR to XY
+        n_x = normalize(n[:, :, 2]) * 2 - 1
+        n_y = normalize(n[:, :, 1]) * 2 - 1
+        m_x = normalize(m[:, :, 2]) * 2 - 1
+        m_y = normalize(m[:, :, 1]) * 2 - 1
+
+        n_x, n_y, n_z = normalize_normals(n_x, n_y)
+        m_x, m_y, m_z = normalize_normals(m_x, m_y)
+
+        # slopes aren't defined for z=0, so we use a little trick
+        n_z = np.maximum(n_z, 0.001, out=n_z)
+        m_z = np.maximum(m_z, 0.001, out=m_z)
+
+        # This works as follows:
+        # 1. Use the normals n,m to calculate 3D plans (our slopes) centered at origin p_n,p_m.
+        # 2. Calculate the Z values of those planes at a_xy=(1,0) and b_xy=(0,1).
+        # 3. Add the Z values to together (weighted using their strength):
+        #    a_z = p_n[a_xy] * n_strength + p_m[a_xy] * m_strength, same for b_xy.
+        # 4. Define a=(1,0,a_z), b=(0,1,b_z).
+        # 5. The final normal will be normalize(cross(a,b)).
+
+        # if you do the maths by hand, you'll see that a bunch of things cancel out and
+        # you'll be left with this:
+
+        n_f = n_strength / n_z
+        m_f = m_strength / m_z
+        a_z = n_x * n_f + m_x * m_f
+        b_z = n_y * n_f + m_y * m_f
+
+        l_r = 1 / np.sqrt(np.square(a_z) + np.square(b_z) + 1)
+        x = a_z * l_r
+        y = b_z * l_r
+        z = l_r
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))
+
+
+@NodeFactory.register("Image (Utility)", "Average Color Fix")
+class AverageColorFixNode(NodeBase):
+    """Fixes the average color of an upscaled image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Ensure that the average color of the large image is the same as the average color of the small image."
+            "\nSome upscaler models slightly change the overall color of the original image."
+            " Sometimes this is a desirable effect, but often it is just a problem."
+            " This nodes 'fixes' the large image, so that its overall color is the same as that of the small image."
+            "\nIf the small image contain compression artifacts, it must be downscaled or denoised first."
+            " The output image will include the compression artifacts otherwise."
+        )
+        self.inputs = [
+            ImageInput("Large Image"),
+            ImageInput("Small Image"),
+            BoundedIntegerInput("Small Image Downscale Factor", 1, 128, 1),
+        ]
+        self.outputs = [ImageOutput()]
+
+        self.icon = "MdAutoFixHigh"
+        self.sub = "Miscellaneous"
+
+    def run(self, large: np.ndarray, small: np.ndarray, down_scale) -> np.ndarray:
+        """Fixes the average color of the large image"""
+
+        down_scale = int(down_scale)
+
+        large = normalize(large)
+        small = normalize(small)
+
+        if down_scale > 1:
+            small = cv2.resize(
+                small,
+                None,
+                fx=float(1 / down_scale),
+                fy=float(1 / down_scale),
+                interpolation=cv2.INTER_AREA,
+            )
+
+        l_h, l_w = large.shape[:2]
+        s_h, s_w = small.shape[:2]
+
+        assert (
+            s_w < l_w and s_h < l_h
+        ), "The large image has to be larger than the small image"
+
+        # find the diff of both images
+
+        # downscale the large image
+        l = cv2.resize(
+            large,
+            None,
+            fx=float(s_w / l_w),
+            fy=float(s_h / l_h),
+            interpolation=cv2.INTER_AREA,
+        )
+
+        # different
+        small_diff = small - l
+
+        # upsample the difference
+        diff = cv2.resize(
+            small_diff,
+            None,
+            fx=float(l_w / s_w),
+            fy=float(l_h / s_h),
+            interpolation=cv2.INTER_CUBIC,
+        )
+
+        result = large + diff
+
+        return np.clip(result, 0, 1)

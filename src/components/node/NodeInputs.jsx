@@ -1,8 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
-import {
-  memo,
-} from 'react';
+import { memo } from 'react';
 import DirectoryInput from '../inputs/DirectoryInput.jsx';
 import DropDownInput from '../inputs/DropDownInput.jsx';
 import FileInput from '../inputs/FileInput.jsx';
@@ -85,12 +83,18 @@ const pickInput = (type, props) => {
   );
 };
 
-const NodeInputs = ({
-  inputs, id, accentColor, isLocked, category, nodeType,
-}) => inputs.map((input, i) => {
-  const props = {
-    ...input, id, index: i, type: input.type, accentColor, isLocked, category, nodeType,
-  };
-  return pickInput(input.type, props);
-});
+const NodeInputs = ({ inputs, id, accentColor, isLocked, category, nodeType }) =>
+  inputs.map((input, i) => {
+    const props = {
+      ...input,
+      id,
+      index: i,
+      type: input.type,
+      accentColor,
+      isLocked,
+      category,
+      nodeType,
+    };
+    return pickInput(input.type, props);
+  });
 export default memo(NodeInputs);

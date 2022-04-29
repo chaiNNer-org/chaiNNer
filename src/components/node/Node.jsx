@@ -1,10 +1,14 @@
 import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-  Center, Menu, MenuItem, MenuList, Portal, useColorModeValue, VStack,
+  Center,
+  Menu,
+  MenuItem,
+  MenuList,
+  Portal,
+  useColorModeValue,
+  VStack,
 } from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
-} from 'react';
+import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import checkNodeValidity from '../../helpers/checkNodeValidity.js';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 import getAccentColor from '../../helpers/getNodeAccentColors.js';
@@ -32,51 +36,37 @@ const getSchema = (availableNodes, category, type) => {
   return blankSchema;
 };
 
-const NodeWrapper = memo(({
-  data, selected,
-}) => (
+const NodeWrapper = memo(({ data, selected }) => (
   <Node
     data={data}
     selected={selected}
   />
 ));
 
-const Node = memo(({
-  data, selected,
-}) => {
-  const {
-    nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode,
-  } = useContext(GlobalContext);
+const Node = memo(({ data, selected }) => {
+  const { nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode } =
+    useContext(GlobalContext);
 
-  const {
-    id, inputData, isLocked, category, type, parentNode,
-  } = useMemo(() => data, [data]);
+  const { id, inputData, isLocked, category, type, parentNode } = useMemo(() => data, [data]);
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
-  const schema = useMemo(
-    () => getSchema(availableNodes, category, type), [category, type],
-  ) ?? blankSchema;
-  const {
-    inputs, outputs, icon, subcategory,
-  } = schema;
+  const schema =
+    useMemo(() => getSchema(availableNodes, category, type), [category, type]) ?? blankSchema;
+  const { inputs, outputs, icon, subcategory } = schema;
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
-  const accentColor = useMemo(
-    () => (getAccentColor(category, subcategory)), [category, subcategory],
-  );
+  const accentColor = useMemo(() => getAccentColor(category, subcategory), [category, subcategory]);
   const borderColor = useMemo(
     () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
-    [selected, accentColor, regularBorderColor],
+    [selected, accentColor, regularBorderColor]
   );
 
   const [validity, setValidity] = useState([false, '']);
 
   useEffect(() => {
     if (inputs && inputs.length) {
-      setValidity(checkNodeValidity({
-        id, inputs, inputData, edges,
-      }));
+      setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
     }
   }, [inputData, edges.length, nodes.length]);
 
@@ -177,7 +167,7 @@ const Node = memo(({
             <MenuItem
               icon={<CopyIcon />}
               onClick={() => {
-              // duplicateNode(id);
+                // duplicateNode(id);
               }}
             >
               Duplicate
@@ -185,7 +175,7 @@ const Node = memo(({
             <MenuItem
               icon={<CloseIcon />}
               onClick={() => {
-              //  clearNode(id);
+                //  clearNode(id);
               }}
             >
               Clear
@@ -193,7 +183,7 @@ const Node = memo(({
             <MenuItem
               icon={<DeleteIcon />}
               onClick={() => {
-              // removeNodeById(id);
+                // removeNodeById(id);
               }}
             >
               Delete

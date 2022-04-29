@@ -1,26 +1,41 @@
 import { SettingsIcon } from '@chakra-ui/icons';
 import {
-  Button, Flex, HStack, IconButton, Modal, ModalBody, ModalCloseButton,
-  ModalContent, ModalFooter, ModalHeader,
-  ModalOverlay, NumberDecrementStepper, NumberIncrementStepper,
-  NumberInput, NumberInputField, NumberInputStepper, StackDivider,
-  Switch, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Tooltip,
-  useColorMode, useDisclosure, VStack,
+  Button,
+  Flex,
+  HStack,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  StackDivider,
+  Switch,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+  Tooltip,
+  useColorMode,
+  useDisclosure,
+  VStack,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
-import {
-  memo, useContext, useEffect, useState,
-} from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
 const SettingsModal = ({ isOpen, onClose }) => {
-  const {
-    useIsCpu,
-    useIsFp16,
-    useIsSystemPython,
-    useSnapToGrid,
-    useDisHwAccel,
-  } = useContext(SettingsContext);
+  const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
+    useContext(SettingsContext);
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -34,7 +49,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     (async () => {
-      const gpuName = await ipcRenderer.invoke('get-gpu-name') || 'GPU not detected';
+      const gpuName = (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected';
       const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
       if (gpuName.toLowerCase().includes('rtx')) {
         setIsFp16(true);
@@ -88,7 +103,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={colorMode === 'dark'}
             size="lg"
             value={colorMode === 'dark'}
-            onChange={() => { toggleColorMode(); }}
+            onChange={() => {
+              toggleColorMode();
+            }}
           />
         </HStack>
       </Flex>
@@ -122,7 +139,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={isSnapToGrid}
             size="lg"
             value={isSnapToGrid}
-            onChange={() => { setIsSnapToGrid(!isSnapToGrid); }}
+            onChange={() => {
+              setIsSnapToGrid(!isSnapToGrid);
+            }}
           />
         </HStack>
       </Flex>
@@ -196,8 +215,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             marginTop={0}
             textAlign="left"
           >
-            Use CPU for PyTorch inference instead of GPU.
-            Forced if Nvidia (CUDA) GPU not detected.
+            Use CPU for PyTorch inference instead of GPU. Forced if Nvidia (CUDA) GPU not detected.
           </Text>
         </VStack>
         <HStack>
@@ -206,7 +224,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             isDisabled={!isNvidiaAvailable}
             size="lg"
             value={isCpu}
-            onChange={() => { setIsCpu(!isCpu); }}
+            onChange={() => {
+              setIsCpu(!isCpu);
+            }}
           />
         </HStack>
       </Flex>
@@ -232,8 +252,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
             marginTop={0}
             textAlign="left"
           >
-            Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage.
-            RTX GPUs also get an inference speedup.
+            Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage. RTX GPUs also
+            get an inference speedup.
           </Text>
         </VStack>
         <HStack>
@@ -242,7 +262,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             isDisabled={isCpu}
             size="lg"
             value={isFp16}
-            onChange={() => { setIsFp16(!isFp16); }}
+            onChange={() => {
+              setIsFp16(!isFp16);
+            }}
           />
         </HStack>
       </Flex>
@@ -275,7 +297,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
             marginTop={0}
             textAlign="left"
           >
-            {'Use system Python for chaiNNer\'s processing instead of the bundled Python (not recommended)'}
+            Use system Python for chaiNNer&apos;s processing instead of the bundled Python (not
+            recommended)
           </Text>
         </VStack>
         <HStack>
@@ -283,7 +306,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={isSystemPython}
             size="lg"
             value={isSystemPython}
-            onChange={() => { setIsSystemPython(!isSystemPython); }}
+            onChange={() => {
+              setIsSystemPython(!isSystemPython);
+            }}
           />
         </HStack>
       </Flex>
@@ -317,7 +342,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
             marginTop={0}
             textAlign="left"
           >
-            {'Disable GPU hardware acceleration for rendering chaiNNer\'s UI. Only disable this is you know hardware acceleration is causing you issues.'}
+            Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only disable this is
+            you know hardware acceleration is causing you issues.
           </Text>
         </VStack>
         <HStack>
@@ -325,7 +351,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={isDisHwAccel}
             size="lg"
             value={isDisHwAccel}
-            onChange={() => { setIsDisHwAccel(!isDisHwAccel); }}
+            onChange={() => {
+              setIsDisHwAccel(!isDisHwAccel);
+            }}
           />
         </HStack>
       </Flex>
@@ -401,7 +429,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
 export const SettingsButton = memo(() => {
   const {
-    isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose,
+    isOpen: isSettingsOpen,
+    onOpen: onSettingsOpen,
+    onClose: onSettingsClose,
   } = useDisclosure();
   return (
     <>

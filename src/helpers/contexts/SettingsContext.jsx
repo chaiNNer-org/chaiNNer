@@ -1,13 +1,9 @@
-import {
-  createContext, useMemo,
-} from 'react';
+import { createContext, useMemo } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage.js';
 
 export const SettingsContext = createContext({});
 
-export const SettingsProvider = ({
-  children, port,
-}) => {
+export const SettingsProvider = ({ children, port }) => {
   const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
   const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
   const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
@@ -20,24 +16,21 @@ export const SettingsProvider = ({
   const useIsSystemPython = useMemo(() => [isSystemPython, setIsSystemPython], [isSystemPython]);
   const useSnapToGrid = useMemo(
     () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount],
-    [isSnapToGrid, snapToGridAmount],
+    [isSnapToGrid, snapToGridAmount]
   );
   const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel], [isDisHwAccel]);
 
-  const contextValue = useMemo(() => ({
-    useIsCpu,
-    useIsFp16,
-    useIsSystemPython,
-    useSnapToGrid,
-    useDisHwAccel,
-    port,
-  }), [
-    useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, port,
-  ]);
-
-  return (
-    <SettingsContext.Provider value={contextValue}>
-      {children}
-    </SettingsContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      useIsCpu,
+      useIsFp16,
+      useIsSystemPython,
+      useSnapToGrid,
+      useDisHwAccel,
+      port,
+    }),
+    [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, port]
   );
+
+  return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
 };

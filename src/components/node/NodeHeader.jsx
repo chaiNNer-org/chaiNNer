@@ -1,14 +1,8 @@
-import {
-  Center, Heading, HStack, useColorModeValue,
-} from '@chakra-ui/react';
-import {
-  memo,
-} from 'react';
+import { Center, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
+import { memo } from 'react';
 import { IconFactory } from '../CustomIcons.jsx';
 
-const NodeHeader = ({
-  type, width, icon, accentColor, selected, parentNode,
-}) => (
+const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }) => (
   <Center
     borderBottomColor={accentColor}
     borderBottomStyle={parentNode ? 'double' : 'default'}

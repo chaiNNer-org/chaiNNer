@@ -13,7 +13,8 @@
     "make-win-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform win32",
     "make-mac-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform darwin",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
-    "lint": "eslint . --ext \".js,.jsx\" && black --check ./backend",
+    "lint": "npm run lint-js && black --check ./backend",
+    "lint-js": "eslint . --ext \".js,.jsx\"",
     "lint-fix": "eslint . --fix --ext \".js,.jsx\" && black ./backend"
   },
   "pre-commit": [
@@ -23,6 +24,9 @@
   "author": {
     "name": "Joey Ballentine",
     "email": "joeyjballentine@gmail.com"
+  },
+  "engines": {
+    "npm": ">=7.0.0"
   },
   "license": "GPLv3",
   "config": {
@@ -130,11 +134,14 @@
     "electron-installer-common": "^0.10.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.29.4",
     "file-loader": "^6.2.0",
     "image-webpack-loader": "^8.1.0",
     "node-loader": "^2.0.0",
     "pre-commit": "^1.2.2",
+    "prettier": "^2.6.2",
     "react-refresh": "^0.11.0",
     "semver-regex": ">=3.1.3",
     "style-loader": "^3.2.1"

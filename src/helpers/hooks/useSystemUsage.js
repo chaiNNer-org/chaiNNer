@@ -12,7 +12,7 @@ const useSystemUsage = (delay) => {
     // RAM
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
-    const ramPercent = Number((1 - (freeMem / totalMem)) * 100).toFixed(1);
+    const ramPercent = Number((1 - freeMem / totalMem) * 100).toFixed(1);
     setRamUsage(ramPercent);
 
     // CPU
@@ -31,8 +31,8 @@ const useSystemUsage = (delay) => {
 
   useEffect(() => {
     (async () => {
-    // We set this up on mount, letting the main process handle it
-    // By doing it this way we avoid spawning multiple smi shells
+      // We set this up on mount, letting the main process handle it
+      // By doing it this way we avoid spawning multiple smi shells
       await ipcRenderer.invoke('setup-vram-checker-process', delay);
       await setInfo();
     })();
@@ -42,9 +42,7 @@ const useSystemUsage = (delay) => {
     await setInfo();
   }, delay);
 
-  return useMemo(() => ({
-    cpuUsage, ramUsage, vramUsage,
-  }), [cpuUsage, ramUsage, vramUsage]);
+  return useMemo(() => ({ cpuUsage, ramUsage, vramUsage }), [cpuUsage, ramUsage, vramUsage]);
 };
 
 export default useSystemUsage;

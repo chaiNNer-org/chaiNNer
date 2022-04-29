@@ -1,13 +1,9 @@
-import {
-  Box, HStack, Text, useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, HStack, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const InputContainer = memo(({
-  children, hasHandle, id, index, label,
-}) => {
+const InputContainer = memo(({ children, hasHandle, id, index, label }) => {
   const { isValidConnection } = useContext(GlobalContext);
 
   let contents = children;
@@ -26,9 +22,7 @@ const InputContainer = memo(({
           },
         }}
       >
-        <div
-          style={{ position: 'absolute', left: '-4px', width: 0 }}
-        >
+        <div style={{ position: 'absolute', left: '-4px', width: 0 }}>
           <Handle
             isConnectable
             className="input-handle"
@@ -36,7 +30,12 @@ const InputContainer = memo(({
             isValidConnection={isValidConnection}
             position="left"
             style={{
-              width: '15px', height: '15px', borderWidth: '1px', borderColor, transition: '0.25s ease-in-out', background: handleColor,
+              width: '15px',
+              height: '15px',
+              borderWidth: '1px',
+              borderColor,
+              transition: '0.25s ease-in-out',
+              background: handleColor,
             }}
             type="target"
             onConnect={(params) => console.log('handle onConnect', params)}

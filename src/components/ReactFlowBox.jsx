@@ -1,14 +1,8 @@
-import {
-  Box, useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
 // import PillPity from 'pill-pity';
-import {
-  createContext, memo, useCallback, useContext, useEffect, useMemo,
-} from 'react';
-import ReactFlow, {
-  Background, Controls, useEdgesState, useNodesState,
-} from 'react-flow-renderer';
+import { createContext, memo, useCallback, useContext, useEffect, useMemo } from 'react';
+import ReactFlow, { Background, Controls, useEdgesState, useNodesState } from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
 
@@ -17,19 +11,23 @@ export const NodeDataContext = createContext({});
 const STARTING_Z_INDEX = 50;
 
 // eslint-disable-next-line react/prop-types
-const ReactFlowBox = ({
-  wrapperRef, nodeTypes, edgeTypes,
-}) => {
+const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   const {
-    nodes, edges, createNode, createConnection,
-    reactFlowInstance, setReactFlowInstance,
-    setNodes, setEdges, onMoveEnd, zoom,
-    useMenuCloseFunctions, useHoveredNode,
+    nodes,
+    edges,
+    createNode,
+    createConnection,
+    reactFlowInstance,
+    setReactFlowInstance,
+    setNodes,
+    setEdges,
+    onMoveEnd,
+    zoom,
+    useMenuCloseFunctions,
+    useHoveredNode,
   } = useContext(GlobalContext);
 
-  const {
-    useSnapToGrid,
-  } = useContext(SettingsContext);
+  const { useSnapToGrid } = useContext(SettingsContext);
 
   const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
   const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
@@ -42,13 +40,13 @@ const ReactFlowBox = ({
     // Put iterators below their children
     iterators.forEach((_iterator, index) => {
       const iterator = _iterator;
-      iterator.zIndex = STARTING_Z_INDEX + (index * 5);
+      iterator.zIndex = STARTING_Z_INDEX + index * 5;
       sortedNodes.push(iterator);
       const children = nodes.filter((n) => n.parentNode === iterator.id);
       // sorted.concat(children);
       children.forEach((_child) => {
         const child = _child;
-        child.zIndex = STARTING_Z_INDEX + (index * 5) + 1;
+        child.zIndex = STARTING_Z_INDEX + index * 5 + 1;
         // child.position.x = Math.min(Math.max(child.position.x, 0), iterator.width);
         // child.position.y = Math.min(Math.max(child.position.y, 0), iterator.height);
         sortedNodes.push(child);
@@ -62,8 +60,8 @@ const ReactFlowBox = ({
     });
 
     const indexedEdges = edges.map((e) => {
-      const index = (sortedNodes.find((n) => n.id === e.target)?.zIndex || 1000);
-      return ({ ...e, zIndex: index });
+      const index = sortedNodes.find((n) => n.id === e.target)?.zIndex || 1000;
+      return { ...e, zIndex: index };
     });
 
     // This fixes the connection line being behind iterators if no edges are present
@@ -84,24 +82,34 @@ const ReactFlowBox = ({
     setEdges(_edges);
   }, [_nodes, _edges]);
 
-  const onNodesDelete = useCallback((_nodesToDelete) => {
-    // Prevent iterator helpers from being deleted
-    const iteratorsToDelete = _nodesToDelete.filter((n) => n.type === 'iterator').map((n) => n.id);
-    const nodesToDelete = _nodesToDelete.filter((n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode)));
+  const onNodesDelete = useCallback(
+    (_nodesToDelete) => {
+      // Prevent iterator helpers from being deleted
+      const iteratorsToDelete = _nodesToDelete
+        .filter((n) => n.type === 'iterator')
+        .map((n) => n.id);
+      const nodesToDelete = _nodesToDelete.filter(
+        (n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode))
+      );
 
-    const nodeIds = nodesToDelete.map((n) => n.id);
-    const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
-    setNodes(newNodes);
-  }, [_setNodes, _nodes, setNodes, nodes]);
+      const nodeIds = nodesToDelete.map((n) => n.id);
+      const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
+      setNodes(newNodes);
+    },
+    [_setNodes, _nodes, setNodes, nodes]
+  );
 
-  const onEdgesDelete = useCallback((edgesToDelete) => {
-    const edgeIds = edgesToDelete.map((e) => e.id);
-    const newEdges = edges.filter((e) => !edgeIds.includes(e.id));
-    setEdges(newEdges);
-  }, [setEdges, _edges, edges]);
+  const onEdgesDelete = useCallback(
+    (edgesToDelete) => {
+      const edgeIds = edgesToDelete.map((e) => e.id);
+      const newEdges = edges.filter((e) => !edgeIds.includes(e.id));
+      setEdges(newEdges);
+    },
+    [setEdges, _edges, edges]
+  );
 
-  const memoNodeTypes = useMemo(() => (nodeTypes), []);
-  const memoEdgeTypes = useMemo(() => (edgeTypes), []);
+  const memoNodeTypes = useMemo(() => nodeTypes, []);
+  const memoEdgeTypes = useMemo(() => edgeTypes, []);
 
   const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
@@ -130,7 +138,7 @@ const ReactFlowBox = ({
         console.log('flow loaded:', rfi);
       }
     },
-    [reactFlowInstance],
+    [reactFlowInstance]
   );
 
   const onDragOver = useCallback((event) => {
@@ -145,45 +153,57 @@ const ReactFlowBox = ({
     setHoveredNode(null);
   }, []);
 
-  const onDrop = useCallback((event) => {
-    // log.info('dropped');
-    event.preventDefault();
+  const onDrop = useCallback(
+    (event) => {
+      // log.info('dropped');
+      event.preventDefault();
 
-    const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
+      const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
-    try {
-      const type = event.dataTransfer.getData('application/reactflow/type');
-      const nodeType = event.dataTransfer.getData('application/reactflow/nodeType');
-      // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
-      // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
-      const category = event.dataTransfer.getData('application/reactflow/category');
-      const icon = event.dataTransfer.getData('application/reactflow/icon');
-      const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
-      const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
-      const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
-      const defaultNodes = nodeType === 'iterator' ? JSON.parse(event.dataTransfer.getData('application/reactflow/defaultNodes')) : null;
-      // log.info(type, inputs, outputs, category);
+      try {
+        const type = event.dataTransfer.getData('application/reactflow/type');
+        const nodeType = event.dataTransfer.getData('application/reactflow/nodeType');
+        // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
+        // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
+        const category = event.dataTransfer.getData('application/reactflow/category');
+        const icon = event.dataTransfer.getData('application/reactflow/icon');
+        const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
+        const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
+        const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
+        const defaultNodes =
+          nodeType === 'iterator'
+            ? JSON.parse(event.dataTransfer.getData('application/reactflow/defaultNodes'))
+            : null;
+        // log.info(type, inputs, outputs, category);
 
-      const position = reactFlowInstance.project({
-        x: event.clientX - reactFlowBounds.left - (offsetX * zoom),
-        y: event.clientY - reactFlowBounds.top - (offsetY * zoom),
-      });
+        const position = reactFlowInstance.project({
+          x: event.clientX - reactFlowBounds.left - offsetX * zoom,
+          y: event.clientY - reactFlowBounds.top - offsetY * zoom,
+        });
 
-      const nodeData = {
-        category,
-        type,
-        icon,
-        subcategory,
-      };
+        const nodeData = {
+          category,
+          type,
+          icon,
+          subcategory,
+        };
 
-      createNode({
-        type, position, data: nodeData, nodeType, defaultNodes,
-      });
-    } catch (error) {
-      log.error(error);
-      console.log('Oops! This probably means something was dragged here that should not have been.');
-    }
-  }, [createNode, wrapperRef.current, zoom, reactFlowInstance]);
+        createNode({
+          type,
+          position,
+          data: nodeData,
+          nodeType,
+          defaultNodes,
+        });
+      } catch (error) {
+        log.error(error);
+        console.log(
+          'Oops! This probably means something was dragged here that should not have been.'
+        );
+      }
+    },
+    [createNode, wrapperRef.current, zoom, reactFlowInstance]
+  );
 
   const onNodeContextMenu = useCallback((event, node) => {
     console.log(event, node);

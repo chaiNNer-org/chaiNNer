@@ -1,13 +1,31 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel,
-  Box, Center, Divider, Heading, HStack, Input,
-  InputGroup, InputLeftElement, Tab, TabList, TabPanel,
-  TabPanels, Tabs, Text, Tooltip, useColorModeValue, useDisclosure, Wrap, WrapItem,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Center,
+  Divider,
+  Heading,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+  Tooltip,
+  useColorModeValue,
+  useDisclosure,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
-import {
-  memo, useContext, useEffect, useState,
-} from 'react';
+import { memo, useContext, useState } from 'react';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
 import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
 import { IconFactory } from './CustomIcons.jsx';
@@ -20,7 +38,10 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
   event.dataTransfer.setData('application/reactflow/icon', node.icon);
   event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
-  event.dataTransfer.setData('application/reactflow/defaultNodes', node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null);
+  event.dataTransfer.setData(
+    'application/reactflow/defaultNodes',
+    node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null
+  );
 
   event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
   event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
@@ -28,41 +49,61 @@ const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.effectAllowed = 'move';
 };
 
+/**
+ * @param {string} query
+ * @returns {(name: string) => boolean}
+ */
+function createSearchPredicate(query) {
+  const pattern = new RegExp(
+    `^${[...query]
+      .map((char) => {
+        const hex = `\\u{${char.codePointAt(0).toString(16)}}`;
+        return `[^${hex}]*${hex}`;
+      })
+      .join('')}`,
+    'iu'
+  );
+  return (name) => pattern.test(name);
+}
+
+/**
+ * Returns a map that maps for sub category name to all nodes of that sub category.
+ *
+ * The nodes per namespace are sorted by name.
+ * @param {any[]} nodes
+ * @returns {Map<string, any[]>}
+ */
+function getNamespaces(nodes) {
+  const map = new Map();
+  nodes
+    .sort((a, b) => {
+      let keyA = a.subcategory.toUpperCase();
+      let keyB = b.subcategory.toUpperCase();
+      if (keyA !== keyB) return keyA.localeCompare(keyB);
+      keyA = a.name.toUpperCase();
+      keyB = b.name.toUpperCase();
+      return keyA.localeCompare(keyB);
+    })
+    .forEach((n) => {
+      const list = map.get(n.subcategory) ?? [];
+      map.set(n.subcategory, list);
+      list.push(n);
+    });
+  return map;
+}
+
 // eslint-disable-next-line react/prop-types
 const NodeSelector = ({ data, height }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const handleChange = (event) => setSearchQuery(event.target.value);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [namespaces, setNamespaces] = useState([]);
-
-  const {
-    createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode,
-  } = useContext(GlobalContext);
+  const { createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode } =
+    useContext(GlobalContext);
 
   const [, setHoveredNode] = useHoveredNode;
 
-  useEffect(() => {
-    const set = {};
-    data?.forEach(({ category, nodes }) => {
-      nodes
-        .sort(
-          (a, b) => (a.subcategory + a.name)
-            .toUpperCase()
-            .localeCompare((b.subcategory + b.name).toUpperCase()),
-        )
-        .forEach((node) => {
-          const namespace = node.subcategory;
-          if (!set[category]) {
-            set[category] = [];
-          }
-          if (!set[category].includes(namespace)) {
-            set[category].push(namespace);
-          }
-        });
-    });
-    setNamespaces(set);
-  }, [data]);
+  const matchesSearchQuery = createSearchPredicate(searchQuery);
 
   return (
     <Box
@@ -86,15 +127,9 @@ const NodeSelector = ({ data, height }) => {
             m={0}
             p={0}
           >
-            <InputGroup
-              borderRadius={0}
-            >
-              <InputLeftElement
-                pointerEvents="none"
-              >
-                <SearchIcon
-                  color="gray.300"
-                />
+            <InputGroup borderRadius={0}>
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
                 borderRadius={0}
@@ -123,32 +158,38 @@ const NodeSelector = ({ data, height }) => {
                 },
               }}
             >
-
               <Accordion
                 allowMultiple
                 defaultIndex={data.map((item, index) => index)}
               >
-                {data.map(({ category, nodes }) => (
-                  <AccordionItem key={category}>
-                    <AccordionButton>
-                      <HStack
-                        flex="1"
-                        textAlign="left"
-                      >
-                        {IconFactory(category, getNodeAccentColor(category))}
-                        <Heading size="5xl">{category}</Heading>
-                      </HStack>
-                      <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel>
-                      {namespaces[category] && namespaces[category]
-                      // eslint-disable-next-line max-len
-                      // This is super terrible but I have no better way of filtering for these at the moment
-                      // I could probably cache this in the namespace object but w/e
-                        .filter(
-                          (namespace) => `${category} ${namespace} ${nodes.filter((e) => e.subcategory === namespace).map((e) => e.name).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase()),
-                        )
-                        .map((namespace) => (
+                {data.map(({ category, nodes: categoryNodes }) => {
+                  const matchingNodes = matchesSearchQuery(category)
+                    ? categoryNodes
+                    : categoryNodes.filter(
+                        (n) =>
+                          matchesSearchQuery(`${category} ${n.name}`) ||
+                          matchesSearchQuery(`${n.subcategory} ${n.name}`)
+                      );
+
+                  // don't show categories without nodes
+                  if (matchingNodes.length === 0) return null;
+
+                  const namespaceMap = getNamespaces(matchingNodes);
+
+                  return (
+                    <AccordionItem key={category}>
+                      <AccordionButton>
+                        <HStack
+                          flex="1"
+                          textAlign="left"
+                        >
+                          {IconFactory(category, getNodeAccentColor(category))}
+                          <Heading size="5xl">{category}</Heading>
+                        </HStack>
+                        <AccordionIcon />
+                      </AccordionButton>
+                      <AccordionPanel>
+                        {[...namespaceMap].map(([namespace, nodes]) => (
                           <Box key={namespace}>
                             <Center w="full">
                               <HStack w="full">
@@ -167,19 +208,7 @@ const NodeSelector = ({ data, height }) => {
                             </Center>
                             <Wrap>
                               {nodes
-                                .filter(
-                                  (e) => `${category} ${namespace} ${e.name}`.toLowerCase().includes(searchQuery.toLowerCase()),
-                                )
-                                .filter(
-                                  (e) => e.subcategory
-                                    .toUpperCase()
-                                    .includes(namespace.toUpperCase()),
-                                )
                                 .filter((e) => e.nodeType !== 'iteratorHelper')
-                                .sort(
-                                  (a, b) => a.name.toUpperCase()
-                                    .localeCompare(b.name.toUpperCase()),
-                                )
                                 .map((node) => (
                                   <WrapItem
                                     key={node.name}
@@ -200,9 +229,8 @@ const NodeSelector = ({ data, height }) => {
                                         display="block"
                                         w="100%"
                                         onDoubleClick={() => {
-                                          const {
-                                            height: wHeight, width,
-                                          } = reactFlowWrapper.current.getBoundingClientRect();
+                                          const { height: wHeight, width } =
+                                            reactFlowWrapper.current.getBoundingClientRect();
 
                                           const position = reactFlowInstance.project({
                                             x: width / 2,
@@ -224,12 +252,10 @@ const NodeSelector = ({ data, height }) => {
                                         onDragEnd={() => {
                                           setHoveredNode(null);
                                         }}
-                                        onDragStart={
-                                            (event) => {
-                                              onDragStart(event, category, node);
-                                              setHoveredNode(null);
-                                            }
-                                          }
+                                        onDragStart={(event) => {
+                                          onDragStart(event, category, node);
+                                          setHoveredNode(null);
+                                        }}
                                       >
                                         <RepresentativeNode
                                           category={category}
@@ -244,10 +270,10 @@ const NodeSelector = ({ data, height }) => {
                             </Wrap>
                           </Box>
                         ))}
-
-                    </AccordionPanel>
-                  </AccordionItem>
-                ))}
+                      </AccordionPanel>
+                    </AccordionItem>
+                  );
+                })}
                 <AccordionItem>
                   <Center
                     p={10}

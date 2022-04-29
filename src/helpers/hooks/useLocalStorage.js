@@ -17,9 +17,7 @@ const getLocalStorageOrDefault = (key, defaultValue) => {
 };
 
 const useLocalStorage = (key, defaultValue) => {
-  const [value, setValue] = useState(
-    getLocalStorageOrDefault(key, defaultValue),
-  );
+  const [value, setValue] = useState(getLocalStorageOrDefault(key, defaultValue));
 
   useEffect(() => {
     global.customLocalStorage.setItem(key, JSON.stringify(value));
