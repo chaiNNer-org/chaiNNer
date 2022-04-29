@@ -1489,36 +1489,6 @@ class AverageColorFixNode(NodeBase):
         return np.clip(result, 0, 1)
 
 
-class ImageAverage:
-    def __init__(self):
-        """Constructor"""
-        self.total = None
-        self.count = 0
-
-    def add(self, img: np.array):
-        self.count += 1
-        if self.total is None:
-            self.total = img
-        else:
-            # we can't just add the images together, we have to correct the alpha channel
-            a = img[:, :, 3]
-            self.total[:, :, 0] += img[:, :, 0] * a
-            self.total[:, :, 1] += img[:, :, 1] * a
-            self.total[:, :, 2] += img[:, :, 2] * a
-            self.total[:, :, 3] += a
-
-    def get_result(self, average_alpha: bool = True) -> np.array:
-        f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
-        self.total[:, :, 0] *= f
-        self.total[:, :, 1] *= f
-        self.total[:, :, 2] *= f
-        if average_alpha:
-            self.total[:, :, 3] *= 1 / self.count
-        else:
-            self.total[:, :, 3] = np.minimum(self.total[:, :, 3], 1)
-        return self.total
-
-
 @NodeFactory.register("Image (Utility)", "Fill Alpha")
 class FillAlphaNode(NodeBase):
     """Fills the transparent pixels of an image with nearby colors"""
@@ -1569,19 +1539,50 @@ class FillAlphaNode(NodeBase):
         assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
         img[:, :, 3] = 1 - np.square(1 - img[:, :, 3])
 
-    def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
+    def convert_to_binary_alpha(self, img: np.array, threshold: float = 0.05):
+        """Sets all pixels with alpha <= threshold to RGBA=(0,0,0,0) and sets the alpha to 1 otherwise."""
         assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
-        img[:, :, 3] = np.greater(img[:, :, 3], threshold).astype(np.float32)
+        a = np.greater(img[:, :, 3], threshold).astype(np.float32)
+        img[:, :, 0] *= a
+        img[:, :, 1] *= a
+        img[:, :, 2] *= a
+        img[:, :, 3] = a
+
+    class ImageAverage:
+        def __init__(self):
+            """Constructor"""
+            self.total = None
+            self.count = 0
+
+        def add(self, img: np.array):
+            self.count += 1
+            if self.total is None:
+                self.total = img
+            else:
+                # we can't just add the images together, we have to correct the alpha channel
+                a = img[:, :, 3]
+                self.total[:, :, 0] += img[:, :, 0] * a
+                self.total[:, :, 1] += img[:, :, 1] * a
+                self.total[:, :, 2] += img[:, :, 2] * a
+                self.total[:, :, 3] += a
+
+        def get_result(self) -> np.array:
+            f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
+            self.total[:, :, 0] *= f
+            self.total[:, :, 1] *= f
+            self.total[:, :, 2] *= f
+            self.total[:, :, 3] *= 1 / self.count
+            return self.total
 
     def fragment_blur(
-        img: np.array, n: int, startAngle: float, distance: float
+        self, img: np.array, n: int, startAngle: float, distance: float
     ) -> np.array:
         assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
         assert n >= 1
 
         h, w = img.shape[:2]
 
-        avg = ImageAverage()
+        avg = FillAlphaNode.ImageAverage()
         for i in range(n):
             angle = math.pi * 2 * i / n + startAngle
             x_offset = int(math.cos(angle) * distance)
@@ -1607,15 +1608,13 @@ class FillAlphaNode(NodeBase):
         return result
 
     def fill_alpha_edge_extend(self, img: np.array, distance: int):
-        """Given an image with binary alpha, with will fill transparent pixels by extending the closest color."""
+        """
+        Given an image with binary alpha, with will fill transparent pixels by extending the closest color.
+
+        This operation assumes that the image has been preprocessed with convert_to_binary_alpha.
+        """
 
         assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
-
-        # premultiply alpha
-        # this is fairly trivial, because we assume binary alpha
-        img[:, :, 0] *= img[:, :, 3]
-        img[:, :, 1] *= img[:, :, 3]
-        img[:, :, 2] *= img[:, :, 3]
 
         proccessed_distance = 0
         it = 0
