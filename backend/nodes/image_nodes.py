@@ -1025,7 +1025,7 @@ class ChannelMergeRGBANode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Merge image channels together into a <= 4 channel image. "
+            "Merge image channels together into a ≤4 channel image. "
             "Typically used for combining an image with an alpha layer."
         )
         self.inputs = [
