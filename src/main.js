@@ -8,6 +8,7 @@ import {
   access, readFile, writeFile,
 } from 'fs/promises';
 import https from 'https';
+import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
@@ -22,6 +23,15 @@ const exec = util.promisify(_exec);
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
+}
+
+const localStorageLocation = path.join(app.getPath('userData'), 'settings');
+ipcMain.handle('get-localstorage-location', () => localStorageLocation);
+const localStorage = new LocalStorage(localStorageLocation);
+
+const disableHardwareAcceleration = localStorage.getItem('disable-hw-accel');
+if (disableHardwareAcceleration) {
+  app.disableHardwareAcceleration();
 }
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');

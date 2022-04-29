@@ -2,6 +2,7 @@ import {
   Box, Center, ChakraProvider, ColorModeScript, Spinner,
 } from '@chakra-ui/react';
 import { ipcRenderer } from 'electron';
+import { LocalStorage } from 'node-localstorage';
 import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/extensions
 import './global.css';
@@ -15,6 +16,8 @@ const App = () => {
   useEffect(() => {
     (async () => {
       setPort(await ipcRenderer.invoke('get-port'));
+      const localStorageLocation = await ipcRenderer.invoke('get-localstorage-location');
+      global.customLocalStorage = new LocalStorage(localStorageLocation);
     })();
   }, []);
 
