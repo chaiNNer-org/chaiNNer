@@ -5,9 +5,9 @@ import { access } from 'fs/promises';
 import path from 'path';
 import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
-import ImagePreview from './previews/ImagePreview.jsx';
-import TorchModelPreview from './previews/TorchModelPreview.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import ImagePreview from './previews/ImagePreview';
+import TorchModelPreview from './previews/TorchModelPreview';
 
 const checkFileExists = (file) =>
   new Promise((resolve) =>

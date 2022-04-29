@@ -1,7 +1,7 @@
 import { Box, HStack, useColorModeValue } from '@chakra-ui/react';
 import { memo, useContext } from 'react';
 import { Handle } from 'react-flow-renderer';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 const OutputContainer = memo(({ children, hasHandle, index, id }) => {
   const { isValidConnection } = useContext(GlobalContext);

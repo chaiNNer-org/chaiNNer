@@ -26,11 +26,11 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import { memo, useContext, useState } from 'react';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState.jsx';
-import getNodeAccentColor from '../helpers/getNodeAccentColors.js';
-import { IconFactory } from './CustomIcons.jsx';
-import DependencyManager from './DependencyManager.jsx';
-import RepresentativeNode from './node/RepresentativeNode.jsx';
+import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import getNodeAccentColor from '../helpers/getNodeAccentColors';
+import { IconFactory } from './CustomIcons';
+import DependencyManager from './DependencyManager';
+import RepresentativeNode from './node/RepresentativeNode';
 
 const onDragStart = (event, nodeCategory, node) => {
   event.dataTransfer.setData('application/reactflow/type', node.name);

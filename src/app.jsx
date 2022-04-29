@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 // eslint-disable-next-line import/extensions
 import './global.css';
 // eslint-disable-next-line import/extensions
-import Main from './pages/main.jsx';
+import Main from './pages/main';
 import theme from './theme';
 
 const App = () => {

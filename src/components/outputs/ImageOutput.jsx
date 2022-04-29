@@ -2,9 +2,9 @@
 // // import {
 //   memo, useContext, useEffect, useState,
 // } from 'react';
-// import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
-// import GenericOutput from './GenericOutput.jsx';
-// import OutputContainer from './OutputContainer.jsx';
+// import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+// import GenericOutput from './GenericOutput';
+// import OutputContainer from './OutputContainer';
 
 // const { Image: ImageJS } = require('image-js');
 

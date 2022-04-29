@@ -3,9 +3,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { getOutgoers, useEdgesState, useNodesState, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-import useSessionStorage from '../hooks/useSessionStorage.js';
-import { migrate } from '../migrations.js';
-import { SettingsContext } from './SettingsContext.jsx';
+import useSessionStorage from '../hooks/useSessionStorage';
+import { migrate } from '../migrations';
+import { SettingsContext } from './SettingsContext';
 
 export const GlobalContext = createContext({});
 

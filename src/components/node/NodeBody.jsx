@@ -1,7 +1,7 @@
 import { Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
-import NodeInputs from './NodeInputs.jsx';
-import NodeOutputs from './NodeOutputs.jsx';
+import NodeInputs from './NodeInputs';
+import NodeOutputs from './NodeOutputs';
 // useContext, useEffect, useMemo,
 
 const NodeBody = ({ accentColor, inputs, outputs, id, isLocked, category, nodeType }) => (

@@ -6,7 +6,7 @@ import {
   NumberInputStepper,
 } from '@chakra-ui/react';
 import { memo, useContext } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 const NumericalInput = memo(
   ({ label, id, index, def, min, max, precision, step, type, isLocked }) => {

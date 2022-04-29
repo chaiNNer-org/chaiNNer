@@ -40,9 +40,9 @@ import { exec, spawn } from 'child_process';
 import { ipcRenderer } from 'electron';
 import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
-import { SettingsContext } from '../helpers/contexts/SettingsContext.jsx';
-import getAvailableDeps from '../helpers/dependencies.js';
-import pipInstallWithProgress from '../helpers/pipInstallWithProgress.js';
+import { SettingsContext } from '../helpers/contexts/SettingsContext';
+import getAvailableDeps from '../helpers/dependencies';
+import pipInstallWithProgress from '../helpers/pipInstallWithProgress';
 
 const checkSemver = (v1, v2) => {
   try {
