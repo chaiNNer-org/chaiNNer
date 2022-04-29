@@ -6,9 +6,7 @@ import * as cg from 'react-icons/cg';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
 
-const libraries = {
-  bs, cg, md, im,
-};
+const libraries = { bs, cg, md, im };
 
 export const NumPyIcon = createIcon({
   displayName: 'NumPyIcon',
@@ -229,7 +227,7 @@ export const IconFactory = (icon, accentColor) => {
         />
       );
     default:
-      // nothing
+    // nothing
   }
   // eslint-disable-next-line react/destructuring-assignment
   const prefix = icon.slice(0, 2).toLowerCase();

@@ -1,15 +1,27 @@
 import {
   AlertDialog,
-  AlertDialogBody, AlertDialogCloseButton, AlertDialogContent, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogOverlay, Box, Button, Flex, Heading, HStack, IconButton,
-  Image, Spacer, Tag, useColorModeValue, useDisclosure,
+  AlertDialogBody,
+  AlertDialogCloseButton,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  IconButton,
+  Image,
+  Spacer,
+  Tag,
+  useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
 import { clipboard, ipcRenderer } from 'electron';
 import log from 'electron-log';
-import {
-  memo, useContext, useEffect, useRef, useState,
-} from 'react';
+import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity.js';
@@ -30,10 +42,7 @@ const Header = ({ port }) => {
     setIteratorPercent,
   } = useContext(GlobalContext);
 
-  const {
-    useIsCpu,
-    useIsFp16,
-  } = useContext(SettingsContext);
+  const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
@@ -51,61 +60,80 @@ const Header = ({ port }) => {
   const cancelRef = useRef();
 
   const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
-  useEventSourceListener(eventSource, ['finish'], ({ data }) => {
-    try {
-      // eslint-disable-next-line no-unused-vars
-      const parsedData = JSON.parse(data);
-      // console.log(parsedData);
-    } catch (err) {
-      log.error(err);
-    }
-    clearCompleteEdges();
-    setRunning(false);
-  }, [eventSource, setRunning, clearCompleteEdges]);
-
-  useEventSourceListener(eventSource, ['execution-error'], ({ data }) => {
-    if (data) {
+  useEventSourceListener(
+    eventSource,
+    ['finish'],
+    ({ data }) => {
       try {
-        const { message, exception } = JSON.parse(data);
-        if (exception) {
-          setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
-        }
+        // eslint-disable-next-line no-unused-vars
+        const parsedData = JSON.parse(data);
+        // console.log(parsedData);
       } catch (err) {
-        setErrorMessage(err);
         log.error(err);
       }
-      onErrorOpen();
-      unAnimateEdges();
+      clearCompleteEdges();
       setRunning(false);
-    }
-  }, [eventSource, setRunning, unAnimateEdges]);
+    },
+    [eventSource, setRunning, clearCompleteEdges]
+  );
 
-  useEventSourceListener(eventSource, ['node-finish'], ({ data }) => {
-    try {
-      const { finished } = JSON.parse(data);
-      if (finished) {
-        completeEdges(finished);
+  useEventSourceListener(
+    eventSource,
+    ['execution-error'],
+    ({ data }) => {
+      if (data) {
+        try {
+          const { message, exception } = JSON.parse(data);
+          if (exception) {
+            setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
+          }
+        } catch (err) {
+          setErrorMessage(err);
+          log.error(err);
+        }
+        onErrorOpen();
+        unAnimateEdges();
+        setRunning(false);
       }
-    } catch (err) {
-      log.error(err);
-    }
-  }, [eventSource, completeEdges]);
+    },
+    [eventSource, setRunning, unAnimateEdges]
+  );
 
-  useEventSourceListener(eventSource, ['iterator-progress-update'], ({ data }) => {
-    try {
-      const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
-      if (runningNodes) {
-        unAnimateEdges(runningNodes);
+  useEventSourceListener(
+    eventSource,
+    ['node-finish'],
+    ({ data }) => {
+      try {
+        const { finished } = JSON.parse(data);
+        if (finished) {
+          completeEdges(finished);
+        }
+      } catch (err) {
+        log.error(err);
       }
-      setIteratorPercent(iteratorId, percent);
-    } catch (err) {
-      log.error(err);
-    }
-  }, [eventSource, unAnimateEdges]);
+    },
+    [eventSource, completeEdges]
+  );
+
+  useEventSourceListener(
+    eventSource,
+    ['iterator-progress-update'],
+    ({ data }) => {
+      try {
+        const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
+        if (runningNodes) {
+          unAnimateEdges(runningNodes);
+        }
+        setIteratorPercent(iteratorId, percent);
+      } catch (err) {
+        log.error(err);
+      }
+    },
+    [eventSource, unAnimateEdges]
+  );
 
   useEffect(() => {
-    console.log({ eventSourceStatus });
-    if (eventSourceStatus === 500) {
+    if (eventSourceStatus === 'error') {
       setErrorMessage('An unexpected error occurred. You may need to restart chaiNNer.');
       onErrorOpen();
       unAnimateEdges();
@@ -128,18 +156,19 @@ const Header = ({ port }) => {
       setErrorMessage('There are no nodes to run.');
       onErrorOpen();
     } else {
-      const nodeValidities = nodes.map(
-        (node) => {
-          const { inputs } = availableNodes[node.data.category][node.data.type];
-          return [...checkNodeValidity({
-            id: node.id, inputData: node.data.inputData, edges, inputs,
-          }), node.data.type];
-        },
-      );
+      const nodeValidities = nodes.map((node) => {
+        const { inputs } = availableNodes[node.data.category][node.data.type];
+        return [
+          ...checkNodeValidity({ id: node.id, inputData: node.data.inputData, edges, inputs }),
+          node.data.type,
+        ];
+      });
       const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
       if (invalidNodes.length > 0) {
         const reasons = invalidNodes.map(([, reason, type]) => `• ${type}: ${reason}`).join('\n');
-        setErrorMessage(`There are invalid nodes in the editor. Please fix them before running.\n${reasons}`);
+        setErrorMessage(
+          `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
+        );
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -223,9 +252,7 @@ const Header = ({ port }) => {
               draggable={false}
               src={logo}
             />
-            <Heading size="md">
-              chaiNNer
-            </Heading>
+            <Heading size="md">chaiNNer</Heading>
             <Tag>Alpha</Tag>
             <Tag>{`v${appVersion}`}</Tag>
           </HStack>
@@ -238,7 +265,9 @@ const Header = ({ port }) => {
               icon={<IoPlay />}
               size="md"
               variant="outline"
-              onClick={() => { run(); }}
+              onClick={() => {
+                run();
+              }}
             />
             <IconButton
               colorScheme="yellow"
@@ -246,7 +275,9 @@ const Header = ({ port }) => {
               icon={<IoPause />}
               size="md"
               variant="outline"
-              onClick={() => { pause(); }}
+              onClick={() => {
+                pause();
+              }}
             />
             <IconButton
               colorScheme="red"
@@ -254,7 +285,9 @@ const Header = ({ port }) => {
               icon={<IoStop />}
               size="md"
               variant="outline"
-              onClick={() => { kill(); }}
+              onClick={() => {
+                kill();
+              }}
             />
           </HStack>
           <Spacer />
@@ -277,16 +310,13 @@ const Header = ({ port }) => {
         <AlertDialogContent>
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody
-            whiteSpace="pre-wrap"
-          >
-            {String(errorMessage)}
-          </AlertDialogBody>
+          <AlertDialogBody whiteSpace="pre-wrap">{String(errorMessage)}</AlertDialogBody>
           <AlertDialogFooter>
             <HStack>
-              <Button onClick={(() => {
-                clipboard.writeText(errorMessage);
-              })}
+              <Button
+                onClick={() => {
+                  clipboard.writeText(errorMessage);
+                }}
               >
                 Copy to Clipboard
               </Button>

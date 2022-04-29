@@ -14,9 +14,13 @@ module.exports = [
         presets: ['@babel/preset-react'],
         plugins: [
           ...[isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
-          ['@babel/plugin-transform-react-jsx', {
-            runtime: 'automatic',
-          }]],
+          [
+            '@babel/plugin-transform-react-jsx',
+            {
+              runtime: 'automatic',
+            },
+          ],
+        ],
       },
     },
   },
@@ -46,7 +50,8 @@ module.exports = [
             },
           },
         },
-      }],
+      },
+    ],
   },
   // ... existing loader config ...
 ];

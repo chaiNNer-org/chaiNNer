@@ -2,9 +2,7 @@ import { Select } from '@chakra-ui/react';
 import { memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState.jsx';
 
-const DropDownInput = memo(({
-  options, id, index, isLocked,
-}) => {
+const DropDownInput = memo(({ options, id, index, isLocked }) => {
   const { useInputData } = useContext(GlobalContext);
   const [selection, setSelection] = useInputData(id, index);
 

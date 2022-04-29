@@ -1435,72 +1435,66 @@ class AverageColorFixNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = (
-            "Ensure that the average color of the large image is the same as the average color of the small image."
-            "\nSome upscaler models slightly change the overall color of the original image."
-            " Sometimes this is a desirable effect, but often it is just a problem."
-            " This nodes 'fixes' the large image, so that its overall color is the same as that of the small image."
-            "\nIf the small image contain compression artifacts, it must be downscaled or denoised first."
-            " The output image will include the compression artifacts otherwise."
-        )
+        self.description = """Correct for upscaling model color shift by matching average color of 
+            Input Image to that of a smaller Reference Image. If Reference Image 
+            contains compression artifacts, the node can downscale it to avoid 
+            artifacts in the output."""
         self.inputs = [
-            ImageInput("Large Image"),
-            ImageInput("Small Image"),
-            BoundedIntegerInput("Small Image Downscale Factor", 1, 128, 1),
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            BoundedNumberInput("Reference Image Scale Factor", default=1.0, step=0.125),
         ]
         self.outputs = [ImageOutput()]
 
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"
 
-    def run(self, large: np.ndarray, small: np.ndarray, down_scale) -> np.ndarray:
-        """Fixes the average color of the large image"""
+    def run(
+        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor
+    ) -> np.ndarray:
+        """Fixes the average color of the input image"""
 
-        down_scale = int(down_scale)
+        scale_factor = float(scale_factor)
 
-        large = normalize(large)
-        small = normalize(small)
+        input_img = normalize(input_img)
+        ref_img = normalize(ref_img)
 
-        if down_scale > 1:
-            small = cv2.resize(
-                small,
+        if scale_factor != 1.0:
+            ref_img = cv2.resize(
+                ref_img,
                 None,
-                fx=float(1 / down_scale),
-                fy=float(1 / down_scale),
+                fx=scale_factor,
+                fy=scale_factor,
                 interpolation=cv2.INTER_AREA,
             )
 
-        l_h, l_w = large.shape[:2]
-        s_h, s_w = small.shape[:2]
+        input_h, input_w = input_img.shape[:2]
+        ref_h, ref_w = ref_img.shape[:2]
 
         assert (
-            s_w < l_w and s_h < l_h
-        ), "The large image has to be larger than the small image"
+            ref_w < input_w and ref_h < input_h
+        ), "Image must be larger than Reference Image"
 
-        # find the diff of both images
+        # Find the diff of both images
 
-        # downscale the large image
-        l = cv2.resize(
-            large,
-            None,
-            fx=float(s_w / l_w),
-            fy=float(s_h / l_h),
+        # Downscale the input image
+        downscaled_input = cv2.resize(
+            input_img,
+            (ref_w, ref_h),
             interpolation=cv2.INTER_AREA,
         )
 
-        # different
-        small_diff = small - l
+        # Get difference between the reference image and downscaled input
+        downscaled_diff = ref_img - downscaled_input
 
-        # upsample the difference
+        # Upsample the difference
         diff = cv2.resize(
-            small_diff,
-            None,
-            fx=float(l_w / s_w),
-            fy=float(l_h / s_h),
+            downscaled_diff,
+            (input_w, input_h),
             interpolation=cv2.INTER_CUBIC,
         )
 
-        result = large + diff
+        result = input_img + diff
 
         return np.clip(result, 0, 1)
 

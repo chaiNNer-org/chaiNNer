@@ -1,4 +1,4 @@
-import { Center, HStack, Image, Spinner, Tag, VStack } from '@chakra-ui/react';
+import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
 import log from 'electron-log';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
@@ -13,11 +13,11 @@ const checkFileExists = (file) =>
       .catch(() => resolve(false))
   );
 
-const getColorMode = (img) => {
-  if (!img) {
+const getColorMode = (channels) => {
+  if (!channels) {
     return '?';
   }
-  switch (img.channels) {
+  switch (channels) {
     case 1:
       return 'GRAY';
     case 3:
@@ -25,12 +25,12 @@ const getColorMode = (img) => {
     case 4:
       return 'RGBA';
     default:
-      return '?';
+      return channels;
   }
 };
 
 export default memo(({ path, category, nodeType, id }) => {
-  const [img, setImg] = useState(null);
+  const [modelData, setModelData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
@@ -62,7 +62,7 @@ export default memo(({ path, category, nodeType, id }) => {
               isFp16,
             });
             if (result) {
-              setImg(result);
+              setModelData(result);
             }
           } catch (err) {
             log.error(err);
@@ -78,25 +78,37 @@ export default memo(({ path, category, nodeType, id }) => {
       {isLoading || loading ? (
         <Spinner />
       ) : (
-        <VStack>
-          <Image
-            alt="Image preview failed to load, probably unsupported file type."
-            // boxSize="150px"
-            borderRadius="md"
-            draggable={false}
-            maxH="200px"
-            // fallbackSrc="https://via.placeholder.com/200"
-            maxW="200px"
-            src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
-          />
-          {img && (
-            <HStack>
-              <Tag>{img ? `${img.width}x${img.height}` : '?'}</Tag>
-              <Tag>{getColorMode(img)}</Tag>
-              <Tag>{String(path.split('.').slice(-1)).toUpperCase()}</Tag>
-            </HStack>
-          )}
-        </VStack>
+        modelData && (
+          <Wrap
+            justify="center"
+            maxW={60}
+            spacing={2}
+          >
+            <WrapItem>
+              <Tag>{`${modelData.modelType ?? '?'}`}</Tag>
+            </WrapItem>
+            <WrapItem>
+              <Tag>{`${modelData.scale ?? '?'}x`}</Tag>
+            </WrapItem>
+            <WrapItem>
+              <Tag>
+                {modelData
+                  ? `${getColorMode(modelData.inNc)}→${getColorMode(modelData.outNc)}`
+                  : '?'}
+              </Tag>
+            </WrapItem>
+            {modelData.size.map((size) => (
+              <WrapItem key={size}>
+                <Tag
+                  key={size}
+                  textAlign="center"
+                >
+                  {size}
+                </Tag>
+              </WrapItem>
+            ))}
+          </Wrap>
+        )
       )}
     </Center>
   );

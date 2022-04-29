@@ -1,9 +1,7 @@
 import { Box, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 
-const GenericInput = memo(({
-  label,
-}) => (
+const GenericInput = memo(({ label }) => (
   // These both need to have -1 margins to thin it out... I don't know why
   <Box
     mb={-1}
