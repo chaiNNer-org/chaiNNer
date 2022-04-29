@@ -1,0 +1,9 @@
+black
+ncnn_vulkan
+numpy
+opencv-python
+Pillow
+pylint
+sanic
+sanic_cors
+websockets==9.1

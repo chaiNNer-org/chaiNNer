@@ -6,6 +6,7 @@ from sanic.log import logger
 def get_opencv_formats():
     available_formats = []
     try:
+        # pylint: disable=unused-import,import-outside-toplevel
         import cv2
 
         # Bitmaps
@@ -36,6 +37,7 @@ def get_opencv_formats():
 def get_pil_formats():
     available_formats = []
     try:
+        # pylint: disable=unused-import,import-outside-toplevel
         from PIL import Image
 
         # Bitmaps

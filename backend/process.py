@@ -5,7 +5,6 @@ import os
 import uuid
 from typing import Dict
 
-from sanic import app
 from sanic.log import logger
 
 from nodes.node_factory import NodeFactory
@@ -82,7 +81,7 @@ class Executor:
             for child in node["children"]:
                 sub_nodes[child] = self.nodes[child]
             sub_nodes_ids = sub_nodes.keys()
-            for k, v in sub_nodes.copy().items():
+            for v in sub_nodes.copy().values():
                 # TODO: this might be something to do in the frontend before processing instead
                 for node_input in v["inputs"]:
                     logger.info(f"node_input, {node_input}")
@@ -90,7 +89,7 @@ class Executor:
                         next_node_id = "-".join(node_input["id"].split("-")[:-1])
                         logger.info(f"next_node_id, {next_node_id}")
                         # Run all the connected nodes that are outside the iterator and cache the outputs
-                        if not next_node_id in sub_nodes_ids:
+                        if next_node_id not in sub_nodes_ids:
                             logger.debug(f"not in sub_node_ids, caching {next_node_id}")
                             output = await self.process(self.nodes[next_node_id])
                             self.output_cache[next_node_id] = output
@@ -146,7 +145,7 @@ class Executor:
 
     async def resume(self):
         """Run the executor"""
-        logger.info(f"Rusuming executor {self.execution_id}")
+        logger.info(f"Resuming executor {self.execution_id}")
         self.paused = False
         self.resumed = True
         os.environ["killed"] = "False"

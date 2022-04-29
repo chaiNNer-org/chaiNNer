@@ -33,7 +33,6 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "NCNN"
 
     def get_param_info(self, param_path):
-        scale = 4
         input_name = "data"
         output_name = "output"
         out_nc = 3
@@ -81,7 +80,7 @@ class NcnnLoadModelNode(NodeBase):
         assert os.path.isfile(param_path), f"Path {param_path} is not a file"
         assert os.path.isfile(bin_path), f"Path {param_path} is not a file"
 
-        input_name, output_name, out_nc = self.get_param_info(param_path)
+        input_name, output_name, _out_nc = self.get_param_info(param_path)
 
         with open(bin_path, "rb") as f:
             bin_file_data = f.read()
@@ -129,8 +128,6 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(self, net_tuple: tuple, img: np.ndarray) -> np.ndarray:
-
-        h, w = img.shape[:2]
         c = img.shape[2] if len(img.shape) > 2 else 1
 
         param_path, bin_data, input_name, output_name = net_tuple
@@ -197,7 +194,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
             # Remove extra channels if too many (i.e three channel image, single channel model)
             elif img.shape[2] > in_nc:
-                logger.warn("Truncating image channels")
+                logger.warning("Truncating image channels")
                 img = img[:, :, :in_nc]
             # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
             elif img.shape[2] == 3 and in_nc == 4:

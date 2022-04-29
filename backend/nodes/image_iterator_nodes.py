@@ -1,9 +1,6 @@
 import math
 import os
-import sys
 
-import cv2
-import numpy as np
 from process import Executor
 from sanic.log import logger
 
@@ -99,12 +96,12 @@ class ImageFileIteratorNode(IteratorNodeBase):
         supported_filetypes = get_available_image_formats()
 
         def walk_error_handler(exception_instance):
-            logger.warn(
+            logger.warning(
                 f"Exception occurred during walk: {exception_instance} Continuing..."
             )
 
         just_image_files = []
-        for root, dirs, files in os.walk(
+        for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
             if parent_executor.should_stop_running():
@@ -112,7 +109,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
             for name in files:
                 filepath = os.path.join(root, name)
-                base, ext = os.path.splitext(filepath)
+                _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
                     just_image_files.append(filepath)
 

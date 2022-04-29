@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import math
-from collections import OrderedDict
-from typing import Union
 
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
 
 
 class SRVGGNetCompact(nn.Module):

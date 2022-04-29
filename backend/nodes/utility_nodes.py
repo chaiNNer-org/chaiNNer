@@ -2,7 +2,6 @@
 Nodes that provide various generic utility
 """
 
-from sanic.log import logger
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
@@ -23,7 +22,7 @@ class NoteNode(NodeBase):
         self.icon = "MdOutlineStickyNote2"
         self.sub = "Miscellaneous"
 
-    def run(self, text: str) -> None:
+    def run(self, _text: str) -> None:
         return
 
 
