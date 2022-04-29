@@ -346,7 +346,7 @@ variable-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 [IMPORTS]
 
 # Allow wildcard imports from modules that define __all__.
-allow-wildcard-with-all=yes
+allow-wildcard-with-all=no
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and
 # 3 compatible code, which means that the block might have code that exists
