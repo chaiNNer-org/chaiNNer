@@ -4,12 +4,8 @@
  * Lightens (percentage > 0) or darkens (percentage < 0) the given hex color.
  *
  * The color has to be in the form `#RRGGBB`.
- *
- * @param {string} color
- * @param {number} percent
- * @returns {`#${string}`}
  */
-const shadeColor = (color, percent) => {
+const shadeColor = (color:string, percent:number):`#${string}` => {
   let R = parseInt(color.substring(1, 3), 16);
   let G = parseInt(color.substring(3, 5), 16);
   let B = parseInt(color.substring(5, 7), 16);

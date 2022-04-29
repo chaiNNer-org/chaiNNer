@@ -5,13 +5,13 @@ console.log(`\nbuilding in ${isDevelopment ? 'development' : 'production'} mode`
 module.exports = [
   // ... existing loader config ...
   {
-    test: /\.jsx?$/,
+    test: /\.[jt]sx?$/,
     exclude: /node_modules/,
     use: {
       loader: require.resolve('babel-loader'),
       options: {
         exclude: /node_modules/,
-        presets: ['@babel/preset-react'],
+        presets: ['@babel/preset-typescript', '@babel/preset-react'],
         plugins: [
           ...[isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
           [
