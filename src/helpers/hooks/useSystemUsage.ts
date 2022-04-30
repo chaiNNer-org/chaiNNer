@@ -1,8 +1,8 @@
 import { exec as _exec } from 'child_process';
-import { ipcRenderer } from 'electron';
 import os from 'os-utils';
 import { useEffect, useMemo, useState } from 'react';
 import util from 'util';
+import { ipcRenderer } from '../safeIpc';
 import useInterval from './useInterval';
 
 const exec = util.promisify(_exec);

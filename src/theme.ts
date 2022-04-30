@@ -1,7 +1,7 @@
 // theme.js
 
 // 1. import `extendTheme` function
-import { extendTheme } from '@chakra-ui/react';
+import { extendTheme, Theme } from '@chakra-ui/react';
 
 // 2. Add your color mode config
 const config = {
@@ -10,9 +10,9 @@ const config = {
   fonts: {
     heading: 'Open Sans',
   },
-};
+} as const;
 
 // 3. extend the theme
-const theme = extendTheme({ config });
+const theme = extendTheme({ config } as const) as Theme;
 
 export default theme;

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { spawn } from 'child_process';
 import decompress from 'decompress';
 import log from 'electron-log';
@@ -9,9 +8,13 @@ import path from 'path';
 import downloads from './downloads';
 import pipInstallWithProgress from './helpers/pipInstallWithProgress';
 
-export const downloadPython = async (directory, onProgress) => {
+export const downloadPython = async (directory: string, onProgress: (progress: string) => void) => {
   const platform = os.platform();
-  const url = downloads.python[platform];
+  const url = (downloads.python as Partial<Record<NodeJS.Platform, string>>)[platform];
+  if (!url) {
+    console.log(`Unsupported platform ${platform}`);
+    return;
+  }
 
   const downloader = new Downloader({
     url,
@@ -27,7 +30,11 @@ export const downloadPython = async (directory, onProgress) => {
   }
 };
 
-export const extractPython = async (directory, pythonPath, onProgress) => {
+export const extractPython = async (
+  directory: string,
+  pythonPath: string,
+  onProgress: (percent: number) => void
+) => {
   const fileData = Array.from(await decompress(path.join(directory, '/python.tar.gz')));
   const totalFiles = fileData.length;
   fileData.forEach((file, i) => {
@@ -42,7 +49,7 @@ export const extractPython = async (directory, pythonPath, onProgress) => {
   if (['linux', 'darwin'].includes(os.platform())) {
     try {
       log.info('Granting perms for integrated python...');
-      await fs.chmod(pythonPath, 0o7777, (error) => {
+      fs.chmod(pythonPath, 0o7777, (error) => {
         log.error(error);
       });
     } catch (error) {
@@ -51,12 +58,13 @@ export const extractPython = async (directory, pythonPath, onProgress) => {
   }
 };
 
-const upgradePip = async (pythonPath, onProgress) =>
-  new Promise((resolve, reject) => {
+const upgradePip = async (pythonPath: string) =>
+  new Promise<void>((resolve, reject) => {
     const pipUpgrade = spawn(
       pythonPath,
       '-m pip install --upgrade pip --no-warn-script-location'.split(' ')
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pipUpgrade.stdout.on('data', (data) => {
       // onProgress(getPipPercentFromData(data));
     });
@@ -69,7 +77,7 @@ const upgradePip = async (pythonPath, onProgress) =>
     });
   });
 
-const pipInstallSanic = async (pythonPath, onProgress) => {
+const pipInstallSanic = async (pythonPath: string, onProgress: (percent: number) => void) => {
   const sanicDep = {
     name: 'Sanic',
     packageName: 'sanic',
@@ -78,7 +86,7 @@ const pipInstallSanic = async (pythonPath, onProgress) => {
   await pipInstallWithProgress(pythonPath, sanicDep, onProgress);
 };
 
-const pipInstallSanicCors = async (pythonPath, onProgress) => {
+const pipInstallSanicCors = async (pythonPath: string, onProgress: (percent: number) => void) => {
   const sanicCorsDep = {
     name: 'Sanic-Cors',
     packageName: 'Sanic-Cors',
@@ -87,9 +95,9 @@ const pipInstallSanicCors = async (pythonPath, onProgress) => {
   await pipInstallWithProgress(pythonPath, sanicCorsDep, onProgress);
 };
 
-export const installSanic = async (pythonPath, onProgress) => {
+export const installSanic = async (pythonPath: string, onProgress: (percent: number) => void) => {
   log.info('Updating internal pip');
-  await upgradePip(pythonPath, () => {});
+  await upgradePip(pythonPath);
   log.info('Installing Sanic to internal python');
   await pipInstallSanic(pythonPath, onProgress);
   log.info('Installing Sanic-Cors to internal python');
