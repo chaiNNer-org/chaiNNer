@@ -1452,8 +1452,8 @@ class AverageColorFixNode(NodeBase):
         ref_h, ref_w = ref_img.shape[:2]
 
         assert (
-            ref_w <= input_w and ref_h <= input_h
-        ), "Image must be the same size or larger than Reference Image"
+            ref_w < input_w and ref_h < input_h
+        ), "Image must be larger than Reference Image"
 
         # Find the diff of both images
 
