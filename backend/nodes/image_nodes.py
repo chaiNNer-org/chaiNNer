@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 import math
 import os
 import platform
 import subprocess
 import time
 from tempfile import mkdtemp
+from typing import Tuple
+
 import cv2
 import numpy as np
 from sanic.log import logger
-from typing import Tuple
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -16,8 +19,8 @@ from .properties.outputs import *
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
-    normalize_normals,
     normalize,
+    normalize_normals,
     with_background,
 )
 
@@ -1449,8 +1452,8 @@ class AverageColorFixNode(NodeBase):
         ref_h, ref_w = ref_img.shape[:2]
 
         assert (
-            ref_w < input_w and ref_h < input_h
-        ), "Image must be larger than Reference Image"
+            ref_w <= input_w and ref_h <= input_h
+        ), "Image must be the same size or larger than Reference Image"
 
         # Find the diff of both images
 
