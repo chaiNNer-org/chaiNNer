@@ -6,4 +6,3 @@ Pillow
 pylint
 sanic
 sanic_cors
-websockets==9.1
