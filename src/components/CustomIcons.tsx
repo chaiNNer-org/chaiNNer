@@ -1,6 +1,7 @@
 /* eslint-disable global-require */
 import { createIcon } from '@chakra-ui/icons';
 import { Icon } from '@chakra-ui/react';
+import { IconType } from 'react-icons';
 import * as bs from 'react-icons/bs';
 import * as cg from 'react-icons/cg';
 import * as im from 'react-icons/im';
@@ -68,7 +69,7 @@ export const OpenCVIcon = createIcon({
   ),
 });
 
-// eslint-disable-next-line no-underscore-dangle
+// eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
 export const _OnnxIcon = createIcon({
   displayName: 'OnnxIcon',
   viewBox: '-1.89 2.11 64 64',
@@ -131,7 +132,7 @@ export const NcnnIcon = createIcon({
   ),
 });
 
-export const IconFactoryOld = (category) => {
+export const IconFactoryOld = (category: string) => {
   switch (category) {
     case 'NumPy':
       return <NumPyIcon />;
@@ -144,7 +145,7 @@ export const IconFactoryOld = (category) => {
   }
 };
 
-export const IconFactory = (icon, accentColor) => {
+export const IconFactory = (icon: string, accentColor: string) => {
   if (!icon) {
     return <OpenCVIcon />;
   }
@@ -231,7 +232,7 @@ export const IconFactory = (icon, accentColor) => {
   }
   // eslint-disable-next-line react/destructuring-assignment
   const prefix = icon.slice(0, 2).toLowerCase();
-  const library = libraries[prefix];
+  const library = (libraries as Partial<Record<string, Partial<Record<string, IconType>>>>)[prefix];
   if (!library) {
     return <OpenCVIcon />;
   }
