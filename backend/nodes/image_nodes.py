@@ -698,7 +698,7 @@ class HueAndSaturationNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput("Hue", -180, 180, 0),
-            SliderInput("Saturation (%)", -255, 255, 0),
+            SliderInput("Saturation", -255, 255, 0),
         ]
         self.outputs = [ImageOutput()]
         self.icon = "MdOutlineColorLens"
