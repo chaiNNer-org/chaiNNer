@@ -29,11 +29,16 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { ipcRenderer } from 'electron';
 import { memo, useContext, useEffect, useState } from 'react';
+import { ipcRenderer } from '../helpers/safeIpc';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 
-const SettingsModal = ({ isOpen, onClose }) => {
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
     useContext(SettingsContext);
 
@@ -102,7 +107,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={colorMode === 'dark'}
             size="lg"
-            value={colorMode === 'dark'}
             onChange={() => {
               toggleColorMode();
             }}
@@ -138,7 +142,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={isSnapToGrid}
             size="lg"
-            value={isSnapToGrid}
             onChange={() => {
               setIsSnapToGrid(!isSnapToGrid);
             }}
@@ -223,7 +226,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={isCpu}
             isDisabled={!isNvidiaAvailable}
             size="lg"
-            value={isCpu}
             onChange={() => {
               setIsCpu(!isCpu);
             }}
@@ -261,7 +263,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
             defaultChecked={isFp16}
             isDisabled={isCpu}
             size="lg"
-            value={isFp16}
             onChange={() => {
               setIsFp16(!isFp16);
             }}
@@ -305,7 +306,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={isSystemPython}
             size="lg"
-            value={isSystemPython}
             onChange={() => {
               setIsSystemPython(!isSystemPython);
             }}
@@ -350,7 +350,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
           <Switch
             defaultChecked={isDisHwAccel}
             size="lg"
-            value={isDisHwAccel}
             onChange={() => {
               setIsDisHwAccel(!isDisHwAccel);
             }}
@@ -408,7 +407,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             <Button
               variant="ghost"
               onClick={() => {
-                ipcRenderer.invoke('relaunch-application');
+                ipcRenderer.send('relaunch-application');
               }}
             >
               Restart chaiNNer
@@ -444,6 +443,7 @@ export const SettingsButton = memo(() => {
         py={1}
       >
         <IconButton
+          aria-label="Settings"
           icon={<SettingsIcon />}
           size="md"
           variant="outline"
@@ -455,7 +455,6 @@ export const SettingsButton = memo(() => {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={onSettingsClose}
-        onOpen={onSettingsOpen}
       />
     </>
   );
