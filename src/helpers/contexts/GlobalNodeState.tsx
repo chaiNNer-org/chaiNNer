@@ -66,7 +66,7 @@ interface Global {
   updateIteratorBounds: (id: string, iteratorSize: IteratorSize, dimensions?: Size) => void;
   setIteratorPercent: (id: string, percent: number) => void;
   closeAllMenus: () => void;
-  useHoveredNode: readonly [string | null, SetState<string | null>];
+  useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
   useMenuCloseFunctions: readonly [
     closeAllMenus: () => void,
     addMenuCloseFunction: (func: () => void, id: string) => void
@@ -193,7 +193,7 @@ export const GlobalProvider = ({
 
   const [menuCloseFunctions, setMenuCloseFunctions] = useState<Record<string, () => void>>({});
 
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
   const [, , snapToGridAmount] = useSnapToGrid;
 

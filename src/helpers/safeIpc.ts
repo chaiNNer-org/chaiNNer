@@ -6,6 +6,7 @@ import {
   IpcRendererEvent,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
+import { PythonKeys } from '../common-types';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
   returnType: ReturnType;
@@ -16,7 +17,7 @@ interface Channels {
   'get-gpu-name': ChannelInfo<string | null>;
   'get-has-nvidia': ChannelInfo<boolean>;
   'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
-  'get-python': ChannelInfo<{ python: string; version: string }>;
+  'get-python': ChannelInfo<PythonKeys>;
   'get-port': ChannelInfo<number>;
   'get-localstorage-location': ChannelInfo<string>;
   'get-app-version': ChannelInfo<string>;

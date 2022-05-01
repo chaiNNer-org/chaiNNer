@@ -47,3 +47,8 @@ export type NodeData = {
   maxHeight?: number;
 };
 export type EdgeData = { complete?: boolean };
+
+export interface PythonKeys {
+  python: string;
+  version: string;
+}
