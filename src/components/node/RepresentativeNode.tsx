@@ -1,11 +1,18 @@
 import { Box, Center, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { IconFactory } from '../CustomIcons';
 
-const RepresentativeNode = ({ category, subcategory, type, icon }) => {
+interface RepresentativeNodeProps {
+  category: string;
+  subcategory: string;
+  icon: string;
+  type: string;
+}
+
+const RepresentativeNode = ({ category, subcategory, type, icon }: RepresentativeNodeProps) => {
   const borderColor = useColorModeValue('gray.400', 'gray.600');
-  const accentColor = useMemo(() => getAccentColor(category, subcategory), [category, subcategory]);
+  const accentColor = getAccentColor(category);
 
   return (
     <Center

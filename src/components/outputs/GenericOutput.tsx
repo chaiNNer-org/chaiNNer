@@ -2,7 +2,13 @@ import { Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import OutputContainer from './OutputContainer';
 
-const GenericOutput = memo(({ label, id, index }) => (
+interface GenericOutputProps {
+  id: string;
+  label: string;
+  index: number;
+}
+
+const GenericOutput = memo(({ label, id, index }: GenericOutputProps) => (
   <OutputContainer
     hasHandle
     id={id}

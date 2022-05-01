@@ -54,7 +54,7 @@ interface Global {
   useNodeLock: (
     id: string,
     index?: number | null
-  ) => readonly [] | readonly [boolean, () => void, boolean];
+  ) => readonly [] | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
   duplicateNode: (id: string) => void;
   clearNode: (id: string) => void;
   outlineInvalidNodes: (invalidNodes: readonly Node<NodeData>[]) => void;
@@ -86,7 +86,7 @@ interface UsableData {
 }
 interface NodeProto {
   position: XYPosition;
-  data: NodeData;
+  data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: NodeData['inputData'] };
   nodeType: string;
   defaultNodes?: NodeSchema[];
   parent?: string | Node<NodeData> | null;
@@ -134,7 +134,10 @@ const parseHandle = (handle: string): ParsedHandle => {
   };
 };
 
-const getInputDefaults = ({ category, type }: NodeData, availableNodes: SchemaMap) => {
+const getInputDefaults = (
+  { category, type }: { category: string; type: string },
+  availableNodes: SchemaMap
+) => {
   const defaultData: Record<number, InputValue> = {};
   const { inputs } = availableNodes[category][type];
   if (inputs) {

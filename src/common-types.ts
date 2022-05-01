@@ -9,12 +9,14 @@ export interface IteratorSize extends Size {
 
 export type InputValue = string | number | { id: string };
 export type Input = {
-  type: 'string';
+  type: string;
+  label: string;
+  optional?: boolean;
   def?: InputValue;
   default?: InputValue;
   options?: { value: InputValue }[];
 };
-export type Output = { type: 'string' };
+export type Output = { type: string; label: string };
 
 export interface NodeSchema {
   category: string;
@@ -30,14 +32,14 @@ export interface NodeSchema {
 export type SchemaMap = Record<string, Record<string, NodeSchema>>;
 
 export type NodeData = {
-  id?: string;
+  id: string;
   parentNode?: string;
   category: string;
   subcategory: string;
   icon: string;
   type: string;
   isLocked?: boolean;
-  inputData?: Record<number, InputValue>;
+  inputData: Record<number, InputValue>;
   invalid?: boolean;
   iteratorSize?: IteratorSize;
   percentComplete?: number;

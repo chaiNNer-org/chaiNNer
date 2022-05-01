@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import {
   CheckCircleIcon,
   CloseIcon,
@@ -25,7 +24,14 @@ import { memo, useContext, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
-const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }) => {
+interface NodeFooterProps {
+  id: string;
+  isValid?: boolean;
+  invalidReason?: string;
+  isLocked?: boolean;
+}
+
+const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
   const { removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions } =
     useContext(GlobalContext);
 
@@ -63,7 +69,7 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }) => {
           cursor="pointer"
           mb={-1}
           mt={-1}
-          onClick={() => toggleLock()}
+          onClick={() => toggleLock?.()}
         />
       </Center>
       <Spacer />
