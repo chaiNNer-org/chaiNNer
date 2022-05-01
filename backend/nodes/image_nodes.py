@@ -1,3 +1,7 @@
+"""
+Nodes that provide functionality for opencv image manipulation
+"""
+
 from __future__ import annotations
 
 import math
@@ -21,12 +25,9 @@ from .utils.image_utils import (
     get_pil_formats,
     normalize,
     normalize_normals,
-    with_background,
 )
-
-"""
-Nodes that provide functionality for opencv image manipulation
-"""
+from .utils.color_transfer import color_transfer
+from .utils.fill_alpha import *
 
 try:
     from PIL import Image
@@ -1508,130 +1509,106 @@ class FillAlphaNode(NodeBase):
 
         method = int(method)
         if method == AlphaFillMethod.EXTEND_TEXTURE:
-            # preprocess to convert the image into binary alpha
-            self.convert_to_binary_alpha(img)
-            img = self.fill_alpha_fragment_blur(img)
+            # Preprocess to convert the image into binary alpha
+            convert_to_binary_alpha(img)
+            img = fill_alpha_fragment_blur(img)
 
-            self.convert_to_binary_alpha(img)
-            self.fill_alpha_edge_extend(img, 8)
+            convert_to_binary_alpha(img)
+            fill_alpha_edge_extend(img, 8)
         elif method == AlphaFillMethod.EXTEND_COLOR:
-            self.convert_to_binary_alpha(img)
-            self.fill_alpha_edge_extend(img, 40)
+            convert_to_binary_alpha(img)
+            fill_alpha_edge_extend(img, 40)
         else:
             assert False, f"Invalid alpha fill method {type(method)} {method}"
 
-        # finally, add a black background and convert to RGB
+        # Finally, add a black background and convert to RGB
         img[:, :, 0] *= img[:, :, 3]
         img[:, :, 1] *= img[:, :, 3]
         img[:, :, 2] *= img[:, :, 3]
         return img[:, :, :3]
 
-    def with_self_as_background(self, img: np.array):
-        """Changes the given image to the image overlayed with itself."""
-        assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
-        img[:, :, 3] = 1 - np.square(1 - img[:, :, 3])
 
-    def convert_to_binary_alpha(self, img: np.array, threshold: float = 0.05):
-        """Sets all pixels with alpha <= threshold to RGBA=(0,0,0,0) and sets the alpha to 1 otherwise."""
-        assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
-        a = np.greater(img[:, :, 3], threshold).astype(np.float32)
-        img[:, :, 0] *= a
-        img[:, :, 1] *= a
-        img[:, :, 2] *= a
-        img[:, :, 3] = a
+@NodeFactory.register("Image (Utility)", "Color Transfer")
+class ColorTransferNode(NodeBase):
+    """
+    Transfers colors from one image to another
 
-    class ImageAverage:
-        def __init__(self):
-            """Constructor"""
-            self.total = None
-            self.count = 0
+    This code was adapted from Adrian Rosebrock's color_transfer script,
+    found at: https://github.com/jrosebr1/color_transfer (© 2014, MIT license).
+    """
 
-        def add(self, img: np.array):
-            self.count += 1
-            if self.total is None:
-                self.total = img
-            else:
-                # we can't just add the images together, we have to correct the alpha channel
-                a = img[:, :, 3]
-                self.total[:, :, 0] += img[:, :, 0] * a
-                self.total[:, :, 1] += img[:, :, 1] * a
-                self.total[:, :, 2] += img[:, :, 2] * a
-                self.total[:, :, 3] += a
-
-        def get_result(self) -> np.array:
-            f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
-            self.total[:, :, 0] *= f
-            self.total[:, :, 1] *= f
-            self.total[:, :, 2] *= f
-            self.total[:, :, 3] *= 1 / self.count
-            return self.total
-
-    def fragment_blur(
-        self, img: np.array, n: int, startAngle: float, distance: float
-    ) -> np.array:
-        assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
-        assert n >= 1
-
-        h, w = img.shape[:2]
-
-        avg = FillAlphaNode.ImageAverage()
-        for i in range(n):
-            angle = math.pi * 2 * i / n + startAngle
-            x_offset = int(math.cos(angle) * distance)
-            y_offset = int(math.sin(angle) * distance)
-            m = np.float32(
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Transfers colors from reference image"
+        self.inputs = [
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            DropDownInput(
+                "str",
+                "Colorspace",
                 [
-                    [1, 0, x_offset],
-                    [0, 1, y_offset],
-                ]
-            )
-            avg.add(cv2.warpAffine(img, m, (w, h)))
+                    {"option": "L*a*b*", "value": "L*a*b*"},
+                    {"option": "RGB", "value": "RGB"},
+                    {"option": "L*u*v*", "value": "L*u*v*"},
+                ],
+            ),
+            DropDownInput(
+                "str",
+                "Overflow Method",
+                [
+                    {"option": "Clip", "value": "clip"},
+                    {"option": "Scale", "value": "scale"},
+                ],
+            ),
+            DropDownInput(
+                "generic",
+                "Reciprocal Scaling Factor",
+                [
+                    {"option": "Yes", "value": 1},
+                    {"option": "No", "value": 0},
+                ],
+            ),
+        ]
+        self.outputs = [ImageOutput("Image")]
 
-        return avg.get_result()
+        self.icon = "MdInput"
+        self.sub = "Miscellaneous"
 
-    def fill_alpha_fragment_blur(self, img: np.array) -> np.array:
-        result = img.copy()
-        for i in range(0, 6):
-            blurred = self.fragment_blur(img, 5, i, 1 << i)
-            # blurred tends to be a bit too transparent
-            self.with_self_as_background(blurred)
-            with_background(result, blurred)
-
-        return result
-
-    def fill_alpha_edge_extend(self, img: np.array, distance: int):
+    def run(
+        self,
+        img: np.ndarray,
+        ref_img: np.ndarray,
+        colorspace: str = "L*a*b*",
+        overflow_method: str = "clip",
+        reciprocal_scale: int | str = 1,
+    ) -> np.ndarray:
         """
-        Given an image with binary alpha, with will fill transparent pixels by extending the closest color.
-
-        This operation assumes that the image has been preprocessed with convert_to_binary_alpha.
+        Transfers the color distribution from source image to target image.
         """
 
-        assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+        assert (
+            ref_img.ndim == 3 and ref_img.shape[2] >= 3
+        ), "Reference image should be RGB or RGBA"
 
-        proccessed_distance = 0
-        it = 0
-        while proccessed_distance < distance:
-            # the distance by which we will offset the image in this iteration
-            offset_distance = 1 + it // 4
-            proccessed_distance += offset_distance
-            it += 1
+        img = (normalize(img) * 255).astype("uint8")
+        ref_img = (normalize(ref_img) * 255).astype("uint8")
 
-            # construct the kernel for the 2D convolution
-            # the kernel will be a "+" of 1s with a 0 at the center
-            k = np.zeros(
-                (offset_distance * 2 + 1, offset_distance * 2 + 1), dtype=np.float32
-            )
-            k[:, offset_distance] = 1
-            k[offset_distance, :] = 1
-            k[offset_distance, offset_distance] = 0
+        # Make sure target has at least 3 channels
+        if img.ndim == 2 or img.shape[2] == 1:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-            r = cv2.filter2D(img, -1, k, borderType=cv2.BORDER_REPLICATE)
+        # Preserve alpha
+        c = img.shape[2]
+        alpha = None
+        if c == 4:
+            alpha = img[:, :, 3]
 
-            # correct alpha and color
-            f = 1 / np.maximum(r[:, :, 3], 0.001)
-            r[:, :, 0] *= f
-            r[:, :, 1] *= f
-            r[:, :, 2] *= f
-            r[:, :, 3] = np.minimum(r[:, :, 3], 1)
+        transfer = color_transfer(
+            img, ref_img, colorspace, overflow_method, reciprocal_scale
+        )
 
-            with_background(img, r)
+        if alpha is not None:
+            transfer = np.dstack((transfer, alpha))
+
+        return transfer.astype("float32") / 255
