@@ -1,19 +1,18 @@
 import { Center, HStack, Image, Spinner, Tag, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
-import { constants } from 'fs';
-import { access } from 'fs/promises';
 import { memo, useContext, useEffect, useState } from 'react';
-import useFetch from 'use-http';
+import useFetch, { CachePolicies } from 'use-http';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
+import { checkFileExists } from '../../../helpers/util';
 
-const checkFileExists = (file) =>
-  new Promise((resolve) =>
-    access(file, constants.F_OK)
-      .then(() => resolve(true))
-      .catch(() => resolve(false))
-  );
+interface ImageObject {
+  width: number;
+  height: number;
+  channels: number;
+  image: string;
+}
 
-const getColorMode = (img) => {
+const getColorMode = (img: ImageObject) => {
   if (!img) {
     return '?';
   }
@@ -29,8 +28,15 @@ const getColorMode = (img) => {
   }
 };
 
-export default memo(({ path, category, nodeType, id }) => {
-  const [img, setImg] = useState(null);
+interface ImagePreviewProps {
+  path: string;
+  category: string;
+  nodeType: string;
+  id: string;
+}
+
+export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
+  const [img, setImg] = useState<ImageObject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
@@ -40,9 +46,7 @@ export default memo(({ path, category, nodeType, id }) => {
 
   const { post, loading } = useFetch(
     `http://localhost:${port}`,
-    {
-      cachePolicy: 'no-cache',
-    },
+    { cachePolicy: CachePolicies.NO_CACHE },
     [port]
   );
 
@@ -53,14 +57,15 @@ export default memo(({ path, category, nodeType, id }) => {
         const fileExists = await checkFileExists(path);
         if (fileExists) {
           try {
-            const result = await post('/run/individual', {
+            const result = (await post('/run/individual', {
               category,
               node: nodeType,
               id,
               inputs: [path],
               isCpu,
               isFp16,
-            });
+            })) as ImageObject | null;
+
             if (result) {
               setImg(result);
             }
@@ -87,7 +92,7 @@ export default memo(({ path, category, nodeType, id }) => {
             maxH="200px"
             // fallbackSrc="https://via.placeholder.com/200"
             maxW="200px"
-            src={(img.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
+            src={(img?.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
           />
           {img && (
             <HStack>

@@ -1,8 +1,33 @@
-import { Box, Center, Heading, HStack, Tooltip, useColorModeValue, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Center,
+  Heading,
+  HStack,
+  LayoutProps,
+  Tooltip,
+  useColorModeValue,
+  VStack,
+} from '@chakra-ui/react';
 import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';
 
-const IteratorNodeHeader = ({ type, width, icon, accentColor, selected, percentComplete }) => (
+interface IteratorNodeHeaderProps {
+  type: string;
+  icon: string;
+  accentColor: string;
+  selected: boolean;
+  percentComplete?: number;
+  width?: LayoutProps['width'];
+}
+
+const IteratorNodeHeader = ({
+  type,
+  width,
+  icon,
+  accentColor,
+  selected,
+  percentComplete,
+}: IteratorNodeHeaderProps) => (
   <VStack
     spacing={0}
     w={width || 'full'}

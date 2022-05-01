@@ -12,29 +12,11 @@ import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
+import { getSchema } from '../../helpers/schema';
 import shadeColor from '../../helpers/shadeColor';
 import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
 import NodeHeader from './NodeHeader';
-
-const blankSchema = {
-  inputs: [],
-  outputs: [],
-  icon: '',
-  subcategory: '',
-};
-
-const getSchema = (availableNodes, category, type) => {
-  if (availableNodes) {
-    try {
-      const schema = availableNodes[category][type];
-      return schema;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  return blankSchema;
-};
 
 const NodeWrapper = memo(({ data, selected }) => (
   <Node
@@ -51,8 +33,7 @@ const Node = memo(({ data, selected }) => {
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
-  const schema =
-    useMemo(() => getSchema(availableNodes, category, type), [category, type]) ?? blankSchema;
+  const schema = useMemo(() => getSchema(availableNodes, category, type), [category, type]);
   const { inputs, outputs, icon, subcategory } = schema;
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');

@@ -1,22 +1,19 @@
 import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
 import log from 'electron-log';
-import { constants } from 'fs';
-import { access } from 'fs/promises';
 import { memo, useContext, useEffect, useState } from 'react';
-import useFetch from 'use-http';
+import useFetch, { CachePolicies } from 'use-http';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
+import { checkFileExists } from '../../../helpers/util';
 
-const checkFileExists = (file) =>
-  new Promise((resolve) =>
-    access(file, constants.F_OK)
-      .then(() => resolve(true))
-      .catch(() => resolve(false))
-  );
+interface ModelData {
+  modelType: string;
+  scale: number;
+  inNc: number;
+  outNc: number;
+  size: string[];
+}
 
-const getColorMode = (channels) => {
-  if (!channels) {
-    return '?';
-  }
+const getColorMode = (channels: number) => {
   switch (channels) {
     case 1:
       return 'GRAY';
@@ -29,8 +26,15 @@ const getColorMode = (channels) => {
   }
 };
 
-export default memo(({ path, category, nodeType, id }) => {
-  const [modelData, setModelData] = useState(null);
+interface TorchModelPreviewProps {
+  path: string;
+  category: string;
+  nodeType: string;
+  id: string;
+}
+
+export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) => {
+  const [modelData, setModelData] = useState<ModelData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
@@ -41,7 +45,7 @@ export default memo(({ path, category, nodeType, id }) => {
   const { post, loading } = useFetch(
     `http://localhost:${port}`,
     {
-      cachePolicy: 'no-cache',
+      cachePolicy: CachePolicies.NO_CACHE,
     },
     [port]
   );
@@ -53,14 +57,14 @@ export default memo(({ path, category, nodeType, id }) => {
         const fileExists = await checkFileExists(path);
         if (fileExists) {
           try {
-            const result = await post('/run/individual', {
+            const result = (await post('/run/individual', {
               category,
               node: nodeType,
               id,
               inputs: [path],
               isCpu,
               isFp16,
-            });
+            })) as ModelData | null;
             if (result) {
               setModelData(result);
             }

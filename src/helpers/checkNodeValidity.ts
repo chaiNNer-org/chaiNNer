@@ -1,5 +1,18 @@
+import { Edge } from 'react-flow-renderer';
+import { EdgeData, Input, InputValue } from '../common-types';
+
 // TODO: This file is a monstrosity, I need to make it so inputs are done by name and not by index
-const checkNodeValidity = ({ id, inputs, inputData, edges }) => {
+const checkNodeValidity = ({
+  id,
+  inputs,
+  inputData,
+  edges,
+}: {
+  id: string;
+  inputs: Input[];
+  inputData: Record<number, InputValue>;
+  edges: readonly Edge<EdgeData>[];
+}): [boolean, string] => {
   if (!inputs) {
     return [false, 'Node has no inputs.'];
   }
@@ -11,15 +24,17 @@ const checkNodeValidity = ({ id, inputs, inputData, edges }) => {
   // Grabs all the indexes of the inputs that the connections are targeting
   const edgeTargetIndexes = edges
     .filter((edge) => edge.target === id)
-    .map((edge) => edge.targetHandle.split('-').slice(-1)[0]);
+    .map((edge) => edge.targetHandle!.split('-').slice(-1)[0]);
   // Finds all empty inputs
   const emptyInputs = Object.entries(inputData)
-    .filter(
-      ([key, value]) =>
-        !inputs[key].optional &&
+    .filter(([key, value]) => {
+      const index = Number(key);
+      return (
+        !inputs[index].optional &&
         (value === '' || value === undefined || value === null) &&
         !edgeTargetIndexes.includes(String(key))
-    )
+      );
+    })
     .map(([key]) => String(key));
   const enteredOptionalInputs = inputs.filter(
     (input, i) =>

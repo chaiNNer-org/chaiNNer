@@ -1,8 +1,10 @@
 import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
+import { getSchema } from '../../helpers/schema';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
@@ -10,33 +12,20 @@ import NodeFooter from './NodeFooter';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
 
-const blankSchema = {
-  inputs: [],
-  outputs: [],
-  icon: '',
-  subcategory: '',
-};
+interface IteratorNodeProps {
+  data: NodeData;
+  selected: boolean;
+}
 
-const getSchema = (availableNodes, category, type) => {
-  if (availableNodes) {
-    try {
-      const schema = availableNodes[category][type];
-      return schema;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  return blankSchema;
-};
-
-const IteratorNodeWrapper = memo(({ data, selected }) => (
+const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   <IteratorNode
     data={data}
     selected={selected}
   />
 ));
 
-const IteratorNode = memo(({ data, selected }) => {
+const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
   const { edges, availableNodes } = useContext(GlobalContext);
 
   const {
@@ -49,24 +38,22 @@ const IteratorNode = memo(({ data, selected }) => {
     maxWidth,
     maxHeight,
     percentComplete,
-  } = useMemo(() => data, [data]);
+  } = data;
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
-  const schema =
-    useMemo(() => getSchema(availableNodes, category, type), [category, type]) ?? blankSchema;
-  const { inputs, outputs, icon, subcategory } = schema;
+  const { inputs, outputs, icon } = getSchema(availableNodes, category, type);
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
-  const accentColor = useMemo(() => getAccentColor(category, subcategory), [category, subcategory]);
+  const accentColor = getAccentColor(category);
   const borderColor = useMemo(
     () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
     [selected, accentColor, regularBorderColor]
   );
 
-  const [validity, setValidity] = useState([false, '']);
+  const [validity, setValidity] = useState<[boolean, string]>([false, '']);
 
-  const iteratorBoxRef = useRef();
+  const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (inputs && inputs.length) {
@@ -95,7 +82,6 @@ const IteratorNode = memo(({ data, selected }) => {
         <VStack minWidth="240px">
           <IteratorNodeHeader
             accentColor={accentColor}
-            category={category}
             icon={icon}
             percentComplete={percentComplete}
             selected={selected}
@@ -121,6 +107,8 @@ const IteratorNode = memo(({ data, selected }) => {
             id={id}
             inputs={inputs}
             isLocked={isLocked}
+            category={category}
+            nodeType={type}
           />
           <Center>
             <Text
@@ -164,12 +152,10 @@ const IteratorNode = memo(({ data, selected }) => {
             </Center>
           )}
           <NodeOutputs
-            accentColor={accentColor}
             id={id}
             outputs={outputs}
           />
           <NodeFooter
-            accentColor={accentColor}
             id={id}
             invalidReason={validity[1]}
             isLocked={isLocked}

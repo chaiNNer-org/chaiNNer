@@ -58,6 +58,7 @@ module.exports = {
         project: './tsconfig.json',
       },
       rules: {
+        'react/require-default-props': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
       },

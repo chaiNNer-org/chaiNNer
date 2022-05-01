@@ -1,11 +1,20 @@
-import { Center, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, Heading, HStack, LayoutProps, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';
 
-const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }) => (
+interface NodeHeaderProps {
+  type: string;
+  icon: string;
+  accentColor: string;
+  selected: boolean;
+  width?: LayoutProps['width'];
+  parentNode?: string;
+}
+
+const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
   <Center
     borderBottomColor={accentColor}
-    borderBottomStyle={parentNode ? 'double' : 'default'}
+    borderBottomStyle={parentNode ? 'double' : undefined}
     borderBottomWidth="4px"
     h="auto"
     verticalAlign="middle"
