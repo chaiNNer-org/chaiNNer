@@ -1417,7 +1417,7 @@ class AverageColorFixNode(NodeBase):
         super().__init__()
         self.description = """Correct for upscaling model color shift by matching
          average color of Input Image to that of a smaller Reference Image. 
-         Using significant downscaling increases generalization of averaging effect 
+         Using significant downscaling increases generalization of averaging effect
          and can reduce artifacts in the output."""
         self.inputs = [
             ImageInput("Image"),
