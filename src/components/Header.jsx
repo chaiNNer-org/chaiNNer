@@ -23,6 +23,7 @@ import { clipboard, ipcRenderer } from 'electron';
 import log from 'electron-log';
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
+import { useThrottledCallback } from 'use-debounce';
 import useFetch from 'use-http';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
@@ -54,6 +55,12 @@ const Header = ({ port }) => {
     cachePolicy: 'no-cache',
     timeout: 0,
   });
+
+  useEffect(() => {
+    if (!running) {
+      unAnimateEdges();
+    }
+  }, [running]);
 
   const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('');
@@ -99,38 +106,42 @@ const Header = ({ port }) => {
     [eventSource, setRunning, unAnimateEdges]
   );
 
-  useEventSourceListener(
-    eventSource,
-    ['node-finish'],
-    ({ data }) => {
-      try {
-        const { finished } = JSON.parse(data);
-        if (finished) {
-          completeEdges(finished);
-        }
-      } catch (err) {
-        log.error(err);
+  const updateNodeFinish = useThrottledCallback(({ data }) => {
+    try {
+      const { finished } = JSON.parse(data);
+      if (finished) {
+        completeEdges(finished);
       }
-    },
-    [eventSource, completeEdges]
-  );
+    } catch (err) {
+      log.error(err);
+    }
+  }, 350);
 
-  useEventSourceListener(
+  useEventSourceListener(eventSource, ['node-finish'], updateNodeFinish, [
     eventSource,
-    ['iterator-progress-update'],
-    ({ data }) => {
-      try {
-        const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
-        if (runningNodes) {
-          unAnimateEdges(runningNodes);
-        }
-        setIteratorPercent(iteratorId, percent);
-      } catch (err) {
-        log.error(err);
+    completeEdges,
+    updateNodeFinish,
+  ]);
+
+  const updateIteratorProgress = useThrottledCallback(({ data }) => {
+    try {
+      const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
+      if (runningNodes && running) {
+        animateEdges(runningNodes);
+      } else if (!running) {
+        unAnimateEdges();
       }
-    },
-    [eventSource, unAnimateEdges]
-  );
+      setIteratorPercent(iteratorId, percent);
+    } catch (err) {
+      log.error(err);
+    }
+  }, 350);
+
+  useEventSourceListener(eventSource, ['iterator-progress-update'], updateIteratorProgress, [
+    eventSource,
+    animateEdges,
+    updateIteratorProgress,
+  ]);
 
   useEffect(() => {
     if (eventSourceStatus === 'error') {

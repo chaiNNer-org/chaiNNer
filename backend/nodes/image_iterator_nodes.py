@@ -198,7 +198,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
             writer["out"] = cv2.VideoWriter(
                 filename=video_save_path, fourcc=fourcc, fps=fps, frameSize=(w, h)
             )
-        writer["out"].write(img)
+
+        writer["out"].write((img * 255).astype(np.uint8))
         return ""
 
 
@@ -301,14 +302,16 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                     }
                 )
                 nodes[input_node_id]["inputs"] = [frame, idx]
+                external_cache_copy = external_cache.copy()
                 executor = Executor(
                     nodes,
                     loop,
                     queue,
-                    external_cache.copy(),
+                    external_cache_copy,
                     parent_executor=parent_executor,
                 )
                 await executor.run()
+                del external_cache_copy
                 await queue.put(
                     {
                         "event": "iterator-progress-update",
