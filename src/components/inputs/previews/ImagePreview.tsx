@@ -85,7 +85,11 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
       ) : (
         <VStack>
           <Image
-            alt="Image preview failed to load, probably unsupported file type."
+            alt={
+              img
+                ? 'Image preview failed to load, probably unsupported file type.'
+                : 'File does not exist on the system. Please select a different file.'
+            }
             // boxSize="150px"
             borderRadius="md"
             draggable={false}
