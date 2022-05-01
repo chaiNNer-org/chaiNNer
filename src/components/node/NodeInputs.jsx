@@ -21,6 +21,9 @@ const pickInput = (type, props) => {
     case 'file::pth':
       InputType = FileInput;
       break;
+    case 'file::video':
+      InputType = FileInput;
+      break;
     case 'file::directory':
       InputType = DirectoryInput;
       break;

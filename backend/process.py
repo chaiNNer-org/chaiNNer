@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import functools
 import os
@@ -140,7 +141,7 @@ class Executor:
 
     async def run(self):
         """Run the executor"""
-        logger.info(f"Running executor {self.execution_id}")
+        logger.debug(f"Running executor {self.execution_id}")
         await self.process_nodes()
 
     async def resume(self):

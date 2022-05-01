@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Dict
 
 from ...utils.image_utils import get_available_image_formats
@@ -27,6 +28,16 @@ def ImageFileInput() -> Dict:
         "image",
         "Image File",
         get_available_image_formats(),
+        hasHandle=False,
+    )
+
+
+def VideoFileInput() -> Dict:
+    """Input for submitting a local video file"""
+    return FileInput(
+        "video",
+        "Video File",
+        [".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
         hasHandle=False,
     )
 

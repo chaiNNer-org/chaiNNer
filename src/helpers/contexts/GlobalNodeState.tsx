@@ -14,10 +14,6 @@ import {
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
-import { ipcRenderer } from '../safeIpc';
-import useSessionStorage from '../hooks/useSessionStorage';
-import { migrate } from '../migrations';
-import { SettingsContext } from './SettingsContext';
 import {
   EdgeData,
   InputValue,
@@ -27,7 +23,11 @@ import {
   SchemaMap,
   Size,
 } from '../../common-types';
+import useSessionStorage from '../hooks/useSessionStorage';
+import { migrate } from '../migrations';
 import { snapToGrid } from '../reactFlowUtil';
+import { ipcRenderer } from '../safeIpc';
+import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -583,13 +583,23 @@ export const GlobalProvider = ({
   );
 
   const useAnimateEdges = useCallback(() => {
-    const animateEdges = () => {
-      setEdges(
-        edges.map((edge) => ({
+    const animateEdges = (nodeIdsToAnimate: readonly string[]) => {
+      if (nodeIdsToAnimate) {
+        const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
+        const animatedEdges = edgesToAnimate.map((edge) => ({
           ...edge,
           animated: true,
-        }))
-      );
+        }));
+        const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
+        setEdges([...otherEdges, ...animatedEdges]);
+      } else {
+        setEdges(
+          edges.map((edge) => ({
+            ...edge,
+            animated: true,
+          }))
+        );
+      }
     };
 
     const unAnimateEdges = (nodeIdsToUnAnimate: readonly string[]) => {

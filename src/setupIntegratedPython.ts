@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import decompress from 'decompress';
+import decompress, { File } from 'decompress';
 import log from 'electron-log';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
@@ -35,11 +35,14 @@ export const extractPython = async (
   pythonPath: string,
   onProgress: (percent: number) => void
 ) => {
-  const fileData = Array.from(await decompress(path.join(directory, '/python.tar.gz')));
+  const fileData: File[] = Array.from(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+    await decompress(path.join(directory, '/python.tar.gz'))
+  );
   const totalFiles = fileData.length;
   let doneCounter = 0;
   await Promise.all(
-    fileData.map(async (file) => {
+    fileData.map(async (file: File) => {
       const filePath = path.join(directory, file.path);
       const fileDir = path.dirname(filePath);
       await fs.mkdir(fileDir, { recursive: true });
