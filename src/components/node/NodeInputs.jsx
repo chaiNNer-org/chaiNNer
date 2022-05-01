@@ -37,8 +37,8 @@ const pickInput = (type, props) => {
       InputType = TextAreaInput;
       break;
     case 'dropdown::str':
-        InputType = DropDownInput;
-        break;
+      InputType = DropDownInput;
+      break;
     case 'dropdown::image-extensions':
       InputType = DropDownInput;
       break;
