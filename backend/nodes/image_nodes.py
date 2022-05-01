@@ -1415,14 +1415,16 @@ class AverageColorFixNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Correct for upscaling model color shift by matching average color of
-            Input Image to that of a smaller Reference Image. If Reference Image
-            contains compression artifacts, the node can downscale it to avoid
-            artifacts in the output."""
+        self.description = """Correct for upscaling model color shift by matching
+         average color of Input Image to that of a smaller Reference Image. 
+         Using significant downscaling increases generalization of averaging effect
+         and can reduce artifacts in the output."""
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
-            BoundedNumberInput("Reference Image Scale Factor", default=1.0, step=0.125),
+            BoundedNumberInput(
+                "Reference Image Scale Factor", default=0.125, step=0.125
+            ),
         ]
         self.outputs = [ImageOutput()]
 

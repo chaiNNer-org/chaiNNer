@@ -5,6 +5,7 @@ import { createContext, memo, useCallback, useContext, useEffect, useMemo } from
 import ReactFlow, { Background, Controls, useEdgesState, useNodesState } from 'react-flow-renderer';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
+import { snapToGrid } from '../helpers/reactFlowUtil';
 
 export const NodeDataContext = createContext({});
 
@@ -119,13 +120,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
         if (n.parentNode) {
           return n;
         }
-        return {
-          ...n,
-          position: {
-            x: n.position.x - (n.position.x % snapToGridAmount),
-            y: n.position.y - (n.position.y % snapToGridAmount),
-          },
-        };
+        return { ...n, position: snapToGrid(n.position, snapToGridAmount) };
       });
       _setNodes(alignedNodes);
     }
