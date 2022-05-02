@@ -469,15 +469,26 @@ class BorderMakeNode(NodeBase):
     def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
         """Takes an image and applies a border to it"""
 
+        amount = int(amount)
+        border_type = int(border_type)
+
+        if (img.ndim == 3 and img.shape[2] == 4) and border_type == cv2.BORDER_CONSTANT:
+            value = (0, 0, 0, 1)
+        else:
+            value = 0
+
+        if border_type == cv2.BORDER_TRANSPARENT:
+            border_type = cv2.BORDER_CONSTANT
+
         result = cv2.copyMakeBorder(
             img,
-            int(amount),
-            int(amount),
-            int(amount),
-            int(amount),
-            int(border_type),
+            amount,
+            amount,
+            amount,
+            amount,
+            border_type,
             None,
-            value=0,
+            value=value,
         )
 
         return result

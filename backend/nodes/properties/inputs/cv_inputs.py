@@ -160,6 +160,10 @@ def BorderInput() -> Dict:
                 "option": "Constant Color",
                 "value": cv2.BORDER_CONSTANT,
             },
+            {
+                "option": "Transparent",
+                "value": cv2.BORDER_TRANSPARENT,
+            },
         ],
     )
 
