@@ -94,7 +94,7 @@ const Header = ({ port }: HeaderProps) => {
         setRunning(false);
       }
     },
-    [setRunning, clearCompleteEdges]
+    [setRunning, unAnimateEdges]
   );
 
   const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
