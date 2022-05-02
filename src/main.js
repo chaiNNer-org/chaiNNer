@@ -165,7 +165,7 @@ const registerEventHandlers = () => {
       // eslint-disable-next-line no-param-reassign
       return filePath;
     } catch (error) {
-      console.error(error);
+      log.error(error);
       return error.message;
       // show error dialog idk
     }
@@ -175,7 +175,7 @@ const registerEventHandlers = () => {
     try {
       await writeFile(savePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
     } catch (error) {
-      console.error(error);
+      log.error(error);
       // show error dialog idk
     }
   });
@@ -258,8 +258,7 @@ const getPythonVersion = async (pythonBin) => {
   }
 };
 
-const checkPythonVersion = (version) =>
-  semver.gte(version, '3.7.0') && semver.lt(version, '3.10.0');
+const checkPythonVersion = (version) => semver.gte(version, '3.7.0');
 
 const checkPythonEnv = async (splashWindow) => {
   log.info('Attempting to check Python env...');
@@ -297,7 +296,7 @@ const checkPythonEnv = async (splashWindow) => {
         buttons: ['Get Python', 'Exit'],
         defaultId: 1,
         message:
-          'It seems like you do not have Python installed on your system. Please install Python (>= 3.7 && < 3.10) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+          'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
       };
       const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
       if (buttonResult === 1) {
@@ -322,7 +321,7 @@ const checkPythonEnv = async (splashWindow) => {
         buttons: ['Get Python', 'Exit'],
         defaultId: 1,
         message:
-          'It seems like your installed Python version does not meet the requirement (>=3.7 && < 3.10). Please install a Python version between 3.7 and 3.9 to use this application. You can get Python from https://www.python.org/downloads/',
+          'It seems like your installed Python version does not meet the requirement (>=3.7). Please install a Python version at or above 3.7 to use this application. You can get Python from https://www.python.org/downloads/',
       };
       const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
       if (buttonResult === 1) {
@@ -412,7 +411,7 @@ const checkPythonDeps = async (splashWindow) => {
       await exec(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
     }
   } catch (error) {
-    console.error(error);
+    log.error(error);
   }
 };
 
@@ -759,7 +758,7 @@ const createWindow = async () => {
                 await mainWindow.webContents.send('file-open', parsed, filepath);
               }
             } catch (error) {
-              console.error(error);
+              log.error(error);
               // show error dialog idk
             }
           },
@@ -886,7 +885,7 @@ const createWindow = async () => {
       // await mainWindow.webContents.send('file-open', parsed, filepath);
       ipcMain.handle('get-cli-open', () => parsed);
     } catch (error) {
-      console.error(error);
+      log.error(error);
       // show error dialog idk
     }
   } else {
