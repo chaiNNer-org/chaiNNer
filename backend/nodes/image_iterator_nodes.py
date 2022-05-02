@@ -203,7 +203,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         return ""
 
 
-@NodeFactory.register("Image", "Video Frame Iterator")
+# TODO: Uncomment this when ready to release video frame iterator
+# @NodeFactory.register("Image", "Video Frame Iterator")
 class SimpleVideoFrameIteratorNode(IteratorNodeBase):
     """Video Frame Iterator node"""
 
