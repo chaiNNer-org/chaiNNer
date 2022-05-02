@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 import { createIcon } from '@chakra-ui/icons';
 import { Icon } from '@chakra-ui/react';
 import { IconType } from 'react-icons';

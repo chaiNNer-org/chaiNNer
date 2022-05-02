@@ -11,7 +11,6 @@ export const NodeDataContext = createContext({});
 
 const STARTING_Z_INDEX = 50;
 
-// eslint-disable-next-line react/prop-types
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   const {
     nodes,

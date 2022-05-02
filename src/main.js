@@ -162,7 +162,6 @@ const registerEventHandlers = () => {
       if (!canceled && filePath) {
         await writeFile(filePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
       }
-      // eslint-disable-next-line no-param-reassign
       return filePath;
     } catch (error) {
       log.error(error);
@@ -237,10 +236,8 @@ const getValidPort = async (splashWindow) => {
   log.info(`Port found: ${port}`);
   ipcMain.handle('get-port', () => {
     if (process.argv[2] && process.argv[2] === '--no-backend') {
-      // eslint-disable-next-line no-param-reassign
       return 8000;
     }
-    // eslint-disable-next-line no-param-reassign
     return port;
   });
   return port;
