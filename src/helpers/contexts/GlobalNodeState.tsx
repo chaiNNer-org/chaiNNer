@@ -7,12 +7,12 @@ import {
   OnEdgesChange,
   OnNodesChange,
   useEdgesState,
+  useKeyPress,
   useNodesState,
   useReactFlow,
   Viewport,
   XYPosition,
 } from 'react-flow-renderer';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EdgeData,
@@ -197,9 +197,17 @@ export const GlobalProvider = ({
 
   const [, , snapToGridAmount] = useSnapToGrid;
 
-  const dumpStateToJSON = async () => {
+  const [appVersion, setAppVersion] = useState<string | undefined>();
+  useEffect(() => {
+    (async () => {
+      const version: string = await ipcRenderer.invoke('get-app-version');
+      setAppVersion(version);
+    })();
+  }, []);
+
+  const dumpStateToJSON = useCallback(() => {
     const output = JSON.stringify({
-      version: await ipcRenderer.invoke('get-app-version'),
+      version: appVersion,
       content: {
         nodes,
         edges,
@@ -208,7 +216,7 @@ export const GlobalProvider = ({
       timestamp: new Date(),
     });
     return output;
-  };
+  }, [nodes, edges, appVersion]);
 
   const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
     if (savedData) {
@@ -244,16 +252,16 @@ export const GlobalProvider = ({
     }
   };
 
-  const clearState = () => {
+  const clearState = useCallback(() => {
     setEdges([]);
     setNodes([]);
     setSavePath(undefined);
     setViewport({ x: 0, y: 0, zoom: 0 });
-  };
+  }, [setEdges, setNodes, setSavePath, setViewport]);
 
   const performSave = useCallback(() => {
     (async () => {
-      const json = await dumpStateToJSON();
+      const json = dumpStateToJSON();
       if (savePath) {
         await ipcRenderer.invoke('file-save-json', json, savePath);
       } else {
@@ -261,13 +269,22 @@ export const GlobalProvider = ({
         setSavePath(savedAsPath);
       }
     })();
-  }, [nodes, edges, savePath]);
+  }, [dumpStateToJSON, savePath]);
 
-  useHotkeys('ctrl+s', performSave, {}, [savePath]);
-  // useHotkeys('ctrl+z', undo, {}, [reactFlowInstanceRfi, nodes, edges]);
-  // useHotkeys('ctrl+r', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
-  // useHotkeys('ctrl+shift+z', redo, {}, [reactFlowInstanceRfi, nodes, edges]);
-  useHotkeys('ctrl+n', clearState, {}, []);
+  const savePressed = useKeyPress(['Meta+s', 'Control+s']);
+  const newPressed = useKeyPress(['Meta+n', 'Control+n']);
+
+  useEffect(() => {
+    if (savePressed) {
+      performSave();
+    }
+  }, [savePressed]);
+
+  useEffect(() => {
+    if (newPressed) {
+      clearState();
+    }
+  }, [newPressed]);
 
   // Register New File event handler
   useEffect(() => {
@@ -308,7 +325,7 @@ export const GlobalProvider = ({
   useEffect(() => {
     ipcRenderer.on('file-save-as', () => {
       (async () => {
-        const json = await dumpStateToJSON();
+        const json = dumpStateToJSON();
         const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
         setSavePath(savedAsPath);
       })();
@@ -322,7 +339,7 @@ export const GlobalProvider = ({
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [nodes, edges, savePath]);
+  }, [dumpStateToJSON, savePath]);
 
   // Push state to undo history
   // useEffect(() => {
