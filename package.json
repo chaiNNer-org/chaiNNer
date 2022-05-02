@@ -172,6 +172,7 @@
     "@geoffcox/react-splitter": "^2.1.1",
     "@react-hook/window-size": "^3.0.7",
     "@react-nano/use-event-source": "^0.11.0",
+    "cross-fetch": "^3.1.5",
     "decompress": "^4.2.1",
     "electron-log": "^4.4.1",
     "electron-squirrel-startup": "^1.0.0",

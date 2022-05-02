@@ -15,6 +15,7 @@ import {
 } from 'react-flow-renderer';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  DefaultNode,
   EdgeData,
   InputValue,
   IteratorSize,
@@ -22,6 +23,7 @@ import {
   NodeSchema,
   SchemaMap,
   Size,
+  UsableData,
 } from '../../common-types';
 import useSessionStorage from '../hooks/useSessionStorage';
 import { migrate } from '../migrations';
@@ -48,7 +50,12 @@ interface Global {
     id: string,
     index: number
   ) => readonly [] | readonly [InputValue, (data: InputValue) => void];
-  useAnimateEdges: () => ((nodeIdsToUnAnimate: readonly string[]) => void)[];
+  useAnimateEdges: () => readonly [
+    (nodeIdsToAnimate?: readonly string[] | undefined) => void,
+    (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
+    (finished: readonly string[]) => void,
+    () => void
+  ];
   removeNodeById: (id: string) => void;
   removeEdgeById: (id: string) => void;
   useNodeLock: (
@@ -73,22 +80,11 @@ interface Global {
   ];
 }
 
-interface UsableData {
-  category: string;
-  node: string;
-  id: string;
-  inputs: Record<number, InputValue>;
-  outputs: Record<number, InputValue>;
-  child: boolean;
-  children?: string[];
-  nodeType: string | undefined;
-  percent?: number;
-}
 interface NodeProto {
   position: XYPosition;
   data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: NodeData['inputData'] };
   nodeType: string;
-  defaultNodes?: NodeSchema[];
+  defaultNodes?: DefaultNode[];
   parent?: string | Node<NodeData> | null;
 }
 type EdgeProto = Pick<Edge<EdgeData>, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>;
@@ -467,6 +463,8 @@ export const GlobalProvider = ({
       const extraNodes: Node<NodeData>[] = [];
       if (nodeType === 'iterator') {
         newNode.data.iteratorSize = { width: 480, height: 480, offsetTop: 0, offsetLeft: 0 };
+        console.log(defaultNodes);
+
         defaultNodes.forEach(({ category, name }) => {
           const subNodeData = availableNodes[category][name];
           const subNode = createNode({
@@ -600,7 +598,7 @@ export const GlobalProvider = ({
   );
 
   const useAnimateEdges = useCallback(() => {
-    const animateEdges = (nodeIdsToAnimate: readonly string[]) => {
+    const animateEdges = (nodeIdsToAnimate?: readonly string[]) => {
       if (nodeIdsToAnimate) {
         const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
         const animatedEdges = edgesToAnimate.map((edge) => ({
@@ -619,7 +617,7 @@ export const GlobalProvider = ({
       }
     };
 
-    const unAnimateEdges = (nodeIdsToUnAnimate: readonly string[]) => {
+    const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) => {
       if (nodeIdsToUnAnimate) {
         const edgesToUnAnimate = edges.filter((e) => nodeIdsToUnAnimate.includes(e.source));
         const unanimatedEdges = edgesToUnAnimate.map((edge) => ({
@@ -669,7 +667,7 @@ export const GlobalProvider = ({
       );
     };
 
-    return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges];
+    return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
   }, [edges, setEdges]);
 
   // TODO: performance concern? runs twice when deleting node

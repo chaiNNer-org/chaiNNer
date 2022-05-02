@@ -1,3 +1,8 @@
+export interface JsonObject {
+  [key: string]: JsonValue;
+}
+export type JsonValue = null | string | number | boolean | JsonObject | JsonValue[];
+
 export interface Size {
   width: number;
   height: number;
@@ -19,7 +24,6 @@ export type Input = {
 export type Output = { type: string; label: string };
 
 export interface NodeSchema {
-  category: string;
   name: string;
   subcategory: string;
   description: string;
@@ -27,6 +31,14 @@ export interface NodeSchema {
   nodeType: string;
   inputs: Input[];
   outputs: Output[];
+  defaultNodes: DefaultNode[];
+}
+
+export interface DefaultNode {
+  // Default nodes aren't currently used
+  __SPECIAL: never;
+  category: string;
+  name: string;
 }
 
 export type SchemaMap = Record<string, Record<string, NodeSchema>>;
@@ -51,4 +63,16 @@ export type EdgeData = { complete?: boolean };
 export interface PythonKeys {
   python: string;
   version: string;
+}
+
+export interface UsableData {
+  category: string;
+  node: string;
+  id: string;
+  inputs: Record<number, InputValue>;
+  outputs: Record<number, InputValue>;
+  child: boolean;
+  children?: string[];
+  nodeType: string | undefined;
+  percent?: number;
 }
