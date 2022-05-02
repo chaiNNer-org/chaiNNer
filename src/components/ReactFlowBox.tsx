@@ -1,8 +1,20 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
-// import PillPity from 'pill-pity';
-import { createContext, memo, useCallback, useContext, useEffect, useMemo } from 'react';
-import ReactFlow, { Background, Controls, useEdgesState, useNodesState } from 'react-flow-renderer';
+import { createContext, DragEvent, memo, useCallback, useContext, useEffect, useMemo } from 'react';
+import ReactFlow, {
+  Background,
+  BackgroundVariant,
+  Controls,
+  Edge,
+  EdgeTypes,
+  Node,
+  NodeTypes,
+  ReactFlowInstance,
+  useEdgesState,
+  useNodesState,
+} from 'react-flow-renderer';
+import { EdgeData, NodeData, NodeSchema } from '../common-types';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { snapToGrid } from '../helpers/reactFlowUtil';
@@ -11,7 +23,12 @@ export const NodeDataContext = createContext({});
 
 const STARTING_Z_INDEX = 50;
 
-const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
+interface ReactFlowBoxProps {
+  nodeTypes: NodeTypes;
+  edgeTypes: EdgeTypes;
+  wrapperRef: React.MutableRefObject<HTMLDivElement>;
+}
+const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
   const {
     nodes,
     edges,
@@ -29,12 +46,12 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
 
   const { useSnapToGrid } = useContext(SettingsContext);
 
-  const [_nodes, _setNodes, onNodesChange] = useNodesState([]);
-  const [_edges, _setEdges, onEdgesChange] = useEdgesState([]);
+  const [_nodes, _setNodes, onNodesChange] = useNodesState<NodeData>([]);
+  const [_edges, _setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
 
   const sortNodesAndEdges = useCallback(() => {
     const iterators = nodes.filter((n) => n.type === 'iterator'); // .sort((i) => (i.selected ? 1 : -1));
-    let sortedNodes = [];
+    let sortedNodes: Node<NodeData>[] = [];
 
     // Sort the nodes in a way that makes iterators stack on each other correctly
     // Put iterators below their children
@@ -83,13 +100,18 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   }, [_nodes, _edges]);
 
   const onNodesDelete = useCallback(
-    (_nodesToDelete) => {
+    (_nodesToDelete: readonly Node<NodeData>[]) => {
       // Prevent iterator helpers from being deleted
       const iteratorsToDelete = _nodesToDelete
         .filter((n) => n.type === 'iterator')
         .map((n) => n.id);
       const nodesToDelete = _nodesToDelete.filter(
-        (n) => !(n.type === 'iteratorHelper' && !iteratorsToDelete.includes(n.parentNode))
+        (n) =>
+          !(
+            n.type === 'iteratorHelper' &&
+            n.parentNode &&
+            !iteratorsToDelete.includes(n.parentNode)
+          )
       );
 
       const nodeIds = nodesToDelete.map((n) => n.id);
@@ -100,7 +122,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   );
 
   const onEdgesDelete = useCallback(
-    (edgesToDelete) => {
+    (edgesToDelete: readonly Edge<EdgeData>[]) => {
       const edgeIds = edgesToDelete.map((e) => e.id);
       const newEdges = edges.filter((e) => !edgeIds.includes(e.id));
       setEdges(newEdges);
@@ -126,7 +148,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   }, [snapToGridAmount, nodes]);
 
   const onInit = useCallback(
-    (rfi) => {
+    (rfi: ReactFlowInstance<NodeData, EdgeData>) => {
       if (!reactFlowInstance) {
         setReactFlowInstance(rfi);
         console.log('flow loaded:', rfi);
@@ -135,7 +157,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
     [reactFlowInstance]
   );
 
-  const onDragOver = useCallback((event) => {
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.dropEffect = 'move';
@@ -148,27 +170,21 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   }, []);
 
   const onDrop = useCallback(
-    (event) => {
+    (event: DragEvent<HTMLDivElement>) => {
       // log.info('dropped');
       event.preventDefault();
+
+      if (!reactFlowInstance) return;
 
       const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
       try {
-        const type = event.dataTransfer.getData('application/reactflow/type');
-        const nodeType = event.dataTransfer.getData('application/reactflow/nodeType');
-        // const inputs = JSON.parse(event.dataTransfer.getData('application/reactflow/inputs'));
-        // const outputs = JSON.parse(event.dataTransfer.getData('application/reactflow/outputs'));
+        const nodeSchema = JSON.parse(
+          event.dataTransfer.getData('application/reactflow/schema')
+        ) as NodeSchema;
         const category = event.dataTransfer.getData('application/reactflow/category');
-        const icon = event.dataTransfer.getData('application/reactflow/icon');
-        const subcategory = event.dataTransfer.getData('application/reactflow/subcategory');
-        const offsetX = event.dataTransfer.getData('application/reactflow/offsetX');
-        const offsetY = event.dataTransfer.getData('application/reactflow/offsetY');
-        const defaultNodes =
-          nodeType === 'iterator'
-            ? JSON.parse(event.dataTransfer.getData('application/reactflow/defaultNodes'))
-            : null;
-        // log.info(type, inputs, outputs, category);
+        const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
+        const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
 
         const position = reactFlowInstance.project({
           x: event.clientX - reactFlowBounds.left - offsetX * zoom,
@@ -177,17 +193,18 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
 
         const nodeData = {
           category,
-          type,
-          icon,
-          subcategory,
+          type: nodeSchema.name,
+          icon: nodeSchema.icon,
+          subcategory: nodeSchema.subcategory,
         };
 
         createNode({
-          type,
           position,
           data: nodeData,
-          nodeType,
-          defaultNodes,
+          nodeType: nodeSchema.nodeType,
+          // TODO: This is a HACK. Replace with the proper DefaultNode type later
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          defaultNodes: (nodeSchema as any).defaultNodes,
         });
       } catch (error) {
         log.error(error);
@@ -204,12 +221,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
   }, []);
 
   const [closeAllMenus] = useMenuCloseFunctions;
-
-  // const onConnect = useCallback(
-  //   (params) => {
-  //     createConnection(params);
-  //   }, [],
-  // );
 
   return (
     <Box
@@ -259,7 +270,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }) => {
         <Background
           gap={16}
           size={0.5}
-          variant="dots"
+          variant={BackgroundVariant.Dots}
         />
         {/* Would be cool to use this in the future */}
         {/* <PillPity
