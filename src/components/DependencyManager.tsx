@@ -39,11 +39,11 @@ import {
 import { exec, spawn } from 'child_process';
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
-import { ipcRenderer } from '../helpers/safeIpc';
+import { PythonKeys } from '../common-types';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../helpers/dependencies';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress';
-import { PythonKeys } from '../common-types';
+import { ipcRenderer } from '../helpers/safeIpc';
 
 const checkSemver = (v1: string, v2: string) => {
   try {
@@ -279,7 +279,7 @@ const DependencyManager = ({
                     flex="1"
                     textAlign="left"
                   >
-                    Python ({pythonKeys!.version}) [{isSystemPython ? 'System' : 'Integrated'}]
+                    Python ({pythonKeys?.version}) [{isSystemPython ? 'System' : 'Integrated'}]
                   </Text>
                 </Flex>
                 {isLoadingPipList ? (
@@ -461,7 +461,7 @@ const DependencyManager = ({
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to uninstall {uninstallingPackage!.name}?
+              Are you sure you want to uninstall {uninstallingPackage?.name}?
             </AlertDialogBody>
 
             <AlertDialogFooter>
