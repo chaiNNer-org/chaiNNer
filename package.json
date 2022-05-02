@@ -13,12 +13,13 @@
     "make-win-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform win32",
     "make-mac-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform darwin",
     "publish": "cross-env NODE_ENV=production electron-forge publish",
-    "lint": "npm run lint-js && black --check ./backend",
+    "lint": "npm run lint-js && npm run lint-py",
     "lint-js": "eslint . --ext \".js,.jsx,.ts,.tsx\"",
+    "lint-py": "black --check ./backend",
     "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend"
   },
   "pre-commit": [
-    "lint"
+    "lint-py"
   ],
   "keywords": [],
   "author": {
