@@ -1,4 +1,4 @@
-export default (category: string): string => {
+export default (category?: string): string => {
   // if (subcategory) {
   //   switch (`${category}|${subcategory}`) {
   //     case 'Image|I/O':

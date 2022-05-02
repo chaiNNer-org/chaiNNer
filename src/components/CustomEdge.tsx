@@ -1,7 +1,7 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
-import { getBezierPath, getEdgeCenter } from 'react-flow-renderer';
+import { getBezierPath, getEdgeCenter, Position } from 'react-flow-renderer';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
@@ -18,7 +18,8 @@ const EdgeWrapper = memo(
     targetPosition,
     style = {},
     selected,
-  }) => (
+  }: CustomEdgeProps) => (
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     <CustomEdge
       id={id}
       selected={selected}
@@ -33,6 +34,18 @@ const EdgeWrapper = memo(
   )
 );
 
+interface CustomEdgeProps {
+  id: string;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  sourcePosition: Position;
+  targetPosition: Position;
+  style?: React.CSSProperties;
+  selected: boolean;
+}
+
 const CustomEdge = memo(
   ({
     id,
@@ -44,7 +57,7 @@ const CustomEdge = memo(
     targetPosition,
     style = {},
     selected,
-  }) => {
+  }: CustomEdgeProps) => {
     const edgePath = useMemo(
       () =>
         getBezierPath({
@@ -60,17 +73,14 @@ const CustomEdge = memo(
 
     const { removeEdgeById, nodes, edges, useHoveredNode } = useContext(GlobalContext);
 
-    const edge = useMemo(() => edges.find((e) => e.id === id), []);
+    const edge = useMemo(() => edges.find((e) => e.id === id)!, [id]);
     const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
 
     const [isHovered, setIsHovered] = useState(false);
 
     // const accentColor = getNodeAccentColors(data.sourceType, data.sourceSubCategory);
     // We dynamically grab this data instead since storing the types makes transitioning harder
-    const accentColor = useMemo(
-      () => getNodeAccentColors(parentNode?.data.category, parentNode?.data.subcategory),
-      [parentNode]
-    );
+    const accentColor = getNodeAccentColors(parentNode?.data.category);
     const selectedColor = useMemo(() => shadeColor(accentColor, -40), [accentColor]);
     // const normalColor = useColorModeValue('gray.600', 'gray.400');
 
@@ -168,6 +178,7 @@ const CustomEdge = memo(
             w="full"
           >
             <IconButton
+              aria-label="Remove edge button"
               isRound
               borderColor={useColorModeValue('gray.100', 'gray.800')}
               borderRadius={100}

@@ -37,23 +37,45 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { exec, spawn } from 'child_process';
-import { ipcRenderer } from 'electron';
-import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
+import { PythonKeys } from '../common-types';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
-import getAvailableDeps from '../helpers/dependencies';
+import getAvailableDeps, { Dependency } from '../helpers/dependencies';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress';
+import { ipcRenderer } from '../helpers/safeIpc';
 
-const checkSemver = (v1, v2) => {
+const checkSemver = (v1: string, v2: string) => {
   try {
-    return !semver.gt(semver.coerce(v1).version, semver.coerce(v2).version);
+    return !semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
   } catch (error) {
     console.log(error);
     return true;
   }
 };
 
-const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
+type ParsedPipList = Record<string, string>;
+
+const parsePipOutput = (output: string): ParsedPipList => {
+  const tempPipList = output.split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
+  const pipObj: ParsedPipList = {};
+  tempPipList.forEach(([dep, version]) => {
+    pipObj[dep] = version;
+  });
+  return pipObj;
+};
+
+interface DependencyManagerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onPipListUpdate?: (value: ParsedPipList) => void;
+}
+
+const DependencyManager = ({
+  isOpen,
+  onClose,
+  onPipListUpdate = () => {},
+}: DependencyManagerProps) => {
   const { useIsSystemPython } = useContext(SettingsContext);
 
   const [isSystemPython] = useIsSystemPython;
@@ -63,29 +85,28 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     onOpen: onUninstallOpen,
     onClose: onUninstallClose,
   } = useDisclosure();
-  const cancelRef = useRef();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const [deps, setDeps] = useState({});
-  const [pythonKeys, setPythonKeys] = useState({});
+  const [pythonKeys, setPythonKeys] = useState<PythonKeys>();
 
   const [isLoadingPipList, setIsLoadingPipList] = useState(true);
-  const [pipList, setPipList] = useState({});
+  const [pipList, setPipList] = useState<ParsedPipList>({});
 
-  const [installingPackage, setInstallingPackage] = useState(null);
-  const [uninstallingPackage, setUninstallingPackage] = useState('');
+  const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
+  const [uninstallingPackage, setUninstallingPackage] = useState<Dependency | null>(null);
 
-  const consoleRef = useRef(null);
+  const consoleRef = useRef<HTMLTextAreaElement | null>(null);
   const [shellOutput, setShellOutput] = useState('');
   const [isRunningShell, setIsRunningShell] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const [depChanged, setDepChanged] = useState(false);
 
-  const [gpuInfo, setGpuInfo] = useState([]);
+  const [gpuInfo, setGpuInfo] = useState<string[]>([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-  const [nvidiaGpuName, setNvidiaGpuName] = useState(null);
+  const [nvidiaGpuName, setNvidiaGpuName] = useState<string | null>(null);
 
-  const [availableDeps, setAvailableDeps] = useState([]);
+  const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
 
   useEffect(() => {
     const depsArr = getAvailableDeps(isNvidiaAvailable);
@@ -110,22 +131,12 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     (async () => {
       const pKeys = await ipcRenderer.invoke('get-python');
       setPythonKeys(pKeys);
-      setDeps({
-        ...deps,
-        pythonVersion: pKeys.version,
-      });
       exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout) => {
         if (error) {
           setIsLoadingPipList(false);
           return;
         }
-        const tempPipList = String(stdout)
-          .split('\n')
-          .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-        const pipObj = {};
-        tempPipList.forEach(([dep, version]) => {
-          pipObj[dep] = version;
-        });
+        const pipObj = parsePipOutput(String(stdout));
         setPipList(pipObj);
         onPipListUpdate(pipObj);
         setIsLoadingPipList(false);
@@ -134,7 +145,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
   }, []);
 
   useEffect(() => {
-    if (!isRunningShell) {
+    if (!isRunningShell && pythonKeys) {
       setIsLoadingPipList(true);
       // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
       exec(
@@ -144,13 +155,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
             setIsLoadingPipList(false);
             return;
           }
-          const tempPipList = String(stdout)
-            .split('\n')
-            .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-          const pipObj = {};
-          tempPipList.forEach(([dep, version]) => {
-            pipObj[dep] = version;
-          });
+          const pipObj = parsePipOutput(String(stdout));
           setPipList(pipObj);
           onPipListUpdate(pipObj);
           setIsLoadingPipList(false);
@@ -167,73 +172,59 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
     })();
   }, [depChanged]);
 
-  const runPipCommand = (args) => {
+  const runPipCommand = (args: string[]) => {
     setShellOutput('');
     setIsRunningShell(true);
-    const command = spawn(pythonKeys.python, ['-m', 'pip', ...args, '--disable-pip-version-check']);
+    // TODO: hope and pray pythonKeys is non-null
+    const command = spawn(pythonKeys!.python, [
+      '-m',
+      'pip',
+      ...args,
+      '--disable-pip-version-check',
+    ]);
 
     let outputString = '';
 
-    command.stdout.on('data', (data) => {
+    command.stdout.on('data', (data: unknown) => {
       outputString += String(data);
       setShellOutput(outputString);
     });
 
-    command.stderr.on('data', (data) => {
-      setShellOutput(data);
+    command.stderr.on('data', (data: unknown) => {
+      setShellOutput(String(data));
     });
 
     command.on('error', (error) => {
-      setShellOutput(error);
+      setShellOutput(String(error));
       setIsRunningShell(false);
     });
 
     command.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
+      console.log(`child process exited with code ${code ?? 'null'}`);
       setIsRunningShell(false);
     });
   };
 
-  const installPackage = async (dep) => {
+  const installPackage = async (dep: Dependency, upgrade: boolean) => {
     setIsRunningShell(true);
     setInstallingPackage(dep);
     let output = '';
     await pipInstallWithProgress(
-      pythonKeys.python,
+      // TODO: hope and pray pythonKeys is non-null
+      pythonKeys!.python,
       dep,
-      (percentage) => {
-        setProgress(percentage);
-      },
+      setProgress,
       (data) => {
-        output += String(data);
+        output += data;
         setShellOutput(output);
-      }
+      },
+      upgrade
     );
     setIsRunningShell(false);
     setProgress(0);
   };
 
-  const updatePackage = async (dep) => {
-    setIsRunningShell(true);
-    setInstallingPackage(dep);
-    let output = '';
-    await pipInstallWithProgress(
-      pythonKeys.python,
-      dep,
-      (percentage) => {
-        setProgress(percentage);
-      },
-      (data) => {
-        output += String(data);
-        setShellOutput(output);
-      },
-      true
-    );
-    setIsRunningShell(false);
-    setProgress(0);
-  };
-
-  const uninstallPackage = (dep) => {
+  const uninstallPackage = (dep: Dependency) => {
     setInstallingPackage(null);
     runPipCommand(['uninstall', '-y', dep.packageName]);
   };
@@ -277,9 +268,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                     flex="1"
                     textAlign="left"
                   >
-                    {`GPU (${
-                      isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0] ?? 'No GPU Available'
-                    })`}
+                    GPU ({(isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0]) ?? 'No GPU Available'})
                   </Text>
                 </Flex>
                 <Flex
@@ -290,7 +279,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                     flex="1"
                     textAlign="left"
                   >
-                    {`Python (${deps.pythonVersion}) [${isSystemPython ? 'System' : 'Integrated'}]`}
+                    Python ({pythonKeys?.version}) [{isSystemPython ? 'System' : 'Integrated'}]
                   </Text>
                 </Flex>
                 {isLoadingPipList ? (
@@ -326,9 +315,10 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                               isLoading={isRunningShell}
                               leftIcon={<DownloadIcon />}
                               size="sm"
-                              onClick={async () => {
+                              onClick={() => {
                                 setDepChanged(true);
-                                await updatePackage(dep);
+                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                installPackage(dep, true);
                               }}
                             >
                               {`Update${
@@ -357,9 +347,10 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                             isLoading={isRunningShell}
                             leftIcon={<DownloadIcon />}
                             size="sm"
-                            onClick={async () => {
+                            onClick={() => {
                               setDepChanged(true);
-                              await installPackage(dep);
+                              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                              installPackage(dep, false);
                             }}
                           >
                             Install
@@ -447,9 +438,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
             <Button
               colorScheme="blue"
               variant={depChanged ? 'solid' : 'ghost'}
-              onClick={async () => {
-                await ipcRenderer.invoke('relaunch-application');
-              }}
+              onClick={() => ipcRenderer.send('relaunch-application')}
             >
               Restart chaiNNer
             </Button>
@@ -472,7 +461,7 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              {`Are you sure you want to uninstall ${uninstallingPackage.name}?`}
+              Are you sure you want to uninstall {uninstallingPackage?.name}?
             </AlertDialogBody>
 
             <AlertDialogFooter>
@@ -488,7 +477,8 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
                 onClick={() => {
                   setDepChanged(true);
                   onUninstallClose();
-                  uninstallPackage(uninstallingPackage);
+                  // TODO: hope and pray that uninstallingPackage is actually non-null
+                  uninstallPackage(uninstallingPackage!);
                 }}
               >
                 Uninstall
@@ -503,9 +493,9 @@ const DependencyManager = ({ isOpen, onClose, onPipListUpdate = () => {} }) => {
 
 export const DependencyManagerButton = memo(() => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [pipList, setPipList] = useState({});
+  const [pipList, setPipList] = useState<ParsedPipList>({});
 
-  const [availableDeps, setAvailableDeps] = useState([]);
+  const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
   useEffect(() => {
@@ -565,6 +555,7 @@ export const DependencyManagerButton = memo(() => {
             <></>
           )}
           <IconButton
+            aria-label="Download button"
             icon={<DownloadIcon />}
             position="relative"
             size="md"
@@ -576,8 +567,7 @@ export const DependencyManagerButton = memo(() => {
       <DependencyManager
         isOpen={isOpen}
         onClose={onClose}
-        onOpen={onOpen}
-        onPipListUpdate={useCallback((pipObj) => setPipList(pipObj), [setPipList])}
+        onPipListUpdate={setPipList}
       />
     </>
   );
