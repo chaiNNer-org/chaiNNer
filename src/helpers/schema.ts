@@ -5,7 +5,6 @@ export const BLANK_SCHEMA: NodeSchema = {
   outputs: [],
   icon: '',
   subcategory: '',
-  category: '',
   name: '',
   description: '',
   nodeType: '',

@@ -31,7 +31,7 @@ export interface NodeSchema {
   nodeType: string;
   inputs: Input[];
   outputs: Output[];
-  defaultNodes: DefaultNode[];
+  defaultNodes?: DefaultNode[];
 }
 
 export interface DefaultNode {
