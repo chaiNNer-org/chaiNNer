@@ -77,7 +77,7 @@ export class Backend {
   /**
    * Runs a single node
    */
-  runIndividual(data: BackendRunIndividualRequest): Promise<JsonValue> {
+  runIndividual<T = JsonValue>(data: BackendRunIndividualRequest): Promise<T> {
     return this.fetchJson('/run/individual', 'POST', data);
   }
 
