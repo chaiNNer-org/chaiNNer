@@ -1,6 +1,12 @@
 {
   "python.formatting.provider": "black",
   "cSpell.words": [
-    "Chakra"
+    "Chakra",
+    "geforce",
+    "maximizable",
+    "minimizable",
+    "quadro",
+    "sanic",
+    "vram"
   ]
 }
