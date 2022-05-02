@@ -35,10 +35,7 @@ export const extractPython = async (
   pythonPath: string,
   onProgress: (percent: number) => void
 ) => {
-  const fileData: File[] = Array.from(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
-    await decompress(path.join(directory, '/python.tar.gz'))
-  );
+  const fileData: File[] = Array.from(await decompress(path.join(directory, '/python.tar.gz')));
   const totalFiles = fileData.length;
   let doneCounter = 0;
   await Promise.all(

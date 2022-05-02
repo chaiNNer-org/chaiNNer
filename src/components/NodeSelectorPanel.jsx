@@ -92,7 +92,6 @@ const getNamespaces = (nodes) => {
   return map;
 };
 
-// eslint-disable-next-line react/prop-types
 const NodeSelector = ({ data, height }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const handleChange = (event) => setSearchQuery(event.target.value);

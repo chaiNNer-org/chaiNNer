@@ -54,6 +54,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'plugin:prettier/recommended',
       ],
+      plugins: ['prettier', '@typescript-eslint', 'prefer-arrow-functions', 'eslint-comments'],
       parserOptions: {
         project: './tsconfig.json',
       },
@@ -61,6 +62,8 @@ module.exports = {
         'react/require-default-props': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
+        'eslint-comments/no-unused-enable': 'warn',
+        'eslint-comments/no-unused-disable': 'warn',
       },
     },
   ],
