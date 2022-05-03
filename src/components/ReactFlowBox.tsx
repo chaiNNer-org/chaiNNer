@@ -26,7 +26,7 @@ const STARTING_Z_INDEX = 50;
 interface ReactFlowBoxProps {
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
-  wrapperRef: React.MutableRefObject<HTMLDivElement>;
+  wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
   const {
@@ -174,7 +174,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
       // log.info('dropped');
       event.preventDefault();
 
-      if (!reactFlowInstance) return;
+      if (!reactFlowInstance || !wrapperRef.current) return;
 
       const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
@@ -202,9 +202,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
           position,
           data: nodeData,
           nodeType: nodeSchema.nodeType,
-          // TODO: This is a HACK. Replace with the proper DefaultNode type later
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          defaultNodes: (nodeSchema as any).defaultNodes,
+          defaultNodes: nodeSchema.defaultNodes,
         });
       } catch (error) {
         log.error(error);

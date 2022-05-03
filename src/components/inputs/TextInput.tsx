@@ -1,11 +1,19 @@
 import { Input } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useState } from 'react';
+import { ChangeEvent, memo, useContext, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
-const TextInput = memo(({ label, id, index, isLocked, maxLength }) => {
+interface TextInputProps {
+  id: string;
+  index: number;
+  isLocked?: boolean;
+  label: string;
+  maxLength?: number;
+}
+
+const TextInput = memo(({ label, id, index, isLocked, maxLength }: TextInputProps) => {
   const { useInputData, useNodeLock } = useContext(GlobalContext);
-  const [input, setInput] = useInputData(id, index);
+  const [input, setInput] = useInputData<string>(id, index);
   const [tempText, setTempText] = useState('');
   const [, , isInputLocked] = useNodeLock(id, index);
 
@@ -17,7 +25,7 @@ const TextInput = memo(({ label, id, index, isLocked, maxLength }) => {
     }
   }, []);
 
-  const handleChange = useDebouncedCallback((event) => {
+  const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLInputElement>) => {
     let text = event.target.value;
     text = maxLength ? text.slice(0, maxLength) : text;
     setInput(text);

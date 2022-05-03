@@ -8,13 +8,27 @@ import {
 import { memo, useContext } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
+interface NumericalInputProps {
+  id: string;
+  index: number;
+  isLocked?: boolean;
+  label: string;
+  type: string;
+  min?: number;
+  max?: number;
+  precision?: number;
+  step?: number;
+  def?: number;
+}
+
 const NumericalInput = memo(
-  ({ label, id, index, def, min, max, precision, step, type, isLocked }) => {
+  ({ label, id, index, def, min, max, precision, step, type, isLocked }: NumericalInputProps) => {
     const { useInputData, useNodeLock } = useContext(GlobalContext);
-    const [input, setInput] = useInputData(id, index);
+    // TODO: make sure this is always a number
+    const [input, setInput] = useInputData<string | number>(id, index);
     const [, , isInputLocked] = useNodeLock(id, index);
 
-    const handleChange = (numberAsString, numberAsNumber) => {
+    const handleChange = (numberAsString: string, numberAsNumber: number) => {
       if (type.includes('odd')) {
         // Make the number odd if need be
         setInput(String(numberAsNumber + (1 - (numberAsNumber % 2))));
@@ -26,8 +40,8 @@ const NumericalInput = memo(
     return (
       <NumberInput
         className="nodrag"
-        default={def}
-        disabled={isLocked || isInputLocked}
+        defaultValue={def}
+        isDisabled={isLocked || isInputLocked}
         draggable={false}
         max={max ?? Infinity}
         min={min ?? -Infinity}

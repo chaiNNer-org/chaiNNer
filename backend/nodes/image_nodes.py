@@ -69,11 +69,21 @@ class ImReadNode(NodeBase):
 
         import base64
 
+        # resize the image, so the preview loads faster and doesn't lag the UI
+        # 512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
+        target_size = 512
+        max_size = target_size * 1.2
+        if w > max_size or h > max_size:
+            f = max(w / target_size, h / target_size)
+            img = cv2.resize(
+                img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA
+            )
+
         _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
         base64_img = base64.b64encode(encoded_img).decode("utf8")
 
         return {
-            "image": base64_img,
+            "image": "data:image/png;base64," + base64_img,
             "height": h,
             "width": w,
             "channels": c,
@@ -1428,7 +1438,7 @@ class AverageColorFixNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = """Correct for upscaling model color shift by matching
-         average color of Input Image to that of a smaller Reference Image. 
+         average color of Input Image to that of a smaller Reference Image.
          Using significant downscaling increases generalization of averaging effect
          and can reduce artifacts in the output."""
         self.inputs = [
@@ -1551,8 +1561,8 @@ class ColorTransferNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Transfers colors from reference image. 
-            Different combinations of settings may perform better for 
+        self.description = """Transfers colors from reference image.
+            Different combinations of settings may perform better for
             different images. Try multiple setting combinations to find
             best results."""
         self.inputs = [

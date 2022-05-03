@@ -6,7 +6,7 @@ import GenericOutput from '../outputs/GenericOutput';
 
 interface NodeOutputsProps {
   id: string;
-  outputs: Output[];
+  outputs: readonly Output[];
 }
 
 const NodeOutputs = ({ outputs, id }: NodeOutputsProps) => (

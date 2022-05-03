@@ -15,11 +15,12 @@ import {
 } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
-import { app, ipcRenderer } from 'electron';
+import { app } from 'electron';
 import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
-import { ReactFlowProvider } from 'react-flow-renderer';
-import useFetch from 'use-http';
+import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
+import useFetch, { CachePolicies } from 'use-http';
+import { ipcRenderer } from '../helpers/safeIpc';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
 import Header from '../components/Header';
@@ -30,26 +31,33 @@ import NodeSelector from '../components/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
+import { BackendNodesResponse } from '../helpers/Backend';
+import { SchemaMap } from '../common-types';
 
-const Main = ({ port }) => {
+interface MainProps {
+  port: number;
+}
+
+const Main = ({ port }: MainProps) => {
   // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
-  const [availableNodes, setAvailableNodes] = useState(null);
-  const [nodeTypes, setNodeTypes] = useState(null);
-  const edgeTypes = {
+  const [availableNodes, setAvailableNodes] = useState<SchemaMap | null>(null);
+  const [nodeTypes, setNodeTypes] = useState<NodeTypes | null>(null);
+  const edgeTypes: EdgeTypes = {
     main: CustomEdge,
   };
   // const { colorMode, toggleColorMode } = useColorMode();
   const [, height] = useWindowSize();
 
-  const reactFlowWrapper = useRef(null);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   // Queries
   const [backendReady, setBackendReady] = useState(false);
 
-  const options = { cachePolicy: 'no-cache', retries: 10 };
-  const { loading, error, data, response } = useFetch(`http://localhost:${port}/nodes`, options, [
-    port,
-  ]);
+  const { loading, error, data, response } = useFetch<BackendNodesResponse>(
+    `http://localhost:${port}/nodes`,
+    { cachePolicy: CachePolicies.NO_CACHE, retries: 10 },
+    [port]
+  );
 
   const bgColor = useColorModeValue('gray.200', '#151a24');
 
@@ -60,7 +68,7 @@ const Main = ({ port }) => {
         iterator: IteratorNode,
         iteratorHelper: IteratorHelperNode,
       });
-      const availableNodeMap = {};
+      const availableNodeMap: SchemaMap = {};
       data.forEach(({ category, nodes }) => {
         availableNodeMap[category] = {};
         nodes.forEach((node) => {
@@ -91,7 +99,7 @@ const Main = ({ port }) => {
     />
   );
 
-  if (!nodeTypes) {
+  if (!nodeTypes || !availableNodes || !data) {
     return (
       <Box
         h="100vh"
@@ -118,6 +126,8 @@ const Main = ({ port }) => {
           window.close();
           app.quit();
         }}
+        // https://github.com/chakra-ui/chakra-ui/pull/5963
+        leastDestructiveRef={undefined}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
@@ -153,7 +163,6 @@ const Main = ({ port }) => {
       <SettingsProvider port={port}>
         <GlobalProvider
           availableNodes={availableNodes}
-          nodeTypes={nodeTypes}
           reactFlowWrapper={reactFlowWrapper}
         >
           <VStack
@@ -180,7 +189,6 @@ const Main = ({ port }) => {
               />
 
               <ReactFlowBox
-                className="reactflow-wrapper"
                 edgeTypes={edgeTypes}
                 nodeTypes={nodeTypes}
                 wrapperRef={reactFlowWrapper}

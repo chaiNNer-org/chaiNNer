@@ -1,10 +1,18 @@
 import { Textarea } from '@chakra-ui/react';
-import { memo, useContext, useEffect } from 'react';
+import { ChangeEvent, memo, useContext, useEffect } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
-const TextAreaInput = memo(({ label, id, index, isLocked, resizable }) => {
+interface TextAreaInputProps {
+  id: string;
+  index: number;
+  isLocked?: boolean;
+  label: string;
+  resizable: boolean;
+}
+
+const TextAreaInput = memo(({ label, id, index, isLocked, resizable }: TextAreaInputProps) => {
   const { useInputData } = useContext(GlobalContext);
-  const [input, setInput] = useInputData(id, index);
+  const [input, setInput] = useInputData<string>(id, index);
 
   useEffect(() => {
     if (!input) {
@@ -12,7 +20,7 @@ const TextAreaInput = memo(({ label, id, index, isLocked, resizable }) => {
     }
   }, []);
 
-  const handleChange = (event) => {
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const text = event.target.value;
     setInput(text);
   };

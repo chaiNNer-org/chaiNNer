@@ -21,7 +21,6 @@ import {
   InputValue,
   IteratorSize,
   NodeData,
-  NodeSchema,
   SchemaMap,
   Size,
   UsableData,
@@ -47,12 +46,12 @@ interface Global {
   convertToUsableFormat: () => Record<string, UsableData>;
   reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
   setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
-  reactFlowWrapper: React.MutableRefObject<Element>;
+  reactFlowWrapper: React.RefObject<Element>;
   isValidConnection: (connection: Connection) => boolean;
-  useInputData: (
+  useInputData: <T extends InputValue>(
     id: string,
     index: number
-  ) => readonly [] | readonly [InputValue, (data: InputValue) => void];
+  ) => readonly [T | undefined, (data: T) => void];
   useAnimateEdges: () => readonly [
     (nodeIdsToAnimate?: readonly string[] | undefined) => void,
     (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -98,7 +97,7 @@ const createUniqueId = () => uuidv4();
 
 interface GlobalProviderProps {
   availableNodes: SchemaMap;
-  reactFlowWrapper: React.MutableRefObject<Element>;
+  reactFlowWrapper: React.RefObject<Element>;
 }
 
 interface SaveFile {
@@ -576,12 +575,16 @@ export const GlobalProvider = ({
   );
 
   const useInputData = useCallback(
-    (id: string, index: number) => {
+    // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
+    function <T extends InputValue>(
+      id: string,
+      index: number
+    ): readonly [T | undefined, (data: T) => void] {
       const nodeById = nodes.find((node) => node.id === id);
       const nodeData = nodeById?.data;
 
       if (!nodeData) {
-        return [] as const;
+        return [undefined, () => {}] as const;
       }
 
       let inputData = nodeData?.inputData;
@@ -589,8 +592,8 @@ export const GlobalProvider = ({
         inputData = getInputDefaults(nodeData, availableNodes);
       }
 
-      const inputDataByIndex = inputData[index];
-      const setInputData = (data: InputValue) => {
+      const inputDataByIndex = inputData[index] as T;
+      const setInputData = (data: T) => {
         const nodeCopy: Node<NodeData> = { ...nodeById };
         if (nodeCopy && nodeCopy.data) {
           nodeCopy.data.inputData = {

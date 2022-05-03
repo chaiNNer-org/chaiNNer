@@ -12,14 +12,19 @@ export interface IteratorSize extends Size {
   offsetLeft: number;
 }
 
-export type InputValue = string | number | { id: string };
+export type InputValue = InputSchemaValue | { id: string };
+export type InputSchemaValue = string | number;
+export interface InputOption {
+  option: string;
+  value: InputSchemaValue;
+}
 export type Input = {
   type: string;
   label: string;
   optional?: boolean;
-  def?: InputValue;
-  default?: InputValue;
-  options?: { value: InputValue }[];
+  def?: InputSchemaValue;
+  default?: InputSchemaValue;
+  options?: InputOption[];
 };
 export type Output = { type: string; label: string };
 
