@@ -1539,7 +1539,7 @@ class FillAlphaNode(NodeBase):
         return img[:, :, :3]
 
 
-@NodeFactory.register("Image (Correction)", "Color Transfer")
+@NodeFactory.register("Image (Utility)", "Color Transfer")
 class ColorTransferNode(NodeBase):
     """
     Transfers colors from one image to another
@@ -1586,7 +1586,7 @@ class ColorTransferNode(NodeBase):
         self.outputs = [ImageOutput("Image")]
 
         self.icon = "MdInput"
-        self.sub = "Color"
+        self.sub = "Miscellaneous"
 
     def run(
         self,
