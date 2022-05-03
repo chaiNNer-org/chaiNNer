@@ -14,7 +14,7 @@ import { app, clipboard } from 'electron';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 
 interface AlertBox {
-  showMessageBox: unknown;
+  showMessageBox: (_alertType: AlertType, _title: string | null, _message: string) => void;
 }
 
 export enum AlertType {
