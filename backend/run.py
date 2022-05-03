@@ -108,6 +108,19 @@ async def run(request: Request):
     # headers = {"Cache-Control": "no-cache"}
     # await request.respond(response="Run request accepted", status=200, headers=headers)
     queue = request.app.ctx.queue
+    await queue.put(
+        {
+            "event": "execution-error",
+            "data": {
+                "message": "Error running nodes!",
+                "exception": "this is a test error",
+            },
+        }
+    )
+    return json(
+        {"message": "Error running nodes!", "exception": "this is a test error"},
+        status=500,
+    )
 
     try:
         os.environ["killed"] = "False"

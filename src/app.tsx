@@ -1,8 +1,9 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import { LocalStorage } from 'node-localstorage';
 import { useEffect, useState } from 'react';
-import { ipcRenderer } from './helpers/safeIpc';
 import './global.css';
+import { AlertBoxProvider } from './helpers/contexts/AlertBoxContext';
+import { ipcRenderer } from './helpers/safeIpc';
 import Main from './pages/main';
 import theme from './theme';
 
@@ -42,7 +43,9 @@ const App = () => {
   return (
     <ChakraProvider theme={theme}>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <Component />
+      <AlertBoxProvider>
+        <Component />
+      </AlertBoxProvider>
     </ChakraProvider>
   );
 };

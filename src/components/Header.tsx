@@ -1,13 +1,5 @@
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogCloseButton,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   Box,
-  Button,
   Flex,
   Heading,
   HStack,
@@ -16,26 +8,25 @@ import {
   Spacer,
   Tag,
   useColorModeValue,
-  useDisclosure,
 } from '@chakra-ui/react';
-import { clipboard } from 'electron';
-import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useThrottledCallback } from 'use-debounce';
-import { ipcRenderer } from '../helpers/safeIpc';
+import { getBackend } from '../helpers/Backend';
 import checkNodeValidity from '../helpers/checkNodeValidity';
+import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
-import logo from '../public/icons/png/256x256.png';
-import { DependencyManagerButton } from './DependencyManager';
-import { SettingsButton } from './SettingsModal';
-import SystemStats from './SystemStats';
 import {
   BackendEventSourceListener,
   useBackendEventSource,
   useBackendEventSourceListener,
 } from '../helpers/hooks/useBackendEventSource';
-import { getBackend } from '../helpers/Backend';
+import { ipcRenderer } from '../helpers/safeIpc';
+import logo from '../public/icons/png/256x256.png';
+import { DependencyManagerButton } from './DependencyManager';
+import { SettingsButton } from './SettingsModal';
+import SystemStats from './SystemStats';
 
 interface HeaderProps {
   port: number;
@@ -53,6 +44,9 @@ const Header = ({ port }: HeaderProps) => {
 
   const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
+  const { showMessageBox } = useContext(AlertBoxContext);
+  console.log('🚀 ~ file: Header.tsx ~ line 48 ~ Header ~ showMessageBox', showMessageBox);
+
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
 
@@ -66,10 +60,6 @@ const Header = ({ port }: HeaderProps) => {
       unAnimateEdges();
     }
   }, [running]);
-
-  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
-  const [errorMessage, setErrorMessage] = useState('');
-  const cancelRef = useRef<HTMLButtonElement>(null);
 
   const [eventSource, eventSourceStatus] = useBackendEventSource(port);
 
@@ -88,8 +78,7 @@ const Header = ({ port }: HeaderProps) => {
     'execution-error',
     (data) => {
       if (data) {
-        setErrorMessage(data.exception);
-        onErrorOpen();
+        showMessageBox(AlertType.ERROR, null, data.exception);
         unAnimateEdges();
         setRunning(false);
       }
@@ -130,8 +119,11 @@ const Header = ({ port }: HeaderProps) => {
 
   useEffect(() => {
     if (eventSourceStatus === 'error') {
-      setErrorMessage('An unexpected error occurred. You may need to restart chaiNNer.');
-      onErrorOpen();
+      showMessageBox(
+        AlertType.ERROR,
+        null,
+        'An unexpected error occurred. You may need to restart chaiNNer.'
+      );
       unAnimateEdges();
       setRunning(false);
     }
@@ -149,8 +141,7 @@ const Header = ({ port }: HeaderProps) => {
     setRunning(true);
     animateEdges();
     if (nodes.length === 0) {
-      setErrorMessage('There are no nodes to run.');
-      onErrorOpen();
+      showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
     } else {
       const nodeValidities = nodes.map((node) => {
         const { inputs } = availableNodes[node.data.category][node.data.type];
@@ -162,10 +153,11 @@ const Header = ({ port }: HeaderProps) => {
       const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
       if (invalidNodes.length > 0) {
         const reasons = invalidNodes.map(([, reason, type]) => `• ${type}: ${reason}`).join('\n');
-        setErrorMessage(
+        showMessageBox(
+          AlertType.ERROR,
+          null,
           `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
         );
-        onErrorOpen();
         unAnimateEdges();
         setRunning(false);
         return;
@@ -184,14 +176,12 @@ const Header = ({ port }: HeaderProps) => {
           resolutionY: window.screen.height,
         });
         if (response.exception) {
-          setErrorMessage(response.exception);
-          onErrorOpen();
+          showMessageBox(AlertType.ERROR, null, response.exception);
           unAnimateEdges();
           setRunning(false);
         }
       } catch (err) {
-        setErrorMessage('An unexpected error occurred.');
-        onErrorOpen();
+        showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
         unAnimateEdges();
         setRunning(false);
       }
@@ -202,12 +192,10 @@ const Header = ({ port }: HeaderProps) => {
     try {
       const response = await backend.pause();
       if (response.exception) {
-        setErrorMessage(response.exception);
-        onErrorOpen();
+        showMessageBox(AlertType.ERROR, null, response.exception);
       }
     } catch (err) {
-      setErrorMessage('An unexpected error occurred.');
-      onErrorOpen();
+      showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
     }
     setRunning(false);
     unAnimateEdges();
@@ -218,12 +206,10 @@ const Header = ({ port }: HeaderProps) => {
       const response = await backend.kill();
       clearCompleteEdges();
       if (response.exception) {
-        setErrorMessage(response.exception);
-        onErrorOpen();
+        showMessageBox(AlertType.ERROR, null, response.exception);
       }
     } catch (err) {
-      setErrorMessage('An unexpected error occurred.');
-      onErrorOpen();
+      showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
     }
     unAnimateEdges();
     setRunning(false);
@@ -302,38 +288,6 @@ const Header = ({ port }: HeaderProps) => {
           </HStack>
         </Flex>
       </Box>
-
-      <AlertDialog
-        isCentered
-        isOpen={isErrorOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onErrorClose}
-      >
-        <AlertDialogOverlay />
-
-        <AlertDialogContent>
-          <AlertDialogHeader>Error</AlertDialogHeader>
-          <AlertDialogCloseButton />
-          <AlertDialogBody whiteSpace="pre-wrap">{errorMessage}</AlertDialogBody>
-          <AlertDialogFooter>
-            <HStack>
-              <Button
-                onClick={() => {
-                  clipboard.writeText(errorMessage);
-                }}
-              >
-                Copy to Clipboard
-              </Button>
-              <Button
-                ref={cancelRef}
-                onClick={onErrorClose}
-              >
-                OK
-              </Button>
-            </HStack>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
