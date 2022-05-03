@@ -202,9 +202,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
           position,
           data: nodeData,
           nodeType: nodeSchema.nodeType,
-          // TODO: This is a HACK. Replace with the proper DefaultNode type later
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          defaultNodes: (nodeSchema as any).defaultNodes,
+          defaultNodes: nodeSchema.defaultNodes,
         });
       } catch (error) {
         log.error(error);
