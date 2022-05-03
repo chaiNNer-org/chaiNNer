@@ -106,27 +106,25 @@ export const AlertBoxProvider = ({ children }: Props) => {
   }, [alertType]);
 
   return (
-    <>
-      <AlertBoxContext.Provider value={{ showMessageBox }}>
-        <AlertDialog
-          isCentered
-          isOpen={isOpen}
-          leastDestructiveRef={cancelRef}
-          onClose={onClose}
-        >
-          <AlertDialogOverlay />
+    <AlertBoxContext.Provider value={{ showMessageBox }}>
+      <AlertDialog
+        isCentered
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay />
 
-          <AlertDialogContent>
-            <AlertDialogHeader>{title}</AlertDialogHeader>
-            <AlertDialogCloseButton />
-            <AlertDialogBody whiteSpace="pre-wrap">{message}</AlertDialogBody>
-            <AlertDialogFooter>
-              <HStack>{buttons}</HStack>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </AlertBoxContext.Provider>
+        <AlertDialogContent>
+          <AlertDialogHeader>{title}</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody whiteSpace="pre-wrap">{message}</AlertDialogBody>
+          <AlertDialogFooter>
+            <HStack>{buttons}</HStack>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {children}
-    </>
+    </AlertBoxContext.Provider>
   );
 };
