@@ -4,7 +4,7 @@ module.exports = {
    * that runs in the main process.
    */
   entry: {
-    main: './src/main.js',
+    main: './src/main.ts',
   },
   // Put your normal webpack config below here
   module: {
