@@ -25,39 +25,28 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { memo, useContext, useState } from 'react';
+import { ChangeEvent, DragEvent, memo, useContext, useState } from 'react';
+import { NodeSchema } from '../common-types';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColor from '../helpers/getNodeAccentColors';
 import { IconFactory } from './CustomIcons';
 import DependencyManager from './DependencyManager';
 import RepresentativeNode from './node/RepresentativeNode';
 
-const onDragStart = (event, nodeCategory, node) => {
-  event.dataTransfer.setData('application/reactflow/type', node.name);
-  event.dataTransfer.setData('application/reactflow/nodeType', node.nodeType);
+const onDragStart = (event: DragEvent<HTMLDivElement>, nodeCategory: string, node: NodeSchema) => {
+  event.dataTransfer.setData('application/reactflow/schema', JSON.stringify(node));
   event.dataTransfer.setData('application/reactflow/category', nodeCategory);
-  event.dataTransfer.setData('application/reactflow/icon', node.icon);
-  event.dataTransfer.setData('application/reactflow/subcategory', node.subcategory);
-  event.dataTransfer.setData(
-    'application/reactflow/defaultNodes',
-    node.nodeType === 'iterator' ? JSON.stringify(node.defaultNodes) : null
-  );
-
-  event.dataTransfer.setData('application/reactflow/offsetX', event.nativeEvent.offsetX);
-  event.dataTransfer.setData('application/reactflow/offsetY', event.nativeEvent.offsetY);
+  event.dataTransfer.setData('application/reactflow/offsetX', String(event.nativeEvent.offsetX));
+  event.dataTransfer.setData('application/reactflow/offsetY', String(event.nativeEvent.offsetY));
   // eslint-disable-next-line no-param-reassign
   event.dataTransfer.effectAllowed = 'move';
 };
 
-/**
- * @param {string} query
- * @returns {(name: string) => boolean}
- */
-const createSearchPredicate = (query) => {
+const createSearchPredicate = (query: string): ((name: string) => boolean) => {
   const pattern = new RegExp(
     `^${[...query]
       .map((char) => {
-        const hex = `\\u{${char.codePointAt(0).toString(16)}}`;
+        const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
         return `[^${hex}]*${hex}`;
       })
       .join('')}`,
@@ -70,12 +59,10 @@ const createSearchPredicate = (query) => {
  * Returns a map that maps for sub category name to all nodes of that sub category.
  *
  * The nodes per namespace are sorted by name.
- * @param {any[]} nodes
- * @returns {Map<string, any[]>}
  */
-const getNamespaces = (nodes) => {
-  const map = new Map();
-  nodes
+const getNamespaces = (nodes: readonly NodeSchema[]) => {
+  const map = new Map<string, NodeSchema[]>();
+  [...nodes]
     .sort((a, b) => {
       let keyA = a.subcategory.toUpperCase();
       let keyB = b.subcategory.toUpperCase();
@@ -92,9 +79,14 @@ const getNamespaces = (nodes) => {
   return map;
 };
 
-const NodeSelector = ({ data, height }) => {
+interface NodeSelectorProps {
+  height: number;
+  data: { category: string; nodes: readonly NodeSchema[] }[];
+}
+
+const NodeSelector = ({ data, height }: NodeSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const handleChange = (event) => setSearchQuery(event.target.value);
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode } =
@@ -228,6 +220,8 @@ const NodeSelector = ({ data, height }) => {
                                         display="block"
                                         w="100%"
                                         onDoubleClick={() => {
+                                          if (!reactFlowInstance) return;
+
                                           const { height: wHeight, width } =
                                             reactFlowWrapper.current.getBoundingClientRect();
 
@@ -236,16 +230,18 @@ const NodeSelector = ({ data, height }) => {
                                             y: wHeight / 2,
                                           });
 
-                                          const nodeData = {
-                                            category,
-                                            type: node.name,
-                                          };
-
                                           createNode({
                                             nodeType: node.nodeType,
                                             position,
-                                            data: nodeData,
-                                            defaultNodes: node.defaultNodes,
+                                            data: {
+                                              category,
+                                              subcategory: node.subcategory,
+                                              type: node.name,
+                                              icon: node.icon,
+                                            },
+                                            // TODO: This is a HACK. Replace with the proper DefaultNode type later
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                                            defaultNodes: (node as any).defaultNodes,
                                           });
                                         }}
                                         onDragEnd={() => {
@@ -311,7 +307,6 @@ const NodeSelector = ({ data, height }) => {
                   <DependencyManager
                     isOpen={isOpen}
                     onClose={onClose}
-                    onOpen={onOpen}
                   />
                 </AccordionItem>
               </Accordion>

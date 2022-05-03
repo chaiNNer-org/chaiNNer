@@ -6,6 +6,7 @@ import {
   Node,
   OnEdgesChange,
   OnNodesChange,
+  ReactFlowInstance,
   useEdgesState,
   useKeyPress,
   useNodesState,
@@ -42,8 +43,10 @@ interface Global {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   createNode: (proto: NodeProto) => Node<NodeData>;
-  createConnection: (proto: EdgeProto) => void;
+  createConnection: (connection: Connection) => void;
   convertToUsableFormat: () => Record<string, UsableData>;
+  reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
+  setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
   reactFlowWrapper: React.MutableRefObject<Element>;
   isValidConnection: (connection: Connection) => boolean;
   useInputData: (
@@ -87,7 +90,6 @@ interface NodeProto {
   defaultNodes?: DefaultNode[];
   parent?: string | Node<NodeData> | null;
 }
-type EdgeProto = Pick<Edge<EdgeData>, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>;
 
 // TODO: Find default
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
@@ -181,7 +183,10 @@ export const GlobalProvider = ({
     setEdges(cachedEdges);
   }, []);
 
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+    NodeData,
+    EdgeData
+  > | null>(null);
   // const [reactFlowInstanceRfi, setRfi] = useState(null);
   const [savePath, setSavePath] = useState<string | undefined>();
 
@@ -490,7 +495,11 @@ export const GlobalProvider = ({
   );
 
   const createConnection = useCallback(
-    ({ source, sourceHandle, target, targetHandle }: EdgeProto) => {
+    ({ source, sourceHandle, target, targetHandle }: Connection) => {
+      if (!source || !target) {
+        console.log('Invalid connection');
+        return;
+      }
       const id = createUniqueId();
       const newEdge: Edge<EdgeData> = {
         id,
