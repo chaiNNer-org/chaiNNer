@@ -91,7 +91,7 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
             maxH="200px"
             // fallbackSrc="https://via.placeholder.com/200"
             maxW="200px"
-            src={(img?.image ? `data:image/png;base64,${img.image}` : undefined) || path || ''}
+            src={img?.image || path}
           />
           {img && path && (
             <HStack>
