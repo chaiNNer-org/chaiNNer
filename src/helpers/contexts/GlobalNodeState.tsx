@@ -46,7 +46,7 @@ interface Global {
   convertToUsableFormat: () => Record<string, UsableData>;
   reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
   setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
-  reactFlowWrapper: React.MutableRefObject<Element>;
+  reactFlowWrapper: React.RefObject<Element>;
   isValidConnection: (connection: Connection) => boolean;
   useInputData: <T extends InputValue>(
     id: string,
@@ -97,7 +97,7 @@ const createUniqueId = () => uuidv4();
 
 interface GlobalProviderProps {
   availableNodes: SchemaMap;
-  reactFlowWrapper: React.MutableRefObject<Element>;
+  reactFlowWrapper: React.RefObject<Element>;
 }
 
 interface SaveFile {

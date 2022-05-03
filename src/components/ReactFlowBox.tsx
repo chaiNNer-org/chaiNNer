@@ -26,7 +26,7 @@ const STARTING_Z_INDEX = 50;
 interface ReactFlowBoxProps {
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
-  wrapperRef: React.MutableRefObject<HTMLDivElement>;
+  wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
   const {
@@ -174,7 +174,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
       // log.info('dropped');
       event.preventDefault();
 
-      if (!reactFlowInstance) return;
+      if (!reactFlowInstance || !wrapperRef.current) return;
 
       const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 

@@ -220,7 +220,8 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
                                         display="block"
                                         w="100%"
                                         onDoubleClick={() => {
-                                          if (!reactFlowInstance) return;
+                                          if (!reactFlowInstance || !reactFlowWrapper.current)
+                                            return;
 
                                           const { height: wHeight, width } =
                                             reactFlowWrapper.current.getBoundingClientRect();

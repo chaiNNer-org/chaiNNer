@@ -1,18 +1,31 @@
-import { exec as _exec, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell } from 'electron';
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { exec as _exec, spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  Menu,
+  MenuItemConstructorOptions,
+  nativeTheme,
+  shell,
+} from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
-import { access, readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import https from 'https';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import { currentLoad, graphics, mem } from 'systeminformation';
+import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
+import { ipcMain } from './helpers/safeIpc';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+import { PythonKeys } from './common-types';
+import { checkFileExists } from './helpers/util';
 
 const exec = util.promisify(_exec);
 
@@ -33,7 +46,7 @@ if (disableHardwareAcceleration) {
 
 // log.transports.file.resolvePath = () => path.join(app.getAppPath(), 'logs/main.log');
 log.transports.file.resolvePath = (variables) =>
-  path.join(variables.electronDefaultDir, variables.fileName);
+  path.join(variables.electronDefaultDir!, variables.fileName!);
 log.transports.file.level = 'info';
 
 log.catchErrors({
@@ -49,9 +62,9 @@ log.catchErrors({
       })
       .then((result) => {
         if (result.response === 1) {
-          submitIssue('https://github.com/joeyballentine/chaiNNer/issues/new', {
-            title: `Error report for ${versions.app}`,
-            body: `Error:\n\`\`\`${error.stack}\n\`\`\`\nOS: ${versions.os}`,
+          submitIssue!('https://github.com/joeyballentine/chaiNNer/issues/new', {
+            title: `Error report for ${String(versions?.app)}`,
+            body: `Error:\n\`\`\`${String(error.stack)}\n\`\`\`\nOS: ${String(versions?.os)}`,
           });
           return;
         }
@@ -63,13 +76,13 @@ log.catchErrors({
   },
 });
 
-let gpuInfo;
+let gpuInfo: Systeminformation.GraphicsData | undefined;
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 const isMac = process.platform === 'darwin';
 
-const pythonKeys = {
+const pythonKeys: { python: string; version?: string } = {
   python: 'python',
 };
 
@@ -93,20 +106,21 @@ if (app.isPackaged) {
 
     res.on('close', async () => {
       try {
-        const releases = JSON.parse(response);
+        const releases = JSON.parse(response) as { tag_name: string; html_url: string }[];
         const gtVersions = releases.filter((v) =>
-          semver.gt(semver.coerce(v.tag_name), app.getVersion())
+          semver.gt(semver.coerce(v.tag_name)!, app.getVersion())
         );
         if (gtVersions.length > 0) {
-          const sorted = gtVersions.sort((a, b) => semver.gt(a, b));
-          const latestVersion = sorted[0];
+          const latestVersion = gtVersions.reduce((greatest, curr) =>
+            semver.gt(curr.tag_name, greatest.tag_name) ? curr : greatest
+          );
           const releaseUrl = latestVersion.html_url;
-          const latestVersionNum = semver.coerce(latestVersion.tag_name);
-          const buttonResult = dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
+          const latestVersionNum = semver.coerce(latestVersion.tag_name)!;
+          const buttonResult = dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow()!, {
             type: 'info',
             title: 'An update is available for chaiNNer!',
-            message: `Version ${latestVersionNum} is available for download from GitHub.`,
-            buttons: [`Get version ${latestVersionNum}`, 'Ok'],
+            message: `Version ${latestVersionNum.version} is available for download from GitHub.`,
+            buttons: [`Get version ${latestVersionNum.version}`, 'Ok'],
             defaultId: 1,
           });
           if (buttonResult === 0) {
@@ -129,12 +143,12 @@ if (app.isPackaged) {
 
 if (app.isPackaged) {
   // workaround for missing executable argument)
-  process.argv.unshift(null);
+  process.argv.unshift('');
 }
 const parameters = process.argv.slice(2);
 
-let splash;
-let mainWindow;
+let splash: BrowserWindow;
+let mainWindow: BrowserWindow;
 
 const registerEventHandlers = () => {
   ipcMain.handle('dir-select', (event, dirPath) =>
@@ -148,7 +162,7 @@ const registerEventHandlers = () => {
     dialog.showOpenDialog({
       filters,
       defaultPath: dirPath,
-      properties: ['openFile', allowMultiple && 'multiSelections'],
+      properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
     })
   );
 
@@ -165,7 +179,9 @@ const registerEventHandlers = () => {
       return filePath;
     } catch (error) {
       log.error(error);
-      return error.message;
+      // TODO: Find a solution to this mess
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      return (error as any).message as never;
       // show error dialog idk
     }
   });
@@ -179,7 +195,7 @@ const registerEventHandlers = () => {
     }
   });
 
-  ipcMain.handle('quit-application', async () => {
+  ipcMain.handle('quit-application', () => {
     app.exit();
   });
 
@@ -195,21 +211,10 @@ const registerEventHandlers = () => {
     return gpuInfo;
   });
 
-  ipcMain.handle('get-live-sys-info', async () => {
-    const gpu = await graphics();
-    const cpu = await currentLoad();
-    const ram = await mem();
-    return {
-      gpu,
-      cpu,
-      ram,
-    };
-  });
-
-  ipcMain.handle('get-app-version', async () => app.getVersion());
+  ipcMain.handle('get-app-version', () => app.getVersion());
 
   ipcMain.handle('show-warning-message-box', async (event, title, message) => {
-    dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
+    dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow()!, {
       type: 'warning',
       title,
       message,
@@ -218,7 +223,7 @@ const registerEventHandlers = () => {
   });
 };
 
-const getValidPort = async (splashWindow) => {
+const getValidPort = async (splashWindow: BrowserWindow) => {
   log.info('Attempting to check for a port...');
   const port = await portfinder.getPortPromise();
   if (!port) {
@@ -243,11 +248,12 @@ const getValidPort = async (splashWindow) => {
   return port;
 };
 
-const getPythonVersion = async (pythonBin) => {
+const getPythonVersion = async (pythonBin: string) => {
   try {
     const { stdout } = await exec(`${pythonBin} --version`);
     log.info(`Python version (raw): ${stdout}`);
-    const { version } = semver.coerce(stdout);
+
+    const { version } = semver.coerce(stdout)!;
     log.info(`Python version (semver): ${version}`);
     return version;
   } catch (error) {
@@ -255,14 +261,14 @@ const getPythonVersion = async (pythonBin) => {
   }
 };
 
-const checkPythonVersion = (version) => semver.gte(version, '3.7.0');
+const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 
-const checkPythonEnv = async (splashWindow) => {
+const checkPythonEnv = async (splashWindow: BrowserWindow) => {
   log.info('Attempting to check Python env...');
 
-  const localStorageVars = await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
+  const localStorageVars = (await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
     '({...localStorage});'
-  );
+  )) as Record<string, string>;
   const useSystemPython =
     localStorageVars['use-system-python'] === 'true' ||
     localStorage.getItem('use-system-python') === 'true';
@@ -282,7 +288,7 @@ const checkPythonEnv = async (splashWindow) => {
       pythonBin = 'python3';
     }
 
-    log.info(`Final Python binary: ${pythonBin}`);
+    log.info(`Final Python binary: ${String(pythonBin)}`);
 
     if (!pythonBin) {
       log.warn('Python binary not found');
@@ -329,7 +335,7 @@ const checkPythonEnv = async (splashWindow) => {
       app.exit(1);
     }
 
-    ipcMain.handle('get-python', () => pythonKeys);
+    ipcMain.handle('get-python', () => pythonKeys as PythonKeys);
     // User is using bundled python
   } else {
     const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
@@ -347,21 +353,16 @@ const checkPythonEnv = async (splashWindow) => {
         pythonPath = path.resolve(path.join(integratedPythonFolderPath, '/python/bin/python3.9'));
         break;
       default:
-        break;
+        throw new Error(`Platform ${platform} not supported`);
     }
 
-    let pythonBinExists = true;
-    try {
-      await access(pythonPath);
-    } catch (error) {
-      pythonBinExists = false;
-    }
+    const pythonBinExists = await checkFileExists(pythonPath);
 
     if (!pythonBinExists) {
       log.info('Python not downloaded');
       try {
-        // eslint-disable-next-line no-unused-vars
-        const onProgress = (percentage, _chunk = null, _remainingSize = null) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const onProgress = (percentage: number | string, _chunk = null, _remainingSize = null) => {
           splash.webContents.send('progress', percentage);
         };
         splash.webContents.send('downloading-python');
@@ -384,24 +385,28 @@ const checkPythonEnv = async (splashWindow) => {
       }
     }
 
-    const pythonVersion = await getPythonVersion(pythonPath);
+    let pythonVersion = await getPythonVersion(pythonPath);
+    if (!pythonVersion) {
+      // TODO: Find a solution for this hack
+      pythonVersion = 'unknown';
+    }
     pythonKeys.python = pythonPath;
     pythonKeys.version = pythonVersion;
     log.info({ pythonKeys });
 
-    ipcMain.handle('get-python', () => pythonKeys);
+    ipcMain.handle('get-python', () => pythonKeys as PythonKeys);
   }
 };
 
-const checkPythonDeps = async (splashWindow) => {
+const checkPythonDeps = async (splashWindow: BrowserWindow) => {
   log.info('Attempting to check Python deps...');
   try {
-    let { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
-    pipList = String(pipList)
+    const { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
+    const list = String(pipList)
       .split('\n')
       .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-    const hasSanic = pipList.some((pkg) => pkg[0] === 'sanic');
-    const hasSanicCors = pipList.some((pkg) => pkg[0] === 'Sanic-Cors');
+    const hasSanic = list.some((pkg) => pkg[0] === 'sanic');
+    const hasSanicCors = list.some((pkg) => pkg[0] === 'Sanic-Cors');
     if (!hasSanic || !hasSanicCors) {
       log.info('Sanic not found. Installing sanic...');
       splashWindow.webContents.send('installing-deps');
@@ -416,11 +421,11 @@ const checkNvidiaSmi = async () => {
   const registerEmptyGpuEvents = () => {
     ipcMain.handle('get-has-nvidia', () => false);
     ipcMain.handle('get-gpu-name', () => null);
-    ipcMain.handle('setup-vram-checker-process', () => null);
+    ipcMain.handle('setup-vram-checker-process', () => {});
     ipcMain.handle('get-vram-usage', () => null);
   };
 
-  const registerNvidiaSmiEvents = async (nvidiaSmi) => {
+  const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
     const [nvidiaGpu] = (
       await exec(
         `${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${
@@ -430,7 +435,7 @@ const checkNvidiaSmi = async () => {
     ).stdout.split('\n');
     ipcMain.handle('get-has-nvidia', () => true);
     ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
-    let vramChecker;
+    let vramChecker: ChildProcessWithoutNullStreams | undefined;
     ipcMain.handle('setup-vram-checker-process', (event, delay) => {
       if (!vramChecker) {
         vramChecker = spawn(
@@ -453,7 +458,7 @@ const checkNvidiaSmi = async () => {
   };
 
   // Try using nvidia-smi from path
-  let nvidiaSmi = null;
+  let nvidiaSmi: string | undefined;
   try {
     if (os.platform() === 'win32') {
       const { stdout: nvidiaSmiTest } = await exec('where nvidia-smi');
@@ -504,7 +509,7 @@ const checkNvidiaSmi = async () => {
   }
 };
 
-const spawnBackend = async (port) => {
+const spawnBackend = (port: number) => {
   if (process.argv[2] && process.argv[2] === '--no-backend') {
     return;
   }
@@ -513,7 +518,7 @@ const spawnBackend = async (port) => {
     const backendPath = app.isPackaged
       ? path.join(process.resourcesPath, 'backend', 'run.py')
       : './backend/run.py';
-    const backend = spawn(pythonKeys.python, [backendPath, port]);
+    const backend = spawn(pythonKeys.python, [backendPath, String(port)]);
     backend.stdout.on('data', (data) => {
       const dataString = String(data);
       // Remove unneeded timestamp
@@ -526,21 +531,23 @@ const spawnBackend = async (port) => {
     });
 
     backend.on('error', (error) => {
-      log.error(`Python subprocess encountered an unexpected error: ${error}`);
+      log.error(`Python subprocess encountered an unexpected error: ${String(error)}`);
       const messageBoxOptions = {
         type: 'error',
         title: 'Unexpected Error',
-        message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${error}`,
+        message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
+          error
+        )}`,
       };
       dialog.showMessageBoxSync(messageBoxOptions);
       app.exit(1);
     });
 
     backend.on('exit', (code, signal) => {
-      log.error(`Python subprocess exited with code ${code} and signal ${signal}`);
+      log.error(`Python subprocess exited with code ${String(code)} and signal ${String(signal)}`);
     });
 
-    ipcMain.handle('relaunch-application', async () => {
+    ipcMain.handle('relaunch-application', () => {
       log.info('Attempting to kill backend...');
       try {
         const success = backend.kill();
@@ -570,7 +577,7 @@ const spawnBackend = async (port) => {
       }
     });
 
-    ipcMain.handle('restart-backend', async () => {
+    ipcMain.handle('restart-backend', () => {
       log.info('Attempting to kill backend...');
       try {
         const success = backend.kill();
@@ -580,7 +587,7 @@ const spawnBackend = async (port) => {
           log.error('Error killing backend.');
         }
         ipcMain.removeHandler('kill-backend');
-        await spawnBackend(port);
+        spawnBackend(port);
       } catch (error) {
         log.error('Error restarting backend.', error);
       }
@@ -608,7 +615,7 @@ const spawnBackend = async (port) => {
 };
 
 const doSplashScreenChecks = async () =>
-  new Promise((resolve) => {
+  new Promise<void>((resolve) => {
     splash = new BrowserWindow({
       width: 400,
       height: 400,
@@ -629,7 +636,6 @@ const doSplashScreenChecks = async () =>
       roundedCorners: true,
       webPreferences: {
         webSecurity: false,
-        nativeWindowOpen: true,
         nodeIntegration: true,
         contextIsolation: false,
       },
@@ -650,7 +656,7 @@ const doSplashScreenChecks = async () =>
     });
 
     // Look, I just wanna see the cool animation
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     // Send events to splash screen renderer as they happen
     // Added some sleep functions so I can see that this is doing what I want it to
@@ -670,7 +676,7 @@ const doSplashScreenChecks = async () =>
       await sleep(250);
 
       splash.webContents.send('spawning-backend');
-      await spawnBackend(port);
+      spawnBackend(port);
 
       registerEventHandlers();
 
@@ -691,7 +697,7 @@ const doSplashScreenChecks = async () =>
       });
     });
 
-    mainWindow.webContents.once('dom-ready', async () => {
+    mainWindow.webContents.once('dom-ready', () => {
       ipcMain.removeHandler('backend-ready');
       ipcMain.handle('backend-ready', async () => {
         splash.webContents.send('finish-loading');
@@ -719,7 +725,6 @@ const createWindow = async () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
       contextIsolation: false,
-      nativeWindowOpen: true,
     },
     // icon: `${__dirname}/public/icons/cross_platform/icon`,
     show: false,
@@ -732,8 +737,8 @@ const createWindow = async () => {
       submenu: [
         {
           label: 'New',
-          click: async () => {
-            await mainWindow.webContents.send('file-new');
+          click: () => {
+            mainWindow.webContents.send('file-new');
           },
         },
         {
@@ -751,8 +756,8 @@ const createWindow = async () => {
               if (!canceled) {
                 const fileContents = await readFile(filepath, { encoding: 'binary' });
                 const buf = Buffer.from(fileContents, 'base64').toString('utf8');
-                const parsed = JSON.parse(buf);
-                await mainWindow.webContents.send('file-open', parsed, filepath);
+                const parsed = JSON.parse(buf) as unknown;
+                mainWindow.webContents.send('file-open', parsed, filepath);
               }
             } catch (error) {
               log.error(error);
@@ -763,13 +768,13 @@ const createWindow = async () => {
         { type: 'separator' },
         {
           label: 'Save',
-          click: async () => {
+          click: () => {
             mainWindow.webContents.send('file-save');
           },
         },
         {
           label: 'Save As',
-          click: async () => {
+          click: () => {
             mainWindow.webContents.send('file-save-as');
           },
         },
@@ -828,7 +833,7 @@ const createWindow = async () => {
       ],
     },
     {
-      role: 'Help',
+      role: 'help',
       submenu: [
         {
           label: 'View README',
@@ -858,7 +863,7 @@ const createWindow = async () => {
         },
       ],
     },
-  ]);
+  ] as MenuItemConstructorOptions[]);
   Menu.setApplicationMenu(menu);
 
   await doSplashScreenChecks();
@@ -878,7 +883,7 @@ const createWindow = async () => {
       // TODO: extract to function
       const fileContents = await readFile(filepath, { encoding: 'binary' });
       const buf = Buffer.from(fileContents, 'base64').toString('utf8');
-      const parsed = JSON.parse(buf);
+      const parsed = JSON.parse(buf) as unknown;
       // await mainWindow.webContents.send('file-open', parsed, filepath);
       ipcMain.handle('get-cli-open', () => parsed);
     } catch (error) {
@@ -913,7 +918,7 @@ app.on('window-all-closed', () => {
     try {
       rmSync(path.join(tempDir, folder), { force: true, recursive: true });
     } catch (error) {
-      log.error(`Error removing temp folder. ${error}`);
+      log.error(`Error removing temp folder. ${String(error)}`);
     }
   });
 });
@@ -926,11 +931,11 @@ app.on('activate', () => {
   }
 });
 
-app.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err) => {
   const messageBoxOptions = {
     type: 'error',
     title: 'Error in Main process',
-    message: `Something failed: ${err}`,
+    message: `Something failed: ${String(err)}`,
   };
   dialog.showMessageBoxSync(messageBoxOptions);
   app.exit(1);

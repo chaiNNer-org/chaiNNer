@@ -43,6 +43,8 @@ interface Channels {
   'relaunch-application': ChannelInfo<void>;
   'backend-ready': ChannelInfo<void>;
   'setup-vram-checker-process': ChannelInfo<void, [delay: number]>;
+  'quit-application': ChannelInfo<void>;
+  'get-smi': ChannelInfo<string | undefined>;
 
   // channels without a return
   'checking-deps': ChannelInfo<never>;
