@@ -239,9 +239,7 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
                                               type: node.name,
                                               icon: node.icon,
                                             },
-                                            // TODO: This is a HACK. Replace with the proper DefaultNode type later
-                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                                            defaultNodes: (node as any).defaultNodes,
+                                            defaultNodes: node.defaultNodes,
                                           });
                                         }}
                                         onDragEnd={() => {
