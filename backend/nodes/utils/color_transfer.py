@@ -46,16 +46,18 @@ def min_max_scale(img, new_range=(0, 255)):
     return scaled
 
 
-def scale_array(arr, overflow_method="clip"):
+def scale_array(
+    arr, overflow_method: int = 1, clip_min: int = 0, clip_max: int = 255
+) -> np.ndarray:
     """
     Trim NumPy array values to be in [0, 255] range with option of
     clipping or scaling.
     """
 
-    if overflow_method == "clip":
-        scaled = np.clip(arr, 0, 255)
+    if overflow_method:
+        scaled = np.clip(arr, clip_min, clip_max)
     else:
-        scale_range = (max([arr.min(), 0]), min([arr.max(), 255]))
+        scale_range = (max([arr.min(), clip_min]), min([arr.max(), clip_max]))
         scaled = min_max_scale(arr, new_range=scale_range)
 
     return scaled
@@ -65,7 +67,7 @@ def color_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
     colorspace: str = "L*a*b*",
-    overflow_method: str = "clip",
+    overflow_method: int | str = 1,
     reciprocal_scale: int | str = 1,
 ) -> np.ndarray:
     """
@@ -75,16 +77,19 @@ def color_transfer(
     "Color Transfer between Images" paper by Reinhard et al., 2001.
     """
 
-    # Convert the images from the RGB to L*ab* color space
+    # Convert the images from the RGB to L*a*b* color space, if necessary
     if colorspace == "L*a*b*":
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype("float32")
-        ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2LAB).astype("float32")
+        a_clip_min, a_clip_max = (0, 100)
+        b_clip_min, b_clip_max = (-127, 127)
+        c_clip_min, c_clip_max = (-127, 127)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2LAB)
     elif colorspace == "RGB":
-        img = img[:, :, :3].astype("float32")
-        ref_img = ref_img[:, :, :3].astype("float32")
-    elif colorspace == "L*u*v*":
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2Luv).astype("float32")
-        ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2Luv).astype("float32")
+        a_clip_min, a_clip_max = (0, 1)
+        b_clip_min, b_clip_max = (0, 1)
+        c_clip_min, c_clip_max = (0, 1)
+        img = img[:, :, :3]
+        ref_img = ref_img[:, :, :3]
 
     # Compute color statistics for the source and target images
     (
@@ -127,20 +132,18 @@ def color_transfer(
     channel_b += b_mean_src
     channel_c += c_mean_src
 
-    # Clip/scale the pixel intensities to [0, 255] if they fall
+    # Clip/scale the pixel intensities to [clip_min, clip_max] if they fall
     # outside this range
-    channel_a = scale_array(channel_a, overflow_method=overflow_method)
-    channel_b = scale_array(channel_b, overflow_method=overflow_method)
-    channel_c = scale_array(channel_c, overflow_method=overflow_method)
+    overflow_method = int(overflow_method)
+    channel_a = scale_array(channel_a, overflow_method, a_clip_min, a_clip_max)
+    channel_b = scale_array(channel_b, overflow_method, b_clip_min, c_clip_max)
+    channel_c = scale_array(channel_c, overflow_method, c_clip_min, c_clip_max)
 
-    # Merge the channels together and convert back to the RGB color
-    # space, being sure to utilize the 8-bit unsigned integer data
-    # type
-    transfer = cv2.merge([channel_a, channel_b, channel_c]).astype("uint8")
+    # Merge the channels together, then convert back to the RGB color
+    # space if necessary
+    transfer = cv2.merge([channel_a, channel_b, channel_c])
     if colorspace == "L*a*b*":
         transfer = cv2.cvtColor(transfer, cv2.COLOR_LAB2BGR)
-    elif colorspace == "L*u*v*":
-        transfer = cv2.cvtColor(transfer, cv2.COLOR_Luv2BGR)
 
     # Return the color transferred image
     return transfer

@@ -1551,7 +1551,10 @@ class ColorTransferNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Transfers colors from reference image"
+        self.description = """Transfers colors from reference image. 
+            Different combinations of settings may perform better for 
+            different images. Try multiple setting combinations to find
+            best results."""
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
@@ -1561,15 +1564,14 @@ class ColorTransferNode(NodeBase):
                 [
                     {"option": "L*a*b*", "value": "L*a*b*"},
                     {"option": "RGB", "value": "RGB"},
-                    {"option": "L*u*v*", "value": "L*u*v*"},
                 ],
             ),
             DropDownInput(
                 "str",
                 "Overflow Method",
                 [
-                    {"option": "Clip", "value": "clip"},
-                    {"option": "Scale", "value": "scale"},
+                    {"option": "Clip", "value": 1},
+                    {"option": "Scale", "value": 0},
                 ],
             ),
             DropDownInput(
@@ -1591,7 +1593,7 @@ class ColorTransferNode(NodeBase):
         img: np.ndarray,
         ref_img: np.ndarray,
         colorspace: str = "L*a*b*",
-        overflow_method: str = "clip",
+        overflow_method: int | str = 1,
         reciprocal_scale: int | str = 1,
     ) -> np.ndarray:
         """
@@ -1602,8 +1604,8 @@ class ColorTransferNode(NodeBase):
             ref_img.ndim == 3 and ref_img.shape[2] >= 3
         ), "Reference image should be RGB or RGBA"
 
-        img = (normalize(img) * 255).astype("uint8")
-        ref_img = (normalize(ref_img) * 255).astype("uint8")
+        img = normalize(img)
+        ref_img = normalize(ref_img)
 
         # Make sure target has at least 3 channels
         if img.ndim == 2 or img.shape[2] == 1:
@@ -1622,4 +1624,4 @@ class ColorTransferNode(NodeBase):
         if alpha is not None:
             transfer = np.dstack((transfer, alpha))
 
-        return transfer.astype("float32") / 255
+        return transfer
