@@ -1,10 +1,11 @@
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import { IteratorSize } from '../../common-types';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 
-const createGridDotsPath = (size, fill) => (
+const createGridDotsPath = (size: number, fill: string) => (
   <circle
     cx={size}
     cy={size}
@@ -13,7 +14,7 @@ const createGridDotsPath = (size, fill) => (
   />
 );
 
-const DotPattern = ({ id }) => {
+const DotPattern = ({ id }: { id: string }) => {
   const gap = 15;
   const size = 0.5;
   const scaledGap = gap * 1;
@@ -49,7 +50,21 @@ const DotPattern = ({ id }) => {
   );
 };
 
-const IteratorNodeBody = ({ id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256 }) => {
+interface IteratorNodeBodyProps {
+  id: string;
+  iteratorSize?: IteratorSize;
+  accentColor: string;
+  maxWidth?: number;
+  maxHeight?: number;
+}
+
+const IteratorNodeBody = ({
+  id,
+  iteratorSize,
+  accentColor,
+  maxWidth = 256,
+  maxHeight = 256,
+}: IteratorNodeBodyProps) => {
   const { zoom, useIteratorSize, useHoveredNode, updateIteratorBounds } = useContext(GlobalContext);
 
   const { useSnapToGrid } = useContext(SettingsContext);
@@ -59,10 +74,10 @@ const IteratorNodeBody = ({ id, iteratorSize, accentColor, maxWidth = 256, maxHe
   const [setIteratorSize, defaultSize] = useIteratorSize(id);
   const { width, height } = iteratorSize ?? defaultSize;
 
-  const [resizeRef, setResizeRef] = useState(null);
+  const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
   useLayoutEffect(() => {
-    if (resizeRef) {
+    if (resizeRef && resizeRef.resizable) {
       const { resizable } = resizeRef;
       const size = {
         offsetTop: resizable.offsetTop,
@@ -79,7 +94,6 @@ const IteratorNodeBody = ({ id, iteratorSize, accentColor, maxWidth = 256, maxHe
     <Resizable
       className="nodrag"
       defaultSize={defaultSize}
-      draggable={false}
       enable={{
         top: false,
         right: true,

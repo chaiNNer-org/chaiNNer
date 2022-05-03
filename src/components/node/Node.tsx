@@ -9,6 +9,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -18,14 +19,20 @@ import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
 import NodeHeader from './NodeHeader';
 
-const NodeWrapper = memo(({ data, selected }) => (
+const NodeWrapper = memo(({ data, selected }: NodeProps) => (
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   <Node
     data={data}
     selected={selected}
   />
 ));
 
-const Node = memo(({ data, selected }) => {
+interface NodeProps {
+  data: NodeData;
+  selected: boolean;
+}
+
+const Node = memo(({ data, selected }: NodeProps) => {
   const { nodes, edges, availableNodes, updateIteratorBounds, useHoveredNode } =
     useContext(GlobalContext);
 
@@ -33,17 +40,17 @@ const Node = memo(({ data, selected }) => {
 
   // We get inputs and outputs this way in case something changes with them in the future
   // This way, we have to do less in the migration file
-  const schema = useMemo(() => getSchema(availableNodes, category, type), [category, type]);
-  const { inputs, outputs, icon, subcategory } = schema;
+  const schema = getSchema(availableNodes, category, type);
+  const { inputs, outputs, icon } = schema;
 
   const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
-  const accentColor = useMemo(() => getAccentColor(category, subcategory), [category, subcategory]);
+  const accentColor = getAccentColor(category);
   const borderColor = useMemo(
     () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
     [selected, accentColor, regularBorderColor]
   );
 
-  const [validity, setValidity] = useState([false, '']);
+  const [validity, setValidity] = useState<[boolean, string]>([false, '']);
 
   useEffect(() => {
     if (inputs && inputs.length) {
@@ -51,14 +58,14 @@ const Node = memo(({ data, selected }) => {
     }
   }, [inputData, edges.length, nodes.length]);
 
-  const targetRef = useRef();
+  const targetRef = useRef<HTMLDivElement>(null);
   const [checkedSize, setCheckedSize] = useState(false);
 
   useLayoutEffect(() => {
-    if (targetRef.current) {
+    if (targetRef.current && parentNode) {
       const parent = nodes.find((n) => n.id === parentNode);
       if (parent) {
-        updateIteratorBounds(parentNode, parent.data.iteratorSize, {
+        updateIteratorBounds(parentNode, parent.data.iteratorSize!, {
           width: targetRef.current.offsetWidth,
           height: targetRef.current.offsetHeight,
         });
@@ -67,7 +74,7 @@ const Node = memo(({ data, selected }) => {
     }
   }, [nodes && !checkedSize, targetRef?.current?.offsetHeight]);
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showMenu, setShowMenu] = useState(false);
   // const [menuPosition, setMenuPosition] = useState({});
 
@@ -114,7 +121,6 @@ const Node = memo(({ data, selected }) => {
           <VStack minWidth="240px">
             <NodeHeader
               accentColor={accentColor}
-              category={category}
               icon={icon}
               parentNode={parentNode}
               selected={selected}
@@ -130,7 +136,6 @@ const Node = memo(({ data, selected }) => {
               outputs={outputs}
             />
             <NodeFooter
-              accentColor={accentColor}
               id={id}
               invalidReason={validity[1]}
               isLocked={isLocked}

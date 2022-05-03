@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
 import { memo } from 'react';
+import { Input } from '../../common-types';
 import DirectoryInput from '../inputs/DirectoryInput';
 import DropDownInput from '../inputs/DropDownInput';
 import FileInput from '../inputs/FileInput';
@@ -11,9 +12,20 @@ import SliderInput from '../inputs/SliderInput';
 import TextAreaInput from '../inputs/TextAreaInput';
 import TextInput from '../inputs/TextInput';
 
+interface InputProps extends Input {
+  id: string;
+  index: number;
+  type: string;
+  accentColor: string;
+  isLocked?: boolean;
+  category: string;
+  nodeType: string;
+  hasHandle?: boolean;
+}
+
 // TODO: perhaps make this an object instead of a switch statement
-const pickInput = (type, props) => {
-  let InputType = GenericInput;
+const pickInput = (type: string, props: InputProps) => {
+  let InputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericInput;
   switch (type) {
     case 'file::image':
       InputType = FileInput;
@@ -66,11 +78,10 @@ const pickInput = (type, props) => {
     default:
       return (
         <InputContainer
-          hasHandle={props.hasHandle === undefined ? true : props.hasHandle}
+          hasHandle={props.hasHandle ?? true}
           id={props.id}
           index={props.index}
           key={`${props.id}-${props.index}`}
-          label={null}
         >
           <GenericInput label={props.label} />
         </InputContainer>
@@ -89,18 +100,30 @@ const pickInput = (type, props) => {
   );
 };
 
-const NodeInputs = ({ inputs, id, accentColor, isLocked, category, nodeType }) =>
-  inputs.map((input, i) => {
-    const props = {
-      ...input,
-      id,
-      index: i,
-      type: input.type,
-      accentColor,
-      isLocked,
-      category,
-      nodeType,
-    };
-    return pickInput(input.type, props);
-  });
+interface NodeInputsProps {
+  inputs: readonly Input[];
+  id: string;
+  accentColor: string;
+  isLocked?: boolean;
+  category: string;
+  nodeType: string;
+}
+
+const NodeInputs = ({ inputs, id, accentColor, isLocked, category, nodeType }: NodeInputsProps) => (
+  <>
+    {inputs.map((input, i) => {
+      const props: InputProps = {
+        ...input,
+        id,
+        index: i,
+        type: input.type,
+        accentColor,
+        isLocked,
+        category,
+        nodeType,
+      };
+      return pickInput(input.type, props);
+    })}
+  </>
+);
 export default memo(NodeInputs);

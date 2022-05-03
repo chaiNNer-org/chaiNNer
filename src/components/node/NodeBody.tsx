@@ -1,10 +1,29 @@
 import { Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
+import { Input, Output } from '../../common-types';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
 // useContext, useEffect, useMemo,
 
-const NodeBody = ({ accentColor, inputs, outputs, id, isLocked, category, nodeType }) => (
+interface NodeBodyProps {
+  accentColor: string;
+  id: string;
+  isLocked?: boolean;
+  category: string;
+  nodeType: string;
+  inputs: readonly Input[];
+  outputs: readonly Output[];
+}
+
+const NodeBody = ({
+  accentColor,
+  inputs,
+  outputs,
+  id,
+  isLocked,
+  category,
+  nodeType,
+}: NodeBodyProps) => (
   <>
     {inputs.length && (
       <Center>
@@ -46,7 +65,6 @@ const NodeBody = ({ accentColor, inputs, outputs, id, isLocked, category, nodeTy
       </Center>
     )}
     <NodeOutputs
-      accentColor={accentColor}
       id={id}
       outputs={outputs}
     />
