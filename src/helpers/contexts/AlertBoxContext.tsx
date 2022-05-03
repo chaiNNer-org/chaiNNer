@@ -11,7 +11,8 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useRef, useState, useMemo } from 'react';
+import { assertNever } from '../util';
 
 interface AlertBox {
   showMessageBox: (_alertType: AlertType, _title: string | null, _message: string) => void;
@@ -24,16 +25,13 @@ export enum AlertType {
   CRIT_ERROR = 'Critical Error',
 }
 
-type Props = {
-  children: JSX.Element;
-};
-
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export const AlertBoxProvider = ({ children }: Props) => {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [alertType, setAlertType] = useState<AlertType>(AlertType.INFO);
-  const [title, setTitle] = useState<string | null>();
+  const [title, setTitle] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -96,14 +94,11 @@ export const AlertBoxProvider = ({ children }: Props) => {
           </Button>
         );
       default:
-        return <></>;
+        return assertNever(type);
     }
   };
 
-  const [buttons, setButtons] = useState<JSX.Element>(<></>);
-  useEffect(() => {
-    setButtons(getButtons(alertType));
-  }, [alertType]);
+  const buttons = useMemo(() => getButtons(alertType), [alertType, cancelRef, message, onClose]);
 
   return (
     <AlertBoxContext.Provider value={{ showMessageBox }}>
