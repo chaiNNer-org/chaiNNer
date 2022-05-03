@@ -27,7 +27,8 @@ export enum AlertType {
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export const AlertBoxProvider = ({ children }: React.PropsWithChildren<Record<string, never>>) => {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [alertType, setAlertType] = useState<AlertType>(AlertType.INFO);
   const [title, setTitle] = useState<string | null>(null);
