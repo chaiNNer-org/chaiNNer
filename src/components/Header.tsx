@@ -18,13 +18,11 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useEventSource, useEventSourceListener } from '@react-nano/use-event-source';
-import { clipboard, ipcRenderer } from 'electron';
-import log from 'electron-log';
+import { clipboard } from 'electron';
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useThrottledCallback } from 'use-debounce';
-import useFetch from 'use-http';
+import { ipcRenderer } from '../helpers/safeIpc';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
@@ -32,8 +30,18 @@ import logo from '../public/icons/png/256x256.png';
 import { DependencyManagerButton } from './DependencyManager';
 import { SettingsButton } from './SettingsModal';
 import SystemStats from './SystemStats';
+import {
+  BackendEventSourceListener,
+  useBackendEventSource,
+  useBackendEventSourceListener,
+} from '../helpers/hooks/useBackendEventSource';
+import { getBackend } from '../helpers/Backend';
 
-const Header = ({ port }) => {
+interface HeaderProps {
+  port: number;
+}
+
+const Header = ({ port }: HeaderProps) => {
   const {
     convertToUsableFormat,
     useAnimateEdges,
@@ -51,10 +59,7 @@ const Header = ({ port }) => {
   const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
 
   const [running, setRunning] = useState(false);
-  const { post, response: res } = useFetch(`http://localhost:${port}`, {
-    cachePolicy: 'no-cache',
-    timeout: 0,
-  });
+  const backend = getBackend(port);
 
   useEffect(() => {
     if (!running) {
@@ -64,81 +69,61 @@ const Header = ({ port }) => {
 
   const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('');
-  const cancelRef = useRef();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const [eventSource, eventSourceStatus] = useEventSource(`http://localhost:${port}/sse`, true);
-  useEventSourceListener(
+  const [eventSource, eventSourceStatus] = useBackendEventSource(port);
+
+  useBackendEventSourceListener(
     eventSource,
-    ['finish'],
-    ({ data }) => {
-      try {
-        // eslint-disable-next-line no-unused-vars
-        const parsedData = JSON.parse(data);
-        // console.log(parsedData);
-      } catch (err) {
-        log.error(err);
-      }
+    'finish',
+    () => {
       clearCompleteEdges();
       setRunning(false);
     },
-    [eventSource, setRunning, clearCompleteEdges]
+    [setRunning, clearCompleteEdges]
   );
 
-  useEventSourceListener(
+  useBackendEventSourceListener(
     eventSource,
-    ['execution-error'],
-    ({ data }) => {
+    'execution-error',
+    (data) => {
       if (data) {
-        try {
-          const { message, exception } = JSON.parse(data);
-          if (exception) {
-            setErrorMessage(exception ?? message ?? 'An unexpected error has occurred');
-          }
-        } catch (err) {
-          setErrorMessage(err);
-          log.error(err);
-        }
+        setErrorMessage(data.exception);
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
       }
     },
-    [eventSource, setRunning, unAnimateEdges]
+    [setRunning, unAnimateEdges]
   );
 
-  const updateNodeFinish = useThrottledCallback(({ data }) => {
-    try {
-      const { finished } = JSON.parse(data);
-      if (finished) {
-        completeEdges(finished);
+  const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
+    (data) => {
+      if (data) {
+        completeEdges(data.finished);
       }
-    } catch (err) {
-      log.error(err);
-    }
-  }, 350);
-
-  useEventSourceListener(eventSource, ['node-finish'], updateNodeFinish, [
-    eventSource,
+    },
+    350
+  );
+  useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
     completeEdges,
     updateNodeFinish,
   ]);
 
-  const updateIteratorProgress = useThrottledCallback(({ data }) => {
-    try {
-      const { percent, iteratorId, running: runningNodes } = JSON.parse(data);
+  const updateIteratorProgress = useThrottledCallback<
+    BackendEventSourceListener<'iterator-progress-update'>
+  >((data) => {
+    if (data) {
+      const { percent, iteratorId, running: runningNodes } = data;
       if (runningNodes && running) {
         animateEdges(runningNodes);
       } else if (!running) {
         unAnimateEdges();
       }
       setIteratorPercent(iteratorId, percent);
-    } catch (err) {
-      log.error(err);
     }
   }, 350);
-
-  useEventSourceListener(eventSource, ['iterator-progress-update'], updateIteratorProgress, [
-    eventSource,
+  useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress, [
     animateEdges,
     updateIteratorProgress,
   ]);
@@ -172,7 +157,7 @@ const Header = ({ port }) => {
         return [
           ...checkNodeValidity({ id: node.id, inputData: node.data.inputData, edges, inputs }),
           node.data.type,
-        ];
+        ] as const;
       });
       const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
       if (invalidNodes.length > 0) {
@@ -187,7 +172,7 @@ const Header = ({ port }) => {
       }
       try {
         const data = convertToUsableFormat();
-        post('/run', {
+        const response = await backend.run({
           data,
           isCpu,
           isFp16: isFp16 && !isCpu,
@@ -198,8 +183,14 @@ const Header = ({ port }) => {
           resolutionX: window.screen.width,
           resolutionY: window.screen.height,
         });
+        if (response.exception) {
+          setErrorMessage(response.exception);
+          onErrorOpen();
+          unAnimateEdges();
+          setRunning(false);
+        }
       } catch (err) {
-        setErrorMessage(err.exception || 'An unexpected error occurred.');
+        setErrorMessage('An unexpected error occurred.');
         onErrorOpen();
         unAnimateEdges();
         setRunning(false);
@@ -209,37 +200,33 @@ const Header = ({ port }) => {
 
   const pause = async () => {
     try {
-      const response = await post('/pause');
-      setRunning(false);
-      unAnimateEdges();
-      if (!res.ok) {
-        setErrorMessage(response.exception || 'An unexpected error occurred.');
+      const response = await backend.pause();
+      if (response.exception) {
+        setErrorMessage(response.exception);
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception || 'An unexpected error occurred.');
+      setErrorMessage('An unexpected error occurred.');
       onErrorOpen();
-      setRunning(false);
-      unAnimateEdges();
     }
+    setRunning(false);
+    unAnimateEdges();
   };
 
   const kill = async () => {
     try {
-      const response = await post('/kill');
+      const response = await backend.kill();
       clearCompleteEdges();
-      unAnimateEdges();
-      setRunning(false);
-      if (!res.ok) {
-        setErrorMessage(response.exception || 'An unexpected error occurred.');
+      if (response.exception) {
+        setErrorMessage(response.exception);
         onErrorOpen();
       }
     } catch (err) {
-      setErrorMessage(err.exception || 'An unexpected error occurred.');
+      setErrorMessage('An unexpected error occurred.');
       onErrorOpen();
-      unAnimateEdges();
-      setRunning(false);
     }
+    unAnimateEdges();
+    setRunning(false);
   };
 
   return (
@@ -271,32 +258,38 @@ const Header = ({ port }) => {
 
           <HStack>
             <IconButton
+              aria-label="Start button"
               colorScheme="green"
               disabled={running}
               icon={<IoPlay />}
               size="md"
               variant="outline"
               onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 run();
               }}
             />
             <IconButton
+              aria-label="Pause button"
               colorScheme="yellow"
               disabled={!running}
               icon={<IoPause />}
               size="md"
               variant="outline"
               onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 pause();
               }}
             />
             <IconButton
+              aria-label="Stop button"
               colorScheme="red"
               disabled={!running}
               icon={<IoStop />}
               size="md"
               variant="outline"
               onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 kill();
               }}
             />
@@ -321,7 +314,7 @@ const Header = ({ port }) => {
         <AlertDialogContent>
           <AlertDialogHeader>Error</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody whiteSpace="pre-wrap">{String(errorMessage)}</AlertDialogBody>
+          <AlertDialogBody whiteSpace="pre-wrap">{errorMessage}</AlertDialogBody>
           <AlertDialogFooter>
             <HStack>
               <Button

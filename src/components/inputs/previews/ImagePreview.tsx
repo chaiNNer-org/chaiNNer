@@ -1,7 +1,7 @@
 import { Center, HStack, Image, Spinner, Tag, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useContext, useEffect, useState } from 'react';
-import useFetch, { CachePolicies } from 'use-http';
+import { getBackend } from '../../../helpers/Backend';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
 import { checkFileExists } from '../../../helpers/util';
 
@@ -37,18 +37,13 @@ interface ImagePreviewProps {
 
 export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
   const [img, setImg] = useState<ImageObject | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
+  const backend = getBackend(port);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
-
-  const { post, loading } = useFetch(
-    `http://localhost:${port}`,
-    { cachePolicy: CachePolicies.NO_CACHE },
-    [port]
-  );
 
   useEffect(() => {
     (async () => {
@@ -57,14 +52,14 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
         const fileExists = await checkFileExists(path);
         if (fileExists) {
           try {
-            const result = (await post('/run/individual', {
+            const result = await backend.runIndividual<ImageObject | null>({
               category,
               node: nodeType,
               id,
               inputs: [path],
               isCpu,
               isFp16,
-            })) as ImageObject | null;
+            });
 
             if (result) {
               setImg(result);
@@ -80,7 +75,7 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
 
   return (
     <Center w="full">
-      {isLoading || loading ? (
+      {isLoading ? (
         <Spinner />
       ) : (
         <VStack>
