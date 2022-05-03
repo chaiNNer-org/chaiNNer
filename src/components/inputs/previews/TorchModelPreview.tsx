@@ -27,7 +27,7 @@ const getColorMode = (channels: number) => {
 };
 
 interface TorchModelPreviewProps {
-  path: string;
+  path?: string;
   category: string;
   nodeType: string;
   id: string;
