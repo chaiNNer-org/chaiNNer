@@ -25,6 +25,7 @@ import {
   Size,
   UsableData,
 } from '../../common-types';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
@@ -264,15 +265,13 @@ export const GlobalProvider = ({
     };
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (!loadedFromCli) {
-        const saveData = await ipcRenderer.invoke('get-cli-open');
-        if (saveData) {
-          await setStateFromJSON(saveData, true);
-        }
+  useAsyncEffect(async () => {
+    if (!loadedFromCli) {
+      const saveData = await ipcRenderer.invoke('get-cli-open');
+      if (saveData) {
+        await setStateFromJSON(saveData, true);
       }
-    })();
+    }
   }, []);
 
   // Register Open File event handler

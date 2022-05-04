@@ -36,14 +36,18 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { exec, spawn } from 'child_process';
+import { exec as _exec, spawn } from 'child_process';
+import util from 'util';
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { PythonKeys } from '../common-types';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../helpers/dependencies';
+import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import pipInstallWithProgress from '../helpers/pipInstallWithProgress';
 import { ipcRenderer } from '../helpers/safeIpc';
+
+const exec = util.promisify(_exec);
 
 const checkSemver = (v1: string, v2: string) => {
   try {
@@ -113,63 +117,67 @@ const DependencyManager = ({
     setAvailableDeps(depsArr);
   }, [isNvidiaAvailable]);
 
-  useEffect(() => {
-    (async () => {
-      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-      if (hasNvidia) {
-        setNvidiaGpuName(await ipcRenderer.invoke('get-gpu-name'));
-        setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
-      } else {
-        const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-        const gpuNames = fullGpuInfo?.controllers.map((gpu) => gpu.model);
-        setGpuInfo(gpuNames);
-      }
-    })();
+  useAsyncEffect(async (token) => {
+    const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+    if (hasNvidia) {
+      const gpuName = await ipcRenderer.invoke('get-gpu-name');
+      const hasNv = await ipcRenderer.invoke('get-has-nvidia');
+      token.causeEffect(() => {
+        setNvidiaGpuName(gpuName);
+        setIsNvidiaAvailable(hasNv);
+      });
+    } else {
+      const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+      const gpuNames = fullGpuInfo.controllers.map((gpu) => gpu.model);
+      token.causeEffect(() => setGpuInfo(gpuNames));
+    }
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const pKeys = await ipcRenderer.invoke('get-python');
-      setPythonKeys(pKeys);
-      exec(`${pKeys.python} -m pip list --disable-pip-version-check`, (error, stdout) => {
-        if (error) {
-          setIsLoadingPipList(false);
-          return;
-        }
-        const pipObj = parsePipOutput(String(stdout));
+  useAsyncEffect<ParsedPipList>(
+    {
+      supplier: async (token) => {
+        const pKeys = await ipcRenderer.invoke('get-python');
+        token.causeEffect(() => setPythonKeys(pKeys));
+        const { stdout } = await exec(`${pKeys.python} -m pip list --disable-pip-version-check`);
+        return parsePipOutput(stdout);
+      },
+      successEffect: (pipObj) => {
         setPipList(pipObj);
         onPipListUpdate(pipObj);
-        setIsLoadingPipList(false);
-      });
-    })();
-  }, []);
+      },
+      finallyEffect: () => setIsLoadingPipList(false),
+    },
+    []
+  );
 
-  useEffect(() => {
-    if (!isRunningShell && pythonKeys) {
-      setIsLoadingPipList(true);
-      // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
-      exec(
-        `${pythonKeys.python} -m pip list --disable-pip-version-check`,
-        (error, stdout, stderr) => {
-          if (error || stderr) {
-            setIsLoadingPipList(false);
-            return;
-          }
-          const pipObj = parsePipOutput(String(stdout));
-          setPipList(pipObj);
-          onPipListUpdate(pipObj);
-          setIsLoadingPipList(false);
+  useAsyncEffect(
+    {
+      supplier: async () => {
+        if (!isRunningShell && pythonKeys) {
+          setIsLoadingPipList(true);
+          // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
+          const { stdout } = await exec(
+            `${pythonKeys.python} -m pip list --disable-pip-version-check`
+          );
+          return parsePipOutput(stdout);
         }
-      );
-    }
-  }, [isRunningShell, pythonKeys]);
+        return undefined;
+      },
+      successEffect: (pipObj) => {
+        if (pipObj) {
+          onPipListUpdate(pipObj);
+          setPipList(pipObj);
+        }
+      },
+      finallyEffect: () => setIsLoadingPipList(false),
+    },
+    [isRunningShell, pythonKeys]
+  );
 
-  useEffect(() => {
-    (async () => {
-      if (depChanged) {
-        await ipcRenderer.invoke('kill-backend');
-      }
-    })();
+  useAsyncEffect(async () => {
+    if (depChanged) {
+      await ipcRenderer.invoke('kill-backend');
+    }
   }, [depChanged]);
 
   const runPipCommand = (args: string[]) => {
@@ -498,14 +506,19 @@ export const DependencyManagerButton = memo(() => {
   const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-      if (hasNvidia) {
-        setIsNvidiaAvailable(await ipcRenderer.invoke('get-has-nvidia'));
-      }
-    })();
-  }, []);
+  useAsyncEffect(
+    {
+      supplier: async () => {
+        const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
+        if (hasNvidia) {
+          return ipcRenderer.invoke('get-has-nvidia');
+        }
+        return false;
+      },
+      successEffect: setIsNvidiaAvailable,
+    },
+    []
+  );
 
   useEffect(() => {
     const depsArr = getAvailableDeps(isNvidiaAvailable);

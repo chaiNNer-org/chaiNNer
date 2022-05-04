@@ -12,3 +12,5 @@ export const assertNever = (value: never): never => {
 };
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+export const noop = () => {};
