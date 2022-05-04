@@ -262,7 +262,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             textAlign="left"
           >
             Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage. RTX GPUs also
-            get an inference speedup.
+            get an speedup.
           </Text>
         </VStack>
         <HStack>
