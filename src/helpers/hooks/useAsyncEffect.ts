@@ -60,7 +60,7 @@ export class CancellationController implements CancellationToken {
   };
 
   /**
-   * A simply utility function that will set `isCanceled` to `true`.
+   * A simple utility function that will set `isCanceled` to `true`.
    */
   readonly cancel = (): void => {
     this.isCanceled = true;
