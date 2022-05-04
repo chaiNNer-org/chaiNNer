@@ -225,7 +225,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             marginTop={0}
             textAlign="left"
           >
-            Use CPU for PyTorch inference instead of GPU. Forced if Nvidia (CUDA) GPU not detected.
+            Use CPU for PyTorch instead of GPU. Forced if Nvidia (CUDA) GPU not detected.
           </Text>
         </VStack>
         <HStack>
@@ -261,8 +261,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             marginTop={0}
             textAlign="left"
           >
-            Runs PyTorch inference in half-precision (FP16) mode for less VRAM usage. RTX GPUs also
-            get an inference speedup.
+            Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a
+            speedup.
           </Text>
         </VStack>
         <HStack>
