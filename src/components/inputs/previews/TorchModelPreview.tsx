@@ -1,8 +1,8 @@
 import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
-import log from 'electron-log';
-import { memo, useContext, useEffect, useState } from 'react';
+import { memo, useContext, useState } from 'react';
 import { getBackend } from '../../../helpers/Backend';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
+import { useAsyncEffect } from '../../../helpers/hooks/useAsyncEffect';
 import { checkFileExists } from '../../../helpers/util';
 
 interface ModelData {
@@ -43,14 +43,15 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;
 
-  useEffect(() => {
-    (async () => {
-      if (path) {
-        setIsLoading(true);
-        const fileExists = await checkFileExists(path);
-        if (fileExists) {
-          try {
-            const result = await backend.runIndividual<ModelData | null>({
+  useAsyncEffect(
+    {
+      supplier: async (token) => {
+        token.causeEffect(() => setIsLoading(true));
+
+        if (path) {
+          const fileExists = await checkFileExists(path);
+          if (fileExists) {
+            return backend.runIndividual<ModelData | null>({
               category,
               node: nodeType,
               id,
@@ -58,17 +59,15 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
               isCpu,
               isFp16,
             });
-            if (result) {
-              setModelData(result);
-            }
-          } catch (err) {
-            log.error(err);
           }
         }
-        setIsLoading(false);
-      }
-    })();
-  }, [path]);
+        return null;
+      },
+      successEffect: setModelData,
+      finallyEffect: () => setIsLoading(false),
+    },
+    [path]
+  );
 
   return (
     <Center w="full">
