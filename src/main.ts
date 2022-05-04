@@ -26,6 +26,7 @@ import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 import { PythonKeys } from './common-types';
 import { checkFileExists } from './helpers/util';
+import { SaveFile } from './helpers/SaveFile';
 
 const exec = util.promisify(_exec);
 
@@ -166,7 +167,7 @@ const registerEventHandlers = () => {
     })
   );
 
-  ipcMain.handle('file-save-as-json', async (event, json, lastFilePath) => {
+  ipcMain.handle('file-save-as-json', async (event, saveData, lastFilePath) => {
     try {
       const { canceled, filePath } = await dialog.showSaveDialog({
         title: 'Save Chain File',
@@ -174,7 +175,7 @@ const registerEventHandlers = () => {
         defaultPath: lastFilePath,
       });
       if (!canceled && filePath) {
-        await writeFile(filePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
+        await SaveFile.write(filePath, saveData, app.getVersion());
       }
       return filePath;
     } catch (error) {
@@ -186,9 +187,9 @@ const registerEventHandlers = () => {
     }
   });
 
-  ipcMain.handle('file-save-json', async (event, json, savePath) => {
+  ipcMain.handle('file-save-json', async (event, saveData, savePath) => {
     try {
-      await writeFile(savePath, Buffer.from(json).toString('base64'), { encoding: 'binary' });
+      await SaveFile.write(savePath, saveData, app.getVersion());
     } catch (error) {
       log.error(error);
       // show error dialog idk
@@ -755,10 +756,8 @@ const createWindow = async () => {
             });
             try {
               if (!canceled) {
-                const fileContents = await readFile(filepath, { encoding: 'binary' });
-                const buf = Buffer.from(fileContents, 'base64').toString('utf8');
-                const parsed = JSON.parse(buf) as unknown;
-                mainWindow.webContents.send('file-open', parsed, filepath);
+                const saveData = await SaveFile.read(filepath);
+                mainWindow.webContents.send('file-open', saveData, filepath);
               }
             } catch (error) {
               log.error(error);
@@ -881,12 +880,8 @@ const createWindow = async () => {
   if (parameters[0] && parameters[0] !== '--no-backend') {
     const filepath = parameters[0];
     try {
-      // TODO: extract to function
-      const fileContents = await readFile(filepath, { encoding: 'binary' });
-      const buf = Buffer.from(fileContents, 'base64').toString('utf8');
-      const parsed = JSON.parse(buf) as unknown;
-      // await mainWindow.webContents.send('file-open', parsed, filepath);
-      ipcMain.handle('get-cli-open', () => parsed);
+      const saveData = await SaveFile.read(filepath);
+      ipcMain.handle('get-cli-open', () => saveData);
     } catch (error) {
       log.error(error);
       // show error dialog idk
