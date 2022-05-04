@@ -87,7 +87,11 @@ const Main = ({ port }: MainProps) => {
   );
 
   if (error) {
-    showMessageBox(AlertType.CRIT_ERROR, null, error.message);
+    showMessageBox(
+      AlertType.CRIT_ERROR,
+      null,
+      `chaiNNer has encountered a critical error: ${error.message}`
+    );
     return <></>;
   }
 
