@@ -517,23 +517,12 @@ class ThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies a threshold to it"""
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-
-        if (
-            thresh_type == cv2.THRESH_OTSU or thresh_type == cv2.THRESH_TRIANGLE
-        ) and img.ndim != 2:
-            raise RuntimeError(
-                "Image must be grayscale (single channel) to apply a threshold"
-            )
+        img = normalize(img)
 
         logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
 
-        real_thresh = int(thresh) / 100 * dtype_max
-        real_maxval = int(maxval) / 100 * dtype_max
+        real_thresh = int(thresh) / 100
+        real_maxval = int(maxval) / 100
 
         logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
 
@@ -555,7 +544,7 @@ class AdaptiveThresholdNode(NodeBase):
             SliderInput("Maximum Value", 0, 100, 100),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
-            OddIntegerInput("Block Size"),
+            OddIntegerInput("Block Size", default=3, minimum=3),
             IntegerInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput()]
@@ -573,19 +562,14 @@ class AdaptiveThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-
         assert (
             img.ndim == 2
         ), "Image must be grayscale (single channel) to apply an adaptive threshold"
 
-        assert block_size % 2 == 1, "Block size must be an odd number"
+        # Adaptive threshold requires uint8 input
+        img = (normalize(img) * 255).astype("uint8")
 
-        real_maxval = int(maxval) / 100 * dtype_max
+        real_maxval = int(maxval) / 100 * 255
 
         result = cv2.adaptiveThreshold(
             img,
@@ -596,7 +580,7 @@ class AdaptiveThresholdNode(NodeBase):
             int(c),
         )
 
-        return result
+        return result.astype("float32") / 255
 
 
 @NodeFactory.register("Image (Utility)", "Stack Images")
