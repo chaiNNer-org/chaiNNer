@@ -66,14 +66,14 @@ def IntegerInput(label: str) -> Dict:
     }
 
 
-def OddIntegerInput(label: str) -> Dict:
+def OddIntegerInput(label: str, default: int = 1, minimum: int = 1) -> Dict:
     """Input for integer number"""
     return {
         "type": "number::integer::odd",
         "label": label,
-        "def": 1,
+        "def": default,
         "step": 2,
-        "min": 1,
+        "min": minimum,
         "hasHandle": True,
     }
 

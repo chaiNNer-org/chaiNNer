@@ -194,18 +194,6 @@ def ThresholdInput() -> Dict:
                 "option": "To Zero (Inverted)",
                 "value": cv2.THRESH_TOZERO_INV,
             },
-            {
-                "option": "OTSU",
-                "value": cv2.THRESH_OTSU,
-            },
-            {
-                "option": "Triangle",
-                "value": cv2.THRESH_TRIANGLE,
-            },
-            {
-                "option": "Mask",
-                "value": cv2.THRESH_MASK,
-            },
         ],
     )
 
@@ -235,12 +223,12 @@ def AdaptiveMethodInput() -> Dict:
         "Adaptive Method",
         [
             {
-                "option": "Replicate Edges",
-                "value": cv2.BORDER_REPLICATE,
+                "option": "Mean - C",
+                "value": cv2.ADAPTIVE_THRESH_MEAN_C,
             },
             {
-                "option": "Isolated",
-                "value": cv2.BORDER_ISOLATED,
+                "option": "Gaussian - C",
+                "value": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             },
         ],
     )

@@ -90,3 +90,6 @@ out/
 
 # Bundled Python
 backend/python/*
+
+# IDE nonsense
+.idea/
