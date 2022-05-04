@@ -68,7 +68,7 @@ export class CancellationController implements CancellationToken {
   };
 }
 
-type UseAsyncEffectOptions<T> = void extends T
+export type UseAsyncEffectOptions<T> = void extends T
   ? ((token: CancellationToken) => Promise<void>) | ObjectUseAsyncEffectOptions<T>
   : ObjectUseAsyncEffectOptions<T>;
 
