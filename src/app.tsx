@@ -1,28 +1,32 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import { LocalStorage } from 'node-localstorage';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './global.css';
 import { AlertBoxProvider } from './helpers/contexts/AlertBoxContext';
+import { useAsyncEffect } from './helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from './helpers/safeIpc';
 import Main from './pages/main';
 import theme from './theme';
 
 const App = () => {
   const [port, setPort] = useState<number | null>(null);
+  const [storageInitialized, setStorageInitialized] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      setPort(await ipcRenderer.invoke('get-port'));
-      const localStorageLocation = await ipcRenderer.invoke('get-localstorage-location');
-      (global as Record<string, unknown>).customLocalStorage = new LocalStorage(
-        localStorageLocation
-      );
-    })();
-  }, []);
+  useAsyncEffect({ supplier: () => ipcRenderer.invoke('get-port'), successEffect: setPort }, []);
+  useAsyncEffect(
+    {
+      supplier: () => ipcRenderer.invoke('get-localstorage-location'),
+      successEffect: (location) => {
+        (global as Record<string, unknown>).customLocalStorage = new LocalStorage(location);
+        setStorageInitialized(true);
+      },
+    },
+    []
+  );
 
-  let Component = () => <></>;
+  let Component;
 
-  if (!port) {
+  if (!port || !storageInitialized) {
     Component = () => (
       <Box
         h="full"

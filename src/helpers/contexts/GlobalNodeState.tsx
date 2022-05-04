@@ -25,6 +25,7 @@ import {
   Size,
   UsableData,
 } from '../../common-types';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage from '../hooks/useSessionStorage';
 import { migrate } from '../migrations';
 import { snapToGrid } from '../reactFlowUtil';
@@ -198,12 +199,10 @@ export const GlobalProvider = ({
   const [, , snapToGridAmount] = useSnapToGrid;
 
   const [appVersion, setAppVersion] = useState<string | undefined>();
-  useEffect(() => {
-    (async () => {
-      const version: string = await ipcRenderer.invoke('get-app-version');
-      setAppVersion(version);
-    })();
-  }, []);
+  useAsyncEffect(
+    { supplier: () => ipcRenderer.invoke('get-app-version'), successEffect: setAppVersion },
+    []
+  );
 
   const dumpStateToJSON = useCallback(() => {
     const output = JSON.stringify({
@@ -296,15 +295,13 @@ export const GlobalProvider = ({
     };
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (!loadedFromCli) {
-        const contents = await ipcRenderer.invoke('get-cli-open');
-        if (contents) {
-          await setStateFromJSON(getSaveData(contents), true);
-        }
+  useAsyncEffect(async () => {
+    if (!loadedFromCli) {
+      const contents = await ipcRenderer.invoke('get-cli-open');
+      if (contents) {
+        await setStateFromJSON(getSaveData(contents), true);
       }
-    })();
+    }
   }, []);
 
   // Register Open File event handler

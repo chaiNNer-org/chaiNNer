@@ -1,6 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import { useEffect } from 'react';
 import log from 'electron-log';
+import { noop } from '../util';
 
 /**
  * An object that can tell whether the current operation has been canceled.
@@ -67,7 +68,11 @@ export class CancellationController implements CancellationToken {
   };
 }
 
-export interface UseAsyncEffectOptions<T> {
+export type UseAsyncEffectOptions<T> = void extends T
+  ? ((token: CancellationToken) => Promise<void>) | ObjectUseAsyncEffectOptions<T>
+  : ObjectUseAsyncEffectOptions<T>;
+
+interface ObjectUseAsyncEffectOptions<T> {
   supplier: (token: CancellationToken) => Promise<T>;
   successEffect: (value: T) => void;
   catchEffect?: (error: unknown) => void;
@@ -88,9 +93,13 @@ export interface UseAsyncEffectOptions<T> {
  * ```
  */
 export const useAsyncEffect = <T>(
-  { supplier, successEffect, catchEffect, finallyEffect }: UseAsyncEffectOptions<T>,
+  options: UseAsyncEffectOptions<T>,
   dependencies?: readonly unknown[]
 ) => {
+  const objOptions: ObjectUseAsyncEffectOptions<T> =
+    typeof options === 'function' ? { supplier: options, successEffect: noop } : options;
+  const { supplier, successEffect, catchEffect, finallyEffect } = objOptions;
+
   useEffect(() => {
     const controller = new CancellationController();
 

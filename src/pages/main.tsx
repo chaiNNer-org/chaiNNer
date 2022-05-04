@@ -18,6 +18,7 @@ import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
+import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from '../helpers/safeIpc';
 
 interface MainProps {
@@ -66,18 +67,15 @@ const Main = ({ port }: MainProps) => {
     }
   }, [response, data, loading, error, backendReady]);
 
-  useEffect(() => {
-    (async () => {
+  useAsyncEffect(
+    async (token) => {
       if (nodeTypes && !backendReady) {
-        setBackendReady(true);
-        try {
-          await ipcRenderer.invoke('backend-ready');
-        } catch (err) {
-          log.error(err);
-        }
+        token.causeEffect(() => setBackendReady(true));
+        await ipcRenderer.invoke('backend-ready');
       }
-    })();
-  }, [nodeTypes]);
+    },
+    [nodeTypes]
+  );
 
   const loadingLogo = (
     <ChaiNNerLogo

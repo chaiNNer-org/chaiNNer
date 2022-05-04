@@ -17,6 +17,7 @@ import checkNodeValidity from '../helpers/checkNodeValidity';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
+import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import {
   BackendEventSourceListener,
   useBackendEventSource,
@@ -129,12 +130,13 @@ const Header = ({ port }: HeaderProps) => {
   }, [eventSourceStatus]);
 
   const [appVersion, setAppVersion] = useState('#.#.#');
-  useEffect(() => {
-    (async () => {
-      const version = await ipcRenderer.invoke('get-app-version');
-      setAppVersion(version);
-    })();
-  }, []);
+  useAsyncEffect(
+    {
+      supplier: () => ipcRenderer.invoke('get-app-version'),
+      successEffect: setAppVersion,
+    },
+    []
+  );
 
   const run = async () => {
     setRunning(true);
