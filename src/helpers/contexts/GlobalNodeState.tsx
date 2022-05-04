@@ -27,9 +27,10 @@ import {
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage from '../hooks/useSessionStorage';
-import { migrate } from '../migrations';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
+import { SaveData } from '../SaveFile';
+import { deepCopy } from '../util';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -100,26 +101,6 @@ interface GlobalProviderProps {
   availableNodes: SchemaMap;
   reactFlowWrapper: React.RefObject<Element>;
 }
-
-interface SaveFile {
-  version: string;
-  timestamp: string;
-  content: SaveData;
-}
-interface SaveData {
-  nodes: Node<NodeData>[];
-  edges: Edge<EdgeData>[];
-  viewport: Viewport;
-}
-
-const getSaveData = (json: unknown): SaveData => {
-  const data = json as SaveFile | { version: undefined };
-  if (data.version) {
-    return migrate(data.version, data.content) as SaveData;
-  }
-  // Legacy files
-  return migrate(null, data) as SaveData;
-};
 
 interface ParsedHandle {
   id: string;
@@ -198,24 +179,13 @@ export const GlobalProvider = ({
 
   const [, , snapToGridAmount] = useSnapToGrid;
 
-  const [appVersion, setAppVersion] = useState<string | undefined>();
-  useAsyncEffect(
-    { supplier: () => ipcRenderer.invoke('get-app-version'), successEffect: setAppVersion },
-    []
-  );
-
-  const dumpStateToJSON = useCallback(() => {
-    const output = JSON.stringify({
-      version: appVersion,
-      content: {
-        nodes,
-        edges,
-        viewport: getViewport(),
-      },
-      timestamp: new Date(),
-    });
-    return output;
-  }, [nodes, edges, appVersion]);
+  const dumpState = useCallback((): SaveData => {
+    return {
+      nodes: deepCopy(nodes),
+      edges: deepCopy(edges),
+      viewport: getViewport(),
+    };
+  }, [nodes, edges]);
 
   const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
     if (savedData) {
@@ -260,15 +230,15 @@ export const GlobalProvider = ({
 
   const performSave = useCallback(() => {
     (async () => {
-      const json = dumpStateToJSON();
+      const saveData = dumpState();
       if (savePath) {
-        await ipcRenderer.invoke('file-save-json', json, savePath);
+        await ipcRenderer.invoke('file-save-json', saveData, savePath);
       } else {
-        const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
+        const savedAsPath = await ipcRenderer.invoke('file-save-as-json', saveData, savePath);
         setSavePath(savedAsPath);
       }
     })();
-  }, [dumpStateToJSON, savePath]);
+  }, [dumpState, savePath]);
 
   const savePressed = useKeyPress(['Meta+s', 'Control+s']);
   const newPressed = useKeyPress(['Meta+n', 'Control+n']);
@@ -297,20 +267,20 @@ export const GlobalProvider = ({
 
   useAsyncEffect(async () => {
     if (!loadedFromCli) {
-      const contents = await ipcRenderer.invoke('get-cli-open');
-      if (contents) {
-        await setStateFromJSON(getSaveData(contents), true);
+      const saveData = await ipcRenderer.invoke('get-cli-open');
+      if (saveData) {
+        await setStateFromJSON(saveData, true);
       }
     }
   }, []);
 
   // Register Open File event handler
   useEffect(() => {
-    ipcRenderer.on('file-open', (event, json, openedFilePath) => {
+    ipcRenderer.on('file-open', (event, saveData, openedFilePath) => {
       setSavePath(openedFilePath);
       // TODO: handle promise
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setStateFromJSON(getSaveData(json), true);
+      setStateFromJSON(saveData, true);
     });
 
     return () => {
@@ -322,8 +292,8 @@ export const GlobalProvider = ({
   useEffect(() => {
     ipcRenderer.on('file-save-as', () => {
       (async () => {
-        const json = dumpStateToJSON();
-        const savedAsPath = await ipcRenderer.invoke('file-save-as-json', json, savePath);
+        const saveData = dumpState();
+        const savedAsPath = await ipcRenderer.invoke('file-save-as-json', saveData, savePath);
         setSavePath(savedAsPath);
       })();
     });
@@ -336,11 +306,11 @@ export const GlobalProvider = ({
       ipcRenderer.removeAllListeners('file-save-as');
       ipcRenderer.removeAllListeners('file-save');
     };
-  }, [dumpStateToJSON, savePath]);
+  }, [dumpState, savePath]);
 
   // Push state to undo history
   // useEffect(() => {
-  //   push(dumpStateToJSON());
+  //   push(dumpState());
   // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
 
   const convertToUsableFormat = useCallback(() => {
