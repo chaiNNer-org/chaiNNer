@@ -10,23 +10,23 @@ import { memo } from 'react';
 import useSystemUsage from '../helpers/hooks/useSystemUsage';
 
 const SystemStats = () => {
-  const { cpuUsage, ramUsage, vramUsage } = useSystemUsage(2500);
+  const usage = useSystemUsage(2500);
   const trackColor = useColorModeValue('gray.300', 'gray.700');
   return (
     <HStack>
       <Tooltip
         borderRadius={8}
-        label={`${Number(cpuUsage).toFixed(1)}%`}
+        label={`${Number(usage.cpu).toFixed(1)}%`}
         px={2}
         py={1}
       >
         <Box>
           <CircularProgress
             capIsRound
-            color={cpuUsage < 90 ? 'blue.400' : 'red.400'}
+            color={usage.cpu < 90 ? 'blue.400' : 'red.400'}
             size="42px"
             trackColor={trackColor}
-            value={cpuUsage}
+            value={usage.cpu}
           >
             <CircularProgressLabel>CPU</CircularProgressLabel>
           </CircularProgress>
@@ -35,43 +35,41 @@ const SystemStats = () => {
 
       <Tooltip
         borderRadius={8}
-        label={`${Number(ramUsage).toFixed(1)}%`}
+        label={`${Number(usage.ram).toFixed(1)}%`}
         px={2}
         py={1}
       >
         <Box>
           <CircularProgress
             capIsRound
-            color={ramUsage < 90 ? 'blue.400' : 'red.400'}
+            color={usage.ram < 90 ? 'blue.400' : 'red.400'}
             size="42px"
             trackColor={trackColor}
-            value={ramUsage}
+            value={usage.ram}
           >
             <CircularProgressLabel>RAM</CircularProgressLabel>
           </CircularProgress>
         </Box>
       </Tooltip>
 
-      {vramUsage && (
-        <Tooltip
-          borderRadius={8}
-          label={`${Number(vramUsage).toFixed(1)}%`}
-          px={2}
-          py={1}
-        >
-          <Box>
-            <CircularProgress
-              capIsRound
-              color={vramUsage < 90 ? 'blue.400' : 'red.400'}
-              size="42px"
-              trackColor={trackColor}
-              value={vramUsage}
-            >
-              <CircularProgressLabel>VRAM</CircularProgressLabel>
-            </CircularProgress>
-          </Box>
-        </Tooltip>
-      )}
+      <Tooltip
+        borderRadius={8}
+        label={`${Number(usage.vram).toFixed(1)}%`}
+        px={2}
+        py={1}
+      >
+        <Box>
+          <CircularProgress
+            capIsRound
+            color={usage.vram < 90 ? 'blue.400' : 'red.400'}
+            size="42px"
+            trackColor={trackColor}
+            value={usage.vram}
+          >
+            <CircularProgressLabel>VRAM</CircularProgressLabel>
+          </CircularProgress>
+        </Box>
+      </Tooltip>
     </HStack>
   );
 };

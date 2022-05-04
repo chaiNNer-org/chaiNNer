@@ -67,7 +67,7 @@ export class CancellationController implements CancellationToken {
   };
 }
 
-interface UseAsyncEffectOptions<T> {
+export interface UseAsyncEffectOptions<T> {
   supplier: (token: CancellationToken) => Promise<T>;
   successEffect: (value: T) => void;
   catchEffect?: (error: unknown) => void;
