@@ -261,7 +261,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             marginTop={0}
             textAlign="left"
           >
-            Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get an
+            Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a
             speedup.
           </Text>
         </VStack>
