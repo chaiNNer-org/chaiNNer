@@ -16,7 +16,7 @@ const SystemStats = () => {
     <HStack>
       <Tooltip
         borderRadius={8}
-        label={`${Number(usage.cpu).toFixed(1)}%`}
+        label={`${usage.cpu.toFixed(1)}%`}
         px={2}
         py={1}
       >
@@ -35,7 +35,7 @@ const SystemStats = () => {
 
       <Tooltip
         borderRadius={8}
-        label={`${Number(usage.ram).toFixed(1)}%`}
+        label={`${usage.ram.toFixed(1)}%`}
         px={2}
         py={1}
       >
@@ -52,24 +52,26 @@ const SystemStats = () => {
         </Box>
       </Tooltip>
 
-      <Tooltip
-        borderRadius={8}
-        label={`${Number(usage.vram).toFixed(1)}%`}
-        px={2}
-        py={1}
-      >
-        <Box>
-          <CircularProgress
-            capIsRound
-            color={usage.vram < 90 ? 'blue.400' : 'red.400'}
-            size="42px"
-            trackColor={trackColor}
-            value={usage.vram}
-          >
-            <CircularProgressLabel>VRAM</CircularProgressLabel>
-          </CircularProgress>
-        </Box>
-      </Tooltip>
+      {usage.vram && (
+        <Tooltip
+          borderRadius={8}
+          label={`${usage.vram.toFixed(1)}%`}
+          px={2}
+          py={1}
+        >
+          <Box>
+            <CircularProgress
+              capIsRound
+              color={usage.vram < 90 ? 'blue.400' : 'red.400'}
+              size="42px"
+              trackColor={trackColor}
+              value={usage.vram}
+            >
+              <CircularProgressLabel>VRAM</CircularProgressLabel>
+            </CircularProgress>
+          </Box>
+        </Tooltip>
+      )}
     </HStack>
   );
 };
