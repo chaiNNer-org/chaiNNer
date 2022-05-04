@@ -32,6 +32,7 @@ import {
 import { memo, useContext, useEffect, useState } from 'react';
 import { ipcRenderer } from '../helpers/safeIpc';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
+import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -52,16 +53,22 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
   const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const gpuName = (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected';
-      const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-      if (gpuName.toLowerCase().includes('rtx')) {
-        setIsFp16(true);
-      }
-      setIsNvidiaAvailable(hasNvidia);
-    })();
-  }, []);
+  useAsyncEffect(
+    {
+      supplier: async () =>
+        [
+          (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
+          await ipcRenderer.invoke('get-has-nvidia'),
+        ] as const,
+      successEffect: ([gpuName, hasNvidia]) => {
+        if (gpuName.toLowerCase().includes('rtx')) {
+          setIsFp16(true);
+          setIsNvidiaAvailable(hasNvidia);
+        }
+      },
+    },
+    []
+  );
 
   useEffect(() => {
     setIsCpu(!isNvidiaAvailable);
