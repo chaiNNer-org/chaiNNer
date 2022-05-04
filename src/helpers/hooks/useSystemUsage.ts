@@ -1,67 +1,56 @@
 import { exec as _exec } from 'child_process';
 import os from 'os-utils';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import util from 'util';
 import { ipcRenderer } from '../safeIpc';
-import useInterval from './useInterval';
+import { useAsyncInterval } from './useInterval';
 
 const exec = util.promisify(_exec);
 
-const useSystemUsage = (delay: number) => {
-  const [cpuUsage, setCpuUsage] = useState(0);
-  const [ramUsage, setRamUsage] = useState(0);
-  const [vramUsage, setVramUsage] = useState(0);
-
-  const setInfo = async () => {
-    // RAM
-    if (os.platform() === 'linux') {
-      const { stdout } = await exec('free -m');
-      const lines = stdout.split('\n');
-      const strMemInfo = lines[1].replace(/[\s\n\r]+/g, ' ');
-      const memInfo = strMemInfo.split(' ');
-
-      const totalMem = parseFloat(memInfo[1]);
-      const freeMem = parseFloat(memInfo[3]);
-
-      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
-      setRamUsage(Number(ramPercent));
-    } else {
-      const totalMem = os.totalmem();
-      const freeMem = os.freemem();
-      const ramPercent = ((1 - freeMem / totalMem) * 100).toFixed(1);
-      setRamUsage(Number(ramPercent));
-    }
-
-    // CPU
+const getCpuUsage = () =>
+  new Promise<number>((resolve) => {
     os.cpuUsage((value) => {
-      setCpuUsage(value * 100);
+      resolve(value * 100);
     });
+  });
 
-    // GPU/VRAM
-    try {
-      const vramPercent = Number(await ipcRenderer.invoke('get-vram-usage'));
-      setVramUsage(vramPercent);
-    } catch (_) {
-      // Sometimes this will fire before it's done registering the event handlers
-    }
-  };
+const getRamUsage = async () => {
+  if (os.platform() === 'linux') {
+    const { stdout } = await exec('free -m');
+    const lines = stdout.split('\n');
+    const strMemInfo = lines[1].replace(/\s+/g, ' ');
+    const memInfo = strMemInfo.split(' ');
 
-  useEffect(() => {
-    (async () => {
-      // We set this up on mount, letting the main process handle it
-      // By doing it this way we avoid spawning multiple smi shells
-      await ipcRenderer.invoke('setup-vram-checker-process', delay);
-      await setInfo();
-    })();
-  }, []);
+    const totalMem = parseFloat(memInfo[1]);
+    const freeMem = parseFloat(memInfo[3]);
 
-  useInterval(() => {
-    (async () => {
-      await setInfo();
-    })();
-  }, delay);
+    return (1 - freeMem / totalMem) * 100;
+  }
 
-  return useMemo(() => ({ cpuUsage, ramUsage, vramUsage }), [cpuUsage, ramUsage, vramUsage]);
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  return (1 - freeMem / totalMem) * 100;
+};
+
+const getVRamUsage = async () => ipcRenderer.invoke('get-vram-usage');
+
+export interface SystemUsage {
+  readonly cpu: number;
+  readonly ram: number;
+  readonly vram: number;
+}
+
+const getSystemUsage = async (): Promise<SystemUsage> => {
+  const [cpu, ram, vram] = await Promise.all([getCpuUsage(), getRamUsage(), getVRamUsage()]);
+  return { cpu, ram, vram };
+};
+
+const useSystemUsage = (delay: number): SystemUsage => {
+  const [usage, setUsage] = useState<SystemUsage>({ cpu: 0, ram: 0, vram: 0 });
+
+  useAsyncInterval({ supplier: getSystemUsage, successEffect: setUsage }, delay);
+
+  return useMemo(() => usage, [usage.cpu, usage.ram, usage.vram]);
 };
 
 export default useSystemUsage;

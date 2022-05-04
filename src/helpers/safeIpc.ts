@@ -21,7 +21,7 @@ interface Channels {
   'get-port': ChannelInfo<number>;
   'get-localstorage-location': ChannelInfo<string>;
   'get-app-version': ChannelInfo<string>;
-  'get-vram-usage': ChannelInfo<number | null>;
+  'get-vram-usage': ChannelInfo<number>;
   'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
   'file-select': ChannelInfo<
     Electron.OpenDialogReturnValue,
@@ -42,7 +42,6 @@ interface Channels {
   'restart-backend': ChannelInfo<void>;
   'relaunch-application': ChannelInfo<void>;
   'backend-ready': ChannelInfo<void>;
-  'setup-vram-checker-process': ChannelInfo<void, [delay: number]>;
   'quit-application': ChannelInfo<void>;
   'get-smi': ChannelInfo<string | undefined>;
 
