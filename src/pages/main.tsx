@@ -1,26 +1,11 @@
-import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
-  Box,
-  Button,
-  Center,
-  HStack,
-  Text,
-  useColorModeValue,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
-import { app } from 'electron';
 import log from 'electron-log';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import useFetch, { CachePolicies } from 'use-http';
-import { ipcRenderer } from '../helpers/safeIpc';
+import { SchemaMap } from '../common-types';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
 import Header from '../components/Header';
@@ -29,17 +14,19 @@ import IteratorNode from '../components/node/IteratorNode';
 import Node from '../components/node/Node';
 import NodeSelector from '../components/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
+import { BackendNodesResponse } from '../helpers/Backend';
+import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
-import { BackendNodesResponse } from '../helpers/Backend';
-import { SchemaMap } from '../common-types';
+import { ipcRenderer } from '../helpers/safeIpc';
 
 interface MainProps {
   port: number;
 }
 
 const Main = ({ port }: MainProps) => {
-  // console.log('🚀 ~ file: main.jsx ~ line 27 ~ Main ~ port', port);
+  const { showMessageBox } = useContext(AlertBoxContext);
+
   const [availableNodes, setAvailableNodes] = useState<SchemaMap | null>(null);
   const [nodeTypes, setNodeTypes] = useState<NodeTypes | null>(null);
   const edgeTypes: EdgeTypes = {
@@ -99,6 +86,11 @@ const Main = ({ port }: MainProps) => {
     />
   );
 
+  if (error) {
+    showMessageBox(AlertType.CRIT_ERROR, null, error.message);
+    return <></>;
+  }
+
   if (!nodeTypes || !availableNodes || !data) {
     return (
       <Box
@@ -115,46 +107,6 @@ const Main = ({ port }: MainProps) => {
           </VStack>
         </Center>
       </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <AlertDialog
-        isOpen
-        onClose={() => {
-          window.close();
-          app.quit();
-        }}
-        // https://github.com/chakra-ui/chakra-ui/pull/5963
-        leastDestructiveRef={undefined}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader
-              fontSize="lg"
-              fontWeight="bold"
-            >
-              Critical Error
-            </AlertDialogHeader>
-
-            <AlertDialogBody>{error.message}</AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button
-                colorScheme="red"
-                ml={3}
-                onClick={() => {
-                  window.close();
-                  app.quit();
-                }}
-              >
-                Exit Application
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
     );
   }
 

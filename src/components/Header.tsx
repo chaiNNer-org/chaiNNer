@@ -45,7 +45,6 @@ const Header = ({ port }: HeaderProps) => {
   const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
   const { showMessageBox } = useContext(AlertBoxContext);
-  console.log('🚀 ~ file: Header.tsx ~ line 48 ~ Header ~ showMessageBox', showMessageBox);
 
   const [isCpu] = useIsCpu;
   const [isFp16] = useIsFp16;

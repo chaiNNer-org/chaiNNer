@@ -11,11 +11,11 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
-import React, { createContext, useRef, useState, useMemo } from 'react';
+import React, { createContext, useMemo, useRef, useState } from 'react';
 import { assertNever } from '../util';
 
 interface AlertBox {
-  showMessageBox: (_alertType: AlertType, _title: string | null, _message: string) => void;
+  showMessageBox: (newAlertType: AlertType, newTitle: string | null, newMessage: string) => void;
 }
 
 export enum AlertType {
@@ -35,10 +35,10 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const [message, setMessage] = useState<string>('');
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const showMessageBox = (_alertType: AlertType, _title: string | null, _message: string) => {
-    setAlertType(_alertType);
-    setTitle(_title ?? _alertType);
-    setMessage(_message);
+  const showMessageBox = (newAlertType: AlertType, newTitle: string | null, newMessage: string) => {
+    setAlertType(newAlertType);
+    setTitle(newTitle ?? newAlertType);
+    setMessage(newMessage);
     onOpen();
   };
 
@@ -89,6 +89,7 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
               window.close();
               app.quit();
             }}
+            ref={cancelRef}
           >
             Exit Application
           </Button>
@@ -100,13 +101,18 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   const buttons = useMemo(() => getButtons(alertType), [alertType, cancelRef, message, onClose]);
 
+  const closeApp = () => {
+    window.close();
+    app.quit();
+  };
+
   return (
     <AlertBoxContext.Provider value={{ showMessageBox }}>
       <AlertDialog
         isCentered
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
-        onClose={onClose}
+        onClose={alertType === AlertType.CRIT_ERROR ? closeApp : onClose}
       >
         <AlertDialogOverlay />
 
