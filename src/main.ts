@@ -21,7 +21,7 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
-import { ipcMain, BrowserWindowWithSaveIpc } from './helpers/safeIpc';
+import { ipcMain, BrowserWindowWithSafeIpc } from './helpers/safeIpc';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 import { PythonKeys } from './common-types';
@@ -147,8 +147,8 @@ if (app.isPackaged) {
 }
 const parameters = process.argv.slice(2);
 
-let splash: BrowserWindowWithSaveIpc;
-let mainWindow: BrowserWindowWithSaveIpc;
+let splash: BrowserWindowWithSafeIpc;
+let mainWindow: BrowserWindowWithSafeIpc;
 
 const registerEventHandlers = () => {
   ipcMain.handle('dir-select', (event, dirPath) =>
@@ -223,7 +223,7 @@ const registerEventHandlers = () => {
   });
 };
 
-const getValidPort = async (splashWindow: BrowserWindowWithSaveIpc) => {
+const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
   log.info('Attempting to check for a port...');
   const port = await portfinder.getPortPromise();
   if (!port) {
@@ -263,7 +263,7 @@ const getPythonVersion = async (pythonBin: string) => {
 
 const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 
-const checkPythonEnv = async (splashWindow: BrowserWindowWithSaveIpc) => {
+const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
   log.info('Attempting to check Python env...');
 
   const localStorageVars = (await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
@@ -397,7 +397,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSaveIpc) => {
   }
 };
 
-const checkPythonDeps = async (splashWindow: BrowserWindowWithSaveIpc) => {
+const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
   log.info('Attempting to check Python deps...');
   try {
     const { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
@@ -641,7 +641,7 @@ const doSplashScreenChecks = async () =>
       },
       // icon: `${__dirname}/public/icons/cross_platform/icon`,
       show: false,
-    }) as BrowserWindowWithSaveIpc;
+    }) as BrowserWindowWithSafeIpc;
     splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
 
     splash.once('ready-to-show', () => {
@@ -728,7 +728,7 @@ const createWindow = async () => {
     },
     // icon: `${__dirname}/public/icons/cross_platform/icon`,
     show: false,
-  }) as BrowserWindowWithSaveIpc;
+  }) as BrowserWindowWithSafeIpc;
 
   const menu = Menu.buildFromTemplate([
     ...(isMac ? [{ role: 'appMenu' }] : []),

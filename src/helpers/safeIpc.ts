@@ -125,7 +125,7 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
   sendToHost<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
 }
 
-interface WebContentsWithSaveIcp extends WebContents {
+interface WebContentsWithSafeIcp extends WebContents {
   invoke<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): Promise<ChannelReturn<C>>;
   postMessage(channel: keyof Channels, message: unknown, transfer?: MessagePortMain[]): void;
   send<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
@@ -137,8 +137,8 @@ interface WebContentsWithSaveIcp extends WebContents {
   ): void;
   sendToHost<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
 }
-export interface BrowserWindowWithSaveIpc extends BrowserWindow {
-  webContents: WebContentsWithSaveIcp;
+export interface BrowserWindowWithSafeIpc extends BrowserWindow {
+  webContents: WebContentsWithSafeIcp;
 }
 
 export const ipcMain = unsafeIpcMain as SafeIpcMain;
