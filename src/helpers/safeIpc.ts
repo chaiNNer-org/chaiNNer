@@ -1,9 +1,12 @@
 import {
+  BrowserWindow,
   ipcMain as unsafeIpcMain,
   IpcMainEvent,
   IpcMainInvokeEvent,
   ipcRenderer as unsafeIpcRenderer,
   IpcRendererEvent,
+  MessagePortMain,
+  WebContents,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
 import { PythonKeys } from '../common-types';
@@ -121,6 +124,22 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
     ...args: ChannelArgs<C>
   ): void;
   sendToHost<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
+}
+
+interface WebContentsWithSafeIcp extends WebContents {
+  invoke<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): Promise<ChannelReturn<C>>;
+  postMessage(channel: keyof Channels, message: unknown, transfer?: MessagePortMain[]): void;
+  send<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
+  sendSync<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): ChannelReturn<C>;
+  sendTo<C extends keyof Channels>(
+    webContentsId: number,
+    channel: C,
+    ...args: ChannelArgs<C>
+  ): void;
+  sendToHost<C extends keyof Channels>(channel: C, ...args: ChannelArgs<C>): void;
+}
+export interface BrowserWindowWithSafeIpc extends BrowserWindow {
+  webContents: WebContentsWithSafeIcp;
 }
 
 export const ipcMain = unsafeIpcMain as SafeIpcMain;
