@@ -81,7 +81,7 @@ interface UseAsyncEffectOptions<T> {
  * The `successEffect`, `catchEffect`, and `finallyEffect` functions are allowed to cause effects
  * and must be executing synchronously.
  *
- * THis whole operation is roughly equivalent to:
+ * This whole operation is roughly equivalent to:
  *
  * ```
  * supplier().then(successEffect).catch(catchEffect ?? log.error).finally(finallyEffect)
