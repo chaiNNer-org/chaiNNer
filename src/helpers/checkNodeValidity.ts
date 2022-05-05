@@ -1,5 +1,5 @@
 import { Edge } from 'react-flow-renderer';
-import { EdgeData, Input, InputValue } from '../common-types';
+import { EdgeData, Input, InputData } from '../common-types';
 
 // TODO: This file is a monstrosity, I need to make it so inputs are done by name and not by index
 const checkNodeValidity = ({
@@ -10,7 +10,7 @@ const checkNodeValidity = ({
 }: {
     id: string;
     inputs: Input[];
-    inputData: Record<number, InputValue>;
+    inputData: InputData;
     edges: readonly Edge<EdgeData>[];
 }): [boolean, string] => {
     if (!inputs) {

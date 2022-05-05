@@ -18,8 +18,10 @@ import { v4 as uuidv4 } from 'uuid';
 import {
     DefaultNode,
     EdgeData,
+    InputData,
     InputValue,
     IteratorSize,
+    Mutable,
     NodeData,
     SchemaMap,
     Size,
@@ -30,15 +32,15 @@ import useSessionStorage from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
-import { deepCopy } from '../util';
+import { copyNode, deepCopy } from '../util';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface Global {
     availableNodes: SchemaMap;
-    nodes: Node<NodeData>[];
-    edges: Edge<EdgeData>[];
+    nodes: readonly Node<NodeData>[];
+    edges: readonly Edge<EdgeData>[];
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
     onNodesChange: OnNodesChange;
@@ -49,7 +51,7 @@ interface Global {
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
-    isValidConnection: (connection: Connection) => boolean;
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
     useInputData: <T extends InputValue>(
         id: string,
         index: number
@@ -88,7 +90,7 @@ interface Global {
 
 interface NodeProto {
     position: XYPosition;
-    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: NodeData['inputData'] };
+    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
     defaultNodes?: DefaultNode[];
     parent?: string | Node<NodeData> | null;
@@ -413,7 +415,7 @@ export const GlobalProvider = ({
             parent = null,
         }: NodeProto): Node<NodeData> => {
             const id = createUniqueId();
-            const newNode: Node<NodeData> = {
+            const newNode: Node<Mutable<NodeData>> = {
                 type: nodeType,
                 id,
                 position: snapToGrid(position, snapToGridAmount),
@@ -524,7 +526,7 @@ export const GlobalProvider = ({
     }, []);
 
     const isValidConnection = useCallback(
-        ({ target, targetHandle, source, sourceHandle }: Connection) => {
+        ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
             if (source === target || !sourceHandle || !targetHandle) {
                 return false;
             }
@@ -579,14 +581,14 @@ export const GlobalProvider = ({
                 return [undefined, () => {}] as const;
             }
 
-            let inputData = nodeData?.inputData;
+            let { inputData } = nodeData;
             if (!inputData) {
                 inputData = getInputDefaults(nodeData, availableNodes);
             }
 
             const inputDataByIndex = inputData[index] as T;
             const setInputData = (data: T) => {
-                const nodeCopy: Node<NodeData> = { ...nodeById };
+                const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                 if (nodeCopy && nodeCopy.data) {
                     nodeCopy.data.inputData = {
                         ...inputData,
@@ -683,10 +685,11 @@ export const GlobalProvider = ({
             }
             const isLocked = node.data?.isLocked ?? false;
             const toggleLock = () => {
-                node.draggable = isLocked;
-                node.connectable = isLocked;
-                node.data.isLocked = !isLocked;
-                setNodes([...nodes.filter((n) => n.id !== id), node]);
+                const newNode = copyNode(node);
+                newNode.draggable = isLocked;
+                newNode.connectable = isLocked;
+                newNode.data.isLocked = !isLocked;
+                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
             };
 
             let isInputLocked = false;
@@ -711,8 +714,9 @@ export const GlobalProvider = ({
             const node = nodes.find((n) => n.id === id)!;
 
             const setIteratorSize = (size: IteratorSize) => {
-                node.data.iteratorSize = size;
-                setNodes([...nodes.filter((n) => n.id !== id), node]);
+                const newNode = copyNode(node);
+                newNode.data.iteratorSize = size;
+                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
             };
 
             return [setIteratorSize, defaultSize] as const;
@@ -745,7 +749,7 @@ export const GlobalProvider = ({
                     newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
                     return newNode;
                 });
-                const newIteratorNode: Node<NodeData> = { ...iteratorNode };
+                const newIteratorNode = copyNode(iteratorNode);
 
                 newIteratorNode.data.maxWidth = maxWidth;
                 newIteratorNode.data.maxHeight = maxHeight;
@@ -766,9 +770,10 @@ export const GlobalProvider = ({
         (id: string, percent: number) => {
             const iterator = nodes.find((n) => n.id === id);
             if (iterator && iterator.data) {
-                iterator.data.percentComplete = percent;
+                const newIterator = copyNode(iterator);
+                newIterator.data.percentComplete = percent;
                 const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([iterator, ...filteredNodes]);
+                setNodes([newIterator, ...filteredNodes]);
             }
         },
         [nodes, setNodes]
@@ -845,14 +850,15 @@ export const GlobalProvider = ({
         const nodesCopy = [...nodes];
         const node = nodesCopy.find((n) => n.id === id);
         if (!node) return;
-        node.data.inputData = getInputDefaults(node.data, availableNodes);
-        setNodes([...nodes.filter((n) => n.id !== id), node]);
+        const newNode = copyNode(node);
+        newNode.data.inputData = getInputDefaults(node.data, availableNodes);
+        setNodes([...nodes.filter((n) => n.id !== id), newNode]);
     };
 
     const outlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
         const invalidIds = invalidNodes.map((node) => node.id);
         const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = { ...node };
+            const nodeCopy = copyNode(node);
             nodeCopy.data.invalid = true;
             return nodeCopy;
         });
@@ -862,7 +868,7 @@ export const GlobalProvider = ({
     const unOutlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
         const invalidIds = invalidNodes.map((node) => node.id);
         const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = { ...node };
+            const nodeCopy = copyNode(node);
             nodeCopy.data.invalid = false;
             return nodeCopy;
         });
