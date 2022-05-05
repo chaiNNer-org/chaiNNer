@@ -1,33 +1,33 @@
 import { SettingsIcon } from '@chakra-ui/icons';
 import {
-  Button,
-  Flex,
-  HStack,
-  IconButton,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  StackDivider,
-  Switch,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Text,
-  Tooltip,
-  useColorMode,
-  useDisclosure,
-  VStack,
+    Button,
+    Flex,
+    HStack,
+    IconButton,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    NumberDecrementStepper,
+    NumberIncrementStepper,
+    NumberInput,
+    NumberInputField,
+    NumberInputStepper,
+    StackDivider,
+    Switch,
+    Tab,
+    TabList,
+    TabPanel,
+    TabPanels,
+    Tabs,
+    Text,
+    Tooltip,
+    useColorMode,
+    useDisclosure,
+    VStack,
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
 import { ipcRenderer } from '../helpers/safeIpc';
@@ -35,436 +35,437 @@ import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 
 interface SettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
 const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
-  const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
-    useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
+        useContext(SettingsContext);
 
-  const { colorMode, toggleColorMode } = useColorMode();
+    const { colorMode, toggleColorMode } = useColorMode();
 
-  const [isCpu, setIsCpu] = useIsCpu;
-  const [isFp16, setIsFp16] = useIsFp16;
-  const [isSystemPython, setIsSystemPython] = useIsSystemPython;
-  const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
-  const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
+    const [isCpu, setIsCpu] = useIsCpu;
+    const [isFp16, setIsFp16] = useIsFp16;
+    const [isSystemPython, setIsSystemPython] = useIsSystemPython;
+    const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
+    const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
 
-  const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
+    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
 
-  useAsyncEffect(
-    {
-      supplier: async () =>
-        [
-          (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
-          await ipcRenderer.invoke('get-has-nvidia'),
-        ] as const,
-      successEffect: ([gpuName, hasNvidia]) => {
-        if (gpuName.toLowerCase().includes('rtx')) {
-          setIsFp16(true);
-          setIsNvidiaAvailable(hasNvidia);
+    useAsyncEffect(
+        {
+            supplier: async () =>
+                [
+                    (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
+                    await ipcRenderer.invoke('get-has-nvidia'),
+                ] as const,
+            successEffect: ([gpuName, hasNvidia]) => {
+                if (gpuName.toLowerCase().includes('rtx')) {
+                    setIsFp16(true);
+                    setIsNvidiaAvailable(hasNvidia);
+                }
+            },
+        },
+        []
+    );
+
+    useEffect(() => {
+        setIsCpu(!isNvidiaAvailable);
+    }, [isNvidiaAvailable]);
+
+    useEffect(() => {
+        if (isCpu && isFp16) {
+            setIsFp16(false);
         }
-      },
-    },
-    []
-  );
+    }, [isCpu]);
 
-  useEffect(() => {
-    setIsCpu(!isNvidiaAvailable);
-  }, [isNvidiaAvailable]);
-
-  useEffect(() => {
-    if (isCpu && isFp16) {
-      setIsFp16(false);
-    }
-  }, [isCpu]);
-
-  const AppearanceSettings = () => (
-    <VStack
-      divider={<StackDivider />}
-      w="full"
-    >
-      {/* Dark Theme */}
-      <Flex
-        align="center"
-        w="full"
-      >
+    const AppearanceSettings = () => (
         <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
+            divider={<StackDivider />}
+            w="full"
         >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            Dark theme
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Use dark mode throughout chaiNNer.
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={colorMode === 'dark'}
-            size="lg"
-            onChange={() => {
-              toggleColorMode();
-            }}
-          />
-        </HStack>
-      </Flex>
-      {/* Snap To Grid */}
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            Snap to grid
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Enable node grid snapping.
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={isSnapToGrid}
-            size="lg"
-            onChange={() => {
-              setIsSnapToGrid(!isSnapToGrid);
-            }}
-          />
-        </HStack>
-      </Flex>
-      {/* Snap To Grid Amount */}
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            Snap to grid amount
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            The amount to snap the grid to.
-          </Text>
-        </VStack>
-        <HStack>
-          <NumberInput
-            defaultValue={snapToGridAmount || 1}
-            max={45}
-            min={1}
-            value={Number(snapToGridAmount || 1)}
-            onChange={(number) => setSnapToGridAmount(Number(number || 1))}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-        </HStack>
-      </Flex>
-    </VStack>
-  );
-
-  const EnvironmentSettings = () => (
-    <VStack
-      divider={<StackDivider />}
-      w="full"
-    >
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            CPU mode
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Use CPU for PyTorch instead of GPU. Forced if Nvidia (CUDA) GPU not detected.
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={isCpu}
-            isDisabled={!isNvidiaAvailable}
-            size="lg"
-            onChange={() => {
-              setIsCpu(!isCpu);
-            }}
-          />
-        </HStack>
-      </Flex>
-
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            FP16 mode
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a
-            speedup.
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={isFp16}
-            isDisabled={isCpu}
-            size="lg"
-            onChange={() => {
-              setIsFp16(!isFp16);
-            }}
-          />
-        </HStack>
-      </Flex>
-    </VStack>
-  );
-
-  const PythonSettings = () => (
-    <VStack
-      divider={<StackDivider />}
-      w="full"
-    >
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            Use system Python (requires restart)
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Use system Python for chaiNNer&apos;s processing instead of the bundled Python (not
-            recommended)
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={isSystemPython}
-            size="lg"
-            onChange={() => {
-              setIsSystemPython(!isSystemPython);
-            }}
-          />
-        </HStack>
-      </Flex>
-    </VStack>
-  );
-
-  const AdvancedSettings = () => (
-    <VStack
-      divider={<StackDivider />}
-      w="full"
-    >
-      {/* Disable Hardware Acceleration */}
-      <Flex
-        align="center"
-        w="full"
-      >
-        <VStack
-          alignContent="left"
-          alignItems="left"
-          w="full"
-        >
-          <Text
-            flex="1"
-            textAlign="left"
-          >
-            Disable Hardware Acceleration (requires restart)
-          </Text>
-          <Text
-            flex="1"
-            fontSize="xs"
-            marginTop={0}
-            textAlign="left"
-          >
-            Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only disable this is
-            you know hardware acceleration is causing you issues.
-          </Text>
-        </VStack>
-        <HStack>
-          <Switch
-            defaultChecked={isDisHwAccel}
-            size="lg"
-            onChange={() => {
-              setIsDisHwAccel(!isDisHwAccel);
-            }}
-          />
-        </HStack>
-      </Flex>
-    </VStack>
-  );
-
-  return (
-    <Modal
-      isCentered
-      isOpen={isOpen}
-      returnFocusOnClose={false}
-      scrollBehavior="inside"
-      size="xl"
-      onClose={onClose}
-    >
-      <ModalOverlay />
-      <ModalContent
-        maxH="500px"
-        maxW="750px"
-        minH="500px"
-        minW="750px"
-      >
-        <ModalHeader>Settings</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Tabs>
-            <TabList>
-              <Tab>Appearance</Tab>
-              <Tab>Environment</Tab>
-              <Tab>Python</Tab>
-              <Tab>Advanced</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel>
-                <AppearanceSettings />
-              </TabPanel>
-              <TabPanel>
-                <EnvironmentSettings />
-              </TabPanel>
-              <TabPanel>
-                <PythonSettings />
-              </TabPanel>
-              <TabPanel>
-                <AdvancedSettings />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </ModalBody>
-
-        <ModalFooter>
-          <HStack>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                ipcRenderer.send('relaunch-application');
-              }}
+            {/* Dark Theme */}
+            <Flex
+                align="center"
+                w="full"
             >
-              Restart chaiNNer
-            </Button>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={onClose}
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        Dark theme
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Use dark mode throughout chaiNNer.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={colorMode === 'dark'}
+                        size="lg"
+                        onChange={() => {
+                            toggleColorMode();
+                        }}
+                    />
+                </HStack>
+            </Flex>
+            {/* Snap To Grid */}
+            <Flex
+                align="center"
+                w="full"
             >
-              Close
-            </Button>
-          </HStack>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        Snap to grid
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Enable node grid snapping.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={isSnapToGrid}
+                        size="lg"
+                        onChange={() => {
+                            setIsSnapToGrid(!isSnapToGrid);
+                        }}
+                    />
+                </HStack>
+            </Flex>
+            {/* Snap To Grid Amount */}
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        Snap to grid amount
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        The amount to snap the grid to.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <NumberInput
+                        defaultValue={snapToGridAmount || 1}
+                        max={45}
+                        min={1}
+                        value={Number(snapToGridAmount || 1)}
+                        onChange={(number) => setSnapToGridAmount(Number(number || 1))}
+                    >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </HStack>
+            </Flex>
+        </VStack>
+    );
+
+    const EnvironmentSettings = () => (
+        <VStack
+            divider={<StackDivider />}
+            w="full"
+        >
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        CPU mode
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Use CPU for PyTorch instead of GPU. Forced if Nvidia (CUDA) GPU not
+                        detected.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={isCpu}
+                        isDisabled={!isNvidiaAvailable}
+                        size="lg"
+                        onChange={() => {
+                            setIsCpu(!isCpu);
+                        }}
+                    />
+                </HStack>
+            </Flex>
+
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        FP16 mode
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs
+                        also get a speedup.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={isFp16}
+                        isDisabled={isCpu}
+                        size="lg"
+                        onChange={() => {
+                            setIsFp16(!isFp16);
+                        }}
+                    />
+                </HStack>
+            </Flex>
+        </VStack>
+    );
+
+    const PythonSettings = () => (
+        <VStack
+            divider={<StackDivider />}
+            w="full"
+        >
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        Use system Python (requires restart)
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Use system Python for chaiNNer&apos;s processing instead of the bundled
+                        Python (not recommended)
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={isSystemPython}
+                        size="lg"
+                        onChange={() => {
+                            setIsSystemPython(!isSystemPython);
+                        }}
+                    />
+                </HStack>
+            </Flex>
+        </VStack>
+    );
+
+    const AdvancedSettings = () => (
+        <VStack
+            divider={<StackDivider />}
+            w="full"
+        >
+            {/* Disable Hardware Acceleration */}
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        Disable Hardware Acceleration (requires restart)
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only
+                        disable this is you know hardware acceleration is causing you issues.
+                    </Text>
+                </VStack>
+                <HStack>
+                    <Switch
+                        defaultChecked={isDisHwAccel}
+                        size="lg"
+                        onChange={() => {
+                            setIsDisHwAccel(!isDisHwAccel);
+                        }}
+                    />
+                </HStack>
+            </Flex>
+        </VStack>
+    );
+
+    return (
+        <Modal
+            isCentered
+            isOpen={isOpen}
+            returnFocusOnClose={false}
+            scrollBehavior="inside"
+            size="xl"
+            onClose={onClose}
+        >
+            <ModalOverlay />
+            <ModalContent
+                maxH="500px"
+                maxW="750px"
+                minH="500px"
+                minW="750px"
+            >
+                <ModalHeader>Settings</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Tabs>
+                        <TabList>
+                            <Tab>Appearance</Tab>
+                            <Tab>Environment</Tab>
+                            <Tab>Python</Tab>
+                            <Tab>Advanced</Tab>
+                        </TabList>
+                        <TabPanels>
+                            <TabPanel>
+                                <AppearanceSettings />
+                            </TabPanel>
+                            <TabPanel>
+                                <EnvironmentSettings />
+                            </TabPanel>
+                            <TabPanel>
+                                <PythonSettings />
+                            </TabPanel>
+                            <TabPanel>
+                                <AdvancedSettings />
+                            </TabPanel>
+                        </TabPanels>
+                    </Tabs>
+                </ModalBody>
+
+                <ModalFooter>
+                    <HStack>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                ipcRenderer.send('relaunch-application');
+                            }}
+                        >
+                            Restart chaiNNer
+                        </Button>
+                        <Button
+                            colorScheme="blue"
+                            mr={3}
+                            onClick={onClose}
+                        >
+                            Close
+                        </Button>
+                    </HStack>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    );
 };
 
 export const SettingsButton = memo(() => {
-  const {
-    isOpen: isSettingsOpen,
-    onOpen: onSettingsOpen,
-    onClose: onSettingsClose,
-  } = useDisclosure();
-  return (
-    <>
-      <Tooltip
-        closeOnClick
-        closeOnMouseDown
-        borderRadius={8}
-        label="Settings"
-        px={2}
-        py={1}
-      >
-        <IconButton
-          aria-label="Settings"
-          icon={<SettingsIcon />}
-          size="md"
-          variant="outline"
-          onClick={onSettingsOpen}
-        >
-          Settings
-        </IconButton>
-      </Tooltip>
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={onSettingsClose}
-      />
-    </>
-  );
+    const {
+        isOpen: isSettingsOpen,
+        onOpen: onSettingsOpen,
+        onClose: onSettingsClose,
+    } = useDisclosure();
+    return (
+        <>
+            <Tooltip
+                closeOnClick
+                closeOnMouseDown
+                borderRadius={8}
+                label="Settings"
+                px={2}
+                py={1}
+            >
+                <IconButton
+                    aria-label="Settings"
+                    icon={<SettingsIcon />}
+                    size="md"
+                    variant="outline"
+                    onClick={onSettingsOpen}
+                >
+                    Settings
+                </IconButton>
+            </Tooltip>
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={onSettingsClose}
+            />
+        </>
+    );
 });
 
 export default memo(SettingsModal);
