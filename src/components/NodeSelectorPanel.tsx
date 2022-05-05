@@ -26,6 +26,7 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import { ChangeEvent, DragEvent, memo, useContext, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { NodeSchema } from '../common-types';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColor from '../helpers/getNodeAccentColors';
@@ -210,7 +211,7 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
                                       closeOnMouseDown
                                       hasArrow
                                       borderRadius={8}
-                                      label={node.description}
+                                      label={<ReactMarkdown>{node.description}</ReactMarkdown>}
                                       px={2}
                                       py={1}
                                     >
