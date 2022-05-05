@@ -10,7 +10,7 @@ import {
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
 import { PythonKeys } from '../common-types';
-import { SaveData } from './SaveFile';
+import { ParsedSaveData, SaveData } from './SaveFile';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -41,7 +41,7 @@ interface Channels {
         string | undefined,
         [saveData: SaveData, savePath: string | undefined]
     >;
-    'get-cli-open': ChannelInfo<SaveData | undefined>;
+    'get-cli-open': ChannelInfo<ParsedSaveData | undefined>;
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
@@ -56,7 +56,7 @@ interface Channels {
     'downloading-python': ChannelInfo<never>;
     'extracting-python': ChannelInfo<never>;
     'file-new': ChannelInfo<never>;
-    'file-open': ChannelInfo<never, [saveData: SaveData, openedFilePath: string]>;
+    'file-open': ChannelInfo<never, [saveData: ParsedSaveData, openedFilePath: string]>;
     'file-save-as': ChannelInfo<never>;
     'file-save': ChannelInfo<never>;
     'finish-loading': ChannelInfo<never>;
