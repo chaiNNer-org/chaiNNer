@@ -37,6 +37,7 @@ export type InputData = Readonly<Record<number, InputValue>>;
 
 export interface NodeSchema {
     readonly name: string;
+    readonly category: string;
     readonly subcategory: string;
     readonly description: string;
     readonly icon: string;
@@ -52,8 +53,6 @@ export interface DefaultNode {
     category: string;
     name: string;
 }
-
-export type SchemaMap = Record<string, Record<string, NodeSchema>>;
 
 export interface NodeData {
     readonly id: string;

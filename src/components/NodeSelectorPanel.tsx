@@ -30,6 +30,7 @@ import ReactMarkdown from 'react-markdown';
 import { NodeSchema } from '../common-types';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColor from '../helpers/getNodeAccentColors';
+import { SchemaMap } from '../helpers/SchemaMap';
 import { IconFactory } from './CustomIcons';
 import DependencyManager from './DependencyManager';
 import RepresentativeNode from './node/RepresentativeNode';
@@ -56,6 +57,20 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
     return (name) => pattern.test(name);
 };
 
+const compareIgnoreCase = (a: string, b: string): number => {
+    return a.toUpperCase().localeCompare(b.toUpperCase());
+};
+
+const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => {
+    const map = new Map<string, NodeSchema[]>();
+    nodes.forEach((node) => {
+        let list = map.get(node.category);
+        if (list === undefined) map.set(node.category, (list = []));
+        list.push(node);
+    });
+    return map;
+};
+
 /**
  * Returns a map that maps for sub category name to all nodes of that sub category.
  *
@@ -64,14 +79,10 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
 const getNamespaces = (nodes: readonly NodeSchema[]) => {
     const map = new Map<string, NodeSchema[]>();
     [...nodes]
-        .sort((a, b) => {
-            let keyA = a.subcategory.toUpperCase();
-            let keyB = b.subcategory.toUpperCase();
-            if (keyA !== keyB) return keyA.localeCompare(keyB);
-            keyA = a.name.toUpperCase();
-            keyB = b.name.toUpperCase();
-            return keyA.localeCompare(keyB);
-        })
+        .sort(
+            (a, b) =>
+                compareIgnoreCase(a.subcategory, b.subcategory) || compareIgnoreCase(a.name, b.name)
+        )
         .forEach((n) => {
             const list = map.get(n.subcategory) ?? [];
             map.set(n.subcategory, list);
@@ -82,10 +93,10 @@ const getNamespaces = (nodes: readonly NodeSchema[]) => {
 
 interface NodeSelectorProps {
     height: number;
-    data: { category: string; nodes: readonly NodeSchema[] }[];
+    schemata: SchemaMap;
 }
 
-const NodeSelector = ({ data, height }: NodeSelectorProps) => {
+const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
     const [searchQuery, setSearchQuery] = useState('');
     const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
         setSearchQuery(event.target.value);
@@ -97,6 +108,13 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
     const [, setHoveredNode] = useHoveredNode;
 
     const matchesSearchQuery = createSearchPredicate(searchQuery);
+    const matchingNodes = !searchQuery
+        ? schemata.schemata
+        : schemata.schemata.filter(
+              (n) =>
+                  matchesSearchQuery(`${n.category} ${n.name}`) ||
+                  matchesSearchQuery(`${n.subcategory} ${n.name}`)
+          );
 
     return (
         <Box
@@ -153,21 +171,10 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
                         >
                             <Accordion
                                 allowMultiple
-                                defaultIndex={data.map((item, index) => index)}
+                                defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
-                                {data.map(({ category, nodes: categoryNodes }) => {
-                                    const matchingNodes = matchesSearchQuery(category)
-                                        ? categoryNodes
-                                        : categoryNodes.filter(
-                                              (n) =>
-                                                  matchesSearchQuery(`${category} ${n.name}`) ||
-                                                  matchesSearchQuery(`${n.subcategory} ${n.name}`)
-                                          );
-
-                                    // don't show categories without nodes
-                                    if (matchingNodes.length === 0) return null;
-
-                                    const namespaceMap = getNamespaces(matchingNodes);
+                                {[...byCategory(matchingNodes)].map(([category, categoryNodes]) => {
+                                    const namespaceMap = getNamespaces(categoryNodes);
 
                                     return (
                                         <AccordionItem key={category}>
@@ -270,8 +277,6 @@ const NodeSelector = ({ data, height }: NodeSelectorProps) => {
                                                                                             type: node.name,
                                                                                             icon: node.icon,
                                                                                         },
-                                                                                        defaultNodes:
-                                                                                            node.defaultNodes,
                                                                                     });
                                                                                 }}
                                                                                 onDragEnd={() => {
