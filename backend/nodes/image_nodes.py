@@ -20,14 +20,14 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .utils.color_transfer import color_transfer
+from .utils.fill_alpha import *
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
     normalize,
     normalize_normals,
 )
-from .utils.color_transfer import color_transfer
-from .utils.fill_alpha import *
 
 try:
     from PIL import Image
@@ -49,9 +49,6 @@ class ImReadNode(NodeBase):
         self.inputs = [ImageFileInput()]
         self.outputs = [
             ImageOutput(),
-            # IntegerOutput("Height"),
-            # IntegerOutput("Width"),
-            # IntegerOutput("Channels"),
             DirectoryOutput(),
             TextOutput("Image Name"),
         ]
