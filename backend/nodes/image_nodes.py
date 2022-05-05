@@ -168,11 +168,6 @@ class ImWriteNode(NodeBase):
         extension: str = None,
     ) -> bool:
         """Write an image to the specified path and return write status"""
-        # Shift inputs if relative path is missing
-        if extension is None:
-            extension = filename
-            filename = relative_path
-            relative_path = "."
 
         full_file = f"{filename}.{extension}"
         if relative_path and relative_path != ".":
@@ -333,8 +328,8 @@ class ImOverlay(NodeBase):
 
     def run(
         self,
-        base: np.ndarray = None,
-        ov1: np.ndarray = None,
+        base: np.ndarray,
+        ov1: np.ndarray,
         op1: int = 50,
         ov2: np.ndarray = None,
         op2: int = 50,
@@ -343,11 +338,7 @@ class ImOverlay(NodeBase):
 
         base = normalize(base)
         ov1 = normalize(ov1)
-        # overlay2 was not passed in and therefore ov2 is actually op2
-        if isinstance(ov2, str) or isinstance(ov2, int):
-            ov2 = None
-            op2 = None
-        else:
+        if ov2 is not None:
             ov2 = normalize(ov2)
 
         # Convert to 0.0-1.0 range

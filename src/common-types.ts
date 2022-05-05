@@ -33,7 +33,7 @@ export interface Output {
     readonly label: string;
 }
 
-export type InputData = Readonly<Record<number, InputValue>>;
+export type InputData = Readonly<Record<number, InputValue | undefined>>;
 
 export interface NodeSchema {
     readonly name: string;
@@ -83,7 +83,7 @@ export interface UsableData {
     category: string;
     node: string;
     id: string;
-    inputs: Record<number, InputValue | null>;
+    inputs: Record<number, InputValue | null | undefined>;
     outputs: Record<number, InputValue>;
     child: boolean;
     children?: string[];
