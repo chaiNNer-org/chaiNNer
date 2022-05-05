@@ -74,9 +74,9 @@ const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => 
 /**
  * Returns a map that maps for sub category name to all nodes of that sub category.
  *
- * The nodes per namespace are sorted by name.
+ * The nodes per subcategory are sorted by name.
  */
-const getNamespaces = (nodes: readonly NodeSchema[]) => {
+const getSubcategories = (nodes: readonly NodeSchema[]) => {
     const map = new Map<string, NodeSchema[]>();
     [...nodes]
         .sort(
@@ -174,7 +174,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
                                 {[...byCategory(matchingNodes)].map(([category, categoryNodes]) => {
-                                    const namespaceMap = getNamespaces(categoryNodes);
+                                    const subcategoryMap = getSubcategories(categoryNodes);
 
                                     return (
                                         <AccordionItem key={category}>
@@ -192,8 +192,8 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                 <AccordionIcon />
                                             </AccordionButton>
                                             <AccordionPanel>
-                                                {[...namespaceMap].map(([namespace, nodes]) => (
-                                                    <Box key={namespace}>
+                                                {[...subcategoryMap].map(([subcategory, nodes]) => (
+                                                    <Box key={subcategory}>
                                                         <Center w="full">
                                                             <HStack w="full">
                                                                 <Divider orientation="horizontal" />
@@ -204,7 +204,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                     w="auto"
                                                                     whiteSpace="nowrap"
                                                                 >
-                                                                    {namespace}
+                                                                    {subcategory}
                                                                 </Text>
                                                                 <Divider orientation="horizontal" />
                                                             </HStack>
