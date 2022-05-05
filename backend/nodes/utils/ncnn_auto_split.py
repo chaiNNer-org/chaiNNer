@@ -146,7 +146,7 @@ def ncnn_auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = np.zeros((out_h, out_w, c), dtype=lr_img.dtype)
+    output_img = np.zeros((out_h, out_w, c), dtype=np.float32)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[
