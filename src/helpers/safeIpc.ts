@@ -65,6 +65,30 @@ interface Channels {
     progress: ChannelInfo<never, [percentage: number]>;
     'spawning-backend': ChannelInfo<never>;
     'splash-finish': ChannelInfo<never>;
+
+    // history
+    'history-undo': ChannelInfo<never>;
+    'history-redo': ChannelInfo<never>;
+    /**
+     * This will strongly commit the current state of the application into its history.
+     *
+     * This should be used for important actions like adding/removing nodes/edges.
+     */
+    'history-commit': ChannelInfo<never>;
+    /**
+     * This will weakly commit the current state of the application into its history.
+     *
+     * A weak commit is a commit that can be overwritten by other weak commits with the same id.
+     * Weak commits will always be committed if they are followed by another weak commit with a
+     * different id, a strong commit, a history action (undo, redo), or another state change action
+     * (save, reload, open). The implementation may also commit pending weak commits after a set
+     * amount of time.
+     *
+     * This is useful for things like slider inputs where the user can make potentially hundreds
+     * of inputs per second. By weakly committing those changes, they will only be committed to
+     * history after the user is done making their inputs.
+     */
+    'history-commit-weak': ChannelInfo<never, [id: string]>;
 }
 type ChannelArgs<C extends keyof Channels> = Channels[C]['args'];
 type ChannelReturn<C extends keyof Channels> = Channels[C]['returnType'];

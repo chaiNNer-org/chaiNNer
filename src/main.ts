@@ -797,8 +797,18 @@ const createWindow = async () => {
         {
             label: 'Edit',
             submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
+                {
+                    role: 'undo',
+                    click: () => {
+                        mainWindow.webContents.send('history-undo');
+                    },
+                },
+                {
+                    role: 'redo',
+                    click: () => {
+                        mainWindow.webContents.send('history-redo');
+                    },
+                },
                 { type: 'separator' },
                 // { role: 'cut' },
                 // { role: 'copy' },
