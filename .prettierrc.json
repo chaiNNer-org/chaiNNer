@@ -1,5 +1,6 @@
 {
 	"printWidth": 100,
 	"singleQuote": true,
-	"singleAttributePerLine": true
+	"singleAttributePerLine": true,
+	"tabWidth": 4
 }

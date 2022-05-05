@@ -1,70 +1,75 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
-  extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
-  plugins: ['prettier', '@typescript-eslint', 'prefer-arrow-functions'],
-  globals: {
-    MAIN_WINDOW_WEBPACK_ENTRY: true,
-    SPLASH_SCREEN_WEBPACK_ENTRY: true,
-  },
-  env: {
-    browser: true,
-    node: true,
-  },
-  parserOptions: {
-    ecmaVersion: 2020,
-  },
-  rules: {
-    'no-use-before-define': 'off',
-    'react/jsx-sort-props': [
-      'error',
-      {
-        callbacksLast: true,
-        shorthandFirst: true,
-      },
-    ],
-    'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
-    'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
-    'import/extensions': 'off',
-    'react/prop-types': 'off',
-    'prefer-arrow-functions/prefer-arrow-functions': [
-      'warn',
-      {
-        classPropertiesAllowed: false,
-        disallowPrototype: false,
-        returnStyle: 'unchanged',
-        singleReturnOnly: false,
-      },
-    ],
-  },
-  settings: {
-    'import/core-modules': ['electron'],
-    'import/resolver': {
-      typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
+    parser: '@typescript-eslint/parser',
+    extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
+    plugins: ['prettier', '@typescript-eslint', 'prefer-arrow-functions'],
+    globals: {
+        MAIN_WINDOW_WEBPACK_ENTRY: true,
+        SPLASH_SCREEN_WEBPACK_ENTRY: true,
     },
-  },
+    env: {
+        browser: true,
+        node: true,
+    },
+    parserOptions: {
+        ecmaVersion: 2020,
+    },
+    rules: {
+        'no-use-before-define': 'off',
+        'react/jsx-sort-props': [
+            'error',
+            {
+                callbacksLast: true,
+                shorthandFirst: true,
+            },
+        ],
+        'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
+        'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
+        'import/extensions': 'off',
+        'react/prop-types': 'off',
+        'prefer-arrow-functions/prefer-arrow-functions': [
+            'warn',
+            {
+                classPropertiesAllowed: false,
+                disallowPrototype: false,
+                returnStyle: 'unchanged',
+                singleReturnOnly: false,
+            },
+        ],
+    },
+    settings: {
+        'import/core-modules': ['electron'],
+        'import/resolver': {
+            typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
+        },
+    },
 
-  overrides: [
-    {
-      files: ['src/**/*.ts', 'src/**/*.tsx'],
-      extends: [
-        'airbnb',
-        'airbnb-typescript',
-        'plugin:react/jsx-runtime',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking',
-        'plugin:prettier/recommended',
-      ],
-      plugins: ['prettier', '@typescript-eslint', 'prefer-arrow-functions', 'eslint-comments'],
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-      rules: {
-        'react/require-default-props': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off',
-        '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
-        'eslint-comments/no-unused-enable': 'warn',
-        'eslint-comments/no-unused-disable': 'warn',
-      },
-    },
-  ],
+    overrides: [
+        {
+            files: ['src/**/*.ts', 'src/**/*.tsx'],
+            extends: [
+                'airbnb',
+                'airbnb-typescript',
+                'plugin:react/jsx-runtime',
+                'plugin:@typescript-eslint/recommended',
+                'plugin:@typescript-eslint/recommended-requiring-type-checking',
+                'plugin:prettier/recommended',
+            ],
+            plugins: [
+                'prettier',
+                '@typescript-eslint',
+                'prefer-arrow-functions',
+                'eslint-comments',
+            ],
+            parserOptions: {
+                project: './tsconfig.json',
+            },
+            rules: {
+                'react/require-default-props': 'off',
+                '@typescript-eslint/no-non-null-assertion': 'off',
+                '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
+                'eslint-comments/no-unused-enable': 'warn',
+                'eslint-comments/no-unused-disable': 'warn',
+            },
+        },
+    ],
 };

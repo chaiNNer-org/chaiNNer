@@ -22,137 +22,137 @@ import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from '../helpers/safeIpc';
 
 interface MainProps {
-  port: number;
+    port: number;
 }
 
 const Main = ({ port }: MainProps) => {
-  const { showMessageBox } = useContext(AlertBoxContext);
+    const { showMessageBox } = useContext(AlertBoxContext);
 
-  const [availableNodes, setAvailableNodes] = useState<SchemaMap | null>(null);
-  const [nodeTypes, setNodeTypes] = useState<NodeTypes | null>(null);
-  const edgeTypes: EdgeTypes = {
-    main: CustomEdge,
-  };
-  // const { colorMode, toggleColorMode } = useColorMode();
-  const [, height] = useWindowSize();
+    const [availableNodes, setAvailableNodes] = useState<SchemaMap | null>(null);
+    const [nodeTypes, setNodeTypes] = useState<NodeTypes | null>(null);
+    const edgeTypes: EdgeTypes = {
+        main: CustomEdge,
+    };
+    // const { colorMode, toggleColorMode } = useColorMode();
+    const [, height] = useWindowSize();
 
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+    const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-  // Queries
-  const [backendReady, setBackendReady] = useState(false);
+    // Queries
+    const [backendReady, setBackendReady] = useState(false);
 
-  const { loading, error, data, response } = useFetch<BackendNodesResponse>(
-    `http://localhost:${port}/nodes`,
-    { cachePolicy: CachePolicies.NO_CACHE, retries: 10 },
-    [port]
-  );
+    const { loading, error, data, response } = useFetch<BackendNodesResponse>(
+        `http://localhost:${port}/nodes`,
+        { cachePolicy: CachePolicies.NO_CACHE, retries: 10 },
+        [port]
+    );
 
-  const bgColor = useColorModeValue('gray.200', '#151a24');
+    const bgColor = useColorModeValue('gray.200', '#151a24');
 
-  useEffect(() => {
-    if (response.ok && data && !loading && !error && !backendReady) {
-      setNodeTypes({
-        regularNode: Node,
-        iterator: IteratorNode,
-        iteratorHelper: IteratorHelperNode,
-      });
-      const availableNodeMap: SchemaMap = {};
-      data.forEach(({ category, nodes }) => {
-        availableNodeMap[category] = {};
-        nodes.forEach((node) => {
-          availableNodeMap[category][node.name] = node;
-        });
-      });
-      setAvailableNodes(availableNodeMap);
+    useEffect(() => {
+        if (response.ok && data && !loading && !error && !backendReady) {
+            setNodeTypes({
+                regularNode: Node,
+                iterator: IteratorNode,
+                iteratorHelper: IteratorHelperNode,
+            });
+            const availableNodeMap: SchemaMap = {};
+            data.forEach(({ category, nodes }) => {
+                availableNodeMap[category] = {};
+                nodes.forEach((node) => {
+                    availableNodeMap[category][node.name] = node;
+                });
+            });
+            setAvailableNodes(availableNodeMap);
+        }
+    }, [response, data, loading, error, backendReady]);
+
+    useAsyncEffect(
+        async (token) => {
+            if (nodeTypes && !backendReady) {
+                token.causeEffect(() => setBackendReady(true));
+                await ipcRenderer.invoke('backend-ready');
+            }
+        },
+        [nodeTypes]
+    );
+
+    const loadingLogo = (
+        <ChaiNNerLogo
+            percent={0}
+            size={256}
+        />
+    );
+
+    if (error) {
+        showMessageBox(
+            AlertType.CRIT_ERROR,
+            null,
+            `chaiNNer has encountered a critical error: ${error.message}`
+        );
+        return <></>;
     }
-  }, [response, data, loading, error, backendReady]);
 
-  useAsyncEffect(
-    async (token) => {
-      if (nodeTypes && !backendReady) {
-        token.causeEffect(() => setBackendReady(true));
-        await ipcRenderer.invoke('backend-ready');
-      }
-    },
-    [nodeTypes]
-  );
-
-  const loadingLogo = (
-    <ChaiNNerLogo
-      percent={0}
-      size={256}
-    />
-  );
-
-  if (error) {
-    showMessageBox(
-      AlertType.CRIT_ERROR,
-      null,
-      `chaiNNer has encountered a critical error: ${error.message}`
-    );
-    return <></>;
-  }
-
-  if (!nodeTypes || !availableNodes || !data) {
-    return (
-      <Box
-        h="100vh"
-        w="100vw"
-      >
-        <Center
-          h="full"
-          w="full"
-        >
-          <VStack>
-            {loadingLogo}
-            <Text>Loading...</Text>
-          </VStack>
-        </Center>
-      </Box>
-    );
-  }
-
-  return (
-    <ReactFlowProvider>
-      <SettingsProvider port={port}>
-        <GlobalProvider
-          availableNodes={availableNodes}
-          reactFlowWrapper={reactFlowWrapper}
-        >
-          <VStack
-            bg={bgColor}
-            overflow="hidden"
-            p={2}
-          >
-            <Header port={port} />
-            <HStack
-              as={Split}
-              defaultSplitterColors={{
-                color: '#71809633',
-                hover: '#71809666',
-                drag: '#718096EE',
-              }}
-              initialPrimarySize="380px"
-              minPrimarySize="290px"
-              minSecondarySize="75%"
-              splitterSize="10px"
+    if (!nodeTypes || !availableNodes || !data) {
+        return (
+            <Box
+                h="100vh"
+                w="100vw"
             >
-              <NodeSelector
-                data={data}
-                height={height}
-              />
+                <Center
+                    h="full"
+                    w="full"
+                >
+                    <VStack>
+                        {loadingLogo}
+                        <Text>Loading...</Text>
+                    </VStack>
+                </Center>
+            </Box>
+        );
+    }
 
-              <ReactFlowBox
-                edgeTypes={edgeTypes}
-                nodeTypes={nodeTypes}
-                wrapperRef={reactFlowWrapper}
-              />
-            </HStack>
-          </VStack>
-        </GlobalProvider>
-      </SettingsProvider>
-    </ReactFlowProvider>
-  );
+    return (
+        <ReactFlowProvider>
+            <SettingsProvider port={port}>
+                <GlobalProvider
+                    availableNodes={availableNodes}
+                    reactFlowWrapper={reactFlowWrapper}
+                >
+                    <VStack
+                        bg={bgColor}
+                        overflow="hidden"
+                        p={2}
+                    >
+                        <Header port={port} />
+                        <HStack
+                            as={Split}
+                            defaultSplitterColors={{
+                                color: '#71809633',
+                                hover: '#71809666',
+                                drag: '#718096EE',
+                            }}
+                            initialPrimarySize="380px"
+                            minPrimarySize="290px"
+                            minSecondarySize="75%"
+                            splitterSize="10px"
+                        >
+                            <NodeSelector
+                                data={data}
+                                height={height}
+                            />
+
+                            <ReactFlowBox
+                                edgeTypes={edgeTypes}
+                                nodeTypes={nodeTypes}
+                                wrapperRef={reactFlowWrapper}
+                            />
+                        </HStack>
+                    </VStack>
+                </GlobalProvider>
+            </SettingsProvider>
+        </ReactFlowProvider>
+    );
 };
 
 export default memo(Main);
