@@ -258,7 +258,7 @@ class ImResizeByFactorNode(NodeBase):
         interpolation = int(interpolation)
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
+        out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
         # Try PIL first, otherwise fall back to cv2
         if pil is Image:
@@ -865,14 +865,12 @@ class GaussianBlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount_x: str,
-        amount_y: str,
+        amount_x: float,
+        amount_y: float,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
 
-        blurred = cv2.GaussianBlur(
-            img, (0, 0), sigmaX=float(amount_x), sigmaY=float(amount_y)
-        )
+        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
 
         return blurred
 
@@ -896,11 +894,11 @@ class SharpenNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount: int,
+        amount: float,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
 
-        blurred = cv2.GaussianBlur(img, (0, 0), float(amount))
+        blurred = cv2.GaussianBlur(img, (0, 0), amount)
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
         return img
@@ -1438,8 +1436,6 @@ class AverageColorFixNode(NodeBase):
         self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
-
-        scale_factor = float(scale_factor)
 
         input_img = normalize(input_img)
         ref_img = normalize(ref_img)
