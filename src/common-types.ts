@@ -33,7 +33,7 @@ export interface Output {
     readonly label: string;
 }
 
-export type InputData = Readonly<Record<number, InputValue | undefined>>;
+export type InputData = Readonly<Record<number, InputValue>>;
 
 export interface NodeSchema {
     readonly name: string;
