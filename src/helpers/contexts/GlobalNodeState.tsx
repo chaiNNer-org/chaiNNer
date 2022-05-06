@@ -23,7 +23,6 @@ import {
     Mutable,
     NodeData,
     Size,
-    UsableData,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage from '../hooks/useSessionStorage';
@@ -31,7 +30,7 @@ import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, deepCopy } from '../util';
+import { copyNode, deepCopy, parseHandle } from '../util';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -46,7 +45,6 @@ interface Global {
     onEdgesChange: OnEdgesChange;
     createNode: (proto: NodeProto) => Node<NodeData>;
     createConnection: (connection: Connection) => void;
-    convertToUsableFormat: () => Record<string, UsableData>;
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
@@ -103,17 +101,6 @@ interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
 }
-
-interface ParsedHandle {
-    id: string;
-    index: number;
-}
-const parseHandle = (handle: string): ParsedHandle => {
-    return {
-        id: handle.substring(0, 36), // uuid
-        index: Number(handle.substring(37)),
-    };
-};
 
 export const GlobalProvider = ({
     children,
@@ -301,67 +288,6 @@ export const GlobalProvider = ({
     // useEffect(() => {
     //   push(dumpState());
     // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
-
-    const convertToUsableFormat = useCallback(() => {
-        const result: Record<string, UsableData> = {};
-
-        // Set up each node in the result
-        nodes.forEach((element) => {
-            const { id, data, type: nodeType } = element;
-            const { category, type } = data;
-            // Node
-            result[id] = {
-                category,
-                node: type,
-                id,
-                inputs: {},
-                outputs: {},
-                child: false,
-                nodeType,
-            };
-            if (nodeType === 'iterator') {
-                result[id].children = [];
-                result[id].percent = data.percentComplete || 0;
-            }
-        });
-
-        // Apply input data to inputs when applicable
-        nodes.forEach((node) => {
-            const inputData = node.data?.inputData;
-            if (inputData) {
-                Object.keys(inputData)
-                    .map(Number)
-                    .forEach((index) => {
-                        result[node.id].inputs[index] = inputData[index];
-                    });
-            }
-            if (node.parentNode) {
-                result[node.parentNode].children!.push(node.id);
-                result[node.id].child = true;
-            }
-        });
-
-        // Apply inputs and outputs from connections
-        // Note: As-is, this will overwrite inputted data from above
-        edges.forEach((element) => {
-            const { sourceHandle, targetHandle, source, target } = element;
-            // Connection
-            if (result[source] && result[target] && sourceHandle && targetHandle) {
-                result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
-                result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
-            }
-        });
-
-        // Convert inputs and outputs to arrays
-        Object.keys(result).forEach((id) => {
-            result[id].inputs = Object.values(result[id].inputs);
-            result[id].outputs = Object.values(result[id].outputs);
-        });
-
-        // console.log('convert', result);
-
-        return result;
-    }, [nodes, edges]);
 
     const removeNodeById = useCallback(
         (id: string) => {
@@ -877,7 +803,6 @@ export const GlobalProvider = ({
             onEdgesChange,
             createNode,
             createConnection,
-            convertToUsableFormat,
             reactFlowInstance,
             setReactFlowInstance,
             // updateRfi,
