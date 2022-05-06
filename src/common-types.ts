@@ -15,7 +15,7 @@ export interface IteratorSize extends Size {
 }
 
 export type InputValue = InputSchemaValue | { id: string };
-export type InputSchemaValue = string | number;
+export type InputSchemaValue = string | number | undefined;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
@@ -82,7 +82,7 @@ export interface UsableData {
     category: string;
     node: string;
     id: string;
-    inputs: Record<number, InputValue | null>;
+    inputs: Record<number, InputValue | null | undefined>;
     outputs: Record<number, InputValue>;
     child: boolean;
     children?: string[];
