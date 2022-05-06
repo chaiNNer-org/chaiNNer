@@ -700,24 +700,12 @@ const doSplashScreenChecks = async () =>
             resolve();
         });
 
-        ipcMain.once('backend-ready', () => {
-            mainWindow.webContents.once('dom-ready', async () => {
-                splash.webContents.send('finish-loading');
-                splash.on('close', () => {});
-                await sleep(500);
-                splash.destroy();
-                mainWindow.show();
-            });
-        });
-
-        mainWindow.webContents.once('dom-ready', () => {
-            ipcMain.once('backend-ready', async () => {
-                splash.webContents.send('finish-loading');
-                splash.on('close', () => {});
-                await sleep(500);
-                splash.destroy();
-                mainWindow.show();
-            });
+        ipcMain.once('backend-ready', async () => {
+            splash.webContents.send('finish-loading');
+            splash.on('close', () => {});
+            await sleep(500);
+            splash.destroy();
+            mainWindow.show();
         });
     });
 
