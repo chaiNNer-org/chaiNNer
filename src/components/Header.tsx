@@ -34,14 +34,8 @@ interface HeaderProps {
 }
 
 const Header = ({ port }: HeaderProps) => {
-    const {
-        convertToUsableFormat,
-        useAnimateEdges,
-        nodes,
-        edges,
-        availableNodes,
-        setIteratorPercent,
-    } = useContext(GlobalContext);
+    const { convertToUsableFormat, useAnimateEdges, nodes, edges, schemata, setIteratorPercent } =
+        useContext(GlobalContext);
 
     const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
@@ -145,7 +139,7 @@ const Header = ({ port }: HeaderProps) => {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
         } else {
             const nodeValidities = nodes.map((node) => {
-                const { inputs } = availableNodes[node.data.category][node.data.type];
+                const { inputs } = schemata.get(node.data.category, node.data.type);
                 return [
                     ...checkNodeValidity({
                         id: node.id,
