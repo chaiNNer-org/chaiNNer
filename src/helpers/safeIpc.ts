@@ -37,7 +37,6 @@ interface InvokeChannels {
         ]
     >;
 
-    // TODO: Convert void returning into send channel?
     'show-warning-message-box': ChannelInfo<void, [title: string, message: string]>;
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
@@ -48,12 +47,12 @@ interface InvokeChannels {
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
-    'backend-ready': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
     'get-smi': ChannelInfo<string | undefined>;
 }
 
 interface SendChannels {
+    'backend-ready': SendChannelInfo;
     'checking-deps': SendChannelInfo;
     'checking-port': SendChannelInfo;
     'checking-python': SendChannelInfo;
