@@ -414,8 +414,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <HStack>
                         <Button
                             variant="ghost"
-                            onClick={() => {
-                                ipcRenderer.send('relaunch-application');
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onClick={async () => {
+                                await ipcRenderer.invoke('relaunch-application');
                             }}
                         >
                             Restart chaiNNer
