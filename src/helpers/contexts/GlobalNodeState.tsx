@@ -121,7 +121,7 @@ const getInputDefaults = (
     { category, type }: { category: string; type: string },
     availableNodes: SchemaMap
 ) => {
-    const defaultData: Record<number, InputValue> = {};
+    const defaultData: Record<number, InputValue | undefined> = {};
     const { inputs } = availableNodes[category][type];
     if (inputs) {
         inputs.forEach((input, i) => {
