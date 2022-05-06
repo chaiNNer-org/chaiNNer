@@ -201,7 +201,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                     position,
                     data: nodeData,
                     nodeType: nodeSchema.nodeType,
-                    defaultNodes: nodeSchema.defaultNodes,
                 });
             } catch (error) {
                 log.error(error);

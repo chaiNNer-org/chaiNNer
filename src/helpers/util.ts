@@ -18,3 +18,14 @@ export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as
 export const noop = () => {};
 
 export const copyNode = (node: Readonly<Node<NodeData>>): Node<Mutable<NodeData>> => deepCopy(node);
+
+export interface ParsedHandle {
+    id: string;
+    index: number;
+}
+export const parseHandle = (handle: string): ParsedHandle => {
+    return {
+        id: handle.substring(0, 36), // uuid
+        index: Number(handle.substring(37)),
+    };
+};

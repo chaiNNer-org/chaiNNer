@@ -10,8 +10,10 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
+import { Edge, Node } from 'react-flow-renderer';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useThrottledCallback } from 'use-debounce';
+import { EdgeData, NodeData, UsableData } from '../common-types';
 import { getBackend } from '../helpers/Backend';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
@@ -24,24 +26,82 @@ import {
     useBackendEventSourceListener,
 } from '../helpers/hooks/useBackendEventSource';
 import { ipcRenderer } from '../helpers/safeIpc';
+import { parseHandle } from '../helpers/util';
 import logo from '../public/icons/png/256x256.png';
 import { DependencyManagerButton } from './DependencyManager';
 import { SettingsButton } from './SettingsModal';
 import SystemStats from './SystemStats';
 
+const convertToUsableFormat = (
+    nodes: readonly Node<NodeData>[],
+    edges: readonly Edge<EdgeData>[]
+) => {
+    const result: Record<string, UsableData> = {};
+
+    // Set up each node in the result
+    nodes.forEach((element) => {
+        const { id, data, type: nodeType } = element;
+        const { category, type } = data;
+        // Node
+        result[id] = {
+            category,
+            node: type,
+            id,
+            inputs: {},
+            outputs: {},
+            child: false,
+            nodeType,
+        };
+        if (nodeType === 'iterator') {
+            result[id].children = [];
+            result[id].percent = data.percentComplete || 0;
+        }
+    });
+
+    // Apply input data to inputs when applicable
+    nodes.forEach((node) => {
+        const inputData = node.data?.inputData;
+        if (inputData) {
+            Object.keys(inputData)
+                .map(Number)
+                .forEach((index) => {
+                    result[node.id].inputs[index] = inputData[index];
+                });
+        }
+        if (node.parentNode) {
+            result[node.parentNode].children!.push(node.id);
+            result[node.id].child = true;
+        }
+    });
+
+    // Apply inputs and outputs from connections
+    // Note: As-is, this will overwrite inputted data from above
+    edges.forEach((element) => {
+        const { sourceHandle, targetHandle, source, target } = element;
+        // Connection
+        if (result[source] && result[target] && sourceHandle && targetHandle) {
+            result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
+            result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
+        }
+    });
+
+    // Convert inputs and outputs to arrays
+    Object.keys(result).forEach((id) => {
+        result[id].inputs = Object.values(result[id].inputs);
+        result[id].outputs = Object.values(result[id].outputs);
+    });
+
+    // console.log('convert', result);
+
+    return result;
+};
 interface HeaderProps {
     port: number;
 }
 
 const Header = ({ port }: HeaderProps) => {
-    const {
-        convertToUsableFormat,
-        useAnimateEdges,
-        nodes,
-        edges,
-        availableNodes,
-        setIteratorPercent,
-    } = useContext(GlobalContext);
+    const { useAnimateEdges, nodes, edges, schemata, setIteratorPercent } =
+        useContext(GlobalContext);
 
     const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
@@ -145,7 +205,7 @@ const Header = ({ port }: HeaderProps) => {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
         } else {
             const nodeValidities = nodes.map((node) => {
-                const { inputs } = availableNodes[node.data.category][node.data.type];
+                const { inputs } = schemata.get(node.data.category, node.data.type);
                 return [
                     ...checkNodeValidity({
                         id: node.id,
@@ -171,7 +231,7 @@ const Header = ({ port }: HeaderProps) => {
                 return;
             }
             try {
-                const data = convertToUsableFormat();
+                const data = convertToUsableFormat(nodes, edges);
                 const response = await backend.run({
                     data,
                     isCpu,
