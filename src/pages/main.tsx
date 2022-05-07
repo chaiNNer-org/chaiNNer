@@ -54,8 +54,7 @@ const Main = ({ port }: MainProps) => {
         if (response.ok && data && !loading && !error && !backendReady) {
             setSchemata(new SchemaMap(data));
             setBackendReady(true);
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            ipcRenderer.invoke('backend-ready');
+            ipcRenderer.send('backend-ready');
         }
     }, [response, data, loading, error, backendReady]);
 
