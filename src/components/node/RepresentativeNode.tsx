@@ -32,7 +32,7 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
             }
             // opacity="0.95"
             _hover={{
-                borderColor: accentColor
+                borderColor: accentColor,
             }}
         >
             <Box
