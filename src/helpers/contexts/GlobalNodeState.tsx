@@ -49,7 +49,7 @@ interface Global {
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends InputValue>(
+    useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         index: number
     ) => readonly [T | undefined, (data: T) => void];
@@ -302,10 +302,10 @@ export const GlobalProvider = ({
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            const newEdges = edges.filter((e) => e.id !== id);
-            setEdges(newEdges);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => edges.filter((e) => e.id !== id));
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     const createNode = useCallback(
@@ -401,9 +401,13 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            setEdges([...edges.filter((edge) => edge.targetHandle !== targetHandle), newEdge]);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => [
+                ...edges.filter((edge) => edge.targetHandle !== targetHandle),
+                newEdge,
+            ]);
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     useEffect(() => {
@@ -467,7 +471,7 @@ export const GlobalProvider = ({
 
     const useInputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T extends InputValue>(
+        function <T extends NonNullable<InputValue>>(
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
@@ -483,7 +487,7 @@ export const GlobalProvider = ({
                 inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
             }
 
-            const inputDataByIndex = inputData[index] as T;
+            const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                 if (nodeCopy && nodeCopy.data) {
@@ -501,46 +505,28 @@ export const GlobalProvider = ({
     );
 
     const useAnimateEdges = useCallback(() => {
-        const animateEdges = (nodeIdsToAnimate?: readonly string[]) => {
-            if (nodeIdsToAnimate) {
-                const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
-                const animatedEdges = edgesToAnimate.map((edge) => ({
-                    ...edge,
-                    animated: true,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
-                setEdges([...otherEdges, ...animatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: true,
-                    }))
-                );
-            }
+        const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => {
+                if (nodeIdsToAnimate) {
+                    const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
+                    const animatedEdges = edgesToAnimate.map((edge) => ({ ...edge, animated }));
+                    const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
+                    return [...otherEdges, ...animatedEdges];
+                }
+                return edges.map((edge) => ({ ...edge, animated }));
+            });
         };
 
-        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) => {
-            if (nodeIdsToUnAnimate) {
-                const edgesToUnAnimate = edges.filter((e) => nodeIdsToUnAnimate.includes(e.source));
-                const unanimatedEdges = edgesToUnAnimate.map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToUnAnimate.includes(e.source));
-                setEdges([...otherEdges, ...unanimatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: false,
-                    }))
-                );
-            }
-        };
+        const animateEdges = (nodeIdsToAnimate?: readonly string[]) =>
+            setAnimated(true, nodeIdsToAnimate);
+
+        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) =>
+            setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
                     return {
@@ -556,7 +542,8 @@ export const GlobalProvider = ({
         };
 
         const clearCompleteEdges = () => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
                         ...edge,
@@ -571,7 +558,7 @@ export const GlobalProvider = ({
         };
 
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
-    }, [edges, setEdges]);
+    }, [setEdges]);
 
     // TODO: performance concern? runs twice when deleting node
     const useNodeLock = useCallback(
