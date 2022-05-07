@@ -35,7 +35,7 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
     const [validity, setValidity] = useState<[boolean, string]>([false, '']);
 
     useEffect(() => {
-        if (inputs && inputs.length) {
+        if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
         }
     }, [inputData, edges.length]);
@@ -54,7 +54,7 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
                 setCheckedSize(true);
             }
         }
-    }, [nodes && !checkedSize]);
+    }, [checkedSize]);
 
     const [, setHoveredNode] = useHoveredNode;
 

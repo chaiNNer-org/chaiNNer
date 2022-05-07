@@ -106,7 +106,7 @@ export const useAsyncEffect = <T>(
         const cEffect = (reason: unknown) => {
             if (catchEffect) {
                 try {
-                    catchEffect?.(reason);
+                    catchEffect(reason);
                 } catch (error) {
                     log.error('catchEffect unexpectedly threw an error:', error);
                 }
@@ -115,12 +115,10 @@ export const useAsyncEffect = <T>(
             }
         };
         const fEffect = () => {
-            if (finallyEffect) {
-                try {
-                    finallyEffect?.();
-                } catch (error) {
-                    log.error('finallyEffect unexpectedly threw an error:', error);
-                }
+            try {
+                finallyEffect?.();
+            } catch (error) {
+                log.error('finallyEffect unexpectedly threw an error:', error);
             }
         };
 
@@ -132,12 +130,12 @@ export const useAsyncEffect = <T>(
                 } catch (error) {
                     cEffect(error);
                 }
-                fEffect?.();
+                fEffect();
             },
             (reason) => {
                 if (controller.isCanceled) return;
                 cEffect(reason);
-                fEffect?.();
+                fEffect();
             }
         );
 

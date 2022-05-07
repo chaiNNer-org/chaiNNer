@@ -133,24 +133,22 @@ const pipInstallWithProgress = async (
                                         >;
                                     };
                                     const releases = Array.from(releaseData.releases[dep.version]);
-                                    if (releases) {
-                                        const find = releases.find(
-                                            (file) => file.filename === wheelFileName
+                                    const find = releases.find(
+                                        (file) => file.filename === wheelFileName
+                                    );
+                                    if (!find)
+                                        throw new Error(
+                                            `Unable for find correct file for ${dep.name} ${dep.version}`
                                         );
-                                        if (!find)
-                                            throw new Error(
-                                                `Unable for find correct file for ${dep.name} ${dep.version}`
-                                            );
-                                        const { url } = find;
-                                        onOutput(`Downloading package from PyPi at: ${url}\n`);
-                                        downloadWheelAndInstall(
-                                            python,
-                                            url,
-                                            wheelFileName,
-                                            onProgress,
-                                            onOutput
-                                        ).then(() => resolve(), reject);
-                                    }
+                                    const { url } = find;
+                                    onOutput(`Downloading package from PyPi at: ${url}\n`);
+                                    downloadWheelAndInstall(
+                                        python,
+                                        url,
+                                        wheelFileName,
+                                        onProgress,
+                                        onOutput
+                                    ).then(() => resolve(), reject);
                                 }
                             });
                         }

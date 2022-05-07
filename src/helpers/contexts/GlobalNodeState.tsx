@@ -157,35 +157,33 @@ export const GlobalProvider = ({
     }, [nodes, edges]);
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
-        if (savedData) {
-            const validNodes = savedData.nodes.filter((node) =>
-                schemata.has(node.data.category, node.data.type)
+        const validNodes = savedData.nodes.filter((node) =>
+            schemata.has(node.data.category, node.data.type)
+        );
+        if (savedData.nodes.length !== validNodes.length) {
+            await ipcRenderer.invoke(
+                'show-warning-message-box',
+                'File contains invalid nodes',
+                'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
             );
-            if (savedData.nodes.length !== validNodes.length) {
-                await ipcRenderer.invoke(
-                    'show-warning-message-box',
-                    'File contains invalid nodes',
-                    'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
-                );
-            }
-            setNodes(validNodes);
-            setEdges(
-                savedData.edges
-                    // Filter out any edges that do not have a source or target node associated with it
-                    .filter(
-                        (edge) =>
-                            validNodes.some((el) => el.id === edge.target) &&
-                            validNodes.some((el) => el.id === edge.source)
-                    )
-                    // Un-animate all edges, if was accidentally saved when animated
-                    .map((edge) => ({
-                        ...edge,
-                        animated: false,
-                    })) || []
-            );
-            if (loadPosition) {
-                setViewport(savedData.viewport || { x: 0, y: 0, zoom: 1 });
-            }
+        }
+        setNodes(validNodes);
+        setEdges(
+            savedData.edges
+                // Filter out any edges that do not have a source or target node associated with it
+                .filter(
+                    (edge) =>
+                        validNodes.some((el) => el.id === edge.target) &&
+                        validNodes.some((el) => el.id === edge.source)
+                )
+                // Un-animate all edges, if was accidentally saved when animated
+                .map((edge) => ({
+                    ...edge,
+                    animated: false,
+                }))
+        );
+        if (loadPosition) {
+            setViewport(savedData.viewport);
         }
     };
 
@@ -340,7 +338,7 @@ export const GlobalProvider = ({
                         offsetTop: 0,
                         offsetLeft: 0,
                     };
-                    const parentId = (parentNode?.id || hoveredNode) ?? undefined;
+                    const parentId = (parentNode.id || hoveredNode) ?? undefined;
                     newNode.position.x = position.x - parentNode.position.x;
                     newNode.position.y = position.y - parentNode.position.y;
                     newNode.parentNode = parentId;
@@ -418,12 +416,10 @@ export const GlobalProvider = ({
             nodes?: Node<NodeData>[];
             edges?: Edge<EdgeData>[];
         };
-        if (flow) {
-            const { x = 0, y = 0, zoom = 2 } = flow.viewport ?? {};
-            setNodes(flow.nodes || []);
-            setEdges(flow.edges || []);
-            setViewport({ x, y, zoom });
-        }
+        const { x = 0, y = 0, zoom = 2 } = flow.viewport ?? {};
+        setNodes(flow.nodes || []);
+        setEdges(flow.edges || []);
+        setViewport({ x, y, zoom });
     }, []);
 
     const isValidConnection = useCallback(
@@ -482,20 +478,14 @@ export const GlobalProvider = ({
                 return [undefined, () => {}] as const;
             }
 
-            let { inputData } = nodeData;
-            if (!inputData) {
-                inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
-            }
-
+            const { inputData } = nodeData;
             const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                if (nodeCopy && nodeCopy.data) {
-                    nodeCopy.data.inputData = {
-                        ...inputData,
-                        [index]: data,
-                    };
-                }
+                nodeCopy.data.inputData = {
+                    ...inputData,
+                    [index]: data,
+                };
                 const filteredNodes = nodes.filter((n) => n.id !== id);
                 setNodes([...filteredNodes, nodeCopy]);
             };
@@ -567,7 +557,7 @@ export const GlobalProvider = ({
             if (!node) {
                 return [] as const;
             }
-            const isLocked = node.data?.isLocked ?? false;
+            const isLocked = node.data.isLocked ?? false;
             const toggleLock = () => {
                 const newNode = copyNode(node);
                 newNode.draggable = isLocked;
@@ -653,7 +643,7 @@ export const GlobalProvider = ({
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
             const iterator = nodes.find((n) => n.id === id);
-            if (iterator && iterator.data) {
+            if (iterator) {
                 const newIterator = copyNode(iterator);
                 newIterator.data.percentComplete = percent;
                 const filteredNodes = nodes.filter((n) => n.id !== id);

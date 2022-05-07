@@ -20,8 +20,8 @@ const DropDownInput = memo(({ options, id, index, isLocked }: DropDownInputProps
     };
 
     useEffect(() => {
-        if (selection === undefined || selection === null) {
-            setSelection(options[0].value ?? 0);
+        if (selection === undefined) {
+            setSelection(options[0].value);
         }
     }, []);
 
