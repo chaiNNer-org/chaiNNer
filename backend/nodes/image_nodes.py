@@ -1225,6 +1225,8 @@ class CaptionNode(NodeBase):
     def run(self, img: np.ndarray, caption: str) -> np.ndarray:
         """Add caption an image"""
 
+        img = normalize(img)
+
         return add_caption(img, caption)
 
 

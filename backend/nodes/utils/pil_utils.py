@@ -64,12 +64,12 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
 
     if pil is not None:
         img = cv2.copyMakeBorder(
-            img, 0, 42, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 255)
+            img, 0, 42, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
 
         pimg = Image.fromarray((img * 255).astype("uint8"))
 
-        font_path = os.path.join(os.getcwd(), "src/public/fonts/Roboto-Light.ttf")
+        font_path = os.path.join(os.getcwd(), "backend/fonts/Roboto-Light.ttf")
         font = ImageFont.truetype(font_path, 32)
         text_x = img.shape[1] // 2
         text_y = img.shape[0] - 21
@@ -90,7 +90,7 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
         caption_height = textsize[1] + 20
 
         img = cv2.copyMakeBorder(
-            img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 255)
+            img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
 
         text_x = floor((img.shape[1] - textsize[0]) / 2)
