@@ -16,22 +16,24 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
+from categories import IMAGE, IMAGE_EFFECT, IMAGE_UTILITY
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.fill_alpha import *
-from .utils.pil_utils import *
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
     normalize,
     normalize_normals,
 )
+from .utils.pil_utils import *
 
 
-@NodeFactory.register("Image", "Load Image")
+@NodeFactory.register("chainner.image.load")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 
@@ -45,6 +47,9 @@ class ImReadNode(NodeBase):
             DirectoryOutput(),
             TextOutput("Image Name"),
         ]
+
+        self.category = IMAGE
+        self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
         self.result = []
@@ -133,7 +138,7 @@ class ImReadNode(NodeBase):
         return self.result
 
 
-@NodeFactory.register("Image", "Save Image")
+@NodeFactory.register("chainner.image.save")
 class ImWriteNode(NodeBase):
     """OpenCV Imwrite node"""
 
@@ -148,6 +153,8 @@ class ImWriteNode(NodeBase):
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
+        self.category = IMAGE
+        self.name = "Save Image"
         self.outputs = []
         self.icon = "BsImage"
         self.sub = "Input & Output"
@@ -179,7 +186,7 @@ class ImWriteNode(NodeBase):
         return status
 
 
-@NodeFactory.register("Image", "Preview Image")
+@NodeFactory.register("chainner.image.preview")
 class ImOpenNode(NodeBase):
     """Image Open Node"""
 
@@ -189,6 +196,8 @@ class ImOpenNode(NodeBase):
         self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]
         self.outputs = []
+        self.category = IMAGE
+        self.name = "Preview Image"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 
@@ -218,7 +227,7 @@ class ImOpenNode(NodeBase):
                 subprocess.call(("xdg-open", temp_save_dir))
 
 
-@NodeFactory.register("Image (Utility)", "Resize (Factor)")
+@NodeFactory.register("chainner.image.resize_factor")
 class ImResizeByFactorNode(NodeBase):
     """OpenCV resize node"""
 
@@ -233,6 +242,8 @@ class ImResizeByFactorNode(NodeBase):
             NumberInput("Scale Factor", default=1.0, step=0.25),
             InterpolationInput(),
         ]
+        self.category = IMAGE_UTILITY
+        self.name = "Resize (Factor)"
         self.outputs = [ImageOutput()]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resizing & Reshaping"
@@ -250,7 +261,7 @@ class ImResizeByFactorNode(NodeBase):
         return resize(img, out_dims, int(interpolation))
 
 
-@NodeFactory.register("Image (Utility)", "Resize (Resolution)")
+@NodeFactory.register("chainner.image.resize_resolution")
 class ImResizeToResolutionNode(NodeBase):
     """OpenCV resize node"""
 
@@ -265,6 +276,8 @@ class ImResizeToResolutionNode(NodeBase):
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Resize (Resolution)"
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resizing & Reshaping"
 
@@ -282,7 +295,7 @@ class ImResizeToResolutionNode(NodeBase):
         return resize(img, out_dims, int(interpolation))
 
 
-@NodeFactory.register("Image (Utility)", "Overlay Images")
+@NodeFactory.register("chainner.image.overlay")
 class ImOverlay(NodeBase):
     """OpenCV transparency overlay node"""
 
@@ -298,6 +311,8 @@ class ImOverlay(NodeBase):
             SliderInput("Opacity B", default=50, min_val=1, max_val=100, optional=True),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Overlay Images"
         self.icon = "BsLayersHalf"
         self.sub = "Miscellaneous"
 
@@ -395,7 +410,7 @@ class ImOverlay(NodeBase):
         return imgout
 
 
-@NodeFactory.register("Image (Utility)", "Change Colorspace")
+@NodeFactory.register("chainner.image.change_colospace")
 class ColorConvertNode(NodeBase):
     """OpenCV color conversion node"""
 
@@ -411,6 +426,8 @@ class ColorConvertNode(NodeBase):
             ColorModeInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Change Colorspace"
         self.icon = "MdColorLens"
         self.sub = "Miscellaneous"
 
@@ -422,7 +439,7 @@ class ColorConvertNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Utility)", "Create Border")
+@NodeFactory.register("chainner.image.create_border")
 class BorderMakeNode(NodeBase):
     """OpenCV CopyMakeBorder node"""
 
@@ -436,6 +453,8 @@ class BorderMakeNode(NodeBase):
             IntegerInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Create Border"
         self.icon = "BsBorderOuter"
         self.sub = "Miscellaneous"
 
@@ -467,7 +486,7 @@ class BorderMakeNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Effect)", "Threshold")
+@NodeFactory.register("chainner.image.threshold")
 class ThresholdNode(NodeBase):
     """OpenCV Threshold node"""
 
@@ -482,6 +501,8 @@ class ThresholdNode(NodeBase):
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Threshold"
         self.icon = "MdShowChart"
         self.sub = "Miscellaneous"
 
@@ -504,7 +525,7 @@ class ThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Effect)", "Threshold (Adaptive)")
+@NodeFactory.register("chainner.image.threshold_adaptive")
 class AdaptiveThresholdNode(NodeBase):
     """OpenCV Adaptive Threshold node"""
 
@@ -521,6 +542,8 @@ class AdaptiveThresholdNode(NodeBase):
             IntegerInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Threshold (Adaptive)"
         self.icon = "MdAutoGraph"
         self.sub = "Miscellaneous"
 
@@ -556,7 +579,7 @@ class AdaptiveThresholdNode(NodeBase):
         return result.astype("float32") / 255
 
 
-@NodeFactory.register("Image (Utility)", "Stack Images")
+@NodeFactory.register("chainner.image.stack")
 class StackNode(NodeBase):
     """OpenCV concatenate (h/v) Node"""
 
@@ -572,6 +595,8 @@ class StackNode(NodeBase):
             StackOrientationDropdown(),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Stack Images"
         self.icon = "CgMergeVertical"
         self.sub = "Miscellaneous"
 
@@ -656,7 +681,7 @@ class StackNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Hue & Saturation")
+@NodeFactory.register("chainner.image.hue_and_saturation")
 class HueAndSaturationNode(NodeBase):
     """OpenCV Hue and Saturation Node"""
 
@@ -670,6 +695,8 @@ class HueAndSaturationNode(NodeBase):
             SliderInput("Saturation", -255, 255, 0),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Hue & Saturation"
         self.icon = "MdOutlineColorLens"
         self.sub = "Adjustment"
 
@@ -718,7 +745,7 @@ class HueAndSaturationNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Brightness & Contrast")
+@NodeFactory.register("chainner.image.brightness_and_contrast")
 class BrightnessAndContrastNode(NodeBase):
     """OpenCV Brightness and Contrast Node"""
 
@@ -732,6 +759,8 @@ class BrightnessAndContrastNode(NodeBase):
             SliderInput("Contrast", -255, 255, 0),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Brightness & Contrast"
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustment"
 
@@ -778,7 +807,7 @@ class BrightnessAndContrastNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Blur")
+@NodeFactory.register("chainner.image.blur")
 class BlurNode(NodeBase):
     """OpenCV Blur Node"""
 
@@ -792,6 +821,8 @@ class BlurNode(NodeBase):
             IntegerInput("Amount Y"),
         ]  # , IntegerInput("Sigma")]#,BlurInput()]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Blur"
         self.icon = "MdBlurOn"
         self.sub = "Adjustment"
 
@@ -811,7 +842,7 @@ class BlurNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Gaussian Blur")
+@NodeFactory.register("chainner.image.gaussian_blur")
 class GaussianBlurNode(NodeBase):
     """OpenCV Gaussian Blur Node"""
 
@@ -825,6 +856,8 @@ class GaussianBlurNode(NodeBase):
             IntegerInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
         self.sub = "Adjustment"
 
@@ -841,7 +874,7 @@ class GaussianBlurNode(NodeBase):
         return blurred
 
 
-@NodeFactory.register("Image (Effect)", "Sharpen")
+@NodeFactory.register("chainner.image.sharpen")
 class SharpenNode(NodeBase):
     """OpenCV Sharpen Node"""
 
@@ -854,6 +887,8 @@ class SharpenNode(NodeBase):
             IntegerInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Sharpen"
         self.icon = "MdBlurOff"
         self.sub = "Adjustment"
 
@@ -870,7 +905,7 @@ class SharpenNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Effect)", "Shift")
+@NodeFactory.register("chainner.image.shift")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
 
@@ -884,6 +919,8 @@ class ShiftNode(NodeBase):
             BoundlessIntegerInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
+        self.category = IMAGE_EFFECT
+        self.name = "Shift"
         self.icon = "BsGraphDown"
         self.sub = "Adjustment"
 
@@ -901,7 +938,7 @@ class ShiftNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Utility)", "Split Channels")
+@NodeFactory.register("chainner.image.split_channels")
 class ChannelSplitRGBANode(NodeBase):
     """NumPy Splitter node"""
 
@@ -919,7 +956,8 @@ class ChannelSplitRGBANode(NodeBase):
             ImageOutput("Red Channel"),
             ImageOutput("Alpha Channel"),
         ]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Split Channels"
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
@@ -948,7 +986,7 @@ class ChannelSplitRGBANode(NodeBase):
         return out
 
 
-@NodeFactory.register("Image (Utility)", "Split Transparency")
+@NodeFactory.register("chainner.image.split_transparency")
 class TransparencySplitNode(NodeBase):
     """Transparency-specific Splitter node"""
 
@@ -963,7 +1001,8 @@ class TransparencySplitNode(NodeBase):
             ImageOutput("RGB Channels"),
             ImageOutput("Alpha Channel"),
         ]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Split Transparency"
         self.icon = "MdCallSplit"
         self.sub = "Splitting & Merging"
 
@@ -984,7 +1023,7 @@ class TransparencySplitNode(NodeBase):
         return rgb, alpha
 
 
-@NodeFactory.register("Image (Utility)", "Merge Channels")
+@NodeFactory.register("chainner.image.merge_channels")
 class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
 
@@ -1002,7 +1041,8 @@ class ChannelMergeRGBANode(NodeBase):
             ImageInput("Channel(s) D", optional=True),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Merge Channels"
         self.icon = "MdCallMerge"
         self.sub = "Splitting & Merging"
 
@@ -1046,7 +1086,7 @@ class ChannelMergeRGBANode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Utility)", "Merge Transparency")
+@NodeFactory.register("chainner.image.merge_transparency")
 class TransparencyMergeNode(NodeBase):
     """Transparency-specific Merge node"""
 
@@ -1056,7 +1096,8 @@ class TransparencyMergeNode(NodeBase):
         self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
         self.inputs = [ImageInput("RGB Channels"), ImageInput("Alpha Channel")]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Merge Transparency"
         self.icon = "MdCallMerge"
         self.sub = "Splitting & Merging"
 
@@ -1094,7 +1135,7 @@ class TransparencyMergeNode(NodeBase):
         return img
 
 
-@NodeFactory.register("Image (Utility)", "Crop (Offsets)")
+@NodeFactory.register("chainner.image.crop_offsets")
 class CropNode(NodeBase):
     """NumPy Crop node"""
 
@@ -1110,7 +1151,8 @@ class CropNode(NodeBase):
             IntegerInput("Width"),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Crop (Offsets)"
         self.icon = "MdCrop"
         self.sub = "Resizing & Reshaping"
 
@@ -1134,7 +1176,7 @@ class CropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Utility)", "Crop (Border)")
+@NodeFactory.register("chainner.image.crop_border")
 class BorderCropNode(NodeBase):
     """NumPy Border Crop node"""
 
@@ -1149,7 +1191,8 @@ class BorderCropNode(NodeBase):
             IntegerInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Crop (Border)"
         self.icon = "MdCrop"
         self.sub = "Resizing & Reshaping"
 
@@ -1168,7 +1211,7 @@ class BorderCropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Utility)", "Crop (Edges)")
+@NodeFactory.register("chainner.image.crop_edges")
 class EdgeCropNode(NodeBase):
     """NumPy Edge Crop node"""
 
@@ -1184,7 +1227,8 @@ class EdgeCropNode(NodeBase):
             IntegerInput("Bottom"),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Crop (Edges)"
         self.icon = "MdCrop"
         self.sub = "Resizing & Reshaping"
 
@@ -1205,7 +1249,7 @@ class EdgeCropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("Image (Utility)", "Add Caption")
+@NodeFactory.register("chainner.image.caption")
 class CaptionNode(NodeBase):
     """Caption node"""
 
@@ -1218,7 +1262,8 @@ class CaptionNode(NodeBase):
             TextInput("Caption"),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Add Caption"
         self.icon = "MdVideoLabel"
         self.sub = "Miscellaneous"
 
@@ -1230,7 +1275,7 @@ class CaptionNode(NodeBase):
         return add_caption(img, caption)
 
 
-@NodeFactory.register("Image (Utility)", "Normalize")
+@NodeFactory.register("chainner.image.normalize_normal_map")
 class NormalizeNode(NodeBase):
     """Normalize normal map"""
 
@@ -1243,6 +1288,8 @@ class NormalizeNode(NodeBase):
             ImageInput("Normal Map"),
         ]
         self.outputs = [ImageOutput("Normal Map")]
+        self.category = IMAGE_UTILITY
+        self.name = "Normalize"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
 
@@ -1265,7 +1312,7 @@ class NormalizeNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("Image (Utility)", "Add Normals")
+@NodeFactory.register("chainner.image.add_normals")
 class NormalAdditionNode(NodeBase):
     """Add two normal maps together"""
 
@@ -1282,6 +1329,8 @@ class NormalAdditionNode(NodeBase):
             SliderInput("Strength 2", 0, 100, 100),
         ]
         self.outputs = [ImageOutput("Normal Map")]
+        self.category = IMAGE_UTILITY
+        self.name = "Add Normals"
         self.icon = "MdAddCircleOutline"
         self.sub = "Normal Map"
 
@@ -1350,7 +1399,7 @@ class NormalAdditionNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("Image (Utility)", "Average Color Fix")
+@NodeFactory.register("chainner.image.average_color_fix")
 class AverageColorFixNode(NodeBase):
     """Fixes the average color of an upscaled image"""
 
@@ -1369,7 +1418,8 @@ class AverageColorFixNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput()]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Average Color Fix"
         self.icon = "MdAutoFixHigh"
         self.sub = "Miscellaneous"
 
@@ -1421,7 +1471,7 @@ class AverageColorFixNode(NodeBase):
         return np.clip(result, 0, 1)
 
 
-@NodeFactory.register("Image (Utility)", "Fill Alpha")
+@NodeFactory.register("chainner.image.fill_alpha")
 class FillAlphaNode(NodeBase):
     """Fills the transparent pixels of an image with nearby colors"""
 
@@ -1433,7 +1483,8 @@ class FillAlphaNode(NodeBase):
         )
         self.inputs = [ImageInput("RGBA"), AlphaFillMethodInput()]
         self.outputs = [ImageOutput("RGB")]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Fill Alpha"
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
 
@@ -1467,7 +1518,7 @@ class FillAlphaNode(NodeBase):
         return img[:, :, :3]
 
 
-@NodeFactory.register("Image (Utility)", "Color Transfer")
+@NodeFactory.register("chainner.image.color_transfer")
 class ColorTransferNode(NodeBase):
     """
     Transfers colors from one image to another
@@ -1512,7 +1563,8 @@ class ColorTransferNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput("Image")]
-
+        self.category = IMAGE_UTILITY
+        self.name = "Color Transfer"
         self.icon = "MdInput"
         self.sub = "Miscellaneous"
 
