@@ -302,10 +302,10 @@ export const GlobalProvider = ({
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            const newEdges = edges.filter((e) => e.id !== id);
-            setEdges(newEdges);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => edges.filter((e) => e.id !== id));
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     const createNode = useCallback(
@@ -401,9 +401,13 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            setEdges([...edges.filter((edge) => edge.targetHandle !== targetHandle), newEdge]);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => [
+                ...edges.filter((edge) => edge.targetHandle !== targetHandle),
+                newEdge,
+            ]);
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     useEffect(() => {
@@ -554,7 +558,7 @@ export const GlobalProvider = ({
         };
 
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
-    }, [edges, setEdges]);
+    }, [setEdges]);
 
     // TODO: performance concern? runs twice when deleting node
     const useNodeLock = useCallback(
