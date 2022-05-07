@@ -1,11 +1,9 @@
 import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowSize } from '@react-hook/window-size';
-import log from 'electron-log';
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import useFetch, { CachePolicies } from 'use-http';
-import { SchemaMap } from '../common-types';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
 import Header from '../components/Header';
@@ -18,8 +16,17 @@ import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
-import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from '../helpers/safeIpc';
+import { SchemaMap } from '../helpers/SchemaMap';
+
+const nodeTypes: NodeTypes = {
+    regularNode: Node,
+    iterator: IteratorNode,
+    iteratorHelper: IteratorHelperNode,
+};
+const edgeTypes: EdgeTypes = {
+    main: CustomEdge,
+};
 
 interface MainProps {
     port: number;
@@ -28,17 +35,11 @@ interface MainProps {
 const Main = ({ port }: MainProps) => {
     const { showMessageBox } = useContext(AlertBoxContext);
 
-    const [availableNodes, setAvailableNodes] = useState<SchemaMap | null>(null);
-    const [nodeTypes, setNodeTypes] = useState<NodeTypes | null>(null);
-    const edgeTypes: EdgeTypes = {
-        main: CustomEdge,
-    };
-    // const { colorMode, toggleColorMode } = useColorMode();
+    const [schemata, setSchemata] = useState<SchemaMap | null>(null);
     const [, height] = useWindowSize();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-    // Queries
     const [backendReady, setBackendReady] = useState(false);
 
     const { loading, error, data, response } = useFetch<BackendNodesResponse>(
@@ -51,31 +52,11 @@ const Main = ({ port }: MainProps) => {
 
     useEffect(() => {
         if (response.ok && data && !loading && !error && !backendReady) {
-            setNodeTypes({
-                regularNode: Node,
-                iterator: IteratorNode,
-                iteratorHelper: IteratorHelperNode,
-            });
-            const availableNodeMap: SchemaMap = {};
-            data.forEach(({ category, nodes }) => {
-                availableNodeMap[category] = {};
-                nodes.forEach((node) => {
-                    availableNodeMap[category][node.name] = node;
-                });
-            });
-            setAvailableNodes(availableNodeMap);
+            setSchemata(new SchemaMap(data));
+            setBackendReady(true);
+            ipcRenderer.send('backend-ready');
         }
     }, [response, data, loading, error, backendReady]);
-
-    useAsyncEffect(
-        async (token) => {
-            if (nodeTypes && !backendReady) {
-                token.causeEffect(() => setBackendReady(true));
-                await ipcRenderer.invoke('backend-ready');
-            }
-        },
-        [nodeTypes]
-    );
 
     const loadingLogo = (
         <ChaiNNerLogo
@@ -93,7 +74,7 @@ const Main = ({ port }: MainProps) => {
         return <></>;
     }
 
-    if (!nodeTypes || !availableNodes || !data) {
+    if (!nodeTypes || !schemata || !data) {
         return (
             <Box
                 h="100vh"
@@ -116,7 +97,7 @@ const Main = ({ port }: MainProps) => {
         <ReactFlowProvider>
             <SettingsProvider port={port}>
                 <GlobalProvider
-                    availableNodes={availableNodes}
+                    schemata={schemata}
                     reactFlowWrapper={reactFlowWrapper}
                 >
                     <VStack
@@ -138,7 +119,7 @@ const Main = ({ port }: MainProps) => {
                             splitterSize="10px"
                         >
                             <NodeSelector
-                                data={data}
+                                schemata={schemata}
                                 height={height}
                             />
 

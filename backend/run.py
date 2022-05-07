@@ -82,23 +82,24 @@ async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
     node_list = []
-    for category in registry:
-        category_dict = {"category": category, "nodes": []}
-        for node in registry[category]:
+    for category, category_nodes in registry.items():
+        for node in category_nodes:
+            print(category)
+            print(node)
             node_object = NodeFactory.create_node(category, node)
-            node_dict = {"name": node}
-            node_dict["inputs"] = node_object.get_inputs()
-            node_dict["outputs"] = node_object.get_outputs()
-            node_dict["description"] = node_object.get_description()
-            node_dict["icon"] = node_object.get_icon()
-            node_dict["subcategory"] = node_object.get_sub_category()
-            node_dict["nodeType"] = node_object.get_type()
+            node_dict = {
+                "name": node,
+                "category": category,
+                "inputs": node_object.get_inputs(),
+                "outputs": node_object.get_outputs(),
+                "description": node_object.get_description(),
+                "icon": node_object.get_icon(),
+                "subcategory": node_object.get_sub_category(),
+                "nodeType": node_object.get_type(),
+            }
             if node_object.get_type() == "iterator":
                 node_dict["defaultNodes"] = node_object.get_default_nodes()
-            category_dict["nodes"].append(node_dict)
-            del node_object, node_dict
-        node_list.append(category_dict)
-        del category_dict
+            node_list.append(node_dict)
     return json(node_list)
 
 

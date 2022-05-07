@@ -15,7 +15,7 @@ export interface IteratorSize extends Size {
 }
 
 export type InputValue = InputSchemaValue | { id: string };
-export type InputSchemaValue = string | number;
+export type InputSchemaValue = string | number | undefined;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
@@ -37,6 +37,7 @@ export type InputData = Readonly<Record<number, InputValue>>;
 
 export interface NodeSchema {
     readonly name: string;
+    readonly category: string;
     readonly subcategory: string;
     readonly description: string;
     readonly icon: string;
@@ -52,8 +53,6 @@ export interface DefaultNode {
     category: string;
     name: string;
 }
-
-export type SchemaMap = Record<string, Record<string, NodeSchema>>;
 
 export interface NodeData {
     readonly id: string;
@@ -83,7 +82,7 @@ export interface UsableData {
     category: string;
     node: string;
     id: string;
-    inputs: Record<number, InputValue | null>;
+    inputs: Record<number, InputValue | null | undefined>;
     outputs: Record<number, InputValue>;
     child: boolean;
     children?: string[];

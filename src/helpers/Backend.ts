@@ -9,10 +9,7 @@ export interface BackendExceptionResponse {
     message: string;
     exception: string;
 }
-export type BackendNodesResponse = {
-    category: string;
-    nodes: NodeSchema[];
-}[];
+export type BackendNodesResponse = NodeSchema[];
 export interface BackendRunRequest {
     data: Record<string, UsableData>;
     isCpu: boolean;
