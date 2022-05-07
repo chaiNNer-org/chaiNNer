@@ -22,20 +22,13 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.fill_alpha import *
+from .utils.image_resize import resize
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
     normalize,
     normalize_normals,
 )
-
-try:
-    from PIL import Image
-
-    pil = Image
-except ImportError:
-    logger.error("No PIL found, defaulting to cv2 for resizing")
-    pil = Image = None
 
 
 @NodeFactory.register("Image", "Load Image")
@@ -250,20 +243,11 @@ class ImResizeByFactorNode(NodeBase):
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
         img = normalize(img)
-        interpolation = int(interpolation)
 
         h, w = img.shape[:2]
         out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
-        # Try PIL first, otherwise fall back to cv2
-        if pil is not None:
-            pimg = pil.fromarray((img * 255).astype("uint8"))
-            pimg = pimg.resize(out_dims, resample=interpolation)
-            result = np.array(pimg).astype("float32") / 255
-        else:
-            result = cv2.resize(img, out_dims, interpolation=interpolation)
-
-        return result
+        return resize(img, out_dims, int(interpolation))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Resolution)")
@@ -292,19 +276,10 @@ class ImResizeToResolutionNode(NodeBase):
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
 
         img = normalize(img)
-        interpolation = int(interpolation)
 
         out_dims = (int(width), int(height))
 
-        # Try PIL first, otherwise fall back to cv2
-        if pil is not None:
-            pimg = pil.fromarray((img * 255).astype("uint8"))
-            pimg = pimg.resize(out_dims, resample=interpolation)
-            result = np.array(pimg).astype("float32") / 255
-        else:
-            result = cv2.resize(img, out_dims, interpolation=interpolation)
-
-        return result
+        return resize(img, out_dims, int(interpolation))
 
 
 @NodeFactory.register("Image (Utility)", "Overlay Images")
