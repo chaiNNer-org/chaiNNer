@@ -85,12 +85,12 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
                     type={type}
                 />
                 <NodeBody
-                    category={category}
-                    nodeType={type}
                     accentColor={accentColor}
+                    category={category}
                     id={id}
                     inputs={inputs}
                     isLocked={isLocked}
+                    nodeType={type}
                     outputs={outputs}
                 />
                 <IteratorHelperNodeFooter

@@ -69,6 +69,13 @@ module.exports = {
                 '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
                 'eslint-comments/no-unused-enable': 'warn',
                 'eslint-comments/no-unused-disable': 'warn',
+                'react/jsx-sort-props': [
+                    'error',
+                    {
+                        callbacksLast: true,
+                        shorthandFirst: true,
+                    },
+                ],
             },
         },
     ],

@@ -97,8 +97,8 @@ const Main = ({ port }: MainProps) => {
         <ReactFlowProvider>
             <SettingsProvider port={port}>
                 <GlobalProvider
-                    schemata={schemata}
                     reactFlowWrapper={reactFlowWrapper}
+                    schemata={schemata}
                 >
                     <VStack
                         bg={bgColor}
@@ -119,8 +119,8 @@ const Main = ({ port }: MainProps) => {
                             splitterSize="10px"
                         >
                             <NodeSelector
-                                schemata={schemata}
                                 height={height}
+                                schemata={schemata}
                             />
 
                             <ReactFlowBox
