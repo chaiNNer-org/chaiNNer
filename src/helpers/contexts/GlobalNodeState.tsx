@@ -49,7 +49,7 @@ interface Global {
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends InputValue>(
+    useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         index: number
     ) => readonly [T | undefined, (data: T) => void];
@@ -471,7 +471,7 @@ export const GlobalProvider = ({
 
     const useInputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T extends InputValue>(
+        function <T extends NonNullable<InputValue>>(
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
@@ -487,7 +487,7 @@ export const GlobalProvider = ({
                 inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
             }
 
-            const inputDataByIndex = inputData[index] as T;
+            const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                 if (nodeCopy && nodeCopy.data) {
