@@ -5,7 +5,7 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo, useContext } from 'react';
+import { memo, useContext, useState } from 'react';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 
 interface NumericalInputProps {
@@ -25,15 +25,21 @@ const NumericalInput = memo(
     ({ label, id, index, def, min, max, precision, step, type, isLocked }: NumericalInputProps) => {
         const { useInputData, useNodeLock } = useContext(GlobalContext);
         // TODO: make sure this is always a number
-        const [input, setInput] = useInputData<string | number>(id, index);
+        const [input, setInput] = useInputData<number>(id, index);
+        const [inputString, setInputString] = useState(String(input));
         const [, , isInputLocked] = useNodeLock(id, index);
 
         const handleChange = (numberAsString: string, numberAsNumber: number) => {
-            if (type.includes('odd')) {
-                // Make the number odd if need be
-                setInput(String(numberAsNumber + (1 - (numberAsNumber % 2))));
-            } else {
-                setInput(numberAsString);
+            setInputString(numberAsString);
+
+            if (!Number.isNaN(numberAsNumber)) {
+                if (type.includes('odd')) {
+                    // Make the number odd if need be
+                    // round up the nearest odd number
+                    // eslint-disable-next-line no-param-reassign
+                    numberAsNumber += 1 - (numberAsNumber % 2);
+                }
+                setInput(numberAsNumber);
             }
         };
 
@@ -41,14 +47,14 @@ const NumericalInput = memo(
             <NumberInput
                 className="nodrag"
                 defaultValue={def}
-                isDisabled={isLocked || isInputLocked}
                 draggable={false}
+                isDisabled={isLocked || isInputLocked}
                 max={max ?? Infinity}
                 min={min ?? -Infinity}
                 placeholder={label}
                 precision={precision}
                 step={step ?? 1}
-                value={String(input)}
+                value={inputString}
                 onChange={handleChange}
             >
                 <NumberInputField />

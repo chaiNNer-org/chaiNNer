@@ -4,7 +4,6 @@ import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import { getSchema } from '../../helpers/schema';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
@@ -26,7 +25,7 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const { edges, availableNodes } = useContext(GlobalContext);
+    const { edges, schemata } = useContext(GlobalContext);
 
     const {
         id,
@@ -42,7 +41,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const { inputs, outputs, icon } = getSchema(availableNodes, category, type);
+    const { inputs, outputs, icon } = schemata.get(category, type);
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
@@ -104,10 +103,10 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     )}
                     <NodeInputs
                         accentColor={accentColor}
+                        category={category}
                         id={id}
                         inputs={inputs}
                         isLocked={isLocked}
-                        category={category}
                         nodeType={type}
                     />
                     <Center>

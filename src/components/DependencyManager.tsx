@@ -468,7 +468,8 @@ const DependencyManager = ({
                         <Button
                             colorScheme="blue"
                             variant={depChanged ? 'solid' : 'ghost'}
-                            onClick={() => ipcRenderer.send('relaunch-application')}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onClick={async () => ipcRenderer.invoke('relaunch-application')}
                         >
                             Restart chaiNNer
                         </Button>

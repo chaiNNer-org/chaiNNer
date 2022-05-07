@@ -22,20 +22,13 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.fill_alpha import *
+from .utils.image_resize import resize
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
     normalize,
     normalize_normals,
 )
-
-try:
-    from PIL import Image
-
-    pil = Image
-except ImportError:
-    logger.error("No PIL found, defaulting to cv2 for resizing")
-    pil = Image = None
 
 
 @NodeFactory.register("Image", "Load Image")
@@ -168,11 +161,6 @@ class ImWriteNode(NodeBase):
         extension: str = None,
     ) -> bool:
         """Write an image to the specified path and return write status"""
-        # Shift inputs if relative path is missing
-        if extension is None:
-            extension = filename
-            filename = relative_path
-            relative_path = "."
 
         full_file = f"{filename}.{extension}"
         if relative_path and relative_path != ".":
@@ -255,20 +243,11 @@ class ImResizeByFactorNode(NodeBase):
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
         img = normalize(img)
-        interpolation = int(interpolation)
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
+        out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
-        # Try PIL first, otherwise fall back to cv2
-        if pil is Image:
-            pimg = pil.fromarray((img * 255).astype("uint8"))
-            pimg = pimg.resize(out_dims, resample=interpolation)
-            result = np.array(pimg).astype("float32") / 255
-        else:
-            result = cv2.resize(img, out_dims, interpolation=interpolation)
-
-        return result
+        return resize(img, out_dims, int(interpolation))
 
 
 @NodeFactory.register("Image (Utility)", "Resize (Resolution)")
@@ -297,19 +276,10 @@ class ImResizeToResolutionNode(NodeBase):
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
 
         img = normalize(img)
-        interpolation = int(interpolation)
 
         out_dims = (int(width), int(height))
 
-        # Try PIL first, otherwise fall back to cv2
-        if pil is Image:
-            pimg = pil.fromarray((img * 255).astype("uint8"))
-            pimg = pimg.resize(out_dims, resample=interpolation)
-            result = np.array(pimg).astype("float32") / 255
-        else:
-            result = cv2.resize(img, out_dims, interpolation=interpolation)
-
-        return result
+        return resize(img, out_dims, int(interpolation))
 
 
 @NodeFactory.register("Image (Utility)", "Overlay Images")
@@ -333,8 +303,8 @@ class ImOverlay(NodeBase):
 
     def run(
         self,
-        base: np.ndarray = None,
-        ov1: np.ndarray = None,
+        base: np.ndarray,
+        ov1: np.ndarray,
         op1: int = 50,
         ov2: np.ndarray = None,
         op2: int = 50,
@@ -343,11 +313,7 @@ class ImOverlay(NodeBase):
 
         base = normalize(base)
         ov1 = normalize(ov1)
-        # overlay2 was not passed in and therefore ov2 is actually op2
-        if isinstance(ov2, str) or isinstance(ov2, int):
-            ov2 = None
-            op2 = None
-        else:
+        if ov2 is not None:
             ov2 = normalize(ov2)
 
         # Convert to 0.0-1.0 range
@@ -865,14 +831,12 @@ class GaussianBlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount_x: str,
-        amount_y: str,
+        amount_x: float,
+        amount_y: float,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
 
-        blurred = cv2.GaussianBlur(
-            img, (0, 0), sigmaX=float(amount_x), sigmaY=float(amount_y)
-        )
+        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
 
         return blurred
 
@@ -896,11 +860,11 @@ class SharpenNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount: int,
+        amount: float,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
 
-        blurred = cv2.GaussianBlur(img, (0, 0), float(amount))
+        blurred = cv2.GaussianBlur(img, (0, 0), amount)
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
         return img
@@ -1438,8 +1402,6 @@ class AverageColorFixNode(NodeBase):
         self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
-
-        scale_factor = float(scale_factor)
 
         input_img = normalize(input_img)
         ref_img = normalize(ref_img)

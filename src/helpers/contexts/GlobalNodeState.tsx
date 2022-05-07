@@ -16,41 +16,40 @@ import {
 } from 'react-flow-renderer';
 import { v4 as uuidv4 } from 'uuid';
 import {
-    DefaultNode,
     EdgeData,
+    InputData,
     InputValue,
     IteratorSize,
+    Mutable,
     NodeData,
-    SchemaMap,
     Size,
-    UsableData,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
-import { deepCopy } from '../util';
+import { SchemaMap } from '../SchemaMap';
+import { copyNode, deepCopy, parseHandle } from '../util';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface Global {
-    availableNodes: SchemaMap;
-    nodes: Node<NodeData>[];
-    edges: Edge<EdgeData>[];
+    schemata: SchemaMap;
+    nodes: readonly Node<NodeData>[];
+    edges: readonly Edge<EdgeData>[];
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
     onNodesChange: OnNodesChange;
     onEdgesChange: OnEdgesChange;
     createNode: (proto: NodeProto) => Node<NodeData>;
     createConnection: (connection: Connection) => void;
-    convertToUsableFormat: () => Record<string, UsableData>;
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
-    isValidConnection: (connection: Connection) => boolean;
-    useInputData: <T extends InputValue>(
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
+    useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         index: number
     ) => readonly [T | undefined, (data: T) => void];
@@ -88,9 +87,8 @@ interface Global {
 
 interface NodeProto {
     position: XYPosition;
-    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: NodeData['inputData'] };
+    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
-    defaultNodes?: DefaultNode[];
     parent?: string | Node<NodeData> | null;
 }
 
@@ -100,44 +98,13 @@ export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 const createUniqueId = () => uuidv4();
 
 interface GlobalProviderProps {
-    availableNodes: SchemaMap;
+    schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
 }
 
-interface ParsedHandle {
-    id: string;
-    index: number;
-}
-const parseHandle = (handle: string): ParsedHandle => {
-    return {
-        id: handle.substring(0, 36), // uuid
-        index: Number(handle.substring(37)),
-    };
-};
-
-const getInputDefaults = (
-    { category, type }: { category: string; type: string },
-    availableNodes: SchemaMap
-) => {
-    const defaultData: Record<number, InputValue> = {};
-    const { inputs } = availableNodes[category][type];
-    if (inputs) {
-        inputs.forEach((input, i) => {
-            if (input.def || input.def === 0) {
-                defaultData[i] = input.def;
-            } else if (input.default || input.default === 0) {
-                defaultData[i] = input.default;
-            } else if (input.options) {
-                defaultData[i] = input.options[0].value;
-            }
-        });
-    }
-    return defaultData;
-};
-
 export const GlobalProvider = ({
     children,
-    availableNodes,
+    schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     // console.log('global state rerender');
@@ -191,10 +158,8 @@ export const GlobalProvider = ({
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
         if (savedData) {
-            const validNodes = savedData.nodes.filter(
-                (node) =>
-                    availableNodes[node.data.category] &&
-                    availableNodes[node.data.category][node.data.type]
+            const validNodes = savedData.nodes.filter((node) =>
+                schemata.has(node.data.category, node.data.type)
             );
             if (savedData.nodes.length !== validNodes.length) {
                 await ipcRenderer.invoke(
@@ -324,67 +289,6 @@ export const GlobalProvider = ({
     //   push(dumpState());
     // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
 
-    const convertToUsableFormat = useCallback(() => {
-        const result: Record<string, UsableData> = {};
-
-        // Set up each node in the result
-        nodes.forEach((element) => {
-            const { id, data, type: nodeType } = element;
-            const { category, type } = data;
-            // Node
-            result[id] = {
-                category,
-                node: type,
-                id,
-                inputs: {},
-                outputs: {},
-                child: false,
-                nodeType,
-            };
-            if (nodeType === 'iterator') {
-                result[id].children = [];
-                result[id].percent = data.percentComplete || 0;
-            }
-        });
-
-        // Apply input data to inputs when applicable
-        nodes.forEach((node) => {
-            const inputData = node.data?.inputData;
-            if (inputData) {
-                Object.keys(inputData)
-                    .map(Number)
-                    .forEach((index) => {
-                        result[node.id].inputs[index] = inputData[index];
-                    });
-            }
-            if (node.parentNode) {
-                result[node.parentNode].children!.push(node.id);
-                result[node.id].child = true;
-            }
-        });
-
-        // Apply inputs and outputs from connections
-        // Note: As-is, this will overwrite inputted data from above
-        edges.forEach((element) => {
-            const { sourceHandle, targetHandle, source, target } = element;
-            // Connection
-            if (result[source] && result[target] && sourceHandle && targetHandle) {
-                result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
-                result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
-            }
-        });
-
-        // Convert inputs and outputs to arrays
-        Object.keys(result).forEach((id) => {
-            result[id].inputs = Object.values(result[id].inputs);
-            result[id].outputs = Object.values(result[id].outputs);
-        });
-
-        // console.log('convert', result);
-
-        return result;
-    }, [nodes, edges]);
-
     const removeNodeById = useCallback(
         (id: string) => {
             const node = nodes.find((n) => n.id === id);
@@ -398,29 +302,23 @@ export const GlobalProvider = ({
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            const newEdges = edges.filter((e) => e.id !== id);
-            setEdges(newEdges);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => edges.filter((e) => e.id !== id));
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     const createNode = useCallback(
-        ({
-            position,
-            data,
-            nodeType,
-            defaultNodes = [],
-            parent = null,
-        }: NodeProto): Node<NodeData> => {
+        ({ position, data, nodeType, parent = null }: NodeProto): Node<NodeData> => {
             const id = createUniqueId();
-            const newNode: Node<NodeData> = {
+            const newNode: Node<Mutable<NodeData>> = {
                 type: nodeType,
                 id,
                 position: snapToGrid(position, snapToGridAmount),
                 data: {
                     ...data,
                     id,
-                    inputData: data.inputData ?? getInputDefaults(data, availableNodes),
+                    inputData: data.inputData ?? schemata.getDefaultInput(data.category, data.type),
                 },
             };
             if (parent || (hoveredNode && nodeType !== 'iterator')) {
@@ -462,8 +360,9 @@ export const GlobalProvider = ({
                     offsetLeft: 0,
                 };
 
+                const { defaultNodes = [] } = schemata.get(data.category, data.type);
                 defaultNodes.forEach(({ category, name }) => {
-                    const subNodeData = availableNodes[category][name];
+                    const subNodeData = schemata.get(category, name);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
@@ -483,7 +382,7 @@ export const GlobalProvider = ({
             }
             return newNode;
         },
-        [nodes, setNodes, availableNodes, hoveredNode, availableNodes]
+        [nodes, setNodes, schemata, hoveredNode]
     );
 
     const createConnection = useCallback(
@@ -502,9 +401,13 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            setEdges([...edges.filter((edge) => edge.targetHandle !== targetHandle), newEdge]);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => [
+                ...edges.filter((edge) => edge.targetHandle !== targetHandle),
+                newEdge,
+            ]);
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     useEffect(() => {
@@ -524,7 +427,7 @@ export const GlobalProvider = ({
     }, []);
 
     const isValidConnection = useCallback(
-        ({ target, targetHandle, source, sourceHandle }: Connection) => {
+        ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
             if (source === target || !sourceHandle || !targetHandle) {
                 return false;
             }
@@ -538,8 +441,8 @@ export const GlobalProvider = ({
             }
 
             // Target inputs, source outputs
-            const { outputs } = availableNodes[sourceNode.data.category][sourceNode.data.type];
-            const { inputs } = availableNodes[targetNode.data.category][targetNode.data.type];
+            const { outputs } = schemata.get(sourceNode.data.category, sourceNode.data.type);
+            const { inputs } = schemata.get(targetNode.data.category, targetNode.data.type);
 
             const sourceOutput = outputs[sourceHandleIndex];
             const targetInput = inputs[targetHandleIndex];
@@ -563,12 +466,12 @@ export const GlobalProvider = ({
 
             return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
         },
-        [nodes, edges, availableNodes]
+        [nodes, edges, schemata]
     );
 
     const useInputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T extends InputValue>(
+        function <T extends NonNullable<InputValue>>(
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
@@ -579,14 +482,14 @@ export const GlobalProvider = ({
                 return [undefined, () => {}] as const;
             }
 
-            let inputData = nodeData?.inputData;
+            let { inputData } = nodeData;
             if (!inputData) {
-                inputData = getInputDefaults(nodeData, availableNodes);
+                inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
             }
 
-            const inputDataByIndex = inputData[index] as T;
+            const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
-                const nodeCopy: Node<NodeData> = { ...nodeById };
+                const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                 if (nodeCopy && nodeCopy.data) {
                     nodeCopy.data.inputData = {
                         ...inputData,
@@ -598,50 +501,32 @@ export const GlobalProvider = ({
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, setNodes, availableNodes]
+        [nodes, setNodes, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
-        const animateEdges = (nodeIdsToAnimate?: readonly string[]) => {
-            if (nodeIdsToAnimate) {
-                const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
-                const animatedEdges = edgesToAnimate.map((edge) => ({
-                    ...edge,
-                    animated: true,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
-                setEdges([...otherEdges, ...animatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: true,
-                    }))
-                );
-            }
+        const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => {
+                if (nodeIdsToAnimate) {
+                    const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
+                    const animatedEdges = edgesToAnimate.map((edge) => ({ ...edge, animated }));
+                    const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
+                    return [...otherEdges, ...animatedEdges];
+                }
+                return edges.map((edge) => ({ ...edge, animated }));
+            });
         };
 
-        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) => {
-            if (nodeIdsToUnAnimate) {
-                const edgesToUnAnimate = edges.filter((e) => nodeIdsToUnAnimate.includes(e.source));
-                const unanimatedEdges = edgesToUnAnimate.map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToUnAnimate.includes(e.source));
-                setEdges([...otherEdges, ...unanimatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: false,
-                    }))
-                );
-            }
-        };
+        const animateEdges = (nodeIdsToAnimate?: readonly string[]) =>
+            setAnimated(true, nodeIdsToAnimate);
+
+        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) =>
+            setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
                     return {
@@ -657,7 +542,8 @@ export const GlobalProvider = ({
         };
 
         const clearCompleteEdges = () => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
                         ...edge,
@@ -672,7 +558,7 @@ export const GlobalProvider = ({
         };
 
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
-    }, [edges, setEdges]);
+    }, [setEdges]);
 
     // TODO: performance concern? runs twice when deleting node
     const useNodeLock = useCallback(
@@ -683,10 +569,11 @@ export const GlobalProvider = ({
             }
             const isLocked = node.data?.isLocked ?? false;
             const toggleLock = () => {
-                node.draggable = isLocked;
-                node.connectable = isLocked;
-                node.data.isLocked = !isLocked;
-                setNodes([...nodes.filter((n) => n.id !== id), node]);
+                const newNode = copyNode(node);
+                newNode.draggable = isLocked;
+                newNode.connectable = isLocked;
+                newNode.data.isLocked = !isLocked;
+                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
             };
 
             let isInputLocked = false;
@@ -711,8 +598,9 @@ export const GlobalProvider = ({
             const node = nodes.find((n) => n.id === id)!;
 
             const setIteratorSize = (size: IteratorSize) => {
-                node.data.iteratorSize = size;
-                setNodes([...nodes.filter((n) => n.id !== id), node]);
+                const newNode = copyNode(node);
+                newNode.data.iteratorSize = size;
+                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
             };
 
             return [setIteratorSize, defaultSize] as const;
@@ -745,7 +633,7 @@ export const GlobalProvider = ({
                     newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
                     return newNode;
                 });
-                const newIteratorNode: Node<NodeData> = { ...iteratorNode };
+                const newIteratorNode = copyNode(iteratorNode);
 
                 newIteratorNode.data.maxWidth = maxWidth;
                 newIteratorNode.data.maxHeight = maxHeight;
@@ -766,9 +654,10 @@ export const GlobalProvider = ({
         (id: string, percent: number) => {
             const iterator = nodes.find((n) => n.id === id);
             if (iterator && iterator.data) {
-                iterator.data.percentComplete = percent;
+                const newIterator = copyNode(iterator);
+                newIterator.data.percentComplete = percent;
                 const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([iterator, ...filteredNodes]);
+                setNodes([newIterator, ...filteredNodes]);
             }
         },
         [nodes, setNodes]
@@ -838,21 +727,22 @@ export const GlobalProvider = ({
             setNodes([...nodes, ...newNodes]);
             setEdges([...edges, ...newEdges]);
         },
-        [nodes, edges, availableNodes]
+        [nodes, edges]
     );
 
     const clearNode = (id: string) => {
         const nodesCopy = [...nodes];
         const node = nodesCopy.find((n) => n.id === id);
         if (!node) return;
-        node.data.inputData = getInputDefaults(node.data, availableNodes);
-        setNodes([...nodes.filter((n) => n.id !== id), node]);
+        const newNode = copyNode(node);
+        newNode.data.inputData = schemata.getDefaultInput(node.data.category, node.data.type);
+        setNodes([...nodes.filter((n) => n.id !== id), newNode]);
     };
 
     const outlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
         const invalidIds = invalidNodes.map((node) => node.id);
         const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = { ...node };
+            const nodeCopy = copyNode(node);
             nodeCopy.data.invalid = true;
             return nodeCopy;
         });
@@ -862,7 +752,7 @@ export const GlobalProvider = ({
     const unOutlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
         const invalidIds = invalidNodes.map((node) => node.id);
         const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = { ...node };
+            const nodeCopy = copyNode(node);
             nodeCopy.data.invalid = false;
             return nodeCopy;
         });
@@ -891,7 +781,7 @@ export const GlobalProvider = ({
 
     const contextValue = useMemo<Global>(
         () => ({
-            availableNodes,
+            schemata,
             nodes,
             edges,
             setNodes,
@@ -900,7 +790,6 @@ export const GlobalProvider = ({
             onEdgesChange,
             createNode,
             createConnection,
-            convertToUsableFormat,
             reactFlowInstance,
             setReactFlowInstance,
             // updateRfi,

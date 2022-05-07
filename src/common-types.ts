@@ -3,6 +3,8 @@ export interface JsonObject {
 }
 export type JsonValue = null | string | number | boolean | JsonObject | JsonValue[];
 
+export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+
 export interface Size {
     width: number;
     height: number;
@@ -12,31 +14,37 @@ export interface IteratorSize extends Size {
     offsetLeft: number;
 }
 
-export type InputValue = InputSchemaValue | { id: string };
+export type InputValue = InputSchemaValue | { id: string } | undefined;
 export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
 }
-export type Input = {
-    type: string;
-    label: string;
-    optional?: boolean;
-    def?: InputSchemaValue;
-    default?: InputSchemaValue;
-    options?: InputOption[];
-};
-export type Output = { type: string; label: string };
+export interface Input {
+    readonly type: string;
+    readonly label: string;
+    readonly optional?: boolean;
+    readonly def?: InputSchemaValue;
+    readonly default?: InputSchemaValue;
+    readonly options?: InputOption[];
+}
+export interface Output {
+    readonly type: string;
+    readonly label: string;
+}
+
+export type InputData = Readonly<Record<number, InputValue>>;
 
 export interface NodeSchema {
-    name: string;
-    subcategory: string;
-    description: string;
-    icon: string;
-    nodeType: string;
-    inputs: Input[];
-    outputs: Output[];
-    defaultNodes?: DefaultNode[];
+    readonly name: string;
+    readonly category: string;
+    readonly subcategory: string;
+    readonly description: string;
+    readonly icon: string;
+    readonly nodeType: string;
+    readonly inputs: Input[];
+    readonly outputs: Output[];
+    readonly defaultNodes?: DefaultNode[];
 }
 
 export interface DefaultNode {
@@ -46,24 +54,24 @@ export interface DefaultNode {
     name: string;
 }
 
-export type SchemaMap = Record<string, Record<string, NodeSchema>>;
-
-export type NodeData = {
-    id: string;
-    parentNode?: string;
-    category: string;
-    subcategory: string;
-    icon: string;
-    type: string;
-    isLocked?: boolean;
-    inputData: Record<number, InputValue>;
-    invalid?: boolean;
-    iteratorSize?: IteratorSize;
-    percentComplete?: number;
-    maxWidth?: number;
-    maxHeight?: number;
-};
-export type EdgeData = { complete?: boolean };
+export interface NodeData {
+    readonly id: string;
+    readonly parentNode?: string;
+    readonly category: string;
+    readonly subcategory: string;
+    readonly icon: string;
+    readonly type: string;
+    readonly isLocked?: boolean;
+    readonly inputData: InputData;
+    readonly invalid?: boolean;
+    readonly iteratorSize?: IteratorSize;
+    readonly percentComplete?: number;
+    readonly maxWidth?: number;
+    readonly maxHeight?: number;
+}
+export interface EdgeData {
+    readonly complete?: boolean;
+}
 
 export interface PythonKeys {
     python: string;
@@ -74,7 +82,7 @@ export interface UsableData {
     category: string;
     node: string;
     id: string;
-    inputs: Record<number, InputValue>;
+    inputs: Record<number, InputValue | null>;
     outputs: Record<number, InputValue>;
     child: boolean;
     children?: string[];
