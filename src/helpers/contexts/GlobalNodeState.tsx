@@ -483,7 +483,7 @@ export const GlobalProvider = ({
                 inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
             }
 
-            const inputDataByIndex = inputData[index] as T;
+            const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                 if (nodeCopy && nodeCopy.data) {
