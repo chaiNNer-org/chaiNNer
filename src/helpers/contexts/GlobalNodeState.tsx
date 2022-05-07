@@ -14,6 +14,7 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
+import log from 'electron-log';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -489,15 +490,32 @@ export const GlobalProvider = ({
 
             const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
-                const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                if (nodeCopy && nodeCopy.data) {
-                    nodeCopy.data.inputData = {
-                        ...inputData,
-                        [index]: data,
-                    };
-                }
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([...filteredNodes, nodeCopy]);
+                // This is a action that might be called asynchronously, so we cannot rely on of
+                // the captured data from `nodes` to be up-to-date anymore. For that reason, we
+                // must derive any changes to nodes from the previous value passed to us by
+                // `setNodes`.
+
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                setNodes((nodes) => {
+                    // eslint-disable-next-line @typescript-eslint/no-shadow
+                    const nodeById = nodes.find((node) => node.id === id);
+                    if (!nodeById) {
+                        log.error(
+                            'A (deferred) setInputData was called after its node had been removed'
+                        );
+                        return nodes;
+                    }
+
+                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
+                    if (nodeCopy && nodeCopy.data) {
+                        nodeCopy.data.inputData = {
+                            ...inputData,
+                            [index]: data,
+                        };
+                    }
+                    const filteredNodes = nodes.filter((n) => n.id !== id);
+                    return [...filteredNodes, nodeCopy];
+                });
             };
             return [inputDataByIndex, setInputData] as const;
         },
