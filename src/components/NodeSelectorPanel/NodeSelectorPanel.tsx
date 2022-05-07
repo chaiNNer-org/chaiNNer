@@ -21,7 +21,7 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import { ChangeEvent, memo, useState } from 'react';
+import { ChangeEvent, memo, useMemo, useState } from 'react';
 import { NodeSchema } from '../../common-types';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { SchemaMap } from '../../helpers/SchemaMap';
@@ -97,6 +97,11 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                   matchesSearchQuery(`${n.subcategory} ${n.name}`)
           );
 
+    const byCategories: Map<string, NodeSchema[]> = useMemo(
+        () => byCategory(matchingNodes),
+        [matchingNodes]
+    );
+
     return (
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
@@ -154,7 +159,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 allowMultiple
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
-                                {[...byCategory(matchingNodes)].map(([category, categoryNodes]) => {
+                                {[...byCategories].map(([category, categoryNodes]) => {
                                     const subcategoryMap = getSubcategories(categoryNodes);
 
                                     return (

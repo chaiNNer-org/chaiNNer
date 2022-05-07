@@ -19,6 +19,9 @@ module.exports = {
             typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
         },
     },
+    rules: {
+        'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
+    },
     overrides: [
         {
             files: ['src/**/*.ts', 'src/**/*.tsx'],
