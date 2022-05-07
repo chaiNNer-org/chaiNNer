@@ -22,7 +22,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.fill_alpha import *
-from .utils.image_resize import resize
+from .utils.pil_utils import *
 from .utils.image_utils import (
     get_opencv_formats,
     get_pil_formats,
@@ -1225,34 +1225,9 @@ class CaptionNode(NodeBase):
     def run(self, img: np.ndarray, caption: str) -> np.ndarray:
         """Add caption an image"""
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_size = 1
-        font_thickness = 1
+        img = normalize(img)
 
-        textsize = cv2.getTextSize(caption, font, font_size, font_thickness)
-        logger.info(textsize)
-        textsize = textsize[0]
-
-        caption_height = textsize[1] + 20
-
-        img = cv2.copyMakeBorder(
-            img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 255)
-        )
-
-        text_x = math.floor((img.shape[1] - textsize[0]) / 2)
-        text_y = math.ceil(img.shape[0] - ((caption_height - textsize[1]) / 2))
-
-        cv2.putText(
-            img,
-            caption,
-            (text_x, text_y),
-            font,
-            font_size,
-            color=(255, 255, 255, 255),
-            thickness=font_thickness,
-            lineType=cv2.LINE_AA,
-        )
-        return img
+        return add_caption(img, caption)
 
 
 @NodeFactory.register("Image (Utility)", "Normalize")
