@@ -178,8 +178,8 @@ const CustomEdge = memo(
                         w="full"
                     >
                         <IconButton
-                            aria-label="Remove edge button"
                             isRound
+                            aria-label="Remove edge button"
                             borderColor={useColorModeValue('gray.100', 'gray.800')}
                             borderRadius={100}
                             borderWidth={2}

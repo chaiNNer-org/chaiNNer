@@ -17,36 +17,36 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
 
     return (
         <Center
+            _hover={{
+                borderColor: accentColor,
+            }}
             bg={subcategory === 'Iteration' ? 'none' : accentColor}
-            borderColor={borderColor}
-            borderRadius="lg"
-            borderWidth="0.5px"
-            boxShadow="lg"
-            transition="0.15s ease-in-out"
-            w="full"
-            overflow="hidden"
             bgGradient={
                 subcategory === 'Iteration'
                     ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
                     : 'none'
             }
+            borderColor={borderColor}
+            borderRadius="lg"
+            borderWidth="0.5px"
+            boxShadow="lg"
+            overflow="hidden"
+            transition="0.15s ease-in-out"
             // opacity="0.95"
-            _hover={{
-                borderColor: accentColor,
-            }}
+            w="full"
         >
             <Box
                 // borderLeftColor={accentColor}
                 // borderLeftWidth={8}
                 // borderStyle={subcategory === 'Iteration' ? 'double' : 'default'}
+                bg={bgColor}
+                borderRadius="6px 0 0 6px"
                 h="auto"
+                ml={2}
+                // mb={1}
+                py={1}
                 verticalAlign="middle"
                 w="full"
-                py={1}
-                bg={bgColor}
-                ml={2}
-                mr={2}
-                borderRadius="md"
             >
                 <HStack
                     overflow="hidden"
@@ -63,7 +63,7 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                     >
                         {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
                     </Center>
-                    <Center
+                    <Box
                         overflow="hidden"
                         textOverflow="ellipsis"
                         verticalAlign="middle"
@@ -81,12 +81,12 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                             textAlign="left"
                             textOverflow="ellipsis"
                             verticalAlign="middle"
+                            w="90%"
                             whiteSpace="nowrap"
-                            w="full"
                         >
                             {type.toUpperCase()}
                         </Heading>
-                    </Center>
+                    </Box>
                 </HStack>
             </Box>
         </Center>

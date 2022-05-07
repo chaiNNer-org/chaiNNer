@@ -201,9 +201,9 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                     casing="uppercase"
                                                                     color="#71809699"
                                                                     fontSize="sm"
+                                                                    py={1}
                                                                     w="auto"
                                                                     whiteSpace="nowrap"
-                                                                    py={1}
                                                                 >
                                                                     {subcategory}
                                                                 </Text>

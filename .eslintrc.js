@@ -13,36 +13,12 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2020,
     },
-    rules: {
-        'no-use-before-define': 'off',
-        'react/jsx-sort-props': [
-            'error',
-            {
-                callbacksLast: true,
-                shorthandFirst: true,
-            },
-        ],
-        'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
-        'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
-        'import/extensions': 'off',
-        'react/prop-types': 'off',
-        'prefer-arrow-functions/prefer-arrow-functions': [
-            'warn',
-            {
-                classPropertiesAllowed: false,
-                disallowPrototype: false,
-                returnStyle: 'unchanged',
-                singleReturnOnly: false,
-            },
-        ],
-    },
     settings: {
         'import/core-modules': ['electron'],
         'import/resolver': {
             typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
         },
     },
-
     overrides: [
         {
             files: ['src/**/*.ts', 'src/**/*.tsx'],
@@ -69,6 +45,27 @@ module.exports = {
                 '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
                 'eslint-comments/no-unused-enable': 'warn',
                 'eslint-comments/no-unused-disable': 'warn',
+                'no-use-before-define': 'off',
+                'react/jsx-sort-props': [
+                    'error',
+                    {
+                        callbacksLast: true,
+                        shorthandFirst: true,
+                    },
+                ],
+                'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
+                'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
+                'import/extensions': 'off',
+                'react/prop-types': 'off',
+                'prefer-arrow-functions/prefer-arrow-functions': [
+                    'warn',
+                    {
+                        classPropertiesAllowed: false,
+                        disallowPrototype: false,
+                        returnStyle: 'unchanged',
+                        singleReturnOnly: false,
+                    },
+                ],
             },
         },
     ],
