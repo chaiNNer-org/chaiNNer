@@ -256,7 +256,7 @@ class ImResizeByFactorNode(NodeBase):
         out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
         # Try PIL first, otherwise fall back to cv2
-        if pil is Image:
+        if pil is not None:
             pimg = pil.fromarray((img * 255).astype("uint8"))
             pimg = pimg.resize(out_dims, resample=interpolation)
             result = np.array(pimg).astype("float32") / 255
@@ -297,7 +297,7 @@ class ImResizeToResolutionNode(NodeBase):
         out_dims = (int(width), int(height))
 
         # Try PIL first, otherwise fall back to cv2
-        if pil is Image:
+        if pil is not None:
             pimg = pil.fromarray((img * 255).astype("uint8"))
             pimg = pimg.resize(out_dims, resample=interpolation)
             result = np.array(pimg).astype("float32") / 255
