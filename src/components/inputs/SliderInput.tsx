@@ -78,8 +78,8 @@ const SliderInput = memo(
                     draggable={false}
                     // precision={precision}
                     isDisabled={isLocked}
-                    max={max ?? Infinity}
-                    min={min ?? -Infinity}
+                    max={max}
+                    min={min}
                     placeholder={def !== undefined ? String(def) : undefined}
                     size="xs"
                     step={1}

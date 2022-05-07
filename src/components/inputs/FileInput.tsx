@@ -63,7 +63,7 @@ const FileInput = memo(
             const fileFilter = [
                 {
                     name: label,
-                    extensions: filetypes.map((e) => e.replace('.', '')) ?? ['*'],
+                    extensions: filetypes.map((e) => e.replace('.', '')),
                 },
             ];
             const { canceled, filePaths } = await ipcRenderer.invoke(

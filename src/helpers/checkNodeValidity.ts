@@ -13,9 +13,6 @@ const checkNodeValidity = ({
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
 }): [boolean, string] => {
-    if (!inputs) {
-        return [false, 'Node has no inputs.'];
-    }
     const filteredEdges = edges.filter((e) => e.target === id);
 
     // Check to make sure the node has all the data it should based on the schema.
@@ -31,7 +28,7 @@ const checkNodeValidity = ({
             const index = Number(key);
             return (
                 !inputs[index].optional &&
-                (value === '' || value === undefined || value === null) &&
+                (value === '' || value === undefined) &&
                 !edgeTargetIndexes.includes(String(key))
             );
         })
