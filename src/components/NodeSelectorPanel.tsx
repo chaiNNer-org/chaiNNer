@@ -23,7 +23,7 @@ import {
     useColorModeValue,
     useDisclosure,
     Wrap,
-    WrapItem,
+    WrapItem
 } from '@chakra-ui/react';
 import { ChangeEvent, DragEvent, memo, useContext, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -157,16 +157,16 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 '&::-webkit-scrollbar': {
                                     width: '6px',
                                     borderRadius: '8px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                                    backgroundColor: 'rgba(0, 0, 0, 0)'
                                 },
                                 '&::-webkit-scrollbar-track': {
                                     borderRadius: '8px',
-                                    width: '8px',
+                                    width: '8px'
                                 },
                                 '&::-webkit-scrollbar-thumb': {
                                     borderRadius: '8px',
-                                    backgroundColor: useColorModeValue('gray.300', 'gray.700'),
-                                },
+                                    backgroundColor: useColorModeValue('gray.300', 'gray.700')
+                                }
                             }}
                         >
                             <Accordion
@@ -203,6 +203,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                     fontSize="sm"
                                                                     w="auto"
                                                                     whiteSpace="nowrap"
+                                                                    py={1}
                                                                 >
                                                                     {subcategory}
                                                                 </Text>
@@ -219,7 +220,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                 .map((node) => (
                                                                     <WrapItem
                                                                         key={node.name}
-                                                                        p={1}
+                                                                        p={0.5}
                                                                         w="full"
                                                                     >
                                                                         <Tooltip
@@ -250,7 +251,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
 
                                                                                     const {
                                                                                         height: wHeight,
-                                                                                        width,
+                                                                                        width
                                                                                     } =
                                                                                         reactFlowWrapper.current.getBoundingClientRect();
 
@@ -262,7 +263,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                                                     2,
                                                                                                 y:
                                                                                                     wHeight /
-                                                                                                    2,
+                                                                                                    2
                                                                                             }
                                                                                         );
 
@@ -275,8 +276,8 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                                             subcategory:
                                                                                                 node.subcategory,
                                                                                             type: node.name,
-                                                                                            icon: node.icon,
-                                                                                        },
+                                                                                            icon: node.icon
+                                                                                        }
                                                                                     });
                                                                                 }}
                                                                                 onDragEnd={() => {
@@ -325,7 +326,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                     >
                                         <Box
                                             _hover={{
-                                                backgroundColor: 'gray.600',
+                                                backgroundColor: 'gray.600'
                                             }}
                                             bg={useColorModeValue('gray.200', 'gray.700')}
                                             borderRadius={10}
@@ -335,7 +336,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                             pr={4}
                                             sx={{
                                                 cursor: 'pointer !important',
-                                                transition: '0.15s ease-in-out',
+                                                transition: '0.15s ease-in-out'
                                             }}
                                             onClick={onOpen}
                                         >
@@ -343,7 +344,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                 cursor="pointer"
                                                 fontWeight="bold"
                                                 sx={{
-                                                    cursor: 'pointer !important',
+                                                    cursor: 'pointer !important'
                                                 }}
                                                 textAlign="center"
                                             >
