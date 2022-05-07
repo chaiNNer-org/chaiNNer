@@ -36,14 +36,10 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
             w="full"
         >
             <Box
-                // borderLeftColor={accentColor}
-                // borderLeftWidth={8}
-                // borderStyle={subcategory === 'Iteration' ? 'double' : 'default'}
                 bg={bgColor}
                 borderRadius="6px 0 0 6px"
                 h="auto"
                 ml={2}
-                // mb={1}
                 py={1}
                 verticalAlign="middle"
                 w="full"
