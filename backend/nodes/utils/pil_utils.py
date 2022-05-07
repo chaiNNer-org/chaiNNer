@@ -1,3 +1,4 @@
+import sys
 from math import ceil, floor
 import os
 from typing import Tuple
@@ -68,8 +69,9 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
         )
 
         pimg = Image.fromarray((img * 255).astype("uint8"))
-
-        font_path = os.path.join(os.getcwd(), "backend/fonts/Roboto-Light.ttf")
+        font_path = os.path.join(
+            os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"
+        )
         font = ImageFont.truetype(font_path, 32)
         text_x = img.shape[1] // 2
         text_y = img.shape[0] - 21
