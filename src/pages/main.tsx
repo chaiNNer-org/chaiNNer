@@ -10,7 +10,7 @@ import Header from '../components/Header';
 import IteratorHelperNode from '../components/node/IteratorHelperNode';
 import IteratorNode from '../components/node/IteratorNode';
 import Node from '../components/node/Node';
-import NodeSelector from '../components/NodeSelectorPanel';
+import NodeSelector from '../components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
 import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
