@@ -74,7 +74,7 @@ def ncnn_auto_split_process(
             # # Clear VRAM
             # blob_vkallocator.clear()
             # staging_vkallocator.clear()
-            return result, current_depth
+            return result.copy(), current_depth
         except Exception as e:
             # Check to see if its actually the NCNN out of memory error
             if "failed" in str(e):
@@ -146,7 +146,7 @@ def ncnn_auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = np.zeros((out_h, out_w, c), dtype=lr_img.dtype)
+    output_img = np.zeros((out_h, out_w, c), dtype=np.float32)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[
@@ -162,4 +162,4 @@ def ncnn_auto_split_process(
         -out_h // 2 :, -out_w // 2 :, ...
     ]
 
-    return output_img, depth
+    return output_img.copy(), depth
