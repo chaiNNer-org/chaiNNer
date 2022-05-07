@@ -47,8 +47,8 @@ const NumericalInput = memo(
             <NumberInput
                 className="nodrag"
                 defaultValue={def}
-                isDisabled={isLocked || isInputLocked}
                 draggable={false}
+                isDisabled={isLocked || isInputLocked}
                 max={max ?? Infinity}
                 min={min ?? -Infinity}
                 placeholder={label}

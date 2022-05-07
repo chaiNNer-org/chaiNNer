@@ -75,9 +75,9 @@ const SliderInput = memo(
                 <NumberInput
                     className="nodrag"
                     defaultValue={def}
-                    isDisabled={isLocked}
-                    // precision={precision}
                     draggable={false}
+                    // precision={precision}
+                    isDisabled={isLocked}
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
                     placeholder={def !== undefined ? String(def) : undefined}
