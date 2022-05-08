@@ -37,9 +37,10 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { exec as _exec, spawn } from 'child_process';
-import util from 'util';
+import log from 'electron-log';
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
+import util from 'util';
 import { PythonKeys } from '../common-types';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../helpers/dependencies';
@@ -53,7 +54,7 @@ const checkSemver = (v1: string, v2: string) => {
     try {
         return !semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
     } catch (error) {
-        console.log(error);
+        log.error(error);
         return true;
     }
 };
@@ -210,7 +211,7 @@ const DependencyManager = ({
         });
 
         command.on('close', (code) => {
-            console.log(`child process exited with code ${code ?? 'null'}`);
+            log.info(`child process exited with code ${code ?? 'null'}`);
             setIsRunningShell(false);
         });
     };

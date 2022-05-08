@@ -22,6 +22,7 @@ export interface BackendRunIndividualRequest {
     inputs: InputValue[];
     isCpu: boolean;
     isFp16: boolean;
+    identifier: string;
 }
 
 /**

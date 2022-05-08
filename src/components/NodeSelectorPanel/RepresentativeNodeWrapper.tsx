@@ -5,9 +5,8 @@ import { NodeSchema } from '../../common-types';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
 
-const onDragStart = (event: DragEvent<HTMLDivElement>, nodeCategory: string, node: NodeSchema) => {
+const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
     event.dataTransfer.setData('application/reactflow/schema', JSON.stringify(node));
-    event.dataTransfer.setData('application/reactflow/category', nodeCategory);
     event.dataTransfer.setData('application/reactflow/offsetX', String(event.nativeEvent.offsetX));
     event.dataTransfer.setData('application/reactflow/offsetY', String(event.nativeEvent.offsetY));
     // eslint-disable-next-line no-param-reassign
@@ -70,7 +69,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                         setHoveredNode(null);
                     }}
                     onDragStart={(event) => {
-                        onDragStart(event, node.category, node);
+                        onDragStart(event, node);
                         setHoveredNode(null);
                     }}
                 >

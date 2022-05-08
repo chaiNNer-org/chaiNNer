@@ -31,9 +31,10 @@ interface TorchModelPreviewProps {
     category: string;
     nodeType: string;
     id: string;
+    identifier: string;
 }
 
-export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) => {
+export default memo(({ path, category, nodeType, identifier, id }: TorchModelPreviewProps) => {
     const [modelData, setModelData] = useState<ModelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -54,6 +55,7 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
                         return backend.runIndividual<ModelData | null>({
                             category,
                             node: nodeType,
+                            identifier,
                             id,
                             inputs: [path],
                             isCpu,

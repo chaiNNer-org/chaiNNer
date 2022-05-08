@@ -89,8 +89,6 @@ const convertToUsableFormat = (
         result[id].outputs = Object.values(result[id].outputs);
     });
 
-    // console.log('convert', result);
-
     return result;
 };
 interface HeaderProps {

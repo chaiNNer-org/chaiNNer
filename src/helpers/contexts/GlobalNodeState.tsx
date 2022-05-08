@@ -107,8 +107,6 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    // console.log('global state rerender');
-
     const { useSnapToGrid } = useContext(SettingsContext);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);

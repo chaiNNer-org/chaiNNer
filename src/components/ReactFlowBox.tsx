@@ -181,7 +181,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 const nodeSchema = JSON.parse(
                     event.dataTransfer.getData('application/reactflow/schema')
                 ) as NodeSchema;
-                const category = event.dataTransfer.getData('application/reactflow/category');
                 const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
                 const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
 
@@ -191,7 +190,8 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 });
 
                 const nodeData = {
-                    category,
+                    identifier: nodeSchema.identifier,
+                    category: nodeSchema.category,
                     type: nodeSchema.name,
                     icon: nodeSchema.icon,
                     subcategory: nodeSchema.subcategory,

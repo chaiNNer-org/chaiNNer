@@ -2,11 +2,11 @@ import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chak
 import path from 'path';
 import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { ipcRenderer } from '../../helpers/safeIpc';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { ipcRenderer } from '../../helpers/safeIpc';
+import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
-import { checkFileExists } from '../../helpers/util';
 
 interface FileInputProps {
     id: string;
@@ -17,10 +17,21 @@ interface FileInputProps {
     nodeType: string;
     filetypes: readonly string[];
     type: string;
+    identifier: string;
 }
 
 const FileInput = memo(
-    ({ filetypes, id, index, label, type, isLocked, category, nodeType }: FileInputProps) => {
+    ({
+        filetypes,
+        id,
+        index,
+        label,
+        type,
+        isLocked,
+        category,
+        nodeType,
+        identifier,
+    }: FileInputProps) => {
         const { useInputData, useNodeLock } = useContext(GlobalContext);
         const [filePath, setFilePath] = useInputData<string>(id, index);
 
@@ -86,6 +97,7 @@ const FileInput = memo(
                             <ImagePreview
                                 category={category}
                                 id={id}
+                                identifier={identifier}
                                 nodeType={nodeType}
                                 path={filePath}
                             />
@@ -97,6 +109,7 @@ const FileInput = memo(
                             <TorchModelPreview
                                 category={category}
                                 id={id}
+                                identifier={identifier}
                                 nodeType={nodeType}
                                 path={filePath}
                             />

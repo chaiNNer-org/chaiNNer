@@ -35,11 +35,11 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const { nodes, edges, schemata, updateIteratorBounds, useHoveredNode } =
         useContext(GlobalContext);
 
-    const { id, inputData, isLocked, category, type, parentNode } = useMemo(() => data, [data]);
+    const { id, inputData, isLocked, category, type, parentNode, identifier } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const schema = schemata.get(category, type);
+    const schema = schemata.get(identifier);
     const { inputs, outputs, icon } = schema;
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
@@ -129,6 +129,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                             accentColor={accentColor}
                             category={category}
                             id={id}
+                            identifier={identifier}
                             inputs={inputs}
                             isLocked={isLocked}
                             nodeType={type}
