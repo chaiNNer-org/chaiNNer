@@ -41,11 +41,10 @@ const convertToUsableFormat = (
     // Set up each node in the result
     nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
-        const { category, type } = data;
+        const { schemaId } = data;
         // Node
         result[id] = {
-            category,
-            node: type,
+            schemaId,
             id,
             inputs: {},
             outputs: {},
@@ -89,8 +88,6 @@ const convertToUsableFormat = (
         result[id].inputs = Object.values(result[id].inputs);
         result[id].outputs = Object.values(result[id].outputs);
     });
-
-    // console.log('convert', result);
 
     return result;
 };
@@ -204,7 +201,7 @@ const Header = ({ port }: HeaderProps) => {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
         } else {
             const nodeValidities = nodes.map((node) => {
-                const { inputs } = schemata.get(node.data.category, node.data.type);
+                const { inputs } = schemata.get(node.data.schemaId);
                 return [
                     ...checkNodeValidity({
                         id: node.id,
@@ -235,12 +232,6 @@ const Header = ({ port }: HeaderProps) => {
                     data,
                     isCpu,
                     isFp16: isFp16 && !isCpu,
-                    // We actually do not want to adjust for scaling here,
-                    // as imshow does not take that into account
-                    // resolutionX: Math.floor(window.screen.width * window.devicePixelRatio),
-                    // resolutionY: Math.floor(window.screen.height * window.devicePixelRatio),
-                    resolutionX: window.screen.width,
-                    resolutionY: window.screen.height,
                 });
                 if (response.exception) {
                     showMessageBox(AlertType.ERROR, null, response.exception);

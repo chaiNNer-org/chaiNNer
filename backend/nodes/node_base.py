@@ -10,16 +10,19 @@ class NodeBase(metaclass=ABCMeta):
         self.inputs = []
         self.outputs = []
         self.description = ""
+
+        self.category = ""
+        self.name = ""
         self.icon = ""
         self.sub = "Miscellaneous"
         self.type = "regularNode"
 
     @abstractmethod
-    def run(self, **kwargs) -> Any:
+    def run(self) -> Any:
         """Abstract method to run a node's logic"""
         return
 
-    def get_extra_data(self, **kwargs) -> Any:
+    def get_extra_data(self) -> Any:
         """Abstract method for getting extra data the frontend needs"""
         return
 
@@ -31,6 +34,12 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_description(self):
         return self.description
+
+    def get_name(self):
+        return self.name
+
+    def get_category(self):
+        return self.category
 
     def get_icon(self):
         return self.icon

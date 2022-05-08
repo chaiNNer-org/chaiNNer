@@ -13,6 +13,7 @@ interface NodeBodyProps {
     nodeType: string;
     inputs: readonly Input[];
     outputs: readonly Output[];
+    schemaId: string;
 }
 
 const NodeBody = ({
@@ -23,6 +24,7 @@ const NodeBody = ({
     isLocked,
     category,
     nodeType,
+    schemaId,
 }: NodeBodyProps) => (
     <>
         {inputs.length && (
@@ -47,6 +49,7 @@ const NodeBody = ({
             inputs={inputs}
             isLocked={isLocked}
             nodeType={nodeType}
+            schemaId={schemaId}
         />
 
         {outputs.length > 0 && (

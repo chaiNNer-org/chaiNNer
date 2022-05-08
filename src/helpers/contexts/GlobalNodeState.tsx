@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -14,7 +15,6 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import log from 'electron-log';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -155,9 +155,7 @@ export const GlobalProvider = ({
     }, [nodes, edges]);
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
-        const validNodes = savedData.nodes.filter((node) =>
-            schemata.has(node.data.category, node.data.type)
-        );
+        const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
         if (savedData.nodes.length !== validNodes.length) {
             await ipcRenderer.invoke(
                 'show-warning-message-box',
@@ -309,7 +307,7 @@ export const GlobalProvider = ({
                 data: {
                     ...data,
                     id,
-                    inputData: data.inputData ?? schemata.getDefaultInput(data.category, data.type),
+                    inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
                 },
             };
             if (parent || (hoveredNode && nodeType !== 'iterator')) {
@@ -351,15 +349,17 @@ export const GlobalProvider = ({
                     offsetLeft: 0,
                 };
 
-                const { defaultNodes = [] } = schemata.get(data.category, data.type);
-                defaultNodes.forEach(({ category, name }) => {
-                    const subNodeData = schemata.get(category, name);
+                const { defaultNodes = [] } = schemata.get(data.schemaId);
+
+                defaultNodes.forEach(({ schemaId }) => {
+                    const subNodeData = schemata.get(schemaId);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
                         data: {
-                            category,
-                            type: name,
+                            category: subNodeData.category,
+                            type: subNodeData.name,
+                            schemaId,
                             subcategory: subNodeData.subcategory,
                             icon: subNodeData.icon,
                         },
@@ -416,8 +416,8 @@ export const GlobalProvider = ({
             }
 
             // Target inputs, source outputs
-            const { outputs } = schemata.get(sourceNode.data.category, sourceNode.data.type);
-            const { inputs } = schemata.get(targetNode.data.category, targetNode.data.type);
+            const { outputs } = schemata.get(sourceNode.data.schemaId);
+            const { inputs } = schemata.get(targetNode.data.schemaId);
 
             const sourceOutput = outputs[sourceHandleIndex];
             const targetInput = inputs[targetHandleIndex];
@@ -719,7 +719,7 @@ export const GlobalProvider = ({
         const node = nodesCopy.find((n) => n.id === id);
         if (!node) return;
         const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.category, node.data.type);
+        newNode.data.inputData = schemata.getDefaultInput(node.data.schemaId);
         setNodes([...nodes.filter((n) => n.id !== id), newNode]);
     };
 
