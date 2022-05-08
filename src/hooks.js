@@ -57,9 +57,9 @@ module.exports = {
     //       `${pythonPath} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1 --no-warn-script-location`
     //     );
     //
-    //     console.log('All done');
+    //     _.log('All done');
     //   } catch (error) {
-    //     console.log('Download failed', error);
+    //     _.log('Download failed', error);
     //   }
     // },
 };

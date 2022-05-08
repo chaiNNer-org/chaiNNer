@@ -10,6 +10,8 @@ import numpy as np
 import torch
 from sanic.log import logger
 
+from .categories import PYTORCH
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -53,7 +55,7 @@ def load_state_dict(state_dict):
     return model
 
 
-@NodeFactory.register("PyTorch", "Load Model")
+@NodeFactory.register("chainner:pytorch:load_model")
 class LoadModelNode(NodeBase):
     """Load Model node"""
 
@@ -64,6 +66,8 @@ class LoadModelNode(NodeBase):
         self.inputs = [PthFileInput()]
         self.outputs = [ModelOutput(), TextOutput("Model Name")]
 
+        self.category = PYTORCH
+        self.name = "Load Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
@@ -107,7 +111,7 @@ class LoadModelNode(NodeBase):
         return self.model, basename
 
 
-@NodeFactory.register("PyTorch", "Upscale Image")
+@NodeFactory.register("chainner:pytorch:upscale_image")
 @torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     """Image Upscale node"""
@@ -119,6 +123,8 @@ class ImageUpscaleNode(NodeBase):
         self.inputs = [ModelInput(), ImageInput()]
         self.outputs = [ImageOutput("Upscaled Image")]
 
+        self.category = PYTORCH
+        self.name = "Upscale Image"
         self.icon = "PyTorch"
         self.sub = "Processing"
 
@@ -217,7 +223,7 @@ class ImageUpscaleNode(NodeBase):
         return output
 
 
-@NodeFactory.register("PyTorch", "Interpolate Models")
+@NodeFactory.register("chainner:pytorch:interpolate_models")
 class InterpolateNode(NodeBase):
     """Interpolate node"""
 
@@ -232,6 +238,8 @@ class InterpolateNode(NodeBase):
         ]
         self.outputs = [ModelOutput()]
 
+        self.category = PYTORCH
+        self.name = "Interpolate Models"
         self.icon = "BsTornado"
         self.sub = "Utility"
 
@@ -286,7 +294,7 @@ class InterpolateNode(NodeBase):
         return model
 
 
-@NodeFactory.register("PyTorch", "Save Model")
+@NodeFactory.register("chainner:pytorch:save_model")
 class PthSaveNode(NodeBase):
     """Model Save node"""
 
@@ -297,6 +305,8 @@ class PthSaveNode(NodeBase):
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
+        self.category = PYTORCH
+        self.name = "Save Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
@@ -408,7 +418,7 @@ class PthSaveNode(NodeBase):
 #         return out
 
 
-@NodeFactory.register("PyTorch", "Convert To ONNX")
+@NodeFactory.register("chainner:pytorch:convert_to_onnx")
 class ConvertTorchToONNXNode(NodeBase):
     """ONNX node"""
 
@@ -418,6 +428,9 @@ class ConvertTorchToONNXNode(NodeBase):
         self.description = "Convert a PyTorch model to ONNX (for converting to NCNN). Use convertmodel.com to convert to NCNN for now."
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
+
+        self.category = PYTORCH
+        self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
 

@@ -5,8 +5,6 @@ const rules = require('./webpack.rules');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-// console.log(`\nbuilding in ${isDevelopment ? 'development' : 'production'} mode`);
-
 rules.push({
     test: /\.css$/,
     use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
