@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -355,14 +356,15 @@ export const GlobalProvider = ({
                 };
 
                 const { defaultNodes = [] } = schemata.get(data.identifier);
-                defaultNodes.forEach(({ category, name, identifier }) => {
+
+                defaultNodes.forEach(({ identifier }) => {
                     const subNodeData = schemata.get(identifier);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
                         data: {
-                            category,
-                            type: name,
+                            category: subNodeData.category,
+                            type: subNodeData.name,
                             identifier,
                             subcategory: subNodeData.subcategory,
                             icon: subNodeData.icon,
@@ -478,13 +480,32 @@ export const GlobalProvider = ({
             const { inputData } = nodeData;
             const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
-                const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                nodeCopy.data.inputData = {
-                    ...inputData,
-                    [index]: data,
-                };
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([...filteredNodes, nodeCopy]);
+                // This is a action that might be called asynchronously, so we cannot rely on of
+                // the captured data from `nodes` to be up-to-date anymore. For that reason, we
+                // must derive any changes to nodes from the previous value passed to us by
+                // `setNodes`.
+
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                setNodes((nodes) => {
+                    // eslint-disable-next-line @typescript-eslint/no-shadow
+                    const nodeById = nodes.find((node) => node.id === id);
+                    if (!nodeById) {
+                        log.error(
+                            'A (deferred) setInputData was called after its node had been removed'
+                        );
+                        return nodes;
+                    }
+
+                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
+                    if (nodeCopy && nodeCopy.data) {
+                        nodeCopy.data.inputData = {
+                            ...inputData,
+                            [index]: data,
+                        };
+                    }
+                    const filteredNodes = nodes.filter((n) => n.id !== id);
+                    return [...filteredNodes, nodeCopy];
+                });
             };
             return [inputDataByIndex, setInputData] as const;
         },

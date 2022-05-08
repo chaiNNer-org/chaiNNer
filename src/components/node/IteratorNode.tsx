@@ -33,6 +33,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         isLocked,
         category,
         type,
+        identifier,
         iteratorSize,
         maxWidth,
         maxHeight,
@@ -41,7 +42,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const { inputs, outputs, icon } = schemata.get(category, type);
+    const { inputs, outputs, icon } = schemata.get(identifier);
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
@@ -105,6 +106,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                         accentColor={accentColor}
                         category={category}
                         id={id}
+                        identifier={identifier}
                         inputs={inputs}
                         isLocked={isLocked}
                         nodeType={type}
