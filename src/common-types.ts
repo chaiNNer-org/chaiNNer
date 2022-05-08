@@ -57,11 +57,7 @@ export interface DefaultNode {
 export interface NodeData {
     readonly id: string;
     readonly parentNode?: string;
-    readonly category: string;
-    readonly subcategory: string;
-    readonly icon: string;
     readonly schemaId: string;
-    readonly type: string;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
     readonly invalid?: boolean;
@@ -88,4 +84,12 @@ export interface UsableData {
     children?: string[];
     nodeType: string | undefined;
     percent?: number;
+}
+
+export interface NodeSaveData {
+    readonly id: string;
+    readonly parentNode?: string;
+    readonly schemaId: string;
+    readonly inputData: InputData;
+    readonly iteratorSize?: IteratorSize;
 }

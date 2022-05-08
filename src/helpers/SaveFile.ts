@@ -1,12 +1,12 @@
+import { createHash } from 'crypto';
 import { readFile, writeFile } from 'fs/promises';
 import { Edge, Node, Viewport } from 'react-flow-renderer';
-import { createHash } from 'crypto';
 import semver from 'semver';
-import { EdgeData, NodeData } from '../common-types';
+import { EdgeData, NodeSaveData } from '../common-types';
 import { migrate } from './migrations';
 
 export interface SaveData {
-    nodes: Node<NodeData>[];
+    nodes: Node<NodeSaveData>[];
     edges: Edge<EdgeData>[];
     viewport: Viewport;
 }
