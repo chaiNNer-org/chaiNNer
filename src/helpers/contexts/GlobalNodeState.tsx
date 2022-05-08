@@ -71,7 +71,6 @@ interface Global {
         | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
     duplicateNode: (id: string) => void;
     clearNode: (id: string) => void;
-    outlineInvalidNodes: (invalidNodes: readonly Node<NodeData>[]) => void;
     zoom: number;
     onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
@@ -150,6 +149,21 @@ export const GlobalProvider = ({
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
     const [, , snapToGridAmount] = useSnapToGrid;
+
+    const modifyNode = useCallback(
+        (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (!node) {
+                    log.error(`Cannot modify missing node with id ${id}`);
+                    return nodes;
+                }
+                const newNode = mapFn(node);
+                return [...nodes.filter((n) => n.id !== id), newNode];
+            });
+        },
+        [setNodes]
+    );
 
     const dumpState = useCallback((): SaveData => {
         return {
@@ -287,13 +301,15 @@ export const GlobalProvider = ({
 
     const removeNodeById = useCallback(
         (id: string) => {
-            const node = nodes.find((n) => n.id === id);
-            if (node && node.type !== 'iteratorHelper') {
-                const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                setNodes(newNodes);
-            }
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (node && node.type !== 'iteratorHelper') {
+                    return nodes.filter((n) => n.id !== id && n.parentNode !== id);
+                }
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const removeEdgeById = useCallback(
@@ -467,27 +483,18 @@ export const GlobalProvider = ({
                 // must derive any changes to nodes from the previous value passed to us by
                 // `setNodes`.
 
-                setNodes((nodes) => {
-                    const nodeById = nodes.find((node) => node.id === id);
-                    if (!nodeById) {
-                        log.error(
-                            'A (deferred) setInputData was called after its node had been removed'
-                        );
-                        return nodes;
-                    }
-
-                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
+                modifyNode(id, (old) => {
+                    const nodeCopy = copyNode(old);
                     nodeCopy.data.inputData = {
-                        ...inputData,
+                        ...nodeCopy.data.inputData,
                         [index]: data,
                     };
-                    const filteredNodes = nodes.filter((n) => n.id !== id);
-                    return [...filteredNodes, nodeCopy];
+                    return nodeCopy;
                 });
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, setNodes, schemata]
+        [nodes, modifyNode, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
@@ -552,11 +559,14 @@ export const GlobalProvider = ({
             }
             const isLocked = node.data.isLocked ?? false;
             const toggleLock = () => {
-                const newNode = copyNode(node);
-                newNode.draggable = isLocked;
-                newNode.connectable = isLocked;
-                newNode.data.isLocked = !isLocked;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
+                modifyNode(id, (old) => {
+                    const isLocked = old.data.isLocked ?? false;
+                    const newNode = copyNode(old);
+                    newNode.draggable = isLocked;
+                    newNode.connectable = isLocked;
+                    newNode.data.isLocked = !isLocked;
+                    return newNode;
+                });
             };
 
             let isInputLocked = false;
@@ -571,7 +581,7 @@ export const GlobalProvider = ({
             }
             return [isLocked, toggleLock, isInputLocked] as const;
         },
-        [nodes, edges, setNodes]
+        [nodes, edges, modifyNode]
     );
 
     const useIteratorSize = useCallback(
@@ -579,18 +589,16 @@ export const GlobalProvider = ({
             const defaultSize: Size = { width: 480, height: 480 };
 
             const setIteratorSize = (size: IteratorSize) => {
-                setNodes((nodes) => {
-                    // TODO: What happens when the node wasn't found?
-                    const node = nodes.find((n) => n.id === id)!;
-                    const newNode = copyNode(node);
+                modifyNode(id, (old) => {
+                    const newNode = copyNode(old);
                     newNode.data.iteratorSize = size;
-                    return [...nodes.filter((n) => n.id !== id), newNode];
+                    return newNode;
                 });
             };
 
             return [setIteratorSize, defaultSize] as const;
         },
-        [setNodes]
+        [modifyNode]
     );
 
     // TODO: this can probably be cleaned up but its good enough for now
@@ -652,18 +660,13 @@ export const GlobalProvider = ({
 
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
-            setNodes((nodes) => {
-                const iterator = nodes.find((n) => n.id === id);
-                if (iterator) {
-                    const newIterator = copyNode(iterator);
-                    newIterator.data.percentComplete = percent;
-                    const filteredNodes = nodes.filter((n) => n.id !== id);
-                    return [newIterator, ...filteredNodes];
-                }
-                return nodes;
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.percentComplete = percent;
+                return newNode;
             });
         },
-        [setNodes]
+        [modifyNode]
     );
 
     const duplicateNode = useCallback(
@@ -733,47 +736,28 @@ export const GlobalProvider = ({
         [nodes, edges]
     );
 
-    const clearNode = (id: string) => {
-        const nodesCopy = [...nodes];
-        const node = nodesCopy.find((n) => n.id === id);
-        if (!node) return;
-        const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.category, node.data.type);
-        setNodes([...nodes.filter((n) => n.id !== id), newNode]);
-    };
-
-    const outlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = true;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
-
-    const unOutlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = false;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
+    const clearNode = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.inputData = schemata.getDefaultInput(old.data.category, old.data.type);
+                return newNode;
+            });
+        },
+        [modifyNode]
+    );
 
     const [zoom, setZoom] = useState(1);
-    const onMoveEnd = (event: unknown, viewport: Viewport) => {
-        setZoom(viewport.zoom);
-    };
+    const onMoveEnd = useCallback(
+        (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
+        [setZoom]
+    );
 
     const addMenuCloseFunction = useCallback(
         (func: () => void, id: string) => {
-            const menuFuncs = { ...menuCloseFunctions };
-            menuFuncs[id] = func;
-            setMenuCloseFunctions(menuFuncs);
+            setMenuCloseFunctions((menuCloseFunctions) => ({ ...menuCloseFunctions, [id]: func }));
         },
-        [menuCloseFunctions, setMenuCloseFunctions]
+        [setMenuCloseFunctions]
     );
 
     const closeAllMenus = useCallback(() => {
@@ -805,9 +789,6 @@ export const GlobalProvider = ({
             useNodeLock,
             duplicateNode,
             clearNode,
-            // setSelectedElements,
-            outlineInvalidNodes,
-            unOutlineInvalidNodes,
             zoom,
             onMoveEnd,
             useIteratorSize,
