@@ -69,7 +69,7 @@ class LoadModelNode(NodeBase):
         self.category = PYTORCH
         self.name = "Load Model"
         self.icon = "PyTorch"
-        self.sub = "Load Model"
+        self.sub = "Input & Output"
 
     def get_extra_data(self) -> Dict:
         if "SRVGG" in self.model.model_type:
