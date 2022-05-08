@@ -10,7 +10,7 @@ const BLANK_SCHEMA: NodeSchema = {
     name: '',
     description: '',
     nodeType: '',
-    identifier: '',
+    schemaId: '',
 };
 
 // eslint-disable-next-line import/prefer-default-export
@@ -22,24 +22,24 @@ export class SchemaMap {
     constructor(schemata: readonly NodeSchema[]) {
         // defensive copy
         this.schemata = [...schemata];
-        this.lookup = new Map<string, NodeSchema>(schemata.map((n) => [n.identifier, n] as const));
+        this.lookup = new Map<string, NodeSchema>(schemata.map((n) => [n.schemaId, n] as const));
     }
 
-    has(identifier: string): boolean {
-        return this.lookup.has(identifier);
+    has(schemaId: string): boolean {
+        return this.lookup.has(schemaId);
     }
 
-    get(identifier: string, defaultValue = BLANK_SCHEMA): NodeSchema {
-        const schema: NodeSchema | undefined = this.lookup.get(identifier);
+    get(schemaId: string, defaultValue = BLANK_SCHEMA): NodeSchema {
+        const schema: NodeSchema | undefined = this.lookup.get(schemaId);
         if (schema === undefined) {
-            log.warn(`Unknown node schema ${identifier}. Returning blank schema.`);
+            log.warn(`Unknown node schema ${schemaId}. Returning blank schema.`);
         }
         return schema ?? defaultValue;
     }
 
-    getDefaultInput(identifier: string): InputData {
+    getDefaultInput(schemaId: string): InputData {
         const defaultData: Record<number, InputValue> = {};
-        const { inputs } = this.get(identifier);
+        const { inputs } = this.get(schemaId);
         inputs.forEach((input, i) => {
             if (input.def || input.def === 0) {
                 defaultData[i] = input.def;

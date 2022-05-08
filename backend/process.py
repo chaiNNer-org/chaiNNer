@@ -75,7 +75,7 @@ class Executor:
         if self.should_stop_running():
             return None
         # Create node based on given category/name information
-        node_instance = NodeFactory.create_node(node["identifier"])
+        node_instance = NodeFactory.create_node(node["schemaId"])
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
             sub_nodes = {}

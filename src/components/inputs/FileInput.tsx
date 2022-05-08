@@ -17,7 +17,7 @@ interface FileInputProps {
     nodeType: string;
     filetypes: readonly string[];
     type: string;
-    identifier: string;
+    schemaId: string;
 }
 
 const FileInput = memo(
@@ -30,7 +30,7 @@ const FileInput = memo(
         isLocked,
         category,
         nodeType,
-        identifier,
+        schemaId,
     }: FileInputProps) => {
         const { useInputData, useNodeLock } = useContext(GlobalContext);
         const [filePath, setFilePath] = useInputData<string>(id, index);
@@ -97,9 +97,9 @@ const FileInput = memo(
                             <ImagePreview
                                 category={category}
                                 id={id}
-                                identifier={identifier}
                                 nodeType={nodeType}
                                 path={filePath}
+                                schemaId={schemaId}
                             />
                         </Box>
                     );
@@ -109,9 +109,9 @@ const FileInput = memo(
                             <TorchModelPreview
                                 category={category}
                                 id={id}
-                                identifier={identifier}
                                 nodeType={nodeType}
                                 path={filePath}
+                                schemaId={schemaId}
                             />
                         </Box>
                     );

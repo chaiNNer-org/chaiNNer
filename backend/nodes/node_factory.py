@@ -13,20 +13,20 @@ class NodeFactory:
     """ Internal registry for available nodes """
 
     @classmethod
-    def create_node(cls, identifier: str) -> NodeBase:
+    def create_node(cls, schema_id: str) -> NodeBase:
         """Factory command to create the node"""
 
-        node_class = cls.registry[identifier]
+        node_class = cls.registry[schema_id]
         node = node_class()
         return node
 
     @classmethod
-    def register(cls, identifier: str) -> Callable:
+    def register(cls, schema_id: str) -> Callable:
         def inner_wrapper(wrapped_class: NodeBase) -> Callable:
-            if identifier not in cls.registry:
-                cls.registry[identifier] = wrapped_class
+            if schema_id not in cls.registry:
+                cls.registry[schema_id] = wrapped_class
             else:
-                logger.warning(f"Node {identifier} already exists. Will replace it")
+                logger.warning(f"Node {schema_id} already exists. Will replace it")
             return wrapped_class
 
         return inner_wrapper

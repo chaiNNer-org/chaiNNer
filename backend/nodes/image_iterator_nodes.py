@@ -71,7 +71,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "identifier": IMAGE_ITERATOR_NODE_ID,
+                "schemaId": IMAGE_ITERATOR_NODE_ID,
             },
         ]
 
@@ -92,10 +92,10 @@ class ImageFileIteratorNode(IteratorNodeBase):
         img_path_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if v["identifier"] == IMAGE_ITERATOR_NODE_ID:
-                img_path_node_id = v["identifier"]
+            if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
+                img_path_node_id = v["schemaId"]
             if nodes[k]["child"]:
-                child_nodes.append(v["identifier"])
+                child_nodes.append(v["schemaId"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
@@ -229,10 +229,10 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "identifier": VIDEO_ITERATOR_INPUT_NODE_ID,
+                "schemaId": VIDEO_ITERATOR_INPUT_NODE_ID,
             },
             {
-                "identifier": VIDEO_ITERATOR_OUTPUT_NODE_ID,
+                "schemaId": VIDEO_ITERATOR_OUTPUT_NODE_ID,
             },
         ]
 
@@ -258,12 +258,12 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         output_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if v["identifier"] == VIDEO_ITERATOR_INPUT_NODE_ID:
-                input_node_id = v["identifier"]
-            elif v["identifier"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
-                output_node_id = v["identifier"]
+            if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
+                input_node_id = v["schemaId"]
+            elif v["schemaId"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
+                output_node_id = v["schemaId"]
             if nodes[k]["child"]:
-                child_nodes.append(v["identifier"])
+                child_nodes.append(v["schemaId"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 

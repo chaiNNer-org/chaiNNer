@@ -102,10 +102,10 @@ async def nodes(_):
         ),
     )
     node_list = []
-    for identifier, _node_class in sorted_registry:
-        node_object = NodeFactory.create_node(identifier)
+    for schema_id, _node_class in sorted_registry:
+        node_object = NodeFactory.create_node(schema_id)
         node_dict = {
-            "identifier": identifier,
+            "schemaId": schema_id,
             "name": node_object.get_name(),
             "category": node_object.get_category(),
             "inputs": node_object.get_inputs(),
@@ -184,7 +184,7 @@ async def run_individual(request: Request):
     os.environ["isFp16"] = "False" if full_data["isCpu"] else str(full_data["isFp16"])
     logger.info(f"Using device: {os.environ['device']}")
     # Create node based on given category/name information
-    node_instance = NodeFactory.create_node(full_data["identifier"])
+    node_instance = NodeFactory.create_node(full_data["schemaId"])
     # Run the node and pass in inputs as args
     run_func = functools.partial(node_instance.run, *full_data["inputs"])
     output = await app.loop.run_in_executor(None, run_func)

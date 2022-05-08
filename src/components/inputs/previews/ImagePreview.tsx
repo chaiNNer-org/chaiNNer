@@ -30,10 +30,10 @@ interface ImagePreviewProps {
     category: string;
     nodeType: string;
     id: string;
-    identifier: string;
+    schemaId: string;
 }
 
-export default memo(({ path, category, nodeType, identifier, id }: ImagePreviewProps) => {
+export default memo(({ path, category, nodeType, schemaId, id }: ImagePreviewProps) => {
     const [img, setImg] = useState<ImageObject | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +54,7 @@ export default memo(({ path, category, nodeType, identifier, id }: ImagePreviewP
                         return backend.runIndividual<ImageObject | null>({
                             category,
                             node: nodeType,
-                            identifier,
+                            schemaId,
                             id,
                             inputs: [path],
                             isCpu,

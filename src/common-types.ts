@@ -45,13 +45,13 @@ export interface NodeSchema {
     readonly inputs: Input[];
     readonly outputs: Output[];
     readonly defaultNodes?: DefaultNode[];
-    readonly identifier: string;
+    readonly schemaId: string;
 }
 
 export interface DefaultNode {
     // Default nodes aren't currently used
     __SPECIAL: never;
-    identifier: string;
+    schemaId: string;
 }
 
 export interface NodeData {
@@ -60,7 +60,7 @@ export interface NodeData {
     readonly category: string;
     readonly subcategory: string;
     readonly icon: string;
-    readonly identifier: string;
+    readonly schemaId: string;
     readonly type: string;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
@@ -81,7 +81,7 @@ export interface PythonKeys {
 
 export interface UsableData {
     id: string;
-    identifier: string;
+    schemaId: string;
     inputs: Record<number, InputValue | null>;
     outputs: Record<number, InputValue>;
     child: boolean;

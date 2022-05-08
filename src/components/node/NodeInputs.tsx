@@ -21,7 +21,7 @@ interface InputProps extends Input {
     category: string;
     nodeType: string;
     hasHandle?: boolean;
-    identifier: string;
+    schemaId: string;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -108,7 +108,7 @@ interface NodeInputsProps {
     isLocked?: boolean;
     category: string;
     nodeType: string;
-    identifier: string;
+    schemaId: string;
 }
 
 const NodeInputs = ({
@@ -118,7 +118,7 @@ const NodeInputs = ({
     isLocked,
     category,
     nodeType,
-    identifier,
+    schemaId,
 }: NodeInputsProps) => (
     <>
         {inputs.map((input, i) => {
@@ -131,7 +131,7 @@ const NodeInputs = ({
                 isLocked,
                 category,
                 nodeType,
-                identifier,
+                schemaId,
             };
             return pickInput(input.type, props);
         })}

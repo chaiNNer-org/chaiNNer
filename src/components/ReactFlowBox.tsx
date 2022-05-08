@@ -190,7 +190,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 });
 
                 const nodeData = {
-                    identifier: nodeSchema.identifier,
+                    schemaId: nodeSchema.schemaId,
                     category: nodeSchema.category,
                     type: nodeSchema.name,
                     icon: nodeSchema.icon,
