@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -76,7 +77,11 @@ interface Global {
     useIteratorSize: (
         id: string
     ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
-    updateIteratorBounds: (id: string, iteratorSize: IteratorSize, dimensions?: Size) => void;
+    updateIteratorBounds: (
+        id: string,
+        iteratorSize: IteratorSize | null,
+        dimensions?: Size
+    ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
     closeAllMenus: () => void;
     useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
@@ -301,7 +306,6 @@ export const GlobalProvider = ({
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => edges.filter((e) => e.id !== id));
         },
         [setEdges]
@@ -400,7 +404,6 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => [
                 ...edges.filter((edge) => edge.targetHandle !== targetHandle),
                 newEdge,
@@ -487,9 +490,7 @@ export const GlobalProvider = ({
                 // must derive any changes to nodes from the previous value passed to us by
                 // `setNodes`.
 
-                // eslint-disable-next-line @typescript-eslint/no-shadow
                 setNodes((nodes) => {
-                    // eslint-disable-next-line @typescript-eslint/no-shadow
                     const nodeById = nodes.find((node) => node.id === id);
                     if (!nodeById) {
                         log.error(
@@ -516,7 +517,6 @@ export const GlobalProvider = ({
 
     const useAnimateEdges = useCallback(() => {
         const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => {
                 if (nodeIdsToAnimate) {
                     const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
@@ -535,7 +535,6 @@ export const GlobalProvider = ({
             setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
@@ -552,7 +551,6 @@ export const GlobalProvider = ({
         };
 
         const clearCompleteEdges = () => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
@@ -604,73 +602,93 @@ export const GlobalProvider = ({
     const useIteratorSize = useCallback(
         (id: string) => {
             const defaultSize: Size = { width: 480, height: 480 };
-            // TODO: What happens when the node wasn't found?
-            const node = nodes.find((n) => n.id === id)!;
 
             const setIteratorSize = (size: IteratorSize) => {
-                const newNode = copyNode(node);
-                newNode.data.iteratorSize = size;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
+                setNodes((nodes) => {
+                    // TODO: What happens when the node wasn't found?
+                    const node = nodes.find((n) => n.id === id)!;
+                    const newNode = copyNode(node);
+                    newNode.data.iteratorSize = size;
+                    return [...nodes.filter((n) => n.id !== id), newNode];
+                });
             };
 
             return [setIteratorSize, defaultSize] as const;
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     // TODO: this can probably be cleaned up but its good enough for now
     const updateIteratorBounds = useCallback(
-        (id: string, iteratorSize: IteratorSize, dimensions?: Size) => {
-            const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
-            const iteratorNode = nodes.find((n) => n.id === id);
-            if (iteratorNode && nodesToUpdate.length > 0) {
-                const { width, height, offsetTop, offsetLeft } = iteratorSize;
-                let maxWidth = 256;
-                let maxHeight = 256;
-                nodesToUpdate.forEach((n) => {
-                    maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
-                    maxHeight = Math.max(n.height ?? dimensions?.height ?? maxHeight, maxHeight);
-                });
-                const newNodes = nodesToUpdate.map((n) => {
-                    const newNode: Node<NodeData> = { ...n };
-                    const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
-                    const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
-                    newNode.extent = [
-                        [offsetLeft, offsetTop],
-                        [wBound, hBound],
-                    ];
-                    newNode.position.x = Math.min(Math.max(newNode.position.x, offsetLeft), wBound);
-                    newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
-                    return newNode;
-                });
-                const newIteratorNode = copyNode(iteratorNode);
+        (id: string, iteratorSize: IteratorSize | null, dimensions?: Size) => {
+            setNodes((nodes) => {
+                const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
+                const iteratorNode = nodes.find((n) => n.id === id);
+                if (iteratorNode && nodesToUpdate.length > 0) {
+                    const { width, height, offsetTop, offsetLeft } =
+                        iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
+                    let maxWidth = 256;
+                    let maxHeight = 256;
+                    nodesToUpdate.forEach((n) => {
+                        maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
+                        maxHeight = Math.max(
+                            n.height ?? dimensions?.height ?? maxHeight,
+                            maxHeight
+                        );
+                    });
+                    const newNodes = nodesToUpdate.map((n) => {
+                        const newNode = copyNode(n);
+                        const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
+                        const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
+                        newNode.extent = [
+                            [offsetLeft, offsetTop],
+                            [wBound, hBound],
+                        ];
+                        newNode.position.x = Math.min(
+                            Math.max(newNode.position.x, offsetLeft),
+                            wBound
+                        );
+                        newNode.position.y = Math.min(
+                            Math.max(newNode.position.y, offsetTop),
+                            hBound
+                        );
+                        return newNode;
+                    });
+                    const newIteratorNode = copyNode(iteratorNode);
 
-                newIteratorNode.data.maxWidth = maxWidth;
-                newIteratorNode.data.maxHeight = maxHeight;
-                // TODO: prove that those non-null assertions are valid or make them unnecessary
-                newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
-                newIteratorNode.data.iteratorSize!.height = height < maxHeight ? maxHeight : height;
-                setNodes([
-                    newIteratorNode,
-                    ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
-                    ...newNodes,
-                ]);
-            }
+                    newIteratorNode.data.maxWidth = maxWidth;
+                    newIteratorNode.data.maxHeight = maxHeight;
+                    // TODO: prove that those non-null assertions are valid or make them unnecessary
+                    newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
+                    newIteratorNode.data.iteratorSize!.height =
+                        height < maxHeight ? maxHeight : height;
+                    return [
+                        newIteratorNode,
+                        ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
+                        ...newNodes,
+                    ];
+                }
+
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
-            const iterator = nodes.find((n) => n.id === id);
-            if (iterator) {
-                const newIterator = copyNode(iterator);
-                newIterator.data.percentComplete = percent;
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([newIterator, ...filteredNodes]);
-            }
+            setNodes((nodes) => {
+                const iterator = nodes.find((n) => n.id === id);
+                if (iterator) {
+                    const newIterator = copyNode(iterator);
+                    newIterator.data.percentComplete = percent;
+                    const filteredNodes = nodes.filter((n) => n.id !== id);
+                    return [newIterator, ...filteredNodes];
+                }
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const duplicateNode = useCallback(
