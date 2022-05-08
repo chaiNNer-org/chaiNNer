@@ -21,7 +21,15 @@ try:
     if platform.system() == "Linux":
         os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
-    from nodes import image_iterator_nodes, image_nodes
+    from nodes import (
+        image_iterator_nodes,
+        image_nodes,
+        image_adj_nodes,
+        image_dim_nodes,
+        image_filter_nodes,
+        image_util_nodes,
+        image_chan_nodes,
+    )
 except Exception as e:
     logger.warning(e)
     logger.info("OpenCV most likely not installed")
