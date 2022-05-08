@@ -11,7 +11,6 @@ import torch
 from sanic.log import logger
 
 from .categories import PYTORCH
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -73,7 +72,7 @@ class LoadModelNode(NodeBase):
 
     def get_extra_data(self) -> Dict:
         if "SRVGG" in self.model.model_type:
-            size = [f"{self.model.num_feat}nf", f"{self.model.num_convs}nc"]
+            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]
         else:
             size = [
                 f"{self.model.num_filters}nf",
