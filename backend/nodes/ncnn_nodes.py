@@ -11,6 +11,8 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
+from categories import NCNN
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -19,7 +21,7 @@ from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
 
 
-@NodeFactory.register("NCNN", "Load Model")
+@NodeFactory.register("chainner.ncnn.load_model")
 class NcnnLoadModelNode(NodeBase):
     """NCNN load model node"""
 
@@ -29,6 +31,9 @@ class NcnnLoadModelNode(NodeBase):
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
         self.outputs = [NcnnNetOutput(), TextOutput("Model Name")]
+
+        self.category = NCNN
+        self.name = "Load Model"
         self.icon = "NCNN"
         self.sub = "NCNN"
 
@@ -92,7 +97,7 @@ class NcnnLoadModelNode(NodeBase):
         return (param_path, bin_data, input_name, output_name), model_name
 
 
-@NodeFactory.register("NCNN", "Upscale Image")
+@NodeFactory.register("chainner.ncnn.upscale_image")
 class NcnnUpscaleImageNode(NodeBase):
     """NCNN node"""
 
@@ -102,6 +107,8 @@ class NcnnUpscaleImageNode(NodeBase):
         self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
         self.inputs = [NcnnNetInput(), ImageInput()]
         self.outputs = [ImageOutput()]
+        self.category = NCNN
+        self.name = "Upscale Image"
         self.icon = "NCNN"
         self.sub = "NCNN"
 
@@ -217,7 +224,7 @@ class NcnnUpscaleImageNode(NodeBase):
         return output
 
 
-@NodeFactory.register("NCNN", "Interpolate Models")
+@NodeFactory.register("chainner.ncnn.interpolate_models")
 class NcnnInterpolateModelsNode(NodeBase):
     """NCNN interpolate models node"""
 
@@ -232,6 +239,8 @@ class NcnnInterpolateModelsNode(NodeBase):
         ]
         self.outputs = [NcnnNetOutput()]
 
+        self.category = NCNN
+        self.name = "Interpolate Models"
         self.icon = "BsTornado"
         self.sub = "Utility"
 
@@ -284,7 +293,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         return [(param_path_a, interp_bin_data, input_name_a, output_name_a)]
 
 
-@NodeFactory.register("NCNN", "Save Model")
+@NodeFactory.register("chainner.ncnn.save_model")
 class NcnnSaveNode(NodeBase):
     """Model Save node"""
 
@@ -295,6 +304,8 @@ class NcnnSaveNode(NodeBase):
         self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
         self.outputs = []
 
+        self.category = NCNN
+        self.name = "Save Model"
         self.icon = "NCNN"
         self.sub = "NCNN"
 
