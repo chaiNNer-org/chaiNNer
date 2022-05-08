@@ -51,8 +51,6 @@ export interface NodeSchema {
 export interface DefaultNode {
     // Default nodes aren't currently used
     __SPECIAL: never;
-    category: string;
-    name: string;
     identifier: string;
 }
 
