@@ -132,8 +132,6 @@ const IteratorNodeBody = ({
                     height: (height < maxHeight ? maxHeight : height) + d.height,
                 };
                 setIteratorSize(size);
-                console.log('Update node body');
-
                 updateIteratorBounds(id, size);
             }}
         >
