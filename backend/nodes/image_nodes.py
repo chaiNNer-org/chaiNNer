@@ -15,16 +15,11 @@ import numpy as np
 from sanic.log import logger
 
 from .categories import IMAGE
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import (
-    get_opencv_formats,
-    get_pil_formats,
-    normalize,
-)
+from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 
 

@@ -14,3 +14,15 @@ NCNN = "NCNN"
 
 # Utility
 UTILITY = "Utility"
+
+category_order = [
+    IMAGE,
+    IMAGE_DIMENSION,
+    IMAGE_ADJUSTMENT,
+    IMAGE_FILTER,
+    IMAGE_UTILITY,
+    IMAGE_CHANNEL,
+    PYTORCH,
+    NCNN,
+    UTILITY,
+]

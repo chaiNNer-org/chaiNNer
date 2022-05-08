@@ -13,6 +13,8 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
+from nodes.categories import category_order
+
 try:
     # pylint: disable=unused-import
     import cv2
@@ -21,14 +23,15 @@ try:
     if platform.system() == "Linux":
         os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
+    # pylint: disable=ungrouped-imports
     from nodes import (
-        image_iterator_nodes,
-        image_nodes,
         image_adj_nodes,
+        image_chan_nodes,
         image_dim_nodes,
         image_filter_nodes,
+        image_iterator_nodes,
+        image_nodes,
         image_util_nodes,
-        image_chan_nodes,
     )
 except Exception as e:
     logger.warning(e)
@@ -89,8 +92,17 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
+    logger.info(category_order)
+
+    # sort nodes in category order
+    sorted_registry = sorted(
+        registry.items(),
+        key=lambda x: category_order.index(
+            NodeFactory.create_node(x[0]).get_category()
+        ),
+    )
     node_list = []
-    for identifier, _node_class in registry.items():
+    for identifier, _node_class in sorted_registry:
         node_object = NodeFactory.create_node(identifier)
         node_dict = {
             "identifier": identifier,
