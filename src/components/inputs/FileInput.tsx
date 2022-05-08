@@ -2,11 +2,11 @@ import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chak
 import path from 'path';
 import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { ipcRenderer } from '../../helpers/safeIpc';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { ipcRenderer } from '../../helpers/safeIpc';
+import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
-import { checkFileExists } from '../../helpers/util';
 
 interface FileInputProps {
     id: string;
@@ -17,10 +17,21 @@ interface FileInputProps {
     nodeType: string;
     filetypes: readonly string[];
     type: string;
+    schemaId: string;
 }
 
 const FileInput = memo(
-    ({ filetypes, id, index, label, type, isLocked, category, nodeType }: FileInputProps) => {
+    ({
+        filetypes,
+        id,
+        index,
+        label,
+        type,
+        isLocked,
+        category,
+        nodeType,
+        schemaId,
+    }: FileInputProps) => {
         const { useInputData, useNodeLock } = useContext(GlobalContext);
         const [filePath, setFilePath] = useInputData<string>(id, index);
 
@@ -63,7 +74,7 @@ const FileInput = memo(
             const fileFilter = [
                 {
                     name: label,
-                    extensions: filetypes.map((e) => e.replace('.', '')) ?? ['*'],
+                    extensions: filetypes.map((e) => e.replace('.', '')),
                 },
             ];
             const { canceled, filePaths } = await ipcRenderer.invoke(
@@ -88,6 +99,7 @@ const FileInput = memo(
                                 id={id}
                                 nodeType={nodeType}
                                 path={filePath}
+                                schemaId={schemaId}
                             />
                         </Box>
                     );
@@ -99,6 +111,7 @@ const FileInput = memo(
                                 id={id}
                                 nodeType={nodeType}
                                 path={filePath}
+                                schemaId={schemaId}
                             />
                         </Box>
                     );

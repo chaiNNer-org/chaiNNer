@@ -11,36 +11,42 @@ interface RepresentativeNodeProps {
 }
 
 const RepresentativeNode = ({ category, subcategory, type, icon }: RepresentativeNodeProps) => {
+    const bgColor = useColorModeValue('gray.300', 'gray.700');
     const borderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
 
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.700')}
+            _hover={{
+                borderColor: accentColor,
+            }}
+            bg={subcategory === 'Iteration' ? 'none' : accentColor}
+            bgGradient={
+                subcategory === 'Iteration'
+                    ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
+                    : 'none'
+            }
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
-            py={2}
+            overflow="hidden"
             transition="0.15s ease-in-out"
-            w="full"
             // opacity="0.95"
+            w="full"
         >
             <Box
-                borderBottomColor={accentColor}
-                borderBottomWidth="4px"
-                borderStyle={subcategory === 'Iteration' ? 'double' : 'default'}
+                bg={bgColor}
+                borderRadius="6px 0 0 6px"
                 h="auto"
+                ml={2}
+                py={1}
                 verticalAlign="middle"
                 w="full"
             >
                 <HStack
-                    mb={-1}
-                    mt={-1}
                     overflow="hidden"
-                    pb={2}
-                    pl={4}
-                    pr={4}
+                    pl={2}
                     textOverflow="ellipsis"
                     verticalAlign="middle"
                 >
@@ -53,10 +59,11 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                     >
                         {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
                     </Center>
-                    <Center
+                    <Box
                         overflow="hidden"
                         textOverflow="ellipsis"
                         verticalAlign="middle"
+                        w="full"
                     >
                         <Heading
                             alignContent="center"
@@ -67,14 +74,15 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                             overflow="hidden"
                             p={0}
                             size="sm"
-                            textAlign="center"
+                            textAlign="left"
                             textOverflow="ellipsis"
                             verticalAlign="middle"
+                            w="90%"
                             whiteSpace="nowrap"
                         >
                             {type.toUpperCase()}
                         </Heading>
-                    </Center>
+                    </Box>
                 </HStack>
             </Box>
         </Center>

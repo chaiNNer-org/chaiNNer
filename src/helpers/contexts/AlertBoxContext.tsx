@@ -89,11 +89,11 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
                     <Button
                         colorScheme="red"
                         ml={3}
+                        ref={cancelRef}
                         onClick={() => {
                             window.close();
                             app.quit();
                         }}
-                        ref={cancelRef}
                     >
                         Exit Application
                     </Button>

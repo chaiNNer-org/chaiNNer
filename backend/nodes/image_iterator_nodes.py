@@ -5,6 +5,7 @@ import numpy as np
 from process import Executor
 from sanic.log import logger
 
+from .categories import IMAGE
 from .image_nodes import ImReadNode
 from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
@@ -12,15 +13,15 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_available_image_formats
 
-IMAGE_ITERATOR_DEFAULT_NODE_NAME = "Load Image (Iterator)"
+IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
-VIDEO_ITERATOR_DEFAULT_INPUT_NODE_NAME = "Input Frame"
-VIDEO_ITERATOR_DEFAULT_OUTPUT_NODE_NAME = "Output Frame"
+VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
+VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
 
 
-@NodeFactory.register("Image", IMAGE_ITERATOR_DEFAULT_NODE_NAME)
-class ImageFileIteratorPathNode(NodeBase):
-    """Image File Iterator node"""
+@NodeFactory.register(IMAGE_ITERATOR_NODE_ID)
+class ImageFileIteratorLoadImageNode(NodeBase):
+    """Image File Iterator Load Image node"""
 
     def __init__(self):
         """Constructor"""
@@ -31,6 +32,9 @@ class ImageFileIteratorPathNode(NodeBase):
         self.outputs.insert(
             2, TextOutput("Relative Path")
         )  # Add relative path to outputs outside ImReadNode
+
+        self.category = IMAGE
+        self.name = "Load Image (Iterator)"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
@@ -50,7 +54,7 @@ class ImageFileIteratorPathNode(NodeBase):
         return imread_output
 
 
-@NodeFactory.register("Image", "Image File Iterator")
+@NodeFactory.register("chainner:image:file_iterator")
 class ImageFileIteratorNode(IteratorNodeBase):
     """Image File Iterator node"""
 
@@ -62,11 +66,12 @@ class ImageFileIteratorNode(IteratorNodeBase):
             DirectoryInput(),
         ]
         self.outputs = []
+        self.category = IMAGE
+        self.name = "Image File Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "category": "Image",
-                "name": IMAGE_ITERATOR_DEFAULT_NODE_NAME,
+                "schemaId": IMAGE_ITERATOR_NODE_ID,
             },
         ]
 
@@ -77,7 +82,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         external_cache: dict = {},
         loop=None,
         queue=None,
-        id="",
+        iterator_id="",
         parent_executor=None,
         percent=0,
     ) -> Any:
@@ -87,13 +92,10 @@ class ImageFileIteratorNode(IteratorNodeBase):
         img_path_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if (
-                v["category"] == "Image"
-                and v["node"] == IMAGE_ITERATOR_DEFAULT_NODE_NAME
-            ):
-                img_path_node_id = v["id"]
+            if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
+                img_path_node_id = v["schemaId"]
             if nodes[k]["child"]:
-                child_nodes.append(v["id"])
+                child_nodes.append(v["schemaId"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
@@ -128,7 +130,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": idx / file_len,
-                            "iteratorId": id,
+                            "iteratorId": iterator_id,
                             "running": child_nodes,
                         },
                     }
@@ -148,7 +150,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": (idx + 1) / file_len,
-                            "iteratorId": id,
+                            "iteratorId": iterator_id,
                             "running": None,
                         },
                     }
@@ -156,7 +158,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         return ""
 
 
-@NodeFactory.register("Image", VIDEO_ITERATOR_DEFAULT_INPUT_NODE_NAME)
+@NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
 class VideoFrameIteratorFrameLoaderNode(NodeBase):
     """Video Frame Iterator Frame Loader node"""
 
@@ -167,6 +169,8 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.inputs = [IteratorInput()]
         self.outputs = [ImageOutput("Frame Image"), TextOutput("Frame Index")]
 
+        self.category = IMAGE
+        self.name = "Load Input Frame"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
@@ -176,7 +180,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         return img, idx
 
 
-@NodeFactory.register("Image", VIDEO_ITERATOR_DEFAULT_OUTPUT_NODE_NAME)
+@NodeFactory.register(VIDEO_ITERATOR_OUTPUT_NODE_ID)
 class VideoFrameIteratorFrameWriterNode(NodeBase):
     """Video Frame Iterator Frame Writer node"""
 
@@ -187,6 +191,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         self.inputs = [ImageInput("Frame")]
         self.outputs = []
 
+        self.category = IMAGE
+        self.name = "Write Output Frame"
         self.icon = "MdVideoCameraBack"
         self.sub = "Iteration"
 
@@ -204,7 +210,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
 
 
 # TODO: Uncomment this when ready to release video frame iterator
-# @NodeFactory.register("Image", "Video Frame Iterator")
+# @NodeFactory.register('chainner:image:video_frame_iterator)
 class SimpleVideoFrameIteratorNode(IteratorNodeBase):
     """Video Frame Iterator node"""
 
@@ -223,12 +229,10 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "category": "Image",
-                "name": VIDEO_ITERATOR_DEFAULT_INPUT_NODE_NAME,
+                "schemaId": VIDEO_ITERATOR_INPUT_NODE_ID,
             },
             {
-                "category": "Image",
-                "name": VIDEO_ITERATOR_DEFAULT_OUTPUT_NODE_NAME,
+                "schemaId": VIDEO_ITERATOR_OUTPUT_NODE_ID,
             },
         ]
 
@@ -243,7 +247,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         external_cache: dict = {},
         loop=None,
         queue=None,
-        id="",
+        iterator_id="",
         parent_executor=None,
         percent=0,
     ) -> Any:
@@ -254,18 +258,12 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         output_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if (
-                v["category"] == "Image"
-                and v["node"] == VIDEO_ITERATOR_DEFAULT_INPUT_NODE_NAME
-            ):
-                input_node_id = v["id"]
-            elif (
-                v["category"] == "Image"
-                and v["node"] == VIDEO_ITERATOR_DEFAULT_OUTPUT_NODE_NAME
-            ):
-                output_node_id = v["id"]
+            if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
+                input_node_id = v["schemaId"]
+            elif v["schemaId"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
+                output_node_id = v["schemaId"]
             if nodes[k]["child"]:
-                child_nodes.append(v["id"])
+                child_nodes.append(v["schemaId"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
@@ -297,7 +295,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": idx / frame_count,
-                            "iteratorId": id,
+                            "iteratorId": iterator_id,
                             "running": child_nodes,
                         },
                     }
@@ -318,7 +316,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": (idx + 1) / frame_count,
-                            "iteratorId": id,
+                            "iteratorId": iterator_id,
                             "running": None,
                         },
                     }

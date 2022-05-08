@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { exec as _exec, spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
 import {
     app,
     BrowserWindow,
@@ -12,7 +12,6 @@ import {
 } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
 import https from 'https';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
@@ -21,12 +20,12 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
-import { ipcMain, BrowserWindowWithSafeIpc } from './helpers/safeIpc';
-import { getNvidiaSmi } from './helpers/nvidiaSmi';
-import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 import { PythonKeys } from './common-types';
-import { checkFileExists } from './helpers/util';
+import { getNvidiaSmi } from './helpers/nvidiaSmi';
+import { BrowserWindowWithSafeIpc, ipcMain } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
+import { checkFileExists } from './helpers/util';
+import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 
 const exec = util.promisify(_exec);
 

@@ -67,8 +67,16 @@ module.exports = {
                 'react/require-default-props': 'off',
                 '@typescript-eslint/no-non-null-assertion': 'off',
                 '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
+                '@typescript-eslint/no-unnecessary-condition': 'warn',
                 'eslint-comments/no-unused-enable': 'warn',
                 'eslint-comments/no-unused-disable': 'warn',
+                'react/jsx-sort-props': [
+                    'error',
+                    {
+                        callbacksLast: true,
+                        shorthandFirst: true,
+                    },
+                ],
             },
         },
     ],

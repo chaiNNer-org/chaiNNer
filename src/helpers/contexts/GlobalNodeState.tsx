@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -49,7 +50,7 @@ interface Global {
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends InputValue>(
+    useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         index: number
     ) => readonly [T | undefined, (data: T) => void];
@@ -107,8 +108,6 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    // console.log('global state rerender');
-
     const { useSnapToGrid } = useContext(SettingsContext);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
@@ -137,7 +136,6 @@ export const GlobalProvider = ({
         NodeData,
         EdgeData
     > | null>(null);
-    // const [reactFlowInstanceRfi, setRfi] = useState(null);
     const [savePath, setSavePath] = useState<string | undefined>();
 
     const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
@@ -157,35 +155,31 @@ export const GlobalProvider = ({
     }, [nodes, edges]);
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
-        if (savedData) {
-            const validNodes = savedData.nodes.filter((node) =>
-                schemata.has(node.data.category, node.data.type)
+        const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
+        if (savedData.nodes.length !== validNodes.length) {
+            await ipcRenderer.invoke(
+                'show-warning-message-box',
+                'File contains invalid nodes',
+                'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
             );
-            if (savedData.nodes.length !== validNodes.length) {
-                await ipcRenderer.invoke(
-                    'show-warning-message-box',
-                    'File contains invalid nodes',
-                    'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
-                );
-            }
-            setNodes(validNodes);
-            setEdges(
-                savedData.edges
-                    // Filter out any edges that do not have a source or target node associated with it
-                    .filter(
-                        (edge) =>
-                            validNodes.some((el) => el.id === edge.target) &&
-                            validNodes.some((el) => el.id === edge.source)
-                    )
-                    // Un-animate all edges, if was accidentally saved when animated
-                    .map((edge) => ({
-                        ...edge,
-                        animated: false,
-                    })) || []
-            );
-            if (loadPosition) {
-                setViewport(savedData.viewport || { x: 0, y: 0, zoom: 1 });
-            }
+        }
+        setNodes(validNodes);
+        setEdges(
+            savedData.edges
+                // Filter out any edges that do not have a source or target node associated with it
+                .filter(
+                    (edge) =>
+                        validNodes.some((el) => el.id === edge.target) &&
+                        validNodes.some((el) => el.id === edge.source)
+                )
+                // Un-animate all edges, if was accidentally saved when animated
+                .map((edge) => ({
+                    ...edge,
+                    animated: false,
+                }))
+        );
+        if (loadPosition) {
+            setViewport(savedData.viewport);
         }
     };
 
@@ -284,11 +278,6 @@ export const GlobalProvider = ({
         };
     }, [dumpState, savePath]);
 
-    // Push state to undo history
-    // useEffect(() => {
-    //   push(dumpState());
-    // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
-
     const removeNodeById = useCallback(
         (id: string) => {
             const node = nodes.find((n) => n.id === id);
@@ -302,10 +291,10 @@ export const GlobalProvider = ({
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            const newEdges = edges.filter((e) => e.id !== id);
-            setEdges(newEdges);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => edges.filter((e) => e.id !== id));
         },
-        [edges, setEdges]
+        [setEdges]
     );
 
     const createNode = useCallback(
@@ -318,7 +307,7 @@ export const GlobalProvider = ({
                 data: {
                     ...data,
                     id,
-                    inputData: data.inputData ?? schemata.getDefaultInput(data.category, data.type),
+                    inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
                 },
             };
             if (parent || (hoveredNode && nodeType !== 'iterator')) {
@@ -340,7 +329,7 @@ export const GlobalProvider = ({
                         offsetTop: 0,
                         offsetLeft: 0,
                     };
-                    const parentId = (parentNode?.id || hoveredNode) ?? undefined;
+                    const parentId = (parentNode.id || hoveredNode) ?? undefined;
                     newNode.position.x = position.x - parentNode.position.x;
                     newNode.position.y = position.y - parentNode.position.y;
                     newNode.parentNode = parentId;
@@ -360,15 +349,17 @@ export const GlobalProvider = ({
                     offsetLeft: 0,
                 };
 
-                const { defaultNodes = [] } = schemata.get(data.category, data.type);
-                defaultNodes.forEach(({ category, name }) => {
-                    const subNodeData = schemata.get(category, name);
+                const { defaultNodes = [] } = schemata.get(data.schemaId);
+
+                defaultNodes.forEach(({ schemaId }) => {
+                    const subNodeData = schemata.get(schemaId);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
                         data: {
-                            category,
-                            type: name,
+                            category: subNodeData.category,
+                            type: subNodeData.name,
+                            schemaId,
                             subcategory: subNodeData.subcategory,
                             icon: subNodeData.icon,
                         },
@@ -401,26 +392,14 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            setEdges([...edges.filter((edge) => edge.targetHandle !== targetHandle), newEdge]);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => [
+                ...edges.filter((edge) => edge.targetHandle !== targetHandle),
+                newEdge,
+            ]);
         },
-        [edges, setEdges]
+        [setEdges]
     );
-
-    useEffect(() => {
-        const json = sessionStorage.getItem('rfi');
-        if (!json) return;
-        const flow = JSON.parse(json) as {
-            viewport?: Viewport;
-            nodes?: Node<NodeData>[];
-            edges?: Edge<EdgeData>[];
-        };
-        if (flow) {
-            const { x = 0, y = 0, zoom = 2 } = flow.viewport ?? {};
-            setNodes(flow.nodes || []);
-            setEdges(flow.edges || []);
-            setViewport({ x, y, zoom });
-        }
-    }, []);
 
     const isValidConnection = useCallback(
         ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
@@ -437,8 +416,8 @@ export const GlobalProvider = ({
             }
 
             // Target inputs, source outputs
-            const { outputs } = schemata.get(sourceNode.data.category, sourceNode.data.type);
-            const { inputs } = schemata.get(targetNode.data.category, targetNode.data.type);
+            const { outputs } = schemata.get(sourceNode.data.schemaId);
+            const { inputs } = schemata.get(targetNode.data.schemaId);
 
             const sourceOutput = outputs[sourceHandleIndex];
             const targetInput = inputs[targetHandleIndex];
@@ -467,33 +446,42 @@ export const GlobalProvider = ({
 
     const useInputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-        function <T extends InputValue>(
+        function <T extends NonNullable<InputValue>>(
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeById = nodes.find((node) => node.id === id);
-            const nodeData = nodeById?.data;
+            const nodeData = nodes.find((node) => node.id === id)?.data;
 
             if (!nodeData) {
                 return [undefined, () => {}] as const;
             }
 
-            let { inputData } = nodeData;
-            if (!inputData) {
-                inputData = schemata.getDefaultInput(nodeData.category, nodeData.type);
-            }
-
-            const inputDataByIndex = inputData[index] as T;
+            const { inputData } = nodeData;
+            const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
-                const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                if (nodeCopy && nodeCopy.data) {
+                // This is a action that might be called asynchronously, so we cannot rely on of
+                // the captured data from `nodes` to be up-to-date anymore. For that reason, we
+                // must derive any changes to nodes from the previous value passed to us by
+                // `setNodes`.
+
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                setNodes((nodes) => {
+                    const nodeById = nodes.find((node) => node.id === id);
+                    if (!nodeById) {
+                        log.error(
+                            'A (deferred) setInputData was called after its node had been removed'
+                        );
+                        return nodes;
+                    }
+
+                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
                     nodeCopy.data.inputData = {
                         ...inputData,
                         [index]: data,
                     };
-                }
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([...filteredNodes, nodeCopy]);
+                    const filteredNodes = nodes.filter((n) => n.id !== id);
+                    return [...filteredNodes, nodeCopy];
+                });
             };
             return [inputDataByIndex, setInputData] as const;
         },
@@ -501,46 +489,28 @@ export const GlobalProvider = ({
     );
 
     const useAnimateEdges = useCallback(() => {
-        const animateEdges = (nodeIdsToAnimate?: readonly string[]) => {
-            if (nodeIdsToAnimate) {
-                const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
-                const animatedEdges = edgesToAnimate.map((edge) => ({
-                    ...edge,
-                    animated: true,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
-                setEdges([...otherEdges, ...animatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: true,
-                    }))
-                );
-            }
+        const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) => {
+                if (nodeIdsToAnimate) {
+                    const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
+                    const animatedEdges = edgesToAnimate.map((edge) => ({ ...edge, animated }));
+                    const otherEdges = edges.filter((e) => !nodeIdsToAnimate.includes(e.source));
+                    return [...otherEdges, ...animatedEdges];
+                }
+                return edges.map((edge) => ({ ...edge, animated }));
+            });
         };
 
-        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) => {
-            if (nodeIdsToUnAnimate) {
-                const edgesToUnAnimate = edges.filter((e) => nodeIdsToUnAnimate.includes(e.source));
-                const unanimatedEdges = edgesToUnAnimate.map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }));
-                const otherEdges = edges.filter((e) => !nodeIdsToUnAnimate.includes(e.source));
-                setEdges([...otherEdges, ...unanimatedEdges]);
-            } else {
-                setEdges(
-                    edges.map((edge) => ({
-                        ...edge,
-                        animated: false,
-                    }))
-                );
-            }
-        };
+        const animateEdges = (nodeIdsToAnimate?: readonly string[]) =>
+            setAnimated(true, nodeIdsToAnimate);
+
+        const unAnimateEdges = (nodeIdsToUnAnimate?: readonly string[]) =>
+            setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
                     return {
@@ -556,7 +526,8 @@ export const GlobalProvider = ({
         };
 
         const clearCompleteEdges = () => {
-            setEdges(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
                         ...edge,
@@ -571,7 +542,7 @@ export const GlobalProvider = ({
         };
 
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
-    }, [edges, setEdges]);
+    }, [setEdges]);
 
     // TODO: performance concern? runs twice when deleting node
     const useNodeLock = useCallback(
@@ -580,7 +551,7 @@ export const GlobalProvider = ({
             if (!node) {
                 return [] as const;
             }
-            const isLocked = node.data?.isLocked ?? false;
+            const isLocked = node.data.isLocked ?? false;
             const toggleLock = () => {
                 const newNode = copyNode(node);
                 newNode.draggable = isLocked;
@@ -666,7 +637,7 @@ export const GlobalProvider = ({
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
             const iterator = nodes.find((n) => n.id === id);
-            if (iterator && iterator.data) {
+            if (iterator) {
                 const newIterator = copyNode(iterator);
                 newIterator.data.percentComplete = percent;
                 const filteredNodes = nodes.filter((n) => n.id !== id);
@@ -748,7 +719,7 @@ export const GlobalProvider = ({
         const node = nodesCopy.find((n) => n.id === id);
         if (!node) return;
         const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.category, node.data.type);
+        newNode.data.inputData = schemata.getDefaultInput(node.data.schemaId);
         setNodes([...nodes.filter((n) => n.id !== id), newNode]);
     };
 

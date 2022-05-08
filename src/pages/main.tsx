@@ -10,7 +10,7 @@ import Header from '../components/Header';
 import IteratorHelperNode from '../components/node/IteratorHelperNode';
 import IteratorNode from '../components/node/IteratorNode';
 import Node from '../components/node/Node';
-import NodeSelector from '../components/NodeSelectorPanel';
+import NodeSelector from '../components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
 import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
@@ -74,7 +74,7 @@ const Main = ({ port }: MainProps) => {
         return <></>;
     }
 
-    if (!nodeTypes || !schemata || !data) {
+    if (!schemata || !data) {
         return (
             <Box
                 h="100vh"
@@ -97,8 +97,8 @@ const Main = ({ port }: MainProps) => {
         <ReactFlowProvider>
             <SettingsProvider port={port}>
                 <GlobalProvider
-                    schemata={schemata}
                     reactFlowWrapper={reactFlowWrapper}
+                    schemata={schemata}
                 >
                     <VStack
                         bg={bgColor}
@@ -119,8 +119,8 @@ const Main = ({ port }: MainProps) => {
                             splitterSize="10px"
                         >
                             <NodeSelector
-                                schemata={schemata}
                                 height={height}
+                                schemata={schemata}
                             />
 
                             <ReactFlowBox

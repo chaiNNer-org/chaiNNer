@@ -13,6 +13,8 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
+from nodes.categories import category_order
+
 try:
     # pylint: disable=unused-import
     import cv2
@@ -21,7 +23,16 @@ try:
     if platform.system() == "Linux":
         os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
-    from nodes import image_iterator_nodes, image_nodes
+    # pylint: disable=ungrouped-imports
+    from nodes import (
+        image_adj_nodes,
+        image_chan_nodes,
+        image_dim_nodes,
+        image_filter_nodes,
+        image_iterator_nodes,
+        image_nodes,
+        image_util_nodes,
+    )
 except Exception as e:
     logger.warning(e)
     logger.info("OpenCV most likely not installed")
@@ -81,25 +92,32 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
+    logger.info(category_order)
+
+    # sort nodes in category order
+    sorted_registry = sorted(
+        registry.items(),
+        key=lambda x: category_order.index(
+            NodeFactory.create_node(x[0]).get_category()
+        ),
+    )
     node_list = []
-    for category, category_nodes in registry.items():
-        for node in category_nodes:
-            print(category)
-            print(node)
-            node_object = NodeFactory.create_node(category, node)
-            node_dict = {
-                "name": node,
-                "category": category,
-                "inputs": node_object.get_inputs(),
-                "outputs": node_object.get_outputs(),
-                "description": node_object.get_description(),
-                "icon": node_object.get_icon(),
-                "subcategory": node_object.get_sub_category(),
-                "nodeType": node_object.get_type(),
-            }
-            if node_object.get_type() == "iterator":
-                node_dict["defaultNodes"] = node_object.get_default_nodes()
-            node_list.append(node_dict)
+    for schema_id, _node_class in sorted_registry:
+        node_object = NodeFactory.create_node(schema_id)
+        node_dict = {
+            "schemaId": schema_id,
+            "name": node_object.get_name(),
+            "category": node_object.get_category(),
+            "inputs": node_object.get_inputs(),
+            "outputs": node_object.get_outputs(),
+            "description": node_object.get_description(),
+            "icon": node_object.get_icon(),
+            "subcategory": node_object.get_sub_category(),
+            "nodeType": node_object.get_type(),
+        }
+        if node_object.get_type() == "iterator":
+            node_dict["defaultNodes"] = node_object.get_default_nodes()
+        node_list.append(node_dict)
     return json(node_list)
 
 
@@ -126,9 +144,6 @@ async def run(request: Request):
                 "False" if full_data["isCpu"] else str(full_data["isFp16"])
             )
             logger.info(f"Using device: {os.environ['device']}")
-            os.environ["resolutionX"] = str(full_data["resolutionX"])
-            os.environ["resolutionY"] = str(full_data["resolutionY"])
-            print(os.environ["resolutionX"], os.environ["resolutionY"])
             executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
             request.app.ctx.executor = executor
             await executor.run()
@@ -169,7 +184,7 @@ async def run_individual(request: Request):
     os.environ["isFp16"] = "False" if full_data["isCpu"] else str(full_data["isFp16"])
     logger.info(f"Using device: {os.environ['device']}")
     # Create node based on given category/name information
-    node_instance = NodeFactory.create_node(full_data["category"], full_data["node"])
+    node_instance = NodeFactory.create_node(full_data["schemaId"])
     # Run the node and pass in inputs as args
     run_func = functools.partial(node_instance.run, *full_data["inputs"])
     output = await app.loop.run_in_executor(None, run_func)

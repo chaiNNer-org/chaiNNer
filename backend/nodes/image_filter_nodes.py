@@ -1,0 +1,396 @@
+from __future__ import annotations
+
+import cv2
+import numpy as np
+
+from .categories import IMAGE_FILTER
+from .node_base import NodeBase
+from .node_factory import NodeFactory
+from .properties.inputs import *
+from .properties.outputs import *
+from .utils.color_transfer import color_transfer
+from .utils.image_utils import normalize, normalize_normals
+from .utils.pil_utils import *
+
+
+@NodeFactory.register("chainner:image:blur")
+class BlurNode(NodeBase):
+    """OpenCV Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply blur to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]  # , IntegerInput("Sigma")]#,BlurInput()]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Blur"
+        self.icon = "MdBlurOn"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: int,
+        amount_y: int,
+        # sigma: int,
+    ) -> np.ndarray:
+        """Adjusts the blur of an image"""
+
+        ksize = (int(amount_x), int(amount_y))
+        for __i in range(16):
+            img = cv2.blur(img, ksize)
+
+        return img
+
+
+@NodeFactory.register("chainner:image:gaussian_blur")
+class GaussianBlurNode(NodeBase):
+    """OpenCV Gaussian Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply Gaussian Blur to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Gaussian Blur"
+        self.icon = "MdBlurOn"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: float,
+        amount_y: float,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+
+        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
+
+        return blurred
+
+
+@NodeFactory.register("chainner:image:sharpen")
+class SharpenNode(NodeBase):
+    """OpenCV Sharpen Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply sharpening to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Sharpen"
+        self.icon = "MdBlurOff"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: float,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+
+        blurred = cv2.GaussianBlur(img, (0, 0), amount)
+        img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
+
+        return img
+
+
+@NodeFactory.register("chainner:image:average_color_fix")
+class AverageColorFixNode(NodeBase):
+    """Fixes the average color of an upscaled image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Correct for upscaling model color shift by matching
+         average color of Input Image to that of a smaller Reference Image.
+         Using significant downscaling increases generalization of averaging effect
+         and can reduce artifacts in the output."""
+        self.inputs = [
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            BoundedNumberInput(
+                "Reference Image Scale Factor", default=0.125, step=0.125
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Average Color Fix"
+        self.icon = "MdAutoFixHigh"
+        self.sub = "Correction"
+
+    def run(
+        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
+    ) -> np.ndarray:
+        """Fixes the average color of the input image"""
+
+        input_img = normalize(input_img)
+        ref_img = normalize(ref_img)
+
+        if scale_factor != 1.0:
+            ref_img = cv2.resize(
+                ref_img,
+                None,
+                fx=scale_factor,
+                fy=scale_factor,
+                interpolation=cv2.INTER_AREA,
+            )
+
+        input_h, input_w = input_img.shape[:2]
+        ref_h, ref_w = ref_img.shape[:2]
+
+        assert (
+            ref_w < input_w and ref_h < input_h
+        ), "Image must be larger than Reference Image"
+
+        # Find the diff of both images
+
+        # Downscale the input image
+        downscaled_input = cv2.resize(
+            input_img,
+            (ref_w, ref_h),
+            interpolation=cv2.INTER_AREA,
+        )
+
+        # Get difference between the reference image and downscaled input
+        downscaled_diff = ref_img - downscaled_input
+
+        # Upsample the difference
+        diff = cv2.resize(
+            downscaled_diff,
+            (input_w, input_h),
+            interpolation=cv2.INTER_CUBIC,
+        )
+
+        result = input_img + diff
+
+        return np.clip(result, 0, 1)
+
+
+@NodeFactory.register("chainner:image:color_transfer")
+class ColorTransferNode(NodeBase):
+    """
+    Transfers colors from one image to another
+
+    This code was adapted from Adrian Rosebrock's color_transfer script,
+    found at: https://github.com/jrosebr1/color_transfer (© 2014, MIT license).
+    """
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Transfers colors from reference image.
+            Different combinations of settings may perform better for
+            different images. Try multiple setting combinations to find
+            best results."""
+        self.inputs = [
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            DropDownInput(
+                "str",
+                "Colorspace",
+                [
+                    {"option": "L*a*b*", "value": "L*a*b*"},
+                    {"option": "RGB", "value": "RGB"},
+                ],
+            ),
+            DropDownInput(
+                "str",
+                "Overflow Method",
+                [
+                    {"option": "Clip", "value": 1},
+                    {"option": "Scale", "value": 0},
+                ],
+            ),
+            DropDownInput(
+                "generic",
+                "Reciprocal Scaling Factor",
+                [
+                    {"option": "Yes", "value": 1},
+                    {"option": "No", "value": 0},
+                ],
+            ),
+        ]
+        self.outputs = [ImageOutput("Image")]
+        self.category = IMAGE_FILTER
+        self.name = "Color Transfer"
+        self.icon = "MdInput"
+        self.sub = "Correction"
+
+    def run(
+        self,
+        img: np.ndarray,
+        ref_img: np.ndarray,
+        colorspace: str = "L*a*b*",
+        overflow_method: int | str = 1,
+        reciprocal_scale: int | str = 1,
+    ) -> np.ndarray:
+        """
+        Transfers the color distribution from source image to target image.
+        """
+
+        assert (
+            ref_img.ndim == 3 and ref_img.shape[2] >= 3
+        ), "Reference image should be RGB or RGBA"
+
+        img = normalize(img)
+        ref_img = normalize(ref_img)
+
+        # Make sure target has at least 3 channels
+        if img.ndim == 2 or img.shape[2] == 1:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+        # Preserve alpha
+        c = img.shape[2]
+        alpha = None
+        if c == 4:
+            alpha = img[:, :, 3]
+
+        transfer = color_transfer(
+            img, ref_img, colorspace, overflow_method, reciprocal_scale
+        )
+
+        if alpha is not None:
+            transfer = np.dstack((transfer, alpha))
+
+        return transfer
+
+
+@NodeFactory.register("chainner:image:normalize_normal_map")
+class NormalizeNode(NodeBase):
+    """Normalize normal map"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Normalizes the given normal map.
+            Only the R and G channels of the input image will be used."""
+        self.inputs = [
+            ImageInput("Normal Map"),
+        ]
+        self.outputs = [ImageOutput("Normal Map")]
+        self.category = IMAGE_FILTER
+        self.name = "Normalize"
+        self.icon = "MdOutlineAutoFixHigh"
+        self.sub = "Normal Map"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Takes a normal map and normalizes it"""
+
+        logger.info(f"Normalizing image")
+        assert img.ndim == 3, "The input image must be an RGB or RGBA image"
+
+        # Convert BGR to XY
+        x = normalize(img[:, :, 2]) * 2 - 1
+        y = normalize(img[:, :, 1]) * 2 - 1
+
+        x, y, z = normalize_normals(x, y)
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))
+
+
+@NodeFactory.register("chainner:image:add_normals")
+class NormalAdditionNode(NodeBase):
+    """Add two normal maps together"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Add 2 normal maps together. Only the R and G
+            channels of the input image will be used. The output normal map
+            is guaranteed to be normalized."""
+        self.inputs = [
+            ImageInput("Normal Map 1"),
+            SliderInput("Strength 1", 0, 100, 100),
+            ImageInput("Normal Map 2"),
+            SliderInput("Strength 2", 0, 100, 100),
+        ]
+        self.outputs = [ImageOutput("Normal Map")]
+        self.category = IMAGE_FILTER
+        self.name = "Add Normals"
+        self.icon = "MdAddCircleOutline"
+        self.sub = "Normal Map"
+
+    def run(
+        self, n: np.ndarray, n_strength: int, m: np.ndarray, m_strength: int
+    ) -> np.ndarray:
+        """
+        Takes 2 normal maps and adds them.
+
+        The addition works by converting the normals into 2D slopes and then adding
+        the slopes. The sum of the slopes is then converted back into normals.
+
+        When adding 2 normal maps, the normals themselves are not added;
+        Instead, the heightmaps that those normals represent are added.
+        Conceptually, this entails converting the normals into slopes
+        (the derivatives of the heightmap), integrating the slopes to get
+        the heightmaps, adding the heightmaps, then performing the reverse
+        on the added heightmaps. Practically, this is unnecessary, as adding
+        the slopes together is equivalent to adding the heightmaps.
+        """
+
+        logger.info(f"Adding normal maps")
+        assert (
+            n.ndim == 3 and m.ndim == 3
+        ), "The input images must be RGB or RGBA images"
+
+        n_strength /= 100
+        m_strength /= 100
+
+        # Convert BGR to XY
+        n_x = normalize(n[:, :, 2]) * 2 - 1
+        n_y = normalize(n[:, :, 1]) * 2 - 1
+        m_x = normalize(m[:, :, 2]) * 2 - 1
+        m_y = normalize(m[:, :, 1]) * 2 - 1
+
+        n_x, n_y, n_z = normalize_normals(n_x, n_y)
+        m_x, m_y, m_z = normalize_normals(m_x, m_y)
+
+        # Slopes aren't defined for z=0, so set to near-zero decimal
+        n_z = np.maximum(n_z, 0.001, out=n_z)
+        m_z = np.maximum(m_z, 0.001, out=m_z)
+
+        # This works as follows:
+        # 1. Use the normals n,m to calculate 3D planes (the slopes) centered at origin p_n,p_m.
+        # 2. Calculate the Z values of those planes at a_xy=(1,0) and b_xy=(0,1).
+        # 3. Add the Z values to together (weighted using their strength):
+        #    a_z = p_n[a_xy] * n_strength + p_m[a_xy] * m_strength, same for b_xy.
+        # 4. Define a=(1,0,a_z), b=(0,1,b_z).
+        # 5. The final normal will be normalize(cross(a,b)).
+        # This works out as:
+
+        n_f = n_strength / n_z
+        m_f = m_strength / m_z
+        a_z = n_x * n_f + m_x * m_f
+        b_z = n_y * n_f + m_y * m_f
+
+        l_r = 1 / np.sqrt(np.square(a_z) + np.square(b_z) + 1)
+        x = a_z * l_r
+        y = b_z * l_r
+        z = l_r
+
+        r_norm = (x + 1) * 0.5
+        g_norm = (y + 1) * 0.5
+        b_norm = z
+
+        return cv2.merge((b_norm, g_norm, r_norm))

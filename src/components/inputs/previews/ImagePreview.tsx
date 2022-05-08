@@ -13,9 +13,6 @@ interface ImageObject {
 }
 
 const getColorMode = (img: ImageObject) => {
-    if (!img) {
-        return '?';
-    }
     switch (img.channels) {
         case 1:
             return 'GRAY';
@@ -33,9 +30,10 @@ interface ImagePreviewProps {
     category: string;
     nodeType: string;
     id: string;
+    schemaId: string;
 }
 
-export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
+export default memo(({ path, category, nodeType, schemaId, id }: ImagePreviewProps) => {
     const [img, setImg] = useState<ImageObject | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -56,6 +54,7 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
                         return backend.runIndividual<ImageObject | null>({
                             category,
                             node: nodeType,
+                            schemaId,
                             id,
                             inputs: [path],
                             isCpu,
@@ -93,7 +92,9 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
                     />
                     {img && path && (
                         <HStack>
-                            <Tag>{img ? `${img.width}x${img.height}` : '?'}</Tag>
+                            <Tag>
+                                {img.width}x{img.height}
+                            </Tag>
                             <Tag>{getColorMode(img)}</Tag>
                             <Tag>{String(path.split('.').slice(-1)).toUpperCase()}</Tag>
                         </HStack>

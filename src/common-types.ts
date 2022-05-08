@@ -14,8 +14,8 @@ export interface IteratorSize extends Size {
     offsetLeft: number;
 }
 
-export type InputValue = InputSchemaValue | { id: string };
-export type InputSchemaValue = string | number | undefined;
+export type InputValue = InputSchemaValue | { id: string } | undefined;
+export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
@@ -45,13 +45,13 @@ export interface NodeSchema {
     readonly inputs: Input[];
     readonly outputs: Output[];
     readonly defaultNodes?: DefaultNode[];
+    readonly schemaId: string;
 }
 
 export interface DefaultNode {
     // Default nodes aren't currently used
     __SPECIAL: never;
-    category: string;
-    name: string;
+    schemaId: string;
 }
 
 export interface NodeData {
@@ -60,6 +60,7 @@ export interface NodeData {
     readonly category: string;
     readonly subcategory: string;
     readonly icon: string;
+    readonly schemaId: string;
     readonly type: string;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
@@ -79,10 +80,9 @@ export interface PythonKeys {
 }
 
 export interface UsableData {
-    category: string;
-    node: string;
     id: string;
-    inputs: Record<number, InputValue | null | undefined>;
+    schemaId: string;
+    inputs: Record<number, InputValue | null>;
     outputs: Record<number, InputValue>;
     child: boolean;
     children?: string[];

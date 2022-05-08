@@ -6,7 +6,7 @@ import { useAsyncEffect } from '../../../helpers/hooks/useAsyncEffect';
 import { checkFileExists } from '../../../helpers/util';
 
 interface ModelData {
-    modelType: string;
+    modelType?: string;
     scale: number;
     inNc: number;
     outNc: number;
@@ -31,9 +31,10 @@ interface TorchModelPreviewProps {
     category: string;
     nodeType: string;
     id: string;
+    schemaId: string;
 }
 
-export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) => {
+export default memo(({ path, category, nodeType, schemaId, id }: TorchModelPreviewProps) => {
     const [modelData, setModelData] = useState<ModelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -54,6 +55,7 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
                         return backend.runIndividual<ModelData | null>({
                             category,
                             node: nodeType,
+                            schemaId,
                             id,
                             inputs: [path],
                             isCpu,
@@ -81,18 +83,14 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
                         spacing={2}
                     >
                         <WrapItem>
-                            <Tag>{`${modelData.modelType ?? '?'}`}</Tag>
+                            <Tag>{modelData.modelType ?? '?'}</Tag>
                         </WrapItem>
                         <WrapItem>
-                            <Tag>{`${modelData.scale ?? '?'}x`}</Tag>
+                            <Tag>{modelData.scale}x</Tag>
                         </WrapItem>
                         <WrapItem>
                             <Tag>
-                                {modelData
-                                    ? `${getColorMode(modelData.inNc)}→${getColorMode(
-                                          modelData.outNc
-                                      )}`
-                                    : '?'}
+                                {getColorMode(modelData.inNc)}→{getColorMode(modelData.outNc)}
                             </Tag>
                         </WrapItem>
                         {modelData.size.map((size) => (

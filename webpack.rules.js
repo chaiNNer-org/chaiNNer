@@ -1,7 +1,5 @@
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-// console.log(`\nbuilding in ${isDevelopment ? 'development' : 'production'} mode`);
-
 module.exports = [
     // ... existing loader config ...
     {

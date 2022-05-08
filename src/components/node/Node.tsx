@@ -35,11 +35,11 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const { nodes, edges, schemata, updateIteratorBounds, useHoveredNode } =
         useContext(GlobalContext);
 
-    const { id, inputData, isLocked, category, type, parentNode } = useMemo(() => data, [data]);
+    const { id, inputData, isLocked, category, type, parentNode, schemaId } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const schema = schemata.get(category, type);
+    const schema = schemata.get(schemaId);
     const { inputs, outputs, icon } = schema;
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
@@ -52,7 +52,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const [validity, setValidity] = useState<[boolean, string]>([false, '']);
 
     useEffect(() => {
-        if (inputs && inputs.length) {
+        if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
         }
     }, [inputData, edges.length, nodes.length]);
@@ -71,7 +71,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                 setCheckedSize(true);
             }
         }
-    }, [nodes && !checkedSize, targetRef?.current?.offsetHeight]);
+    }, [checkedSize, targetRef.current?.offsetHeight]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showMenu, setShowMenu] = useState(false);
@@ -133,6 +133,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                             isLocked={isLocked}
                             nodeType={type}
                             outputs={outputs}
+                            schemaId={schemaId}
                         />
                         <NodeFooter
                             id={id}
