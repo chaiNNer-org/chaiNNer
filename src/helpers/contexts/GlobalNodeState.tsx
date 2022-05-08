@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -14,7 +15,6 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import log from 'electron-log';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -356,14 +356,15 @@ export const GlobalProvider = ({
                 };
 
                 const { defaultNodes = [] } = schemata.get(data.identifier);
-                defaultNodes.forEach(({ category, name, identifier }) => {
+
+                defaultNodes.forEach(({ identifier }) => {
                     const subNodeData = schemata.get(identifier);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
                         data: {
-                            category,
-                            type: name,
+                            category: subNodeData.category,
+                            type: subNodeData.name,
                             identifier,
                             subcategory: subNodeData.subcategory,
                             icon: subNodeData.icon,

@@ -67,7 +67,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         ]
         self.outputs = []
         self.category = IMAGE
-        self.name = "Load Input Frame"
+        self.name = "Image File Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
