@@ -76,6 +76,10 @@ def InterpolationInput() -> Dict:
         "Interpolation Mode",
         [
             {
+                "option": "Auto",
+                "value": InterpolationMethod.AUTO,
+            },
+            {
                 "option": "Nearest Neighbor",
                 "value": InterpolationMethod.NEAREST,
             },
