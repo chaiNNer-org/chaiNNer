@@ -21,7 +21,7 @@ from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
 
 
-@NodeFactory.register("chainner.ncnn.load_model")
+@NodeFactory.register("chainner:ncnn:load_model")
 class NcnnLoadModelNode(NodeBase):
     """NCNN load model node"""
 
@@ -97,7 +97,7 @@ class NcnnLoadModelNode(NodeBase):
         return (param_path, bin_data, input_name, output_name), model_name
 
 
-@NodeFactory.register("chainner.ncnn.upscale_image")
+@NodeFactory.register("chainner:ncnn:upscale_image")
 class NcnnUpscaleImageNode(NodeBase):
     """NCNN node"""
 
@@ -224,7 +224,7 @@ class NcnnUpscaleImageNode(NodeBase):
         return output
 
 
-@NodeFactory.register("chainner.ncnn.interpolate_models")
+@NodeFactory.register("chainner:ncnn:interpolate_models")
 class NcnnInterpolateModelsNode(NodeBase):
     """NCNN interpolate models node"""
 
@@ -293,7 +293,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         return [(param_path_a, interp_bin_data, input_name_a, output_name_a)]
 
 
-@NodeFactory.register("chainner.ncnn.save_model")
+@NodeFactory.register("chainner:ncnn:save_model")
 class NcnnSaveNode(NodeBase):
     """Model Save node"""
 

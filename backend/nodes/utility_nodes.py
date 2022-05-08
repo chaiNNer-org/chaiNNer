@@ -11,7 +11,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 
 
-@NodeFactory.register("chainner.utility.note")
+@NodeFactory.register("chainner:utility:note")
 class NoteNode(NodeBase):
     """Sticky note node"""
 
@@ -63,7 +63,7 @@ class NoteNode(NodeBase):
 #             return in1 ** in2
 
 
-@NodeFactory.register("chainner.utility.text_append")
+@NodeFactory.register("chainner:utility:text_append")
 class TextAppendNode(NodeBase):
     """Text Append node"""
 

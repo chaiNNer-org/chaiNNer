@@ -33,7 +33,7 @@ from .utils.image_utils import (
 from .utils.pil_utils import *
 
 
-@NodeFactory.register("chainner.image.load")
+@NodeFactory.register("chainner:image:load")
 class ImReadNode(NodeBase):
     """OpenCV Imread node"""
 
@@ -138,7 +138,7 @@ class ImReadNode(NodeBase):
         return self.result
 
 
-@NodeFactory.register("chainner.image.save")
+@NodeFactory.register("chainner:image:save")
 class ImWriteNode(NodeBase):
     """OpenCV Imwrite node"""
 
@@ -186,7 +186,7 @@ class ImWriteNode(NodeBase):
         return status
 
 
-@NodeFactory.register("chainner.image.preview")
+@NodeFactory.register("chainner:image:preview")
 class ImOpenNode(NodeBase):
     """Image Open Node"""
 
@@ -227,7 +227,7 @@ class ImOpenNode(NodeBase):
                 subprocess.call(("xdg-open", temp_save_dir))
 
 
-@NodeFactory.register("chainner.image.resize_factor")
+@NodeFactory.register("chainner:image:resize_factor")
 class ImResizeByFactorNode(NodeBase):
     """OpenCV resize node"""
 
@@ -261,7 +261,7 @@ class ImResizeByFactorNode(NodeBase):
         return resize(img, out_dims, int(interpolation))
 
 
-@NodeFactory.register("chainner.image.resize_resolution")
+@NodeFactory.register("chainner:image:resize_resolution")
 class ImResizeToResolutionNode(NodeBase):
     """OpenCV resize node"""
 
@@ -295,7 +295,7 @@ class ImResizeToResolutionNode(NodeBase):
         return resize(img, out_dims, int(interpolation))
 
 
-@NodeFactory.register("chainner.image.overlay")
+@NodeFactory.register("chainner:image:overlay")
 class ImOverlay(NodeBase):
     """OpenCV transparency overlay node"""
 
@@ -410,7 +410,7 @@ class ImOverlay(NodeBase):
         return imgout
 
 
-@NodeFactory.register("chainner.image.change_colospace")
+@NodeFactory.register("chainner:image:change_colospace")
 class ColorConvertNode(NodeBase):
     """OpenCV color conversion node"""
 
@@ -439,7 +439,7 @@ class ColorConvertNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.create_border")
+@NodeFactory.register("chainner:image:create_border")
 class BorderMakeNode(NodeBase):
     """OpenCV CopyMakeBorder node"""
 
@@ -486,7 +486,7 @@ class BorderMakeNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.threshold")
+@NodeFactory.register("chainner:image:threshold")
 class ThresholdNode(NodeBase):
     """OpenCV Threshold node"""
 
@@ -525,7 +525,7 @@ class ThresholdNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.threshold_adaptive")
+@NodeFactory.register("chainner:image:threshold_adaptive")
 class AdaptiveThresholdNode(NodeBase):
     """OpenCV Adaptive Threshold node"""
 
@@ -579,7 +579,7 @@ class AdaptiveThresholdNode(NodeBase):
         return result.astype("float32") / 255
 
 
-@NodeFactory.register("chainner.image.stack")
+@NodeFactory.register("chainner:image:stack")
 class StackNode(NodeBase):
     """OpenCV concatenate (h/v) Node"""
 
@@ -681,7 +681,7 @@ class StackNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.hue_and_saturation")
+@NodeFactory.register("chainner:image:hue_and_saturation")
 class HueAndSaturationNode(NodeBase):
     """OpenCV Hue and Saturation Node"""
 
@@ -745,7 +745,7 @@ class HueAndSaturationNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.brightness_and_contrast")
+@NodeFactory.register("chainner:image:brightness_and_contrast")
 class BrightnessAndContrastNode(NodeBase):
     """OpenCV Brightness and Contrast Node"""
 
@@ -807,7 +807,7 @@ class BrightnessAndContrastNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.blur")
+@NodeFactory.register("chainner:image:blur")
 class BlurNode(NodeBase):
     """OpenCV Blur Node"""
 
@@ -842,7 +842,7 @@ class BlurNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.gaussian_blur")
+@NodeFactory.register("chainner:image:gaussian_blur")
 class GaussianBlurNode(NodeBase):
     """OpenCV Gaussian Blur Node"""
 
@@ -874,7 +874,7 @@ class GaussianBlurNode(NodeBase):
         return blurred
 
 
-@NodeFactory.register("chainner.image.sharpen")
+@NodeFactory.register("chainner:image:sharpen")
 class SharpenNode(NodeBase):
     """OpenCV Sharpen Node"""
 
@@ -905,7 +905,7 @@ class SharpenNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.shift")
+@NodeFactory.register("chainner:image:shift")
 class ShiftNode(NodeBase):
     """OpenCV Shift Node"""
 
@@ -938,7 +938,7 @@ class ShiftNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.split_channels")
+@NodeFactory.register("chainner:image:split_channels")
 class ChannelSplitRGBANode(NodeBase):
     """NumPy Splitter node"""
 
@@ -986,7 +986,7 @@ class ChannelSplitRGBANode(NodeBase):
         return out
 
 
-@NodeFactory.register("chainner.image.split_transparency")
+@NodeFactory.register("chainner:image:split_transparency")
 class TransparencySplitNode(NodeBase):
     """Transparency-specific Splitter node"""
 
@@ -1023,7 +1023,7 @@ class TransparencySplitNode(NodeBase):
         return rgb, alpha
 
 
-@NodeFactory.register("chainner.image.merge_channels")
+@NodeFactory.register("chainner:image:merge_channels")
 class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
 
@@ -1086,7 +1086,7 @@ class ChannelMergeRGBANode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.merge_transparency")
+@NodeFactory.register("chainner:image:merge_transparency")
 class TransparencyMergeNode(NodeBase):
     """Transparency-specific Merge node"""
 
@@ -1135,7 +1135,7 @@ class TransparencyMergeNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner.image.crop_offsets")
+@NodeFactory.register("chainner:image:crop_offsets")
 class CropNode(NodeBase):
     """NumPy Crop node"""
 
@@ -1176,7 +1176,7 @@ class CropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.crop_border")
+@NodeFactory.register("chainner:image:crop_border")
 class BorderCropNode(NodeBase):
     """NumPy Border Crop node"""
 
@@ -1211,7 +1211,7 @@ class BorderCropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.crop_edges")
+@NodeFactory.register("chainner:image:crop_edges")
 class EdgeCropNode(NodeBase):
     """NumPy Edge Crop node"""
 
@@ -1249,7 +1249,7 @@ class EdgeCropNode(NodeBase):
         return result
 
 
-@NodeFactory.register("chainner.image.caption")
+@NodeFactory.register("chainner:image:caption")
 class CaptionNode(NodeBase):
     """Caption node"""
 
@@ -1275,7 +1275,7 @@ class CaptionNode(NodeBase):
         return add_caption(img, caption)
 
 
-@NodeFactory.register("chainner.image.normalize_normal_map")
+@NodeFactory.register("chainner:image:normalize_normal_map")
 class NormalizeNode(NodeBase):
     """Normalize normal map"""
 
@@ -1312,7 +1312,7 @@ class NormalizeNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("chainner.image.add_normals")
+@NodeFactory.register("chainner:image:add_normals")
 class NormalAdditionNode(NodeBase):
     """Add two normal maps together"""
 
@@ -1399,7 +1399,7 @@ class NormalAdditionNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("chainner.image.average_color_fix")
+@NodeFactory.register("chainner:image:average_color_fix")
 class AverageColorFixNode(NodeBase):
     """Fixes the average color of an upscaled image"""
 
@@ -1471,7 +1471,7 @@ class AverageColorFixNode(NodeBase):
         return np.clip(result, 0, 1)
 
 
-@NodeFactory.register("chainner.image.fill_alpha")
+@NodeFactory.register("chainner:image:fill_alpha")
 class FillAlphaNode(NodeBase):
     """Fills the transparent pixels of an image with nearby colors"""
 
@@ -1518,7 +1518,7 @@ class FillAlphaNode(NodeBase):
         return img[:, :, :3]
 
 
-@NodeFactory.register("chainner.image.color_transfer")
+@NodeFactory.register("chainner:image:color_transfer")
 class ColorTransferNode(NodeBase):
     """
     Transfers colors from one image to another

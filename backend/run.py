@@ -82,10 +82,10 @@ async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
     node_list = []
-    for node_id in registry.items():
-        node_object = NodeFactory.create_node(node_id)
+    for identifier in registry.items():
+        node_object = NodeFactory.create_node(identifier)
         node_dict = {
-            "id": node_id,
+            "identifier": identifier,
             "name": node_object.get_name(),
             "category": node_object.get_category(),
             "inputs": node_object.get_inputs(),
@@ -164,7 +164,7 @@ async def run_individual(request: Request):
     os.environ["isFp16"] = "False" if full_data["isCpu"] else str(full_data["isFp16"])
     logger.info(f"Using device: {os.environ['device']}")
     # Create node based on given category/name information
-    node_instance = NodeFactory.create_node(full_data["category"], full_data["node"])
+    node_instance = NodeFactory.create_node(full_data["identifier"])
     # Run the node and pass in inputs as args
     run_func = functools.partial(node_instance.run, *full_data["inputs"])
     output = await app.loop.run_in_executor(None, run_func)

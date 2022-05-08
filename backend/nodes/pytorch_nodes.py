@@ -55,7 +55,7 @@ def load_state_dict(state_dict):
     return model
 
 
-@NodeFactory.register("chainner.pytorch.load_model")
+@NodeFactory.register("chainner:pytorch:load_model")
 class LoadModelNode(NodeBase):
     """Load Model node"""
 
@@ -111,7 +111,7 @@ class LoadModelNode(NodeBase):
         return self.model, basename
 
 
-@NodeFactory.register("chainner.pytorch.upscale_image")
+@NodeFactory.register("chainner:pytorch:upscale_image")
 @torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     """Image Upscale node"""
@@ -223,7 +223,7 @@ class ImageUpscaleNode(NodeBase):
         return output
 
 
-@NodeFactory.register("chainner.pytorch.interpolate_models")
+@NodeFactory.register("chainner:pytorch:interpolate_models")
 class InterpolateNode(NodeBase):
     """Interpolate node"""
 
@@ -294,7 +294,7 @@ class InterpolateNode(NodeBase):
         return model
 
 
-@NodeFactory.register("chainner.pytorch.save_model")
+@NodeFactory.register("chainner:pytorch:save_model")
 class PthSaveNode(NodeBase):
     """Model Save node"""
 
@@ -418,7 +418,7 @@ class PthSaveNode(NodeBase):
 #         return out
 
 
-@NodeFactory.register("chainner.pytorch.convert_to_onnx")
+@NodeFactory.register("chainner:pytorch:convert_to_onnx")
 class ConvertTorchToONNXNode(NodeBase):
     """ONNX node"""
 
