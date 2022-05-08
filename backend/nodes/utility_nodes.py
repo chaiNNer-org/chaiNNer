@@ -3,13 +3,15 @@ Nodes that provide various generic utility
 """
 
 
+from categories import UTILITY
+
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 
 
-@NodeFactory.register("Utility", "Note")
+@NodeFactory.register("chainner.utility.note")
 class NoteNode(NodeBase):
     """Sticky note node"""
 
@@ -19,6 +21,9 @@ class NoteNode(NodeBase):
         self.description = "Make a sticky note for whatever notes or comments you want to leave in the chain."
         self.inputs = [NoteTextAreaInput()]
         self.outputs = []
+
+        self.category = UTILITY
+        self.name = "Note"
         self.icon = "MdOutlineStickyNote2"
         self.sub = "Miscellaneous"
 
@@ -58,7 +63,7 @@ class NoteNode(NodeBase):
 #             return in1 ** in2
 
 
-@NodeFactory.register("Utility", "Text Append")
+@NodeFactory.register("chainner.utility.text_append")
 class TextAppendNode(NodeBase):
     """Text Append node"""
 
@@ -74,6 +79,9 @@ class TextAppendNode(NodeBase):
             TextInput("Text D", optional=True),
         ]
         self.outputs = [TextOutput("Output Text")]
+
+        self.category = UTILITY
+        self.name = "Text Append"
         self.icon = "MdTextFields"
         self.sub = "Text"
 
