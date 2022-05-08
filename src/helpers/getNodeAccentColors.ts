@@ -1,4 +1,4 @@
-export default (category: string): string => {
+export default (category: string | undefined): string => {
     switch (category) {
         case 'OpenCV':
             return '#C53030';
