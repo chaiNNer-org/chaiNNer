@@ -2,7 +2,7 @@ from typing import Dict
 import cv2
 from sanic.log import logger
 from .generic_inputs import DropDownInput
-from ...utils.image_resize import InterpolationMethod
+from ...utils.pil_utils import InterpolationMethod
 
 
 def ColorModeInput() -> Dict:

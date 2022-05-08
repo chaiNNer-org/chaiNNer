@@ -194,6 +194,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                 )
                                                                 .map((node) => (
                                                                     <RepresentativeNodeWrapper
+                                                                        key={node.name}
                                                                         node={node}
                                                                     />
                                                                 ))}

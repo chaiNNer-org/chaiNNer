@@ -74,7 +74,7 @@ const Main = ({ port }: MainProps) => {
         return <></>;
     }
 
-    if (!nodeTypes || !schemata || !data) {
+    if (!schemata || !data) {
         return (
             <Box
                 h="100vh"

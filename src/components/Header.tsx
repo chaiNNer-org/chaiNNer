@@ -60,14 +60,12 @@ const convertToUsableFormat = (
 
     // Apply input data to inputs when applicable
     nodes.forEach((node) => {
-        const inputData = node.data?.inputData;
-        if (inputData) {
-            Object.keys(inputData)
-                .map(Number)
-                .forEach((index) => {
-                    result[node.id].inputs[index] = inputData[index];
-                });
-        }
+        const { inputData } = node.data;
+        Object.keys(inputData)
+            .map(Number)
+            .forEach((index) => {
+                result[node.id].inputs[index] = inputData[index];
+            });
         if (node.parentNode) {
             result[node.parentNode].children!.push(node.id);
             result[node.id].child = true;
@@ -79,6 +77,7 @@ const convertToUsableFormat = (
     edges.forEach((element) => {
         const { sourceHandle, targetHandle, source, target } = element;
         // Connection
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (result[source] && result[target] && sourceHandle && targetHandle) {
             result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
             result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };

@@ -43,19 +43,17 @@ export class SchemaMap {
     getDefaultInput(category: string, name: string): InputData {
         const defaultData: Record<number, InputValue> = {};
         const { inputs } = this.get(category, name);
-        if (inputs) {
-            inputs.forEach((input, i) => {
-                if (input.def || input.def === 0) {
-                    defaultData[i] = input.def;
-                } else if (input.default || input.default === 0) {
-                    defaultData[i] = input.default;
-                } else if (input.options) {
-                    defaultData[i] = input.options[0].value;
-                } else {
-                    defaultData[i] = undefined;
-                }
-            });
-        }
+        inputs.forEach((input, i) => {
+            if (input.def || input.def === 0) {
+                defaultData[i] = input.def;
+            } else if (input.default || input.default === 0) {
+                defaultData[i] = input.default;
+            } else if (input.options) {
+                defaultData[i] = input.options[0].value;
+            } else {
+                defaultData[i] = undefined;
+            }
+        });
         return defaultData;
     }
 }

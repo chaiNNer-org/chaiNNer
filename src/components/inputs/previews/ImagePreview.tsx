@@ -13,9 +13,6 @@ interface ImageObject {
 }
 
 const getColorMode = (img: ImageObject) => {
-    if (!img) {
-        return '?';
-    }
     switch (img.channels) {
         case 1:
             return 'GRAY';
@@ -93,7 +90,9 @@ export default memo(({ path, category, nodeType, id }: ImagePreviewProps) => {
                     />
                     {img && path && (
                         <HStack>
-                            <Tag>{img ? `${img.width}x${img.height}` : '?'}</Tag>
+                            <Tag>
+                                {img.width}x{img.height}
+                            </Tag>
                             <Tag>{getColorMode(img)}</Tag>
                             <Tag>{String(path.split('.').slice(-1)).toUpperCase()}</Tag>
                         </HStack>

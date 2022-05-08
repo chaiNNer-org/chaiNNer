@@ -6,7 +6,7 @@ import { useAsyncEffect } from '../../../helpers/hooks/useAsyncEffect';
 import { checkFileExists } from '../../../helpers/util';
 
 interface ModelData {
-    modelType: string;
+    modelType?: string;
     scale: number;
     inNc: number;
     outNc: number;
@@ -81,18 +81,14 @@ export default memo(({ path, category, nodeType, id }: TorchModelPreviewProps) =
                         spacing={2}
                     >
                         <WrapItem>
-                            <Tag>{`${modelData.modelType ?? '?'}`}</Tag>
+                            <Tag>{modelData.modelType ?? '?'}</Tag>
                         </WrapItem>
                         <WrapItem>
-                            <Tag>{`${modelData.scale ?? '?'}x`}</Tag>
+                            <Tag>{modelData.scale}x</Tag>
                         </WrapItem>
                         <WrapItem>
                             <Tag>
-                                {modelData
-                                    ? `${getColorMode(modelData.inNc)}→${getColorMode(
-                                          modelData.outNc
-                                      )}`
-                                    : '?'}
+                                {getColorMode(modelData.inNc)}→{getColorMode(modelData.outNc)}
                             </Tag>
                         </WrapItem>
                         {modelData.size.map((size) => (

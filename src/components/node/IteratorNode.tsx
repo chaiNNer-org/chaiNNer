@@ -55,7 +55,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        if (inputs && inputs.length) {
+        if (inputs.length) {
             setValidity(
                 checkNodeValidity({
                     id,

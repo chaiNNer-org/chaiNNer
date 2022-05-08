@@ -52,7 +52,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const [validity, setValidity] = useState<[boolean, string]>([false, '']);
 
     useEffect(() => {
-        if (inputs && inputs.length) {
+        if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
         }
     }, [inputData, edges.length, nodes.length]);
@@ -71,7 +71,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                 setCheckedSize(true);
             }
         }
-    }, [nodes && !checkedSize, targetRef?.current?.offsetHeight]);
+    }, [checkedSize, targetRef.current?.offsetHeight]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showMenu, setShowMenu] = useState(false);

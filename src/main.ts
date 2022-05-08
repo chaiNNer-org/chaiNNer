@@ -12,7 +12,6 @@ import {
 } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
 import https from 'https';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
