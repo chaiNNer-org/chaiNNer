@@ -200,12 +200,12 @@ export const IconFactory = (icon: string, accentColor: string) => {
                     viewBox="0 0 4 4"
                 />
             );
-        case 'Image (Effect)':
+        case 'Image (Filters)':
             return (
                 <Icon
                     alignContent="center"
                     alignItems="center"
-                    as={libraries.md.MdBorderColor}
+                    as={libraries.md.MdFilterAlt}
                     boxSize={4}
                     color={accentColor}
                     transition="0.15s ease-in-out"
@@ -230,18 +230,6 @@ export const IconFactory = (icon: string, accentColor: string) => {
                     alignContent="center"
                     alignItems="center"
                     as={libraries.md.MdAllOut}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-          );
-        case 'Image (Effect)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.bs.BsSliders}
                     boxSize={4}
                     color={accentColor}
                     transition="0.15s ease-in-out"
