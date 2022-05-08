@@ -15,8 +15,7 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const { nodes, edges, schemata, updateIteratorBounds, useHoveredNode } =
-        useContext(GlobalContext);
+    const { edges, schemata, updateIteratorBounds, useHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, category, type, parentNode, schemaId } = data;
 
@@ -45,14 +44,11 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
-            const parent = nodes.find((n) => n.id === parentNode);
-            if (parent) {
-                updateIteratorBounds(parentNode, parent.data.iteratorSize!, {
-                    width: targetRef.current.offsetWidth,
-                    height: targetRef.current.offsetHeight,
-                });
-                setCheckedSize(true);
-            }
+            updateIteratorBounds(parentNode, null, {
+                width: targetRef.current.offsetWidth,
+                height: targetRef.current.offsetHeight,
+            });
+            setCheckedSize(true);
         }
     }, [checkedSize]);
 

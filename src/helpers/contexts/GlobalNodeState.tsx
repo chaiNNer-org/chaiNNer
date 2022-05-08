@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import log from 'electron-log';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
@@ -70,13 +71,16 @@ interface Global {
         | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
     duplicateNode: (id: string) => void;
     clearNode: (id: string) => void;
-    outlineInvalidNodes: (invalidNodes: readonly Node<NodeData>[]) => void;
     zoom: number;
     onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
     ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
-    updateIteratorBounds: (id: string, iteratorSize: IteratorSize, dimensions?: Size) => void;
+    updateIteratorBounds: (
+        id: string,
+        iteratorSize: IteratorSize | null,
+        dimensions?: Size
+    ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
     closeAllMenus: () => void;
     useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
@@ -145,6 +149,21 @@ export const GlobalProvider = ({
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
     const [, , snapToGridAmount] = useSnapToGrid;
+
+    const modifyNode = useCallback(
+        (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (!node) {
+                    log.error(`Cannot modify missing node with id ${id}`);
+                    return nodes;
+                }
+                const newNode = mapFn(node);
+                return [...nodes.filter((n) => n.id !== id), newNode];
+            });
+        },
+        [setNodes]
+    );
 
     const dumpState = useCallback((): SaveData => {
         return {
@@ -280,18 +299,19 @@ export const GlobalProvider = ({
 
     const removeNodeById = useCallback(
         (id: string) => {
-            const node = nodes.find((n) => n.id === id);
-            if (node && node.type !== 'iteratorHelper') {
-                const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                setNodes(newNodes);
-            }
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (node && node.type !== 'iteratorHelper') {
+                    return nodes.filter((n) => n.id !== id && n.parentNode !== id);
+                }
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => edges.filter((e) => e.id !== id));
         },
         [setEdges]
@@ -392,7 +412,6 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => [
                 ...edges.filter((edge) => edge.targetHandle !== targetHandle),
                 newEdge,
@@ -464,33 +483,22 @@ export const GlobalProvider = ({
                 // must derive any changes to nodes from the previous value passed to us by
                 // `setNodes`.
 
-                // eslint-disable-next-line @typescript-eslint/no-shadow
-                setNodes((nodes) => {
-                    const nodeById = nodes.find((node) => node.id === id);
-                    if (!nodeById) {
-                        log.error(
-                            'A (deferred) setInputData was called after its node had been removed'
-                        );
-                        return nodes;
-                    }
-
-                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
+                modifyNode(id, (old) => {
+                    const nodeCopy = copyNode(old);
                     nodeCopy.data.inputData = {
-                        ...inputData,
+                        ...nodeCopy.data.inputData,
                         [index]: data,
                     };
-                    const filteredNodes = nodes.filter((n) => n.id !== id);
-                    return [...filteredNodes, nodeCopy];
+                    return nodeCopy;
                 });
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, setNodes, schemata]
+        [nodes, modifyNode, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
         const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => {
                 if (nodeIdsToAnimate) {
                     const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
@@ -509,7 +517,6 @@ export const GlobalProvider = ({
             setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
@@ -526,7 +533,6 @@ export const GlobalProvider = ({
         };
 
         const clearCompleteEdges = () => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
@@ -553,11 +559,14 @@ export const GlobalProvider = ({
             }
             const isLocked = node.data.isLocked ?? false;
             const toggleLock = () => {
-                const newNode = copyNode(node);
-                newNode.draggable = isLocked;
-                newNode.connectable = isLocked;
-                newNode.data.isLocked = !isLocked;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
+                modifyNode(id, (old) => {
+                    const isLocked = old.data.isLocked ?? false;
+                    const newNode = copyNode(old);
+                    newNode.draggable = isLocked;
+                    newNode.connectable = isLocked;
+                    newNode.data.isLocked = !isLocked;
+                    return newNode;
+                });
             };
 
             let isInputLocked = false;
@@ -572,79 +581,92 @@ export const GlobalProvider = ({
             }
             return [isLocked, toggleLock, isInputLocked] as const;
         },
-        [nodes, edges, setNodes]
+        [nodes, edges, modifyNode]
     );
 
     const useIteratorSize = useCallback(
         (id: string) => {
             const defaultSize: Size = { width: 480, height: 480 };
-            // TODO: What happens when the node wasn't found?
-            const node = nodes.find((n) => n.id === id)!;
 
             const setIteratorSize = (size: IteratorSize) => {
-                const newNode = copyNode(node);
-                newNode.data.iteratorSize = size;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
+                modifyNode(id, (old) => {
+                    const newNode = copyNode(old);
+                    newNode.data.iteratorSize = size;
+                    return newNode;
+                });
             };
 
             return [setIteratorSize, defaultSize] as const;
         },
-        [nodes, setNodes]
+        [modifyNode]
     );
 
     // TODO: this can probably be cleaned up but its good enough for now
     const updateIteratorBounds = useCallback(
-        (id: string, iteratorSize: IteratorSize, dimensions?: Size) => {
-            const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
-            const iteratorNode = nodes.find((n) => n.id === id);
-            if (iteratorNode && nodesToUpdate.length > 0) {
-                const { width, height, offsetTop, offsetLeft } = iteratorSize;
-                let maxWidth = 256;
-                let maxHeight = 256;
-                nodesToUpdate.forEach((n) => {
-                    maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
-                    maxHeight = Math.max(n.height ?? dimensions?.height ?? maxHeight, maxHeight);
-                });
-                const newNodes = nodesToUpdate.map((n) => {
-                    const newNode: Node<NodeData> = { ...n };
-                    const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
-                    const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
-                    newNode.extent = [
-                        [offsetLeft, offsetTop],
-                        [wBound, hBound],
-                    ];
-                    newNode.position.x = Math.min(Math.max(newNode.position.x, offsetLeft), wBound);
-                    newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
-                    return newNode;
-                });
-                const newIteratorNode = copyNode(iteratorNode);
+        (id: string, iteratorSize: IteratorSize | null, dimensions?: Size) => {
+            setNodes((nodes) => {
+                const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
+                const iteratorNode = nodes.find((n) => n.id === id);
+                if (iteratorNode && nodesToUpdate.length > 0) {
+                    const { width, height, offsetTop, offsetLeft } =
+                        iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
+                    let maxWidth = 256;
+                    let maxHeight = 256;
+                    nodesToUpdate.forEach((n) => {
+                        maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
+                        maxHeight = Math.max(
+                            n.height ?? dimensions?.height ?? maxHeight,
+                            maxHeight
+                        );
+                    });
+                    const newNodes = nodesToUpdate.map((n) => {
+                        const newNode = copyNode(n);
+                        const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
+                        const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
+                        newNode.extent = [
+                            [offsetLeft, offsetTop],
+                            [wBound, hBound],
+                        ];
+                        newNode.position.x = Math.min(
+                            Math.max(newNode.position.x, offsetLeft),
+                            wBound
+                        );
+                        newNode.position.y = Math.min(
+                            Math.max(newNode.position.y, offsetTop),
+                            hBound
+                        );
+                        return newNode;
+                    });
+                    const newIteratorNode = copyNode(iteratorNode);
 
-                newIteratorNode.data.maxWidth = maxWidth;
-                newIteratorNode.data.maxHeight = maxHeight;
-                // TODO: prove that those non-null assertions are valid or make them unnecessary
-                newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
-                newIteratorNode.data.iteratorSize!.height = height < maxHeight ? maxHeight : height;
-                setNodes([
-                    newIteratorNode,
-                    ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
-                    ...newNodes,
-                ]);
-            }
+                    newIteratorNode.data.maxWidth = maxWidth;
+                    newIteratorNode.data.maxHeight = maxHeight;
+                    // TODO: prove that those non-null assertions are valid or make them unnecessary
+                    newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
+                    newIteratorNode.data.iteratorSize!.height =
+                        height < maxHeight ? maxHeight : height;
+                    return [
+                        newIteratorNode,
+                        ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
+                        ...newNodes,
+                    ];
+                }
+
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
-            const iterator = nodes.find((n) => n.id === id);
-            if (iterator) {
-                const newIterator = copyNode(iterator);
-                newIterator.data.percentComplete = percent;
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([newIterator, ...filteredNodes]);
-            }
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.percentComplete = percent;
+                return newNode;
+            });
         },
-        [nodes, setNodes]
+        [modifyNode]
     );
 
     const duplicateNode = useCallback(
@@ -714,47 +736,28 @@ export const GlobalProvider = ({
         [nodes, edges]
     );
 
-    const clearNode = (id: string) => {
-        const nodesCopy = [...nodes];
-        const node = nodesCopy.find((n) => n.id === id);
-        if (!node) return;
-        const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.schemaId);
-        setNodes([...nodes.filter((n) => n.id !== id), newNode]);
-    };
-
-    const outlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = true;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
-
-    const unOutlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = false;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
+    const clearNode = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
+                return newNode;
+            });
+        },
+        [modifyNode]
+    );
 
     const [zoom, setZoom] = useState(1);
-    const onMoveEnd = (event: unknown, viewport: Viewport) => {
-        setZoom(viewport.zoom);
-    };
+    const onMoveEnd = useCallback(
+        (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
+        [setZoom]
+    );
 
     const addMenuCloseFunction = useCallback(
         (func: () => void, id: string) => {
-            const menuFuncs = { ...menuCloseFunctions };
-            menuFuncs[id] = func;
-            setMenuCloseFunctions(menuFuncs);
+            setMenuCloseFunctions((menuCloseFunctions) => ({ ...menuCloseFunctions, [id]: func }));
         },
-        [menuCloseFunctions, setMenuCloseFunctions]
+        [setMenuCloseFunctions]
     );
 
     const closeAllMenus = useCallback(() => {
@@ -786,9 +789,6 @@ export const GlobalProvider = ({
             useNodeLock,
             duplicateNode,
             clearNode,
-            // setSelectedElements,
-            outlineInvalidNodes,
-            unOutlineInvalidNodes,
             zoom,
             onMoveEnd,
             useIteratorSize,

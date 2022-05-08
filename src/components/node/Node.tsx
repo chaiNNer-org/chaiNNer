@@ -62,14 +62,11 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
-            const parent = nodes.find((n) => n.id === parentNode);
-            if (parent) {
-                updateIteratorBounds(parentNode, parent.data.iteratorSize!, {
-                    width: targetRef.current.offsetWidth,
-                    height: targetRef.current.offsetHeight,
-                });
-                setCheckedSize(true);
-            }
+            updateIteratorBounds(parentNode, null, {
+                width: targetRef.current.offsetWidth,
+                height: targetRef.current.offsetHeight,
+            });
+            setCheckedSize(true);
         }
     }, [checkedSize, targetRef.current?.offsetHeight]);
 
