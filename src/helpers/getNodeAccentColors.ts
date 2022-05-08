@@ -5,15 +5,15 @@ export default (category: string): string => {
         case 'Image':
             return '#C53030';
         case 'Image (Dimensions)':
-            return '#3182CE'
+            return '#3182CE';
         case 'Image (Adjustments)':
             return '#319795';
         case 'Image (Filters)':
-            return '#38A169'
+            return '#38A169';
         case 'Image (Utilities)':
             return '#00A3C4';
         case 'Image (Channels)':
-            return '#D69E2E'
+            return '#D69E2E';
         case 'NumPy':
             return '#2B6CB0';
         case 'PyTorch':
