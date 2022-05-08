@@ -113,8 +113,6 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    // console.log('global state rerender');
-
     const { useSnapToGrid } = useContext(SettingsContext);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
@@ -143,7 +141,6 @@ export const GlobalProvider = ({
         NodeData,
         EdgeData
     > | null>(null);
-    // const [reactFlowInstanceRfi, setRfi] = useState(null);
     const [savePath, setSavePath] = useState<string | undefined>();
 
     const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
@@ -288,11 +285,6 @@ export const GlobalProvider = ({
         };
     }, [dumpState, savePath]);
 
-    // Push state to undo history
-    // useEffect(() => {
-    //   push(dumpState());
-    // }, [nodeData, nodeLocks, reactFlowInstanceRfi, nodes, edges]);
-
     const removeNodeById = useCallback(
         (id: string) => {
             const node = nodes.find((n) => n.id === id);
@@ -412,20 +404,6 @@ export const GlobalProvider = ({
         [setEdges]
     );
 
-    useEffect(() => {
-        const json = sessionStorage.getItem('rfi');
-        if (!json) return;
-        const flow = JSON.parse(json) as {
-            viewport?: Viewport;
-            nodes?: Node<NodeData>[];
-            edges?: Edge<EdgeData>[];
-        };
-        const { x = 0, y = 0, zoom = 2 } = flow.viewport ?? {};
-        setNodes(flow.nodes || []);
-        setEdges(flow.edges || []);
-        setViewport({ x, y, zoom });
-    }, []);
-
     const isValidConnection = useCallback(
         ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
             if (source === target || !sourceHandle || !targetHandle) {
@@ -475,8 +453,7 @@ export const GlobalProvider = ({
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeById = nodes.find((node) => node.id === id);
-            const nodeData = nodeById?.data;
+            const nodeData = nodes.find((node) => node.id === id)?.data;
 
             if (!nodeData) {
                 return [undefined, () => {}] as const;
@@ -500,12 +477,10 @@ export const GlobalProvider = ({
                     }
 
                     const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                    if (nodeCopy && nodeCopy.data) {
-                        nodeCopy.data.inputData = {
-                            ...inputData,
-                            [index]: data,
-                        };
-                    }
+                    nodeCopy.data.inputData = {
+                        ...inputData,
+                        [index]: data,
+                    };
                     const filteredNodes = nodes.filter((n) => n.id !== id);
                     return [...filteredNodes, nodeCopy];
                 });
