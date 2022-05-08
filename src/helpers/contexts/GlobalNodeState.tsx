@@ -157,9 +157,7 @@ export const GlobalProvider = ({
     }, [nodes, edges]);
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
-        const validNodes = savedData.nodes.filter((node) =>
-            schemata.has(node.data.category, node.data.type)
-        );
+        const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.identifier));
         if (savedData.nodes.length !== validNodes.length) {
             await ipcRenderer.invoke(
                 'show-warning-message-box',
@@ -316,7 +314,7 @@ export const GlobalProvider = ({
                 data: {
                     ...data,
                     id,
-                    inputData: data.inputData ?? schemata.getDefaultInput(data.category, data.type),
+                    inputData: data.inputData ?? schemata.getDefaultInput(data.identifier),
                 },
             };
             if (parent || (hoveredNode && nodeType !== 'iterator')) {
@@ -358,15 +356,16 @@ export const GlobalProvider = ({
                     offsetLeft: 0,
                 };
 
-                const { defaultNodes = [] } = schemata.get(data.category, data.type);
-                defaultNodes.forEach(({ category, name }) => {
-                    const subNodeData = schemata.get(category, name);
+                const { defaultNodes = [] } = schemata.get(data.identifier);
+                defaultNodes.forEach(({ category, name, identifier }) => {
+                    const subNodeData = schemata.get(identifier);
                     const subNode = createNode({
                         nodeType: subNodeData.nodeType,
                         position: newNode.position,
                         data: {
                             category,
                             type: name,
+                            identifier,
                             subcategory: subNodeData.subcategory,
                             icon: subNodeData.icon,
                         },
@@ -437,8 +436,8 @@ export const GlobalProvider = ({
             }
 
             // Target inputs, source outputs
-            const { outputs } = schemata.get(sourceNode.data.category, sourceNode.data.type);
-            const { inputs } = schemata.get(targetNode.data.category, targetNode.data.type);
+            const { outputs } = schemata.get(sourceNode.data.identifier);
+            const { inputs } = schemata.get(targetNode.data.identifier);
 
             const sourceOutput = outputs[sourceHandleIndex];
             const targetInput = inputs[targetHandleIndex];
@@ -725,7 +724,7 @@ export const GlobalProvider = ({
         const node = nodesCopy.find((n) => n.id === id);
         if (!node) return;
         const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.category, node.data.type);
+        newNode.data.inputData = schemata.getDefaultInput(node.data.identifier);
         setNodes([...nodes.filter((n) => n.id !== id), newNode]);
     };
 

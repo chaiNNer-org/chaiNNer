@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from categories import IMAGE, IMAGE_EFFECT, IMAGE_UTILITY
+from .categories import IMAGE, IMAGE_EFFECT, IMAGE_UTILITY
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

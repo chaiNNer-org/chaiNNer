@@ -41,11 +41,10 @@ const convertToUsableFormat = (
     // Set up each node in the result
     nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
-        const { category, type } = data;
+        const { identifier } = data;
         // Node
         result[id] = {
-            category,
-            node: type,
+            identifier,
             id,
             inputs: {},
             outputs: {},
@@ -204,7 +203,7 @@ const Header = ({ port }: HeaderProps) => {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
         } else {
             const nodeValidities = nodes.map((node) => {
-                const { inputs } = schemata.get(node.data.category, node.data.type);
+                const { inputs } = schemata.get(node.data.identifier);
                 return [
                     ...checkNodeValidity({
                         id: node.id,

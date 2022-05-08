@@ -5,8 +5,7 @@ import numpy as np
 from process import Executor
 from sanic.log import logger
 
-from categories import IMAGE
-
+from .categories import IMAGE
 from .image_nodes import ImReadNode
 from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory

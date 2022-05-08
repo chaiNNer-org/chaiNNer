@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from sanic.log import logger
 
-from categories import PYTORCH
+from .categories import PYTORCH
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

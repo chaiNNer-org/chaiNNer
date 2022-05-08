@@ -3,7 +3,7 @@ Nodes that provide various generic utility
 """
 
 
-from categories import UTILITY
+from .categories import UTILITY
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

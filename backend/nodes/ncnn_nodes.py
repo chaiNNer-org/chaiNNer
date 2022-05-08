@@ -11,7 +11,7 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from categories import NCNN
+from .categories import NCNN
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory

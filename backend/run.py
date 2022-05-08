@@ -82,7 +82,7 @@ async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
     node_list = []
-    for identifier in registry.items():
+    for identifier, _node_class in registry.items():
         node_object = NodeFactory.create_node(identifier)
         node_dict = {
             "identifier": identifier,
