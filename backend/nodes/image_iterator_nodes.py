@@ -72,8 +72,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "category": "Image",
-                "name": IMAGE_ITERATOR_NODE_ID,
+                "id": IMAGE_ITERATOR_NODE_ID,
             },
         ]
 
@@ -94,7 +93,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         img_path_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if v["category"] == "Image" and v["node"] == IMAGE_ITERATOR_NODE_ID:
+            if v["id"] == IMAGE_ITERATOR_NODE_ID:
                 img_path_node_id = v["id"]
             if nodes[k]["child"]:
                 child_nodes.append(v["id"])
@@ -231,12 +230,10 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.default_nodes = [
             # TODO: Figure out a better way to do this
             {
-                "category": "Image",
-                "name": VIDEO_ITERATOR_INPUT_NODE_ID,
+                "id": VIDEO_ITERATOR_INPUT_NODE_ID,
             },
             {
-                "category": "Image",
-                "name": VIDEO_ITERATOR_OUTPUT_NODE_ID,
+                "id": VIDEO_ITERATOR_OUTPUT_NODE_ID,
             },
         ]
 
@@ -262,11 +259,9 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         output_node_id = None
         child_nodes = []
         for k, v in nodes.items():
-            if v["category"] == "Image" and v["node"] == VIDEO_ITERATOR_INPUT_NODE_ID:
+            if v["id"] == VIDEO_ITERATOR_INPUT_NODE_ID:
                 input_node_id = v["id"]
-            elif (
-                v["category"] == "Image" and v["node"] == VIDEO_ITERATOR_OUTPUT_NODE_ID
-            ):
+            elif v["id"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
                 output_node_id = v["id"]
             if nodes[k]["child"]:
                 child_nodes.append(v["id"])
