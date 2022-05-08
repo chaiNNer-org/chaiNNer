@@ -472,8 +472,7 @@ export const GlobalProvider = ({
             id: string,
             index: number
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeById = nodes.find((node) => node.id === id);
-            const nodeData = nodeById?.data;
+            const nodeData = nodes.find((node) => node.id === id)?.data;
 
             if (!nodeData) {
                 return [undefined, () => {}] as const;
@@ -489,7 +488,6 @@ export const GlobalProvider = ({
 
                 // eslint-disable-next-line @typescript-eslint/no-shadow
                 setNodes((nodes) => {
-                    // eslint-disable-next-line @typescript-eslint/no-shadow
                     const nodeById = nodes.find((node) => node.id === id);
                     if (!nodeById) {
                         log.error(
@@ -499,12 +497,10 @@ export const GlobalProvider = ({
                     }
 
                     const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
-                    if (nodeCopy && nodeCopy.data) {
-                        nodeCopy.data.inputData = {
-                            ...inputData,
-                            [index]: data,
-                        };
-                    }
+                    nodeCopy.data.inputData = {
+                        ...inputData,
+                        [index]: data,
+                    };
                     const filteredNodes = nodes.filter((n) => n.id !== id);
                     return [...filteredNodes, nodeCopy];
                 });
