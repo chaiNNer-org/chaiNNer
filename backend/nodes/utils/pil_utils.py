@@ -8,6 +8,7 @@ from sanic.log import logger
 
 
 class InterpolationMethod:
+    AUTO = -1
     NEAREST = 0
     LANCZOS = 1
     LINEAR = 2
@@ -48,6 +49,15 @@ def resize(
     img: np.ndarray, out_dims: Tuple[int, int], interpolation: int
 ) -> np.ndarray:
     """Perform PIL resize or fall back to cv2"""
+
+    if interpolation == InterpolationMethod.AUTO:
+        # automatically chose a method that works
+        new_w, new_h = out_dims
+        old_h, old_w = img.shape[:2]
+        if new_w > old_w or new_h > old_h:
+            interpolation = InterpolationMethod.LANCZOS
+        else:
+            interpolation = InterpolationMethod.BOX
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
