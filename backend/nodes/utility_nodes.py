@@ -25,7 +25,7 @@ class NoteNode(NodeBase):
         self.category = UTILITY
         self.name = "Note"
         self.icon = "MdOutlineStickyNote2"
-        self.sub = "Miscellaneous"
+        self.sub = "Text"
 
     def run(self, _text: str) -> None:
         return

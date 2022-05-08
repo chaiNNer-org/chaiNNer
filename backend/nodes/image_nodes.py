@@ -16,7 +16,14 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .categories import IMAGE, IMAGE_EFFECT, IMAGE_UTILITY
+from .categories import (
+    IMAGE,
+    IMAGE_DIMENSION,
+    IMAGE_ADJUSTMENT,
+    IMAGE_FILTER,
+    IMAGE_UTILITY,
+    IMAGE_CHANNEL,
+)
 
 from .node_base import NodeBase
 from .node_factory import NodeFactory
@@ -31,6 +38,11 @@ from .utils.image_utils import (
     normalize_normals,
 )
 from .utils.pil_utils import *
+
+
+# -----------
+# Image Nodes
+# -----------
 
 
 @NodeFactory.register("chainner:image:load")
@@ -227,6 +239,11 @@ class ImOpenNode(NodeBase):
                 subprocess.call(("xdg-open", temp_save_dir))
 
 
+# ------------------------
+# Image (Dimensions) Nodes
+# ------------------------
+
+
 @NodeFactory.register("chainner:image:resize_factor")
 class ImResizeByFactorNode(NodeBase):
     """OpenCV resize node"""
@@ -242,11 +259,11 @@ class ImResizeByFactorNode(NodeBase):
             NumberInput("Scale Factor", default=1.0, step=0.25),
             InterpolationInput(),
         ]
-        self.category = IMAGE_UTILITY
+        self.category = IMAGE_DIMENSION
         self.name = "Resize (Factor)"
         self.outputs = [ImageOutput()]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
-        self.sub = "Resizing & Reshaping"
+        self.sub = "Resize"
 
     def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
         """Takes an image and resizes it"""
@@ -276,10 +293,10 @@ class ImResizeToResolutionNode(NodeBase):
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
+        self.category = IMAGE_DIMENSION
         self.name = "Resize (Resolution)"
         self.icon = "MdOutlinePhotoSizeSelectLarge"
-        self.sub = "Resizing & Reshaping"
+        self.sub = "Resize"
 
     def run(
         self, img: np.ndarray, width: int, height: int, interpolation: int
@@ -293,6 +310,613 @@ class ImResizeToResolutionNode(NodeBase):
         out_dims = (int(width), int(height))
 
         return resize(img, out_dims, int(interpolation))
+
+
+@NodeFactory.register("chainner:image:crop_offsets")
+class CropNode(NodeBase):
+    """NumPy Crop node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Top Offset"),
+            IntegerInput("Left Offset"),
+            IntegerInput("Height"),
+            IntegerInput("Width"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_DIMENSION
+        self.name = "Crop (Offsets)"
+        self.icon = "MdCrop"
+        self.sub = "Crop"
+
+    def run(
+        self, img: np.ndarray, top: int, left: int, height: int, width: int
+    ) -> np.ndarray:
+        """Crop an image"""
+
+        h, w = img.shape[:2]
+
+        top = int(top)
+        left = int(left)
+        height = int(height)
+        width = int(width)
+
+        assert top < h, "Cropped area would result in image with no height"
+        assert left < w, "Cropped area would result in image with no width"
+
+        result = img[top : top + height, left : left + width]
+
+        return result
+
+
+@NodeFactory.register("chainner:image:crop_border")
+class BorderCropNode(NodeBase):
+    """NumPy Border Crop node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Crop an image based on a constant border margin around the entire image."
+        )
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_DIMENSION
+        self.name = "Crop (Border)"
+        self.icon = "MdCrop"
+        self.sub = "Crop"
+
+    def run(self, img: np.ndarray, amount: int) -> np.ndarray:
+        """Crop an image"""
+
+        h, w = img.shape[:2]
+
+        amount = int(amount)
+
+        assert 2 * amount < h, "Cropped area would result in image with no height"
+        assert 2 * amount < w, "Cropped area would result in image with no width"
+
+        result = img[amount : h - amount, amount : w - amount]
+
+        return result
+
+
+@NodeFactory.register("chainner:image:crop_edges")
+class EdgeCropNode(NodeBase):
+    """NumPy Edge Crop node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Crop an image using separate amounts from each edge."
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Top"),
+            IntegerInput("Left"),
+            IntegerInput("Right"),
+            IntegerInput("Bottom"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_DIMENSION
+        self.name = "Crop (Edges)"
+        self.icon = "MdCrop"
+        self.sub = "Crop"
+
+    def run(
+        self, img: np.ndarray, top: str, left: str, right: str, bottom: str
+    ) -> np.ndarray:
+        """Crop an image"""
+
+        h, w = img.shape[:2]
+
+        top, left, right, bottom = [int(x) for x in [top, left, right, bottom]]
+
+        assert top + bottom < h, "Cropped area would result in image with no height"
+        assert left + right < w, "Cropped area would result in image with no width"
+
+        result = img[top : h - bottom, left : w - right]
+
+        return result
+
+
+# -------------------------
+# Image (Adjustments) Nodes
+# -------------------------
+
+
+@NodeFactory.register("chainner:image:hue_and_saturation")
+class HueAndSaturationNode(NodeBase):
+    """OpenCV Hue and Saturation Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Adjust the hue and saturation of an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Hue", -180, 180, 0),
+            SliderInput("Saturation", -255, 255, 0),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Hue & Saturation"
+        self.icon = "MdOutlineColorLens"
+        self.sub = "Adjustments"
+
+    def add_and_wrap_hue(self, img: np.ndarray, add_val: float) -> np.ndarray:
+        """Adds hue change value to image and wraps on range overflow"""
+
+        img += add_val
+        img[img >= 360] -= 360  # Wrap positive overflow
+        img[img < 0] += 360  # Wrap negative overflow
+        return img
+
+    def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
+        """Adjust the hue and saturation of an image"""
+
+        # Pass through grayscale and unadjusted images
+        hue = int(hue)
+        saturation = int(saturation)
+        if (
+            img.ndim < 3
+            or img.shape[2] == 1
+            or (int(hue) == 0 and int(saturation) == 0)
+        ):
+            return img
+
+        img = normalize(img)
+
+        # Preserve alpha channel if it exists
+        c = img.shape[2]
+        alpha = None
+        if c > 3:
+            alpha = img[:, :, 3]
+
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        h, l, s = cv2.split(hls)
+
+        # Adjust hue and saturation
+        hnew = self.add_and_wrap_hue(h, hue)
+        smod = 1 + (saturation / 255)
+        snew = np.clip((s * smod), 0, 1)
+
+        hlsnew = cv2.merge([hnew, l, snew])
+        img = cv2.cvtColor(hlsnew, cv2.COLOR_HLS2BGR)
+        if alpha is not None:  # Re-add alpha, if it exists
+            img = np.dstack((img, alpha))
+
+        return img
+
+
+@NodeFactory.register("chainner:image:brightness_and_contrast")
+class BrightnessAndContrastNode(NodeBase):
+    """OpenCV Brightness and Contrast Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Adjust the brightness and contrast of an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Brightness", -255, 255, 0),
+            SliderInput("Contrast", -255, 255, 0),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Brightness & Contrast"
+        self.icon = "ImBrightnessContrast"
+        self.sub = "Adjustments"
+
+    def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
+        """Adjusts the brightness and contrast of an image"""
+
+        b_amount = int(b_amount) / 255
+        c_amount = int(c_amount) / 255
+
+        # Pass through unadjusted image
+        if b_amount == 0 and c_amount == 0:
+            return img
+
+        img = normalize(img)
+
+        # Calculate brightness adjustment
+        if b_amount > 0:
+            shadow = b_amount
+            highlight = 1
+        else:
+            shadow = 0
+            highlight = 1 + b_amount
+        alpha_b = highlight - shadow
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
+        else:
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow
+            )
+
+        # Calculate contrast adjustment
+        alpha_c = ((259 / 255) * (c_amount + 1)) / (
+            (259 / 255) - c_amount
+        )  # Contrast correction factor
+        gamma_c = 0.5 * (1 - alpha_c)
+        if img.ndim == 2:
+            img = cv2.addWeighted(img, alpha_c, img, 0, gamma_c)
+        else:
+            img[:, :, :3] = cv2.addWeighted(
+                img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c
+            )
+        img = np.clip(img, 0, 1).astype("float32")
+
+        return img
+
+
+@NodeFactory.register("chainner:image:threshold")
+class ThresholdNode(NodeBase):
+    """OpenCV Threshold node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Perform a threshold on an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Threshold", 0, 100, 50),
+            SliderInput("Maximum Value", 0, 100, 100),
+            ThresholdInput(),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Threshold"
+        self.icon = "MdShowChart"
+        self.sub = "Adjustments"
+
+    def run(
+        self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
+    ) -> np.ndarray:
+        """Takes an image and applies a threshold to it"""
+
+        img = normalize(img)
+
+        logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
+
+        real_thresh = int(thresh) / 100
+        real_maxval = int(maxval) / 100
+
+        logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
+
+        _, result = cv2.threshold(img, real_thresh, real_maxval, int(thresh_type))
+
+        return result
+
+
+@NodeFactory.register("chainner:image:threshold_adaptive")
+class AdaptiveThresholdNode(NodeBase):
+    """OpenCV Adaptive Threshold node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Perform an adaptive threshold on an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Maximum Value", 0, 100, 100),
+            AdaptiveMethodInput(),
+            AdaptiveThresholdInput(),
+            OddIntegerInput("Block Size", default=3, minimum=3),
+            IntegerInput("Mean Subtraction"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Threshold (Adaptive)"
+        self.icon = "MdAutoGraph"
+        self.sub = "Adjustments"
+
+    def run(
+        self,
+        img: np.ndarray,
+        maxval: int,
+        adaptive_method: int,
+        thresh_type: int,
+        block_size: int,
+        c: int,
+    ) -> np.ndarray:
+        """Takes an image and applies an adaptive threshold to it"""
+
+        assert (
+            img.ndim == 2
+        ), "Image must be grayscale (single channel) to apply an adaptive threshold"
+
+        # Adaptive threshold requires uint8 input
+        img = (normalize(img) * 255).astype("uint8")
+
+        real_maxval = int(maxval) / 100 * 255
+
+        result = cv2.adaptiveThreshold(
+            img,
+            real_maxval,
+            int(adaptive_method),
+            int(thresh_type),
+            int(block_size),
+            int(c),
+        )
+
+        return result.astype("float32") / 255
+
+
+# ---------------------
+# Image (Filters) Nodes
+# ---------------------
+
+
+@NodeFactory.register("chainner:image:blur")
+class BlurNode(NodeBase):
+    """OpenCV Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply blur to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]  # , IntegerInput("Sigma")]#,BlurInput()]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Blur"
+        self.icon = "MdBlurOn"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: int,
+        amount_y: int,
+        # sigma: int,
+    ) -> np.ndarray:
+        """Adjusts the blur of an image"""
+
+        ksize = (int(amount_x), int(amount_y))
+        for __i in range(16):
+            img = cv2.blur(img, ksize)
+
+        return img
+
+
+@NodeFactory.register("chainner:image:gaussian_blur")
+class GaussianBlurNode(NodeBase):
+    """OpenCV Gaussian Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply Gaussian Blur to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount X"),
+            IntegerInput("Amount Y"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Gaussian Blur"
+        self.icon = "MdBlurOn"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: float,
+        amount_y: float,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+
+        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
+
+        return blurred
+
+
+@NodeFactory.register("chainner:image:sharpen")
+class SharpenNode(NodeBase):
+    """OpenCV Sharpen Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply sharpening to an image"
+        self.inputs = [
+            ImageInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Sharpen"
+        self.icon = "MdBlurOff"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: float,
+    ) -> np.ndarray:
+        """Adjusts the sharpening of an image"""
+
+        blurred = cv2.GaussianBlur(img, (0, 0), amount)
+        img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
+
+        return img
+
+
+@NodeFactory.register("chainner:image:average_color_fix")
+class AverageColorFixNode(NodeBase):
+    """Fixes the average color of an upscaled image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Correct for upscaling model color shift by matching
+         average color of Input Image to that of a smaller Reference Image.
+         Using significant downscaling increases generalization of averaging effect
+         and can reduce artifacts in the output."""
+        self.inputs = [
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            BoundedNumberInput(
+                "Reference Image Scale Factor", default=0.125, step=0.125
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Average Color Fix"
+        self.icon = "MdAutoFixHigh"
+        self.sub = "Correction"
+
+    def run(
+        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
+    ) -> np.ndarray:
+        """Fixes the average color of the input image"""
+
+        input_img = normalize(input_img)
+        ref_img = normalize(ref_img)
+
+        if scale_factor != 1.0:
+            ref_img = cv2.resize(
+                ref_img,
+                None,
+                fx=scale_factor,
+                fy=scale_factor,
+                interpolation=cv2.INTER_AREA,
+            )
+
+        input_h, input_w = input_img.shape[:2]
+        ref_h, ref_w = ref_img.shape[:2]
+
+        assert (
+            ref_w < input_w and ref_h < input_h
+        ), "Image must be larger than Reference Image"
+
+        # Find the diff of both images
+
+        # Downscale the input image
+        downscaled_input = cv2.resize(
+            input_img,
+            (ref_w, ref_h),
+            interpolation=cv2.INTER_AREA,
+        )
+
+        # Get difference between the reference image and downscaled input
+        downscaled_diff = ref_img - downscaled_input
+
+        # Upsample the difference
+        diff = cv2.resize(
+            downscaled_diff,
+            (input_w, input_h),
+            interpolation=cv2.INTER_CUBIC,
+        )
+
+        result = input_img + diff
+
+        return np.clip(result, 0, 1)
+
+
+@NodeFactory.register("chainner:image:color_transfer")
+class ColorTransferNode(NodeBase):
+    """
+    Transfers colors from one image to another
+
+    This code was adapted from Adrian Rosebrock's color_transfer script,
+    found at: https://github.com/jrosebr1/color_transfer (© 2014, MIT license).
+    """
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = """Transfers colors from reference image.
+            Different combinations of settings may perform better for
+            different images. Try multiple setting combinations to find
+            best results."""
+        self.inputs = [
+            ImageInput("Image"),
+            ImageInput("Reference Image"),
+            DropDownInput(
+                "str",
+                "Colorspace",
+                [
+                    {"option": "L*a*b*", "value": "L*a*b*"},
+                    {"option": "RGB", "value": "RGB"},
+                ],
+            ),
+            DropDownInput(
+                "str",
+                "Overflow Method",
+                [
+                    {"option": "Clip", "value": 1},
+                    {"option": "Scale", "value": 0},
+                ],
+            ),
+            DropDownInput(
+                "generic",
+                "Reciprocal Scaling Factor",
+                [
+                    {"option": "Yes", "value": 1},
+                    {"option": "No", "value": 0},
+                ],
+            ),
+        ]
+        self.outputs = [ImageOutput("Image")]
+        self.category = IMAGE_FILTER
+        self.name = "Color Transfer"
+        self.icon = "MdInput"
+        self.sub = "Correction"
+
+    def run(
+        self,
+        img: np.ndarray,
+        ref_img: np.ndarray,
+        colorspace: str = "L*a*b*",
+        overflow_method: int | str = 1,
+        reciprocal_scale: int | str = 1,
+    ) -> np.ndarray:
+        """
+        Transfers the color distribution from source image to target image.
+        """
+
+        assert (
+            ref_img.ndim == 3 and ref_img.shape[2] >= 3
+        ), "Reference image should be RGB or RGBA"
+
+        img = normalize(img)
+        ref_img = normalize(ref_img)
+
+        # Make sure target has at least 3 channels
+        if img.ndim == 2 or img.shape[2] == 1:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+        # Preserve alpha
+        c = img.shape[2]
+        alpha = None
+        if c == 4:
+            alpha = img[:, :, 3]
+
+        transfer = color_transfer(
+            img, ref_img, colorspace, overflow_method, reciprocal_scale
+        )
+
+        if alpha is not None:
+            transfer = np.dstack((transfer, alpha))
+
+        return transfer
+
+
+# -----------------------
+# Image (Utilities) Nodes
+# -----------------------
 
 
 @NodeFactory.register("chainner:image:overlay")
@@ -314,7 +938,7 @@ class ImOverlay(NodeBase):
         self.category = IMAGE_UTILITY
         self.name = "Overlay Images"
         self.icon = "BsLayersHalf"
-        self.sub = "Miscellaneous"
+        self.sub = "Compositing"
 
     def run(
         self,
@@ -410,175 +1034,6 @@ class ImOverlay(NodeBase):
         return imgout
 
 
-@NodeFactory.register("chainner:image:change_colospace")
-class ColorConvertNode(NodeBase):
-    """OpenCV color conversion node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = (
-            "Convert the colorspace of an image to a different one. "
-            "Also can convert to different channel-spaces."
-        )
-        self.inputs = [
-            ImageInput(),
-            ColorModeInput(),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Change Colorspace"
-        self.icon = "MdColorLens"
-        self.sub = "Miscellaneous"
-
-    def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
-        """Takes an image and changes the color mode it"""
-
-        result = cv2.cvtColor(img, int(color_mode))
-
-        return result
-
-
-@NodeFactory.register("chainner:image:create_border")
-class BorderMakeNode(NodeBase):
-    """OpenCV CopyMakeBorder node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Creates a border around the image."
-        self.inputs = [
-            ImageInput(),
-            BorderInput(),
-            IntegerInput("Amount"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Create Border"
-        self.icon = "BsBorderOuter"
-        self.sub = "Miscellaneous"
-
-    def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
-        """Takes an image and applies a border to it"""
-
-        amount = int(amount)
-        border_type = int(border_type)
-
-        if (img.ndim == 3 and img.shape[2] == 4) and border_type == cv2.BORDER_CONSTANT:
-            value = (0, 0, 0, 1)
-        else:
-            value = 0
-
-        if border_type == cv2.BORDER_TRANSPARENT:
-            border_type = cv2.BORDER_CONSTANT
-
-        result = cv2.copyMakeBorder(
-            img,
-            amount,
-            amount,
-            amount,
-            amount,
-            border_type,
-            None,
-            value=value,
-        )
-
-        return result
-
-
-@NodeFactory.register("chainner:image:threshold")
-class ThresholdNode(NodeBase):
-    """OpenCV Threshold node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Perform a threshold on an image."
-        self.inputs = [
-            ImageInput(),
-            SliderInput("Threshold", 0, 100, 50),
-            SliderInput("Maximum Value", 0, 100, 100),
-            ThresholdInput(),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Threshold"
-        self.icon = "MdShowChart"
-        self.sub = "Miscellaneous"
-
-    def run(
-        self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
-    ) -> np.ndarray:
-        """Takes an image and applies a threshold to it"""
-
-        img = normalize(img)
-
-        logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
-
-        real_thresh = int(thresh) / 100
-        real_maxval = int(maxval) / 100
-
-        logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
-
-        _, result = cv2.threshold(img, real_thresh, real_maxval, int(thresh_type))
-
-        return result
-
-
-@NodeFactory.register("chainner:image:threshold_adaptive")
-class AdaptiveThresholdNode(NodeBase):
-    """OpenCV Adaptive Threshold node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Perform an adaptive threshold on an image."
-        self.inputs = [
-            ImageInput(),
-            SliderInput("Maximum Value", 0, 100, 100),
-            AdaptiveMethodInput(),
-            AdaptiveThresholdInput(),
-            OddIntegerInput("Block Size", default=3, minimum=3),
-            IntegerInput("Mean Subtraction"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Threshold (Adaptive)"
-        self.icon = "MdAutoGraph"
-        self.sub = "Miscellaneous"
-
-    def run(
-        self,
-        img: np.ndarray,
-        maxval: int,
-        adaptive_method: int,
-        thresh_type: int,
-        block_size: int,
-        c: int,
-    ) -> np.ndarray:
-        """Takes an image and applies an adaptive threshold to it"""
-
-        assert (
-            img.ndim == 2
-        ), "Image must be grayscale (single channel) to apply an adaptive threshold"
-
-        # Adaptive threshold requires uint8 input
-        img = (normalize(img) * 255).astype("uint8")
-
-        real_maxval = int(maxval) / 100 * 255
-
-        result = cv2.adaptiveThreshold(
-            img,
-            real_maxval,
-            int(adaptive_method),
-            int(thresh_type),
-            int(block_size),
-            int(c),
-        )
-
-        return result.astype("float32") / 255
-
-
 @NodeFactory.register("chainner:image:stack")
 class StackNode(NodeBase):
     """OpenCV concatenate (h/v) Node"""
@@ -598,7 +1053,7 @@ class StackNode(NodeBase):
         self.category = IMAGE_UTILITY
         self.name = "Stack Images"
         self.icon = "CgMergeVertical"
-        self.sub = "Miscellaneous"
+        self.sub = "Compositing"
 
     def run(
         self,
@@ -681,574 +1136,6 @@ class StackNode(NodeBase):
         return img
 
 
-@NodeFactory.register("chainner:image:hue_and_saturation")
-class HueAndSaturationNode(NodeBase):
-    """OpenCV Hue and Saturation Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Adjust the hue and saturation of an image."
-        self.inputs = [
-            ImageInput(),
-            SliderInput("Hue", -180, 180, 0),
-            SliderInput("Saturation", -255, 255, 0),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Hue & Saturation"
-        self.icon = "MdOutlineColorLens"
-        self.sub = "Adjustment"
-
-    def add_and_wrap_hue(self, img: np.ndarray, add_val: float) -> np.ndarray:
-        """Adds hue change value to image and wraps on range overflow"""
-
-        img += add_val
-        img[img >= 360] -= 360  # Wrap positive overflow
-        img[img < 0] += 360  # Wrap negative overflow
-        return img
-
-    def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
-        """Adjust the hue and saturation of an image"""
-
-        # Pass through grayscale and unadjusted images
-        hue = int(hue)
-        saturation = int(saturation)
-        if (
-            img.ndim < 3
-            or img.shape[2] == 1
-            or (int(hue) == 0 and int(saturation) == 0)
-        ):
-            return img
-
-        img = normalize(img)
-
-        # Preserve alpha channel if it exists
-        c = img.shape[2]
-        alpha = None
-        if c > 3:
-            alpha = img[:, :, 3]
-
-        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
-        h, l, s = cv2.split(hls)
-
-        # Adjust hue and saturation
-        hnew = self.add_and_wrap_hue(h, hue)
-        smod = 1 + (saturation / 255)
-        snew = np.clip((s * smod), 0, 1)
-
-        hlsnew = cv2.merge([hnew, l, snew])
-        img = cv2.cvtColor(hlsnew, cv2.COLOR_HLS2BGR)
-        if alpha is not None:  # Re-add alpha, if it exists
-            img = np.dstack((img, alpha))
-
-        return img
-
-
-@NodeFactory.register("chainner:image:brightness_and_contrast")
-class BrightnessAndContrastNode(NodeBase):
-    """OpenCV Brightness and Contrast Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Adjust the brightness and contrast of an image."
-        self.inputs = [
-            ImageInput(),
-            SliderInput("Brightness", -255, 255, 0),
-            SliderInput("Contrast", -255, 255, 0),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Brightness & Contrast"
-        self.icon = "ImBrightnessContrast"
-        self.sub = "Adjustment"
-
-    def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
-        """Adjusts the brightness and contrast of an image"""
-
-        b_amount = int(b_amount) / 255
-        c_amount = int(c_amount) / 255
-
-        # Pass through unadjusted image
-        if b_amount == 0 and c_amount == 0:
-            return img
-
-        img = normalize(img)
-
-        # Calculate brightness adjustment
-        if b_amount > 0:
-            shadow = b_amount
-            highlight = 1
-        else:
-            shadow = 0
-            highlight = 1 + b_amount
-        alpha_b = highlight - shadow
-        if img.ndim == 2:
-            img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
-        else:
-            img[:, :, :3] = cv2.addWeighted(
-                img[:, :, :3], alpha_b, img[:, :, :3], 0, shadow
-            )
-
-        # Calculate contrast adjustment
-        alpha_c = ((259 / 255) * (c_amount + 1)) / (
-            (259 / 255) - c_amount
-        )  # Contrast correction factor
-        gamma_c = 0.5 * (1 - alpha_c)
-        if img.ndim == 2:
-            img = cv2.addWeighted(img, alpha_c, img, 0, gamma_c)
-        else:
-            img[:, :, :3] = cv2.addWeighted(
-                img[:, :, :3], alpha_c, img[:, :, :3], 0, gamma_c
-            )
-        img = np.clip(img, 0, 1).astype("float32")
-
-        return img
-
-
-@NodeFactory.register("chainner:image:blur")
-class BlurNode(NodeBase):
-    """OpenCV Blur Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Apply blur to an image"
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
-        ]  # , IntegerInput("Sigma")]#,BlurInput()]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Blur"
-        self.icon = "MdBlurOn"
-        self.sub = "Adjustment"
-
-    def run(
-        self,
-        img: np.ndarray,
-        amount_x: int,
-        amount_y: int,
-        # sigma: int,
-    ) -> np.ndarray:
-        """Adjusts the blur of an image"""
-
-        ksize = (int(amount_x), int(amount_y))
-        for __i in range(16):
-            img = cv2.blur(img, ksize)
-
-        return img
-
-
-@NodeFactory.register("chainner:image:gaussian_blur")
-class GaussianBlurNode(NodeBase):
-    """OpenCV Gaussian Blur Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Apply Gaussian Blur to an image"
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Gaussian Blur"
-        self.icon = "MdBlurOn"
-        self.sub = "Adjustment"
-
-    def run(
-        self,
-        img: np.ndarray,
-        amount_x: float,
-        amount_y: float,
-    ) -> np.ndarray:
-        """Adjusts the sharpening of an image"""
-
-        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
-
-        return blurred
-
-
-@NodeFactory.register("chainner:image:sharpen")
-class SharpenNode(NodeBase):
-    """OpenCV Sharpen Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Apply sharpening to an image"
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Amount"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Sharpen"
-        self.icon = "MdBlurOff"
-        self.sub = "Adjustment"
-
-    def run(
-        self,
-        img: np.ndarray,
-        amount: float,
-    ) -> np.ndarray:
-        """Adjusts the sharpening of an image"""
-
-        blurred = cv2.GaussianBlur(img, (0, 0), amount)
-        img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
-
-        return img
-
-
-@NodeFactory.register("chainner:image:shift")
-class ShiftNode(NodeBase):
-    """OpenCV Shift Node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Shift an image by an x, y amount."
-        self.inputs = [
-            ImageInput(),
-            BoundlessIntegerInput("Amount X"),
-            BoundlessIntegerInput("Amount Y"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_EFFECT
-        self.name = "Shift"
-        self.icon = "BsGraphDown"
-        self.sub = "Adjustment"
-
-    def run(
-        self,
-        img: np.ndarray,
-        amount_x: int,
-        amount_y: int,
-    ) -> np.ndarray:
-        """Adjusts the position of an image"""
-
-        num_rows, num_cols = img.shape[:2]
-        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
-        img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
-        return img
-
-
-@NodeFactory.register("chainner:image:split_channels")
-class ChannelSplitRGBANode(NodeBase):
-    """NumPy Splitter node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = (
-            "Split image channels into separate channels. "
-            "Typically used for splitting off an alpha (transparency) layer."
-        )
-        self.inputs = [ImageInput()]
-        self.outputs = [
-            ImageOutput("Blue Channel"),
-            ImageOutput("Green Channel"),
-            ImageOutput("Red Channel"),
-            ImageOutput("Alpha Channel"),
-        ]
-        self.category = IMAGE_UTILITY
-        self.name = "Split Channels"
-        self.icon = "MdCallSplit"
-        self.sub = "Splitting & Merging"
-
-    def run(self, img: np.ndarray) -> list[np.ndarray]:
-        """Split a multi-channel image into separate channels"""
-
-        c = 1
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-
-        if img.ndim > 2:
-            c = img.shape[2]
-            safe_out = np.ones_like(img[:, :, 0]) * dtype_max
-        else:
-            safe_out = np.ones_like(img) * dtype_max
-
-        out = []
-        for i in range(c):
-            out.append(img[:, :, i])
-        for i in range(4 - c):
-            out.append(safe_out)
-
-        return out
-
-
-@NodeFactory.register("chainner:image:split_transparency")
-class TransparencySplitNode(NodeBase):
-    """Transparency-specific Splitter node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = (
-            "Split image channels into RGB and Alpha (transparency) channels."
-        )
-        self.inputs = [ImageInput()]
-        self.outputs = [
-            ImageOutput("RGB Channels"),
-            ImageOutput("Alpha Channel"),
-        ]
-        self.category = IMAGE_UTILITY
-        self.name = "Split Transparency"
-        self.icon = "MdCallSplit"
-        self.sub = "Splitting & Merging"
-
-    def run(self, img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Split a multi-channel image into separate channels"""
-
-        if img.ndim == 2:
-            logger.debug("Expanding image channels")
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
-        # Pad with solid alpha channel if needed (i.e three channel image)
-        elif img.shape[2] == 3:
-            logger.debug("Expanding image channels")
-            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
-
-        rgb = img[:, :, :3]
-        alpha = img[:, :, 3]
-
-        return rgb, alpha
-
-
-@NodeFactory.register("chainner:image:merge_channels")
-class ChannelMergeRGBANode(NodeBase):
-    """NumPy Merger node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = (
-            "Merge image channels together into a ≤4 channel image. "
-            "Typically used for combining an image with an alpha layer."
-        )
-        self.inputs = [
-            ImageInput("Channel(s) A"),
-            ImageInput("Channel(s) B", optional=True),
-            ImageInput("Channel(s) C", optional=True),
-            ImageInput("Channel(s) D", optional=True),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Merge Channels"
-        self.icon = "MdCallMerge"
-        self.sub = "Splitting & Merging"
-
-    def run(
-        self,
-        im1: np.ndarray,
-        im2: np.ndarray = None,
-        im3: np.ndarray = None,
-        im4: np.ndarray = None,
-    ) -> np.ndarray:
-        """Combine separate channels into a multi-chanel image"""
-
-        start_shape = im1.shape[:2]
-
-        for im in im2, im3, im4:
-            if im is not None:
-                assert (
-                    im.shape[:2] == start_shape
-                ), "All images to be merged must be the same resolution"
-
-        imgs = []
-        for img in im1, im2, im3, im4:
-            if img is not None:
-                imgs.append(img)
-
-        for idx, img in enumerate(imgs):
-            if img.ndim == 2:
-                imgs[idx] = np.expand_dims(img, axis=2)
-
-        img = np.concatenate(imgs, axis=2)
-
-        # ensure output is safe number of channels
-        if img.ndim > 2:
-            h, w, c = img.shape
-            if c == 2:
-                b, g = cv2.split(img)
-                img = cv2.merge((b, g, g))
-            if c > 4:
-                img = img[:, :, :4]
-
-        return img
-
-
-@NodeFactory.register("chainner:image:merge_transparency")
-class TransparencyMergeNode(NodeBase):
-    """Transparency-specific Merge node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
-        self.inputs = [ImageInput("RGB Channels"), ImageInput("Alpha Channel")]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Merge Transparency"
-        self.icon = "MdCallMerge"
-        self.sub = "Splitting & Merging"
-
-    def run(self, rgb: np.ndarray, a: np.ndarray) -> np.ndarray:
-        """Combine separate channels into a multi-chanel image"""
-
-        start_shape = rgb.shape[:2]
-        logger.info(start_shape)
-
-        for im in rgb, a:
-            if im is not None:
-                logger.info(im.shape[:2])
-                assert (
-                    im.shape[:2] == start_shape
-                ), "All images to be merged must be the same resolution"
-
-        if rgb.ndim == 2:
-            rgb = cv2.merge((rgb, rgb, rgb))
-        elif rgb.ndim > 2 and rgb.shape[2] == 2:
-            rgb = cv2.merge(
-                (rgb, np.zeros((rgb.shape[0], rgb.shape[1], 1), dtype=rgb.dtype))
-            )
-        elif rgb.shape[2] > 3:
-            rgb = rgb[:, :, :3]
-
-        if a.ndim > 2:
-            a = a[:, :, 0]
-        a = np.expand_dims(a, axis=2)
-
-        imgs = [rgb, a]
-        for img in imgs:
-            logger.info(img.shape)
-        img = np.concatenate(imgs, axis=2)
-
-        return img
-
-
-@NodeFactory.register("chainner:image:crop_offsets")
-class CropNode(NodeBase):
-    """NumPy Crop node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Top Offset"),
-            IntegerInput("Left Offset"),
-            IntegerInput("Height"),
-            IntegerInput("Width"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Crop (Offsets)"
-        self.icon = "MdCrop"
-        self.sub = "Resizing & Reshaping"
-
-    def run(
-        self, img: np.ndarray, top: int, left: int, height: int, width: int
-    ) -> np.ndarray:
-        """Crop an image"""
-
-        h, w = img.shape[:2]
-
-        top = int(top)
-        left = int(left)
-        height = int(height)
-        width = int(width)
-
-        assert top < h, "Cropped area would result in image with no height"
-        assert left < w, "Cropped area would result in image with no width"
-
-        result = img[top : top + height, left : left + width]
-
-        return result
-
-
-@NodeFactory.register("chainner:image:crop_border")
-class BorderCropNode(NodeBase):
-    """NumPy Border Crop node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = (
-            "Crop an image based on a constant border margin around the entire image."
-        )
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Amount"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Crop (Border)"
-        self.icon = "MdCrop"
-        self.sub = "Resizing & Reshaping"
-
-    def run(self, img: np.ndarray, amount: int) -> np.ndarray:
-        """Crop an image"""
-
-        h, w = img.shape[:2]
-
-        amount = int(amount)
-
-        assert 2 * amount < h, "Cropped area would result in image with no height"
-        assert 2 * amount < w, "Cropped area would result in image with no width"
-
-        result = img[amount : h - amount, amount : w - amount]
-
-        return result
-
-
-@NodeFactory.register("chainner:image:crop_edges")
-class EdgeCropNode(NodeBase):
-    """NumPy Edge Crop node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Crop an image using separate amounts from each edge."
-        self.inputs = [
-            ImageInput(),
-            IntegerInput("Top"),
-            IntegerInput("Left"),
-            IntegerInput("Right"),
-            IntegerInput("Bottom"),
-        ]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Crop (Edges)"
-        self.icon = "MdCrop"
-        self.sub = "Resizing & Reshaping"
-
-    def run(
-        self, img: np.ndarray, top: str, left: str, right: str, bottom: str
-    ) -> np.ndarray:
-        """Crop an image"""
-
-        h, w = img.shape[:2]
-
-        top, left, right, bottom = [int(x) for x in [top, left, right, bottom]]
-
-        assert top + bottom < h, "Cropped area would result in image with no height"
-        assert left + right < w, "Cropped area would result in image with no width"
-
-        result = img[top : h - bottom, left : w - right]
-
-        return result
-
-
 @NodeFactory.register("chainner:image:caption")
 class CaptionNode(NodeBase):
     """Caption node"""
@@ -1265,7 +1152,7 @@ class CaptionNode(NodeBase):
         self.category = IMAGE_UTILITY
         self.name = "Add Caption"
         self.icon = "MdVideoLabel"
-        self.sub = "Miscellaneous"
+        self.sub = "Compositing"
 
     def run(self, img: np.ndarray, caption: str) -> np.ndarray:
         """Add caption an image"""
@@ -1273,6 +1160,115 @@ class CaptionNode(NodeBase):
         img = normalize(img)
 
         return add_caption(img, caption)
+
+
+@NodeFactory.register("chainner:image:change_colorspace")
+class ColorConvertNode(NodeBase):
+    """OpenCV color conversion node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Convert the colorspace of an image to a different one. "
+            "Also can convert to different channel-spaces."
+        )
+        self.inputs = [
+            ImageInput(),
+            ColorModeInput(),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Change Colorspace"
+        self.icon = "MdColorLens"
+        self.sub = "Miscellaneous"
+
+    def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
+        """Takes an image and changes the color mode it"""
+
+        result = cv2.cvtColor(img, int(color_mode))
+
+        return result
+
+
+@NodeFactory.register("chainner:image:create_border")
+class BorderMakeNode(NodeBase):
+    """OpenCV CopyMakeBorder node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Creates a border around the image."
+        self.inputs = [
+            ImageInput(),
+            BorderInput(),
+            IntegerInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Create Border"
+        self.icon = "BsBorderOuter"
+        self.sub = "Miscellaneous"
+
+    def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
+        """Takes an image and applies a border to it"""
+
+        amount = int(amount)
+        border_type = int(border_type)
+
+        if (img.ndim == 3 and img.shape[2] == 4) and border_type == cv2.BORDER_CONSTANT:
+            value = (0, 0, 0, 1)
+        else:
+            value = 0
+
+        if border_type == cv2.BORDER_TRANSPARENT:
+            border_type = cv2.BORDER_CONSTANT
+
+        result = cv2.copyMakeBorder(
+            img,
+            amount,
+            amount,
+            amount,
+            amount,
+            border_type,
+            None,
+            value=value,
+        )
+
+        return result
+
+
+@NodeFactory.register("chainner:image:shift")
+class ShiftNode(NodeBase):
+    """OpenCV Shift Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Shift an image by an x, y amount."
+        self.inputs = [
+            ImageInput(),
+            BoundlessIntegerInput("Amount X"),
+            BoundlessIntegerInput("Amount Y"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Shift"
+        self.icon = "BsGraphDown"
+        self.sub = "Miscellaneous"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount_x: int,
+        amount_y: int,
+    ) -> np.ndarray:
+        """Adjusts the position of an image"""
+
+        num_rows, num_cols = img.shape[:2]
+        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
+        img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+        return img
 
 
 @NodeFactory.register("chainner:image:normalize_normal_map")
@@ -1399,76 +1395,206 @@ class NormalAdditionNode(NodeBase):
         return cv2.merge((b_norm, g_norm, r_norm))
 
 
-@NodeFactory.register("chainner:image:average_color_fix")
-class AverageColorFixNode(NodeBase):
-    """Fixes the average color of an upscaled image"""
+# ----------------------
+# Image (Channels) Nodes
+# ----------------------
+
+
+@NodeFactory.register("chainner:image:split_channels")
+class ChannelSplitRGBANode(NodeBase):
+    """NumPy Splitter node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Correct for upscaling model color shift by matching
-         average color of Input Image to that of a smaller Reference Image.
-         Using significant downscaling increases generalization of averaging effect
-         and can reduce artifacts in the output."""
+        self.description = (
+            "Split image channels into separate channels. "
+            "Typically used for splitting off an alpha (transparency) layer."
+        )
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            ImageOutput("Blue Channel"),
+            ImageOutput("Green Channel"),
+            ImageOutput("Red Channel"),
+            ImageOutput("Alpha Channel"),
+        ]
+        self.category = IMAGE_CHANNEL
+        self.name = "Split Channels"
+        self.icon = "MdCallSplit"
+        self.sub = "All"
+
+    def run(self, img: np.ndarray) -> list[np.ndarray]:
+        """Split a multi-channel image into separate channels"""
+
+        c = 1
+        dtype_max = 1
+        try:
+            dtype_max = np.iinfo(img.dtype).max
+        except:
+            logger.debug("img dtype is not int")
+
+        if img.ndim > 2:
+            c = img.shape[2]
+            safe_out = np.ones_like(img[:, :, 0]) * dtype_max
+        else:
+            safe_out = np.ones_like(img) * dtype_max
+
+        out = []
+        for i in range(c):
+            out.append(img[:, :, i])
+        for i in range(4 - c):
+            out.append(safe_out)
+
+        return out
+
+
+@NodeFactory.register("chainner:image:merge_channels")
+class ChannelMergeRGBANode(NodeBase):
+    """NumPy Merger node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Merge image channels together into a ≤4 channel image. "
+            "Typically used for combining an image with an alpha layer."
+        )
         self.inputs = [
-            ImageInput("Image"),
-            ImageInput("Reference Image"),
-            BoundedNumberInput(
-                "Reference Image Scale Factor", default=0.125, step=0.125
-            ),
+            ImageInput("Channel(s) A"),
+            ImageInput("Channel(s) B", optional=True),
+            ImageInput("Channel(s) C", optional=True),
+            ImageInput("Channel(s) D", optional=True),
         ]
         self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Average Color Fix"
-        self.icon = "MdAutoFixHigh"
-        self.sub = "Miscellaneous"
+        self.category = IMAGE_CHANNEL
+        self.name = "Merge Channels"
+        self.icon = "MdCallMerge"
+        self.sub = "All"
 
     def run(
-        self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
+        self,
+        im1: np.ndarray,
+        im2: np.ndarray = None,
+        im3: np.ndarray = None,
+        im4: np.ndarray = None,
     ) -> np.ndarray:
-        """Fixes the average color of the input image"""
+        """Combine separate channels into a multi-chanel image"""
 
-        input_img = normalize(input_img)
-        ref_img = normalize(ref_img)
+        start_shape = im1.shape[:2]
 
-        if scale_factor != 1.0:
-            ref_img = cv2.resize(
-                ref_img,
-                None,
-                fx=scale_factor,
-                fy=scale_factor,
-                interpolation=cv2.INTER_AREA,
+        for im in im2, im3, im4:
+            if im is not None:
+                assert (
+                    im.shape[:2] == start_shape
+                ), "All images to be merged must be the same resolution"
+
+        imgs = []
+        for img in im1, im2, im3, im4:
+            if img is not None:
+                imgs.append(img)
+
+        for idx, img in enumerate(imgs):
+            if img.ndim == 2:
+                imgs[idx] = np.expand_dims(img, axis=2)
+
+        img = np.concatenate(imgs, axis=2)
+
+        # ensure output is safe number of channels
+        if img.ndim > 2:
+            h, w, c = img.shape
+            if c == 2:
+                b, g = cv2.split(img)
+                img = cv2.merge((b, g, g))
+            if c > 4:
+                img = img[:, :, :4]
+
+        return img
+
+
+@NodeFactory.register("chainner:image:split_transparency")
+class TransparencySplitNode(NodeBase):
+    """Transparency-specific Splitter node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Split image channels into RGB and Alpha (transparency) channels."
+        )
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            ImageOutput("RGB Channels"),
+            ImageOutput("Alpha Channel"),
+        ]
+        self.category = IMAGE_CHANNEL
+        self.name = "Split Transparency"
+        self.icon = "MdCallSplit"
+        self.sub = "Transparency"
+
+    def run(self, img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Split a multi-channel image into separate channels"""
+
+        if img.ndim == 2:
+            logger.debug("Expanding image channels")
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
+        # Pad with solid alpha channel if needed (i.e three channel image)
+        elif img.shape[2] == 3:
+            logger.debug("Expanding image channels")
+            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+
+        rgb = img[:, :, :3]
+        alpha = img[:, :, 3]
+
+        return rgb, alpha
+
+
+@NodeFactory.register("chainner:image:merge_transparency")
+class TransparencyMergeNode(NodeBase):
+    """Transparency-specific Merge node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
+        self.inputs = [ImageInput("RGB Channels"), ImageInput("Alpha Channel")]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_CHANNEL
+        self.name = "Merge Transparency"
+        self.icon = "MdCallMerge"
+        self.sub = "Transparency"
+
+    def run(self, rgb: np.ndarray, a: np.ndarray) -> np.ndarray:
+        """Combine separate channels into a multi-chanel image"""
+
+        start_shape = rgb.shape[:2]
+        logger.info(start_shape)
+
+        for im in rgb, a:
+            if im is not None:
+                logger.info(im.shape[:2])
+                assert (
+                    im.shape[:2] == start_shape
+                ), "All images to be merged must be the same resolution"
+
+        if rgb.ndim == 2:
+            rgb = cv2.merge((rgb, rgb, rgb))
+        elif rgb.ndim > 2 and rgb.shape[2] == 2:
+            rgb = cv2.merge(
+                (rgb, np.zeros((rgb.shape[0], rgb.shape[1], 1), dtype=rgb.dtype))
             )
+        elif rgb.shape[2] > 3:
+            rgb = rgb[:, :, :3]
 
-        input_h, input_w = input_img.shape[:2]
-        ref_h, ref_w = ref_img.shape[:2]
+        if a.ndim > 2:
+            a = a[:, :, 0]
+        a = np.expand_dims(a, axis=2)
 
-        assert (
-            ref_w < input_w and ref_h < input_h
-        ), "Image must be larger than Reference Image"
+        imgs = [rgb, a]
+        for img in imgs:
+            logger.info(img.shape)
+        img = np.concatenate(imgs, axis=2)
 
-        # Find the diff of both images
-
-        # Downscale the input image
-        downscaled_input = cv2.resize(
-            input_img,
-            (ref_w, ref_h),
-            interpolation=cv2.INTER_AREA,
-        )
-
-        # Get difference between the reference image and downscaled input
-        downscaled_diff = ref_img - downscaled_input
-
-        # Upsample the difference
-        diff = cv2.resize(
-            downscaled_diff,
-            (input_w, input_h),
-            interpolation=cv2.INTER_CUBIC,
-        )
-
-        result = input_img + diff
-
-        return np.clip(result, 0, 1)
+        return img
 
 
 @NodeFactory.register("chainner:image:fill_alpha")
@@ -1483,7 +1609,7 @@ class FillAlphaNode(NodeBase):
         )
         self.inputs = [ImageInput("RGBA"), AlphaFillMethodInput()]
         self.outputs = [ImageOutput("RGB")]
-        self.category = IMAGE_UTILITY
+        self.category = IMAGE_CHANNEL
         self.name = "Fill Alpha"
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
@@ -1516,92 +1642,3 @@ class FillAlphaNode(NodeBase):
         img[:, :, 1] *= img[:, :, 3]
         img[:, :, 2] *= img[:, :, 3]
         return img[:, :, :3]
-
-
-@NodeFactory.register("chainner:image:color_transfer")
-class ColorTransferNode(NodeBase):
-    """
-    Transfers colors from one image to another
-
-    This code was adapted from Adrian Rosebrock's color_transfer script,
-    found at: https://github.com/jrosebr1/color_transfer (© 2014, MIT license).
-    """
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = """Transfers colors from reference image.
-            Different combinations of settings may perform better for
-            different images. Try multiple setting combinations to find
-            best results."""
-        self.inputs = [
-            ImageInput("Image"),
-            ImageInput("Reference Image"),
-            DropDownInput(
-                "str",
-                "Colorspace",
-                [
-                    {"option": "L*a*b*", "value": "L*a*b*"},
-                    {"option": "RGB", "value": "RGB"},
-                ],
-            ),
-            DropDownInput(
-                "str",
-                "Overflow Method",
-                [
-                    {"option": "Clip", "value": 1},
-                    {"option": "Scale", "value": 0},
-                ],
-            ),
-            DropDownInput(
-                "generic",
-                "Reciprocal Scaling Factor",
-                [
-                    {"option": "Yes", "value": 1},
-                    {"option": "No", "value": 0},
-                ],
-            ),
-        ]
-        self.outputs = [ImageOutput("Image")]
-        self.category = IMAGE_UTILITY
-        self.name = "Color Transfer"
-        self.icon = "MdInput"
-        self.sub = "Miscellaneous"
-
-    def run(
-        self,
-        img: np.ndarray,
-        ref_img: np.ndarray,
-        colorspace: str = "L*a*b*",
-        overflow_method: int | str = 1,
-        reciprocal_scale: int | str = 1,
-    ) -> np.ndarray:
-        """
-        Transfers the color distribution from source image to target image.
-        """
-
-        assert (
-            ref_img.ndim == 3 and ref_img.shape[2] >= 3
-        ), "Reference image should be RGB or RGBA"
-
-        img = normalize(img)
-        ref_img = normalize(ref_img)
-
-        # Make sure target has at least 3 channels
-        if img.ndim == 2 or img.shape[2] == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-
-        # Preserve alpha
-        c = img.shape[2]
-        alpha = None
-        if c == 4:
-            alpha = img[:, :, 3]
-
-        transfer = color_transfer(
-            img, ref_img, colorspace, overflow_method, reciprocal_scale
-        )
-
-        if alpha is not None:
-            transfer = np.dstack((transfer, alpha))
-
-        return transfer

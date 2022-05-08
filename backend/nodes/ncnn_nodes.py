@@ -35,7 +35,7 @@ class NcnnLoadModelNode(NodeBase):
         self.category = NCNN
         self.name = "Load Model"
         self.icon = "NCNN"
-        self.sub = "NCNN"
+        self.sub = "Input & Output"
 
     def get_param_info(self, param_path):
         input_name = "data"
@@ -97,6 +97,48 @@ class NcnnLoadModelNode(NodeBase):
         return (param_path, bin_data, input_name, output_name), model_name
 
 
+@NodeFactory.register("chainner:ncnn:save_model")
+class NcnnSaveNode(NodeBase):
+    """Model Save node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Save an NCNN model to specified directory."
+        self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
+        self.outputs = []
+
+        self.category = NCNN
+        self.name = "Save Model"
+        self.icon = "NCNN"
+        self.sub = "Input & Output"
+
+    def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
+        param_path, bin_data, input_name, output_name = net_tuple
+        full_bin = f"{name}.bin"
+        full_param = f"{name}.param"
+        full_bin_path = os.path.join(directory, full_bin)
+        full_param_path = os.path.join(directory, full_param)
+
+        logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
+        bin_is_fp16 = bin_data.dtype == "float16"
+        bin_file_data = struct.pack(
+            "<I",
+            (FLAG_FLOAT_16 if bin_is_fp16 or os.environ["isFp16"] else FLAG_FLOAT_32),
+        ) + bin_data.astype(
+            np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
+        ).tobytes(
+            "F"
+        )
+        with open(full_bin_path, "wb") as binary_file:
+            binary_file.write(bin_file_data)
+        with open(full_param_path, "w") as param_file:
+            with open(param_path, "r") as original_param_file:
+                param_file.write(original_param_file.read())
+
+        return True
+
+
 @NodeFactory.register("chainner:ncnn:upscale_image")
 class NcnnUpscaleImageNode(NodeBase):
     """NCNN node"""
@@ -110,7 +152,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self.category = NCNN
         self.name = "Upscale Image"
         self.icon = "NCNN"
-        self.sub = "NCNN"
+        self.sub = "Processing"
 
     def upscale(self, img: np.ndarray, net: tuple, input_name: str, output_name: str):
         # Try/except block to catch errors
@@ -291,45 +333,3 @@ class NcnnInterpolateModelsNode(NodeBase):
 
         # Put all this info with the net and disguise it as just the net
         return [(param_path_a, interp_bin_data, input_name_a, output_name_a)]
-
-
-@NodeFactory.register("chainner:ncnn:save_model")
-class NcnnSaveNode(NodeBase):
-    """Model Save node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Save an NCNN model to specified directory."
-        self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
-        self.outputs = []
-
-        self.category = NCNN
-        self.name = "Save Model"
-        self.icon = "NCNN"
-        self.sub = "NCNN"
-
-    def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
-        param_path, bin_data, input_name, output_name = net_tuple
-        full_bin = f"{name}.bin"
-        full_param = f"{name}.param"
-        full_bin_path = os.path.join(directory, full_bin)
-        full_param_path = os.path.join(directory, full_param)
-
-        logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        bin_is_fp16 = bin_data.dtype == "float16"
-        bin_file_data = struct.pack(
-            "<I",
-            (FLAG_FLOAT_16 if bin_is_fp16 or os.environ["isFp16"] else FLAG_FLOAT_32),
-        ) + bin_data.astype(
-            np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
-        ).tobytes(
-            "F"
-        )
-        with open(full_bin_path, "wb") as binary_file:
-            binary_file.write(bin_file_data)
-        with open(full_param_path, "w") as param_file:
-            with open(param_path, "r") as original_param_file:
-                param_file.write(original_param_file.read())
-
-        return True

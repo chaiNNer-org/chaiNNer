@@ -176,18 +176,66 @@ export const IconFactory = (icon: string, accentColor: string) => {
                     viewBox="0 0 4 4"
                 />
             );
-        case 'Image (Utility)':
+        case 'Image (Dimensions)':
             return (
                 <Icon
                     alignContent="center"
                     alignItems="center"
-                    as={libraries.md.MdCrop}
+                    as={libraries.md.MdOutlinePhotoSizeSelectLarge}
                     boxSize={4}
                     color={accentColor}
                     transition="0.15s ease-in-out"
                     viewBox="0 0 4 4"
                 />
             );
+        case 'Image (Adjustments)':
+            return (
+                <Icon
+                    alignContent="center"
+                    alignItems="center"
+                    as={libraries.bs.BsSliders}
+                    boxSize={4}
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                    viewBox="0 0 4 4"
+                />
+            );
+        case 'Image (Effect)':
+            return (
+                <Icon
+                    alignContent="center"
+                    alignItems="center"
+                    as={libraries.md.MdBorderColor}
+                    boxSize={4}
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                    viewBox="0 0 4 4"
+                />
+            );
+        case 'Image (Utilities)':
+            return (
+                <Icon
+                    alignContent="center"
+                    alignItems="center"
+                    as={libraries.bs.BsGear}
+                    boxSize={4}
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                    viewBox="0 0 4 4"
+                />
+            );
+        case 'Image (Channels)':
+            return (
+                <Icon
+                    alignContent="center"
+                    alignItems="center"
+                    as={libraries.md.MdAllOut}
+                    boxSize={4}
+                    color={accentColor}
+                    transition="0.15s ease-in-out"
+                    viewBox="0 0 4 4"
+                />
+          );
         case 'Image (Effect)':
             return (
                 <Icon
@@ -219,7 +267,7 @@ export const IconFactory = (icon: string, accentColor: string) => {
                 <Icon
                     alignContent="center"
                     alignItems="center"
-                    as={libraries.bs.BsGearWideConnected}
+                    as={libraries.bs.BsGearFill}
                     boxSize={4}
                     color={accentColor}
                     transition="0.15s ease-in-out"
