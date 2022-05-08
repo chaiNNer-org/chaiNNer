@@ -235,12 +235,6 @@ const Header = ({ port }: HeaderProps) => {
                     data,
                     isCpu,
                     isFp16: isFp16 && !isCpu,
-                    // We actually do not want to adjust for scaling here,
-                    // as imshow does not take that into account
-                    // resolutionX: Math.floor(window.screen.width * window.devicePixelRatio),
-                    // resolutionY: Math.floor(window.screen.height * window.devicePixelRatio),
-                    resolutionX: window.screen.width,
-                    resolutionY: window.screen.height,
                 });
                 if (response.exception) {
                     showMessageBox(AlertType.ERROR, null, response.exception);

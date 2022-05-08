@@ -14,8 +14,6 @@ export interface BackendRunRequest {
     data: Record<string, UsableData>;
     isCpu: boolean;
     isFp16: boolean;
-    resolutionX: number;
-    resolutionY: number;
 }
 export interface BackendRunIndividualRequest {
     id: string;

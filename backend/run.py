@@ -82,24 +82,22 @@ async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
     node_list = []
-    for category, category_nodes in registry.items():
-        for node in category_nodes:
-            print(category)
-            print(node)
-            node_object = NodeFactory.create_node(category, node)
-            node_dict = {
-                "name": node,
-                "category": category,
-                "inputs": node_object.get_inputs(),
-                "outputs": node_object.get_outputs(),
-                "description": node_object.get_description(),
-                "icon": node_object.get_icon(),
-                "subcategory": node_object.get_sub_category(),
-                "nodeType": node_object.get_type(),
-            }
-            if node_object.get_type() == "iterator":
-                node_dict["defaultNodes"] = node_object.get_default_nodes()
-            node_list.append(node_dict)
+    for node_id in registry.items():
+        node_object = NodeFactory.create_node(node_id)
+        node_dict = {
+            "id": node_id,
+            "name": node_object.get_name(),
+            "category": node_object.get_category(),
+            "inputs": node_object.get_inputs(),
+            "outputs": node_object.get_outputs(),
+            "description": node_object.get_description(),
+            "icon": node_object.get_icon(),
+            "subcategory": node_object.get_sub_category(),
+            "nodeType": node_object.get_type(),
+        }
+        if node_object.get_type() == "iterator":
+            node_dict["defaultNodes"] = node_object.get_default_nodes()
+        node_list.append(node_dict)
     return json(node_list)
 
 
@@ -126,9 +124,6 @@ async def run(request: Request):
                 "False" if full_data["isCpu"] else str(full_data["isFp16"])
             )
             logger.info(f"Using device: {os.environ['device']}")
-            os.environ["resolutionX"] = str(full_data["resolutionX"])
-            os.environ["resolutionY"] = str(full_data["resolutionY"])
-            print(os.environ["resolutionX"], os.environ["resolutionY"])
             executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
             request.app.ctx.executor = executor
             await executor.run()
