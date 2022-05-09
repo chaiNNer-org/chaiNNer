@@ -248,9 +248,7 @@ const v07TypeMap = {
 const toV070 = (data) => {
     data.nodes.forEach((node) => {
         const oldType = `${node.data.category}:${node.data.type}`;
-        console.log('🚀 ~ file: migrations.js ~ line 250 ~ data.nodes.forEach ~ oldType', oldType);
         const newType = v07TypeMap[oldType];
-        console.log('🚀 ~ file: migrations.js ~ line 252 ~ data.nodes.forEach ~ newType', newType);
         if (newType) {
             // eslint-disable-next-line no-param-reassign
             node.data.schemaId = newType;
@@ -268,7 +266,6 @@ const toV070 = (data) => {
 export const migrate = (_version, data) => {
     let convertedData = data;
     let version = _version;
-    console.log('🚀 ~ file: migrations.js ~ line 270 ~ migrate ~ version', version);
 
     // Legacy files
     if (!version || semver.lt(version, '0.1.0')) {
