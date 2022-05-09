@@ -232,17 +232,17 @@ const v07TypeMap = {
     'Image (Effect):Shift': 'chainner:image:shift',
     'Image (Effect):Threshold': 'chainner:image:threshold',
     'Image (Effect):Threshold (Adaptive)': 'chainner:image:threshold_adaptive',
-    'PyTorch:Load Model': '',
-    'PyTorch:Save Model': '',
-    'PyTorch:Upscale Image': '',
-    'PyTorch:Convert To ONNX': '',
-    'PyTorch:Interpolate Models': '',
-    'NCNN:Load Model': '',
-    'NCNN:Save Model': '',
-    'NCNN:Upscale Image': '',
-    'NCNN:Interpolate Models': '',
-    'Utility:Note': '',
-    'Utility:Text Append': '',
+    'PyTorch:Load Model': 'chainner:pytorch:load_model',
+    'PyTorch:Save Model': 'chainner:pytorch:save_model',
+    'PyTorch:Upscale Image': 'chainner:pytorch:upscale_image',
+    'PyTorch:Convert To ONNX': 'chainner:pytorch:convert_to_onnx',
+    'PyTorch:Interpolate Models': 'chainner:pytorch:interpolate_models',
+    'NCNN:Load Model': 'chainner:ncnn:load_model',
+    'NCNN:Save Model': 'chainner:ncnn:save_model',
+    'NCNN:Upscale Image': 'chainner:ncnn:upscale_image',
+    'NCNN:Interpolate Models': 'chainner:ncnn:interpolate_models',
+    'Utility:Note': 'chainner:utility:note',
+    'Utility:Text Append': 'chainner:utility:text_append',
 };
 
 const toV070 = (data) => {
@@ -272,28 +272,48 @@ export const migrate = (_version, data) => {
 
     // Legacy files
     if (!version || semver.lt(version, '0.1.0')) {
-        convertedData = preAlpha(convertedData);
+        try {
+            convertedData = preAlpha(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.1.0', error);
+        }
         version = '0.0.0';
     }
 
     // v0.1.x & v0.2.x to v0.3.0
     if (semver.lt(version, '0.3.0')) {
-        convertedData = toV03(convertedData);
+        try {
+            convertedData = toV03(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.3.0', error);
+        }
     }
 
     // v0.3.x & v0.4.x to v0.5.0
     if (semver.lt(version, '0.5.0')) {
-        convertedData = toV05(convertedData);
+        try {
+            convertedData = toV05(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.5.0', error);
+        }
     }
 
     // v0.5.0 & v0.5.1 to v0.5.2
     if (semver.lt(version, '0.5.2')) {
-        convertedData = toV052(convertedData);
+        try {
+            convertedData = toV052(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.5.2', error);
+        }
     }
 
     // v0.7.0
     if (semver.lt(version, '0.7.0')) {
-        convertedData = toV070(convertedData);
+        try {
+            convertedData = toV070(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.7.0', error);
+        }
     }
 
     return convertedData;
