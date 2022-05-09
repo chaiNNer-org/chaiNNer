@@ -22,7 +22,7 @@ interface FileInputProps {
 
 const FileInput = memo(
     ({ filetypes, id, index, label, type, isLocked, category, name, schemaId }: FileInputProps) => {
-        const { useInputData, useNodeLock } = useContext(GlobalContext);
+        const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
         const [filePath, setFilePath] = useInputData<string>(id, index);
 
         // Handle case of NCNN model selection where param and bin files are named in pairs
@@ -57,7 +57,7 @@ const FileInput = memo(
             }, [binFilePath]);
         }
 
-        const [, , isInputLocked] = useNodeLock(id, index);
+        const isInputLocked = isNodeInputLocked(id, index);
 
         const onButtonClick = async () => {
             const fileDir = filePath ? path.dirname(filePath) : undefined;

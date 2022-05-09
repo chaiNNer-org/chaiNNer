@@ -23,11 +23,11 @@ interface NumericalInputProps {
 
 const NumericalInput = memo(
     ({ label, id, index, def, min, max, precision, step, type, isLocked }: NumericalInputProps) => {
-        const { useInputData, useNodeLock } = useContext(GlobalContext);
+        const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(id, index);
         const [inputString, setInputString] = useState(String(input));
-        const [, , isInputLocked] = useNodeLock(id, index);
+        const isInputLocked = isNodeInputLocked(id, index);
 
         const handleChange = (numberAsString: string, numberAsNumber: number) => {
             setInputString(numberAsString);

@@ -12,10 +12,10 @@ interface TextInputProps {
 }
 
 const TextInput = memo(({ label, id, index, isLocked, maxLength }: TextInputProps) => {
-    const { useInputData, useNodeLock } = useContext(GlobalContext);
+    const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
     const [input, setInput] = useInputData<string>(id, index);
     const [tempText, setTempText] = useState('');
-    const [, , isInputLocked] = useNodeLock(id, index);
+    const isInputLocked = isNodeInputLocked(id, index);
 
     useEffect(() => {
         if (!input) {

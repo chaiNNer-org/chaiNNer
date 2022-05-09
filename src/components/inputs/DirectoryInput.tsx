@@ -11,9 +11,9 @@ interface DirectoryInputProps {
 }
 
 const DirectoryInput = memo(({ id, index, isLocked }: DirectoryInputProps) => {
-    const { useInputData, useNodeLock } = useContext(GlobalContext);
+    const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
     const [directory, setDirectory] = useInputData<string>(id, index);
-    const [, , isInputLocked] = useNodeLock(id, index);
+    const isInputLocked = isNodeInputLocked(id, index);
 
     const onButtonClick = async () => {
         const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');
