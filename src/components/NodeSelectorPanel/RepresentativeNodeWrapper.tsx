@@ -2,7 +2,11 @@ import { Box, Center, Tooltip } from '@chakra-ui/react';
 import { DragEvent, memo, useContext } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { NodeSchema } from '../../common-types';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import {
+    GlobalConstantsContext,
+    GlobalContext,
+    GlobalSettersContext,
+} from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
@@ -18,10 +22,9 @@ interface RepresentativeNodeWrapperProps {
 }
 
 const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
-    const { createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode } =
-        useContext(GlobalContext);
-
-    const [, setHoveredNode] = useHoveredNode;
+    const { createNode, reactFlowInstance } = useContext(GlobalContext);
+    const { reactFlowWrapper } = useContext(GlobalConstantsContext);
+    const { setHoveredNode } = useContext(GlobalSettersContext);
 
     return (
         <Box

@@ -17,7 +17,11 @@ import { EdgeData, NodeData, UsableData } from '../common-types';
 import { getBackend } from '../helpers/Backend';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import {
+    GlobalConstantsContext,
+    GlobalContext,
+    GlobalSettersContext,
+} from '../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import {
@@ -96,8 +100,9 @@ interface HeaderProps {
 }
 
 const Header = ({ port }: HeaderProps) => {
-    const { useAnimateEdges, nodes, edges, schemata, setIteratorPercent } =
-        useContext(GlobalContext);
+    const { nodes, edges } = useContext(GlobalContext);
+    const { schemata } = useContext(GlobalConstantsContext);
+    const { useAnimateEdges, setIteratorPercent } = useContext(GlobalSettersContext);
 
     const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 

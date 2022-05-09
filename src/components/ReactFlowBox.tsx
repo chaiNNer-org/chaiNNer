@@ -15,7 +15,8 @@ import ReactFlow, {
     useNodesState,
 } from 'react-flow-renderer';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalSettersContext } from '../helpers/contexts/GlobalNodeState';
+import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { snapToGrid } from '../helpers/reactFlowUtil';
 
@@ -29,20 +30,11 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const {
-        nodes,
-        edges,
-        createNode,
-        createConnection,
-        reactFlowInstance,
-        setReactFlowInstance,
-        setNodes,
-        setEdges,
-        onMoveEnd,
-        zoom,
-        useMenuCloseFunctions,
-        useHoveredNode,
-    } = useContext(GlobalContext);
+    const { nodes, edges, createNode, createConnection, reactFlowInstance, zoom } =
+        useContext(GlobalContext);
+    const { setReactFlowInstance, setNodes, setEdges, onMoveEnd, setHoveredNode } =
+        useContext(GlobalSettersContext);
+    const { closeAllMenus } = useContext(MenuFunctionsContext);
 
     const { useSnapToGrid } = useContext(SettingsContext);
 
@@ -162,8 +154,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         event.dataTransfer.dropEffect = 'move';
     }, []);
 
-    const [, setHoveredNode] = useHoveredNode;
-
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
     }, []);
@@ -213,8 +203,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
     const onNodeContextMenu = useCallback((event, node) => {
         // TODO implement this
     }, []);
-
-    const [closeAllMenus] = useMenuCloseFunctions;
 
     return (
         <Box

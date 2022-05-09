@@ -2,7 +2,7 @@ import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalConstantsContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody';
@@ -25,7 +25,8 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const { edges, schemata } = useContext(GlobalContext);
+    const { edges } = useContext(GlobalContext);
+    const { schemata } = useContext(GlobalConstantsContext);
 
     const {
         id,

@@ -4,7 +4,11 @@ import { memo, useContext, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData } from '../common-types';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import {
+    GlobalConstantsContext,
+    GlobalContext,
+    GlobalSettersContext,
+} from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
@@ -33,7 +37,9 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const { removeEdgeById, nodes, useHoveredNode, schemata } = useContext(GlobalContext);
+    const { nodes } = useContext(GlobalContext);
+    const { schemata } = useContext(GlobalConstantsContext);
+    const { removeEdgeById, setHoveredNode } = useContext(GlobalSettersContext);
 
     const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);
 
@@ -55,8 +61,6 @@ const CustomEdge = ({
     const hoverTimeout = useDebouncedCallback(() => {
         setIsHovered(false);
     }, 7500);
-
-    const [, setHoveredNode] = useHoveredNode;
 
     return (
         <g

@@ -38,23 +38,29 @@ import { SettingsContext } from './SettingsContext';
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface Global {
-    schemata: SchemaMap;
     nodes: readonly Node<NodeData>[];
     edges: readonly Edge<EdgeData>[];
-    setNodes: SetState<Node<NodeData>[]>;
-    setEdges: SetState<Edge<EdgeData>[]>;
-    onNodesChange: OnNodesChange;
-    onEdgesChange: OnEdgesChange;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
-    setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
-    reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         index: number
     ) => readonly [T | undefined, (data: T) => void];
+    isNodeInputLocked: (id: string, index: number) => boolean;
+    duplicateNode: (id: string) => void;
+    zoom: number;
+    hoveredNode: string | null | undefined;
+}
+interface GlobalConstants {
+    schemata: SchemaMap;
+    reactFlowWrapper: React.RefObject<Element>;
+}
+interface GlobalSetters {
+    setNodes: SetState<Node<NodeData>[]>;
+    setEdges: SetState<Edge<EdgeData>[]>;
+    setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -63,15 +69,8 @@ interface Global {
     ];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    useNodeLock: (
-        id: string,
-        index?: number | null
-    ) =>
-        | readonly []
-        | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
-    duplicateNode: (id: string) => void;
+    toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    zoom: number;
     onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
@@ -82,12 +81,7 @@ interface Global {
         dimensions?: Size
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
-    closeAllMenus: () => void;
-    useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
-    useMenuCloseFunctions: readonly [
-        closeAllMenus: () => void,
-        addMenuCloseFunction: (func: () => void, id: string) => void
-    ];
+    setHoveredNode: SetState<string | null | undefined>;
 }
 
 interface NodeProto {
@@ -98,6 +92,10 @@ interface NodeProto {
 
 // TODO: Find default
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
+export const GlobalConstantsContext = createContext<Readonly<GlobalConstants>>(
+    {} as GlobalConstants
+);
+export const GlobalSettersContext = createContext<Readonly<GlobalSetters>>({} as GlobalSetters);
 
 const createUniqueId = () => uuidv4();
 
@@ -180,8 +178,8 @@ export const GlobalProvider = ({
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     const { useSnapToGrid } = useContext(SettingsContext);
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
+    const [nodes, setNodes] = useNodesState<NodeData>([]);
+    const [edges, setEdges] = useEdgesState<EdgeData>([]);
     const { setViewport, getViewport } = useReactFlow();
 
     // Cache node state to avoid clearing state when refreshing
@@ -209,8 +207,6 @@ export const GlobalProvider = ({
     const [savePath, setSavePath] = useState<string | undefined>();
 
     const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
-
-    const [menuCloseFunctions, setMenuCloseFunctions] = useState<Record<string, () => void>>({});
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
@@ -548,38 +544,30 @@ export const GlobalProvider = ({
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
     }, [setEdges]);
 
-    // TODO: performance concern? runs twice when deleting node
-    const useNodeLock = useCallback(
-        (id: string, index?: number | null) => {
-            const node = nodes.find((n) => n.id === id);
-            if (!node) {
-                return [] as const;
-            }
-            const isLocked = node.data.isLocked ?? false;
-            const toggleLock = () => {
-                modifyNode(id, (old) => {
-                    const isLocked = old.data.isLocked ?? false;
-                    const newNode = copyNode(old);
-                    newNode.draggable = isLocked;
-                    newNode.connectable = isLocked;
-                    newNode.data.isLocked = !isLocked;
-                    return newNode;
-                });
-            };
-
-            let isInputLocked = false;
-            if (index !== undefined && index !== null) {
-                const edge = edges.find(
-                    (e) =>
-                        e.target === id &&
-                        !!e.targetHandle &&
-                        parseHandle(e.targetHandle).index === index
-                );
-                isInputLocked = !!edge;
-            }
-            return [isLocked, toggleLock, isInputLocked] as const;
+    const toggleNodeLock = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const isLocked = old.data.isLocked ?? false;
+                const newNode = copyNode(old);
+                newNode.draggable = isLocked;
+                newNode.connectable = isLocked;
+                newNode.data.isLocked = !isLocked;
+                return newNode;
+            });
         },
-        [nodes, edges, modifyNode]
+        [modifyNode]
+    );
+
+    const isNodeInputLocked = useCallback(
+        (id: string, index: number): boolean => {
+            return edges.some(
+                (e) =>
+                    e.target === id &&
+                    !!e.targetHandle &&
+                    parseHandle(e.targetHandle).index === index
+            );
+        },
+        [modifyNode]
     );
 
     const useIteratorSize = useCallback(
@@ -751,53 +739,51 @@ export const GlobalProvider = ({
         [setZoom]
     );
 
-    const addMenuCloseFunction = useCallback(
-        (func: () => void, id: string) => {
-            setMenuCloseFunctions((menuCloseFunctions) => ({ ...menuCloseFunctions, [id]: func }));
-        },
-        [setMenuCloseFunctions]
+    let globalValue: Global = {
+        nodes,
+        edges,
+        createNode,
+        createConnection,
+        reactFlowInstance,
+        isValidConnection,
+        useInputData,
+        isNodeInputLocked,
+        duplicateNode,
+        zoom,
+        hoveredNode,
+    };
+    globalValue = useMemo(() => globalValue, Object.values(globalValue));
+
+    let globalConstantsValue: GlobalConstants = {
+        schemata,
+        reactFlowWrapper,
+    };
+    globalConstantsValue = useMemo(() => globalConstantsValue, Object.values(globalConstantsValue));
+
+    let globalSettersValue: GlobalSetters = {
+        setNodes,
+        setEdges,
+        setReactFlowInstance,
+        useAnimateEdges,
+        toggleNodeLock,
+        clearNode,
+        removeNodeById,
+        removeEdgeById,
+        updateIteratorBounds,
+        setIteratorPercent,
+        useIteratorSize,
+        setHoveredNode,
+        onMoveEnd,
+    };
+    globalSettersValue = useMemo(() => globalSettersValue, Object.values(globalSettersValue));
+
+    return (
+        <GlobalContext.Provider value={globalValue}>
+            <GlobalConstantsContext.Provider value={globalConstantsValue}>
+                <GlobalSettersContext.Provider value={globalSettersValue}>
+                    {children}
+                </GlobalSettersContext.Provider>
+            </GlobalConstantsContext.Provider>
+        </GlobalContext.Provider>
     );
-
-    const closeAllMenus = useCallback(() => {
-        Object.keys(menuCloseFunctions).forEach((id) => {
-            menuCloseFunctions[id]();
-        });
-    }, [menuCloseFunctions]);
-
-    const contextValue = useMemo<Global>(
-        () => ({
-            schemata,
-            nodes,
-            edges,
-            setNodes,
-            setEdges,
-            onNodesChange,
-            onEdgesChange,
-            createNode,
-            createConnection,
-            reactFlowInstance,
-            setReactFlowInstance,
-            // updateRfi,
-            reactFlowWrapper,
-            isValidConnection,
-            useInputData,
-            useAnimateEdges,
-            removeNodeById,
-            removeEdgeById,
-            useNodeLock,
-            duplicateNode,
-            clearNode,
-            zoom,
-            onMoveEnd,
-            useIteratorSize,
-            updateIteratorBounds,
-            setIteratorPercent,
-            closeAllMenus,
-            useHoveredNode: [hoveredNode, setHoveredNode] as const,
-            useMenuCloseFunctions: [closeAllMenus, addMenuCloseFunction] as const,
-        }),
-        [nodes, edges, reactFlowInstance, zoom, hoveredNode, menuCloseFunctions]
-    );
-
-    return <GlobalContext.Provider value={contextValue}>{children}</GlobalContext.Provider>;
 };

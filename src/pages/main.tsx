@@ -15,6 +15,7 @@ import ReactFlowBox from '../components/ReactFlowBox';
 import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
+import { MenuFunctionsProvider } from '../helpers/contexts/MenuFunctions';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
 import { ipcRenderer } from '../helpers/safeIpc';
 import { SchemaMap } from '../helpers/SchemaMap';
@@ -100,36 +101,38 @@ const Main = ({ port }: MainProps) => {
                     reactFlowWrapper={reactFlowWrapper}
                     schemata={schemata}
                 >
-                    <VStack
-                        bg={bgColor}
-                        overflow="hidden"
-                        p={2}
-                    >
-                        <Header port={port} />
-                        <HStack
-                            as={Split}
-                            defaultSplitterColors={{
-                                color: '#71809633',
-                                hover: '#71809666',
-                                drag: '#718096EE',
-                            }}
-                            initialPrimarySize="380px"
-                            minPrimarySize="290px"
-                            minSecondarySize="75%"
-                            splitterSize="10px"
+                    <MenuFunctionsProvider>
+                        <VStack
+                            bg={bgColor}
+                            overflow="hidden"
+                            p={2}
                         >
-                            <NodeSelector
-                                height={height}
-                                schemata={schemata}
-                            />
+                            <Header port={port} />
+                            <HStack
+                                as={Split}
+                                defaultSplitterColors={{
+                                    color: '#71809633',
+                                    hover: '#71809666',
+                                    drag: '#718096EE',
+                                }}
+                                initialPrimarySize="380px"
+                                minPrimarySize="290px"
+                                minSecondarySize="75%"
+                                splitterSize="10px"
+                            >
+                                <NodeSelector
+                                    height={height}
+                                    schemata={schemata}
+                                />
 
-                            <ReactFlowBox
-                                edgeTypes={edgeTypes}
-                                nodeTypes={nodeTypes}
-                                wrapperRef={reactFlowWrapper}
-                            />
-                        </HStack>
-                    </VStack>
+                                <ReactFlowBox
+                                    edgeTypes={edgeTypes}
+                                    nodeTypes={nodeTypes}
+                                    wrapperRef={reactFlowWrapper}
+                                />
+                            </HStack>
+                        </VStack>
+                    </MenuFunctionsProvider>
                 </GlobalProvider>
             </SettingsProvider>
         </ReactFlowProvider>

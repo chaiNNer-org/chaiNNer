@@ -2,7 +2,11 @@ import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import {
+    GlobalConstantsContext,
+    GlobalContext,
+    GlobalSettersContext,
+} from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -15,7 +19,9 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const { edges, schemata, updateIteratorBounds, useHoveredNode } = useContext(GlobalContext);
+    const { edges } = useContext(GlobalContext);
+    const { schemata } = useContext(GlobalConstantsContext);
+    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalSettersContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 
@@ -51,8 +57,6 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
             setCheckedSize(true);
         }
     }, [checkedSize]);
-
-    const [, setHoveredNode] = useHoveredNode;
 
     return (
         <Center
