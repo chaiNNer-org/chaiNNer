@@ -45,7 +45,7 @@ interface Global {
     setEdges: SetState<Edge<EdgeData>[]>;
     onNodesChange: OnNodesChange;
     onEdgesChange: OnEdgesChange;
-    createNode: (proto: NodeProto) => Node<NodeData>;
+    createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
@@ -94,13 +94,79 @@ interface NodeProto {
     position: XYPosition;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
-    parent?: string | Node<NodeData> | null;
 }
 
 // TODO: Find default
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createUniqueId = () => uuidv4();
+
+const createNodeImpl = (
+    { position, data, nodeType }: NodeProto,
+    schemata: SchemaMap,
+    snapToGridAmount: number,
+    parent?: Node<NodeData>
+): Node<NodeData>[] => {
+    const id = createUniqueId();
+    const newNode: Node<Mutable<NodeData>> = {
+        type: nodeType,
+        id,
+        position: snapToGrid(position, snapToGridAmount),
+        data: {
+            ...data,
+            id,
+            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
+        },
+    };
+
+    if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
+        const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
+            width: 480,
+            height: 480,
+            offsetTop: 0,
+            offsetLeft: 0,
+        };
+        newNode.position.x = position.x - parent.position.x;
+        newNode.position.y = position.y - parent.position.y;
+        newNode.parentNode = parent.id;
+        newNode.data.parentNode = parent.id;
+        newNode.extent = [
+            [offsetLeft, offsetTop],
+            [width, height],
+        ];
+    }
+
+    const extraNodes: Node<NodeData>[] = [];
+    if (nodeType === 'iterator') {
+        newNode.data.iteratorSize = {
+            width: 480,
+            height: 480,
+            offsetTop: 0,
+            offsetLeft: 0,
+        };
+
+        const { defaultNodes = [] } = schemata.get(data.schemaId);
+
+        defaultNodes.forEach(({ schemaId }) => {
+            const schema = schemata.get(schemaId);
+            const subNode = createNodeImpl(
+                {
+                    nodeType: schema.nodeType,
+                    position: newNode.position,
+                    data: {
+                        schemaId,
+                    },
+                },
+                schemata,
+                snapToGridAmount,
+                newNode
+            );
+            extraNodes.push(...subNode);
+        });
+    }
+
+    return [newNode, ...extraNodes];
+};
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
@@ -334,78 +400,14 @@ export const GlobalProvider = ({
     );
 
     const createNode = useCallback(
-        ({ position, data, nodeType, parent = null }: NodeProto): Node<NodeData> => {
-            const id = createUniqueId();
-            const newNode: Node<Mutable<NodeData>> = {
-                type: nodeType,
-                id,
-                position: snapToGrid(position, snapToGridAmount),
-                data: {
-                    ...data,
-                    id,
-                    inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
-                },
-            };
-            if (parent || (hoveredNode && nodeType !== 'iterator')) {
-                let parentNode: Node<NodeData> | null | undefined;
-                if (typeof parent === 'string' || parent instanceof String) {
-                    parentNode = nodes.find((n) => n.id === parent);
-                    // eslint-disable-next-line no-param-reassign
-                    parent = null; // This is so it actually set the nodes
-                } else if (parent) {
-                    parentNode = parent;
-                } else {
-                    parentNode = nodes.find((n) => n.id === hoveredNode);
-                }
-                if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
-                    const { width, height, offsetTop, offsetLeft } = parentNode.data
-                        .iteratorSize ?? {
-                        width: 480,
-                        height: 480,
-                        offsetTop: 0,
-                        offsetLeft: 0,
-                    };
-                    const parentId = (parentNode.id || hoveredNode) ?? undefined;
-                    newNode.position.x = position.x - parentNode.position.x;
-                    newNode.position.y = position.y - parentNode.position.y;
-                    newNode.parentNode = parentId;
-                    newNode.data.parentNode = parentId;
-                    newNode.extent = [
-                        [offsetLeft, offsetTop],
-                        [width, height],
-                    ];
-                }
-            }
-            const extraNodes: Node<NodeData>[] = [];
-            if (nodeType === 'iterator') {
-                newNode.data.iteratorSize = {
-                    width: 480,
-                    height: 480,
-                    offsetTop: 0,
-                    offsetLeft: 0,
-                };
-
-                const { defaultNodes = [] } = schemata.get(data.schemaId);
-
-                defaultNodes.forEach(({ schemaId }) => {
-                    const subNodeData = schemata.get(schemaId);
-                    const subNode = createNode({
-                        nodeType: subNodeData.nodeType,
-                        position: newNode.position,
-                        data: {
-                            schemaId,
-                        },
-                        parent: newNode,
-                    });
-                    extraNodes.push(subNode);
-                });
-            }
-            if (!parent) {
-                setNodes([...nodes, newNode, ...extraNodes]);
-            }
-            return newNode;
+        (proto: NodeProto): void => {
+            setNodes((nodes) => {
+                const parent = hoveredNode ? nodes.find((n) => n.id === hoveredNode) : undefined;
+                const newNodes = createNodeImpl(proto, schemata, snapToGridAmount, parent);
+                return [...nodes, ...newNodes];
+            });
         },
-        [nodes, setNodes, schemata, hoveredNode]
+        [setNodes, schemata, hoveredNode]
     );
 
     const createConnection = useCallback(

@@ -81,9 +81,9 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     <IteratorNodeHeader
                         accentColor={accentColor}
                         icon={icon}
+                        name={name}
                         percentComplete={percentComplete}
                         selected={selected}
-                        type={name}
                     />
                     {inputs.length && (
                         <Center>
@@ -106,7 +106,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                         id={id}
                         inputs={inputs}
                         isLocked={isLocked}
-                        nodeType={name}
+                        name={name}
                         schemaId={schemaId}
                     />
                     <Center>
