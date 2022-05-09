@@ -74,6 +74,7 @@ export class SaveFile {
                 id: n.data.id,
                 iteratorSize: n.data.iteratorSize,
                 isLocked: n.data.isLocked,
+                parentNode: n.data.parentNode,
             },
             id: n.id,
             position: n.position,
@@ -82,6 +83,7 @@ export class SaveFile {
             height: n.height,
             width: n.width,
             zIndex: n.zIndex,
+            parentNode: n.parentNode,
         }));
         const sanitizedContent = { nodes: sanitizedNodes, edges, viewport };
         const data: RawSaveFile = {
