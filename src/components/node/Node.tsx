@@ -118,9 +118,9 @@ const Node = memo(({ data, selected }: NodeProps) => {
                         <NodeHeader
                             accentColor={accentColor}
                             icon={icon}
+                            name={name}
                             parentNode={parentNode}
                             selected={selected}
-                            type={name}
                         />
                         <NodeBody
                             accentColor={accentColor}
@@ -128,7 +128,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                             id={id}
                             inputs={inputs}
                             isLocked={isLocked}
-                            nodeType={name}
+                            name={name}
                             outputs={outputs}
                             schemaId={schemaId}
                         />

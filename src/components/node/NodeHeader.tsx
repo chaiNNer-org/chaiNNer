@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';
 
 interface NodeHeaderProps {
-    type: string;
+    name: string;
     icon: string;
     accentColor: string;
     selected: boolean;
@@ -11,7 +11,7 @@ interface NodeHeaderProps {
     parentNode?: string;
 }
 
-const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
+const NodeHeader = ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
     <Center
         borderBottomColor={accentColor}
         borderBottomStyle={parentNode ? 'double' : undefined}
@@ -52,7 +52,7 @@ const NodeHeader = ({ type, width, icon, accentColor, selected, parentNode }: No
                     textAlign="center"
                     verticalAlign="middle"
                 >
-                    {type.toUpperCase()}
+                    {name.toUpperCase()}
                 </Heading>
             </Center>
         </HStack>

@@ -12,7 +12,7 @@ import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';
 
 interface IteratorNodeHeaderProps {
-    type: string;
+    name: string;
     icon: string;
     accentColor: string;
     selected: boolean;
@@ -21,7 +21,7 @@ interface IteratorNodeHeaderProps {
 }
 
 const IteratorNodeHeader = ({
-    type,
+    name,
     width,
     icon,
     accentColor,
@@ -72,7 +72,7 @@ const IteratorNodeHeader = ({
                         textAlign="center"
                         verticalAlign="middle"
                     >
-                        {type.toUpperCase()}
+                        {name.toUpperCase()}
                     </Heading>
                 </Center>
             </HStack>

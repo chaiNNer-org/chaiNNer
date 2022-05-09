@@ -166,24 +166,8 @@ export const GlobalProvider = ({
     );
 
     const dumpState = useCallback((): SaveData => {
-        const nodesToSave = nodes.map((n) => ({
-            data: {
-                schemaId: n.data.schemaId,
-                inputData: n.data.inputData,
-                id: n.data.id,
-                ...(n.data.iteratorSize ? { iteratorSize: n.data.iteratorSize } : {}),
-            },
-            id: n.id,
-            position: n.position,
-            type: n.type,
-            selected: n.selected,
-            ...(n.height ? { height: n.height } : {}),
-            ...(n.width ? { width: n.width } : {}),
-            ...(n.zIndex ? { zIndex: n.zIndex } : {}),
-        }));
-
         return {
-            nodes: deepCopy(nodesToSave),
+            nodes: deepCopy(nodes),
             edges: deepCopy(edges),
             viewport: getViewport(),
         };

@@ -17,8 +17,6 @@ export interface BackendRunRequest {
 }
 export interface BackendRunIndividualRequest {
     id: string;
-    category: string;
-    node: string;
     inputs: InputValue[];
     isCpu: boolean;
     isFp16: boolean;
