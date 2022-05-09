@@ -30,9 +30,9 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
-import { ipcRenderer } from '../helpers/safeIpc';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
+import { ipcRenderer } from '../helpers/safeIpc';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -63,8 +63,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             successEffect: ([gpuName, hasNvidia]) => {
                 if (gpuName.toLowerCase().includes('rtx')) {
                     setIsFp16(true);
-                    setIsNvidiaAvailable(hasNvidia);
                 }
+                setIsNvidiaAvailable(hasNvidia);
             },
         },
         []
