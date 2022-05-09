@@ -27,13 +27,11 @@ const getColorMode = (img: ImageObject) => {
 
 interface ImagePreviewProps {
     path?: string;
-    category: string;
-    nodeType: string;
     id: string;
     schemaId: string;
 }
 
-export default memo(({ path, category, nodeType, schemaId, id }: ImagePreviewProps) => {
+export default memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [img, setImg] = useState<ImageObject | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -52,8 +50,6 @@ export default memo(({ path, category, nodeType, schemaId, id }: ImagePreviewPro
                     const fileExists = await checkFileExists(path);
                     if (fileExists) {
                         return backend.runIndividual<ImageObject | null>({
-                            category,
-                            node: nodeType,
                             schemaId,
                             id,
                             inputs: [path],

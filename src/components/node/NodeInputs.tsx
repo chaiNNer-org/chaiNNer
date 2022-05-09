@@ -19,7 +19,7 @@ interface InputProps extends Input {
     accentColor: string;
     isLocked?: boolean;
     category: string;
-    nodeType: string;
+    name: string;
     hasHandle?: boolean;
     schemaId: string;
 }
@@ -107,7 +107,7 @@ interface NodeInputsProps {
     accentColor: string;
     isLocked?: boolean;
     category: string;
-    nodeType: string;
+    name: string;
     schemaId: string;
 }
 
@@ -117,7 +117,7 @@ const NodeInputs = ({
     accentColor,
     isLocked,
     category,
-    nodeType,
+    name,
     schemaId,
 }: NodeInputsProps) => (
     <>
@@ -130,7 +130,7 @@ const NodeInputs = ({
                 accentColor,
                 isLocked,
                 category,
-                nodeType,
+                name,
                 schemaId,
             };
             return pickInput(input.type, props);

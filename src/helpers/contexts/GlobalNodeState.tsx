@@ -154,11 +154,7 @@ const createNodeImpl = (
                     nodeType: schema.nodeType,
                     position: newNode.position,
                     data: {
-                        category: schema.category,
-                        type: schema.name,
                         schemaId,
-                        subcategory: schema.subcategory,
-                        icon: schema.icon,
                     },
                 },
                 schemata,

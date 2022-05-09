@@ -71,28 +71,23 @@ const CustomEdge = memo(
             [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
         );
 
-        const { removeEdgeById, nodes, edges, useHoveredNode } = useContext(GlobalContext);
+        const { removeEdgeById, nodes, edges, useHoveredNode, schemata } =
+            useContext(GlobalContext);
 
         const edge = useMemo(() => edges.find((e) => e.id === id)!, [id]);
         const parentNode = useMemo(() => nodes.find((n) => edge.source === n.id), []);
 
         const [isHovered, setIsHovered] = useState(false);
 
-        // const accentColor = getNodeAccentColors(data.sourceType, data.sourceSubCategory);
         // We dynamically grab this data instead since storing the types makes transitioning harder
-        const accentColor = getNodeAccentColors(parentNode?.data.category);
+        const { category } = schemata.get(parentNode!.data.schemaId);
+        const accentColor = getNodeAccentColors(category);
         const selectedColor = useMemo(() => shadeColor(accentColor, -40), [accentColor]);
-        // const normalColor = useColorModeValue('gray.600', 'gray.400');
 
         const getCurrentColor = useCallback(() => {
             if (selected) {
                 return selectedColor;
             }
-
-            // if (data.complete) {
-            //   return accentColor;
-            // }
-
             return accentColor;
         }, [selected, selectedColor, accentColor]);
 

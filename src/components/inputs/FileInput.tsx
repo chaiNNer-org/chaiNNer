@@ -14,24 +14,14 @@ interface FileInputProps {
     isLocked?: boolean;
     label: string;
     category: string;
-    nodeType: string;
+    name: string;
     filetypes: readonly string[];
     type: string;
     schemaId: string;
 }
 
 const FileInput = memo(
-    ({
-        filetypes,
-        id,
-        index,
-        label,
-        type,
-        isLocked,
-        category,
-        nodeType,
-        schemaId,
-    }: FileInputProps) => {
+    ({ filetypes, id, index, label, type, isLocked, category, name, schemaId }: FileInputProps) => {
         const { useInputData, useNodeLock } = useContext(GlobalContext);
         const [filePath, setFilePath] = useInputData<string>(id, index);
 
@@ -95,9 +85,7 @@ const FileInput = memo(
                     return (
                         <Box mt={2}>
                             <ImagePreview
-                                category={category}
                                 id={id}
-                                nodeType={nodeType}
                                 path={filePath}
                                 schemaId={schemaId}
                             />
@@ -107,9 +95,7 @@ const FileInput = memo(
                     return (
                         <Box mt={2}>
                             <TorchModelPreview
-                                category={category}
                                 id={id}
-                                nodeType={nodeType}
                                 path={filePath}
                                 schemaId={schemaId}
                             />

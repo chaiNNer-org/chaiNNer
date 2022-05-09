@@ -17,12 +17,12 @@ interface IteratorHelperNodeProps {
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
     const { edges, schemata, updateIteratorBounds, useHoveredNode } = useContext(GlobalContext);
 
-    const { id, inputData, isLocked, category, type, parentNode, schemaId } = data;
+    const { id, inputData, isLocked, parentNode, schemaId } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon } = schema;
+    const { inputs, outputs, icon, category, name } = schema;
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
@@ -76,9 +76,9 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
                 <NodeHeader
                     accentColor={accentColor}
                     icon={icon}
+                    name={name}
                     parentNode={parentNode}
                     selected={selected}
-                    type={type}
                 />
                 <NodeBody
                     accentColor={accentColor}
@@ -86,7 +86,7 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
                     id={id}
                     inputs={inputs}
                     isLocked={isLocked}
-                    nodeType={type}
+                    name={name}
                     outputs={outputs}
                     schemaId={schemaId}
                 />

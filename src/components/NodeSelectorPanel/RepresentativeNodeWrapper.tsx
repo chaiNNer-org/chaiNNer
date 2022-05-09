@@ -58,10 +58,6 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                             position,
                             data: {
                                 schemaId: node.schemaId,
-                                category: node.category,
-                                subcategory: node.subcategory,
-                                type: node.name,
-                                icon: node.icon,
                             },
                         });
                     }}

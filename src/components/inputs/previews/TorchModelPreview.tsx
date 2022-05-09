@@ -28,13 +28,11 @@ const getColorMode = (channels: number) => {
 
 interface TorchModelPreviewProps {
     path?: string;
-    category: string;
-    nodeType: string;
     id: string;
     schemaId: string;
 }
 
-export default memo(({ path, category, nodeType, schemaId, id }: TorchModelPreviewProps) => {
+export default memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
     const [modelData, setModelData] = useState<ModelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -53,8 +51,6 @@ export default memo(({ path, category, nodeType, schemaId, id }: TorchModelPrevi
                     const fileExists = await checkFileExists(path);
                     if (fileExists) {
                         return backend.runIndividual<ModelData | null>({
-                            category,
-                            node: nodeType,
                             schemaId,
                             id,
                             inputs: [path],
