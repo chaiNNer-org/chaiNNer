@@ -85,11 +85,3 @@ export interface UsableData {
     nodeType: string | undefined;
     percent?: number;
 }
-
-export interface NodeSaveData {
-    readonly id: string;
-    readonly parentNode?: string;
-    readonly schemaId: string;
-    readonly inputData: InputData;
-    readonly iteratorSize?: IteratorSize;
-}
