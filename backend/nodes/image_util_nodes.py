@@ -92,8 +92,10 @@ class ImOverlay(NodeBase):
             y_offset = center_y - (h // 2)
 
             img[:, :, 3] = img[:, :, 3] * op
-            with_background(img, imgout[y_offset: y_offset + h, x_offset: x_offset + w])
-            imgout[y_offset: y_offset + h, x_offset: x_offset + w] = img
+            with_background(
+                img, imgout[y_offset : y_offset + h, x_offset : x_offset + w]
+            )
+            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
