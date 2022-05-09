@@ -1,6 +1,6 @@
 import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
-import { useWindowSize } from '@react-hook/window-size';
+import { useWindowHeight } from '@react-hook/window-size';
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import useFetch, { CachePolicies } from 'use-http';
@@ -36,7 +36,7 @@ const Main = ({ port }: MainProps) => {
     const { showMessageBox } = useContext(AlertBoxContext);
 
     const [schemata, setSchemata] = useState<SchemaMap | null>(null);
-    const [, height] = useWindowSize();
+    const height = useWindowHeight();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 

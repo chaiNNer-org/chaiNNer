@@ -33,14 +33,15 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const { removeEdgeById, nodes, useHoveredNode } = useContext(GlobalContext);
+    const { removeEdgeById, nodes, useHoveredNode, schemata } = useContext(GlobalContext);
 
     const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);
 
     const [isHovered, setIsHovered] = useState(false);
 
     // We dynamically grab this data instead since storing the types makes transitioning harder
-    const accentColor = getNodeAccentColors(parentNode?.data.category);
+    const { category } = schemata.get(parentNode!.data.schemaId);
+    const accentColor = getNodeAccentColors(category);
     const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
     const [edgeCenterX, edgeCenterY] = useMemo(

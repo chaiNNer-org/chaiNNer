@@ -1,6 +1,6 @@
+import { createHash } from 'crypto';
 import { readFile, writeFile } from 'fs/promises';
 import { Edge, Node, Viewport } from 'react-flow-renderer';
-import { createHash } from 'crypto';
 import semver from 'semver';
 import { EdgeData, NodeData } from '../common-types';
 import { migrate } from './migrations';
@@ -66,11 +66,31 @@ export class SaveFile {
     }
 
     static stringify(content: SaveData, version: string): string {
+        const { nodes, edges, viewport } = content;
+        const sanitizedNodes = nodes.map((n) => ({
+            data: {
+                schemaId: n.data.schemaId,
+                inputData: n.data.inputData,
+                id: n.data.id,
+                iteratorSize: n.data.iteratorSize,
+                isLocked: n.data.isLocked,
+                parentNode: n.data.parentNode,
+            },
+            id: n.id,
+            position: n.position,
+            type: n.type,
+            selected: n.selected,
+            height: n.height,
+            width: n.width,
+            zIndex: n.zIndex,
+            parentNode: n.parentNode,
+        }));
+        const sanitizedContent = { nodes: sanitizedNodes, edges, viewport };
         const data: RawSaveFile = {
             version,
-            content,
+            content: sanitizedContent,
             timestamp: new Date().toISOString(),
-            checksum: hash(JSON.stringify(content)),
+            checksum: hash(JSON.stringify(sanitizedContent)),
         };
         return JSON.stringify(data);
     }

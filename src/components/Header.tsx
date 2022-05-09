@@ -201,7 +201,7 @@ const Header = ({ port }: HeaderProps) => {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
         } else {
             const nodeValidities = nodes.map((node) => {
-                const { inputs } = schemata.get(node.data.schemaId);
+                const { inputs, category, name } = schemata.get(node.data.schemaId);
                 return [
                     ...checkNodeValidity({
                         id: node.id,
@@ -209,7 +209,7 @@ const Header = ({ port }: HeaderProps) => {
                         edges,
                         inputs,
                     }),
-                    node.data.type,
+                    `${category}: ${name}`,
                 ] as const;
             });
             const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
