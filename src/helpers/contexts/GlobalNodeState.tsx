@@ -567,7 +567,7 @@ export const GlobalProvider = ({
                     parseHandle(e.targetHandle).index === index
             );
         },
-        [modifyNode]
+        [edges]
     );
 
     const useIteratorSize = useCallback(
