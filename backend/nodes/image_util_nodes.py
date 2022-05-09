@@ -11,7 +11,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import normalize
+from .utils.image_utils import normalize, with_background
 from .utils.pil_utils import *
 
 
@@ -60,70 +60,42 @@ class ImOverlay(NodeBase):
         max_h, max_w, max_c = 0, 0, 1
         for img in base, ov1, ov2:
             if img is not None:
-                if img.ndim == 2:  # Overlay needs 3 dimensions for ease
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-                h, w, c = img.shape
+                h, w = img.shape[:2]
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
-                max_c = max(c, max_c)
+
+                # All inputs must be BGRA for alpha compositing to work
+                if img.ndim == 2 or img.shape[2] == 1:
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+                elif img.shape[2] == 3:
+                    img = np.dstack((img, np.ones((h, w), np.float32)))
+                elif img.shape[2] != 4:  # Explode if there are not 1, 3, or 4 channels
+                    logger.error(f"Number of channels ({img.shape[2]}) unexpected")
+
                 imgs.append(img)
         else:
             assert (
                 base.shape[0] >= max_h and base.shape[1] >= max_w
             ), "Base must be largest image."
 
-        # Expand channels if necessary
-        channel_fixed_imgs = []
-        for img in imgs:
-            c = img.shape[2]
-            fixed_img = img
-            if c < max_c:
-                h, w = img.shape[:2]
-                temp_img = np.ones((h, w, max_c))
-                temp_img[:, :, :c] = fixed_img
-                fixed_img = temp_img
-            channel_fixed_imgs.append(fixed_img.astype("float32"))
-        imgout = channel_fixed_imgs[0]
-        imgs = channel_fixed_imgs[1:]
+        imgout = imgs[0]
+        imgs = imgs[1:]
 
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
+
         for img, op in zip(imgs, (op1, op2)):
-            if img is not None and op is not None:
-                h, w, c = img.shape
-                if c == 4:
-                    is_opaque = np.all(np.isclose(img[:, :, 3], [1.0]))
-                else:
-                    is_opaque = True
+            h, w = img.shape[:2]
 
-                # Center overlay
-                x_offset = center_x - (w // 2)
-                y_offset = center_y - (h // 2)
+            # Center overlay
+            x_offset = center_x - (w // 2)
+            y_offset = center_y - (h // 2)
 
-                img = cv2.addWeighted(
-                    imgout[y_offset : y_offset + h, x_offset : x_offset + w],
-                    1 - op,
-                    img,
-                    op,
-                    0,
-                )
-
-                # If an image with native opacity is overlayed, the colors in the transparent areas
-                # need to be modified by the alpha channel of the image being overlayed, or the
-                # alpha channel will be incorrectly applied to the final image.
-                if max_c == 4 and not is_opaque:
-                    for channel in range(0, 3):
-                        imgout[
-                            y_offset : y_offset + h, x_offset : x_offset + w, channel
-                        ] = img[:, :, 3] * img[:, :, channel] + imgout[
-                            y_offset : y_offset + h, x_offset : x_offset + w, 3
-                        ] * imgout[
-                            y_offset : y_offset + h, x_offset : x_offset + w, channel
-                        ] * (
-                            1 - img[:, :, 3]
-                        )
-                else:
-                    imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+            img[:, :, 3] = img[:, :, 3] * op
+            with_background(
+                img, imgout[y_offset : y_offset + h, x_offset : x_offset + w]
+            )
+            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
 
