@@ -195,6 +195,73 @@ const toV052 = (data) => {
 };
 
 // ==============
+//    v0.7.0
+// ==============
+
+const v07TypeMap = {
+    'Image:Load Image': 'chainner:image:load',
+    'Image:Read Image': 'chainner:image:load', // For some reason some of my chains have this...
+    'Image:Save Image': 'chainner:image:save',
+    'Image:Preview Image': 'chainner:image:preview',
+    'Image:Image File Iterator': 'chainner:image:file_iterator',
+    'Image:Load Image (Iterator)': 'chainner:image:file_iterator_load',
+    'Image (Utility):Add Caption': 'chainner:image:caption',
+    'Image (Utility):Average Color Fix': 'chainner:image:average_color_fix',
+    'Image (Utility):Change Colorspace': 'chainner:image:change_colorspace',
+    'Image (Utility):Color Transfer': 'chainner:image:color_transfer',
+    'Image (Utility):Create Border': 'chainner:image:create_border',
+    'Image (Utility):Fill Alpha': 'chainner:image:fill_alpha',
+    'Image (Utility):Overlay Images': 'chainner:image:overlay',
+    'Image (Utility):Stack Images': 'chainner:image:stack',
+    'Image (Utility):Add Normals': 'chainner:image:add_normals',
+    'Image (Utility):Normalize': 'chainner:image:normalize_normal_map',
+    'Image (Utility):Crop (Border)': 'chainner:image:crop_border',
+    'Image (Utility):Crop (Edges)': 'chainner:image:crop_edges',
+    'Image (Utility):Crop (Offsets)': 'chainner:image:crop_offsets',
+    'Image (Utility):Resize (Factor)': 'chainner:image:resize_factor',
+    'Image (Utility):Resize (Resolution)': 'chainner:image:resize_resolution',
+    'Image (Utility):Merge Channels': 'chainner:image:merge_channels',
+    'Image (Utility):Merge Transparency': 'chainner:image:merge_transparency',
+    'Image (Utility):Split Channels': 'chainner:image:split_channels',
+    'Image (Utility):Split Transparency': 'chainner:image:split_transparency',
+    'Image (Effect):Blur': 'chainner:image:blur',
+    'Image (Effect):Brightness & Contrast': 'chainner:image:brightness_and_contrast',
+    'Image (Effect):Gaussian Blur': 'chainner:image:gaussian_blur',
+    'Image (Effect):Hue & Saturation': 'chainner:image:hue_and_saturation',
+    'Image (Effect):Sharpen': 'chainner:image:sharpen',
+    'Image (Effect):Shift': 'chainner:image:shift',
+    'Image (Effect):Threshold': 'chainner:image:threshold',
+    'Image (Effect):Threshold (Adaptive)': 'chainner:image:threshold_adaptive',
+    'PyTorch:Load Model': 'chainner:pytorch:load_model',
+    'PyTorch:Save Model': 'chainner:pytorch:save_model',
+    'PyTorch:Upscale Image': 'chainner:pytorch:upscale_image',
+    'PyTorch:Convert To ONNX': 'chainner:pytorch:convert_to_onnx',
+    'PyTorch:Interpolate Models': 'chainner:pytorch:interpolate_models',
+    'NCNN:Load Model': 'chainner:ncnn:load_model',
+    'NCNN:Save Model': 'chainner:ncnn:save_model',
+    'NCNN:Upscale Image': 'chainner:ncnn:upscale_image',
+    'NCNN:Interpolate Models': 'chainner:ncnn:interpolate_models',
+    'Utility:Note': 'chainner:utility:note',
+    'Utility:Text Append': 'chainner:utility:text_append',
+};
+
+const toV070 = (data) => {
+    data.nodes.forEach((node) => {
+        const oldType = `${node.data.category}:${node.data.type}`;
+        const newType = v07TypeMap[oldType];
+        if (newType) {
+            // eslint-disable-next-line no-param-reassign
+            node.data.schemaId = newType;
+            delete node.data.category; // eslint-disable-line no-param-reassign
+            delete node.data.type; // eslint-disable-line no-param-reassign
+            delete node.data.icon; // eslint-disable-line no-param-reassign
+            delete node.data.subcategory; // eslint-disable-line no-param-reassign
+        }
+    });
+    return data;
+};
+
+// ==============
 
 export const migrate = (_version, data) => {
     let convertedData = data;
@@ -202,23 +269,48 @@ export const migrate = (_version, data) => {
 
     // Legacy files
     if (!version || semver.lt(version, '0.1.0')) {
-        convertedData = preAlpha(convertedData);
+        try {
+            convertedData = preAlpha(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.1.0', error);
+        }
         version = '0.0.0';
     }
 
     // v0.1.x & v0.2.x to v0.3.0
     if (semver.lt(version, '0.3.0')) {
-        convertedData = toV03(convertedData);
+        try {
+            convertedData = toV03(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.3.0', error);
+        }
     }
 
     // v0.3.x & v0.4.x to v0.5.0
     if (semver.lt(version, '0.5.0')) {
-        convertedData = toV05(convertedData);
+        try {
+            convertedData = toV05(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.5.0', error);
+        }
     }
 
     // v0.5.0 & v0.5.1 to v0.5.2
     if (semver.lt(version, '0.5.2')) {
-        convertedData = toV052(convertedData);
+        try {
+            convertedData = toV052(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.5.2', error);
+        }
+    }
+
+    // v0.7.0
+    if (semver.lt(version, '0.7.0')) {
+        try {
+            convertedData = toV070(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.7.0', error);
+        }
     }
 
     return convertedData;
