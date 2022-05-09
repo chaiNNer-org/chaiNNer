@@ -166,7 +166,7 @@
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.3",
     "@chakra-ui/icons": "^1.0.15",
-    "@chakra-ui/react": "^1.8.6",
+    "@chakra-ui/react": "^1.8.8",
     "@emotion/react": "^11.8.1",
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.1",
