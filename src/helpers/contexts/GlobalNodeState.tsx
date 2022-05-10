@@ -521,10 +521,6 @@ export const GlobalProvider = ({
                     return {
                         ...edge,
                         animated: !complete,
-                        data: {
-                            ...edge.data,
-                            complete,
-                        },
                     };
                 })
             );
@@ -536,10 +532,6 @@ export const GlobalProvider = ({
                     return {
                         ...edge,
                         animated: false,
-                        data: {
-                            ...edge.data,
-                            complete: false,
-                        },
                     };
                 })
             );
