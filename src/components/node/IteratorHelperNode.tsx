@@ -1,5 +1,6 @@
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';

@@ -5,7 +5,8 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo, useContext, useState } from 'react';
+import { memo, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 

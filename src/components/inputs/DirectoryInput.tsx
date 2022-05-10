@@ -1,6 +1,7 @@
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
-import { memo, useContext } from 'react';
+import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
+import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';

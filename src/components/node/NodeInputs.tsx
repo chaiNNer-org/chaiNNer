@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
-import { memo, useCallback, useContext } from 'react';
+import { memo, useCallback } from 'react';
+import { useContext } from 'use-context-selector';
 import { Input, InputData, InputSchemaValue } from '../../common-types';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';

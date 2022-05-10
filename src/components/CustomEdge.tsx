@@ -1,7 +1,8 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
-import { memo, useContext, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
+import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData } from '../common-types';
 import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';

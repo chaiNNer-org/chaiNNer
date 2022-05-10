@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Edge, Node } from 'react-flow-renderer';
+import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData, UsableData } from '../../common-types';
 import { getBackend } from '../Backend';

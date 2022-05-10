@@ -1,6 +1,7 @@
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import { memo, useLayoutEffect, useMemo, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { IteratorSize } from '../../common-types';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
@@ -66,8 +67,7 @@ const IteratorNodeBody = ({
     maxHeight = 256,
 }: IteratorNodeBodyProps) => {
     const { zoom, hoveredNode } = useContext(GlobalChainContext);
-    const { useIteratorSize, setHoveredNode, updateIteratorBounds } =
-        useContext(GlobalContext);
+    const { useIteratorSize, setHoveredNode, updateIteratorBounds } = useContext(GlobalContext);
 
     const { useSnapToGrid } = useContext(SettingsContext);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;

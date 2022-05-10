@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import log from 'electron-log';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
     Edge,
@@ -12,6 +12,7 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
+import { createContext, useContext } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,

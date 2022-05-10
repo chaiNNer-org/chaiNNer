@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import React, { createContext, useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { createContext } from 'use-context-selector';
 import { noop } from '../util';
 
 interface MenuFunctions {

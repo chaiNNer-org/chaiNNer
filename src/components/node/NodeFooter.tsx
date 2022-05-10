@@ -20,8 +20,9 @@ import {
     Tooltip,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
+import { useContext } from 'use-context-selector';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../../helpers/contexts/MenuFunctions';
 

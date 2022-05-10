@@ -1,5 +1,6 @@
 import { Input } from '@chakra-ui/react';
-import { ChangeEvent, memo, useContext, useEffect, useState } from 'react';
+import { ChangeEvent, memo, useEffect, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';

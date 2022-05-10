@@ -11,7 +11,8 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
-import React, { createContext, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import { createContext } from 'use-context-selector';
 import { assertNever } from '../util';
 
 interface AlertBox {

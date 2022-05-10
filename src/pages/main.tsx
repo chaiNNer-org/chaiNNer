@@ -1,8 +1,9 @@
 import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
 import { useWindowHeight } from '@react-hook/window-size';
-import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
+import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';

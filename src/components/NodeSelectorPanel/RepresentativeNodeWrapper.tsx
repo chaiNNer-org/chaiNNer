@@ -1,6 +1,7 @@
 import { Box, Center, Tooltip } from '@chakra-ui/react';
-import { DragEvent, memo, useContext } from 'react';
+import { DragEvent, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';

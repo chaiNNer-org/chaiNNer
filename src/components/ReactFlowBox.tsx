@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useContext, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -14,6 +14,7 @@ import ReactFlow, {
     useEdgesState,
     useNodesState,
 } from 'react-flow-renderer';
+import { useContext } from 'use-context-selector';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
 import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';

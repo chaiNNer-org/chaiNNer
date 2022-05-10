@@ -1,7 +1,8 @@
 import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useContext, useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
+import { useContext } from 'use-context-selector';
 import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
