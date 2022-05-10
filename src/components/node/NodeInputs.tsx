@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useContext } from 'react';
 import { Input, InputData, InputSchemaValue } from '../../common-types';
-import { GlobalSettersContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';
 import DropDownInput from '../inputs/DropDownInput';
 import FileInput from '../inputs/FileInput';
@@ -115,7 +115,7 @@ const NodeInputs = ({
     isLocked,
     schemaId,
 }: NodeInputsProps) => {
-    const { useInputData: useInputDataContext } = useContext(GlobalSettersContext);
+    const { useInputData: useInputDataContext } = useContext(GlobalContext);
 
     const useInputData = useCallback(
         <T extends InputSchemaValue>(index: number) => useInputDataContext<T>(id, index, inputData),

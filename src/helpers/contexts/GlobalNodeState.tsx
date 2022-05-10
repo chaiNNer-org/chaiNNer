@@ -45,11 +45,9 @@ interface Global {
     zoom: number;
     hoveredNode: string | null | undefined;
 }
-interface GlobalConstants {
+interface GlobalSetters {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-}
-interface GlobalSetters {
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
     setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
@@ -88,11 +86,8 @@ interface NodeProto {
 }
 
 // TODO: Find default
-export const GlobalContext = createContext<Readonly<Global>>({} as Global);
-export const GlobalConstantsContext = createContext<Readonly<GlobalConstants>>(
-    {} as GlobalConstants
-);
-export const GlobalSettersContext = createContext<Readonly<GlobalSetters>>({} as GlobalSetters);
+export const GlobalChainContext = createContext<Readonly<Global>>({} as Global);
+export const GlobalContext = createContext<Readonly<GlobalSetters>>({} as GlobalSetters);
 
 const createUniqueId = () => uuidv4();
 
@@ -721,7 +716,7 @@ export const GlobalProvider = ({
         [setZoom]
     );
 
-    let globalValue: Global = {
+    let globalChainValue: Global = {
         nodes,
         edges,
         createNode,
@@ -733,15 +728,11 @@ export const GlobalProvider = ({
         zoom,
         hoveredNode,
     };
-    globalValue = useMemo(() => globalValue, Object.values(globalValue));
+    globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 
-    let globalConstantsValue: GlobalConstants = {
+    let globalValue: GlobalSetters = {
         schemata,
         reactFlowWrapper,
-    };
-    globalConstantsValue = useMemo(() => globalConstantsValue, Object.values(globalConstantsValue));
-
-    let globalSettersValue: GlobalSetters = {
         setNodes,
         setEdges,
         setReactFlowInstance,
@@ -757,15 +748,11 @@ export const GlobalProvider = ({
         setHoveredNode,
         onMoveEnd,
     };
-    globalSettersValue = useMemo(() => globalSettersValue, Object.values(globalSettersValue));
+    globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
     return (
-        <GlobalContext.Provider value={globalValue}>
-            <GlobalConstantsContext.Provider value={globalConstantsValue}>
-                <GlobalSettersContext.Provider value={globalSettersValue}>
-                    {children}
-                </GlobalSettersContext.Provider>
-            </GlobalConstantsContext.Provider>
-        </GlobalContext.Provider>
+        <GlobalChainContext.Provider value={globalChainValue}>
+            <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+        </GlobalChainContext.Provider>
     );
 };

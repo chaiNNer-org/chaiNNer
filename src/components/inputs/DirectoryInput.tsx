@@ -2,13 +2,13 @@ import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { ipcRenderer } from '../../helpers/safeIpc';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(({ id, index, isLocked, useInputData }: DirectoryInputProps) => {
-    const { isNodeInputLocked } = useContext(GlobalContext);
+    const { isNodeInputLocked } = useContext(GlobalChainContext);
 
     const [directory, setDirectory] = useInputData<string>(index);
     const isInputLocked = isNodeInputLocked(id, index);

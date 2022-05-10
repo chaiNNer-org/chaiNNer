@@ -2,7 +2,7 @@ import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import { IteratorSize } from '../../common-types';
-import { GlobalContext, GlobalSettersContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 
 const createGridDotsPath = (size: number, fill: string) => (
@@ -65,9 +65,9 @@ const IteratorNodeBody = ({
     maxWidth = 256,
     maxHeight = 256,
 }: IteratorNodeBodyProps) => {
-    const { zoom, hoveredNode } = useContext(GlobalContext);
+    const { zoom, hoveredNode } = useContext(GlobalChainContext);
     const { useIteratorSize, setHoveredNode, updateIteratorBounds } =
-        useContext(GlobalSettersContext);
+        useContext(GlobalContext);
 
     const { useSnapToGrid } = useContext(SettingsContext);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;

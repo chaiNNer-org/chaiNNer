@@ -2,7 +2,7 @@ import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chak
 import path from 'path';
 import { memo, useContext, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
@@ -17,7 +17,7 @@ interface FileInputProps extends InputProps {
 
 const FileInput = memo(
     ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
-        const { isNodeInputLocked } = useContext(GlobalContext);
+        const { isNodeInputLocked } = useContext(GlobalChainContext);
 
         const [filePath, setFilePath] = useInputData<string>(index);
 

@@ -2,11 +2,7 @@ import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import {
-    GlobalConstantsContext,
-    GlobalContext,
-    GlobalSettersContext,
-} from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -19,9 +15,8 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const { edges } = useContext(GlobalContext);
-    const { schemata } = useContext(GlobalConstantsContext);
-    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalSettersContext);
+    const { edges } = useContext(GlobalChainContext);
+    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 

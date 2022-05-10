@@ -22,7 +22,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useContext, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
-import { GlobalContext, GlobalSettersContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../../helpers/contexts/MenuFunctions';
 
 interface NodeFooterProps {
@@ -33,8 +33,8 @@ interface NodeFooterProps {
 }
 
 const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
-    const { duplicateNode } = useContext(GlobalContext);
-    const { removeNodeById, clearNode, toggleNodeLock } = useContext(GlobalSettersContext);
+    const { duplicateNode } = useContext(GlobalChainContext);
+    const { removeNodeById, clearNode, toggleNodeLock } = useContext(GlobalContext);
     const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
 
     const iconShade = useColorModeValue('gray.400', 'gray.800');

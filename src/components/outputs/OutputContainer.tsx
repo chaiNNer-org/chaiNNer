@@ -1,7 +1,7 @@
 import { Box, HStack, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useContext } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 
 interface OutputContainerProps {
     hasHandle: boolean;
@@ -11,7 +11,7 @@ interface OutputContainerProps {
 
 const OutputContainer = memo(
     ({ children, hasHandle, index, id }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalContext);
+        const { isValidConnection } = useContext(GlobalChainContext);
 
         let contents = children;
         if (hasHandle) {
