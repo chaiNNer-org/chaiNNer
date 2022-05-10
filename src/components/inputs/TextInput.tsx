@@ -2,7 +2,7 @@ import { Input } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 interface TextInputProps extends InputProps {
@@ -11,7 +11,7 @@ interface TextInputProps extends InputProps {
 
 const TextInput = memo(
     ({ label, id, index, useInputData, isLocked, maxLength }: TextInputProps) => {
-        const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
             c.isNodeInputLocked(id, index)
         );
 

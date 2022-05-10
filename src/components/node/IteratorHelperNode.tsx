@@ -3,7 +3,7 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'rea
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -16,7 +16,7 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;

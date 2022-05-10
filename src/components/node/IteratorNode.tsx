@@ -3,7 +3,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody';
@@ -26,7 +26,7 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
     const { schemata } = useContext(GlobalContext);
 
     const {

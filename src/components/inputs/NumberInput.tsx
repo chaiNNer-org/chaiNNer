@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
-import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 interface NumericalInputProps extends InputProps {
@@ -33,7 +33,7 @@ const NumericalInput = memo(
         type,
         isLocked,
     }: NumericalInputProps) => {
-        const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
             c.isNodeInputLocked(id, index)
         );
 

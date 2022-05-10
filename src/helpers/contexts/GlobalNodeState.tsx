@@ -34,7 +34,7 @@ import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
-interface Global {
+interface GlobalVolatile {
     nodes: readonly Node<NodeData>[];
     edges: readonly Edge<EdgeData>[];
     createNode: (proto: NodeProto) => void;
@@ -46,7 +46,7 @@ interface Global {
     zoom: number;
     hoveredNode: string | null | undefined;
 }
-interface GlobalSetters {
+interface Global {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     setNodes: SetState<Node<NodeData>[]>;
@@ -87,8 +87,8 @@ interface NodeProto {
 }
 
 // TODO: Find default
-export const GlobalChainContext = createContext<Readonly<Global>>({} as Global);
-export const GlobalContext = createContext<Readonly<GlobalSetters>>({} as GlobalSetters);
+export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
+export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createUniqueId = () => uuidv4();
 
@@ -717,7 +717,7 @@ export const GlobalProvider = ({
         [setZoom]
     );
 
-    let globalChainValue: Global = {
+    let globalChainValue: GlobalVolatile = {
         nodes,
         edges,
         createNode,
@@ -731,7 +731,7 @@ export const GlobalProvider = ({
     };
     globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 
-    let globalValue: GlobalSetters = {
+    let globalValue: Global = {
         schemata,
         reactFlowWrapper,
         setNodes,
@@ -752,8 +752,8 @@ export const GlobalProvider = ({
     globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
     return (
-        <GlobalChainContext.Provider value={globalChainValue}>
+        <GlobalVolatileContext.Provider value={globalChainValue}>
             <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
-        </GlobalChainContext.Provider>
+        </GlobalVolatileContext.Provider>
     );
 };

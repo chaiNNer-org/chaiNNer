@@ -3,13 +3,13 @@ import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../helpers/safeIpc';
-import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(({ id, index, isLocked, useInputData }: DirectoryInputProps) => {
-    const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+    const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
         c.isNodeInputLocked(id, index)
     );
 

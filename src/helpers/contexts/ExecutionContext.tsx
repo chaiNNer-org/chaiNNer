@@ -12,7 +12,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { parseHandle } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { GlobalChainContext, GlobalContext } from './GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 interface ExecutionContextProps {
@@ -88,8 +88,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextProps>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
-    const nodes = useContextSelector(GlobalChainContext, (c) => c.nodes);
-    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
+    const nodes = useContextSelector(GlobalVolatileContext, (c) => c.nodes);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
     const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
 
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);

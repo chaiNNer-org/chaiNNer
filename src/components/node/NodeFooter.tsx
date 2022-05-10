@@ -23,7 +23,7 @@ import {
 import { memo, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../../helpers/contexts/MenuFunctions';
 
 interface NodeFooterProps {
@@ -34,7 +34,7 @@ interface NodeFooterProps {
 }
 
 const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
-    const duplicateNode = useContextSelector(GlobalChainContext, (c) => c.duplicateNode);
+    const duplicateNode = useContextSelector(GlobalVolatileContext, (c) => c.duplicateNode);
     const { removeNodeById, clearNode, toggleNodeLock } = useContext(GlobalContext);
     const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
 

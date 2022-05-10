@@ -2,7 +2,7 @@ import { Box, HStack, useColorModeValue } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContextSelector } from 'use-context-selector';
-import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 
 interface OutputContainerProps {
     hasHandle: boolean;
@@ -13,7 +13,7 @@ interface OutputContainerProps {
 const OutputContainer = memo(
     ({ children, hasHandle, index, id }: React.PropsWithChildren<OutputContainerProps>) => {
         const isValidConnection = useContextSelector(
-            GlobalChainContext,
+            GlobalVolatileContext,
             (c) => c.isValidConnection
         );
 

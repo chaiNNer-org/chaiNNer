@@ -3,7 +3,7 @@ import { DragEvent, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
-import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
@@ -19,8 +19,8 @@ interface RepresentativeNodeWrapperProps {
 }
 
 const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
-    const createNode = useContextSelector(GlobalChainContext, (c) => c.createNode);
-    const reactFlowInstance = useContextSelector(GlobalChainContext, (c) => c.reactFlowInstance);
+    const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
+    const reactFlowInstance = useContextSelector(GlobalVolatileContext, (c) => c.reactFlowInstance);
     const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
 
     return (

@@ -3,7 +3,7 @@ import path from 'path';
 import { memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
-import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
@@ -18,7 +18,7 @@ interface FileInputProps extends InputProps {
 
 const FileInput = memo(
     ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
-        const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
             c.isNodeInputLocked(id, index)
         );
 

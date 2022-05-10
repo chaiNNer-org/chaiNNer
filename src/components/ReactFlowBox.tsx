@@ -16,7 +16,7 @@ import ReactFlow, {
 } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
-import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { snapToGrid } from '../helpers/reactFlowUtil';
@@ -30,7 +30,7 @@ interface ReactFlowBoxProps {
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { nodes, edges, createNode, createConnection, reactFlowInstance, zoom } =
-        useContext(GlobalChainContext);
+        useContext(GlobalVolatileContext);
     const { setReactFlowInstance, setNodes, setEdges, onMoveEnd, setHoveredNode } =
         useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);

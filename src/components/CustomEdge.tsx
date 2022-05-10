@@ -5,7 +5,7 @@ import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData } from '../common-types';
-import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
@@ -34,7 +34,7 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const parentNode = useContextSelector(GlobalChainContext, (c) =>
+    const parentNode = useContextSelector(GlobalVolatileContext, (c) =>
         c.nodes.find((n) => source === n.id)
     );
 
