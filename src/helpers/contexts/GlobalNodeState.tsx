@@ -6,7 +6,6 @@ import {
     Edge,
     getOutgoers,
     Node,
-    useKeyPress,
     useReactFlow,
     Viewport,
     XYPosition,
@@ -271,21 +270,6 @@ export const GlobalProvider = ({
             }
         })();
     }, [dumpState, savePath]);
-
-    const savePressed = useKeyPress(['Meta+s', 'Control+s']);
-    const newPressed = useKeyPress(['Meta+n', 'Control+n']);
-
-    useEffect(() => {
-        if (savePressed) {
-            performSave();
-        }
-    }, [savePressed]);
-
-    useEffect(() => {
-        if (newPressed) {
-            clearState();
-        }
-    }, [newPressed]);
 
     // Register New File event handler
     useEffect(() => {
