@@ -6,12 +6,8 @@ import {
     Edge,
     getOutgoers,
     Node,
-    OnEdgesChange,
-    OnNodesChange,
     ReactFlowInstance,
-    useEdgesState,
     useKeyPress,
-    useNodesState,
     useReactFlow,
     Viewport,
     XYPosition,
@@ -27,7 +23,7 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import useSessionStorage from '../hooks/useSessionStorage';
+import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
@@ -166,6 +162,10 @@ const createNodeImpl = (
     return [newNode, ...extraNodes];
 };
 
+const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
+const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
+const cachedViewport = getSessionStorageOrDefault<Viewport | null>('cachedViewport', null);
+
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
@@ -178,26 +178,23 @@ export const GlobalProvider = ({
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     const { useSnapToGrid } = useContext(SettingsContext);
 
-    const [nodes, setNodes] = useNodesState<NodeData>([]);
-    const [edges, setEdges] = useEdgesState<EdgeData>([]);
+    const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
+    const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
     const { setViewport, getViewport } = useReactFlow();
 
+    console.log('here');
+
     // Cache node state to avoid clearing state when refreshing
-    const [cachedNodes, setCachedNodes] = useSessionStorage<Node<NodeData>[]>('cachedNodes', []);
-    const [cachedEdges, setCachedEdges] = useSessionStorage<Edge<EdgeData>[]>('cachedEdges', []);
-    const [cachedViewport, setCachedViewport] = useSessionStorage<Viewport | null>(
-        'cachedViewport',
-        null
-    );
     useEffect(() => {
-        setCachedNodes(nodes);
-        setCachedEdges(edges);
-        setCachedViewport(getViewport());
+        const timerId = setTimeout(() => {
+            sessionStorage.setItem('cachedNodes', JSON.stringify(nodes));
+            sessionStorage.setItem('cachedEdges', JSON.stringify(edges));
+            sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+        }, 1000);
+        return () => clearTimeout(timerId);
     }, [nodes, edges]);
     useEffect(() => {
         if (cachedViewport) setViewport(cachedViewport);
-        setNodes(cachedNodes);
-        setEdges(cachedEdges);
     }, []);
 
     const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
