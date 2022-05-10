@@ -1,7 +1,7 @@
 import { Box, Center, Tooltip } from '@chakra-ui/react';
 import { DragEvent, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
@@ -19,7 +19,8 @@ interface RepresentativeNodeWrapperProps {
 }
 
 const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
-    const { createNode, reactFlowInstance } = useContext(GlobalChainContext);
+    const createNode = useContextSelector(GlobalChainContext, (c) => c.createNode);
+    const reactFlowInstance = useContextSelector(GlobalChainContext, (c) => c.reactFlowInstance);
     const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
 
     return (

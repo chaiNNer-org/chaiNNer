@@ -2,7 +2,7 @@ import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData } from '../common-types';
 import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
@@ -34,7 +34,7 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const { nodes } = useContext(GlobalChainContext);
+    const nodes = useContextSelector(GlobalChainContext, (c) => c.nodes);
     const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
     const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);

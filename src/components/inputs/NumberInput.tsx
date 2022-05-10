@@ -6,7 +6,7 @@ import {
     NumberInputStepper,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { GlobalChainContext } from '../../helpers/contexts/GlobalNodeState';
 import { InputProps } from './props';
 
@@ -33,7 +33,10 @@ const NumericalInput = memo(
         type,
         isLocked,
     }: NumericalInputProps) => {
-        const { isNodeInputLocked } = useContext(GlobalChainContext);
+        const isNodeInputLocked = useContextSelector(
+            GlobalChainContext,
+            (c) => c.isNodeInputLocked
+        );
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);

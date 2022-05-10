@@ -1,6 +1,6 @@
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
@@ -16,7 +16,7 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const { edges } = useContext(GlobalChainContext);
+    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;

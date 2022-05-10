@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Edge, Node } from 'react-flow-renderer';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData, UsableData } from '../../common-types';
 import { getBackend } from '../Backend';
@@ -88,7 +88,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextProps>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
-    const { nodes, edges } = useContext(GlobalChainContext);
+    const nodes = useContextSelector(GlobalChainContext, (c) => c.nodes);
+    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
     const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
 
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);

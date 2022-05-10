@@ -1,6 +1,6 @@
 import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
@@ -26,7 +26,7 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const { edges } = useContext(GlobalChainContext);
+    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
     const { schemata } = useContext(GlobalContext);
 
     const {

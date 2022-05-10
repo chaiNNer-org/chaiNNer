@@ -12,7 +12,7 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -173,7 +173,7 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);

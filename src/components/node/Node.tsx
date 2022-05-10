@@ -9,7 +9,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
@@ -33,7 +33,8 @@ interface NodeProps {
 }
 
 const Node = memo(({ data, selected }: NodeProps) => {
-    const { nodes, edges } = useContext(GlobalChainContext);
+    const nodes = useContextSelector(GlobalChainContext, (c) => c.nodes);
+    const edges = useContextSelector(GlobalChainContext, (c) => c.edges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;

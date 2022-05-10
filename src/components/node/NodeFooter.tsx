@@ -22,7 +22,7 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { GlobalChainContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../../helpers/contexts/MenuFunctions';
 
@@ -34,7 +34,7 @@ interface NodeFooterProps {
 }
 
 const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
-    const { duplicateNode } = useContext(GlobalChainContext);
+    const duplicateNode = useContextSelector(GlobalChainContext, (c) => c.duplicateNode);
     const { removeNodeById, clearNode, toggleNodeLock } = useContext(GlobalContext);
     const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
 
