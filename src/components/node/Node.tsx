@@ -127,11 +127,10 @@ const Node = memo(({ data, selected }: NodeProps) => {
                         />
                         <NodeBody
                             accentColor={accentColor}
-                            category={category}
                             id={id}
+                            inputData={inputData}
                             inputs={inputs}
                             isLocked={isLocked}
-                            name={name}
                             outputs={outputs}
                             schemaId={schemaId}
                         />

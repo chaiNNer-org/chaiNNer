@@ -1,42 +1,39 @@
 import { Textarea } from '@chakra-ui/react';
-import { ChangeEvent, memo, useContext, useEffect } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { ChangeEvent, memo, useEffect } from 'react';
+import { InputProps } from './props';
 
-interface TextAreaInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-    label: string;
+interface TextAreaInputProps extends InputProps {
     resizable: boolean;
 }
 
-const TextAreaInput = memo(({ label, id, index, isLocked, resizable }: TextAreaInputProps) => {
-    const { useInputData } = useContext(GlobalContext);
-    const [input, setInput] = useInputData<string>(id, index);
+const TextAreaInput = memo(
+    ({ label, index, useInputData, isLocked, resizable }: TextAreaInputProps) => {
+        const [input, setInput] = useInputData<string>(index);
 
-    useEffect(() => {
-        if (!input) {
-            setInput('');
-        }
-    }, []);
+        useEffect(() => {
+            if (!input) {
+                setInput('');
+            }
+        }, []);
 
-    const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const text = event.target.value;
-        setInput(text);
-    };
+        const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+            const text = event.target.value;
+            setInput(text);
+        };
 
-    return (
-        <Textarea
-            className="nodrag"
-            disabled={isLocked}
-            draggable={false}
-            minW={240}
-            placeholder={label}
-            resize={resizable ? 'both' : 'none'}
-            value={input ?? ''}
-            onChange={handleChange}
-        />
-    );
-});
+        return (
+            <Textarea
+                className="nodrag"
+                disabled={isLocked}
+                draggable={false}
+                minW={240}
+                placeholder={label}
+                resize={resizable ? 'both' : 'none'}
+                value={input ?? ''}
+                onChange={handleChange}
+            />
+        );
+    }
+);
 
 export default TextAreaInput;

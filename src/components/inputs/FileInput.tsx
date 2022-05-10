@@ -7,29 +7,25 @@ import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
+import { InputProps } from './props';
 
-interface FileInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-    label: string;
-    category: string;
-    name: string;
+interface FileInputProps extends InputProps {
     filetypes: readonly string[];
     type: string;
     schemaId: string;
 }
 
 const FileInput = memo(
-    ({ filetypes, id, index, label, type, isLocked, category, name, schemaId }: FileInputProps) => {
-        const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
-        const [filePath, setFilePath] = useInputData<string>(id, index);
+    ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
+        const { isNodeInputLocked } = useContext(GlobalContext);
+
+        const [filePath, setFilePath] = useInputData<string>(index);
 
         // Handle case of NCNN model selection where param and bin files are named in pairs
         // Eventually, these should be combined into a single input type instead of using
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
-            const [paramFilePath] = useInputData<string>(id, index - 1);
+            const [paramFilePath] = useInputData<string>(index - 1);
             useEffect(() => {
                 (async () => {
                     if (paramFilePath) {
@@ -43,7 +39,7 @@ const FileInput = memo(
             }, [paramFilePath]);
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
-            const [binFilePath] = useInputData<string>(id, index + 1);
+            const [binFilePath] = useInputData<string>(index + 1);
             useEffect(() => {
                 (async () => {
                     if (binFilePath) {

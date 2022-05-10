@@ -40,10 +40,6 @@ interface Global {
     createConnection: (connection: Connection) => void;
     reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends NonNullable<InputValue>>(
-        id: string,
-        index: number
-    ) => readonly [T | undefined, (data: T) => void];
     isNodeInputLocked: (id: string, index: number) => boolean;
     duplicateNode: (id: string) => void;
     zoom: number;
@@ -63,6 +59,11 @@ interface GlobalSetters {
         (finished: readonly string[]) => void,
         () => void
     ];
+    useInputData: <T extends NonNullable<InputValue>>(
+        id: string,
+        index: number,
+        inputData: InputData
+    ) => readonly [T | undefined, (data: T) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     toggleNodeLock: (id: string) => void;
@@ -456,15 +457,9 @@ export const GlobalProvider = ({
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
         function <T extends NonNullable<InputValue>>(
             id: string,
-            index: number
+            index: number,
+            inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeData = nodes.find((node) => node.id === id)?.data;
-
-            if (!nodeData) {
-                return [undefined, () => {}] as const;
-            }
-
-            const { inputData } = nodeData;
             const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
@@ -483,7 +478,7 @@ export const GlobalProvider = ({
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, modifyNode, schemata]
+        [modifyNode, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
@@ -733,7 +728,6 @@ export const GlobalProvider = ({
         createConnection,
         reactFlowInstance,
         isValidConnection,
-        useInputData,
         isNodeInputLocked,
         duplicateNode,
         zoom,
@@ -752,6 +746,7 @@ export const GlobalProvider = ({
         setEdges,
         setReactFlowInstance,
         useAnimateEdges,
+        useInputData,
         toggleNodeLock,
         clearNode,
         removeNodeById,

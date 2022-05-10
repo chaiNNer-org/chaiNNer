@@ -3,16 +3,14 @@ import { memo, useContext } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { InputProps } from './props';
 
-interface DirectoryInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-}
+type DirectoryInputProps = InputProps;
 
-const DirectoryInput = memo(({ id, index, isLocked }: DirectoryInputProps) => {
-    const { useInputData, isNodeInputLocked } = useContext(GlobalContext);
-    const [directory, setDirectory] = useInputData<string>(id, index);
+const DirectoryInput = memo(({ id, index, isLocked, useInputData }: DirectoryInputProps) => {
+    const { isNodeInputLocked } = useContext(GlobalContext);
+
+    const [directory, setDirectory] = useInputData<string>(index);
     const isInputLocked = isNodeInputLocked(id, index);
 
     const onButtonClick = async () => {

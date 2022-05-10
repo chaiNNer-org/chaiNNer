@@ -12,13 +12,10 @@ import {
     Text,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useState } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { memo, useEffect, useState } from 'react';
+import { InputProps } from './props';
 
-interface SliderInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
+interface SliderInputProps extends InputProps {
     min: number;
     max: number;
     def?: number;
@@ -26,9 +23,8 @@ interface SliderInputProps {
 }
 
 const SliderInput = memo(
-    ({ index, def, min, max, id, accentColor, isLocked }: SliderInputProps) => {
-        const { useInputData } = useContext(GlobalContext);
-        const [input, setInput] = useInputData<number>(id, index);
+    ({ index, useInputData, def, min, max, accentColor, isLocked }: SliderInputProps) => {
+        const [input, setInput] = useInputData<number>(index);
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
@@ -47,10 +43,8 @@ const SliderInput = memo(
                     min={min}
                     step={1}
                     value={sliderValue ?? def}
-                    onChange={(v) => setSliderValue(v)}
-                    onChangeEnd={(v) => {
-                        setInput(v);
-                    }}
+                    onChange={setSliderValue}
+                    onChangeEnd={setInput}
                     onMouseEnter={() => setShowTooltip(true)}
                     onMouseLeave={() => setShowTooltip(false)}
                 >
