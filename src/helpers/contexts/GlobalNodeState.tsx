@@ -28,7 +28,7 @@ import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, deepCopy, parseHandle } from '../util';
+import { copyNode, parseHandle } from '../util';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -38,7 +38,6 @@ interface GlobalVolatile {
     edges: readonly Edge<EdgeData>[];
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
-    isValidConnection: (connection: Readonly<Connection>) => boolean;
     isNodeInputLocked: (id: string, index: number) => boolean;
     duplicateNode: (id: string) => void;
     zoom: number;
@@ -49,6 +48,7 @@ interface Global {
     reactFlowWrapper: React.RefObject<Element>;
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -174,7 +174,10 @@ export const GlobalProvider = ({
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
-    const { setViewport, getViewport } = useReactFlow();
+    const { setViewport, getViewport, getNode, getNodes, getEdges } = useReactFlow<
+        NodeData,
+        EdgeData
+    >();
 
     // Cache node state to avoid clearing state when refreshing
     useEffect(() => {
@@ -214,11 +217,11 @@ export const GlobalProvider = ({
 
     const dumpState = useCallback((): SaveData => {
         return {
-            nodes: deepCopy(nodes),
-            edges: deepCopy(edges),
+            nodes: getNodes(),
+            edges: getEdges(),
             viewport: getViewport(),
         };
-    }, [nodes, edges]);
+    }, [getNodes, getEdges]);
 
     const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
         const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
@@ -401,14 +404,14 @@ export const GlobalProvider = ({
 
     const isValidConnection = useCallback(
         ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
-            if (source === target || !sourceHandle || !targetHandle) {
+            if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                 return false;
             }
             const sourceHandleIndex = parseHandle(sourceHandle).index;
             const targetHandleIndex = parseHandle(targetHandle).index;
 
-            const sourceNode = nodes.find((node) => node.id === source);
-            const targetNode = nodes.find((node) => node.id === target);
+            const sourceNode = getNode(source);
+            const targetNode = getNode(target);
             if (!sourceNode || !targetNode) {
                 return false;
             }
@@ -421,7 +424,7 @@ export const GlobalProvider = ({
             const targetInput = inputs[targetHandleIndex];
 
             const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
-                const targetChildren = getOutgoers(parentNode, nodes, edges);
+                const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
                 if (!targetChildren.length) {
                     return false;
                 }
@@ -439,7 +442,7 @@ export const GlobalProvider = ({
 
             return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
         },
-        [nodes, edges, schemata]
+        [schemata, getNode, getNodes, getEdges]
     );
 
     const useInputData = useCallback(
@@ -715,7 +718,6 @@ export const GlobalProvider = ({
         edges,
         createNode,
         createConnection,
-        isValidConnection,
         isNodeInputLocked,
         duplicateNode,
         zoom,
@@ -728,6 +730,7 @@ export const GlobalProvider = ({
         reactFlowWrapper,
         setNodes,
         setEdges,
+        isValidConnection,
         useAnimateEdges,
         useInputData,
         toggleNodeLock,
