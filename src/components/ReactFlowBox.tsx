@@ -10,11 +10,11 @@ import ReactFlow, {
     EdgeTypes,
     Node,
     NodeTypes,
-    ReactFlowInstance,
     useEdgesState,
     useNodesState,
+    useReactFlow,
 } from 'react-flow-renderer';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
 import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
@@ -29,13 +29,12 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const { nodes, edges, createNode, createConnection, reactFlowInstance, zoom } =
-        useContext(GlobalVolatileContext);
-    const { setReactFlowInstance, setNodes, setEdges, onMoveEnd, setHoveredNode } =
-        useContext(GlobalContext);
+    const { nodes, edges, createNode, createConnection, zoom } = useContext(GlobalVolatileContext);
+    const { setNodes, setEdges, onMoveEnd, setHoveredNode } = useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);
 
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const reactFlowInstance = useReactFlow();
 
     const [_nodes, _setNodes, onNodesChange] = useNodesState<NodeData>([]);
     const [_edges, _setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
@@ -138,15 +137,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         }
     }, [snapToGridAmount, nodes]);
 
-    const onInit = useCallback(
-        (rfi: ReactFlowInstance<NodeData, EdgeData>) => {
-            if (!reactFlowInstance) {
-                setReactFlowInstance(rfi);
-            }
-        },
-        [reactFlowInstance]
-    );
-
     const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         // eslint-disable-next-line no-param-reassign
@@ -162,7 +152,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
             // log.info('dropped');
             event.preventDefault();
 
-            if (!reactFlowInstance || !wrapperRef.current) return;
+            if (!wrapperRef.current) return;
 
             const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
@@ -233,7 +223,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 // onSelectionChange={setSelectedElements}
-                onInit={onInit}
                 onMoveEnd={onMoveEnd}
                 onNodeContextMenu={onNodeContextMenu}
                 onNodeDragStop={onNodeDragStop}

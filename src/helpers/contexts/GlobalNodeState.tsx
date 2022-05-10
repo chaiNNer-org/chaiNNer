@@ -6,13 +6,12 @@ import {
     Edge,
     getOutgoers,
     Node,
-    ReactFlowInstance,
     useKeyPress,
     useReactFlow,
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { createContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -39,7 +38,6 @@ interface GlobalVolatile {
     edges: readonly Edge<EdgeData>[];
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
-    reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     isNodeInputLocked: (id: string, index: number) => boolean;
     duplicateNode: (id: string) => void;
@@ -51,7 +49,6 @@ interface Global {
     reactFlowWrapper: React.RefObject<Element>;
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
-    setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -192,10 +189,6 @@ export const GlobalProvider = ({
         if (cachedViewport) setViewport(cachedViewport);
     }, []);
 
-    const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
-        NodeData,
-        EdgeData
-    > | null>(null);
     const [savePath, setSavePath] = useState<string | undefined>();
 
     const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
@@ -722,7 +715,6 @@ export const GlobalProvider = ({
         edges,
         createNode,
         createConnection,
-        reactFlowInstance,
         isValidConnection,
         isNodeInputLocked,
         duplicateNode,
@@ -736,7 +728,6 @@ export const GlobalProvider = ({
         reactFlowWrapper,
         setNodes,
         setEdges,
-        setReactFlowInstance,
         useAnimateEdges,
         useInputData,
         toggleNodeLock,
