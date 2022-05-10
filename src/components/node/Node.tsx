@@ -8,10 +8,11 @@ import {
     useColorModeValue,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import NodeBody from './NodeBody';
@@ -32,8 +33,9 @@ interface NodeProps {
 }
 
 const Node = memo(({ data, selected }: NodeProps) => {
-    const { nodes, edges, schemata, updateIteratorBounds, useHoveredNode } =
-        useContext(GlobalContext);
+    const nodes = useContextSelector(GlobalVolatileContext, (c) => c.nodes);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 
@@ -80,8 +82,6 @@ const Node = memo(({ data, selected }: NodeProps) => {
     //   }
     // }, [selected]);
 
-    const [, setHoveredNode] = useHoveredNode;
-
     return (
         <>
             <Menu isOpen={showMenu}>
@@ -124,11 +124,10 @@ const Node = memo(({ data, selected }: NodeProps) => {
                         />
                         <NodeBody
                             accentColor={accentColor}
-                            category={category}
                             id={id}
+                            inputData={inputData}
                             inputs={inputs}
                             isLocked={isLocked}
-                            name={name}
                             outputs={outputs}
                             schemaId={schemaId}
                         />

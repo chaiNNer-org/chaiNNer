@@ -1,35 +1,34 @@
 import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useContext, useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
+import { InputProps } from './props';
 
-interface FileInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-    label: string;
-    category: string;
-    name: string;
+interface FileInputProps extends InputProps {
     filetypes: readonly string[];
     type: string;
     schemaId: string;
 }
 
 const FileInput = memo(
-    ({ filetypes, id, index, label, type, isLocked, category, name, schemaId }: FileInputProps) => {
-        const { useInputData, useNodeLock } = useContext(GlobalContext);
-        const [filePath, setFilePath] = useInputData<string>(id, index);
+    ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
+            c.isNodeInputLocked(id, index)
+        );
+
+        const [filePath, setFilePath] = useInputData<string>(index);
 
         // Handle case of NCNN model selection where param and bin files are named in pairs
         // Eventually, these should be combined into a single input type instead of using
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
-            const [paramFilePath] = useInputData<string>(id, index - 1);
+            const [paramFilePath] = useInputData<string>(index - 1);
             useEffect(() => {
                 (async () => {
                     if (paramFilePath) {
@@ -43,7 +42,7 @@ const FileInput = memo(
             }, [paramFilePath]);
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
-            const [binFilePath] = useInputData<string>(id, index + 1);
+            const [binFilePath] = useInputData<string>(index + 1);
             useEffect(() => {
                 (async () => {
                     if (binFilePath) {
@@ -56,8 +55,6 @@ const FileInput = memo(
                 })();
             }, [binFilePath]);
         }
-
-        const [, , isInputLocked] = useNodeLock(id, index);
 
         const onButtonClick = async () => {
             const fileDir = filePath ? path.dirname(filePath) : undefined;

@@ -1,8 +1,9 @@
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -15,7 +16,8 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const { edges, schemata, updateIteratorBounds, useHoveredNode } = useContext(GlobalContext);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 
@@ -52,8 +54,6 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
         }
     }, [checkedSize]);
 
-    const [, setHoveredNode] = useHoveredNode;
-
     return (
         <Center
             bg={useColorModeValue('gray.300', 'gray.700')}
@@ -82,11 +82,10 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
                 />
                 <NodeBody
                     accentColor={accentColor}
-                    category={category}
                     id={id}
+                    inputData={inputData}
                     inputs={inputs}
                     isLocked={isLocked}
-                    name={name}
                     outputs={outputs}
                     schemaId={schemaId}
                 />

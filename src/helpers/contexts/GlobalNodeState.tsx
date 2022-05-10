@@ -1,21 +1,17 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import log from 'electron-log';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
     Edge,
     getOutgoers,
     Node,
-    OnEdgesChange,
-    OnNodesChange,
-    ReactFlowInstance,
-    useEdgesState,
     useKeyPress,
-    useNodesState,
     useReactFlow,
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
+import { createContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -27,7 +23,7 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import useSessionStorage from '../hooks/useSessionStorage';
+import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { SaveData } from '../SaveFile';
@@ -37,41 +33,37 @@ import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
-interface Global {
-    schemata: SchemaMap;
+interface GlobalVolatile {
     nodes: readonly Node<NodeData>[];
     edges: readonly Edge<EdgeData>[];
-    setNodes: SetState<Node<NodeData>[]>;
-    setEdges: SetState<Edge<EdgeData>[]>;
-    onNodesChange: OnNodesChange;
-    onEdgesChange: OnEdgesChange;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
-    reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
-    setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
-    reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends NonNullable<InputValue>>(
-        id: string,
-        index: number
-    ) => readonly [T | undefined, (data: T) => void];
+    isNodeInputLocked: (id: string, index: number) => boolean;
+    duplicateNode: (id: string) => void;
+    zoom: number;
+    hoveredNode: string | null | undefined;
+}
+interface Global {
+    schemata: SchemaMap;
+    reactFlowWrapper: React.RefObject<Element>;
+    setNodes: SetState<Node<NodeData>[]>;
+    setEdges: SetState<Edge<EdgeData>[]>;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
         (finished: readonly string[]) => void,
         () => void
     ];
+    useInputData: <T extends NonNullable<InputValue>>(
+        id: string,
+        index: number,
+        inputData: InputData
+    ) => readonly [T | undefined, (data: T) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    useNodeLock: (
-        id: string,
-        index?: number | null
-    ) =>
-        | readonly []
-        | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
-    duplicateNode: (id: string) => void;
+    toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    zoom: number;
     onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
@@ -82,12 +74,7 @@ interface Global {
         dimensions?: Size
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
-    closeAllMenus: () => void;
-    useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
-    useMenuCloseFunctions: readonly [
-        closeAllMenus: () => void,
-        addMenuCloseFunction: (func: () => void, id: string) => void
-    ];
+    setHoveredNode: SetState<string | null | undefined>;
 }
 
 interface NodeProto {
@@ -97,6 +84,7 @@ interface NodeProto {
 }
 
 // TODO: Find default
+export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createUniqueId = () => uuidv4();
@@ -168,6 +156,10 @@ const createNodeImpl = (
     return [newNode, ...extraNodes];
 };
 
+const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
+const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
+const cachedViewport = getSessionStorageOrDefault<Viewport | null>('cachedViewport', null);
+
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
@@ -178,39 +170,28 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
+    const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
+    const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
     const { setViewport, getViewport } = useReactFlow();
 
     // Cache node state to avoid clearing state when refreshing
-    const [cachedNodes, setCachedNodes] = useSessionStorage<Node<NodeData>[]>('cachedNodes', []);
-    const [cachedEdges, setCachedEdges] = useSessionStorage<Edge<EdgeData>[]>('cachedEdges', []);
-    const [cachedViewport, setCachedViewport] = useSessionStorage<Viewport | null>(
-        'cachedViewport',
-        null
-    );
     useEffect(() => {
-        setCachedNodes(nodes);
-        setCachedEdges(edges);
-        setCachedViewport(getViewport());
+        const timerId = setTimeout(() => {
+            sessionStorage.setItem('cachedNodes', JSON.stringify(nodes));
+            sessionStorage.setItem('cachedEdges', JSON.stringify(edges));
+            sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+        }, 1000);
+        return () => clearTimeout(timerId);
     }, [nodes, edges]);
     useEffect(() => {
         if (cachedViewport) setViewport(cachedViewport);
-        setNodes(cachedNodes);
-        setEdges(cachedEdges);
     }, []);
 
-    const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
-        NodeData,
-        EdgeData
-    > | null>(null);
     const [savePath, setSavePath] = useState<string | undefined>();
 
     const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
-
-    const [menuCloseFunctions, setMenuCloseFunctions] = useState<Record<string, () => void>>({});
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
@@ -465,15 +446,9 @@ export const GlobalProvider = ({
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
         function <T extends NonNullable<InputValue>>(
             id: string,
-            index: number
+            index: number,
+            inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeData = nodes.find((node) => node.id === id)?.data;
-
-            if (!nodeData) {
-                return [undefined, () => {}] as const;
-            }
-
-            const { inputData } = nodeData;
             const inputDataByIndex = inputData[index] as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
@@ -492,7 +467,7 @@ export const GlobalProvider = ({
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, modifyNode, schemata]
+        [modifyNode, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
@@ -540,38 +515,30 @@ export const GlobalProvider = ({
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
     }, [setEdges]);
 
-    // TODO: performance concern? runs twice when deleting node
-    const useNodeLock = useCallback(
-        (id: string, index?: number | null) => {
-            const node = nodes.find((n) => n.id === id);
-            if (!node) {
-                return [] as const;
-            }
-            const isLocked = node.data.isLocked ?? false;
-            const toggleLock = () => {
-                modifyNode(id, (old) => {
-                    const isLocked = old.data.isLocked ?? false;
-                    const newNode = copyNode(old);
-                    newNode.draggable = isLocked;
-                    newNode.connectable = isLocked;
-                    newNode.data.isLocked = !isLocked;
-                    return newNode;
-                });
-            };
-
-            let isInputLocked = false;
-            if (index !== undefined && index !== null) {
-                const edge = edges.find(
-                    (e) =>
-                        e.target === id &&
-                        !!e.targetHandle &&
-                        parseHandle(e.targetHandle).index === index
-                );
-                isInputLocked = !!edge;
-            }
-            return [isLocked, toggleLock, isInputLocked] as const;
+    const toggleNodeLock = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const isLocked = old.data.isLocked ?? false;
+                const newNode = copyNode(old);
+                newNode.draggable = isLocked;
+                newNode.connectable = isLocked;
+                newNode.data.isLocked = !isLocked;
+                return newNode;
+            });
         },
-        [nodes, edges, modifyNode]
+        [modifyNode]
+    );
+
+    const isNodeInputLocked = useCallback(
+        (id: string, index: number): boolean => {
+            return edges.some(
+                (e) =>
+                    e.target === id &&
+                    !!e.targetHandle &&
+                    parseHandle(e.targetHandle).index === index
+            );
+        },
+        [edges]
     );
 
     const useIteratorSize = useCallback(
@@ -743,53 +710,41 @@ export const GlobalProvider = ({
         [setZoom]
     );
 
-    const addMenuCloseFunction = useCallback(
-        (func: () => void, id: string) => {
-            setMenuCloseFunctions((menuCloseFunctions) => ({ ...menuCloseFunctions, [id]: func }));
-        },
-        [setMenuCloseFunctions]
+    let globalChainValue: GlobalVolatile = {
+        nodes,
+        edges,
+        createNode,
+        createConnection,
+        isValidConnection,
+        isNodeInputLocked,
+        duplicateNode,
+        zoom,
+        hoveredNode,
+    };
+    globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
+
+    let globalValue: Global = {
+        schemata,
+        reactFlowWrapper,
+        setNodes,
+        setEdges,
+        useAnimateEdges,
+        useInputData,
+        toggleNodeLock,
+        clearNode,
+        removeNodeById,
+        removeEdgeById,
+        updateIteratorBounds,
+        setIteratorPercent,
+        useIteratorSize,
+        setHoveredNode,
+        onMoveEnd,
+    };
+    globalValue = useMemo(() => globalValue, Object.values(globalValue));
+
+    return (
+        <GlobalVolatileContext.Provider value={globalChainValue}>
+            <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+        </GlobalVolatileContext.Provider>
     );
-
-    const closeAllMenus = useCallback(() => {
-        Object.keys(menuCloseFunctions).forEach((id) => {
-            menuCloseFunctions[id]();
-        });
-    }, [menuCloseFunctions]);
-
-    const contextValue = useMemo<Global>(
-        () => ({
-            schemata,
-            nodes,
-            edges,
-            setNodes,
-            setEdges,
-            onNodesChange,
-            onEdgesChange,
-            createNode,
-            createConnection,
-            reactFlowInstance,
-            setReactFlowInstance,
-            // updateRfi,
-            reactFlowWrapper,
-            isValidConnection,
-            useInputData,
-            useAnimateEdges,
-            removeNodeById,
-            removeEdgeById,
-            useNodeLock,
-            duplicateNode,
-            clearNode,
-            zoom,
-            onMoveEnd,
-            useIteratorSize,
-            updateIteratorBounds,
-            setIteratorPercent,
-            closeAllMenus,
-            useHoveredNode: [hoveredNode, setHoveredNode] as const,
-            useMenuCloseFunctions: [closeAllMenus, addMenuCloseFunction] as const,
-        }),
-        [nodes, edges, reactFlowInstance, zoom, hoveredNode, menuCloseFunctions]
-    );
-
-    return <GlobalContext.Provider value={contextValue}>{children}</GlobalContext.Provider>;
 };

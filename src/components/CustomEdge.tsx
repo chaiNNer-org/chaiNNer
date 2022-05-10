@@ -1,10 +1,11 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
-import { memo, useContext, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData } from '../common-types';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
@@ -33,9 +34,11 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const { removeEdgeById, nodes, useHoveredNode, schemata } = useContext(GlobalContext);
+    const parentNode = useContextSelector(GlobalVolatileContext, (c) =>
+        c.nodes.find((n) => source === n.id)
+    );
 
-    const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);
+    const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
     const [isHovered, setIsHovered] = useState(false);
 
@@ -55,8 +58,6 @@ const CustomEdge = ({
     const hoverTimeout = useDebouncedCallback(() => {
         setIsHovered(false);
     }, 7500);
-
-    const [, setHoveredNode] = useHoveredNode;
 
     return (
         <g

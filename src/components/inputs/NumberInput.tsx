@@ -5,14 +5,12 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo, useContext, useState } from 'react';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { memo, useState } from 'react';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
+import { InputProps } from './props';
 
-interface NumericalInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-    label: string;
+interface NumericalInputProps extends InputProps {
     type: string;
     min?: number;
     max?: number;
@@ -22,12 +20,26 @@ interface NumericalInputProps {
 }
 
 const NumericalInput = memo(
-    ({ label, id, index, def, min, max, precision, step, type, isLocked }: NumericalInputProps) => {
-        const { useInputData, useNodeLock } = useContext(GlobalContext);
+    ({
+        label,
+        id,
+        index,
+        useInputData,
+        def,
+        min,
+        max,
+        precision,
+        step,
+        type,
+        isLocked,
+    }: NumericalInputProps) => {
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
+            c.isNodeInputLocked(id, index)
+        );
+
         // TODO: make sure this is always a number
-        const [input, setInput] = useInputData<number>(id, index);
+        const [input, setInput] = useInputData<number>(index);
         const [inputString, setInputString] = useState(String(input));
-        const [, , isInputLocked] = useNodeLock(id, index);
 
         const handleChange = (numberAsString: string, numberAsNumber: number) => {
             setInputString(numberAsString);

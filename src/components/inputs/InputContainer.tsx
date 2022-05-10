@@ -1,7 +1,8 @@
 import { Box, HStack, Text, useColorModeValue } from '@chakra-ui/react';
-import React, { memo, useContext } from 'react';
+import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 
 interface InputContainerProps {
     id: string;
@@ -12,7 +13,10 @@ interface InputContainerProps {
 
 const InputContainer = memo(
     ({ children, hasHandle, id, index, label }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalContext);
+        const isValidConnection = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.isValidConnection
+        );
 
         let contents = children;
         if (hasHandle) {

@@ -9,8 +9,9 @@ import {
     Tag,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { memo, useContext, useState } from 'react';
+import { memo, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
+import { useContext } from 'use-context-selector';
 import { ExecutionContext } from '../helpers/contexts/ExecutionContext';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from '../helpers/safeIpc';

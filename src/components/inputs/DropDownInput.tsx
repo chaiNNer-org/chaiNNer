@@ -1,18 +1,14 @@
 import { Select } from '@chakra-ui/react';
-import { ChangeEvent, memo, useContext, useEffect } from 'react';
+import { ChangeEvent, memo, useEffect } from 'react';
 import { InputOption } from '../../common-types';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { InputProps } from './props';
 
-interface DropDownInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
+interface DropDownInputProps extends InputProps {
     options: readonly InputOption[];
 }
 
-const DropDownInput = memo(({ options, id, index, isLocked }: DropDownInputProps) => {
-    const { useInputData } = useContext(GlobalContext);
-    const [selection, setSelection] = useInputData<string | number>(id, index);
+const DropDownInput = memo(({ options, index, useInputData, isLocked }: DropDownInputProps) => {
+    const [selection, setSelection] = useInputData<string | number>(index);
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const { value } = event.target;

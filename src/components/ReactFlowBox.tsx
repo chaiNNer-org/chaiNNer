@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
-import { createContext, DragEvent, memo, useCallback, useContext, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -10,16 +10,16 @@ import ReactFlow, {
     EdgeTypes,
     Node,
     NodeTypes,
-    ReactFlowInstance,
     useEdgesState,
     useNodesState,
+    useReactFlow,
 } from 'react-flow-renderer';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
-import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { snapToGrid } from '../helpers/reactFlowUtil';
-
-export const NodeDataContext = createContext({});
 
 const STARTING_Z_INDEX = 50;
 
@@ -29,22 +29,12 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const {
-        nodes,
-        edges,
-        createNode,
-        createConnection,
-        reactFlowInstance,
-        setReactFlowInstance,
-        setNodes,
-        setEdges,
-        onMoveEnd,
-        zoom,
-        useMenuCloseFunctions,
-        useHoveredNode,
-    } = useContext(GlobalContext);
+    const { nodes, edges, createNode, createConnection, zoom } = useContext(GlobalVolatileContext);
+    const { setNodes, setEdges, onMoveEnd, setHoveredNode } = useContext(GlobalContext);
+    const { closeAllMenus } = useContext(MenuFunctionsContext);
 
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const reactFlowInstance = useReactFlow();
 
     const [_nodes, _setNodes, onNodesChange] = useNodesState<NodeData>([]);
     const [_edges, _setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
@@ -147,22 +137,11 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         }
     }, [snapToGridAmount, nodes]);
 
-    const onInit = useCallback(
-        (rfi: ReactFlowInstance<NodeData, EdgeData>) => {
-            if (!reactFlowInstance) {
-                setReactFlowInstance(rfi);
-            }
-        },
-        [reactFlowInstance]
-    );
-
     const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         // eslint-disable-next-line no-param-reassign
         event.dataTransfer.dropEffect = 'move';
     }, []);
-
-    const [, setHoveredNode] = useHoveredNode;
 
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
@@ -173,7 +152,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
             // log.info('dropped');
             event.preventDefault();
 
-            if (!reactFlowInstance || !wrapperRef.current) return;
+            if (!wrapperRef.current) return;
 
             const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
@@ -214,8 +193,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         // TODO implement this
     }, []);
 
-    const [closeAllMenus] = useMenuCloseFunctions;
-
     return (
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
@@ -246,7 +223,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 // onSelectionChange={setSelectedElements}
-                onInit={onInit}
                 onMoveEnd={onMoveEnd}
                 onNodeContextMenu={onNodeContextMenu}
                 onNodeDragStop={onNodeDragStop}
