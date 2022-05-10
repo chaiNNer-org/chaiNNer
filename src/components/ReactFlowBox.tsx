@@ -29,7 +29,7 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const { nodes, edges, createNode, createConnection, zoom } = useContext(GlobalVolatileContext);
+    const { nodes, edges, createNode, createConnection } = useContext(GlobalVolatileContext);
     const { setNodes, setEdges, onMoveEnd, setHoveredNode } = useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);
 
@@ -163,6 +163,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
                 const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
 
+                const { zoom } = reactFlowInstance.getViewport();
                 const position = reactFlowInstance.project({
                     x: event.clientX - reactFlowBounds.left - offsetX * zoom,
                     y: event.clientY - reactFlowBounds.top - offsetY * zoom,
@@ -185,7 +186,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 log.error(error);
             }
         },
-        [createNode, wrapperRef.current, zoom, reactFlowInstance]
+        [createNode, wrapperRef.current, reactFlowInstance]
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
