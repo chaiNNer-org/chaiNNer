@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
-import { createContext, DragEvent, memo, useCallback, useContext, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useContext, useEffect, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -19,8 +19,6 @@ import { GlobalChainContext, GlobalContext } from '../helpers/contexts/GlobalNod
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { snapToGrid } from '../helpers/reactFlowUtil';
-
-export const NodeDataContext = createContext({});
 
 const STARTING_Z_INDEX = 50;
 
