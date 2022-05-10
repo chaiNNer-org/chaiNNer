@@ -182,8 +182,6 @@ export const GlobalProvider = ({
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
     const { setViewport, getViewport } = useReactFlow();
 
-    console.log('here');
-
     // Cache node state to avoid clearing state when refreshing
     useEffect(() => {
         const timerId = setTimeout(() => {
