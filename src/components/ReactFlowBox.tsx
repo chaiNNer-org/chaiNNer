@@ -137,11 +137,15 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         }
     }, [snapToGridAmount, nodes]);
 
-    const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        // eslint-disable-next-line no-param-reassign
-        event.dataTransfer.dropEffect = 'move';
-    }, []);
+    const onDragOver = useCallback(
+        (event: DragEvent<HTMLDivElement>) => {
+            closeAllMenus();
+            event.preventDefault();
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = 'move';
+        },
+        [closeAllMenus]
+    );
 
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
@@ -223,7 +227,9 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 // onSelectionChange={setSelectedElements}
+                onMouseDown={closeAllMenus}
                 onMoveEnd={onMoveEnd}
+                onMoveStart={closeAllMenus}
                 onNodeContextMenu={onNodeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}

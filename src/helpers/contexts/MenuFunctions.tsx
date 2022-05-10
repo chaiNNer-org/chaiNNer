@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-shadow */
 import React, { useCallback, useMemo, useState } from 'react';
 import { createContext } from 'use-context-selector';
 import { noop } from '../util';
 
 interface MenuFunctions {
     closeAllMenus: () => void;
-    addMenuCloseFunction: (func: () => void, id: string) => void;
+    addMenuCloseFunction: (func: () => void, id: string) => () => void;
 }
 
 export const MenuFunctionsContext = createContext<Readonly<MenuFunctions>>({
     closeAllMenus: noop,
-    addMenuCloseFunction: noop,
+    addMenuCloseFunction: () => noop,
 });
 
 export const MenuFunctionsProvider = ({ children }: React.PropsWithChildren<unknown>) => {
@@ -18,15 +17,21 @@ export const MenuFunctionsProvider = ({ children }: React.PropsWithChildren<unkn
 
     const addMenuCloseFunction = useCallback(
         (func: () => void, id: string) => {
-            setMenuCloseFunctions((menuCloseFunctions) => ({ ...menuCloseFunctions, [id]: func }));
+            setMenuCloseFunctions((funcs) => ({ ...funcs, [id]: func }));
+
+            return () => {
+                setMenuCloseFunctions((funcs) => {
+                    const copy = { ...funcs };
+                    delete copy[id];
+                    return copy;
+                });
+            };
         },
         [setMenuCloseFunctions]
     );
 
     const closeAllMenus = useCallback(() => {
-        Object.keys(menuCloseFunctions).forEach((id) => {
-            menuCloseFunctions[id]();
-        });
+        Object.values(menuCloseFunctions).forEach((fn) => fn());
     }, [menuCloseFunctions]);
 
     let contextValue: MenuFunctions = {
