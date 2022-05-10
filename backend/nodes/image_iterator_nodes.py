@@ -11,7 +11,7 @@ from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import get_available_image_formats
+from .utils.image_utils import get_available_image_formats, normalize
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -93,9 +93,9 @@ class ImageFileIteratorNode(IteratorNodeBase):
         child_nodes = []
         for k, v in nodes.items():
             if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
-                img_path_node_id = v["schemaId"]
+                img_path_node_id = v["id"]
             if nodes[k]["child"]:
-                child_nodes.append(v["schemaId"])
+                child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
@@ -177,7 +177,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.type = "iteratorHelper"
 
     def run(self, img: np.ndarray, idx: int) -> any:
-        return img, idx
+        return normalize(img), idx
 
 
 @NodeFactory.register(VIDEO_ITERATOR_OUTPUT_NODE_ID)
@@ -188,7 +188,12 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = ""
-        self.inputs = [ImageInput("Frame")]
+        self.inputs = [
+            ImageInput("Frame"),
+            DirectoryInput("Output Video Directory"),
+            TextInput("Output Video Name"),
+            VideoTypeDropdown(),
+        ]
         self.outputs = []
 
         self.category = IMAGE
@@ -198,19 +203,32 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
 
         self.type = "iteratorHelper"
 
-    def run(self, img: np.ndarray, writer, fourcc, fps, video_save_path) -> any:
+    def run(
+        self,
+        img: np.ndarray,
+        save_dir: str,
+        video_name: str,
+        video_type: str,
+        writer,
+        fps,
+    ) -> any:
         h, w = img.shape[:2]
-        if writer["out"] is None:
+        if writer["out"] is None and video_type != "none":
+            if video_type == "mp4":
+                fourcc = cv2.VideoWriter_fourcc(*"h264")
+            else:
+                fourcc = cv2.VideoWriter_fourcc(*"divx")
+            video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
+            logger.info(f"Writing new video to path: {video_save_path}")
             writer["out"] = cv2.VideoWriter(
                 filename=video_save_path, fourcc=fourcc, fps=fps, frameSize=(w, h)
             )
-
-        writer["out"].write((img * 255).astype(np.uint8))
+        if video_type != "none":
+            writer["out"].write((img * 255).astype(np.uint8))
         return ""
 
 
-# TODO: Uncomment this when ready to release video frame iterator
-# @NodeFactory.register('chainner:image:video_frame_iterator)
+@NodeFactory.register("chainner:image:video_frame_iterator")
 class SimpleVideoFrameIteratorNode(IteratorNodeBase):
     """Video Frame Iterator node"""
 
@@ -222,8 +240,6 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         )
         self.inputs = [
             VideoFileInput(),
-            DirectoryInput("Output Video Directory"),
-            TextInput("Output Video Name"),
         ]
         self.outputs = []
         self.default_nodes = [
@@ -236,13 +252,13 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             },
         ]
 
+        self.category = IMAGE
+        self.name = "Video Frame Iterator (Simple)"
         self.icon = "MdVideoCameraBack"
 
     async def run(
         self,
         path: str,
-        save_dir: str,
-        video_name: str,
         nodes: dict = {},
         external_cache: dict = {},
         loop=None,
@@ -259,30 +275,27 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         child_nodes = []
         for k, v in nodes.items():
             if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
-                input_node_id = v["schemaId"]
+                input_node_id = v["id"]
             elif v["schemaId"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
-                output_node_id = v["schemaId"]
+                output_node_id = v["id"]
             if nodes[k]["child"]:
-                child_nodes.append(v["schemaId"])
+                child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             nodes[k]["child"] = False
 
         # TODO: Open Video Buffer
         cap = cv2.VideoCapture(path)
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         fps = int(cap.get(cv2.CAP_PROP_FPS))
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        video_save_path = os.path.join(save_dir, f"{video_name}.mp4")
-        logger.info(f"Writing new video to path: {video_save_path}")
+
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         start_idx = math.ceil(float(percent) * frame_count)
-        nodes[output_node_id]["inputs"].extend((writer, fourcc, fps, video_save_path))
+        nodes[output_node_id]["inputs"].extend((writer, fps))
         for idx in range(frame_count):
             if parent_executor.should_stop_running():
                 cap.release()
-                writer["out"].release()
+                if writer["out"] is not None:
+                    writer["out"].release()
                 return
             ret, frame = cap.read()
             # if frame is read correctly ret is True
@@ -323,5 +336,6 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 )
 
         cap.release()
-        writer["out"].release()
+        if writer["out"] is not None:
+            writer["out"].release()
         return ""

@@ -48,7 +48,7 @@ class ImReadNode(NodeBase):
         img = self.result[0]
 
         if img.ndim == 2:
-            h, w, c = img.shape[:2], 1
+            h, w, c = (*img.shape[:2], 1)
         else:
             h, w, c = img.shape
 

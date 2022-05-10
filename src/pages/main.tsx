@@ -14,6 +14,7 @@ import NodeSelector from '../components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
 import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
+import { ExecutionProvider } from '../helpers/contexts/ExecutionContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsProvider } from '../helpers/contexts/MenuFunctions';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
@@ -107,7 +108,9 @@ const Main = ({ port }: MainProps) => {
                             overflow="hidden"
                             p={2}
                         >
-                            <Header port={port} />
+                            <ExecutionProvider>
+                                <Header />
+                            </ExecutionProvider>
                             <HStack
                                 as={Split}
                                 defaultSplitterColors={{

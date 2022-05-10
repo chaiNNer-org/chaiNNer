@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 
 def DropDownInput(
@@ -211,6 +211,28 @@ def AlphaFillMethodInput() -> Dict:
             {
                 "option": "Extend color",
                 "value": AlphaFillMethod.EXTEND_COLOR,
+            },
+        ],
+    )
+
+
+def VideoTypeDropdown() -> Dict:
+    """Video Type option dropdown"""
+    return DropDownInput(
+        "generic",
+        "Video Type",
+        [
+            {
+                "option": "MP4",
+                "value": "mp4",
+            },
+            {
+                "option": "AVI",
+                "value": "avi",
+            },
+            {
+                "option": "None",
+                "value": "none",
             },
         ],
     )
