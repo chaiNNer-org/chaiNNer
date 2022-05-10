@@ -9,14 +9,16 @@ class NumPyInput(BaseInput):
 
 
 class AudioInput(NumPyInput):
+    """Input a 1D Audio NumPy array"""
+
     def __init__(self, label: str = "Audio", optional=False):
-        """Input a 1D Audio NumPy array"""
         super().__init__("1d", label, optional)
 
 
 class ImageInput(NumPyInput):
+    """Input a 2D Image NumPy array"""
+
     def __init__(self, label: str = "Image", optional=False):
-        """Input a 2D Image NumPy array"""
         super().__init__("2d", label, optional)
 
     def enforce(self, value):
@@ -25,6 +27,7 @@ class ImageInput(NumPyInput):
 
 
 class VideoInput(NumPyInput):
+    """Input a 3D Video NumPy array"""
+
     def __init__(self, label: str = "Video", optional=False):
-        """Input a 3D Video NumPy array"""
         super().__init__("3d", label, optional)
