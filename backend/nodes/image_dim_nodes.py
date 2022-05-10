@@ -23,7 +23,8 @@ class ImResizeByFactorNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%)."
+            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%). "
+            "Auto uses box for downsampling and lanczos for upsampling."
         )
         self.inputs = [
             ImageInput(),
@@ -56,7 +57,10 @@ class ImResizeToResolutionNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Resize an image to an exact resolution."
+        self.description = (
+            "Resize an image to an exact resolution. "
+            "Auto uses box for downsampling and lanczos for upsampling."
+        )
         self.inputs = [
             ImageInput(),
             IntegerInput("Width"),
