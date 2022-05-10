@@ -29,7 +29,7 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const { nodes, edges, createNode, createConnection, zoom } = useContext(GlobalVolatileContext);
+    const { nodes, edges, createNode, createConnection } = useContext(GlobalVolatileContext);
     const { setNodes, setEdges, onMoveEnd, setHoveredNode } = useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);
 
@@ -137,11 +137,15 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         }
     }, [snapToGridAmount, nodes]);
 
-    const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        // eslint-disable-next-line no-param-reassign
-        event.dataTransfer.dropEffect = 'move';
-    }, []);
+    const onDragOver = useCallback(
+        (event: DragEvent<HTMLDivElement>) => {
+            closeAllMenus();
+            event.preventDefault();
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = 'move';
+        },
+        [closeAllMenus]
+    );
 
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
@@ -163,6 +167,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
                 const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
 
+                const { zoom } = reactFlowInstance.getViewport();
                 const position = reactFlowInstance.project({
                     x: event.clientX - reactFlowBounds.left - offsetX * zoom,
                     y: event.clientY - reactFlowBounds.top - offsetY * zoom,
@@ -185,7 +190,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 log.error(error);
             }
         },
-        [createNode, wrapperRef.current, zoom, reactFlowInstance]
+        [createNode, wrapperRef.current, reactFlowInstance]
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -223,7 +228,9 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 // onSelectionChange={setSelectedElements}
+                onMouseDown={closeAllMenus}
                 onMoveEnd={onMoveEnd}
+                onMoveStart={closeAllMenus}
                 onNodeContextMenu={onNodeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}

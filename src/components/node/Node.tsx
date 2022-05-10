@@ -33,7 +33,6 @@ interface NodeProps {
 }
 
 const Node = memo(({ data, selected }: NodeProps) => {
-    const nodes = useContextSelector(GlobalVolatileContext, (c) => c.nodes);
     const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
@@ -57,7 +56,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
         if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
         }
-    }, [inputData, edges.length, nodes.length]);
+    }, [inputData, edges.length]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
