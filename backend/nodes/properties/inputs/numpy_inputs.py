@@ -1,30 +1,30 @@
-from typing import Dict
+# pylint: disable=relative-beyond-top-level
+from ...utils.image_utils import normalize
+from .base_input import BaseInput
 
 
-def NumPyInput(input_type: str, label: str, optional=False) -> Dict:
-    """Input a NumPy array"""
-    return {
-        "type": f"numpy::{input_type}",
-        "label": label,
-        "optional": optional,
-    }
+class NumPyInput(BaseInput):
+    def __init__(self, input_type: str, label: str, optional=False):
+        super().__init__(f"numpy::{input_type}", label, optional)
 
 
-def AudioInput() -> Dict:
-    """Input a 1D Audio NumPy array"""
-    return NumPyInput("1d", "Audio")
+class AudioInput(NumPyInput):
+    def __init__(self, label: str = "Audio", optional=False):
+        """Input a 1D Audio NumPy array"""
+        super().__init__("1d", label, optional)
 
 
-def ImageInput(label: str = "Image", optional=False) -> Dict:
-    """Input a 2D Image NumPy array"""
-    return NumPyInput("2d", label, optional)
+class ImageInput(NumPyInput):
+    def __init__(self, label: str = "Image", optional=False):
+        """Input a 2D Image NumPy array"""
+        super().__init__("2d", label, optional)
+
+    def enforce(self, value):
+        assert value is not None, "Image does not exist"
+        return normalize(value)
 
 
-def VideoInput() -> Dict:
-    """Input a 3D Video NumPy array"""
-    return NumPyInput("3d", "Video")
-
-
-def SplitImageChannelImage() -> Dict:
-    """Combine multiple single-channel arrays into a single multi-channel numpy array"""
-    return NumPyInput("2d::merge", "Image")
+class VideoInput(NumPyInput):
+    def __init__(self, label: str = "Video", optional=False):
+        """Input a 3D Video NumPy array"""
+        super().__init__("3d", label, optional)

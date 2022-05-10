@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Dict
 
+# pylint: disable=relative-beyond-top-level
 from ...utils.image_utils import get_available_image_formats
 from .generic_inputs import DropDownInput
 

@@ -96,8 +96,17 @@ class Executor:
                             self.output_cache[next_node_id] = output
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
+            # Enforce that all inputs match the expected input schema
+            enforced_inputs = []
+            node_inputs = node_instance.get_inputs()
+            for node_input, idx in enumerate(inputs):
+                # TODO: remove this when all the inputs are transitioned to classes
+                if isinstance(node_inputs[idx], dict):
+                    enforced_inputs.append(node_input)
+                else:
+                    enforced_inputs.append(node_inputs[idx].enforce(node_input))
             output = await node_instance.run(
-                *inputs,
+                *enforced_inputs,
                 nodes=sub_nodes,
                 loop=self.loop,
                 queue=self.queue,

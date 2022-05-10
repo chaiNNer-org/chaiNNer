@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+from .base_input import BaseInput
+
 
 def DropDownInput(
     input_type: str, label: str, options: List[Dict], optional: bool = False
@@ -24,46 +26,58 @@ def TextInput(label: str, has_handle=True, max_length=None, optional=False) -> D
     }
 
 
-def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
-    """Input for arbitrary number"""
-    return {
-        "type": "number::any",
-        "label": label,
-        "min": minimum,
-        "def": default,
-        "step": step,
-        "hasHandle": True,
-    }
+class NumberInput(BaseInput):
+    def __init__(self, label: str, default=0.0, minimum=0, maximum=None, step=1):
+        """Input a number"""
+        super().__init__("number::any", label)
+        self.default = default
+        self.minimum = minimum
+        self.maximum = maximum
+        self.step = step
+
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "min": self.minimum,
+            "max": self.maximum,
+            "def": self.default,
+            "step": self.step,
+            "hasHandle": True,
+        }
+
+    def enforce(self, value):
+        assert value is not None, "Number does not exist"
+        return min(float(self.minimum), float(value))
 
 
-def BoundedNumberInput(
-    label: str,
-    minimum: float = 0.0,
-    maximum: float = 1.0,
-    default: float = 0.5,
-    step: float = 0.25,
-) -> Dict:
-    """Input for bounded number range"""
-    return {
-        "type": "number::any",
-        "label": label,
-        "min": minimum,
-        "max": maximum,
-        "def": default,
-        "step": step,
-        "hasHandle": True,
-    }
+class IntegerInput(NumberInput):
+    def __init__(self, label: str):
+        """Input an integer number"""
+        super().__init__(label, default=0, minimum=0, maximum=None, step=None)
+
+    def enforce(self, value):
+        assert value is not None, "Number does not exist"
+        return min(int(self.minimum), int(value))
 
 
-def IntegerInput(label: str) -> Dict:
-    """Input for integer number"""
-    return {
-        "type": "number::integer",
-        "label": label,
-        "min": 0,
-        "def": 0,
-        "hasHandle": True,
-    }
+class BoundedNumberInput(NumberInput):
+    def __init__(
+        self,
+        label: str,
+        minimum: float = 0.0,
+        maximum: float = 1.0,
+        default: float = 0.5,
+        step: float = 0.25,
+    ):
+        """Input for a bounded integer number range"""
+        super().__init__(
+            label, default=default, minimum=minimum, maximum=maximum, step=step
+        )
+
+    def enforce(self, value):
+        assert value is not None, "Number does not exist"
+        return max(min(int(self.minimum), int(value)), int(self.maximum))
 
 
 def OddIntegerInput(label: str, default: int = 1, minimum: int = 1) -> Dict:
