@@ -43,7 +43,7 @@ class Executor:
         """Process a single node"""
         logger.debug(f"node: {node}")
         node_id = node["id"]
-        logger.info(f"Running node {node_id}")
+        logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
             finish_data = await self.check()
