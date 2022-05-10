@@ -46,15 +46,8 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
 
     const [isOpen, setIsOpen] = useState(false);
     useEffect(() => {
-        addMenuCloseFunction(() => {
-            setIsOpen(false);
-        }, id);
-    }, [isOpen]);
-    useEffect(() => {
-        addMenuCloseFunction(() => {
-            setIsOpen(false);
-        }, id);
-    }, []);
+        return addMenuCloseFunction(() => setIsOpen(false), id);
+    }, [id]);
 
     return (
         <Flex
@@ -106,6 +99,8 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
             <Spacer />
             <Center>
                 <Menu
+                    closeOnBlur
+                    closeOnSelect
                     isOpen={isOpen}
                     onClose={() => {
                         setIsOpen(false);
