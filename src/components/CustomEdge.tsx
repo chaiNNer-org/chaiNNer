@@ -34,10 +34,11 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const nodes = useContextSelector(GlobalChainContext, (c) => c.nodes);
-    const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+    const parentNode = useContextSelector(GlobalChainContext, (c) =>
+        c.nodes.find((n) => source === n.id)
+    );
 
-    const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);
+    const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
     const [isHovered, setIsHovered] = useState(false);
 

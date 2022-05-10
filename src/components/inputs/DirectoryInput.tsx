@@ -9,10 +9,11 @@ import { InputProps } from './props';
 type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(({ id, index, isLocked, useInputData }: DirectoryInputProps) => {
-    const isNodeInputLocked = useContextSelector(GlobalChainContext, (c) => c.isNodeInputLocked);
+    const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+        c.isNodeInputLocked(id, index)
+    );
 
     const [directory, setDirectory] = useInputData<string>(index);
-    const isInputLocked = isNodeInputLocked(id, index);
 
     const onButtonClick = async () => {
         const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');

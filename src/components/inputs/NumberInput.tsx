@@ -33,15 +33,13 @@ const NumericalInput = memo(
         type,
         isLocked,
     }: NumericalInputProps) => {
-        const isNodeInputLocked = useContextSelector(
-            GlobalChainContext,
-            (c) => c.isNodeInputLocked
+        const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+            c.isNodeInputLocked(id, index)
         );
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
         const [inputString, setInputString] = useState(String(input));
-        const isInputLocked = isNodeInputLocked(id, index);
 
         const handleChange = (numberAsString: string, numberAsNumber: number) => {
             setInputString(numberAsString);

@@ -18,9 +18,8 @@ interface FileInputProps extends InputProps {
 
 const FileInput = memo(
     ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
-        const isNodeInputLocked = useContextSelector(
-            GlobalChainContext,
-            (c) => c.isNodeInputLocked
+        const isInputLocked = useContextSelector(GlobalChainContext, (c) =>
+            c.isNodeInputLocked(id, index)
         );
 
         const [filePath, setFilePath] = useInputData<string>(index);
@@ -56,8 +55,6 @@ const FileInput = memo(
                 })();
             }, [binFilePath]);
         }
-
-        const isInputLocked = isNodeInputLocked(id, index);
 
         const onButtonClick = async () => {
             const fileDir = filePath ? path.dirname(filePath) : undefined;
