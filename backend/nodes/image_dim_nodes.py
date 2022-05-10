@@ -44,7 +44,7 @@ class ImResizeByFactorNode(NodeBase):
         img = normalize(img)
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * scale), math.ceil(h * scale))
+        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
 
         return resize(img, out_dims, int(interpolation))
 
