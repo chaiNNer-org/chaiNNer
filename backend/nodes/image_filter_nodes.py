@@ -140,9 +140,6 @@ class AverageColorFixNode(NodeBase):
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
 
-        input_img = normalize(input_img)
-        ref_img = normalize(ref_img)
-
         if scale_factor != 1.0:
             ref_img = cv2.resize(
                 ref_img,
@@ -248,9 +245,6 @@ class ColorTransferNode(NodeBase):
             ref_img.ndim == 3 and ref_img.shape[2] >= 3
         ), "Reference image should be RGB or RGBA"
 
-        img = normalize(img)
-        ref_img = normalize(ref_img)
-
         # Make sure target has at least 3 channels
         if img.ndim == 2 or img.shape[2] == 1:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
@@ -296,8 +290,8 @@ class NormalizeNode(NodeBase):
         assert img.ndim == 3, "The input image must be an RGB or RGBA image"
 
         # Convert BGR to XY
-        x = normalize(img[:, :, 2]) * 2 - 1
-        y = normalize(img[:, :, 1]) * 2 - 1
+        x = img[:, :, 2] * 2 - 1
+        y = img[:, :, 1] * 2 - 1
 
         x, y, z = normalize_normals(x, y)
 
@@ -357,10 +351,10 @@ class NormalAdditionNode(NodeBase):
         m_strength /= 100
 
         # Convert BGR to XY
-        n_x = normalize(n[:, :, 2]) * 2 - 1
-        n_y = normalize(n[:, :, 1]) * 2 - 1
-        m_x = normalize(m[:, :, 2]) * 2 - 1
-        m_y = normalize(m[:, :, 1]) * 2 - 1
+        n_x = n[:, :, 2] * 2 - 1
+        n_y = n[:, :, 1] * 2 - 1
+        m_x = m[:, :, 2] * 2 - 1
+        m_y = m[:, :, 1] * 2 - 1
 
         n_x, n_y, n_z = normalize_normals(n_x, n_y)
         m_x, m_y, m_z = normalize_normals(m_x, m_y)

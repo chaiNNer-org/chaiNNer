@@ -47,8 +47,6 @@ class HueAndSaturationNode(NodeBase):
         if img.ndim < 3 or img.shape[2] == 1 or (hue == 0 and saturation == 0):
             return img
 
-        img = normalize(img)
-
         # Preserve alpha channel if it exists
         c = img.shape[2]
         alpha = None
@@ -99,8 +97,6 @@ class BrightnessAndContrastNode(NodeBase):
         # Pass through unadjusted image
         if b_amount == 0 and c_amount == 0:
             return img
-
-        img = normalize(img)
 
         # Calculate brightness adjustment
         if b_amount > 0:
@@ -158,8 +154,6 @@ class ThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies a threshold to it"""
 
-        img = normalize(img)
-
         logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
 
         real_thresh = thresh / 100
@@ -210,7 +204,7 @@ class AdaptiveThresholdNode(NodeBase):
         ), "Image must be grayscale (single channel) to apply an adaptive threshold"
 
         # Adaptive threshold requires uint8 input
-        img = (normalize(img) * 255).astype("uint8")
+        img = (img * 255).astype("uint8")
 
         real_maxval = maxval / 100 * 255
 

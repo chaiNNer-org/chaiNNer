@@ -194,8 +194,6 @@ class ImOpenNode(NodeBase):
     def run(self, img: np.ndarray):
         """Show image"""
 
-        img = normalize(img)
-
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 

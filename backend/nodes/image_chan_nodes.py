@@ -235,8 +235,6 @@ class FillAlphaNode(NodeBase):
             img.ndim == 3 and img.shape[2] == 4
         ), "The image has to be an RGBA image to fill its alpha"
 
-        img = normalize(img)
-
         method = int(method)
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha

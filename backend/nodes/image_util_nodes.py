@@ -46,11 +46,6 @@ class ImOverlay(NodeBase):
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
-        base = normalize(base)
-        ov1 = normalize(ov1)
-        if ov2 is not None:
-            ov2 = normalize(ov2)
-
         # Convert to 0.0-1.0 range
         op1 /= 100
         if op2 is not None:
@@ -224,8 +219,6 @@ class CaptionNode(NodeBase):
 
     def run(self, img: np.ndarray, caption: str) -> np.ndarray:
         """Add caption an image"""
-
-        img = normalize(img)
 
         return add_caption(img, caption)
 

@@ -41,8 +41,6 @@ class ImResizeByFactorNode(NodeBase):
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
-        img = normalize(img)
-
         h, w = img.shape[:2]
         out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
@@ -75,8 +73,6 @@ class ImResizeToResolutionNode(NodeBase):
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
-
-        img = normalize(img)
 
         out_dims = (width, height)
 
