@@ -514,7 +514,6 @@ const checkNvidiaSmi = async () => {
     }
 
     if (nvidiaSmi) {
-        ipcMain.handle('get-smi', () => nvidiaSmi);
         await registerNvidiaSmiEvents(nvidiaSmi);
     } else {
         registerEmptyGpuEvents();
