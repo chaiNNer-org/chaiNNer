@@ -52,7 +52,7 @@ const SystemStats = () => {
                 </Box>
             </Tooltip>
 
-            {usage.vram && (
+            {usage.vram !== null && (
                 <Tooltip
                     borderRadius={8}
                     label={`${usage.vram.toFixed(1)}%`}

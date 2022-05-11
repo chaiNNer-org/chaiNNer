@@ -430,7 +430,7 @@ const checkNvidiaSmi = async () => {
     const registerEmptyGpuEvents = () => {
         ipcMain.handle('get-has-nvidia', () => false);
         ipcMain.handle('get-gpu-name', () => null);
-        ipcMain.handle('get-vram-usage', () => 0);
+        ipcMain.handle('get-vram-usage', () => null);
     };
 
     const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
@@ -445,7 +445,7 @@ const checkNvidiaSmi = async () => {
         ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
 
         let vramChecker: ChildProcessWithoutNullStreams | undefined;
-        let lastVRam = 0;
+        let lastVRam: number | null = null;
         ipcMain.handle('get-vram-usage', () => {
             if (!vramChecker) {
                 const delay = 1000;
@@ -457,9 +457,11 @@ const checkNvidiaSmi = async () => {
                 );
 
                 vramChecker.stdout.on('data', (data) => {
-                    const [, vramTotal, vramUsed] = String(data).split('\n')[0].split(', ');
+                    const [, vramTotal, vramUsed] = String(data).split(/\s*,\s*/, 4);
                     const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
-                    lastVRam = usage;
+                    if (Number.isFinite(usage)) {
+                        lastVRam = usage;
+                    }
                 });
             }
 
