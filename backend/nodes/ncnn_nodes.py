@@ -12,7 +12,6 @@ from ncnn_vulkan import ncnn
 from sanic.log import logger
 
 from .categories import NCNN
-
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -190,7 +189,7 @@ class NcnnUpscaleImageNode(NodeBase):
         # Load model param and bin
         net.load_param(param_path)
 
-        bin_is_fp16 = bin_data.dtype == "float16"
+        bin_is_fp16 = True  # bin_data.dtype == "float16"
 
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
             bin_file_data = struct.pack(
@@ -288,13 +287,14 @@ class NcnnInterpolateModelsNode(NodeBase):
 
     def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
         try:
-            amount_a = amount / 100
-            amount_b = 1 - amount_a
+            amount_a = amount / 100.0
+            amount_b = 1.0 - amount_a
 
-            bin_a_mult = bin_a * amount_a
-            bin_b_mult = bin_b * amount_b
+            bin_a_mult = bin_a.astype(np.float64) * amount_a
+            bin_b_mult = bin_b.astype(np.float64) * amount_b
             result = bin_a_mult + bin_b_mult
-            return result
+            logger.info(result)
+            return result.astype(np.float32)
         except Exception as e:
             raise ValueError(
                 "These models are not compatible and able not able to be interpolated together"
@@ -303,7 +303,7 @@ class NcnnInterpolateModelsNode(NodeBase):
     def check_can_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, net_tuple_a):
         param_path_a, _, input_name_a, output_name_a = net_tuple_a
         interp_50 = self.perform_interp(bin_a, bin_b, 50)
-        fake_img = np.ones((3, 3, 3), dtype=np.float32)
+        fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
         new_net_tuple = (param_path_a, interp_50, input_name_a, output_name_a)
         result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img)
         del interp_50, new_net_tuple
