@@ -25,7 +25,7 @@ import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
-import { SaveData } from '../SaveFile';
+import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
 import { copyNode, parseHandle } from '../util';
 import { SettingsContext } from './SettingsContext';
@@ -222,13 +222,20 @@ export const GlobalProvider = ({
         };
     }, [getNodes, getEdges]);
 
-    const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
+    const setStateFromJSON = async (savedData: ParsedSaveData, loadPosition = false) => {
         const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
         if (savedData.nodes.length !== validNodes.length) {
             await ipcRenderer.invoke(
                 'show-warning-message-box',
                 'File contains invalid nodes',
                 'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
+            );
+        }
+        if (savedData.tamperedWith) {
+            await ipcRenderer.invoke(
+                'show-warning-message-box',
+                'File has been modified',
+                'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.'
             );
         }
         setNodes(validNodes);
@@ -436,7 +443,7 @@ export const GlobalProvider = ({
             index: number,
             inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const inputDataByIndex = inputData[index] as T | undefined;
+            const inputDataByIndex = (inputData[index] ?? undefined) as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
                 // the captured data from `nodes` to be up-to-date anymore. For that reason, we

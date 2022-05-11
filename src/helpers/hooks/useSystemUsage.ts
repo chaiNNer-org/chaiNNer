@@ -37,7 +37,7 @@ const getVRamUsage = async () => ipcRenderer.invoke('get-vram-usage');
 export interface SystemUsage {
     readonly cpu: number;
     readonly ram: number;
-    readonly vram: number;
+    readonly vram: number | null;
 }
 
 const getSystemUsage = async (): Promise<SystemUsage> => {
@@ -46,7 +46,7 @@ const getSystemUsage = async (): Promise<SystemUsage> => {
 };
 
 const useSystemUsage = (delay: number): SystemUsage => {
-    const [usage, setUsage] = useState<SystemUsage>({ cpu: 0, ram: 0, vram: 0 });
+    const [usage, setUsage] = useState<SystemUsage>({ cpu: 0, ram: 0, vram: null });
 
     useAsyncInterval({ supplier: getSystemUsage, successEffect: setUsage }, delay);
 

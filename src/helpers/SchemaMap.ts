@@ -47,8 +47,6 @@ export class SchemaMap {
                 defaultData[i] = input.default;
             } else if (input.options) {
                 defaultData[i] = input.options[0].value;
-            } else {
-                defaultData[i] = undefined;
             }
         });
         return defaultData;

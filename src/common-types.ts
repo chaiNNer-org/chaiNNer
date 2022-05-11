@@ -78,8 +78,8 @@ export interface PythonKeys {
 export interface UsableData {
     id: string;
     schemaId: string;
-    inputs: Record<number, InputValue | null>;
-    outputs: Record<number, InputValue>;
+    inputs: (InputValue | null)[];
+    outputs: InputValue[];
     child: boolean;
     children?: string[];
     nodeType: string | undefined;
