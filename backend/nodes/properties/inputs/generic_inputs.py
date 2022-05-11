@@ -60,7 +60,7 @@ def NoteTextAreaInput() -> Dict:
     }
 
 
-def MathOpsDropdown() -> Dict:
+def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(
         "Math Operation",
@@ -90,7 +90,7 @@ def MathOpsDropdown() -> Dict:
     )
 
 
-def StackOrientationDropdown() -> Dict:
+def StackOrientationDropdown() -> DropDownInput:
     """Input for selecting stack orientation from dropdown"""
     return DropDownInput(
         "Orientation",
@@ -123,7 +123,7 @@ class AlphaFillMethod:
     EXTEND_COLOR = 2
 
 
-def AlphaFillMethodInput() -> Dict:
+def AlphaFillMethodInput() -> DropDownInput:
     """Alpha Fill method option dropdown"""
     return DropDownInput(
         "Fill method",
@@ -140,7 +140,7 @@ def AlphaFillMethodInput() -> Dict:
     )
 
 
-def VideoTypeDropdown() -> Dict:
+def VideoTypeDropdown() -> DropDownInput:
     """Video Type option dropdown"""
     return DropDownInput(
         "Video Type",

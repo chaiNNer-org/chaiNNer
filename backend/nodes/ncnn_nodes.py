@@ -287,8 +287,8 @@ class NcnnInterpolateModelsNode(NodeBase):
 
     def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
         try:
-            amount_a = amount / 100.0
-            amount_b = 1.0 - amount_a
+            amount_a = amount / 100
+            amount_b = 1 - amount_a
 
             bin_a_mult = bin_a.astype(np.float64) * amount_a
             bin_b_mult = bin_b.astype(np.float64) * amount_b

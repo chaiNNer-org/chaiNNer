@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Dict
 
 # pylint: disable=relative-beyond-top-level
 from ...utils.image_utils import get_available_image_formats
@@ -37,7 +36,7 @@ class FileInput(BaseInput):
         return value
 
 
-def ImageFileInput() -> Dict:
+def ImageFileInput() -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
         "image",
@@ -47,7 +46,7 @@ def ImageFileInput() -> Dict:
     )
 
 
-def VideoFileInput() -> Dict:
+def VideoFileInput() -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
         "video",
@@ -57,22 +56,22 @@ def VideoFileInput() -> Dict:
     )
 
 
-def PthFileInput() -> Dict:
+def PthFileInput() -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput("pth", "Pretrained Model", [".pth"])
 
 
-def TorchFileInput() -> Dict:
+def TorchFileInput() -> FileInput:
     """Input for submitting a local .pth or .pt file"""
     return FileInput("pt", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(has_handle: bool = False) -> Dict:
+def DirectoryInput(has_handle: bool = False) -> FileInput:
     """Input for submitting a local directory"""
     return FileInput("directory", "Base Directory", ["directory"], has_handle)
 
 
-def ImageExtensionDropdown() -> Dict:
+def ImageExtensionDropdown() -> DropDownInput:
     """Input for selecting file type from dropdown"""
     return DropDownInput(
         "Image Extension",
@@ -102,11 +101,11 @@ def ImageExtensionDropdown() -> Dict:
     )
 
 
-def BinFileInput() -> Dict:
+def BinFileInput() -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput("bin", "NCNN Bin File", [".bin"])
 
 
-def ParamFileInput() -> Dict:
+def ParamFileInput() -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput("param", "NCNN Param File", [".param"])

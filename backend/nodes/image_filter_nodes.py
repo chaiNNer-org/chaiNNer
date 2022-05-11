@@ -234,8 +234,8 @@ class ColorTransferNode(NodeBase):
         img: np.ndarray,
         ref_img: np.ndarray,
         colorspace: str = "L*a*b*",
-        overflow_method: int | str = 1,
-        reciprocal_scale: int | str = 1,
+        overflow_method: int = 1,
+        reciprocal_scale: int = 1,
     ) -> np.ndarray:
         """
         Transfers the color distribution from source image to target image.

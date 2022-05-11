@@ -1,6 +1,3 @@
-from sanic.log import logger
-
-
 class BaseInput:
     def __init__(self, input_type: str, label: str, optional=False, has_handle=True):
         self.input_type = input_type

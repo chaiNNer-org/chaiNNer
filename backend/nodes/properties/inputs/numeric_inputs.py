@@ -1,3 +1,5 @@
+from math import inf
+
 from .base_input import BaseInput
 
 
@@ -9,15 +11,15 @@ class NumberInput(BaseInput):
         label: str,
         default=0.0,
         minimum=0,
-        maximum=None,
+        maximum=inf,
         step=1,
         optional=False,
         number_type="any",
     ):
         super().__init__(f"number::{number_type}", label)
         self.default = default
-        self.minimum = minimum
-        self.maximum = maximum
+        self.minimum = minimum if minimum is not None else inf
+        self.maximum = maximum if maximum is not None else -inf
         self.step = step
         self.optional = optional
 
@@ -34,7 +36,7 @@ class NumberInput(BaseInput):
         }
 
     def enforce(self, value):
-        return max(float(self.minimum), float(value))
+        return min(max(float(self.minimum), float(value)), float(self.maximum))
 
 
 class IntegerInput(NumberInput):
@@ -73,7 +75,7 @@ class OddIntegerInput(NumberInput):
         super().__init__(label, default=default, minimum=minimum, maximum=None, step=2)
 
     def enforce(self, value):
-        odd = int(value) - (int(value) % 2)
+        odd = int(value) - (1 - (int(value) % 2))
         capped = max(int(self.minimum), odd)
         return capped
 
