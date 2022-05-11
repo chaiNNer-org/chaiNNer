@@ -436,7 +436,7 @@ export const GlobalProvider = ({
             index: number,
             inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const inputDataByIndex = inputData[index] as T | undefined;
+            const inputDataByIndex = (inputData[index] ?? undefined) as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
                 // the captured data from `nodes` to be up-to-date anymore. For that reason, we
