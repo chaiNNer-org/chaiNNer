@@ -51,15 +51,15 @@ class Executor:
             return self.output_cache[node_id]
 
         inputs = []
-        for node_input in node["inputs"]:
+        for value in node["inputs"]:
             if self.should_stop_running():
                 return None
             # If input is a dict indicating another node, use that node's output value
-            if isinstance(node_input, dict) and node_input.get("id", None):
+            if isinstance(value, dict) and value.get("id", None):
                 # Get the next node by id
-                next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                next_node_id = "-".join(value["id"].split("-")[:-1])
                 next_input = self.nodes[next_node_id]
-                next_index = int(node_input["id"].split("-")[-1])
+                next_index = int(value["id"].split("-")[-1])
                 # Recursively get the value of the input
                 processed_input = await self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
@@ -71,11 +71,22 @@ class Executor:
                     return None
             # Otherwise, just use the given input (number, string, etc)
             else:
-                inputs.append(node_input)
+                inputs.append(value)
         if self.should_stop_running():
             return None
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(node["schemaId"])
+
+        # Enforce that all inputs match the expected input schema
+        enforced_inputs = []
+        node_inputs = node_instance.get_inputs()
+        for idx, value in enumerate(inputs):
+            # TODO: remove this when all the inputs are transitioned to classes
+            if isinstance(node_inputs[idx], dict):
+                enforced_inputs.append(value)
+            else:
+                enforced_inputs.append(node_inputs[idx].enforce_(value))
+
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
             sub_nodes = {}
@@ -84,10 +95,10 @@ class Executor:
             sub_nodes_ids = sub_nodes.keys()
             for v in sub_nodes.copy().values():
                 # TODO: this might be something to do in the frontend before processing instead
-                for node_input in v["inputs"]:
-                    logger.info(f"node_input, {node_input}")
-                    if isinstance(node_input, dict) and node_input.get("id", None):
-                        next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                for value in v["inputs"]:
+                    logger.info(f"node_input, {value}")
+                    if isinstance(value, dict) and value.get("id", None):
+                        next_node_id = "-".join(value["id"].split("-")[:-1])
                         logger.info(f"next_node_id, {next_node_id}")
                         # Run all the connected nodes that are outside the iterator and cache the outputs
                         if next_node_id not in sub_nodes_ids:
@@ -96,15 +107,6 @@ class Executor:
                             self.output_cache[next_node_id] = output
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
-            # Enforce that all inputs match the expected input schema
-            enforced_inputs = []
-            node_inputs = node_instance.get_inputs()
-            for node_input, idx in enumerate(inputs):
-                # TODO: remove this when all the inputs are transitioned to classes
-                if isinstance(node_inputs[idx], dict):
-                    enforced_inputs.append(node_input)
-                else:
-                    enforced_inputs.append(node_inputs[idx].enforce(node_input))
             output = await node_instance.run(
                 *enforced_inputs,
                 nodes=sub_nodes,

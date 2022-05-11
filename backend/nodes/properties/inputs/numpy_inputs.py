@@ -1,4 +1,5 @@
 # pylint: disable=relative-beyond-top-level
+
 from ...utils.image_utils import normalize
 from .base_input import BaseInput
 
@@ -22,7 +23,6 @@ class ImageInput(NumPyInput):
         super().__init__("2d", label, optional)
 
     def enforce(self, value):
-        assert value is not None, "Image does not exist"
         return normalize(value)
 
 

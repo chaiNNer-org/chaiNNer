@@ -1,8 +1,10 @@
 from typing import Dict
+
 import cv2
-from sanic.log import logger
-from .generic_inputs import DropDownInput
+
+# pylint: disable=relative-beyond-top-level
 from ...utils.pil_utils import InterpolationMethod
+from .generic_inputs import DropDownInput
 
 
 def ColorModeInput() -> Dict:

@@ -34,7 +34,6 @@ class NumberInput(BaseInput):
         }
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return max(float(self.minimum), float(value))
 
 
@@ -45,7 +44,6 @@ class IntegerInput(NumberInput):
         super().__init__(label, default=0, minimum=0, maximum=None, step=None)
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return max(int(self.minimum), int(value))
 
 
@@ -65,7 +63,6 @@ class BoundedNumberInput(NumberInput):
         )
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return min(max(float(self.minimum), float(value)), float(self.maximum))
 
 
@@ -76,7 +73,6 @@ class OddIntegerInput(NumberInput):
         super().__init__(label, default=default, minimum=minimum, maximum=None, step=2)
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         odd = int(value) - (int(value) % 2)
         capped = max(int(self.minimum), odd)
         return capped
@@ -102,7 +98,6 @@ class BoundedIntegerInput(NumberInput):
         )
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return min(max(int(self.minimum), int(value)), int(self.maximum))
 
 
@@ -121,7 +116,6 @@ class BoundlessIntegerInput(NumberInput):
         )
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return int(value)
 
 
@@ -147,5 +141,4 @@ class SliderInput(NumberInput):
         )
 
     def enforce(self, value):
-        assert value is not None, "Number does not exist"
         return min(max(int(self.minimum), int(value)), int(self.maximum))

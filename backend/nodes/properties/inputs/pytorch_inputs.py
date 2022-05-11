@@ -1,25 +1,28 @@
-from typing import Any, OrderedDict
+import torch
+
+from .base_input import BaseInput
 
 
-def StateDictInput() -> OrderedDict:
+class StateDictInput(BaseInput):
     """Input a PyTorch state dict"""
-    return {
-        "type": "pytorch::state_dict",
-        "label": "State Dict",
-    }
+
+    def __init__(self):
+        super().__init__(f"pytorch::state_dict", "State Dict")
 
 
-def ModelInput(label: str = "Model") -> Any:
+class ModelInput(BaseInput):
     """Input a loaded model"""
-    return {
-        "type": "pytorch::model",
-        "label": label,
-    }
+
+    def __init__(self, label: str = "Model"):
+        super().__init__(f"pytorch::model", label)
+
+    def enforce(self, value):
+        assert isinstance(value, torch.nn.Module), "Expected a PyTorch model"
+        return value
 
 
-def TorchScriptInput() -> Any:
+class TorchScriptInput(BaseInput):
     """Input a JIT traced model"""
-    return {
-        "type": "pytorch::torchscript",
-        "label": "Traced Model",
-    }
+
+    def __init__(self, label: str = "Traced Model"):
+        super().__init__(f"pytorch::torchscript", label)
