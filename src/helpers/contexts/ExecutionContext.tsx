@@ -10,6 +10,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { SchemaMap } from '../SchemaMap';
 import { parseHandle } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -24,20 +25,23 @@ interface ExecutionContextProps {
 
 const convertToUsableFormat = (
     nodes: readonly Node<NodeData>[],
-    edges: readonly Edge<EdgeData>[]
+    edges: readonly Edge<EdgeData>[],
+    schemata: SchemaMap
 ) => {
     const result: Record<string, UsableData> = {};
 
     // Set up each node in the result
     nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
-        const { schemaId } = data;
+        const { schemaId, inputData } = data;
+        const schema = schemata.get(schemaId);
+
         // Node
         result[id] = {
             schemaId,
             id,
-            inputs: {},
-            outputs: {},
+            inputs: Array.from({ length: schema.inputs.length }, (_, i) => inputData[i] ?? null),
+            outputs: [],
             child: false,
             nodeType,
         };
@@ -47,14 +51,8 @@ const convertToUsableFormat = (
         }
     });
 
-    // Apply input data to inputs when applicable
+    // set children
     nodes.forEach((node) => {
-        const { inputData } = node.data;
-        Object.keys(inputData)
-            .map(Number)
-            .forEach((index) => {
-                result[node.id].inputs[index] = inputData[index];
-            });
         if (node.parentNode) {
             result[node.parentNode].children!.push(node.id);
             result[node.id].child = true;
@@ -71,12 +69,6 @@ const convertToUsableFormat = (
             result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
             result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
         }
-    });
-
-    // Convert inputs and outputs to arrays
-    Object.keys(result).forEach((id) => {
-        result[id].inputs = Object.values(result[id].inputs);
-        result[id].outputs = Object.values(result[id].outputs);
     });
 
     return result;
@@ -215,7 +207,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                 return;
             }
             try {
-                const data = convertToUsableFormat(nodes, edges);
+                const data = convertToUsableFormat(nodes, edges, schemata);
                 const response = await backend.run({
                     data,
                     isCpu,
