@@ -461,7 +461,6 @@ const checkNvidiaSmi = async () => {
                     const [, vramTotal, vramUsed] = String(data)
                         .split('\n')[0]
                         .split(/\s*,\s*/, 4);
-                    console.log(String(data));
 
                     const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
                     if (Number.isFinite(usage)) {
