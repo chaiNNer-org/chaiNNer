@@ -735,12 +735,14 @@ const createWindow = async () => {
             submenu: [
                 {
                     label: 'New',
+                    accelerator: 'CmdOrCtrl+N',
                     click: () => {
                         mainWindow.webContents.send('file-new');
                     },
                 },
                 {
                     label: 'Open',
+                    accelerator: 'CmdOrCtrl+O',
                     click: async () => {
                         const {
                             canceled,
@@ -764,12 +766,14 @@ const createWindow = async () => {
                 { type: 'separator' },
                 {
                     label: 'Save',
+                    accelerator: 'CmdOrCtrl+S',
                     click: () => {
                         mainWindow.webContents.send('file-save');
                     },
                 },
                 {
                     label: 'Save As',
+                    accelerator: 'CmdOrCtrl+Shift+S',
                     click: () => {
                         mainWindow.webContents.send('file-save-as');
                     },

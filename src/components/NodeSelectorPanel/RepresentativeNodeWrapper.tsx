@@ -1,8 +1,10 @@
 import { Box, Center, Tooltip } from '@chakra-ui/react';
-import { DragEvent, memo, useContext } from 'react';
+import { DragEvent, memo } from 'react';
+import { useReactFlow } from 'react-flow-renderer';
 import ReactMarkdown from 'react-markdown';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
@@ -18,10 +20,9 @@ interface RepresentativeNodeWrapperProps {
 }
 
 const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
-    const { createNode, reactFlowInstance, reactFlowWrapper, useHoveredNode } =
-        useContext(GlobalContext);
-
-    const [, setHoveredNode] = useHoveredNode;
+    const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
+    const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
+    const reactFlowInstance = useReactFlow();
 
     return (
         <Box
@@ -43,7 +44,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                     display="block"
                     w="100%"
                     onDoubleClick={() => {
-                        if (!reactFlowInstance || !reactFlowWrapper.current) return;
+                        if (!reactFlowWrapper.current) return;
 
                         const { height: wHeight, width } =
                             reactFlowWrapper.current.getBoundingClientRect();

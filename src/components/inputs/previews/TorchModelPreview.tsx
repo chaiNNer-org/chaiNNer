@@ -1,5 +1,6 @@
 import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
-import { memo, useContext, useState } from 'react';
+import { memo, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../helpers/Backend';
 import { SettingsContext } from '../../../helpers/contexts/SettingsContext';
 import { useAsyncEffect } from '../../../helpers/hooks/useAsyncEffect';

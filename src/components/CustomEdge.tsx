@@ -1,9 +1,10 @@
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
-import { memo, useContext, useMemo, useState } from 'react';
-import { EdgeProps, getBezierPath, getEdgeCenter } from 'react-flow-renderer';
+import { memo, useMemo, useState } from 'react';
+import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
+import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { EdgeData } from '../common-types';
+import { EdgeData, NodeData } from '../common-types';
 import { GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
@@ -33,14 +34,15 @@ const CustomEdge = ({
         [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition]
     );
 
-    const { removeEdgeById, nodes, useHoveredNode, schemata } = useContext(GlobalContext);
+    const { getNode } = useReactFlow<NodeData, EdgeData>();
+    const parentNode = useMemo(() => getNode(source)!, [source]);
 
-    const parentNode = useMemo(() => nodes.find((n) => source === n.id), [source]);
+    const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
     const [isHovered, setIsHovered] = useState(false);
 
     // We dynamically grab this data instead since storing the types makes transitioning harder
-    const { category } = schemata.get(parentNode!.data.schemaId);
+    const { category } = schemata.get(parentNode.data.schemaId);
     const accentColor = getNodeAccentColors(category);
     const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
@@ -56,14 +58,12 @@ const CustomEdge = ({
         setIsHovered(false);
     }, 7500);
 
-    const [, setHoveredNode] = useHoveredNode;
-
     return (
         <g
             style={{
                 cursor: isHovered ? 'pointer' : 'default',
             }}
-            onDragEnter={() => setHoveredNode(parentNode?.parentNode)}
+            onDragEnter={() => setHoveredNode(parentNode.parentNode)}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onMouseOver={() => hoverTimeout()}

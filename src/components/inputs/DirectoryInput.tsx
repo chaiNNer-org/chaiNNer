@@ -1,19 +1,19 @@
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
-import { memo, useContext } from 'react';
+import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
+import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../helpers/safeIpc';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
+import { InputProps } from './props';
 
-interface DirectoryInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-}
+type DirectoryInputProps = InputProps;
 
-const DirectoryInput = memo(({ id, index, isLocked }: DirectoryInputProps) => {
-    const { useInputData, useNodeLock } = useContext(GlobalContext);
-    const [directory, setDirectory] = useInputData<string>(id, index);
-    const [, , isInputLocked] = useNodeLock(id, index);
+const DirectoryInput = memo(({ id, index, isLocked, useInputData }: DirectoryInputProps) => {
+    const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
+        c.isNodeInputLocked(id, index)
+    );
+
+    const [directory, setDirectory] = useInputData<string>(index);
 
     const onButtonClick = async () => {
         const { canceled, filePaths } = await ipcRenderer.invoke('dir-select', directory ?? '');

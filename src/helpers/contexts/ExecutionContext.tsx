@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { Edge, Node } from 'react-flow-renderer';
+import { useEffect, useState } from 'react';
+import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { EdgeData, NodeData, UsableData } from '../../common-types';
 import { getBackend } from '../Backend';
@@ -87,17 +88,16 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextProps>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
-    const { useAnimateEdges, nodes, edges, schemata, setIteratorPercent } =
-        useContext(GlobalContext);
-
+    const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
-
     const { showMessageBox } = useContext(AlertBoxContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
     const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
+
+    const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [isRunning, setIsRunning] = useState(false);
     const backend = getBackend(port);
@@ -180,6 +180,9 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
     }, [eventSourceStatus]);
 
     const run = async () => {
+        const nodes = getNodes();
+        const edges = getEdges();
+
         setIsRunning(true);
         animateEdges();
         if (nodes.length === 0) {

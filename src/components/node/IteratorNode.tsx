@@ -1,8 +1,9 @@
 import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorNodeBody from './IteratorNodeBody';
@@ -25,7 +26,8 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const { edges, schemata } = useContext(GlobalContext);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const { schemata } = useContext(GlobalContext);
 
     const {
         id,
@@ -102,11 +104,10 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     )}
                     <NodeInputs
                         accentColor={accentColor}
-                        category={category}
                         id={id}
+                        inputData={inputData}
                         inputs={inputs}
                         isLocked={isLocked}
-                        name={name}
                         schemaId={schemaId}
                     />
                     <Center>

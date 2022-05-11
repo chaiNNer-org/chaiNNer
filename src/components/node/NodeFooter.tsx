@@ -20,9 +20,11 @@ import {
     Tooltip,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { MenuFunctionsContext } from '../../helpers/contexts/MenuFunctions';
 
 interface NodeFooterProps {
     id: string;
@@ -32,10 +34,9 @@ interface NodeFooterProps {
 }
 
 const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
-    const { removeNodeById, duplicateNode, clearNode, useNodeLock, useMenuCloseFunctions } =
-        useContext(GlobalContext);
-
-    const [, toggleLock] = useNodeLock(id);
+    const duplicateNode = useContextSelector(GlobalVolatileContext, (c) => c.duplicateNode);
+    const { removeNodeById, clearNode, toggleNodeLock } = useContext(GlobalContext);
+    const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
 
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
@@ -44,17 +45,9 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
     // const iconShade = useColorModeValue('gray.400', 'gray.800');
 
     const [isOpen, setIsOpen] = useState(false);
-    const [, addMenuCloseFunction] = useMenuCloseFunctions;
     useEffect(() => {
-        addMenuCloseFunction(() => {
-            setIsOpen(false);
-        }, id);
-    }, [isOpen]);
-    useEffect(() => {
-        addMenuCloseFunction(() => {
-            setIsOpen(false);
-        }, id);
-    }, []);
+        return addMenuCloseFunction(() => setIsOpen(false), id);
+    }, [id]);
 
     return (
         <Flex
@@ -69,7 +62,7 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
                     cursor="pointer"
                     mb={-1}
                     mt={-1}
-                    onClick={() => toggleLock?.()}
+                    onClick={() => toggleNodeLock(id)}
                 />
             </Center>
             <Spacer />
@@ -106,6 +99,8 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
             <Spacer />
             <Center>
                 <Menu
+                    closeOnBlur
+                    closeOnSelect
                     isOpen={isOpen}
                     onClose={() => {
                         setIsOpen(false);

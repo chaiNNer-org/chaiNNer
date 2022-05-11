@@ -1,8 +1,9 @@
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import { memo, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import { memo, useLayoutEffect, useMemo, useState } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../common-types';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 
 const createGridDotsPath = (size: number, fill: string) => (
@@ -65,13 +66,13 @@ const IteratorNodeBody = ({
     maxWidth = 256,
     maxHeight = 256,
 }: IteratorNodeBodyProps) => {
-    const { zoom, useIteratorSize, useHoveredNode, updateIteratorBounds } =
-        useContext(GlobalContext);
+    const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
+    const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
+    const { useIteratorSize, setHoveredNode, updateIteratorBounds } = useContext(GlobalContext);
 
     const { useSnapToGrid } = useContext(SettingsContext);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-    const [hoveredNode, setHoveredNode] = useHoveredNode;
     const [setIteratorSize, defaultSize] = useIteratorSize(id);
     const { width, height } = iteratorSize ?? defaultSize;
 

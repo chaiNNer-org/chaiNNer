@@ -1,9 +1,8 @@
 import { Box, Text } from '@chakra-ui/react';
 import { memo } from 'react';
+import { InputProps } from './props';
 
-interface GenericInputProps {
-    label: string;
-}
+type GenericInputProps = InputProps;
 
 const GenericInput = memo(({ label }: GenericInputProps) => (
     // These both need to have -1 margins to thin it out... I don't know why
