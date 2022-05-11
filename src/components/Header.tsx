@@ -7,6 +7,7 @@ import {
     Image,
     Spacer,
     Tag,
+    Tooltip,
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
@@ -60,42 +61,69 @@ const Header = () => {
                     <Spacer />
 
                     <HStack>
-                        <IconButton
-                            aria-label="Start button"
-                            colorScheme="green"
-                            disabled={isRunning}
-                            icon={<IoPlay />}
-                            size="md"
-                            variant="outline"
-                            onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                run();
-                            }}
-                        />
-                        <IconButton
-                            aria-label="Pause button"
-                            colorScheme="yellow"
-                            disabled={!isRunning}
-                            icon={<IoPause />}
-                            size="md"
-                            variant="outline"
-                            onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                pause();
-                            }}
-                        />
-                        <IconButton
-                            aria-label="Stop button"
-                            colorScheme="red"
-                            disabled={!isRunning}
-                            icon={<IoStop />}
-                            size="md"
-                            variant="outline"
-                            onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                kill();
-                            }}
-                        />
+                        <Tooltip
+                            closeOnClick
+                            closeOnMouseDown
+                            borderRadius={8}
+                            label="Start/Resume"
+                            px={2}
+                            py={1}
+                        >
+                            <IconButton
+                                aria-label="Start button"
+                                colorScheme="green"
+                                disabled={isRunning}
+                                icon={<IoPlay />}
+                                size="md"
+                                variant="outline"
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                    run();
+                                }}
+                            />
+                        </Tooltip>
+                        <Tooltip
+                            closeOnClick
+                            closeOnMouseDown
+                            borderRadius={8}
+                            label="Pause"
+                            px={2}
+                            py={1}
+                        >
+                            <IconButton
+                                aria-label="Pause button"
+                                colorScheme="yellow"
+                                disabled={!isRunning}
+                                icon={<IoPause />}
+                                size="md"
+                                variant="outline"
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                    pause();
+                                }}
+                            />
+                        </Tooltip>
+                        <Tooltip
+                            closeOnClick
+                            closeOnMouseDown
+                            borderRadius={8}
+                            label="Stop"
+                            px={2}
+                            py={1}
+                        >
+                            <IconButton
+                                aria-label="Stop button"
+                                colorScheme="red"
+                                disabled={!isRunning}
+                                icon={<IoStop />}
+                                size="md"
+                                variant="outline"
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                    kill();
+                                }}
+                            />
+                        </Tooltip>
                     </HStack>
                     <Spacer />
                     <HStack>
