@@ -140,10 +140,12 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                             />
                             <InputRightElement
                                 _hover={{ color: useColorModeValue('black', 'white') }}
-                                className="clear-search-bar-button"
-                                color={useColorModeValue('gray.500', 'gray.300')}
-                                display={searchQuery ? undefined : 'none'}
-                                fontSize="66%"
+                                style={{
+                                    color: useColorModeValue('gray.500', 'gray.300'),
+                                    cursor: 'pointer',
+                                    display: searchQuery ? undefined : 'none',
+                                    fontSize: '66%',
+                                }}
                                 onClick={() => setSearchQuery('')}
                             >
                                 <CloseIcon />
