@@ -118,7 +118,7 @@ if (app.isPackaged) {
                     );
                     const releaseUrl = latestVersion.html_url;
                     const latestVersionNum = semver.coerce(latestVersion.tag_name)!;
-                    const buttonResult = dialog.showMessageBoxSync(
+                    const buttonResult = await dialog.showMessageBox(
                         BrowserWindow.getFocusedWindow()!,
                         {
                             type: 'info',
@@ -128,7 +128,7 @@ if (app.isPackaged) {
                             defaultId: 1,
                         }
                     );
-                    if (buttonResult === 0) {
+                    if (buttonResult.response === 0) {
                         await shell.openExternal(releaseUrl);
                         app.exit();
                     }
@@ -219,12 +219,11 @@ const registerEventHandlers = () => {
     ipcMain.handle('get-app-version', () => app.getVersion());
 
     ipcMain.handle('show-warning-message-box', async (event, title, message) => {
-        dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow()!, {
+        await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
             type: 'warning',
             title,
             message,
         });
-        return Promise.resolve();
     });
 };
 
@@ -240,7 +239,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
             message:
                 'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
         };
-        dialog.showMessageBoxSync(messageBoxOptions);
+        await dialog.showMessageBox(messageBoxOptions);
         app.exit(1);
     }
     log.info(`Port found: ${port}`);
@@ -306,10 +305,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 message:
                     'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             };
-            const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-            if (buttonResult === 1) {
+            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+            if (buttonResult.response === 1) {
                 app.exit(1);
-            } else if (buttonResult === 0) {
+            } else if (buttonResult.response === 0) {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
@@ -331,10 +330,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 message:
                     'It seems like your installed Python version does not meet the requirement (>=3.7). Please install a Python version at or above 3.7 to use this application. You can get Python from https://www.python.org/downloads/',
             };
-            const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-            if (buttonResult === 1) {
+            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+            if (buttonResult.response === 1) {
                 app.exit(1);
-            } else if (buttonResult === 0) {
+            } else if (buttonResult.response === 0) {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
