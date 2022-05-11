@@ -6,6 +6,7 @@ import { useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
+import { useLastDirectory } from '../../helpers/hooks/useLastDirectory';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
 import { InputProps } from './props';
@@ -13,7 +14,6 @@ import { InputProps } from './props';
 interface FileInputProps extends InputProps {
     filetypes: readonly string[];
     type: string;
-    schemaId: string;
 }
 
 const FileInput = memo(
@@ -56,8 +56,10 @@ const FileInput = memo(
             }, [binFilePath]);
         }
 
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${index}`);
+
         const onButtonClick = async () => {
-            const fileDir = filePath ? path.dirname(filePath) : undefined;
+            const fileDir = filePath ? path.dirname(filePath) : getLastDirectory();
             const fileFilter = [
                 {
                     name: label,
@@ -73,6 +75,7 @@ const FileInput = memo(
             const selectedPath = filePaths[0];
             if (!canceled && selectedPath) {
                 setFilePath(selectedPath);
+                setLastDirectory(path.dirname(selectedPath));
             }
         };
 

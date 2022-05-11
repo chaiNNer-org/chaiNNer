@@ -19,7 +19,6 @@ interface FullInputProps extends Input, InputProps {
     type: string;
     accentColor: string;
     hasHandle?: boolean;
-    schemaId: string;
 }
 
 // TODO: perhaps make this an object instead of a switch statement

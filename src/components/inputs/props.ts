@@ -6,6 +6,7 @@ export interface InputProps {
     readonly inputData: InputData;
     readonly isLocked: boolean;
     readonly label: string;
+    readonly schemaId: string;
     readonly useInputData: <T extends InputSchemaValue>(
         index: number
     ) => readonly [T | undefined, (value: T) => void];
