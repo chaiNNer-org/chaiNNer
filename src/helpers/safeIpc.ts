@@ -48,7 +48,6 @@ interface InvokeChannels {
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
-    'get-smi': ChannelInfo<string | undefined>;
 }
 
 interface SendChannels {
