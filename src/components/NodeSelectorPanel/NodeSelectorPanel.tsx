@@ -131,6 +131,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                             <Input
                                 borderRadius={0}
                                 placeholder="Search..."
+                                spellCheck={false}
                                 type="text"
                                 variant="filled"
                                 onChange={handleChange}
