@@ -1,4 +1,4 @@
-import { SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon, CloseIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
@@ -12,6 +12,7 @@ import {
     Input,
     InputGroup,
     InputLeftElement,
+    InputRightElement,
     Tab,
     TabList,
     TabPanel,
@@ -21,7 +22,7 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import { ChangeEvent, memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { NodeSchema } from '../../common-types';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { SchemaMap } from '../../helpers/SchemaMap';
@@ -84,8 +85,6 @@ interface NodeSelectorProps {
 
 const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
-        setSearchQuery(event.target.value);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const matchesSearchQuery = createSearchPredicate(searchQuery);
@@ -125,17 +124,33 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                         p={0}
                     >
                         <InputGroup borderRadius={0}>
-                            <InputLeftElement pointerEvents="none">
-                                <SearchIcon color="gray.300" />
+                            <InputLeftElement
+                                color={useColorModeValue('gray.500', 'gray.300')}
+                                pointerEvents="none"
+                            >
+                                <SearchIcon />
                             </InputLeftElement>
                             <Input
                                 borderRadius={0}
                                 placeholder="Search..."
                                 spellCheck={false}
                                 type="text"
+                                value={searchQuery}
                                 variant="filled"
-                                onChange={handleChange}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            <InputRightElement
+                                _hover={{ color: useColorModeValue('black', 'white') }}
+                                style={{
+                                    color: useColorModeValue('gray.500', 'gray.300'),
+                                    cursor: 'pointer',
+                                    display: searchQuery ? undefined : 'none',
+                                    fontSize: '66%',
+                                }}
+                                onClick={() => setSearchQuery('')}
+                            >
+                                <CloseIcon />
+                            </InputRightElement>
                         </InputGroup>
                         <Box
                             h={height - 165}
