@@ -138,7 +138,7 @@ class ImWriteNode(NodeBase):
         self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
-            DirectoryInput(hasHandle=True),
+            DirectoryInput(has_handle=True),
             TextInput("Relative Path", optional=True),
             TextInput("Image Name"),
             ImageExtensionDropdown(),

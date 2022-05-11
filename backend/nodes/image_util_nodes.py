@@ -52,9 +52,9 @@ class ImOverlay(NodeBase):
             ov2 = normalize(ov2)
 
         # Convert to 0.0-1.0 range
-        op1 = int(op1) / 100
+        op1 /= 100
         if op2 is not None:
-            op2 = int(op2) / 100
+            op2 /= 100
 
         imgs = []
         max_h, max_w, max_c = 0, 0, 1

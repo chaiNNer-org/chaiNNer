@@ -1,9 +1,12 @@
+from sanic.log import logger
+
+
 class BaseInput:
-    def __init__(self, input_type: str, label: str, optional=False, hasHandle=True):
+    def __init__(self, input_type: str, label: str, optional=False, has_handle=True):
         self.input_type = input_type
         self.label = label
         self.optional = optional
-        self.hasHandle = hasHandle
+        self.has_handle = has_handle
 
     # This is the method that should be created by each input
     def enforce(self, value):
@@ -24,6 +27,7 @@ class BaseInput:
             "type": self.input_type,
             "label": self.label,
             "optional": self.optional,
+            "hasHandle": self.has_handle,
         }
 
     def __repr__(self):

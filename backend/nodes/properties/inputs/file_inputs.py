@@ -17,10 +17,10 @@ class FileInput(BaseInput):
         input_type: str,
         label: str,
         filetypes: list[str],
-        hasHandle: bool = False,
+        has_handle: bool = False,
         optional: bool = False,
     ):
-        super().__init__(f"file::{input_type}", label, optional, hasHandle)
+        super().__init__(f"file::{input_type}", label, optional, has_handle)
         self.filetypes = filetypes
 
     def toDict(self):
@@ -28,7 +28,7 @@ class FileInput(BaseInput):
             "type": self.input_type,
             "label": self.label,
             "filetypes": self.filetypes,
-            "hasHandle": self.hasHandle,
+            "hasHandle": self.has_handle,
             "optional": self.optional,
         }
 
@@ -43,7 +43,7 @@ def ImageFileInput() -> Dict:
         "image",
         "Image File",
         get_available_image_formats(),
-        hasHandle=False,
+        has_handle=False,
     )
 
 
@@ -53,7 +53,7 @@ def VideoFileInput() -> Dict:
         "video",
         "Video File",
         [".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
-        hasHandle=False,
+        has_handle=False,
     )
 
 
@@ -67,9 +67,9 @@ def TorchFileInput() -> Dict:
     return FileInput("pt", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(hasHandle: bool = False) -> Dict:
+def DirectoryInput(has_handle: bool = False) -> Dict:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Base Directory", ["directory"], hasHandle)
+    return FileInput("directory", "Base Directory", ["directory"], has_handle)
 
 
 def ImageExtensionDropdown() -> Dict:

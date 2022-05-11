@@ -1,7 +1,8 @@
+import os
 import sys
 from math import ceil, floor
-import os
 from typing import Tuple
+
 import cv2
 import numpy as np
 from sanic.log import logger

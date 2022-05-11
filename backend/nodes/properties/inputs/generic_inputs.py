@@ -32,15 +32,21 @@ class DropDownInput(BaseInput):
         return value
 
 
-def TextInput(label: str, has_handle=True, max_length=None, optional=False) -> Dict:
+class TextInput(BaseInput):
     """Input for arbitrary text"""
-    return {
-        "type": "text::any",
-        "label": label,
-        "hasHandle": has_handle,
-        "maxLength": max_length,
-        "optional": optional,
-    }
+
+    def __init__(self, label: str, has_handle=True, max_length=None, optional=False):
+        super().__init__(f"text::any", label, optional, has_handle=has_handle)
+        self.max_length = max_length
+
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "hasHandle": self.has_handle,
+            "maxLength": self.max_length,
+            "optional": self.optional,
+        }
 
 
 def NoteTextAreaInput() -> Dict:

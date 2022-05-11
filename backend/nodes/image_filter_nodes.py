@@ -41,7 +41,7 @@ class BlurNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        ksize = (int(amount_x), int(amount_y))
+        ksize = (amount_x, amount_y)
         for __i in range(16):
             img = cv2.blur(img, ksize)
 

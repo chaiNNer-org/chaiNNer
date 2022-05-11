@@ -44,9 +44,9 @@ class ImResizeByFactorNode(NodeBase):
         img = normalize(img)
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * float(scale)), math.ceil(h * float(scale)))
+        out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
-        return resize(img, out_dims, int(interpolation))
+        return resize(img, out_dims, interpolation)
 
 
 @NodeFactory.register("chainner:image:resize_resolution")
@@ -78,9 +78,9 @@ class ImResizeToResolutionNode(NodeBase):
 
         img = normalize(img)
 
-        out_dims = (int(width), int(height))
+        out_dims = (width, height)
 
-        return resize(img, out_dims, int(interpolation))
+        return resize(img, out_dims, interpolation)
 
 
 @NodeFactory.register("chainner:image:crop_offsets")
@@ -110,11 +110,6 @@ class CropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        top = int(top)
-        left = int(left)
-        height = int(height)
-        width = int(width)
 
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
@@ -148,8 +143,6 @@ class BorderCropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        amount = int(amount)
 
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
@@ -186,8 +179,6 @@ class EdgeCropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        top, left, right, bottom = [int(x) for x in [top, left, right, bottom]]
 
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"

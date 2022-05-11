@@ -125,7 +125,7 @@ class Executor:
             return output
         else:
             # Run the node and pass in inputs as args
-            run_func = functools.partial(node_instance.run, *inputs)
+            run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
             # Cache the output of the node
             self.output_cache[node_id] = output

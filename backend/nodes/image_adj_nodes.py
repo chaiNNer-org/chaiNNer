@@ -44,13 +44,7 @@ class HueAndSaturationNode(NodeBase):
         """Adjust the hue and saturation of an image"""
 
         # Pass through grayscale and unadjusted images
-        hue = int(hue)
-        saturation = int(saturation)
-        if (
-            img.ndim < 3
-            or img.shape[2] == 1
-            or (int(hue) == 0 and int(saturation) == 0)
-        ):
+        if img.ndim < 3 or img.shape[2] == 1 or (hue == 0 and saturation == 0):
             return img
 
         img = normalize(img)
@@ -99,8 +93,8 @@ class BrightnessAndContrastNode(NodeBase):
     def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
 
-        b_amount = int(b_amount) / 255
-        c_amount = int(c_amount) / 255
+        b_amount /= 255
+        c_amount /= 255
 
         # Pass through unadjusted image
         if b_amount == 0 and c_amount == 0:
@@ -168,12 +162,12 @@ class ThresholdNode(NodeBase):
 
         logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
 
-        real_thresh = int(thresh) / 100
-        real_maxval = int(maxval) / 100
+        real_thresh = thresh / 100
+        real_maxval = maxval / 100
 
         logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
 
-        _, result = cv2.threshold(img, real_thresh, real_maxval, int(thresh_type))
+        _, result = cv2.threshold(img, real_thresh, real_maxval, thresh_type)
 
         return result
 
@@ -218,15 +212,15 @@ class AdaptiveThresholdNode(NodeBase):
         # Adaptive threshold requires uint8 input
         img = (normalize(img) * 255).astype("uint8")
 
-        real_maxval = int(maxval) / 100 * 255
+        real_maxval = maxval / 100 * 255
 
         result = cv2.adaptiveThreshold(
             img,
             real_maxval,
-            int(adaptive_method),
-            int(thresh_type),
-            int(block_size),
-            int(c),
+            adaptive_method,
+            thresh_type,
+            block_size,
+            c,
         )
 
         return result.astype("float32") / 255
