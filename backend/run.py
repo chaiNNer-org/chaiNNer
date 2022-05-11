@@ -104,8 +104,6 @@ async def nodes(_):
     node_list = []
     for schema_id, _node_class in sorted_registry:
         node_object = NodeFactory.create_node(schema_id)
-        logger.info(schema_id)
-        logger.info([dict(x) for x in node_object.get_inputs()])
         node_dict = {
             "schemaId": schema_id,
             "name": node_object.get_name(),
