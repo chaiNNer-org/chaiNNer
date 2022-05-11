@@ -1,4 +1,4 @@
-import { SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon, CloseIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
@@ -12,6 +12,7 @@ import {
     Input,
     InputGroup,
     InputLeftElement,
+    InputRightElement,
     Tab,
     TabList,
     TabPanel,
@@ -21,7 +22,7 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import { ChangeEvent, memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { NodeSchema } from '../../common-types';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { SchemaMap } from '../../helpers/SchemaMap';
@@ -84,8 +85,6 @@ interface NodeSelectorProps {
 
 const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
-        setSearchQuery(event.target.value);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const matchesSearchQuery = createSearchPredicate(searchQuery);
@@ -132,9 +131,17 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 borderRadius={0}
                                 placeholder="Search..."
                                 type="text"
+                                value={searchQuery}
                                 variant="filled"
-                                onChange={handleChange}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            <InputRightElement
+                                className="clear-search-bar-button"
+                                display={searchQuery ? undefined : 'none'}
+                                onClick={() => setSearchQuery('')}
+                            >
+                                <CloseIcon />
+                            </InputRightElement>
                         </InputGroup>
                         <Box
                             h={height - 165}

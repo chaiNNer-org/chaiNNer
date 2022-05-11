@@ -91,3 +91,14 @@ body {
 [data-theme=dark] .react-flow__controls-interactive {
     border-radius: 0px 0px 8px 8px;
 }
+
+.clear-search-bar-button {
+    color: var(--chakra-colors-gray-300);
+    cursor: pointer;
+}
+.clear-search-bar-button:hover {
+    color: var(--chakra-colors-gray-000);
+}
+.clear-search-bar-button > * {
+    font-size: 66%;
+}
