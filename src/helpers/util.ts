@@ -29,3 +29,9 @@ export const parseHandle = (handle: string): ParsedHandle => {
         index: Number(handle.substring(37)),
     };
 };
+
+export const getLocalStorage = (): Storage => {
+    const storage = (global as Record<string, unknown>).customLocalStorage;
+    if (storage === undefined) throw new Error('Custom storage not defined');
+    return storage as Storage;
+};
