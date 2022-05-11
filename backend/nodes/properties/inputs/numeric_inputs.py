@@ -125,9 +125,9 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
-        min_val: int,
-        max_val: int,
-        default: int,
+        min_val: int = 0,
+        max_val: int = 100,
+        default: int = 50,
         optional: bool = False,
     ):
         super().__init__(
