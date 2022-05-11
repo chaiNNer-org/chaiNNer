@@ -11,12 +11,12 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createContext } from 'use-context-selector';
 import { assertNever } from '../util';
 
 interface AlertBox {
-    showMessageBox: (newAlertType: AlertType, newTitle: string | null, newMessage: string) => void;
+    showMessageBox: (alertType: AlertType, title: string | null, message: string) => void;
 }
 
 export enum AlertType {
@@ -36,16 +36,15 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
     const [message, setMessage] = useState<string>('');
     const cancelRef = useRef<HTMLButtonElement>(null);
 
-    const showMessageBox = (
-        newAlertType: AlertType,
-        newTitle: string | null,
-        newMessage: string
-    ) => {
-        setAlertType(newAlertType);
-        setTitle(newTitle ?? newAlertType);
-        setMessage(newMessage);
-        onOpen();
-    };
+    const showMessageBox = useCallback(
+        (newAlertType: AlertType, newTitle: string | null, newMessage: string) => {
+            setAlertType(newAlertType);
+            setTitle(newTitle ?? newAlertType);
+            setMessage(newMessage);
+            onOpen();
+        },
+        [setAlertType, setTitle, setMessage, onOpen]
+    );
 
     const getButtons = (type: AlertType): JSX.Element => {
         switch (type) {
@@ -111,8 +110,11 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
         app.quit();
     };
 
+    let value: AlertBox = { showMessageBox };
+    value = useMemo(() => value, Object.values(value));
+
     return (
-        <AlertBoxContext.Provider value={{ showMessageBox }}>
+        <AlertBoxContext.Provider value={value}>
             <AlertDialog
                 isCentered
                 isOpen={isOpen}
