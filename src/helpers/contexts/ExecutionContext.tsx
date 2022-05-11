@@ -179,6 +179,8 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         animateEdges();
         if (nodes.length === 0) {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
+            unAnimateEdges();
+            setIsRunning(false);
         } else {
             const nodeValidities = nodes.map((node) => {
                 const { inputs, category, name } = schemata.get(node.data.schemaId);
