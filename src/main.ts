@@ -459,7 +459,6 @@ const checkNvidiaSmi = async () => {
 
                 vramChecker.stdout.on('data', (data) => {
                     const [, vramTotal, vramUsed] = String(data).split(/\s*,\s*/, 4);
-
                     const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
                     if (Number.isFinite(usage)) {
                         lastVRam = usage;
