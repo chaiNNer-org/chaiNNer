@@ -124,8 +124,11 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                         p={0}
                     >
                         <InputGroup borderRadius={0}>
-                            <InputLeftElement pointerEvents="none">
-                                <SearchIcon color="gray.300" />
+                            <InputLeftElement
+                                color={useColorModeValue('gray.500', 'gray.300')}
+                                pointerEvents="none"
+                            >
+                                <SearchIcon />
                             </InputLeftElement>
                             <Input
                                 borderRadius={0}
@@ -136,8 +139,11 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             <InputRightElement
+                                _hover={{ color: useColorModeValue('black', 'white') }}
                                 className="clear-search-bar-button"
+                                color={useColorModeValue('gray.500', 'gray.300')}
                                 display={searchQuery ? undefined : 'none'}
+                                fontSize="66%"
                                 onClick={() => setSearchQuery('')}
                             >
                                 <CloseIcon />
