@@ -37,7 +37,6 @@ interface InvokeChannels {
         ]
     >;
 
-    'show-warning-message-box': ChannelInfo<void, [title: string, message: string]>;
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
         string | undefined,
