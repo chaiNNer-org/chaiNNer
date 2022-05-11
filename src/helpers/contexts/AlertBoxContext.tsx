@@ -16,7 +16,7 @@ import { createContext } from 'use-context-selector';
 import { assertNever } from '../util';
 
 interface AlertBox {
-    showMessageBox: (newAlertType: AlertType, newTitle: string | null, newMessage: string) => void;
+    showMessageBox: (alertType: AlertType, title: string | null, message: string) => void;
 }
 
 export enum AlertType {
@@ -37,11 +37,10 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<{}>) => {
     const cancelRef = useRef<HTMLButtonElement>(null);
 
     const showMessageBox = useCallback(
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        (alertType: AlertType, title: string | null, message: string) => {
-            setAlertType(alertType);
-            setTitle(title ?? alertType);
-            setMessage(message);
+        (newAlertType: AlertType, newTitle: string | null, newMessage: string) => {
+            setAlertType(newAlertType);
+            setTitle(newTitle ?? newAlertType);
+            setMessage(newMessage);
             onOpen();
         },
         [setAlertType, setTitle, setMessage, onOpen]
