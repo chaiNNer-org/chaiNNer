@@ -228,16 +228,13 @@ class FillAlphaNode(NodeBase):
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, method: int | str) -> np.ndarray:
+    def run(self, img: np.ndarray, method: int) -> np.ndarray:
         """Fills transparent holes in the given image"""
 
         assert (
             img.ndim == 3 and img.shape[2] == 4
         ), "The image has to be an RGBA image to fill its alpha"
 
-        img = normalize(img)
-
-        method = int(method)
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha
             convert_to_binary_alpha(img)

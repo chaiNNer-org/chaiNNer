@@ -138,7 +138,7 @@ class ImWriteNode(NodeBase):
         self.description = "Save image to file at a specified directory."
         self.inputs = [
             ImageInput(),
-            DirectoryInput(hasHandle=True),
+            DirectoryInput(has_handle=True),
             TextInput("Relative Path", optional=True),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
@@ -193,8 +193,6 @@ class ImOpenNode(NodeBase):
 
     def run(self, img: np.ndarray):
         """Show image"""
-
-        img = normalize(img)
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")

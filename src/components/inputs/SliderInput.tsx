@@ -33,7 +33,7 @@ const SliderInput = memo(
         }, [input]);
 
         return (
-            <HStack>
+            <HStack w="full">
                 <Text fontSize="xs">{min}</Text>
                 <Slider
                     defaultValue={def}

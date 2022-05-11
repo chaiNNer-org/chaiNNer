@@ -1,66 +1,79 @@
 from __future__ import annotations
 
-from typing import Dict
+import os
 
+# pylint: disable=relative-beyond-top-level
 from ...utils.image_utils import get_available_image_formats
+from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 
 
-def FileInput(
-    input_type: str,
-    label: str,
-    filetypes: list[str],
-    hasHandle: bool = False,
-) -> Dict:
+class FileInput(BaseInput):
     """Input for submitting a local file"""
-    return {
-        "type": f"file::{input_type}",
-        "label": label,
-        "accepts": None,
-        "filetypes": filetypes,
-        "hasHandle": hasHandle,
-    }
+
+    def __init__(
+        self,
+        input_type: str,
+        label: str,
+        filetypes: list[str],
+        has_handle: bool = False,
+        optional: bool = False,
+    ):
+        super().__init__(f"file::{input_type}", label, optional, has_handle)
+        self.filetypes = filetypes
+
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "filetypes": self.filetypes,
+            "hasHandle": self.has_handle,
+            "optional": self.optional,
+        }
+
+    def enforce(self, value):
+        assert os.path.exists(value), f"{value} does not exist"
+        return value
 
 
-def ImageFileInput() -> Dict:
+def ImageFileInput() -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
         "image",
         "Image File",
         get_available_image_formats(),
-        hasHandle=False,
+        has_handle=False,
     )
 
 
-def VideoFileInput() -> Dict:
+def VideoFileInput() -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
         "video",
         "Video File",
         [".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
-        hasHandle=False,
+        has_handle=False,
     )
 
 
-def PthFileInput() -> Dict:
+def PthFileInput() -> FileInput:
     """Input for submitting a local .pth file"""
-    return FileInput("pth", "Pretrained Model", ["pth"])
+    return FileInput("pth", "Pretrained Model", [".pth"])
 
 
-def TorchFileInput() -> Dict:
+def TorchFileInput() -> FileInput:
     """Input for submitting a local .pth or .pt file"""
-    return FileInput("pt", "Pretrained Model", ["pt"])
+    return FileInput("pt", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(hasHandle: bool = False) -> Dict:
+def DirectoryInput(has_handle: bool = False) -> FileInput:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Base Directory", ["directory"], hasHandle)
+    return FileInput("directory", "Base Directory", ["directory"], has_handle)
 
 
-def ImageExtensionDropdown() -> Dict:
+def ImageExtensionDropdown() -> DropDownInput:
     """Input for selecting file type from dropdown"""
     return DropDownInput(
-        "image-extensions",
         "Image Extension",
         [
             {
@@ -84,19 +97,15 @@ def ImageExtensionDropdown() -> Dict:
                 "value": "webp",
             },
         ],
+        input_type="image-extensions",
     )
 
 
-def BinFileInput() -> Dict:
+def BinFileInput() -> FileInput:
     """Input for submitting a local .bin file"""
-    return FileInput("bin", "NCNN Bin File", ["bin"])
+    return FileInput("bin", "NCNN Bin File", [".bin"])
 
 
-def ParamFileInput() -> Dict:
+def ParamFileInput() -> FileInput:
     """Input for submitting a local .param file"""
-    return FileInput("param", "NCNN Param File", ["param"])
-
-
-def OnnxFileInput() -> Dict:
-    """Input for submitting a local .onnx file"""
-    return FileInput("param", "NCNN Param File", ["param"])
+    return FileInput("param", "NCNN Param File", [".param"])

@@ -2,7 +2,7 @@ import struct
 
 import numpy as np
 
-FLAG_FLOAT_32 = 0x0
+FLAG_FLOAT_32 = 0x00000000
 FLAG_FLOAT_16 = 0x01306B47
 
 
