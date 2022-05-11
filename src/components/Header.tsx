@@ -13,7 +13,7 @@ import {
 import { memo, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useContext } from 'use-context-selector';
-import { ExecutionContext } from '../helpers/contexts/ExecutionContext';
+import { ExecutionContext, ExecutionStatus } from '../helpers/contexts/ExecutionContext';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
 import { ipcRenderer } from '../helpers/safeIpc';
 import logo from '../public/icons/png/256x256.png';
@@ -22,7 +22,7 @@ import { SettingsButton } from './SettingsModal';
 import SystemStats from './SystemStats';
 
 const Header = () => {
-    const { run, pause, kill, isRunning } = useContext(ExecutionContext);
+    const { run, pause, kill, status } = useContext(ExecutionContext);
 
     const [appVersion, setAppVersion] = useState('#.#.#');
     useAsyncEffect(
@@ -65,14 +65,19 @@ const Header = () => {
                             closeOnClick
                             closeOnMouseDown
                             borderRadius={8}
-                            label="Start/Resume"
+                            label={status === ExecutionStatus.PAUSED ? 'Resume' : 'Start'}
                             px={2}
                             py={1}
                         >
                             <IconButton
                                 aria-label="Start button"
                                 colorScheme="green"
-                                disabled={isRunning}
+                                disabled={
+                                    !(
+                                        status === ExecutionStatus.READY ||
+                                        status === ExecutionStatus.PAUSED
+                                    )
+                                }
                                 icon={<IoPlay />}
                                 size="md"
                                 variant="outline"
@@ -93,7 +98,7 @@ const Header = () => {
                             <IconButton
                                 aria-label="Pause button"
                                 colorScheme="yellow"
-                                disabled={!isRunning}
+                                disabled={status !== ExecutionStatus.RUNNING}
                                 icon={<IoPause />}
                                 size="md"
                                 variant="outline"
@@ -114,7 +119,12 @@ const Header = () => {
                             <IconButton
                                 aria-label="Stop button"
                                 colorScheme="red"
-                                disabled={!isRunning}
+                                disabled={
+                                    !(
+                                        status === ExecutionStatus.RUNNING ||
+                                        status === ExecutionStatus.PAUSED
+                                    )
+                                }
                                 icon={<IoStop />}
                                 size="md"
                                 variant="outline"
