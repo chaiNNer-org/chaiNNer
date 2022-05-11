@@ -1,8 +1,9 @@
 class BaseInput:
-    def __init__(self, input_type: str, label: str, optional=False):
+    def __init__(self, input_type: str, label: str, optional=False, hasHandle=True):
         self.input_type = input_type
         self.label = label
         self.optional = optional
+        self.hasHandle = hasHandle
 
     # This is the method that should be created by each input
     def enforce(self, value):

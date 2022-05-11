@@ -203,23 +203,22 @@ class ColorTransferNode(NodeBase):
             ImageInput("Image"),
             ImageInput("Reference Image"),
             DropDownInput(
-                "str",
                 "Colorspace",
                 [
                     {"option": "L*a*b*", "value": "L*a*b*"},
                     {"option": "RGB", "value": "RGB"},
                 ],
+                input_type="str",
             ),
             DropDownInput(
-                "str",
                 "Overflow Method",
                 [
                     {"option": "Clip", "value": 1},
                     {"option": "Scale", "value": 0},
                 ],
+                input_type="str",
             ),
             DropDownInput(
-                "generic",
                 "Reciprocal Scaling Factor",
                 [
                     {"option": "Yes", "value": 1},
