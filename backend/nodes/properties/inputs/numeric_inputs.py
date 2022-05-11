@@ -1,6 +1,22 @@
-from math import inf
-
 from .base_input import BaseInput
+
+
+def clampInt(value, min_value, max_value):
+    value = int(value)
+    if max_value is not None:
+        value = min(value, max_value)
+    if min_value is not None:
+        value = max(value, min_value)
+    return value
+
+
+def clampFloat(value, min_value, max_value):
+    value = float(value)
+    if max_value is not None:
+        value = min(value, max_value)
+    if min_value is not None:
+        value = max(value, min_value)
+    return value
 
 
 class NumberInput(BaseInput):
@@ -11,15 +27,15 @@ class NumberInput(BaseInput):
         label: str,
         default=0.0,
         minimum=0,
-        maximum=inf,
+        maximum=None,
         step=1,
         optional=False,
         number_type="any",
     ):
         super().__init__(f"number::{number_type}", label)
         self.default = default
-        self.minimum = minimum if minimum is not None else inf
-        self.maximum = maximum if maximum is not None else -inf
+        self.minimum = minimum
+        self.maximum = maximum
         self.step = step
         self.optional = optional
 
@@ -36,7 +52,7 @@ class NumberInput(BaseInput):
         }
 
     def enforce(self, value):
-        return min(max(float(self.minimum), float(value)), float(self.maximum))
+        return clampFloat(value, self.minimum, self.maximum)
 
 
 class IntegerInput(NumberInput):
@@ -46,7 +62,7 @@ class IntegerInput(NumberInput):
         super().__init__(label, default=0, minimum=0, maximum=None, step=None)
 
     def enforce(self, value):
-        return max(int(self.minimum), int(value))
+        return clampInt(value, self.minimum, self.maximum)
 
 
 class BoundedNumberInput(NumberInput):
@@ -65,7 +81,7 @@ class BoundedNumberInput(NumberInput):
         )
 
     def enforce(self, value):
-        return min(max(float(self.minimum), float(value)), float(self.maximum))
+        return clampFloat(value, self.minimum, self.maximum)
 
 
 class OddIntegerInput(NumberInput):
@@ -75,9 +91,8 @@ class OddIntegerInput(NumberInput):
         super().__init__(label, default=default, minimum=minimum, maximum=None, step=2)
 
     def enforce(self, value):
-        odd = int(value) - (1 - (int(value) % 2))
-        capped = max(int(self.minimum), odd)
-        return capped
+        odd = int(value) + (1 - (int(value) % 2))
+        return clampInt(odd, self.minimum, self.maximum)
 
 
 class BoundedIntegerInput(NumberInput):
@@ -100,7 +115,7 @@ class BoundedIntegerInput(NumberInput):
         )
 
     def enforce(self, value):
-        return min(max(int(self.minimum), int(value)), int(self.maximum))
+        return clampInt(value, self.minimum, self.maximum)
 
 
 class BoundlessIntegerInput(NumberInput):
@@ -143,4 +158,4 @@ class SliderInput(NumberInput):
         )
 
     def enforce(self, value):
-        return min(max(int(self.minimum), int(value)), int(self.maximum))
+        return clampInt(value, self.minimum, self.maximum)
