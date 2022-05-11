@@ -16,11 +16,17 @@ import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
-interface ExecutionContextProps {
+export enum ExecutionStatus {
+    READY,
+    RUNNING,
+    PAUSED,
+}
+
+interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
     kill: () => Promise<void>;
-    isRunning: boolean;
+    status: ExecutionStatus;
 }
 
 const convertToUsableFormat = (
@@ -74,8 +80,8 @@ const convertToUsableFormat = (
     return result;
 };
 
-export const ExecutionContext = createContext<Readonly<ExecutionContextProps>>(
-    {} as ExecutionContextProps
+export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
+    {} as ExecutionContextValue
 );
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -91,17 +97,18 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const [isRunning, setIsRunning] = useState(false);
+    const [status, setStatus] = useState(ExecutionStatus.READY);
     const backend = getBackend(port);
 
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
-        setTimeout(() => {
-            if (!isRunning) {
+        const id = setTimeout(() => {
+            if (status !== ExecutionStatus.RUNNING) {
                 unAnimateEdges();
             }
         }, 1000);
-    }, [isRunning]);
+        return () => clearTimeout(id);
+    }, [status]);
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
 
@@ -110,9 +117,9 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         'finish',
         () => {
             clearCompleteEdges();
-            setIsRunning(false);
+            setStatus(ExecutionStatus.READY);
         },
-        [setIsRunning, clearCompleteEdges]
+        [setStatus, clearCompleteEdges]
     );
 
     useBackendEventSourceListener(
@@ -122,10 +129,10 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             if (data) {
                 showMessageBox(AlertType.ERROR, null, data.exception);
                 unAnimateEdges();
-                setIsRunning(false);
+                setStatus(ExecutionStatus.READY);
             }
         },
-        [setIsRunning, unAnimateEdges]
+        [setStatus, unAnimateEdges]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
@@ -146,9 +153,9 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
     >((data) => {
         if (data) {
             const { percent, iteratorId, running: runningNodes } = data;
-            if (runningNodes && isRunning) {
+            if (runningNodes && status === ExecutionStatus.RUNNING) {
                 animateEdges(runningNodes);
-            } else if (!isRunning) {
+            } else if (status !== ExecutionStatus.RUNNING) {
                 unAnimateEdges();
             }
             setIteratorPercent(iteratorId, percent);
@@ -167,7 +174,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                 'An unexpected error occurred. You may need to restart chaiNNer.'
             );
             unAnimateEdges();
-            setIsRunning(false);
+            setStatus(ExecutionStatus.READY);
         }
     }, [eventSourceStatus]);
 
@@ -175,12 +182,12 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         const nodes = getNodes();
         const edges = getEdges();
 
-        setIsRunning(true);
+        setStatus(ExecutionStatus.RUNNING);
         animateEdges();
         if (nodes.length === 0) {
             showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
             unAnimateEdges();
-            setIsRunning(false);
+            setStatus(ExecutionStatus.READY);
         } else {
             const nodeValidities = nodes.map((node) => {
                 const { inputs, category, name } = schemata.get(node.data.schemaId);
@@ -205,7 +212,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                     `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
                 );
                 unAnimateEdges();
-                setIsRunning(false);
+                setStatus(ExecutionStatus.READY);
                 return;
             }
             try {
@@ -218,12 +225,12 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                 if (response.exception) {
                     showMessageBox(AlertType.ERROR, null, response.exception);
                     unAnimateEdges();
-                    setIsRunning(false);
+                    setStatus(ExecutionStatus.READY);
                 }
             } catch (err) {
                 showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
                 unAnimateEdges();
-                setIsRunning(false);
+                setStatus(ExecutionStatus.READY);
             }
         }
     };
@@ -237,7 +244,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         } catch (err) {
             showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        setIsRunning(false);
+        setStatus(ExecutionStatus.PAUSED);
         unAnimateEdges();
     };
 
@@ -252,11 +259,11 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
         unAnimateEdges();
-        setIsRunning(false);
+        setStatus(ExecutionStatus.READY);
     };
 
     return (
-        <ExecutionContext.Provider value={{ run, pause, kill, isRunning }}>
+        <ExecutionContext.Provider value={{ run, pause, kill, status }}>
             {children}
         </ExecutionContext.Provider>
     );
