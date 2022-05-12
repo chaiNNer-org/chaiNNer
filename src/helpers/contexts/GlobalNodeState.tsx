@@ -64,7 +64,6 @@ interface Global {
     removeEdgeById: (id: string) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
     ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
@@ -75,6 +74,7 @@ interface Global {
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
     setHoveredNode: SetState<string | null | undefined>;
+    setZoom: SetState<number>;
 }
 
 interface NodeProto {
@@ -703,10 +703,6 @@ export const GlobalProvider = ({
     );
 
     const [zoom, setZoom] = useState(1);
-    const onMoveEnd = useCallback(
-        (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
-        [setZoom]
-    );
 
     let globalChainValue: GlobalVolatile = {
         nodes,
@@ -736,7 +732,7 @@ export const GlobalProvider = ({
         setIteratorPercent,
         useIteratorSize,
         setHoveredNode,
-        onMoveEnd,
+        setZoom,
     };
     globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
