@@ -11,7 +11,6 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
-from .utils.image_utils import normalize
 from .utils.pil_utils import *
 
 

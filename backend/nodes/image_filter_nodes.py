@@ -9,7 +9,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
-from .utils.image_utils import normalize, normalize_normals
+from .utils.image_utils import normalize_normals
 from .utils.pil_utils import *
 
 

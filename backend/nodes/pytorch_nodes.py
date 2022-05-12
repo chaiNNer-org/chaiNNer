@@ -61,7 +61,10 @@ class LoadModelNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Load PyTorch state dict file (.pth) into an auto-detected supported model architecture. Supports most variations of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) and Real-ESRGAN's SRVGG architecture."
+        self.description = """Load PyTorch state dict file (.pth) into an 
+            auto-detected supported model architecture. Supports most variations 
+            of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) 
+            and Real-ESRGAN's SRVGG architecture."""
         self.inputs = [PthFileInput()]
         self.outputs = [ModelOutput(), TextOutput("Model Name")]
 
@@ -69,6 +72,8 @@ class LoadModelNode(NodeBase):
         self.name = "Load Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
+
+        self.model = None  # Defined in run
 
     def get_extra_data(self) -> Dict:
         if "SRVGG" in self.model.model_type:
@@ -88,7 +93,9 @@ class LoadModelNode(NodeBase):
         }
 
     def run(self, path: str) -> Any:
-        """Read a pth file from the specified path and return it as a state dict and loaded model after finding arch config"""
+        """Read a pth file from the specified path and return it as a state dict
+        and loaded model after finding arch config"""
+
         assert os.path.exists(path), f"Model file at location {path} does not exist"
 
         assert os.path.isfile(path), f"Path {path} is not a file"
@@ -156,13 +163,6 @@ class ImageUpscaleNode(NodeBase):
 
         logger.info(f"Upscaling image...")
 
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
-        # img = img / dtype_max
-
         # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
         in_nc = model.in_nc
         out_nc = model.out_nc
@@ -197,7 +197,7 @@ class ImageUpscaleNode(NodeBase):
                 alpha = 1 - np.mean(output2 - output1, axis=2)
                 output = np.dstack((output1, alpha))
         else:
-            # # Add extra channels if not enough (i.e single channel img, three channel model)
+            # Add extra channels if not enough (i.e single channel img, three channel model)
             gray = False
             if img.ndim == 2:
                 gray = True
@@ -229,7 +229,9 @@ class InterpolateNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Interpolate two of the same kind of model state-dict together. Note: models must share a common 'pretrained model' ancestor in order to be interpolatable."
+        self.description = """Interpolate two of the same kind of model state-dict 
+             together. Note: models must share a common 'pretrained model' ancestor 
+             in order to be interpolatable."""
         self.inputs = [
             ModelInput("Model A"),
             ModelInput("Model B"),
@@ -310,10 +312,10 @@ class PthSaveNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, model: torch.nn.Module, directory: str, name: str) -> bool:
-        fullFile = f"{name}.pth"
-        fullPath = os.path.join(directory, fullFile)
-        logger.info(f"Writing model to path: {fullPath}")
-        torch.save(model.state, fullPath)
+        full_file = f"{name}.pth"
+        full_path = os.path.join(directory, full_file)
+        logger.info(f"Writing model to path: {full_path}")
+        torch.save(model.state, full_path)
 
 
 # @NodeFactory.register("PyTorch", "JIT Trace")
@@ -424,7 +426,8 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Convert a PyTorch model to ONNX (for converting to NCNN). Use convertmodel.com to convert to NCNN for now."
+        self.description = """Convert a PyTorch model to ONNX (for converting to NCNN). 
+            Use convertmodel.com to convert to NCNN for now."""
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
