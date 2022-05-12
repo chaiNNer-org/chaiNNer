@@ -240,18 +240,12 @@ export const GlobalProvider = ({
     const setStateFromJSON = useCallback(
         (savedData: ParsedSaveData, path: string, loadPosition = false) => {
             const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
+            const validNodeIds = new Set(validNodes.map((n) => n.id));
             const validEdges = savedData.edges
                 // Filter out any edges that do not have a source or target node associated with it
-                .filter(
-                    (edge) =>
-                        validNodes.some((el) => el.id === edge.target) &&
-                        validNodes.some((el) => el.id === edge.source)
-                )
+                .filter((edge) => validNodeIds.has(edge.target) && validNodeIds.has(edge.source))
                 // Un-animate all edges, if was accidentally saved when animated
-                .map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }));
+                .map((edge) => (edge.animated ? { ...edge, animated: false } : edge));
 
             if (savedData.nodes.length !== validNodes.length) {
                 sendAlert({
