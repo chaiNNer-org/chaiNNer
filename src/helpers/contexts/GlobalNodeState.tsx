@@ -171,7 +171,7 @@ export const GlobalProvider = ({
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
-    const { showAlert } = useContext(AlertBoxContext);
+    const { showAlert, sendToast } = useContext(AlertBoxContext);
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
@@ -262,6 +262,17 @@ export const GlobalProvider = ({
         }
     };
 
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+    const noNodes = nodes.length === 0;
+    useEffect(() => {
+        setHasUnsavedChanges(true);
+    }, [nodes, edges]);
+    useEffect(() => {
+        const showDot = hasUnsavedChanges && (!noNodes || savePath);
+        const dot = showDot ? ' •' : '';
+        document.title = `chaiNNer - ${savePath || 'Untitled'}${dot}`;
+    }, [savePath, hasUnsavedChanges, noNodes]);
+
     const clearState = useCallback(() => {
         setEdges([]);
         setNodes([]);
@@ -269,21 +280,37 @@ export const GlobalProvider = ({
         setViewport({ x: 0, y: 0, zoom: 0 });
     }, [setEdges, setNodes, setSavePath, setViewport]);
 
-    const performSave = useCallback(() => {
-        (async () => {
-            const saveData = dumpState();
-            if (savePath) {
-                await ipcRenderer.invoke('file-save-json', saveData, savePath);
-            } else {
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            }
-        })();
-    }, [dumpState, savePath]);
+    const performSave = useCallback(
+        (saveAs: boolean) => {
+            (async () => {
+                try {
+                    const saveData = dumpState();
+                    if (!saveAs && savePath) {
+                        await ipcRenderer.invoke('file-save-json', saveData, savePath);
+                    } else {
+                        const result = await ipcRenderer.invoke(
+                            'file-save-as-json',
+                            saveData,
+                            savePath
+                        );
+                        if (result.kind === 'Canceled') return;
+                        setSavePath(result.path);
+                    }
+
+                    setHasUnsavedChanges(false);
+                } catch (error) {
+                    log.error(error);
+
+                    sendToast({
+                        status: 'error',
+                        duration: 10_000,
+                        description: `Failed to save chain`,
+                    });
+                }
+            })();
+        },
+        [dumpState, savePath]
+    );
 
     // Register New File event handler
     useEffect(() => {
@@ -320,27 +347,14 @@ export const GlobalProvider = ({
 
     // Register Save/Save-As event handlers
     useEffect(() => {
-        ipcRenderer.on('file-save-as', () => {
-            (async () => {
-                const saveData = dumpState();
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            })();
-        });
-
-        ipcRenderer.on('file-save', () => {
-            performSave();
-        });
+        ipcRenderer.on('file-save-as', () => performSave(true));
+        ipcRenderer.on('file-save', () => performSave(false));
 
         return () => {
             ipcRenderer.removeAllListeners('file-save-as');
             ipcRenderer.removeAllListeners('file-save');
         };
-    }, [dumpState, savePath]);
+    }, [performSave]);
 
     const removeNodeById = useCallback(
         (id: string) => {

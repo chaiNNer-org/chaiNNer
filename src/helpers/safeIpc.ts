@@ -9,7 +9,7 @@ import {
     WebContents,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
-import { PythonKeys } from '../common-types';
+import { FileSaveResult, PythonKeys } from '../common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
@@ -39,7 +39,7 @@ interface InvokeChannels {
 
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
-        string | undefined,
+        FileSaveResult,
         [saveData: SaveData, savePath: string | undefined]
     >;
     'get-cli-open': ChannelInfo<ParsedSaveData | undefined>;

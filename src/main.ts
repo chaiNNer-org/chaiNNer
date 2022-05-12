@@ -180,14 +180,12 @@ const registerEventHandlers = () => {
             });
             if (!canceled && filePath) {
                 await SaveFile.write(filePath, saveData, app.getVersion());
+                return { kind: 'Success', path: filePath };
             }
-            return filePath;
+            return { kind: 'Canceled' };
         } catch (error) {
             log.error(error);
-            // TODO: Find a solution to this mess
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            return (error as any).message as never;
-            // show error dialog idk
+            throw error;
         }
     });
 
@@ -196,7 +194,7 @@ const registerEventHandlers = () => {
             await SaveFile.write(savePath, saveData, app.getVersion());
         } catch (error) {
             log.error(error);
-            // show error dialog idk
+            throw error;
         }
     });
 

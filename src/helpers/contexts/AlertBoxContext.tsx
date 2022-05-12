@@ -9,6 +9,8 @@ import {
     Button,
     HStack,
     useDisclosure,
+    useToast,
+    UseToastOptions,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +18,7 @@ import { createContext } from 'use-context-selector';
 import { assertNever, noop } from '../util';
 
 interface AlertBox {
+    sendToast: (options: UseToastOptions) => void;
     sendAlert: (alertType: AlertType, title: string | null, message: string) => void;
     showAlert: (message: AlertOptions) => Promise<void>;
 }
@@ -154,7 +157,24 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         return getButtons(type, onClose, message, cancelRef);
     }, [current, cancelRef, onClose]);
 
-    let value: AlertBox = { sendAlert, showAlert };
+    const toast = useToast();
+    useEffect(() => console.log('new toast'), [toast]);
+    const sendToast = useCallback(
+        (options: UseToastOptions) => {
+            // eslint-disable-next-line no-param-reassign
+            options.position ??= 'bottom-right';
+            // eslint-disable-next-line no-param-reassign
+            options.isClosable ??= true;
+            if (options.id !== undefined && toast.isActive(options.id)) {
+                toast.update(options.id, options);
+                return;
+            }
+            toast(options);
+        },
+        [toast]
+    );
+
+    let value: AlertBox = { sendAlert, showAlert, sendToast };
     value = useMemo(() => value, Object.values(value));
 
     return (

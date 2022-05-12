@@ -85,3 +85,7 @@ export interface UsableData {
     nodeType: string | undefined;
     percent?: number;
 }
+
+export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
+export type FileSaveCanceled = { kind: 'Canceled' };
+export type FileSaveSuccess = { kind: 'Success'; path: string };
