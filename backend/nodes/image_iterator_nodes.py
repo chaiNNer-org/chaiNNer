@@ -253,7 +253,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         ]
 
         self.category = IMAGE
-        self.name = "Video Frame Iterator (Simple)"
+        self.name = "Video Frame Iterator"
         self.icon = "MdVideoCameraBack"
 
     async def run(

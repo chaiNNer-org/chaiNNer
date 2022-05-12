@@ -121,7 +121,7 @@ const Main = ({ port }: MainProps) => {
                                 }}
                                 initialPrimarySize="380px"
                                 minPrimarySize="290px"
-                                minSecondarySize="75%"
+                                minSecondarySize="65%"
                                 splitterSize="10px"
                             >
                                 <NodeSelector
