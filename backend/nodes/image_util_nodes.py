@@ -11,7 +11,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import normalize, with_background
+from .utils.image_utils import with_background
 from .utils.pil_utils import *
 
 
