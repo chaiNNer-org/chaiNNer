@@ -19,7 +19,8 @@ import { assertNever, noop } from '../util';
 
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
-    sendAlert: (alertType: AlertType, title: string | null, message: string) => void;
+    sendAlert: ((alertType: AlertType, title: string | null, message: string) => void) &
+        ((message: AlertOptions) => void);
     showAlert: (message: AlertOptions) => Promise<void>;
 }
 
@@ -129,10 +130,15 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         },
         [push]
     );
-    const sendAlert = useCallback(
-        (type: AlertType, title: string | null, message: string) => {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            showAlert({ type, title: title ?? undefined, message });
+    const sendAlert = useCallback<AlertBox['sendAlert']>(
+        (type: AlertType | AlertOptions, title?: string | null, message?: string) => {
+            if (typeof type === 'object') {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                showAlert(type);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                showAlert({ type, title: title ?? undefined, message: message! });
+            }
         },
         [showAlert]
     );
