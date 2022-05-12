@@ -1,4 +1,7 @@
-import torch
+try:
+    import torch
+except:
+    torch = None
 
 from .base_input import BaseInput
 
@@ -17,7 +20,8 @@ class ModelInput(BaseInput):
         super().__init__(f"pytorch::model", label)
 
     def enforce(self, value):
-        assert isinstance(value, torch.nn.Module), "Expected a PyTorch model"
+        if torch is not None:
+            assert isinstance(value, torch.nn.Module), "Expected a PyTorch model"
         return value
 
 
