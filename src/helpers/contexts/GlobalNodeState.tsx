@@ -22,6 +22,7 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
@@ -319,14 +320,7 @@ export const GlobalProvider = ({
     );
 
     // Register New File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-new', () => {
-            clearState();
-        });
-        return () => {
-            ipcRenderer.removeAllListeners('file-new');
-        };
-    }, []);
+    useIpcRendererListener('file-new', () => clearState(), [clearState]);
 
     useAsyncEffect(async () => {
         const result = await ipcRenderer.invoke('get-cli-open');
@@ -343,8 +337,9 @@ export const GlobalProvider = ({
     }, [setStateFromJSON]);
 
     // Register Open File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-open', (event, result) => {
+    useIpcRendererListener(
+        'file-open',
+        (event, result) => {
             if (result.kind === 'Success') {
                 setStateFromJSON(result.saveData, result.path, true);
             } else {
@@ -353,23 +348,13 @@ export const GlobalProvider = ({
                     message: `Unable to open file ${result.path}`,
                 });
             }
-        });
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-open');
-        };
-    }, [setStateFromJSON]);
+        },
+        [setStateFromJSON]
+    );
 
     // Register Save/Save-As event handlers
-    useEffect(() => {
-        ipcRenderer.on('file-save-as', () => performSave(true));
-        ipcRenderer.on('file-save', () => performSave(false));
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-save-as');
-            ipcRenderer.removeAllListeners('file-save');
-        };
-    }, [performSave]);
+    useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
+    useIpcRendererListener('file-save', () => performSave(false), [performSave]);
 
     const removeNodeById = useCallback(
         (id: string) => {
