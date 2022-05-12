@@ -22,7 +22,8 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
+import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
@@ -64,7 +65,6 @@ interface Global {
     removeEdgeById: (id: string) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
     ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
@@ -75,6 +75,7 @@ interface Global {
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
     setHoveredNode: SetState<string | null | undefined>;
+    setZoom: SetState<number>;
 }
 
 interface NodeProto {
@@ -171,7 +172,9 @@ export const GlobalProvider = ({
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
-    const { showAlert } = useContext(AlertBoxContext);
+    const [, , snapToGridAmount] = useSnapToGrid;
+
+    const { sendAlert, sendToast } = useContext(AlertBoxContext);
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
@@ -195,11 +198,21 @@ export const GlobalProvider = ({
 
     const [savePath, setSavePath] = useState<string | undefined>();
 
-    const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
-
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
-    const [, , snapToGridAmount] = useSnapToGrid;
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+    const noNodes = nodes.length === 0;
+    useEffect(() => {
+        setHasUnsavedChanges(true);
+    }, [nodes, edges]);
+    useEffect(() => {
+        const id = setTimeout(() => {
+            const showDot = hasUnsavedChanges && (!noNodes || savePath);
+            const dot = showDot ? ' •' : '';
+            document.title = `chaiNNer - ${savePath || 'Untitled'}${dot}`;
+        }, 200);
+        return () => clearTimeout(id);
+    }, [savePath, hasUnsavedChanges, noNodes]);
 
     const modifyNode = useCallback(
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
@@ -224,123 +237,118 @@ export const GlobalProvider = ({
         };
     }, [getNodes, getEdges]);
 
-    const setStateFromJSON = async (savedData: ParsedSaveData, loadPosition = false) => {
-        const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
-        if (savedData.nodes.length !== validNodes.length) {
-            await showAlert({
-                type: AlertType.WARN,
-                title: 'File contains invalid nodes',
-                message:
-                    'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
-            });
-        }
-        if (savedData.tamperedWith) {
-            await showAlert({
-                type: AlertType.WARN,
-                title: 'File has been modified',
-                message:
-                    'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
-            });
-        }
-        setNodes(validNodes);
-        setEdges(
-            savedData.edges
+    const setStateFromJSON = useCallback(
+        (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+            const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
+            const validNodeIds = new Set(validNodes.map((n) => n.id));
+            const validEdges = savedData.edges
                 // Filter out any edges that do not have a source or target node associated with it
-                .filter(
-                    (edge) =>
-                        validNodes.some((el) => el.id === edge.target) &&
-                        validNodes.some((el) => el.id === edge.source)
-                )
+                .filter((edge) => validNodeIds.has(edge.target) && validNodeIds.has(edge.source))
                 // Un-animate all edges, if was accidentally saved when animated
-                .map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }))
-        );
-        if (loadPosition) {
-            setViewport(savedData.viewport);
-        }
-    };
+                .map((edge) => (edge.animated ? { ...edge, animated: false } : edge));
+
+            if (savedData.nodes.length !== validNodes.length) {
+                sendAlert({
+                    type: AlertType.WARN,
+                    title: 'File contains invalid nodes',
+                    message:
+                        'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
+                });
+            }
+            if (savedData.tamperedWith) {
+                sendAlert({
+                    type: AlertType.WARN,
+                    title: 'File has been modified',
+                    message:
+                        'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
+                });
+            }
+            setNodes(validNodes);
+            setEdges(validEdges);
+            if (loadPosition) {
+                setViewport(savedData.viewport);
+            }
+            setSavePath(path);
+            setHasUnsavedChanges(false);
+        },
+        [schemata]
+    );
 
     const clearState = useCallback(() => {
         setEdges([]);
         setNodes([]);
         setSavePath(undefined);
-        setViewport({ x: 0, y: 0, zoom: 0 });
+        setViewport({ x: 0, y: 0, zoom: 1 });
     }, [setEdges, setNodes, setSavePath, setViewport]);
 
-    const performSave = useCallback(() => {
-        (async () => {
-            const saveData = dumpState();
-            if (savePath) {
-                await ipcRenderer.invoke('file-save-json', saveData, savePath);
-            } else {
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            }
-        })();
-    }, [dumpState, savePath]);
+    const performSave = useCallback(
+        (saveAs: boolean) => {
+            (async () => {
+                try {
+                    const saveData = dumpState();
+                    if (!saveAs && savePath) {
+                        await ipcRenderer.invoke('file-save-json', saveData, savePath);
+                    } else {
+                        const result = await ipcRenderer.invoke(
+                            'file-save-as-json',
+                            saveData,
+                            savePath
+                        );
+                        if (result.kind === 'Canceled') return;
+                        setSavePath(result.path);
+                    }
+
+                    setHasUnsavedChanges(false);
+                } catch (error) {
+                    log.error(error);
+
+                    sendToast({
+                        status: 'error',
+                        duration: 10_000,
+                        description: `Failed to save chain`,
+                    });
+                }
+            })();
+        },
+        [dumpState, savePath]
+    );
 
     // Register New File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-new', () => {
-            clearState();
-        });
-        return () => {
-            ipcRenderer.removeAllListeners('file-new');
-        };
-    }, []);
+    useIpcRendererListener('file-new', () => clearState(), [clearState]);
 
     useAsyncEffect(async () => {
-        if (!loadedFromCli) {
-            const saveData = await ipcRenderer.invoke('get-cli-open');
-            if (saveData) {
-                await setStateFromJSON(saveData, true);
+        const result = await ipcRenderer.invoke('get-cli-open');
+        if (result) {
+            if (result.kind === 'Success') {
+                setStateFromJSON(result.saveData, result.path, true);
+            } else {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Unable to open file ${result.path}`,
+                });
             }
         }
-    }, []);
+    }, [setStateFromJSON]);
 
     // Register Open File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-open', (event, saveData, openedFilePath) => {
-            setSavePath(openedFilePath);
-            // TODO: handle promise
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            setStateFromJSON(saveData, true);
-        });
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-open');
-        };
-    }, [savePath]);
+    useIpcRendererListener(
+        'file-open',
+        (event, result) => {
+            if (result.kind === 'Success') {
+                setStateFromJSON(result.saveData, result.path, true);
+            } else {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Unable to open file ${result.path}`,
+                });
+            }
+        },
+        [setStateFromJSON]
+    );
 
     // Register Save/Save-As event handlers
-    useEffect(() => {
-        ipcRenderer.on('file-save-as', () => {
-            (async () => {
-                const saveData = dumpState();
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            })();
-        });
-
-        ipcRenderer.on('file-save', () => {
-            performSave();
-        });
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-save-as');
-            ipcRenderer.removeAllListeners('file-save');
-        };
-    }, [dumpState, savePath]);
+    useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
+    useIpcRendererListener('file-save', () => performSave(false), [performSave]);
 
     const removeNodeById = useCallback(
         (id: string) => {
@@ -703,10 +711,6 @@ export const GlobalProvider = ({
     );
 
     const [zoom, setZoom] = useState(1);
-    const onMoveEnd = useCallback(
-        (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
-        [setZoom]
-    );
 
     let globalChainValue: GlobalVolatile = {
         nodes,
@@ -736,7 +740,7 @@ export const GlobalProvider = ({
         setIteratorPercent,
         useIteratorSize,
         setHoveredNode,
-        onMoveEnd,
+        setZoom,
     };
     globalValue = useMemo(() => globalValue, Object.values(globalValue));
 

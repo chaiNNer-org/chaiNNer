@@ -12,13 +12,29 @@ import { Systeminformation } from 'systeminformation';
 import { PythonKeys } from '../common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
+export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
+export type FileSaveCanceled = { kind: 'Canceled' };
+export type FileSaveSuccess = { kind: 'Success'; path: string };
+
+export type FileOpenResult = FileOpenSuccess | FileOpenError;
+export interface FileOpenSuccess {
+    kind: 'Success';
+    path: string;
+    saveData: ParsedSaveData;
+}
+export interface FileOpenError {
+    kind: 'Error';
+    path: string;
+    error: string;
+}
+
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
     args: Args;
 }
 type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 
-interface InvokeChannels {
+export interface InvokeChannels {
     'get-gpu-name': ChannelInfo<string | null>;
     'get-has-nvidia': ChannelInfo<boolean>;
     'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
@@ -39,17 +55,17 @@ interface InvokeChannels {
 
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
-        string | undefined,
+        FileSaveResult,
         [saveData: SaveData, savePath: string | undefined]
     >;
-    'get-cli-open': ChannelInfo<ParsedSaveData | undefined>;
+    'get-cli-open': ChannelInfo<FileOpenResult | undefined>;
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
 }
 
-interface SendChannels {
+export interface SendChannels {
     'backend-ready': SendChannelInfo;
     'checking-deps': SendChannelInfo;
     'checking-port': SendChannelInfo;
@@ -57,7 +73,7 @@ interface SendChannels {
     'downloading-python': SendChannelInfo;
     'extracting-python': SendChannelInfo;
     'file-new': SendChannelInfo;
-    'file-open': SendChannelInfo<[saveData: ParsedSaveData, openedFilePath: string]>;
+    'file-open': SendChannelInfo<[FileOpenResult]>;
     'file-save-as': SendChannelInfo;
     'file-save': SendChannelInfo;
     'finish-loading': SendChannelInfo;
@@ -67,9 +83,9 @@ interface SendChannels {
     'spawning-backend': SendChannelInfo;
     'splash-finish': SendChannelInfo;
 }
-type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
+export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];
-type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
+export type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['returnType'];
 
 interface SafeIpcMain extends Electron.IpcMain {
