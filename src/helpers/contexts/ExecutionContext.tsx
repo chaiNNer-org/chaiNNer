@@ -88,7 +88,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
     const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
-    const { showMessageBox } = useContext(AlertBoxContext);
+    const { sendAlert } = useContext(AlertBoxContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
@@ -127,7 +127,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         'execution-error',
         (data) => {
             if (data) {
-                showMessageBox(AlertType.ERROR, null, data.exception);
+                sendAlert(AlertType.ERROR, null, data.exception);
                 unAnimateEdges();
                 setStatus(ExecutionStatus.READY);
             }
@@ -168,7 +168,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
 
     useEffect(() => {
         if (eventSourceStatus === 'error') {
-            showMessageBox(
+            sendAlert(
                 AlertType.ERROR,
                 null,
                 'An unexpected error occurred. You may need to restart chaiNNer.'
@@ -185,7 +185,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         setStatus(ExecutionStatus.RUNNING);
         animateEdges();
         if (nodes.length === 0) {
-            showMessageBox(AlertType.ERROR, null, 'There are no nodes to run.');
+            sendAlert(AlertType.ERROR, null, 'There are no nodes to run.');
             unAnimateEdges();
             setStatus(ExecutionStatus.READY);
         } else {
@@ -206,7 +206,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                 const reasons = invalidNodes
                     .map(([, reason, type]) => `• ${type}: ${reason}`)
                     .join('\n');
-                showMessageBox(
+                sendAlert(
                     AlertType.ERROR,
                     null,
                     `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
@@ -223,12 +223,12 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                     isFp16: isFp16 && !isCpu,
                 });
                 if (response.exception) {
-                    showMessageBox(AlertType.ERROR, null, response.exception);
+                    sendAlert(AlertType.ERROR, null, response.exception);
                     unAnimateEdges();
                     setStatus(ExecutionStatus.READY);
                 }
             } catch (err) {
-                showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
+                sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
                 unAnimateEdges();
                 setStatus(ExecutionStatus.READY);
             }
@@ -239,10 +239,10 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         try {
             const response = await backend.pause();
             if (response.exception) {
-                showMessageBox(AlertType.ERROR, null, response.exception);
+                sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {
-            showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
+            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
         setStatus(ExecutionStatus.PAUSED);
         unAnimateEdges();
@@ -253,10 +253,10 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             const response = await backend.kill();
             clearCompleteEdges();
             if (response.exception) {
-                showMessageBox(AlertType.ERROR, null, response.exception);
+                sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {
-            showMessageBox(AlertType.ERROR, null, 'An unexpected error occurred.');
+            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
         unAnimateEdges();
         setStatus(ExecutionStatus.READY);

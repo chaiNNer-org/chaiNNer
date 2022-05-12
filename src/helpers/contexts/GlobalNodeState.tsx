@@ -10,7 +10,7 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import { createContext, useContextSelector } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -28,6 +28,7 @@ import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
 import { copyNode, parseHandle } from '../util';
+import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -170,6 +171,7 @@ export const GlobalProvider = ({
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const { showAlert } = useContext(AlertBoxContext);
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
@@ -225,18 +227,20 @@ export const GlobalProvider = ({
     const setStateFromJSON = async (savedData: ParsedSaveData, loadPosition = false) => {
         const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
         if (savedData.nodes.length !== validNodes.length) {
-            await ipcRenderer.invoke(
-                'show-warning-message-box',
-                'File contains invalid nodes',
-                'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
-            );
+            await showAlert({
+                type: AlertType.WARN,
+                title: 'File contains invalid nodes',
+                message:
+                    'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
+            });
         }
         if (savedData.tamperedWith) {
-            await ipcRenderer.invoke(
-                'show-warning-message-box',
-                'File has been modified',
-                'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.'
-            );
+            await showAlert({
+                type: AlertType.WARN,
+                title: 'File has been modified',
+                message:
+                    'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
+            });
         }
         setNodes(validNodes);
         setEdges(

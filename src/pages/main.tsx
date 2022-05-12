@@ -36,7 +36,7 @@ interface MainProps {
 }
 
 const Main = ({ port }: MainProps) => {
-    const { showMessageBox } = useContext(AlertBoxContext);
+    const { sendAlert } = useContext(AlertBoxContext);
 
     const [schemata, setSchemata] = useState<SchemaMap | null>(null);
     const height = useWindowHeight();
@@ -69,7 +69,7 @@ const Main = ({ port }: MainProps) => {
     );
 
     if (error) {
-        showMessageBox(
+        sendAlert(
             AlertType.CRIT_ERROR,
             null,
             `chaiNNer has encountered a critical error: ${error.message}`

@@ -217,14 +217,6 @@ const registerEventHandlers = () => {
     });
 
     ipcMain.handle('get-app-version', () => app.getVersion());
-
-    ipcMain.handle('show-warning-message-box', async (event, title, message) => {
-        await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
-            type: 'warning',
-            title,
-            message,
-        });
-    });
 };
 
 const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
