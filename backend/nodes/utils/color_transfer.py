@@ -86,6 +86,7 @@ def color_transfer(
         ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2LAB)
     elif colorspace == "RGB":
         a_clip_min, a_clip_max = (0, 1)
+        b_clip_min, b_clip_max = (0, 1)
         c_clip_min, c_clip_max = (0, 1)
         img = img[:, :, :3]
         ref_img = ref_img[:, :, :3]
