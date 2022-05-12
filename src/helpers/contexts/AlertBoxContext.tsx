@@ -17,7 +17,7 @@ import { assertNever, noop } from '../util';
 
 interface AlertBox {
     sendAlert: (alertType: AlertType, title: string | null, message: string) => void;
-    showAlert: (message: AlterOptions) => Promise<void>;
+    showAlert: (message: AlertOptions) => Promise<void>;
 }
 
 export enum AlertType {
@@ -27,13 +27,13 @@ export enum AlertType {
     CRIT_ERROR = 'Critical Error',
 }
 
-export interface AlterOptions {
+export interface AlertOptions {
     type: AlertType;
     title?: string;
     message: string;
 }
 
-interface InternalMessage extends AlterOptions {
+interface InternalMessage extends AlertOptions {
     title: string;
     resolve: () => void;
 }
@@ -119,7 +119,7 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         [setQueue]
     );
     const showAlert = useCallback(
-        (message: AlterOptions): Promise<void> => {
+        (message: AlertOptions): Promise<void> => {
             return new Promise<void>((resolve) => {
                 push({ ...message, title: message.title ?? message.type, resolve });
             });
