@@ -34,7 +34,7 @@ interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
 }
 type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 
-interface InvokeChannels {
+export interface InvokeChannels {
     'get-gpu-name': ChannelInfo<string | null>;
     'get-has-nvidia': ChannelInfo<boolean>;
     'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
@@ -65,7 +65,7 @@ interface InvokeChannels {
     'quit-application': ChannelInfo<void>;
 }
 
-interface SendChannels {
+export interface SendChannels {
     'backend-ready': SendChannelInfo;
     'checking-deps': SendChannelInfo;
     'checking-port': SendChannelInfo;
@@ -83,9 +83,9 @@ interface SendChannels {
     'spawning-backend': SendChannelInfo;
     'splash-finish': SendChannelInfo;
 }
-type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
+export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];
-type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
+export type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['returnType'];
 
 interface SafeIpcMain extends Electron.IpcMain {
