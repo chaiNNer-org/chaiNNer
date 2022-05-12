@@ -22,7 +22,7 @@ import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
 import { PythonKeys } from './common-types';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
-import { BrowserWindowWithSafeIpc, ipcMain } from './helpers/safeIpc';
+import { BrowserWindowWithSafeIpc, ipcMain, FileOpenResult } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
 import { checkFileExists } from './helpers/util';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
@@ -180,14 +180,12 @@ const registerEventHandlers = () => {
             });
             if (!canceled && filePath) {
                 await SaveFile.write(filePath, saveData, app.getVersion());
+                return { kind: 'Success', path: filePath };
             }
-            return filePath;
+            return { kind: 'Canceled' };
         } catch (error) {
             log.error(error);
-            // TODO: Find a solution to this mess
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            return (error as any).message as never;
-            // show error dialog idk
+            throw error;
         }
     });
 
@@ -196,7 +194,7 @@ const registerEventHandlers = () => {
             await SaveFile.write(savePath, saveData, app.getVersion());
         } catch (error) {
             log.error(error);
-            // show error dialog idk
+            throw error;
         }
     });
 
@@ -744,14 +742,22 @@ const createWindow = async () => {
                             filters: [{ name: 'Chain', extensions: ['chn'] }],
                             properties: ['openFile'],
                         });
+                        if (canceled) return;
+
                         try {
-                            if (!canceled) {
-                                const saveData = await SaveFile.read(filepath);
-                                mainWindow.webContents.send('file-open', saveData, filepath);
-                            }
+                            const saveData = await SaveFile.read(filepath);
+                            mainWindow.webContents.send('file-open', {
+                                kind: 'Success',
+                                path: filepath,
+                                saveData,
+                            });
                         } catch (error) {
                             log.error(error);
-                            // show error dialog idk
+                            mainWindow.webContents.send('file-open', {
+                                kind: 'Error',
+                                path: filepath,
+                                error: String(error),
+                            });
                         }
                     },
                 },
@@ -876,13 +882,23 @@ const createWindow = async () => {
     // Opening file with chaiNNer
     if (parameters[0] && parameters[0] !== '--no-backend') {
         const filepath = parameters[0];
-        try {
-            const saveData = await SaveFile.read(filepath);
-            ipcMain.handle('get-cli-open', () => saveData);
-        } catch (error) {
-            log.error(error);
-            // show error dialog idk
-        }
+        const result = SaveFile.read(filepath).then<FileOpenResult, FileOpenResult>(
+            (saveData) => {
+                return {
+                    kind: 'Success',
+                    path: filepath,
+                    saveData,
+                };
+            },
+            (reason) => {
+                return {
+                    kind: 'Error',
+                    path: filepath,
+                    error: String(reason),
+                };
+            }
+        );
+        ipcMain.handle('get-cli-open', () => result);
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
     }

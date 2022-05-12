@@ -12,6 +12,22 @@ import { Systeminformation } from 'systeminformation';
 import { PythonKeys } from '../common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
+export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
+export type FileSaveCanceled = { kind: 'Canceled' };
+export type FileSaveSuccess = { kind: 'Success'; path: string };
+
+export type FileOpenResult = FileOpenSuccess | FileOpenError;
+export interface FileOpenSuccess {
+    kind: 'Success';
+    path: string;
+    saveData: ParsedSaveData;
+}
+export interface FileOpenError {
+    kind: 'Error';
+    path: string;
+    error: string;
+}
+
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
     args: Args;
@@ -39,10 +55,10 @@ interface InvokeChannels {
 
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
-        string | undefined,
+        FileSaveResult,
         [saveData: SaveData, savePath: string | undefined]
     >;
-    'get-cli-open': ChannelInfo<ParsedSaveData | undefined>;
+    'get-cli-open': ChannelInfo<FileOpenResult | undefined>;
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
@@ -57,7 +73,7 @@ interface SendChannels {
     'downloading-python': SendChannelInfo;
     'extracting-python': SendChannelInfo;
     'file-new': SendChannelInfo;
-    'file-open': SendChannelInfo<[saveData: ParsedSaveData, openedFilePath: string]>;
+    'file-open': SendChannelInfo<[FileOpenResult]>;
     'file-save-as': SendChannelInfo;
     'file-save': SendChannelInfo;
     'finish-loading': SendChannelInfo;
