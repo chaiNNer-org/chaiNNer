@@ -284,7 +284,7 @@ export const GlobalProvider = ({
         setEdges([]);
         setNodes([]);
         setSavePath(undefined);
-        setViewport({ x: 0, y: 0, zoom: 0 });
+        setViewport({ x: 0, y: 0, zoom: 1 });
     }, [setEdges, setNodes, setSavePath, setViewport]);
 
     const performSave = useCallback(
