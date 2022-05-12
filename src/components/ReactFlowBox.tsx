@@ -13,6 +13,7 @@ import ReactFlow, {
     useEdgesState,
     useNodesState,
     useReactFlow,
+    Viewport,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, NodeSchema } from '../common-types';
@@ -30,7 +31,7 @@ interface ReactFlowBoxProps {
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { nodes, edges, createNode, createConnection } = useContext(GlobalVolatileContext);
-    const { setNodes, setEdges, onMoveEnd, setHoveredNode } = useContext(GlobalContext);
+    const { setNodes, setEdges, setZoom, setHoveredNode } = useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -120,8 +121,10 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         [setEdges, _edges, edges]
     );
 
-    const memoNodeTypes = useMemo(() => nodeTypes, []);
-    const memoEdgeTypes = useMemo(() => edgeTypes, []);
+    const onMoveEnd = useCallback(
+        (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
+        [setZoom]
+    );
 
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
@@ -209,11 +212,11 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         >
             <ReactFlow
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
-                edgeTypes={memoEdgeTypes}
+                edgeTypes={edgeTypes}
                 edges={_edges}
                 maxZoom={8}
                 minZoom={0.125}
-                nodeTypes={memoNodeTypes}
+                nodeTypes={nodeTypes}
                 nodes={_nodes}
                 snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
                 snapToGrid={isSnapToGrid}
