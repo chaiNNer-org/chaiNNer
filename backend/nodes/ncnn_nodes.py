@@ -276,7 +276,14 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.inputs = [
             NcnnNetInput("Net A"),
             NcnnNetInput("Net B"),
-            SliderInput("Amount", 0, 100, 50, min_label="Net B", max_label="Net A"),
+            SliderInput(
+                "Amount",
+                0,
+                100,
+                50,
+                note_expression="`Net A ${value}% ― Net B ${100 - value}%`",
+                hide_ends=True,
+            ),
         ]
         self.outputs = [NcnnNetOutput()]
 

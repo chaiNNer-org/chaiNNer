@@ -235,7 +235,14 @@ class InterpolateNode(NodeBase):
         self.inputs = [
             ModelInput("Model A"),
             ModelInput("Model B"),
-            SliderInput("Amount", 0, 100, 50, min_label="Model B", max_label="Model A"),
+            SliderInput(
+                "Amount",
+                0,
+                100,
+                50,
+                note_expression="`Model A ${value}% ― Model B ${100 - value}%`",
+                hide_ends=True,
+            ),
         ]
         self.outputs = [ModelOutput()]
 
