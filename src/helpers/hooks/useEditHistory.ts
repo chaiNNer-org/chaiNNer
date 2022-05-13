@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { useCallback, useState } from 'react';
 
 /**
@@ -93,10 +92,19 @@ class EditHistory<T> {
     }
 }
 
+export interface UseEditHistory<T> {
+    readonly current: T;
+    readonly undo: () => void;
+    readonly redo: () => void;
+    readonly reset: (value: T) => void;
+    readonly strongCommit: (value: T) => void;
+    readonly weakCommit: (value: T, id: string) => void;
+}
+
 /**
  * The React hook for a variable-length linear history.
  */
-export const useEditHistory = <T>(initial: T, maxLength = 100) => {
+export const useEditHistory = <T>(initial: T, maxLength = 100): UseEditHistory<T> => {
     const [history, setHistory] = useState(() => EditHistory.create(initial, maxLength));
 
     const undo = useCallback(() => setHistory((h) => h.undo()), [setHistory]);
@@ -114,5 +122,5 @@ export const useEditHistory = <T>(initial: T, maxLength = 100) => {
         [setHistory]
     );
 
-    return [history.current, strongCommit, weakCommit, undo, redo, reset] as const;
+    return { current: history.current, strongCommit, weakCommit, undo, redo, reset };
 };
