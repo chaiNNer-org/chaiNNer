@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
+import { getLocalStorage } from '../util';
 
 // TODO: Remove old localStorage code once enough time has passed that most users have migrated
 
-const getCustomLocalStorage = (): Storage => {
-    const storage = (global as Record<string, unknown>).customLocalStorage;
-    if (storage === undefined) throw new Error('Custom storage not defined');
-    return storage as Storage;
-};
-
 const getLocalStorageOrDefault = <T>(key: string, defaultValue: T): T => {
-    const customStorage = getCustomLocalStorage();
+    const customStorage = getLocalStorage();
 
     const stored = customStorage.getItem(key);
     const old = localStorage.getItem(key);
@@ -25,10 +20,10 @@ const getLocalStorageOrDefault = <T>(key: string, defaultValue: T): T => {
 };
 
 const useLocalStorage = <T>(key: string, defaultValue: T) => {
-    const [value, setValue] = useState(getLocalStorageOrDefault(key, defaultValue));
+    const [value, setValue] = useState(() => getLocalStorageOrDefault(key, defaultValue));
 
     useEffect(() => {
-        getCustomLocalStorage().setItem(key, JSON.stringify(value));
+        getLocalStorage().setItem(key, JSON.stringify(value));
     }, [key, value]);
 
     return [value, setValue] as const;

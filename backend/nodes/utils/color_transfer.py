@@ -67,8 +67,8 @@ def color_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
     colorspace: str = "L*a*b*",
-    overflow_method: int | str = 1,
-    reciprocal_scale: int | str = 1,
+    overflow_method: int = 1,
+    reciprocal_scale: int = 1,
 ) -> np.ndarray:
     """
     Transfers the color distribution from the source to the target image.
@@ -115,7 +115,6 @@ def color_transfer(
     channel_b -= b_mean_tar
     channel_c -= c_mean_tar
 
-    reciprocal_scale = int(reciprocal_scale)
     if reciprocal_scale:
         # Scale by the standard deviations using reciprocal of paper proposed factor
         channel_a = (a_std_src / a_std_tar) * channel_a
@@ -134,9 +133,8 @@ def color_transfer(
 
     # Clip/scale the pixel intensities to [clip_min, clip_max] if they fall
     # outside this range
-    overflow_method = int(overflow_method)
     channel_a = scale_array(channel_a, overflow_method, a_clip_min, a_clip_max)
-    channel_b = scale_array(channel_b, overflow_method, b_clip_min, c_clip_max)
+    channel_b = scale_array(channel_b, overflow_method, b_clip_min, b_clip_max)
     channel_c = scale_array(channel_c, overflow_method, c_clip_min, c_clip_max)
 
     # Merge the channels together, then convert back to the RGB color

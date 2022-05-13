@@ -1,45 +1,34 @@
 import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useContext, useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
+import { useLastDirectory } from '../../helpers/hooks/useLastDirectory';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
+import { InputProps } from './props';
 
-interface FileInputProps {
-    id: string;
-    index: number;
-    isLocked?: boolean;
-    label: string;
-    category: string;
-    nodeType: string;
+interface FileInputProps extends InputProps {
     filetypes: readonly string[];
     type: string;
-    schemaId: string;
 }
 
 const FileInput = memo(
-    ({
-        filetypes,
-        id,
-        index,
-        label,
-        type,
-        isLocked,
-        category,
-        nodeType,
-        schemaId,
-    }: FileInputProps) => {
-        const { useInputData, useNodeLock } = useContext(GlobalContext);
-        const [filePath, setFilePath] = useInputData<string>(id, index);
+    ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
+            c.isNodeInputLocked(id, index)
+        );
+
+        const [filePath, setFilePath] = useInputData<string>(index);
 
         // Handle case of NCNN model selection where param and bin files are named in pairs
         // Eventually, these should be combined into a single input type instead of using
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
-            const [paramFilePath] = useInputData<string>(id, index - 1);
+            const [paramFilePath] = useInputData<string>(index - 1);
             useEffect(() => {
                 (async () => {
                     if (paramFilePath) {
@@ -53,7 +42,7 @@ const FileInput = memo(
             }, [paramFilePath]);
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
-            const [binFilePath] = useInputData<string>(id, index + 1);
+            const [binFilePath] = useInputData<string>(index + 1);
             useEffect(() => {
                 (async () => {
                     if (binFilePath) {
@@ -67,10 +56,10 @@ const FileInput = memo(
             }, [binFilePath]);
         }
 
-        const [, , isInputLocked] = useNodeLock(id, index);
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${index}`);
 
         const onButtonClick = async () => {
-            const fileDir = filePath ? path.dirname(filePath) : undefined;
+            const fileDir = filePath ? path.dirname(filePath) : getLastDirectory();
             const fileFilter = [
                 {
                     name: label,
@@ -86,6 +75,7 @@ const FileInput = memo(
             const selectedPath = filePaths[0];
             if (!canceled && selectedPath) {
                 setFilePath(selectedPath);
+                setLastDirectory(path.dirname(selectedPath));
             }
         };
 
@@ -95,9 +85,7 @@ const FileInput = memo(
                     return (
                         <Box mt={2}>
                             <ImagePreview
-                                category={category}
                                 id={id}
-                                nodeType={nodeType}
                                 path={filePath}
                                 schemaId={schemaId}
                             />
@@ -107,9 +95,7 @@ const FileInput = memo(
                     return (
                         <Box mt={2}>
                             <TorchModelPreview
-                                category={category}
                                 id={id}
-                                nodeType={nodeType}
                                 path={filePath}
                                 schemaId={schemaId}
                             />

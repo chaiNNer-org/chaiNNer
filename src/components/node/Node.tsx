@@ -8,10 +8,11 @@ import {
     useColorModeValue,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import NodeBody from './NodeBody';
@@ -32,15 +33,15 @@ interface NodeProps {
 }
 
 const Node = memo(({ data, selected }: NodeProps) => {
-    const { nodes, edges, schemata, updateIteratorBounds, useHoveredNode } =
-        useContext(GlobalContext);
+    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
 
-    const { id, inputData, isLocked, category, type, parentNode, schemaId } = data;
+    const { id, inputData, isLocked, parentNode, schemaId } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon } = schema;
+    const { inputs, outputs, icon, category, name } = schema;
 
     const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
@@ -55,21 +56,18 @@ const Node = memo(({ data, selected }: NodeProps) => {
         if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
         }
-    }, [inputData, edges.length, nodes.length]);
+    }, [inputData, edges.length]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
 
     useLayoutEffect(() => {
         if (targetRef.current && parentNode) {
-            const parent = nodes.find((n) => n.id === parentNode);
-            if (parent) {
-                updateIteratorBounds(parentNode, parent.data.iteratorSize!, {
-                    width: targetRef.current.offsetWidth,
-                    height: targetRef.current.offsetHeight,
-                });
-                setCheckedSize(true);
-            }
+            updateIteratorBounds(parentNode, null, {
+                width: targetRef.current.offsetWidth,
+                height: targetRef.current.offsetHeight,
+            });
+            setCheckedSize(true);
         }
     }, [checkedSize, targetRef.current?.offsetHeight]);
 
@@ -82,8 +80,6 @@ const Node = memo(({ data, selected }: NodeProps) => {
     //     setShowMenu(false);
     //   }
     // }, [selected]);
-
-    const [, setHoveredNode] = useHoveredNode;
 
     return (
         <>
@@ -121,17 +117,16 @@ const Node = memo(({ data, selected }: NodeProps) => {
                         <NodeHeader
                             accentColor={accentColor}
                             icon={icon}
+                            name={name}
                             parentNode={parentNode}
                             selected={selected}
-                            type={type}
                         />
                         <NodeBody
                             accentColor={accentColor}
-                            category={category}
                             id={id}
+                            inputData={inputData}
                             inputs={inputs}
                             isLocked={isLocked}
-                            nodeType={type}
                             outputs={outputs}
                             schemaId={schemaId}
                         />

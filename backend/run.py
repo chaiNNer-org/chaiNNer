@@ -92,7 +92,7 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    logger.info(category_order)
+    logger.debug(category_order)
 
     # sort nodes in category order
     sorted_registry = sorted(
@@ -108,8 +108,8 @@ async def nodes(_):
             "schemaId": schema_id,
             "name": node_object.get_name(),
             "category": node_object.get_category(),
-            "inputs": node_object.get_inputs(),
-            "outputs": node_object.get_outputs(),
+            "inputs": [dict(x) for x in node_object.get_inputs()],
+            "outputs": [dict(x) for x in node_object.get_outputs()],
             "description": node_object.get_description(),
             "icon": node_object.get_icon(),
             "subcategory": node_object.get_sub_category(),

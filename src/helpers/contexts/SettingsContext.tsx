@@ -1,4 +1,5 @@
-import React, { createContext, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { createContext } from 'use-context-selector';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface Settings {

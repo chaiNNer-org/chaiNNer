@@ -1,126 +1,52 @@
-from typing import List, Dict
+from typing import Dict, List
+
+from .base_input import BaseInput
 
 
-def DropDownInput(
-    input_type: str, label: str, options: List[Dict], optional: bool = False
-) -> Dict:
+class DropDownInput(BaseInput):
     """Input for a dropdown"""
-    return {
-        "type": f"dropdown::{input_type}",
-        "label": label,
-        "options": options,
-        "optional": optional,
-    }
+
+    def __init__(
+        self,
+        label: str,
+        options: List[Dict],
+        input_type: str = "generic",
+        optional: bool = False,
+    ):
+        super().__init__(f"dropdown::{input_type}", label, optional)
+        self.options = options
+
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "options": self.options,
+            "optional": self.optional,
+        }
+
+    def enforce(self, value):
+        accepted_values = [o["value"] for o in self.options]
+        if value not in accepted_values and int(value) in accepted_values:
+            value = int(value)
+        assert value in accepted_values, f"{value} is not a valid option"
+        return value
 
 
-def TextInput(label: str, has_handle=True, max_length=None, optional=False) -> Dict:
+class TextInput(BaseInput):
     """Input for arbitrary text"""
-    return {
-        "type": "text::any",
-        "label": label,
-        "hasHandle": has_handle,
-        "maxLength": max_length,
-        "optional": optional,
-    }
 
+    def __init__(self, label: str, has_handle=True, max_length=None, optional=False):
+        super().__init__(f"text::any", label, optional, has_handle=has_handle)
+        self.max_length = max_length
 
-def NumberInput(label: str, default=0.0, minimum=0, step=1) -> Dict:
-    """Input for arbitrary number"""
-    return {
-        "type": "number::any",
-        "label": label,
-        "min": minimum,
-        "def": default,
-        "step": step,
-        "hasHandle": True,
-    }
-
-
-def BoundedNumberInput(
-    label: str,
-    minimum: float = 0.0,
-    maximum: float = 1.0,
-    default: float = 0.5,
-    step: float = 0.25,
-) -> Dict:
-    """Input for bounded number range"""
-    return {
-        "type": "number::any",
-        "label": label,
-        "min": minimum,
-        "max": maximum,
-        "def": default,
-        "step": step,
-        "hasHandle": True,
-    }
-
-
-def IntegerInput(label: str) -> Dict:
-    """Input for integer number"""
-    return {
-        "type": "number::integer",
-        "label": label,
-        "min": 0,
-        "def": 0,
-        "hasHandle": True,
-    }
-
-
-def OddIntegerInput(label: str, default: int = 1, minimum: int = 1) -> Dict:
-    """Input for integer number"""
-    return {
-        "type": "number::integer::odd",
-        "label": label,
-        "def": default,
-        "step": 2,
-        "min": minimum,
-        "hasHandle": True,
-    }
-
-
-def BoundedIntegerInput(
-    label: str,
-    minimum: int = 0,
-    maximum: int = 100,
-    default: int = 50,
-    optional: bool = False,
-) -> Dict:
-    """Bounded input for integer number"""
-    return {
-        "type": "number::integer",
-        "label": label,
-        "min": minimum,
-        "max": maximum,
-        "def": default,
-        "hasHandle": True,
-        "optional": optional,
-    }
-
-
-def BoundlessIntegerInput(label: str) -> Dict:
-    """Input for integer number"""
-    return {
-        "type": "number::integer",
-        "label": label,
-        "min": None,
-        "max": None,
-        "def": 0,
-        "hasHandle": True,
-    }
-
-
-def SliderInput(
-    label: str, min_val: int, max_val: int, default: int, optional: bool = False
-) -> Dict:
-    """Input for integer number via slider"""
-    return {
-        "type": "number::slider",
-        "label": label,
-        "min": min_val,
-        "max": max_val,
-        "def": default,
-        "optional": optional,
-    }
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "hasHandle": self.has_handle,
+            "maxLength": self.max_length,
+            "optional": self.optional,
+        }
 
 
 def NoteTextAreaInput() -> Dict:
@@ -134,10 +60,9 @@ def NoteTextAreaInput() -> Dict:
     }
 
 
-def MathOpsDropdown() -> Dict:
+def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(
-        "math-operations",
         "Math Operation",
         [
             {
@@ -161,13 +86,13 @@ def MathOpsDropdown() -> Dict:
                 "value": "pow",
             },
         ],
+        input_type="math-operations",
     )
 
 
-def StackOrientationDropdown() -> Dict:
+def StackOrientationDropdown() -> DropDownInput:
     """Input for selecting stack orientation from dropdown"""
     return DropDownInput(
-        "generic",
         "Orientation",
         [
             {
@@ -198,10 +123,9 @@ class AlphaFillMethod:
     EXTEND_COLOR = 2
 
 
-def AlphaFillMethodInput() -> Dict:
+def AlphaFillMethodInput() -> DropDownInput:
     """Alpha Fill method option dropdown"""
     return DropDownInput(
-        "generic",
         "Fill method",
         [
             {
@@ -211,6 +135,27 @@ def AlphaFillMethodInput() -> Dict:
             {
                 "option": "Extend color",
                 "value": AlphaFillMethod.EXTEND_COLOR,
+            },
+        ],
+    )
+
+
+def VideoTypeDropdown() -> DropDownInput:
+    """Video Type option dropdown"""
+    return DropDownInput(
+        "Video Type",
+        [
+            {
+                "option": "MP4",
+                "value": "mp4",
+            },
+            {
+                "option": "AVI",
+                "value": "avi",
+            },
+            {
+                "option": "None",
+                "value": "none",
             },
         ],
     )

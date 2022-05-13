@@ -43,7 +43,7 @@ class Executor:
         """Process a single node"""
         logger.debug(f"node: {node}")
         node_id = node["id"]
-        logger.info(f"Running node {node_id}")
+        logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
             finish_data = await self.check()
@@ -76,6 +76,17 @@ class Executor:
             return None
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(node["schemaId"])
+
+        # Enforce that all inputs match the expected input schema
+        enforced_inputs = []
+        node_inputs = node_instance.get_inputs()
+        for idx, node_input in enumerate(inputs):
+            # TODO: remove this when all the inputs are transitioned to classes
+            if isinstance(node_inputs[idx], dict):
+                enforced_inputs.append(node_input)
+            else:
+                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
             sub_nodes = {}
@@ -97,7 +108,7 @@ class Executor:
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
             output = await node_instance.run(
-                *inputs,
+                *enforced_inputs,
                 nodes=sub_nodes,
                 loop=self.loop,
                 queue=self.queue,
@@ -114,7 +125,7 @@ class Executor:
             return output
         else:
             # Run the node and pass in inputs as args
-            run_func = functools.partial(node_instance.run, *inputs)
+            run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
             # Cache the output of the node
             self.output_cache[node_id] = output

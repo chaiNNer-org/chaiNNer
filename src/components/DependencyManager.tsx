@@ -38,8 +38,9 @@ import {
 } from '@chakra-ui/react';
 import { exec as _exec, spawn } from 'child_process';
 import log from 'electron-log';
-import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
+import { useContext } from 'use-context-selector';
 import util from 'util';
 import { PythonKeys } from '../common-types';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';

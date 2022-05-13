@@ -1,8 +1,9 @@
 import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { Split } from '@geoffcox/react-splitter';
-import { useWindowSize } from '@react-hook/window-size';
-import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { useWindowHeight } from '@react-hook/window-size';
+import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
+import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
@@ -14,7 +15,9 @@ import NodeSelector from '../components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from '../components/ReactFlowBox';
 import { BackendNodesResponse } from '../helpers/Backend';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
+import { ExecutionProvider } from '../helpers/contexts/ExecutionContext';
 import { GlobalProvider } from '../helpers/contexts/GlobalNodeState';
+import { MenuFunctionsProvider } from '../helpers/contexts/MenuFunctions';
 import { SettingsProvider } from '../helpers/contexts/SettingsContext';
 import { ipcRenderer } from '../helpers/safeIpc';
 import { SchemaMap } from '../helpers/SchemaMap';
@@ -33,10 +36,10 @@ interface MainProps {
 }
 
 const Main = ({ port }: MainProps) => {
-    const { showMessageBox } = useContext(AlertBoxContext);
+    const { sendAlert } = useContext(AlertBoxContext);
 
     const [schemata, setSchemata] = useState<SchemaMap | null>(null);
-    const [, height] = useWindowSize();
+    const height = useWindowHeight();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -66,7 +69,7 @@ const Main = ({ port }: MainProps) => {
     );
 
     if (error) {
-        showMessageBox(
+        sendAlert(
             AlertType.CRIT_ERROR,
             null,
             `chaiNNer has encountered a critical error: ${error.message}`
@@ -100,36 +103,40 @@ const Main = ({ port }: MainProps) => {
                     reactFlowWrapper={reactFlowWrapper}
                     schemata={schemata}
                 >
-                    <VStack
-                        bg={bgColor}
-                        overflow="hidden"
-                        p={2}
-                    >
-                        <Header port={port} />
-                        <HStack
-                            as={Split}
-                            defaultSplitterColors={{
-                                color: '#71809633',
-                                hover: '#71809666',
-                                drag: '#718096EE',
-                            }}
-                            initialPrimarySize="380px"
-                            minPrimarySize="290px"
-                            minSecondarySize="75%"
-                            splitterSize="10px"
+                    <MenuFunctionsProvider>
+                        <VStack
+                            bg={bgColor}
+                            overflow="hidden"
+                            p={2}
                         >
-                            <NodeSelector
-                                height={height}
-                                schemata={schemata}
-                            />
+                            <ExecutionProvider>
+                                <Header />
+                            </ExecutionProvider>
+                            <HStack
+                                as={Split}
+                                defaultSplitterColors={{
+                                    color: '#71809633',
+                                    hover: '#71809666',
+                                    drag: '#718096EE',
+                                }}
+                                initialPrimarySize="380px"
+                                minPrimarySize="290px"
+                                minSecondarySize="65%"
+                                splitterSize="10px"
+                            >
+                                <NodeSelector
+                                    height={height}
+                                    schemata={schemata}
+                                />
 
-                            <ReactFlowBox
-                                edgeTypes={edgeTypes}
-                                nodeTypes={nodeTypes}
-                                wrapperRef={reactFlowWrapper}
-                            />
-                        </HStack>
-                    </VStack>
+                                <ReactFlowBox
+                                    edgeTypes={edgeTypes}
+                                    nodeTypes={nodeTypes}
+                                    wrapperRef={reactFlowWrapper}
+                                />
+                            </HStack>
+                        </VStack>
+                    </MenuFunctionsProvider>
                 </GlobalProvider>
             </SettingsProvider>
         </ReactFlowProvider>

@@ -22,7 +22,7 @@ import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
 import { PythonKeys } from './common-types';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
-import { BrowserWindowWithSafeIpc, ipcMain } from './helpers/safeIpc';
+import { BrowserWindowWithSafeIpc, ipcMain, FileOpenResult } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
 import { checkFileExists } from './helpers/util';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
@@ -118,7 +118,7 @@ if (app.isPackaged) {
                     );
                     const releaseUrl = latestVersion.html_url;
                     const latestVersionNum = semver.coerce(latestVersion.tag_name)!;
-                    const buttonResult = dialog.showMessageBoxSync(
+                    const buttonResult = await dialog.showMessageBox(
                         BrowserWindow.getFocusedWindow()!,
                         {
                             type: 'info',
@@ -128,7 +128,7 @@ if (app.isPackaged) {
                             defaultId: 1,
                         }
                     );
-                    if (buttonResult === 0) {
+                    if (buttonResult.response === 0) {
                         await shell.openExternal(releaseUrl);
                         app.exit();
                     }
@@ -180,14 +180,12 @@ const registerEventHandlers = () => {
             });
             if (!canceled && filePath) {
                 await SaveFile.write(filePath, saveData, app.getVersion());
+                return { kind: 'Success', path: filePath };
             }
-            return filePath;
+            return { kind: 'Canceled' };
         } catch (error) {
             log.error(error);
-            // TODO: Find a solution to this mess
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            return (error as any).message as never;
-            // show error dialog idk
+            throw error;
         }
     });
 
@@ -196,7 +194,7 @@ const registerEventHandlers = () => {
             await SaveFile.write(savePath, saveData, app.getVersion());
         } catch (error) {
             log.error(error);
-            // show error dialog idk
+            throw error;
         }
     });
 
@@ -217,15 +215,6 @@ const registerEventHandlers = () => {
     });
 
     ipcMain.handle('get-app-version', () => app.getVersion());
-
-    ipcMain.handle('show-warning-message-box', async (event, title, message) => {
-        dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow()!, {
-            type: 'warning',
-            title,
-            message,
-        });
-        return Promise.resolve();
-    });
 };
 
 const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
@@ -240,7 +229,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
             message:
                 'This error should never happen, but if it does it means you are running a lot of servers on your computer that just happen to be in the port range I look for. Quit some of those and then this will work.',
         };
-        dialog.showMessageBoxSync(messageBoxOptions);
+        await dialog.showMessageBox(messageBoxOptions);
         app.exit(1);
     }
     log.info(`Port found: ${port}`);
@@ -306,10 +295,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 message:
                     'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             };
-            const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-            if (buttonResult === 1) {
+            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+            if (buttonResult.response === 1) {
                 app.exit(1);
-            } else if (buttonResult === 0) {
+            } else if (buttonResult.response === 0) {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
@@ -331,10 +320,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 message:
                     'It seems like your installed Python version does not meet the requirement (>=3.7). Please install a Python version at or above 3.7 to use this application. You can get Python from https://www.python.org/downloads/',
             };
-            const buttonResult = dialog.showMessageBoxSync(messageBoxOptions);
-            if (buttonResult === 1) {
+            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+            if (buttonResult.response === 1) {
                 app.exit(1);
-            } else if (buttonResult === 0) {
+            } else if (buttonResult.response === 0) {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
@@ -431,7 +420,7 @@ const checkNvidiaSmi = async () => {
     const registerEmptyGpuEvents = () => {
         ipcMain.handle('get-has-nvidia', () => false);
         ipcMain.handle('get-gpu-name', () => null);
-        ipcMain.handle('get-vram-usage', () => 0);
+        ipcMain.handle('get-vram-usage', () => null);
     };
 
     const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
@@ -446,7 +435,7 @@ const checkNvidiaSmi = async () => {
         ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
 
         let vramChecker: ChildProcessWithoutNullStreams | undefined;
-        let lastVRam = 0;
+        let lastVRam: number | null = null;
         ipcMain.handle('get-vram-usage', () => {
             if (!vramChecker) {
                 const delay = 1000;
@@ -458,9 +447,11 @@ const checkNvidiaSmi = async () => {
                 );
 
                 vramChecker.stdout.on('data', (data) => {
-                    const [, vramTotal, vramUsed] = String(data).split('\n')[0].split(', ');
+                    const [, vramTotal, vramUsed] = String(data).split(/\s*,\s*/, 4);
                     const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
-                    lastVRam = usage;
+                    if (Number.isFinite(usage)) {
+                        lastVRam = usage;
+                    }
                 });
             }
 
@@ -513,7 +504,6 @@ const checkNvidiaSmi = async () => {
     }
 
     if (nvidiaSmi) {
-        ipcMain.handle('get-smi', () => nvidiaSmi);
         await registerNvidiaSmiEvents(nvidiaSmi);
     } else {
         registerEmptyGpuEvents();
@@ -735,12 +725,14 @@ const createWindow = async () => {
             submenu: [
                 {
                     label: 'New',
+                    accelerator: 'CmdOrCtrl+N',
                     click: () => {
                         mainWindow.webContents.send('file-new');
                     },
                 },
                 {
                     label: 'Open',
+                    accelerator: 'CmdOrCtrl+O',
                     click: async () => {
                         const {
                             canceled,
@@ -750,26 +742,36 @@ const createWindow = async () => {
                             filters: [{ name: 'Chain', extensions: ['chn'] }],
                             properties: ['openFile'],
                         });
+                        if (canceled) return;
+
                         try {
-                            if (!canceled) {
-                                const saveData = await SaveFile.read(filepath);
-                                mainWindow.webContents.send('file-open', saveData, filepath);
-                            }
+                            const saveData = await SaveFile.read(filepath);
+                            mainWindow.webContents.send('file-open', {
+                                kind: 'Success',
+                                path: filepath,
+                                saveData,
+                            });
                         } catch (error) {
                             log.error(error);
-                            // show error dialog idk
+                            mainWindow.webContents.send('file-open', {
+                                kind: 'Error',
+                                path: filepath,
+                                error: String(error),
+                            });
                         }
                     },
                 },
                 { type: 'separator' },
                 {
                     label: 'Save',
+                    accelerator: 'CmdOrCtrl+S',
                     click: () => {
                         mainWindow.webContents.send('file-save');
                     },
                 },
                 {
                     label: 'Save As',
+                    accelerator: 'CmdOrCtrl+Shift+S',
                     click: () => {
                         mainWindow.webContents.send('file-save-as');
                     },
@@ -890,13 +892,23 @@ const createWindow = async () => {
     // Opening file with chaiNNer
     if (parameters[0] && parameters[0] !== '--no-backend') {
         const filepath = parameters[0];
-        try {
-            const saveData = await SaveFile.read(filepath);
-            ipcMain.handle('get-cli-open', () => saveData);
-        } catch (error) {
-            log.error(error);
-            // show error dialog idk
-        }
+        const result = SaveFile.read(filepath).then<FileOpenResult, FileOpenResult>(
+            (saveData) => {
+                return {
+                    kind: 'Success',
+                    path: filepath,
+                    saveData,
+                };
+            },
+            (reason) => {
+                return {
+                    kind: 'Error',
+                    path: filepath,
+                    error: String(reason),
+                };
+            }
+        );
+        ipcMain.handle('get-cli-open', () => result);
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
     }

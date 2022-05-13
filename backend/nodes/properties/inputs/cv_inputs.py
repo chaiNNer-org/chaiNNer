@@ -1,14 +1,15 @@
 from typing import Dict
+
 import cv2
-from sanic.log import logger
-from .generic_inputs import DropDownInput
+
+# pylint: disable=relative-beyond-top-level
 from ...utils.pil_utils import InterpolationMethod
+from .generic_inputs import DropDownInput
 
 
-def ColorModeInput() -> Dict:
+def ColorModeInput() -> DropDownInput:
     """Converting color mode dropdown"""
     return DropDownInput(
-        "generic",
         "Color Mode",
         [
             {
@@ -69,12 +70,15 @@ def ColorModeInput() -> Dict:
     )
 
 
-def InterpolationInput() -> Dict:
+def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return DropDownInput(
-        "generic",
         "Interpolation Mode",
         [
+            {
+                "option": "Auto",
+                "value": InterpolationMethod.AUTO,
+            },
             {
                 "option": "Nearest Neighbor",
                 "value": InterpolationMethod.NEAREST,
@@ -96,10 +100,9 @@ def InterpolationInput() -> Dict:
     )
 
 
-def BlurInput() -> Dict:
+def BlurInput() -> DropDownInput:
     """Blur option dropdown"""
     return DropDownInput(
-        "generic",
         "Blur Mode",
         [
             {
@@ -118,10 +121,9 @@ def BlurInput() -> Dict:
     )
 
 
-def BorderInput() -> Dict:
+def BorderInput() -> DropDownInput:
     """CopyMakeBorder option dropdown"""
     return DropDownInput(
-        "generic",
         "Border Type",
         [
             {
@@ -148,10 +150,9 @@ def BorderInput() -> Dict:
     )
 
 
-def ThresholdInput() -> Dict:
+def ThresholdInput() -> DropDownInput:
     """Threshold type option dropdown"""
     return DropDownInput(
-        "generic",
         "Threshold Type",
         [
             {
@@ -178,10 +179,9 @@ def ThresholdInput() -> Dict:
     )
 
 
-def AdaptiveThresholdInput() -> Dict:
+def AdaptiveThresholdInput() -> DropDownInput:
     """Adaptive Threshold type option dropdown"""
     return DropDownInput(
-        "generic",
         "Threshold Type",
         [
             {
@@ -196,10 +196,9 @@ def AdaptiveThresholdInput() -> Dict:
     )
 
 
-def AdaptiveMethodInput() -> Dict:
+def AdaptiveMethodInput() -> DropDownInput:
     """Adaptive method border option dropdown"""
     return DropDownInput(
-        "generic",
         "Adaptive Method",
         [
             {

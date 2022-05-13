@@ -41,6 +41,7 @@ class SRVGGNetCompact(nn.Module):
         self.num_feat = self.get_num_feats()
         self.num_conv = self.get_num_conv()
         self.out_nc = self.in_nc  # :(
+        self.pixelshuffle_shape = None  # Defined in get_scale()
         self.scale = self.get_scale()
 
         self.body = nn.ModuleList()

@@ -9,7 +9,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.color_transfer import color_transfer
-from .utils.image_utils import normalize, normalize_normals
+from .utils.image_utils import normalize_normals
 from .utils.pil_utils import *
 
 
@@ -41,11 +41,11 @@ class BlurNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        ksize = (int(amount_x), int(amount_y))
+        ksize = (amount_x, amount_y)
         for __i in range(16):
             img = cv2.blur(img, ksize)
 
-        return img
+        return np.clip(img, 0, 1)
 
 
 @NodeFactory.register("chainner:image:gaussian_blur")
@@ -77,7 +77,7 @@ class GaussianBlurNode(NodeBase):
 
         blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
 
-        return blurred
+        return np.clip(blurred, 0, 1)
 
 
 @NodeFactory.register("chainner:image:sharpen")
@@ -108,7 +108,7 @@ class SharpenNode(NodeBase):
         blurred = cv2.GaussianBlur(img, (0, 0), amount)
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
-        return img
+        return np.clip(img, 0, 1)
 
 
 @NodeFactory.register("chainner:image:average_color_fix")
@@ -139,9 +139,6 @@ class AverageColorFixNode(NodeBase):
         self, input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
-
-        input_img = normalize(input_img)
-        ref_img = normalize(ref_img)
 
         if scale_factor != 1.0:
             ref_img = cv2.resize(
@@ -203,23 +200,22 @@ class ColorTransferNode(NodeBase):
             ImageInput("Image"),
             ImageInput("Reference Image"),
             DropDownInput(
-                "str",
                 "Colorspace",
                 [
                     {"option": "L*a*b*", "value": "L*a*b*"},
                     {"option": "RGB", "value": "RGB"},
                 ],
+                input_type="str",
             ),
             DropDownInput(
-                "str",
                 "Overflow Method",
                 [
                     {"option": "Clip", "value": 1},
                     {"option": "Scale", "value": 0},
                 ],
+                input_type="str",
             ),
             DropDownInput(
-                "generic",
                 "Reciprocal Scaling Factor",
                 [
                     {"option": "Yes", "value": 1},
@@ -238,8 +234,8 @@ class ColorTransferNode(NodeBase):
         img: np.ndarray,
         ref_img: np.ndarray,
         colorspace: str = "L*a*b*",
-        overflow_method: int | str = 1,
-        reciprocal_scale: int | str = 1,
+        overflow_method: int = 1,
+        reciprocal_scale: int = 1,
     ) -> np.ndarray:
         """
         Transfers the color distribution from source image to target image.
@@ -248,9 +244,6 @@ class ColorTransferNode(NodeBase):
         assert (
             ref_img.ndim == 3 and ref_img.shape[2] >= 3
         ), "Reference image should be RGB or RGBA"
-
-        img = normalize(img)
-        ref_img = normalize(ref_img)
 
         # Make sure target has at least 3 channels
         if img.ndim == 2 or img.shape[2] == 1:
@@ -286,7 +279,7 @@ class NormalizeNode(NodeBase):
         ]
         self.outputs = [ImageOutput("Normal Map")]
         self.category = IMAGE_FILTER
-        self.name = "Normalize"
+        self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
 
@@ -297,8 +290,8 @@ class NormalizeNode(NodeBase):
         assert img.ndim == 3, "The input image must be an RGB or RGBA image"
 
         # Convert BGR to XY
-        x = normalize(img[:, :, 2]) * 2 - 1
-        y = normalize(img[:, :, 1]) * 2 - 1
+        x = img[:, :, 2] * 2 - 1
+        y = img[:, :, 1] * 2 - 1
 
         x, y, z = normalize_normals(x, y)
 
@@ -358,10 +351,10 @@ class NormalAdditionNode(NodeBase):
         m_strength /= 100
 
         # Convert BGR to XY
-        n_x = normalize(n[:, :, 2]) * 2 - 1
-        n_y = normalize(n[:, :, 1]) * 2 - 1
-        m_x = normalize(m[:, :, 2]) * 2 - 1
-        m_y = normalize(m[:, :, 1]) * 2 - 1
+        n_x = n[:, :, 2] * 2 - 1
+        n_y = n[:, :, 1] * 2 - 1
+        m_x = m[:, :, 2] * 2 - 1
+        m_y = m[:, :, 1] * 2 - 1
 
         n_x, n_y, n_z = normalize_normals(n_x, n_y)
         m_x, m_y, m_z = normalize_normals(m_x, m_y)

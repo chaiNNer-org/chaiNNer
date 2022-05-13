@@ -11,7 +11,6 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
-from .utils.image_utils import normalize
 from .utils.pil_utils import *
 
 
@@ -23,7 +22,8 @@ class ImResizeByFactorNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%)."
+            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%). "
+            "Auto uses box for downsampling and lanczos for upsampling."
         )
         self.inputs = [
             ImageInput(),
@@ -41,12 +41,10 @@ class ImResizeByFactorNode(NodeBase):
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
-        img = normalize(img)
-
         h, w = img.shape[:2]
         out_dims = (math.ceil(w * scale), math.ceil(h * scale))
 
-        return resize(img, out_dims, int(interpolation))
+        return resize(img, out_dims, interpolation)
 
 
 @NodeFactory.register("chainner:image:resize_resolution")
@@ -56,7 +54,10 @@ class ImResizeToResolutionNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Resize an image to an exact resolution."
+        self.description = (
+            "Resize an image to an exact resolution. "
+            "Auto uses box for downsampling and lanczos for upsampling."
+        )
         self.inputs = [
             ImageInput(),
             IntegerInput("Width"),
@@ -76,11 +77,9 @@ class ImResizeToResolutionNode(NodeBase):
 
         logger.info(f"Resizing image to {width}x{height} via {interpolation}")
 
-        img = normalize(img)
+        out_dims = (width, height)
 
-        out_dims = (int(width), int(height))
-
-        return resize(img, out_dims, int(interpolation))
+        return resize(img, out_dims, interpolation)
 
 
 @NodeFactory.register("chainner:image:crop_offsets")
@@ -110,11 +109,6 @@ class CropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        top = int(top)
-        left = int(left)
-        height = int(height)
-        width = int(width)
 
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
@@ -148,8 +142,6 @@ class BorderCropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        amount = int(amount)
 
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
@@ -186,8 +178,6 @@ class EdgeCropNode(NodeBase):
         """Crop an image"""
 
         h, w = img.shape[:2]
-
-        top, left, right, bottom = [int(x) for x in [top, left, right, bottom]]
 
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"

@@ -1,20 +1,16 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import log from 'electron-log';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
     Edge,
     getOutgoers,
     Node,
-    OnEdgesChange,
-    OnNodesChange,
-    ReactFlowInstance,
-    useEdgesState,
-    useKeyPress,
-    useNodesState,
     useReactFlow,
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
@@ -26,77 +22,144 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import useSessionStorage from '../hooks/useSessionStorage';
+import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
-import { SaveData } from '../SaveFile';
+import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, deepCopy, parseHandle } from '../util';
+import { copyNode, parseHandle } from '../util';
+import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
-interface Global {
-    schemata: SchemaMap;
+interface GlobalVolatile {
     nodes: readonly Node<NodeData>[];
     edges: readonly Edge<EdgeData>[];
+    createNode: (proto: NodeProto) => void;
+    createConnection: (connection: Connection) => void;
+    isNodeInputLocked: (id: string, index: number) => boolean;
+    duplicateNode: (id: string) => void;
+    zoom: number;
+    hoveredNode: string | null | undefined;
+}
+interface Global {
+    schemata: SchemaMap;
+    reactFlowWrapper: React.RefObject<Element>;
     setNodes: SetState<Node<NodeData>[]>;
     setEdges: SetState<Edge<EdgeData>[]>;
-    onNodesChange: OnNodesChange;
-    onEdgesChange: OnEdgesChange;
-    createNode: (proto: NodeProto) => Node<NodeData>;
-    createConnection: (connection: Connection) => void;
-    reactFlowInstance: ReactFlowInstance<NodeData, EdgeData> | null;
-    setReactFlowInstance: SetState<ReactFlowInstance<NodeData, EdgeData> | null>;
-    reactFlowWrapper: React.RefObject<Element>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    useInputData: <T extends NonNullable<InputValue>>(
-        id: string,
-        index: number
-    ) => readonly [T | undefined, (data: T) => void];
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
         (finished: readonly string[]) => void,
         () => void
     ];
+    useInputData: <T extends NonNullable<InputValue>>(
+        id: string,
+        index: number,
+        inputData: InputData
+    ) => readonly [T | undefined, (data: T) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
-    useNodeLock: (
-        id: string,
-        index?: number | null
-    ) =>
-        | readonly []
-        | readonly [isLocked: boolean, toggleLocked: () => void, isInputLocked: boolean];
-    duplicateNode: (id: string) => void;
+    toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    outlineInvalidNodes: (invalidNodes: readonly Node<NodeData>[]) => void;
-    zoom: number;
-    onMoveEnd: (event: unknown, viewport: Viewport) => void;
     useIteratorSize: (
         id: string
     ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
-    updateIteratorBounds: (id: string, iteratorSize: IteratorSize, dimensions?: Size) => void;
+    updateIteratorBounds: (
+        id: string,
+        iteratorSize: IteratorSize | null,
+        dimensions?: Size
+    ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
-    closeAllMenus: () => void;
-    useHoveredNode: readonly [string | null | undefined, SetState<string | null | undefined>];
-    useMenuCloseFunctions: readonly [
-        closeAllMenus: () => void,
-        addMenuCloseFunction: (func: () => void, id: string) => void
-    ];
+    setHoveredNode: SetState<string | null | undefined>;
+    setZoom: SetState<number>;
 }
 
 interface NodeProto {
     position: XYPosition;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
-    parent?: string | Node<NodeData> | null;
 }
 
 // TODO: Find default
+export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createUniqueId = () => uuidv4();
+
+const createNodeImpl = (
+    { position, data, nodeType }: NodeProto,
+    schemata: SchemaMap,
+    snapToGridAmount: number,
+    parent?: Node<NodeData>
+): Node<NodeData>[] => {
+    const id = createUniqueId();
+    const newNode: Node<Mutable<NodeData>> = {
+        type: nodeType,
+        id,
+        position: snapToGrid(position, snapToGridAmount),
+        data: {
+            ...data,
+            id,
+            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
+        },
+    };
+
+    if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
+        const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
+            width: 1280,
+            height: 720,
+            offsetTop: 0,
+            offsetLeft: 0,
+        };
+        newNode.position.x = position.x - parent.position.x;
+        newNode.position.y = position.y - parent.position.y;
+        newNode.parentNode = parent.id;
+        newNode.data.parentNode = parent.id;
+        newNode.extent = [
+            [offsetLeft, offsetTop],
+            [width, height],
+        ];
+    }
+
+    const extraNodes: Node<NodeData>[] = [];
+    if (nodeType === 'iterator') {
+        newNode.data.iteratorSize = {
+            width: 1280,
+            height: 720,
+            offsetTop: 0,
+            offsetLeft: 0,
+        };
+
+        const { defaultNodes = [] } = schemata.get(data.schemaId);
+
+        defaultNodes.forEach(({ schemaId }) => {
+            const schema = schemata.get(schemaId);
+            const subNode = createNodeImpl(
+                {
+                    nodeType: schema.nodeType,
+                    position: newNode.position,
+                    data: {
+                        schemaId,
+                    },
+                },
+                schemata,
+                snapToGridAmount,
+                newNode
+            );
+            extraNodes.push(...subNode);
+        });
+    }
+
+    return [newNode, ...extraNodes];
+};
+
+const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
+const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
+const cachedViewport = getSessionStorageOrDefault<Viewport | null>('cachedViewport', null);
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
@@ -108,272 +171,214 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const [, , snapToGridAmount] = useSnapToGrid;
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
-    const { setViewport, getViewport } = useReactFlow();
+    const { sendAlert, sendToast } = useContext(AlertBoxContext);
+
+    const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
+    const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
+    const { setViewport, getViewport, getNode, getNodes, getEdges } = useReactFlow<
+        NodeData,
+        EdgeData
+    >();
 
     // Cache node state to avoid clearing state when refreshing
-    const [cachedNodes, setCachedNodes] = useSessionStorage<Node<NodeData>[]>('cachedNodes', []);
-    const [cachedEdges, setCachedEdges] = useSessionStorage<Edge<EdgeData>[]>('cachedEdges', []);
-    const [cachedViewport, setCachedViewport] = useSessionStorage<Viewport | null>(
-        'cachedViewport',
-        null
-    );
     useEffect(() => {
-        setCachedNodes(nodes);
-        setCachedEdges(edges);
-        setCachedViewport(getViewport());
+        const timerId = setTimeout(() => {
+            sessionStorage.setItem('cachedNodes', JSON.stringify(nodes));
+            sessionStorage.setItem('cachedEdges', JSON.stringify(edges));
+            sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+        }, 1000);
+        return () => clearTimeout(timerId);
     }, [nodes, edges]);
     useEffect(() => {
         if (cachedViewport) setViewport(cachedViewport);
-        setNodes(cachedNodes);
-        setEdges(cachedEdges);
     }, []);
 
-    const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
-        NodeData,
-        EdgeData
-    > | null>(null);
     const [savePath, setSavePath] = useState<string | undefined>();
-
-    const [loadedFromCli] = useSessionStorage('loaded-from-cli', false);
-
-    const [menuCloseFunctions, setMenuCloseFunctions] = useState<Record<string, () => void>>({});
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
-    const [, , snapToGridAmount] = useSnapToGrid;
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+    const noNodes = nodes.length === 0;
+    useEffect(() => {
+        setHasUnsavedChanges(true);
+    }, [nodes, edges]);
+    useEffect(() => {
+        const id = setTimeout(() => {
+            const showDot = hasUnsavedChanges && (!noNodes || savePath);
+            const dot = showDot ? ' •' : '';
+            document.title = `chaiNNer - ${savePath || 'Untitled'}${dot}`;
+        }, 200);
+        return () => clearTimeout(id);
+    }, [savePath, hasUnsavedChanges, noNodes]);
+
+    const modifyNode = useCallback(
+        (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (!node) {
+                    log.error(`Cannot modify missing node with id ${id}`);
+                    return nodes;
+                }
+                const newNode = mapFn(node);
+                return [...nodes.filter((n) => n.id !== id), newNode];
+            });
+        },
+        [setNodes]
+    );
 
     const dumpState = useCallback((): SaveData => {
         return {
-            nodes: deepCopy(nodes),
-            edges: deepCopy(edges),
+            nodes: getNodes(),
+            edges: getEdges(),
             viewport: getViewport(),
         };
-    }, [nodes, edges]);
+    }, [getNodes, getEdges]);
 
-    const setStateFromJSON = async (savedData: SaveData, loadPosition = false) => {
-        const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
-        if (savedData.nodes.length !== validNodes.length) {
-            await ipcRenderer.invoke(
-                'show-warning-message-box',
-                'File contains invalid nodes',
-                'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.'
-            );
-        }
-        setNodes(validNodes);
-        setEdges(
-            savedData.edges
+    const setStateFromJSON = useCallback(
+        (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+            const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
+            const validNodeIds = new Set(validNodes.map((n) => n.id));
+            const validEdges = savedData.edges
                 // Filter out any edges that do not have a source or target node associated with it
-                .filter(
-                    (edge) =>
-                        validNodes.some((el) => el.id === edge.target) &&
-                        validNodes.some((el) => el.id === edge.source)
-                )
+                .filter((edge) => validNodeIds.has(edge.target) && validNodeIds.has(edge.source))
                 // Un-animate all edges, if was accidentally saved when animated
-                .map((edge) => ({
-                    ...edge,
-                    animated: false,
-                }))
-        );
-        if (loadPosition) {
-            setViewport(savedData.viewport);
-        }
-    };
+                .map((edge) => (edge.animated ? { ...edge, animated: false } : edge));
+
+            if (savedData.nodes.length !== validNodes.length) {
+                sendAlert({
+                    type: AlertType.WARN,
+                    title: 'File contains invalid nodes',
+                    message:
+                        'The file you are trying to open contains nodes that are unavailable on your system. Check the dependency manager to see if you are missing any dependencies. The file will now be loaded without the incompatible nodes.',
+                });
+            }
+            if (savedData.tamperedWith) {
+                sendAlert({
+                    type: AlertType.WARN,
+                    title: 'File has been modified',
+                    message:
+                        'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
+                });
+            }
+            setNodes(validNodes);
+            setEdges(validEdges);
+            if (loadPosition) {
+                setViewport(savedData.viewport);
+            }
+            setSavePath(path);
+            setHasUnsavedChanges(false);
+        },
+        [schemata]
+    );
 
     const clearState = useCallback(() => {
         setEdges([]);
         setNodes([]);
         setSavePath(undefined);
-        setViewport({ x: 0, y: 0, zoom: 0 });
+        setViewport({ x: 0, y: 0, zoom: 1 });
     }, [setEdges, setNodes, setSavePath, setViewport]);
 
-    const performSave = useCallback(() => {
-        (async () => {
-            const saveData = dumpState();
-            if (savePath) {
-                await ipcRenderer.invoke('file-save-json', saveData, savePath);
-            } else {
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            }
-        })();
-    }, [dumpState, savePath]);
+    const performSave = useCallback(
+        (saveAs: boolean) => {
+            (async () => {
+                try {
+                    const saveData = dumpState();
+                    if (!saveAs && savePath) {
+                        await ipcRenderer.invoke('file-save-json', saveData, savePath);
+                    } else {
+                        const result = await ipcRenderer.invoke(
+                            'file-save-as-json',
+                            saveData,
+                            savePath
+                        );
+                        if (result.kind === 'Canceled') return;
+                        setSavePath(result.path);
+                    }
 
-    const savePressed = useKeyPress(['Meta+s', 'Control+s']);
-    const newPressed = useKeyPress(['Meta+n', 'Control+n']);
+                    setHasUnsavedChanges(false);
+                } catch (error) {
+                    log.error(error);
 
-    useEffect(() => {
-        if (savePressed) {
-            performSave();
-        }
-    }, [savePressed]);
-
-    useEffect(() => {
-        if (newPressed) {
-            clearState();
-        }
-    }, [newPressed]);
+                    sendToast({
+                        status: 'error',
+                        duration: 10_000,
+                        description: `Failed to save chain`,
+                    });
+                }
+            })();
+        },
+        [dumpState, savePath]
+    );
 
     // Register New File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-new', () => {
-            clearState();
-        });
-        return () => {
-            ipcRenderer.removeAllListeners('file-new');
-        };
-    }, []);
+    useIpcRendererListener('file-new', () => clearState(), [clearState]);
 
     useAsyncEffect(async () => {
-        if (!loadedFromCli) {
-            const saveData = await ipcRenderer.invoke('get-cli-open');
-            if (saveData) {
-                await setStateFromJSON(saveData, true);
+        const result = await ipcRenderer.invoke('get-cli-open');
+        if (result) {
+            if (result.kind === 'Success') {
+                setStateFromJSON(result.saveData, result.path, true);
+            } else {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Unable to open file ${result.path}`,
+                });
             }
         }
-    }, []);
+    }, [setStateFromJSON]);
 
     // Register Open File event handler
-    useEffect(() => {
-        ipcRenderer.on('file-open', (event, saveData, openedFilePath) => {
-            setSavePath(openedFilePath);
-            // TODO: handle promise
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            setStateFromJSON(saveData, true);
-        });
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-open');
-        };
-    }, [savePath]);
+    useIpcRendererListener(
+        'file-open',
+        (event, result) => {
+            if (result.kind === 'Success') {
+                setStateFromJSON(result.saveData, result.path, true);
+            } else {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Unable to open file ${result.path}`,
+                });
+            }
+        },
+        [setStateFromJSON]
+    );
 
     // Register Save/Save-As event handlers
-    useEffect(() => {
-        ipcRenderer.on('file-save-as', () => {
-            (async () => {
-                const saveData = dumpState();
-                const savedAsPath = await ipcRenderer.invoke(
-                    'file-save-as-json',
-                    saveData,
-                    savePath
-                );
-                setSavePath(savedAsPath);
-            })();
-        });
-
-        ipcRenderer.on('file-save', () => {
-            performSave();
-        });
-
-        return () => {
-            ipcRenderer.removeAllListeners('file-save-as');
-            ipcRenderer.removeAllListeners('file-save');
-        };
-    }, [dumpState, savePath]);
+    useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
+    useIpcRendererListener('file-save', () => performSave(false), [performSave]);
 
     const removeNodeById = useCallback(
         (id: string) => {
-            const node = nodes.find((n) => n.id === id);
-            if (node && node.type !== 'iteratorHelper') {
-                const newNodes = nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                setNodes(newNodes);
-            }
+            setNodes((nodes) => {
+                const node = nodes.find((n) => n.id === id);
+                if (node && node.type !== 'iteratorHelper') {
+                    return nodes.filter((n) => n.id !== id && n.parentNode !== id);
+                }
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => edges.filter((e) => e.id !== id));
         },
         [setEdges]
     );
 
     const createNode = useCallback(
-        ({ position, data, nodeType, parent = null }: NodeProto): Node<NodeData> => {
-            const id = createUniqueId();
-            const newNode: Node<Mutable<NodeData>> = {
-                type: nodeType,
-                id,
-                position: snapToGrid(position, snapToGridAmount),
-                data: {
-                    ...data,
-                    id,
-                    inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
-                },
-            };
-            if (parent || (hoveredNode && nodeType !== 'iterator')) {
-                let parentNode: Node<NodeData> | null | undefined;
-                if (typeof parent === 'string' || parent instanceof String) {
-                    parentNode = nodes.find((n) => n.id === parent);
-                    // eslint-disable-next-line no-param-reassign
-                    parent = null; // This is so it actually set the nodes
-                } else if (parent) {
-                    parentNode = parent;
-                } else {
-                    parentNode = nodes.find((n) => n.id === hoveredNode);
-                }
-                if (parentNode && parentNode.type === 'iterator' && newNode.type !== 'iterator') {
-                    const { width, height, offsetTop, offsetLeft } = parentNode.data
-                        .iteratorSize ?? {
-                        width: 480,
-                        height: 480,
-                        offsetTop: 0,
-                        offsetLeft: 0,
-                    };
-                    const parentId = (parentNode.id || hoveredNode) ?? undefined;
-                    newNode.position.x = position.x - parentNode.position.x;
-                    newNode.position.y = position.y - parentNode.position.y;
-                    newNode.parentNode = parentId;
-                    newNode.data.parentNode = parentId;
-                    newNode.extent = [
-                        [offsetLeft, offsetTop],
-                        [width, height],
-                    ];
-                }
-            }
-            const extraNodes: Node<NodeData>[] = [];
-            if (nodeType === 'iterator') {
-                newNode.data.iteratorSize = {
-                    width: 480,
-                    height: 480,
-                    offsetTop: 0,
-                    offsetLeft: 0,
-                };
-
-                const { defaultNodes = [] } = schemata.get(data.schemaId);
-
-                defaultNodes.forEach(({ schemaId }) => {
-                    const subNodeData = schemata.get(schemaId);
-                    const subNode = createNode({
-                        nodeType: subNodeData.nodeType,
-                        position: newNode.position,
-                        data: {
-                            category: subNodeData.category,
-                            type: subNodeData.name,
-                            schemaId,
-                            subcategory: subNodeData.subcategory,
-                            icon: subNodeData.icon,
-                        },
-                        parent: newNode,
-                    });
-                    extraNodes.push(subNode);
-                });
-            }
-            if (!parent) {
-                setNodes([...nodes, newNode, ...extraNodes]);
-            }
-            return newNode;
+        (proto: NodeProto): void => {
+            setNodes((nodes) => {
+                const parent = hoveredNode ? nodes.find((n) => n.id === hoveredNode) : undefined;
+                const newNodes = createNodeImpl(proto, schemata, snapToGridAmount, parent);
+                return [...nodes, ...newNodes];
+            });
         },
-        [nodes, setNodes, schemata, hoveredNode]
+        [setNodes, schemata, hoveredNode]
     );
 
     const createConnection = useCallback(
@@ -392,7 +397,6 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => [
                 ...edges.filter((edge) => edge.targetHandle !== targetHandle),
                 newEdge,
@@ -403,14 +407,14 @@ export const GlobalProvider = ({
 
     const isValidConnection = useCallback(
         ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
-            if (source === target || !sourceHandle || !targetHandle) {
+            if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                 return false;
             }
             const sourceHandleIndex = parseHandle(sourceHandle).index;
             const targetHandleIndex = parseHandle(targetHandle).index;
 
-            const sourceNode = nodes.find((node) => node.id === source);
-            const targetNode = nodes.find((node) => node.id === target);
+            const sourceNode = getNode(source);
+            const targetNode = getNode(target);
             if (!sourceNode || !targetNode) {
                 return false;
             }
@@ -423,7 +427,7 @@ export const GlobalProvider = ({
             const targetInput = inputs[targetHandleIndex];
 
             const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
-                const targetChildren = getOutgoers(parentNode, nodes, edges);
+                const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
                 if (!targetChildren.length) {
                     return false;
                 }
@@ -441,56 +445,39 @@ export const GlobalProvider = ({
 
             return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
         },
-        [nodes, edges, schemata]
+        [schemata, getNode, getNodes, getEdges]
     );
 
     const useInputData = useCallback(
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
         function <T extends NonNullable<InputValue>>(
             id: string,
-            index: number
+            index: number,
+            inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const nodeData = nodes.find((node) => node.id === id)?.data;
-
-            if (!nodeData) {
-                return [undefined, () => {}] as const;
-            }
-
-            const { inputData } = nodeData;
-            const inputDataByIndex = inputData[index] as T | undefined;
+            const inputDataByIndex = (inputData[index] ?? undefined) as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
                 // the captured data from `nodes` to be up-to-date anymore. For that reason, we
                 // must derive any changes to nodes from the previous value passed to us by
                 // `setNodes`.
 
-                // eslint-disable-next-line @typescript-eslint/no-shadow
-                setNodes((nodes) => {
-                    const nodeById = nodes.find((node) => node.id === id);
-                    if (!nodeById) {
-                        log.error(
-                            'A (deferred) setInputData was called after its node had been removed'
-                        );
-                        return nodes;
-                    }
-
-                    const nodeCopy: Node<Mutable<NodeData>> = copyNode(nodeById);
+                modifyNode(id, (old) => {
+                    const nodeCopy = copyNode(old);
                     nodeCopy.data.inputData = {
-                        ...inputData,
+                        ...nodeCopy.data.inputData,
                         [index]: data,
                     };
-                    const filteredNodes = nodes.filter((n) => n.id !== id);
-                    return [...filteredNodes, nodeCopy];
+                    return nodeCopy;
                 });
             };
             return [inputDataByIndex, setInputData] as const;
         },
-        [nodes, setNodes, schemata]
+        [modifyNode, schemata]
     );
 
     const useAnimateEdges = useCallback(() => {
         const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) => {
                 if (nodeIdsToAnimate) {
                     const edgesToAnimate = edges.filter((e) => nodeIdsToAnimate.includes(e.source));
@@ -509,33 +496,23 @@ export const GlobalProvider = ({
             setAnimated(false, nodeIdsToUnAnimate);
 
         const completeEdges = (finished: readonly string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     const complete = finished.includes(edge.source);
                     return {
                         ...edge,
                         animated: !complete,
-                        data: {
-                            ...edge.data,
-                            complete,
-                        },
                     };
                 })
             );
         };
 
         const clearCompleteEdges = () => {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
             setEdges((edges) =>
                 edges.map((edge): Edge<EdgeData> => {
                     return {
                         ...edge,
                         animated: false,
-                        data: {
-                            ...edge.data,
-                            complete: false,
-                        },
                     };
                 })
             );
@@ -544,107 +521,115 @@ export const GlobalProvider = ({
         return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
     }, [setEdges]);
 
-    // TODO: performance concern? runs twice when deleting node
-    const useNodeLock = useCallback(
-        (id: string, index?: number | null) => {
-            const node = nodes.find((n) => n.id === id);
-            if (!node) {
-                return [] as const;
-            }
-            const isLocked = node.data.isLocked ?? false;
-            const toggleLock = () => {
-                const newNode = copyNode(node);
+    const toggleNodeLock = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const isLocked = old.data.isLocked ?? false;
+                const newNode = copyNode(old);
                 newNode.draggable = isLocked;
                 newNode.connectable = isLocked;
                 newNode.data.isLocked = !isLocked;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
-            };
-
-            let isInputLocked = false;
-            if (index !== undefined && index !== null) {
-                const edge = edges.find(
-                    (e) =>
-                        e.target === id &&
-                        !!e.targetHandle &&
-                        parseHandle(e.targetHandle).index === index
-                );
-                isInputLocked = !!edge;
-            }
-            return [isLocked, toggleLock, isInputLocked] as const;
+                return newNode;
+            });
         },
-        [nodes, edges, setNodes]
+        [modifyNode]
+    );
+
+    const isNodeInputLocked = useCallback(
+        (id: string, index: number): boolean => {
+            return edges.some(
+                (e) =>
+                    e.target === id &&
+                    !!e.targetHandle &&
+                    parseHandle(e.targetHandle).index === index
+            );
+        },
+        [edges]
     );
 
     const useIteratorSize = useCallback(
         (id: string) => {
-            const defaultSize: Size = { width: 480, height: 480 };
-            // TODO: What happens when the node wasn't found?
-            const node = nodes.find((n) => n.id === id)!;
+            const defaultSize: Size = { width: 1280, height: 720 };
 
             const setIteratorSize = (size: IteratorSize) => {
-                const newNode = copyNode(node);
-                newNode.data.iteratorSize = size;
-                setNodes([...nodes.filter((n) => n.id !== id), newNode]);
+                modifyNode(id, (old) => {
+                    const newNode = copyNode(old);
+                    newNode.data.iteratorSize = size;
+                    return newNode;
+                });
             };
 
             return [setIteratorSize, defaultSize] as const;
         },
-        [nodes, setNodes]
+        [modifyNode]
     );
 
     // TODO: this can probably be cleaned up but its good enough for now
     const updateIteratorBounds = useCallback(
-        (id: string, iteratorSize: IteratorSize, dimensions?: Size) => {
-            const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
-            const iteratorNode = nodes.find((n) => n.id === id);
-            if (iteratorNode && nodesToUpdate.length > 0) {
-                const { width, height, offsetTop, offsetLeft } = iteratorSize;
-                let maxWidth = 256;
-                let maxHeight = 256;
-                nodesToUpdate.forEach((n) => {
-                    maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
-                    maxHeight = Math.max(n.height ?? dimensions?.height ?? maxHeight, maxHeight);
-                });
-                const newNodes = nodesToUpdate.map((n) => {
-                    const newNode: Node<NodeData> = { ...n };
-                    const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
-                    const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
-                    newNode.extent = [
-                        [offsetLeft, offsetTop],
-                        [wBound, hBound],
-                    ];
-                    newNode.position.x = Math.min(Math.max(newNode.position.x, offsetLeft), wBound);
-                    newNode.position.y = Math.min(Math.max(newNode.position.y, offsetTop), hBound);
-                    return newNode;
-                });
-                const newIteratorNode = copyNode(iteratorNode);
+        (id: string, iteratorSize: IteratorSize | null, dimensions?: Size) => {
+            setNodes((nodes) => {
+                const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
+                const iteratorNode = nodes.find((n) => n.id === id);
+                if (iteratorNode && nodesToUpdate.length > 0) {
+                    const { width, height, offsetTop, offsetLeft } =
+                        iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
+                    let maxWidth = 256;
+                    let maxHeight = 256;
+                    nodesToUpdate.forEach((n) => {
+                        maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
+                        maxHeight = Math.max(
+                            n.height ?? dimensions?.height ?? maxHeight,
+                            maxHeight
+                        );
+                    });
+                    const newNodes = nodesToUpdate.map((n) => {
+                        const newNode = copyNode(n);
+                        const wBound = width - (n.width ?? dimensions?.width ?? 0) + offsetLeft;
+                        const hBound = height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
+                        newNode.extent = [
+                            [offsetLeft, offsetTop],
+                            [wBound, hBound],
+                        ];
+                        newNode.position.x = Math.min(
+                            Math.max(newNode.position.x, offsetLeft),
+                            wBound
+                        );
+                        newNode.position.y = Math.min(
+                            Math.max(newNode.position.y, offsetTop),
+                            hBound
+                        );
+                        return newNode;
+                    });
+                    const newIteratorNode = copyNode(iteratorNode);
 
-                newIteratorNode.data.maxWidth = maxWidth;
-                newIteratorNode.data.maxHeight = maxHeight;
-                // TODO: prove that those non-null assertions are valid or make them unnecessary
-                newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
-                newIteratorNode.data.iteratorSize!.height = height < maxHeight ? maxHeight : height;
-                setNodes([
-                    newIteratorNode,
-                    ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
-                    ...newNodes,
-                ]);
-            }
+                    newIteratorNode.data.maxWidth = maxWidth;
+                    newIteratorNode.data.maxHeight = maxHeight;
+                    // TODO: prove that those non-null assertions are valid or make them unnecessary
+                    newIteratorNode.data.iteratorSize!.width = width < maxWidth ? maxWidth : width;
+                    newIteratorNode.data.iteratorSize!.height =
+                        height < maxHeight ? maxHeight : height;
+                    return [
+                        newIteratorNode,
+                        ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
+                        ...newNodes,
+                    ];
+                }
+
+                return nodes;
+            });
         },
-        [nodes, setNodes]
+        [setNodes]
     );
 
     const setIteratorPercent = useCallback(
         (id: string, percent: number) => {
-            const iterator = nodes.find((n) => n.id === id);
-            if (iterator) {
-                const newIterator = copyNode(iterator);
-                newIterator.data.percentComplete = percent;
-                const filteredNodes = nodes.filter((n) => n.id !== id);
-                setNodes([newIterator, ...filteredNodes]);
-            }
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.percentComplete = percent;
+                return newNode;
+            });
         },
-        [nodes, setNodes]
+        [modifyNode]
     );
 
     const duplicateNode = useCallback(
@@ -714,92 +699,54 @@ export const GlobalProvider = ({
         [nodes, edges]
     );
 
-    const clearNode = (id: string) => {
-        const nodesCopy = [...nodes];
-        const node = nodesCopy.find((n) => n.id === id);
-        if (!node) return;
-        const newNode = copyNode(node);
-        newNode.data.inputData = schemata.getDefaultInput(node.data.schemaId);
-        setNodes([...nodes.filter((n) => n.id !== id), newNode]);
-    };
-
-    const outlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = true;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
-
-    const unOutlineInvalidNodes = (invalidNodes: readonly Node<NodeData>[]) => {
-        const invalidIds = invalidNodes.map((node) => node.id);
-        const mappedNodes = invalidNodes.map((node) => {
-            const nodeCopy = copyNode(node);
-            nodeCopy.data.invalid = false;
-            return nodeCopy;
-        });
-        setNodes([...nodes.filter((node) => !invalidIds.includes(node.id)), ...mappedNodes]);
-    };
+    const clearNode = useCallback(
+        (id: string) => {
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
+                return newNode;
+            });
+        },
+        [modifyNode]
+    );
 
     const [zoom, setZoom] = useState(1);
-    const onMoveEnd = (event: unknown, viewport: Viewport) => {
-        setZoom(viewport.zoom);
+
+    let globalChainValue: GlobalVolatile = {
+        nodes,
+        edges,
+        createNode,
+        createConnection,
+        isNodeInputLocked,
+        duplicateNode,
+        zoom,
+        hoveredNode,
     };
+    globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 
-    const addMenuCloseFunction = useCallback(
-        (func: () => void, id: string) => {
-            const menuFuncs = { ...menuCloseFunctions };
-            menuFuncs[id] = func;
-            setMenuCloseFunctions(menuFuncs);
-        },
-        [menuCloseFunctions, setMenuCloseFunctions]
+    let globalValue: Global = {
+        schemata,
+        reactFlowWrapper,
+        setNodes,
+        setEdges,
+        isValidConnection,
+        useAnimateEdges,
+        useInputData,
+        toggleNodeLock,
+        clearNode,
+        removeNodeById,
+        removeEdgeById,
+        updateIteratorBounds,
+        setIteratorPercent,
+        useIteratorSize,
+        setHoveredNode,
+        setZoom,
+    };
+    globalValue = useMemo(() => globalValue, Object.values(globalValue));
+
+    return (
+        <GlobalVolatileContext.Provider value={globalChainValue}>
+            <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+        </GlobalVolatileContext.Provider>
     );
-
-    const closeAllMenus = useCallback(() => {
-        Object.keys(menuCloseFunctions).forEach((id) => {
-            menuCloseFunctions[id]();
-        });
-    }, [menuCloseFunctions]);
-
-    const contextValue = useMemo<Global>(
-        () => ({
-            schemata,
-            nodes,
-            edges,
-            setNodes,
-            setEdges,
-            onNodesChange,
-            onEdgesChange,
-            createNode,
-            createConnection,
-            reactFlowInstance,
-            setReactFlowInstance,
-            // updateRfi,
-            reactFlowWrapper,
-            isValidConnection,
-            useInputData,
-            useAnimateEdges,
-            removeNodeById,
-            removeEdgeById,
-            useNodeLock,
-            duplicateNode,
-            clearNode,
-            // setSelectedElements,
-            outlineInvalidNodes,
-            unOutlineInvalidNodes,
-            zoom,
-            onMoveEnd,
-            useIteratorSize,
-            updateIteratorBounds,
-            setIteratorPercent,
-            closeAllMenus,
-            useHoveredNode: [hoveredNode, setHoveredNode] as const,
-            useMenuCloseFunctions: [closeAllMenus, addMenuCloseFunction] as const,
-        }),
-        [nodes, edges, reactFlowInstance, zoom, hoveredNode, menuCloseFunctions]
-    );
-
-    return <GlobalContext.Provider value={contextValue}>{children}</GlobalContext.Provider>;
 };
