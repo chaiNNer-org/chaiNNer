@@ -1,6 +1,7 @@
 import { constants } from 'fs';
 import fs from 'fs/promises';
 import { Node } from 'react-flow-renderer';
+import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 import { Mutable, NodeData } from '../common-types';
 
 export const checkFileExists = (file: string): Promise<boolean> =>
@@ -35,3 +36,7 @@ export const getLocalStorage = (): Storage => {
     if (storage === undefined) throw new Error('Custom storage not defined');
     return storage as Storage;
 };
+
+export const createUniqueId = () => uuid4();
+export const deriveUniqueId = (input: string) =>
+    uuid5(input, '48f168a5-48dc-48b3-a7c7-2c3eedb08602');

@@ -11,7 +11,6 @@ import {
     XYPosition,
 } from 'react-flow-renderer';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
-import { v4 as uuidv4 } from 'uuid';
 import {
     EdgeData,
     InputData,
@@ -28,7 +27,7 @@ import { snapToGrid } from '../reactFlowUtil';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, parseHandle } from '../util';
+import { copyNode, parseHandle, createUniqueId, deriveUniqueId } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
 
@@ -40,7 +39,6 @@ interface GlobalVolatile {
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, index: number) => boolean;
-    duplicateNode: (id: string) => void;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -63,6 +61,7 @@ interface Global {
     ) => readonly [T | undefined, (data: T) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
+    duplicateNode: (id: string) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
     useIteratorSize: (
@@ -87,8 +86,6 @@ interface NodeProto {
 // TODO: Find default
 export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
-
-const createUniqueId = () => uuidv4();
 
 const createNodeImpl = (
     { position, data, nodeType }: NodeProto,
@@ -656,69 +653,74 @@ export const GlobalProvider = ({
 
     const duplicateNode = useCallback(
         (id: string) => {
-            const node = nodes.find((n) => n.id === id);
-            if (!node) return;
-            const newId = createUniqueId();
-            const newNode = {
-                ...node,
-                id: newId,
-                position: {
-                    x: (node.position.x || 0) + 200,
-                    y: (node.position.y || 0) + 200,
-                },
-                data: {
-                    ...node.data,
-                    id: newId,
-                },
-                selected: false,
-            };
-            const newNodes: Node<NodeData>[] = [newNode];
-            const newEdges: Edge<EdgeData>[] = [];
-            if (node.type === 'iterator') {
-                const oldToNewIdMap: Record<string, string> = {};
-                const childNodes = nodes.filter((n) => n.parentNode === id);
-                childNodes.forEach((c) => {
-                    const newChildId = createUniqueId();
-                    oldToNewIdMap[c.id] = newChildId;
-                    const newChild = {
-                        ...c,
-                        id: newChildId,
-                        position: { ...c.position },
-                        data: {
-                            ...c.data,
-                            id: newChildId,
-                            parentNode: newId,
-                        },
-                        parentNode: newId,
-                        selected: false,
-                    };
-                    newNodes.push(newChild);
-                });
-                const oldChildIds = Object.keys(oldToNewIdMap);
-                const childEdges = edges.filter((e) => oldChildIds.includes(e.target));
-                childEdges.forEach((e) => {
-                    const { source, sourceHandle, target, targetHandle } = e;
-                    if (!sourceHandle || !targetHandle) return;
-                    const newEdgeId = createUniqueId();
-                    const newSource = oldToNewIdMap[source];
-                    const newTarget = oldToNewIdMap[target];
-                    const newSourceHandle = sourceHandle.replace(source, newSource);
-                    const newTargetHandle = targetHandle.replace(target, newTarget);
-                    const newEdge: Edge<EdgeData> = {
-                        ...e,
-                        id: newEdgeId,
-                        source: newSource,
-                        sourceHandle: newSourceHandle,
-                        target: newTarget,
-                        targetHandle: newTargetHandle,
-                    };
-                    newEdges.push(newEdge);
-                });
-            }
-            setNodes([...nodes, ...newNodes]);
-            setEdges([...edges, ...newEdges]);
+            const nodesToCopy = new Set([
+                id,
+                ...getNodes()
+                    .filter((n) => n.parentNode === id)
+                    .map((n) => n.id),
+            ]);
+
+            setNodes((nodes) => {
+                const newNodes = nodes
+                    .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
+                    .map<Node<NodeData>>((n) => {
+                        const newId = deriveUniqueId(n.id);
+                        if (n.id === id) {
+                            return {
+                                ...n,
+                                id: newId,
+                                position: {
+                                    x: (n.position.x || 0) + 200,
+                                    y: (n.position.y || 0) + 200,
+                                },
+                                data: {
+                                    ...n.data,
+                                    id: newId,
+                                },
+                                selected: false,
+                            };
+                        }
+
+                        const parentId = deriveUniqueId(n.parentNode!);
+                        return {
+                            ...n,
+                            id: newId,
+                            data: {
+                                ...n.data,
+                                id: newId,
+                                parentNode: parentId,
+                            },
+                            parentNode: parentId,
+                            selected: false,
+                        };
+                    });
+                return [...nodes, ...newNodes];
+            });
+
+            setEdges((edges) => {
+                const newEdges = edges
+                    .filter((e) => nodesToCopy.has(e.target))
+                    .map<Edge<EdgeData>>((e) => {
+                        let { source, sourceHandle, target, targetHandle } = e;
+                        if (nodesToCopy.has(source)) {
+                            source = deriveUniqueId(source);
+                            sourceHandle = sourceHandle?.replace(e.source, source);
+                        }
+                        target = deriveUniqueId(target);
+                        targetHandle = targetHandle?.replace(e.target, target);
+                        return {
+                            ...e,
+                            id: createUniqueId(),
+                            source,
+                            sourceHandle,
+                            target,
+                            targetHandle,
+                        };
+                    });
+                return [...edges, ...newEdges];
+            });
         },
-        [nodes, edges]
+        [getNodes, setNodes, setEdges]
     );
 
     const clearNode = useCallback(
@@ -740,7 +742,6 @@ export const GlobalProvider = ({
         createNode,
         createConnection,
         isNodeInputLocked,
-        duplicateNode,
         zoom,
         hoveredNode,
     };
@@ -758,6 +759,7 @@ export const GlobalProvider = ({
         clearNode,
         removeNodeById,
         removeEdgeById,
+        duplicateNode,
         updateIteratorBounds,
         setIteratorPercent,
         useIteratorSize,
