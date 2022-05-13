@@ -8,7 +8,7 @@ import {
     Node,
     useReactFlow,
     Viewport,
-    XYPosition
+    XYPosition,
 } from 'react-flow-renderer';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
-    Size
+    Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
