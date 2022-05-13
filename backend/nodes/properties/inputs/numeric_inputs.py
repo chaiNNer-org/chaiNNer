@@ -31,6 +31,8 @@ class NumberInput(BaseInput):
         step=1,
         optional=False,
         number_type="any",
+        minimum_label: str = None,
+        maximum_label: str = None,
     ):
         super().__init__(f"number::{number_type}", label)
         self.default = default
@@ -38,6 +40,8 @@ class NumberInput(BaseInput):
         self.maximum = maximum
         self.step = step
         self.optional = optional
+        self.minimum_label = minimum_label
+        self.maximum_label = maximum_label
 
     def toDict(self):
         return {
@@ -45,6 +49,8 @@ class NumberInput(BaseInput):
             "label": self.label,
             "min": self.minimum,
             "max": self.maximum,
+            "minLabel": self.minimum_label,
+            "maxLabel": self.maximum_label,
             "def": self.default,
             "step": self.step,
             "hasHandle": True,
@@ -146,12 +152,16 @@ class SliderInput(NumberInput):
         max_val: int = 100,
         default: int = 50,
         optional: bool = False,
+        min_label: str = None,
+        max_label: str = None,
     ):
         super().__init__(
             label,
             default=default,
             minimum=min_val,
             maximum=max_val,
+            minimum_label=min_label,
+            maximum_label=max_label,
             step=1,
             optional=optional,
             number_type="slider",

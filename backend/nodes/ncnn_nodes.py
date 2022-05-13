@@ -276,7 +276,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.inputs = [
             NcnnNetInput("Net A"),
             NcnnNetInput("Net B"),
-            SliderInput("Amount", 0, 100, 50),
+            SliderInput("Amount", 0, 100, 50, min_label="Net B", max_label="Net A"),
         ]
         self.outputs = [NcnnNetOutput()]
 

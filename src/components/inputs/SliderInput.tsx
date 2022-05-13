@@ -18,12 +18,24 @@ import { InputProps } from './props';
 interface SliderInputProps extends InputProps {
     min: number;
     max: number;
+    minLabel?: string;
+    maxLabel?: string;
     def?: number;
     accentColor: string;
 }
 
 const SliderInput = memo(
-    ({ index, useInputData, def, min, max, accentColor, isLocked }: SliderInputProps) => {
+    ({
+        index,
+        useInputData,
+        def,
+        min,
+        max,
+        minLabel,
+        maxLabel,
+        accentColor,
+        isLocked,
+    }: SliderInputProps) => {
         const [input, setInput] = useInputData<number>(index);
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
@@ -34,7 +46,12 @@ const SliderInput = memo(
 
         return (
             <HStack w="full">
-                <Text fontSize="xs">{min}</Text>
+                <Text
+                    fontSize="xs"
+                    whiteSpace="nowrap"
+                >
+                    {minLabel ?? min}
+                </Text>
                 <Slider
                     defaultValue={def}
                     focusThumbOnChange={false}
@@ -65,7 +82,12 @@ const SliderInput = memo(
                         <SliderThumb />
                     </Tooltip>
                 </Slider>
-                <Text fontSize="xs">{max}</Text>
+                <Text
+                    fontSize="xs"
+                    whiteSpace="nowrap"
+                >
+                    {maxLabel ?? max}
+                </Text>
                 <NumberInput
                     className="nodrag"
                     defaultValue={def}

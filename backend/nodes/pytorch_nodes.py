@@ -61,9 +61,9 @@ class LoadModelNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Load PyTorch state dict file (.pth) into an 
-            auto-detected supported model architecture. Supports most variations 
-            of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR) 
+        self.description = """Load PyTorch state dict file (.pth) into an
+            auto-detected supported model architecture. Supports most variations
+            of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR)
             and Real-ESRGAN's SRVGG architecture."""
         self.inputs = [PthFileInput()]
         self.outputs = [ModelOutput(), TextOutput("Model Name")]
@@ -229,13 +229,13 @@ class InterpolateNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Interpolate two of the same kind of model state-dict 
-             together. Note: models must share a common 'pretrained model' ancestor 
+        self.description = """Interpolate two of the same kind of model state-dict
+             together. Note: models must share a common 'pretrained model' ancestor
              in order to be interpolatable."""
         self.inputs = [
             ModelInput("Model A"),
             ModelInput("Model B"),
-            SliderInput("Amount", 0, 100, 50),
+            SliderInput("Amount", 0, 100, 50, min_label="Model B", max_label="Model A"),
         ]
         self.outputs = [ModelOutput()]
 
@@ -426,7 +426,7 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX (for converting to NCNN). 
+        self.description = """Convert a PyTorch model to ONNX (for converting to NCNN).
             Use convertmodel.com to convert to NCNN for now."""
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
