@@ -279,7 +279,7 @@ class NormalizeNode(NodeBase):
         ]
         self.outputs = [ImageOutput("Normal Map")]
         self.category = IMAGE_FILTER
-        self.name = "Normalize"
+        self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
 
