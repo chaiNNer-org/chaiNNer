@@ -174,7 +174,7 @@ export const GlobalProvider = ({
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const [, , snapToGridAmount] = useSnapToGrid;
 
-    const { sendAlert, sendToast } = useContext(AlertBoxContext);
+    const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
 
     const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
     const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
@@ -201,18 +201,24 @@ export const GlobalProvider = ({
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
-    const noNodes = nodes.length === 0;
+    /**
+     * Whether the current chain as *relevant* unsaved changes.
+     *
+     * Some changes to the chain might not be worth saving (e.g. animation status).
+     */
+    const hasRelevantUnsavedChanges: boolean =
+        hasUnsavedChanges && (nodes.length > 0 || !!savePath);
+
     useEffect(() => {
         setHasUnsavedChanges(true);
     }, [nodes, edges]);
     useEffect(() => {
         const id = setTimeout(() => {
-            const showDot = hasUnsavedChanges && (!noNodes || savePath);
-            const dot = showDot ? ' •' : '';
+            const dot = hasRelevantUnsavedChanges ? ' •' : '';
             document.title = `chaiNNer - ${savePath || 'Untitled'}${dot}`;
         }, 200);
         return () => clearTimeout(id);
-    }, [savePath, hasUnsavedChanges, noNodes]);
+    }, [savePath, hasRelevantUnsavedChanges]);
 
     const modifyNode = useCallback(
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
@@ -274,12 +280,27 @@ export const GlobalProvider = ({
         [schemata]
     );
 
-    const clearState = useCallback(() => {
+    const clearState = useCallback(async () => {
+        if (hasRelevantUnsavedChanges) {
+            const resp = await showAlert({
+                type: AlertType.WARN,
+                title: 'Discard unsaved changes?',
+                message:
+                    'The current chain has some unsaved changes. Do you really want to discard those changes?',
+                buttons: ['Discard changes', 'No'],
+                defaultButton: 1,
+            });
+            if (resp === 1) {
+                // abort
+                return;
+            }
+        }
+
         setEdges([]);
         setNodes([]);
         setSavePath(undefined);
         setViewport({ x: 0, y: 0, zoom: 1 });
-    }, [setEdges, setNodes, setSavePath, setViewport]);
+    }, [hasRelevantUnsavedChanges, setEdges, setNodes, setSavePath, setViewport]);
 
     const performSave = useCallback(
         (saveAs: boolean) => {
@@ -314,6 +335,7 @@ export const GlobalProvider = ({
     );
 
     // Register New File event handler
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     useIpcRendererListener('file-new', () => clearState(), [clearState]);
 
     useAsyncEffect(async () => {
