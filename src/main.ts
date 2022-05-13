@@ -22,7 +22,7 @@ import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
 import { PythonKeys } from './common-types';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
-import { BrowserWindowWithSafeIpc, ipcMain, FileOpenResult } from './helpers/safeIpc';
+import { BrowserWindowWithSafeIpc, FileOpenResult, ipcMain } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
 import { checkFileExists } from './helpers/util';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
@@ -880,7 +880,7 @@ const createWindow = async () => {
     }
 
     // Opening file with chaiNNer
-    if (parameters[0] && parameters[0] !== '--no-backend') {
+    if (parameters[0] && !['--no-backend', '--squirrel-firstrun'].includes(parameters[0])) {
         const filepath = parameters[0];
         const result = SaveFile.read(filepath).then<FileOpenResult, FileOpenResult>(
             (saveData) => {
