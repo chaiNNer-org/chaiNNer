@@ -45,7 +45,7 @@ class BlurNode(NodeBase):
         for __i in range(16):
             img = cv2.blur(img, ksize)
 
-        return img
+        return np.clip(img, 0, 1)
 
 
 @NodeFactory.register("chainner:image:gaussian_blur")
@@ -77,7 +77,7 @@ class GaussianBlurNode(NodeBase):
 
         blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
 
-        return blurred
+        return np.clip(blurred, 0, 1)
 
 
 @NodeFactory.register("chainner:image:sharpen")
@@ -108,7 +108,7 @@ class SharpenNode(NodeBase):
         blurred = cv2.GaussianBlur(img, (0, 0), amount)
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)
 
-        return img
+        return np.clip(img, 0, 1)
 
 
 @NodeFactory.register("chainner:image:average_color_fix")

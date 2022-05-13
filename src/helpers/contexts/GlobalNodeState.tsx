@@ -8,7 +8,7 @@ import {
     Node,
     useReactFlow,
     Viewport,
-    XYPosition,
+    XYPosition
 } from 'react-flow-renderer';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
-    Size,
+    Size
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -110,8 +110,8 @@ const createNodeImpl = (
 
     if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
         const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
-            width: 480,
-            height: 480,
+            width: 1280,
+            height: 720,
             offsetTop: 0,
             offsetLeft: 0,
         };
@@ -128,8 +128,8 @@ const createNodeImpl = (
     const extraNodes: Node<NodeData>[] = [];
     if (nodeType === 'iterator') {
         newNode.data.iteratorSize = {
-            width: 480,
-            height: 480,
+            width: 1280,
+            height: 720,
             offsetTop: 0,
             offsetLeft: 0,
         };
@@ -549,7 +549,7 @@ export const GlobalProvider = ({
 
     const useIteratorSize = useCallback(
         (id: string) => {
-            const defaultSize: Size = { width: 480, height: 480 };
+            const defaultSize: Size = { width: 1280, height: 720 };
 
             const setIteratorSize = (size: IteratorSize) => {
                 modifyNode(id, (old) => {

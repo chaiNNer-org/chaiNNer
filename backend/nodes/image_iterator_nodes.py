@@ -170,7 +170,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.outputs = [ImageOutput("Frame Image"), TextOutput("Frame Index")]
 
         self.category = IMAGE
-        self.name = "Load Input Frame"
+        self.name = "Load Frame As Image"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
 
