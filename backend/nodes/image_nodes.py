@@ -146,7 +146,7 @@ class ImWriteNode(NodeBase):
         self.category = IMAGE
         self.name = "Save Image"
         self.outputs = []
-        self.icon = "BsImage"
+        self.icon = "MdSave"
         self.sub = "Input & Output"
 
     def run(

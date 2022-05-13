@@ -1,4 +1,5 @@
 from typing import Tuple
+
 import numpy as np
 from sanic.log import logger
 
@@ -91,7 +92,7 @@ def normalize(img: np.ndarray) -> np.ndarray:
         dtype_max = np.iinfo(img.dtype).max
     except:
         logger.debug("img dtype is not int")
-    return img.astype(np.float32) / dtype_max
+    return np.clip(img.astype(np.float32) / dtype_max, 0, 1)
 
 
 def normalize_normals(

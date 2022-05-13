@@ -308,7 +308,7 @@ class PthSaveNode(NodeBase):
 
         self.category = PYTORCH
         self.name = "Save Model"
-        self.icon = "PyTorch"
+        self.icon = "MdSave"
         self.sub = "Input & Output"
 
     def run(self, model: torch.nn.Module, directory: str, name: str) -> bool:

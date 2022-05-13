@@ -109,7 +109,7 @@ class NcnnSaveNode(NodeBase):
 
         self.category = NCNN
         self.name = "Save Model"
-        self.icon = "NCNN"
+        self.icon = "MdSave"
         self.sub = "Input & Output"
 
     def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
