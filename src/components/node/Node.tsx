@@ -1,13 +1,4 @@
-import { CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
-import {
-    Center,
-    Menu,
-    MenuItem,
-    MenuList,
-    Portal,
-    useColorModeValue,
-    VStack,
-} from '@chakra-ui/react';
+import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -73,108 +64,47 @@ const Node = memo(({ data, selected }: NodeProps) => {
         }
     }, [checkedSize, targetRef.current?.offsetHeight, updateIteratorBounds]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [showMenu, setShowMenu] = useState(false);
-    // const [menuPosition, setMenuPosition] = useState({});
-
-    // useEffect(() => {
-    //   if (!selected) {
-    //     setShowMenu(false);
-    //   }
-    // }, [selected]);
-
     return (
-        <>
-            <Menu isOpen={showMenu}>
-                <Center
-                    bg={useColorModeValue('gray.300', 'gray.700')}
-                    borderColor={borderColor}
-                    borderRadius="lg"
-                    borderWidth="0.5px"
-                    boxShadow="lg"
-                    py={2}
-                    ref={targetRef}
-                    transition="0.15s ease-in-out"
-                    onClick={() => {
-                        // setShowMenu(false);
-                    }}
-                    onContextMenu={() => {
-                        // WIP
-                        // if (selected) {
-                        //   if (showMenu) {
-                        //     setShowMenu(false);
-                        //   } else {
-                        //     setMenuPosition({ x: event.clientX, y: event.clientY });
-                        //     setShowMenu(true);
-                        //   }
-                        // }
-                    }}
-                    onDragEnter={() => {
-                        if (parentNode) {
-                            setHoveredNode(parentNode);
-                        }
-                    }}
-                >
-                    <VStack minWidth="240px">
-                        <NodeHeader
-                            accentColor={accentColor}
-                            icon={icon}
-                            name={name}
-                            parentNode={parentNode}
-                            selected={selected}
-                        />
-                        <NodeBody
-                            accentColor={accentColor}
-                            id={id}
-                            inputData={inputData}
-                            inputs={inputs}
-                            isLocked={isLocked}
-                            outputs={outputs}
-                            schemaId={schemaId}
-                        />
-                        <NodeFooter
-                            id={id}
-                            invalidReason={validity[1]}
-                            isLocked={isLocked}
-                            isValid={validity[0]}
-                            // toggleLock={toggleLock}
-                        />
-                    </VStack>
-                </Center>
-                <Portal>
-                    <MenuList
-                        position="fixed"
-                        // top={menuPosition.y}
-                        // left={menuPosition.x}
-                    >
-                        <MenuItem
-                            icon={<CopyIcon />}
-                            onClick={() => {
-                                // duplicateNode(id);
-                            }}
-                        >
-                            Duplicate
-                        </MenuItem>
-                        <MenuItem
-                            icon={<CloseIcon />}
-                            onClick={() => {
-                                //  clearNode(id);
-                            }}
-                        >
-                            Clear
-                        </MenuItem>
-                        <MenuItem
-                            icon={<DeleteIcon />}
-                            onClick={() => {
-                                // removeNodeById(id);
-                            }}
-                        >
-                            Delete
-                        </MenuItem>
-                    </MenuList>
-                </Portal>
-            </Menu>
-        </>
+        <Center
+            bg={useColorModeValue('gray.300', 'gray.700')}
+            borderColor={borderColor}
+            borderRadius="lg"
+            borderWidth="0.5px"
+            boxShadow="lg"
+            py={2}
+            ref={targetRef}
+            transition="0.15s ease-in-out"
+            onDragEnter={() => {
+                if (parentNode) {
+                    setHoveredNode(parentNode);
+                }
+            }}
+        >
+            <VStack minWidth="240px">
+                <NodeHeader
+                    accentColor={accentColor}
+                    icon={icon}
+                    name={name}
+                    parentNode={parentNode}
+                    selected={selected}
+                />
+                <NodeBody
+                    accentColor={accentColor}
+                    id={id}
+                    inputData={inputData}
+                    inputs={inputs}
+                    isLocked={isLocked}
+                    outputs={outputs}
+                    schemaId={schemaId}
+                />
+                <NodeFooter
+                    id={id}
+                    invalidReason={validity[1]}
+                    isLocked={isLocked}
+                    isValid={validity[0]}
+                />
+            </VStack>
+        </Center>
     );
 });
 
