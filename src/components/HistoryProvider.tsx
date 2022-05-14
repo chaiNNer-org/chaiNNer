@@ -100,8 +100,6 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
         if (selfUpdate) return noop;
 
         const id = setTimeout(() => {
-            console.log(`commit ${changeId}`);
-
             historyObj.history = historyObj.history.commit([getNodes(), getEdges(), getViewport()]);
         }, 200);
         return () => clearTimeout(id);
@@ -110,7 +108,6 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
     useIpcRendererListener(
         'history-undo',
         () => {
-            console.log('undo');
             historyObj.history = historyObj.history.undo();
             apply(historyObj.history.current);
         },
@@ -120,7 +117,6 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
     useIpcRendererListener(
         'history-redo',
         () => {
-            console.log('redo');
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);
         },
