@@ -33,7 +33,7 @@ export const openSaveFile = async (path: string): Promise<FileOpenResult> => {
 };
 
 /**
- * Returns `false` if the data couldn't not be processed by this processor.
+ * Returns `false` if the data could not be processed by this processor.
  *
  * Returns `true` if the data has been successfully transferred.
  */
