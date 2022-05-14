@@ -21,7 +21,7 @@ interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
     sendAlert: ((alertType: AlertType, title: string | null, message: string) => void) &
         ((message: AlertOptions) => void);
-    showAlert: (message: AlertOptions) => Promise<void>;
+    showAlert: (message: AlertOptions) => Promise<number>;
 }
 
 export enum AlertType {
@@ -35,11 +35,14 @@ export interface AlertOptions {
     type: AlertType;
     title?: string;
     message: string;
+    copyToClipboard?: boolean;
+    buttons?: string[];
+    defaultButton?: number;
 }
 
 interface InternalMessage extends AlertOptions {
     title: string;
-    resolve: () => void;
+    resolve: (button: number) => void;
 }
 
 const EMPTY_MESSAGE: InternalMessage = {
@@ -50,65 +53,85 @@ const EMPTY_MESSAGE: InternalMessage = {
 };
 
 const getButtons = (
-    type: AlertType,
-    onClose: () => void,
-    message: string,
+    { type, message, copyToClipboard, buttons, defaultButton = 0 }: InternalMessage,
+    onClose: (button: number) => void,
     cancelRef: React.Ref<HTMLButtonElement>
 ): JSX.Element => {
-    switch (type) {
-        case AlertType.INFO:
-            return (
+    const buttonElements: JSX.Element[] = [];
+
+    // eslint-disable-next-line no-param-reassign
+    copyToClipboard ??= type === AlertType.ERROR;
+    if (copyToClipboard) {
+        buttonElements.push(
+            <Button
+                key="copy-to-clipboard"
+                onClick={() => clipboard.writeText(message)}
+            >
+                Copy to Clipboard
+            </Button>
+        );
+    }
+
+    if (buttons && buttons.length) {
+        if (
+            !Number.isInteger(defaultButton) ||
+            defaultButton < 0 ||
+            defaultButton >= buttons.length
+        ) {
+            // eslint-disable-next-line no-param-reassign
+            defaultButton = 0;
+        }
+
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < buttons.length; i++) {
+            const button = buttons[i];
+
+            buttonElements.push(
                 <Button
-                    ref={cancelRef}
-                    onClick={onClose}
+                    key={i}
+                    ref={i === defaultButton ? cancelRef : undefined}
+                    onClick={() => onClose(i)}
                 >
-                    OK
+                    {button}
                 </Button>
             );
-        case AlertType.WARN:
-            return (
-                <Button
-                    ref={cancelRef}
-                    onClick={onClose}
-                >
-                    OK
-                </Button>
-            );
-        case AlertType.ERROR:
-            return (
-                <>
+        }
+    } else {
+        switch (type) {
+            case AlertType.INFO:
+            case AlertType.WARN:
+            case AlertType.ERROR:
+                buttonElements.push(
                     <Button
-                        onClick={() => {
-                            clipboard.writeText(message);
-                        }}
-                    >
-                        Copy to Clipboard
-                    </Button>
-                    <Button
+                        key="ok"
                         ref={cancelRef}
-                        onClick={onClose}
+                        onClick={() => onClose(0)}
                     >
                         OK
                     </Button>
-                </>
-            );
-        case AlertType.CRIT_ERROR:
-            return (
-                <Button
-                    colorScheme="red"
-                    ml={3}
-                    ref={cancelRef}
-                    onClick={() => {
-                        window.close();
-                        app.quit();
-                    }}
-                >
-                    Exit Application
-                </Button>
-            );
-        default:
-            return assertNever(type);
+                );
+                break;
+            case AlertType.CRIT_ERROR:
+                buttonElements.push(
+                    <Button
+                        colorScheme="red"
+                        key="exit"
+                        ml={3}
+                        ref={cancelRef}
+                        onClick={() => {
+                            window.close();
+                            app.quit();
+                        }}
+                    >
+                        Exit Application
+                    </Button>
+                );
+                break;
+            default:
+                return assertNever(type);
+        }
     }
+    return <>{buttonElements}</>;
 };
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
@@ -123,8 +146,8 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         [setQueue]
     );
     const showAlert = useCallback(
-        (message: AlertOptions): Promise<void> => {
-            return new Promise<void>((resolve) => {
+        (message: AlertOptions) => {
+            return new Promise<number>((resolve) => {
                 push({ ...message, title: message.title ?? message.type, resolve });
             });
         },
@@ -152,19 +175,20 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         }
     }, [current, isOpen, onOpen]);
 
-    const onClose = useCallback(() => {
-        current?.resolve();
-        setQueue((q) => q.slice(1));
-        if (isLast) onDisclosureClose();
-    }, [current, isLast, setQueue, onDisclosureClose]);
+    const onClose = useCallback(
+        (button: number) => {
+            current?.resolve(button);
+            setQueue((q) => q.slice(1));
+            if (isLast) onDisclosureClose();
+        },
+        [current, isLast, setQueue, onDisclosureClose]
+    );
 
     const buttons = useMemo(() => {
-        const { type, message } = current ?? EMPTY_MESSAGE;
-        return getButtons(type, onClose, message, cancelRef);
+        return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef);
     }, [current, cancelRef, onClose]);
 
     const toast = useToast();
-    useEffect(() => console.log('new toast'), [toast]);
     const sendToast = useCallback(
         (options: UseToastOptions) => {
             // eslint-disable-next-line no-param-reassign

@@ -9,8 +9,9 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { NodeData } from '../../common-types';
+import { EdgeData, NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -33,8 +34,9 @@ interface NodeProps {
 }
 
 const Node = memo(({ data, selected }: NodeProps) => {
-    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 
@@ -54,9 +56,9 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
+            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
         }
-    }, [inputData, edges.length]);
+    }, [inputData, edgeChanges]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -69,7 +71,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             });
             setCheckedSize(true);
         }
-    }, [checkedSize, targetRef.current?.offsetHeight]);
+    }, [checkedSize, targetRef.current?.offsetHeight, updateIteratorBounds]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showMenu, setShowMenu] = useState(false);

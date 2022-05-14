@@ -1,7 +1,8 @@
 import { Center, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { NodeData } from '../../common-types';
+import { EdgeData, NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -26,8 +27,9 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
-    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata } = useContext(GlobalContext);
+    const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
         id,
@@ -62,11 +64,11 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     id,
                     inputs,
                     inputData,
-                    edges,
+                    edges: getEdges(),
                 })
             );
         }
-    }, [inputData, edges.length]);
+    }, [inputData, edgeChanges]);
 
     return (
         <>

@@ -79,13 +79,16 @@ class Executor:
 
         # Enforce that all inputs match the expected input schema
         enforced_inputs = []
-        node_inputs = node_instance.get_inputs()
-        for idx, node_input in enumerate(inputs):
-            # TODO: remove this when all the inputs are transitioned to classes
-            if isinstance(node_inputs[idx], dict):
-                enforced_inputs.append(node_input)
-            else:
-                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+        if node["nodeType"] == "iteratorHelper":
+            enforced_inputs = inputs
+        else:
+            node_inputs = node_instance.get_inputs()
+            for idx, node_input in enumerate(inputs):
+                # TODO: remove this when all the inputs are transitioned to classes
+                if isinstance(node_inputs[idx], dict):
+                    enforced_inputs.append(node_input)
+                else:
+                    enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
