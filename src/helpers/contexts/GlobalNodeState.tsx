@@ -79,7 +79,7 @@ interface Global {
     setZoom: SetState<number>;
 }
 
-interface NodeProto {
+export interface NodeProto {
     position: XYPosition;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
