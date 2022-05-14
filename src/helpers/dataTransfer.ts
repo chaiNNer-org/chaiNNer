@@ -32,6 +32,20 @@ export const openSaveFile = async (path: string): Promise<FileOpenResult> => {
     }
 };
 
+export const getSingleFileWithExtension = (
+    dataTransfer: DataTransfer,
+    allowedExtensions: readonly string[]
+): string | undefined => {
+    if (dataTransfer.files.length === 1) {
+        const [file] = dataTransfer.files;
+        const extension = extname(file.path).toLowerCase();
+        if (allowedExtensions.includes(extension)) {
+            return file.path;
+        }
+    }
+    return undefined;
+};
+
 /**
  * Returns `false` if the data could not be processed by this processor.
  *
@@ -91,24 +105,21 @@ const openImageFileProcessor: DataTransferProcessor = (
     const fileTypes = schema.inputs[0]?.filetypes;
     if (!fileTypes) return false;
 
-    if (dataTransfer.files.length === 1) {
-        const [file] = dataTransfer.files;
-        const extension = extname(file.path).toLowerCase();
-        if (fileTypes.includes(extension)) {
-            // found a supported image file
+    const path = getSingleFileWithExtension(dataTransfer, fileTypes);
+    if (path) {
+        // found a supported image file
 
-            createNode({
-                // hard-coded offset because it looks nicer
-                position: getNodePosition(100, 100),
-                data: {
-                    schemaId: LOAD_IMAGE_ID,
-                    inputData: { 0: file.path },
-                },
-                nodeType: schema.nodeType,
-            });
+        createNode({
+            // hard-coded offset because it looks nicer
+            position: getNodePosition(100, 100),
+            data: {
+                schemaId: LOAD_IMAGE_ID,
+                inputData: { 0: path },
+            },
+            nodeType: schema.nodeType,
+        });
 
-            return true;
-        }
+        return true;
     }
     return false;
 };
