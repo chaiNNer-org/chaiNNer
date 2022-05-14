@@ -108,7 +108,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             }
         }, 1000);
         return () => clearTimeout(id);
-    }, [status]);
+    }, [status, unAnimateEdges]);
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
 
@@ -176,7 +176,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             unAnimateEdges();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus]);
+    }, [eventSourceStatus, unAnimateEdges]);
 
     const run = async () => {
         const nodes = getNodes();

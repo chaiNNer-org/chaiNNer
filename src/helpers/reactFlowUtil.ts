@@ -1,6 +1,5 @@
 import { XYPosition } from 'react-flow-renderer';
 
-// eslint-disable-next-line import/prefer-default-export
 export const snapToGrid = (
     position: Readonly<XYPosition>,
     snapToGridAmount: number
@@ -8,3 +7,8 @@ export const snapToGrid = (
     x: position.x - (position.x % snapToGridAmount),
     y: position.y - (position.y % snapToGridAmount),
 });
+
+export const isSnappedToGrid = (
+    position: Readonly<XYPosition>,
+    snapToGridAmount: number
+): boolean => position.x % snapToGridAmount === 0 && position.y % snapToGridAmount === 0;

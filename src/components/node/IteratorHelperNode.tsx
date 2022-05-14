@@ -1,7 +1,8 @@
 import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { NodeData } from '../../common-types';
+import { EdgeData, NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -16,8 +17,9 @@ interface IteratorHelperNodeProps {
 }
 
 const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
-    const edges = useContextSelector(GlobalVolatileContext, (c) => c.edges);
+    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
 
@@ -37,9 +39,9 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
 
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges }));
+            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
         }
-    }, [inputData, edges.length]);
+    }, [inputData, edgeChanges, getEdges]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -52,7 +54,7 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
             });
             setCheckedSize(true);
         }
-    }, [checkedSize]);
+    }, [checkedSize, updateIteratorBounds]);
 
     return (
         <Center
