@@ -6,7 +6,7 @@ export const useChangeCounter = () => {
     const [counter, setCounter] = useState(0);
 
     const change = useCallback(() => {
-        // we have to warp at some point, so I just arbitrarily chose 1 million
+        // we have to wrap at some point, so I just arbitrarily chose 1 million
         setCounter((prev) => (prev + 1) % 1_000_000);
     }, [setCounter]);
 

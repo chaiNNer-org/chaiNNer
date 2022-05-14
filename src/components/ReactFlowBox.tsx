@@ -25,7 +25,7 @@ import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 
 const STARTING_Z_INDEX = 50;
 /**
- * We what the nodes and edges to form the following layers:
+ * We want the nodes and edges to form the following layers:
  *
  * - Iterator nodes
  * - Nodes inside iterators
