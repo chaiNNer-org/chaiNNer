@@ -8,6 +8,7 @@ import useFetch, { CachePolicies } from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
 import Header from '../components/Header';
+import { HistoryProvider } from '../components/HistoryProvider';
 import IteratorHelperNode from '../components/node/IteratorHelperNode';
 import IteratorNode from '../components/node/IteratorNode';
 import Node from '../components/node/Node';
@@ -104,38 +105,40 @@ const Main = ({ port }: MainProps) => {
                     schemata={schemata}
                 >
                     <MenuFunctionsProvider>
-                        <VStack
-                            bg={bgColor}
-                            overflow="hidden"
-                            p={2}
-                        >
-                            <ExecutionProvider>
-                                <Header />
-                            </ExecutionProvider>
-                            <HStack
-                                as={Split}
-                                defaultSplitterColors={{
-                                    color: '#71809633',
-                                    hover: '#71809666',
-                                    drag: '#718096EE',
-                                }}
-                                initialPrimarySize="380px"
-                                minPrimarySize="290px"
-                                minSecondarySize="65%"
-                                splitterSize="10px"
+                        <HistoryProvider>
+                            <VStack
+                                bg={bgColor}
+                                overflow="hidden"
+                                p={2}
                             >
-                                <NodeSelector
-                                    height={height}
-                                    schemata={schemata}
-                                />
+                                <ExecutionProvider>
+                                    <Header />
+                                </ExecutionProvider>
+                                <HStack
+                                    as={Split}
+                                    defaultSplitterColors={{
+                                        color: '#71809633',
+                                        hover: '#71809666',
+                                        drag: '#718096EE',
+                                    }}
+                                    initialPrimarySize="380px"
+                                    minPrimarySize="290px"
+                                    minSecondarySize="65%"
+                                    splitterSize="10px"
+                                >
+                                    <NodeSelector
+                                        height={height}
+                                        schemata={schemata}
+                                    />
 
-                                <ReactFlowBox
-                                    edgeTypes={edgeTypes}
-                                    nodeTypes={nodeTypes}
-                                    wrapperRef={reactFlowWrapper}
-                                />
-                            </HStack>
-                        </VStack>
+                                    <ReactFlowBox
+                                        edgeTypes={edgeTypes}
+                                        nodeTypes={nodeTypes}
+                                        wrapperRef={reactFlowWrapper}
+                                    />
+                                </HStack>
+                            </VStack>
+                        </HistoryProvider>
                     </MenuFunctionsProvider>
                 </GlobalProvider>
             </SettingsProvider>

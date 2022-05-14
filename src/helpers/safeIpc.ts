@@ -82,6 +82,10 @@ export interface SendChannels {
     progress: SendChannelInfo<[percentage: number]>;
     'spawning-backend': SendChannelInfo;
     'splash-finish': SendChannelInfo;
+
+    // history
+    'history-undo': SendChannelInfo;
+    'history-redo': SendChannelInfo;
 }
 export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];
