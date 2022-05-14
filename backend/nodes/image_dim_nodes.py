@@ -22,12 +22,18 @@ class ImResizeByFactorNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = (
-            "Resize an image by a scale factor (e.g. 2 for 200% or 0.5 for 50%). "
+            "Resize an image by a percent scale factor. "
             "Auto uses box for downsampling and lanczos for upsampling."
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Scale Factor", default=1.0, step=0.25),
+            BoundedNumberInput(
+                "Scale Factor (%)",
+                minimum=0.1,
+                maximum=None,
+                default=100.0,
+                step=25.0
+            ),
             InterpolationInput(),
         ]
         self.category = IMAGE_DIMENSION
@@ -42,7 +48,7 @@ class ImResizeByFactorNode(NodeBase):
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * scale), math.ceil(h * scale))
+        out_dims = (math.ceil(w * (scale / 100)), math.ceil(h * (scale / 100)))
 
         return resize(img, out_dims, interpolation)
 
