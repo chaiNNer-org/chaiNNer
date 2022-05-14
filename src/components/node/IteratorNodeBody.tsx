@@ -90,7 +90,7 @@ const IteratorNodeBody = ({
             setIteratorSize(size);
             updateIteratorBounds(id, size);
         }
-    }, [resizeRef?.resizable]);
+    }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
 
     return (
         <Resizable
