@@ -1,6 +1,6 @@
 import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useCallback, useEffect } from 'react';
+import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
