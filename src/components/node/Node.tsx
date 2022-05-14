@@ -1,4 +1,4 @@
-import { Center, Menu, useColorModeValue, VStack } from '@chakra-ui/react';
+import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
