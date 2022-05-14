@@ -21,6 +21,7 @@ import semver from 'semver';
 import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
 import { PythonKeys } from './common-types';
+import { openSaveFile } from './helpers/dataTransfer';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { BrowserWindowWithSafeIpc, FileOpenResult, ipcMain } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
@@ -744,21 +745,7 @@ const createWindow = async () => {
                         });
                         if (canceled) return;
 
-                        try {
-                            const saveData = await SaveFile.read(filepath);
-                            mainWindow.webContents.send('file-open', {
-                                kind: 'Success',
-                                path: filepath,
-                                saveData,
-                            });
-                        } catch (error) {
-                            log.error(error);
-                            mainWindow.webContents.send('file-open', {
-                                kind: 'Error',
-                                path: filepath,
-                                error: String(error),
-                            });
-                        }
+                        mainWindow.webContents.send('file-open', await openSaveFile(filepath));
                     },
                 },
                 { type: 'separator' },

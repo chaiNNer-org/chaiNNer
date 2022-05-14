@@ -27,6 +27,7 @@ export interface Input {
     readonly def?: InputSchemaValue;
     readonly default?: InputSchemaValue;
     readonly options?: InputOption[];
+    readonly filetypes?: string[];
 }
 export interface Output {
     readonly type: string;

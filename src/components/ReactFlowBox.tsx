@@ -17,7 +17,9 @@ import ReactFlow, {
     Viewport,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData, NodeSchema } from '../common-types';
+import { EdgeData, NodeData } from '../common-types';
+import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
+import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
@@ -105,8 +107,10 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
+    const { sendAlert } = useContext(AlertBoxContext);
     const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
+        schemata,
         setZoom,
         setHoveredNode,
         addNodeChanges,
@@ -224,39 +228,39 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
     const onDrop = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
             event.preventDefault();
-
             if (!wrapperRef.current) return;
 
-            const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
-
             try {
-                const nodeSchema = JSON.parse(
-                    event.dataTransfer.getData('application/reactflow/schema')
-                ) as NodeSchema;
-                const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
-                const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
+                const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
-                const { zoom } = reactFlowInstance.getViewport();
-                const position = reactFlowInstance.project({
-                    x: event.clientX - reactFlowBounds.left - offsetX * zoom,
-                    y: event.clientY - reactFlowBounds.top - offsetY * zoom,
-                });
-
-                const nodeData = {
-                    schemaId: nodeSchema.schemaId,
-                    category: nodeSchema.category,
-                    type: nodeSchema.name,
-                    icon: nodeSchema.icon,
-                    subcategory: nodeSchema.subcategory,
+                const options: DataTransferProcessorOptions = {
+                    schemata,
+                    createNode,
+                    getNodePosition: (offsetX = 0, offsetY = 0) => {
+                        const { zoom } = reactFlowInstance.getViewport();
+                        return reactFlowInstance.project({
+                            x: event.clientX - reactFlowBounds.left - offsetX * zoom,
+                            y: event.clientY - reactFlowBounds.top - offsetY * zoom,
+                        });
+                    },
                 };
 
-                createNode({
-                    position,
-                    data: nodeData,
-                    nodeType: nodeSchema.nodeType,
+                for (const processor of dataTransferProcessors) {
+                    if (processor(event.dataTransfer, options)) {
+                        return;
+                    }
+                }
+
+                sendAlert({
+                    type: AlertType.WARN,
+                    message: `Unable to transfer dragged item(s).`,
                 });
             } catch (error) {
                 log.error(error);
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Failed to drag item.\n\nDetails: ${String(error)}`,
+                });
             }
         },
         [createNode, wrapperRef.current, reactFlowInstance]
