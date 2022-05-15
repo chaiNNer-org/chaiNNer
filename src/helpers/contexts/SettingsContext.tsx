@@ -47,7 +47,7 @@ export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ p
     const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel] as const, [isDisHwAccel]);
 
     // Node Settings
-    const [favorites, setFavorites] = useLocalStorage<string[]>('node-favorites', []);
+    const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
 
     const useNodeFavorites = useMemo(() => [favorites, setFavorites] as const, [favorites]);
 
