@@ -1,6 +1,6 @@
-import { StarIcon } from '@chakra-ui/icons';
-import { Box, Center, Flex, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
-import { memo } from 'react';
+import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
+import { Box, Center, Flex, Heading, HStack, Spacer, useColorModeValue } from '@chakra-ui/react';
+import { memo, useState } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { IconFactory } from '../CustomIcons';
 
@@ -17,6 +17,8 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
     const accentColor = getAccentColor(category);
 
     const collapsed = false;
+
+    const [hover, setHover] = useState<boolean>(false);
 
     return (
         <Center
@@ -37,6 +39,8 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
             transition="0.15s ease-in-out"
             // opacity="0.95"
             w="full"
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
         >
             <Box
                 bg={bgColor}
@@ -88,21 +92,36 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                                     {type.toUpperCase()}
                                 </Heading>
                             </Box>
+                            <Spacer />
                             <HStack
-                                alignContent="right"
-                                alignItems="right"
-                                m={0}
-                                p={0}
-                                position="relative"
-                                right={0}
-                                verticalAlign="center"
+                                px={2}
+                                verticalAlign="middle"
                                 w="fit-content"
                             >
+                                <SettingsIcon
+                                    _hover={{
+                                        stroke: 'gray.500',
+                                        transition: '0.15s ease-in-out',
+                                    }}
+                                    color={bgColor}
+                                    opacity={hover ? '100%' : '0%'}
+                                    stroke={borderColor}
+                                    strokeWidth={1}
+                                    transition="0.15s ease-in-out"
+                                    verticalAlign="middle"
+                                />
                                 <StarIcon
+                                    _hover={{
+                                        stroke: 'yellow.500',
+                                        transition: '0.15s ease-in-out',
+                                    }}
                                     aria-label="dlksdmclsdk"
-                                    position="relative"
-                                    right={0}
-                                    verticalAlign="center"
+                                    color={bgColor}
+                                    opacity={hover ? '100%' : '0%'}
+                                    stroke={borderColor}
+                                    strokeWidth={1}
+                                    transition="0.15s ease-in-out"
+                                    verticalAlign="middle"
                                 />
                             </HStack>
                         </Flex>
