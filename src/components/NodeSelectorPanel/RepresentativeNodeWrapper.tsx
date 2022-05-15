@@ -15,7 +15,7 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
         offsetY: event.nativeEvent.offsetY,
     };
 
-    event.dataTransfer.setData(TransferTypes.ChainerSchema, JSON.stringify(data));
+    event.dataTransfer.setData(TransferTypes.ChainnerSchema, JSON.stringify(data));
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.effectAllowed = 'move';
 };

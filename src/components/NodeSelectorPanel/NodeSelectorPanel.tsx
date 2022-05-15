@@ -164,6 +164,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                             </InputLeftElement>
                             <Input
                                 borderRadius={0}
+                                disabled={collapsed}
                                 placeholder="Search..."
                                 spellCheck={false}
                                 type="text"
