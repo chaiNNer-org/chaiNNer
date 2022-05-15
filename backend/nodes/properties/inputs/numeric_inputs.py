@@ -1,3 +1,5 @@
+from typing import Union, Tuple
+
 from .base_input import BaseInput
 
 
@@ -31,7 +33,6 @@ class NumberInput(BaseInput):
         step=1,
         optional=False,
         number_type="any",
-        hide_ends: bool = None,
         note_expression: str = None,
     ):
         super().__init__(f"number::{number_type}", label)
@@ -41,7 +42,6 @@ class NumberInput(BaseInput):
         self.step = step
         self.optional = optional
         self.note_expression = note_expression
-        self.hide_ends = hide_ends
 
     def toDict(self):
         return {
@@ -49,7 +49,6 @@ class NumberInput(BaseInput):
             "label": self.label,
             "min": self.minimum,
             "max": self.maximum,
-            "hideEnds": self.hide_ends,
             "noteExpression": self.note_expression,
             "def": self.default,
             "step": self.step,
@@ -153,7 +152,7 @@ class SliderInput(NumberInput):
         default: int = 50,
         optional: bool = False,
         note_expression: str = None,
-        hide_ends: bool = None,
+        ends: Union[Tuple[int, int], Tuple[str, str]] = (None, None),
     ):
         super().__init__(
             label,
@@ -163,9 +162,23 @@ class SliderInput(NumberInput):
             step=1,
             optional=optional,
             note_expression=note_expression,
-            hide_ends=hide_ends,
             number_type="slider",
         )
+        self.ends = (min_val, max_val) if ends == (None, None) else ends
+
+    def toDict(self):
+        return {
+            "type": self.input_type,
+            "label": self.label,
+            "min": self.minimum,
+            "max": self.maximum,
+            "noteExpression": self.note_expression,
+            "ends": self.ends,
+            "def": self.default,
+            "step": self.step,
+            "hasHandle": True,
+            "optional": self.optional,
+        }
 
     def enforce(self, value):
         return clampInt(value, self.minimum, self.maximum)

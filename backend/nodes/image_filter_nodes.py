@@ -126,7 +126,11 @@ class AverageColorFixNode(NodeBase):
             ImageInput("Image"),
             ImageInput("Reference Image"),
             BoundedNumberInput(
-                "Reference Image Scale Factor", default=0.125, step=0.125
+                "Reference Image Scale Factor (%)",
+                minimum=0.1,
+                maximum=None,
+                default=12.5,
+                step=12.5,
             ),
         ]
         self.outputs = [ImageOutput()]
@@ -140,12 +144,12 @@ class AverageColorFixNode(NodeBase):
     ) -> np.ndarray:
         """Fixes the average color of the input image"""
 
-        if scale_factor != 1.0:
+        if scale_factor != 100.0:
             ref_img = cv2.resize(
                 ref_img,
                 None,
-                fx=scale_factor,
-                fy=scale_factor,
+                fx=scale_factor / 100,
+                fy=scale_factor / 100,
                 interpolation=cv2.INTER_AREA,
             )
 

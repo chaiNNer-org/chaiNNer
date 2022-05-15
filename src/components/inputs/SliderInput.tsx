@@ -21,7 +21,7 @@ interface SliderInputProps extends InputProps {
     max: number;
     def?: number;
     accentColor: string;
-    hideEnds?: boolean;
+    ends?: Array<string | number> | null;
     noteExpression?: string;
 }
 
@@ -43,7 +43,7 @@ const SliderInput = memo(
         def,
         min,
         max,
-        hideEnds,
+        ends,
         noteExpression,
         accentColor,
         isLocked,
@@ -64,7 +64,7 @@ const SliderInput = memo(
         return (
             <VStack w="full">
                 <HStack w="full">
-                    {!hideEnds && <Text fontSize="xs">{min}</Text>}
+                    {ends && <Text fontSize="xs">{ends[0]}</Text>}
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
@@ -95,7 +95,7 @@ const SliderInput = memo(
                             <SliderThumb />
                         </Tooltip>
                     </Slider>
-                    {!hideEnds && <Text fontSize="xs">{max}</Text>}
+                    {ends && <Text fontSize="xs">{ends[1]}</Text>}
                     <NumberInput
                         className="nodrag"
                         defaultValue={def}
