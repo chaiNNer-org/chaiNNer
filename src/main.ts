@@ -20,12 +20,13 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { graphics, Systeminformation } from 'systeminformation';
 import util from 'util';
+import yargs from 'yargs/yargs';
 import { PythonKeys } from './common-types';
 import { openSaveFile } from './helpers/dataTransfer';
 import { getNvidiaSmi } from './helpers/nvidiaSmi';
 import { BrowserWindowWithSafeIpc, FileOpenResult, ipcMain } from './helpers/safeIpc';
 import { SaveFile } from './helpers/SaveFile';
-import { checkFileExists } from './helpers/util';
+import { checkFileExists, lazy } from './helpers/util';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 
 const exec = util.promisify(_exec);
@@ -147,11 +148,38 @@ if (app.isPackaged) {
     req.end();
 }
 
-if (app.isPackaged) {
-    // workaround for missing executable argument)
-    process.argv.unshift('');
+interface ParsedArguments {
+    /**
+     * A file the user wants to open.
+     */
+    file?: string;
+    noBackend: boolean;
 }
-const parameters = process.argv.slice(2);
+const getArguments = lazy<ParsedArguments>(() => {
+    try {
+        const args = process.argv.slice(app.isPackaged ? 1 : 2);
+        const parsed = yargs(args)
+            .options({
+                backend: { type: 'boolean', default: true },
+            })
+            .parseSync();
+
+        const file = parsed._[0];
+
+        return {
+            file: file ? String(file) : undefined,
+            noBackend: !parsed.backend,
+        };
+    } catch (error) {
+        log.error('Failed to parse command line arguments');
+        log.error(error);
+
+        return {
+            file: undefined,
+            noBackend: false,
+        };
+    }
+});
 
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
@@ -235,7 +263,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
     }
     log.info(`Port found: ${port}`);
     ipcMain.handle('get-port', () => {
-        if (process.argv[2] && process.argv[2] === '--no-backend') {
+        if (getArguments().noBackend) {
             return 8000;
         }
         return port;
@@ -512,7 +540,7 @@ const checkNvidiaSmi = async () => {
 };
 
 const spawnBackend = (port: number) => {
-    if (process.argv[2] && process.argv[2] === '--no-backend') {
+    if (getArguments().noBackend) {
         return;
     }
     log.info('Attempting to spawn backend...');
@@ -879,8 +907,8 @@ const createWindow = async () => {
     }
 
     // Opening file with chaiNNer
-    if (parameters[0] && !['--no-backend', '--squirrel-firstrun'].includes(parameters[0])) {
-        const filepath = parameters[0];
+    const { file: filepath } = getArguments();
+    if (filepath) {
         const result = SaveFile.read(filepath).then<FileOpenResult, FileOpenResult>(
             (saveData) => {
                 return {

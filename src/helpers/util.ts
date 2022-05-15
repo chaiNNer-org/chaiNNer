@@ -40,3 +40,14 @@ export const getLocalStorage = (): Storage => {
 export const createUniqueId = () => uuid4();
 export const deriveUniqueId = (input: string) =>
     uuid5(input, '48f168a5-48dc-48b3-a7c7-2c3eedb08602');
+
+export const lazy = <T>(fn: () => T): (() => T) => {
+    let hasValue = false;
+    let value: T;
+    return () => {
+        if (hasValue) return value;
+        value = fn();
+        hasValue = true;
+        return value;
+    };
+};
