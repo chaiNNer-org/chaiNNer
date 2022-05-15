@@ -236,12 +236,12 @@ class InterpolateNode(NodeBase):
             ModelInput("Model A"),
             ModelInput("Model B"),
             SliderInput(
-                "Amount",
+                "Weights",
                 0,
                 100,
                 50,
-                note_expression="`Model A ${value}% ― Model B ${100 - value}%`",
-                hide_ends=True,
+                note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
+                ends=("A", "B"),
             ),
         ]
         self.outputs = [ModelOutput()]
@@ -253,8 +253,8 @@ class InterpolateNode(NodeBase):
 
     def perform_interp(self, model_a: OrderedDict, model_b: OrderedDict, amount: int):
         try:
-            amount_a = amount / 100
-            amount_b = 1 - amount_a
+            amount_b = amount / 100
+            amount_a = 1 - amount_b
 
             state_dict = OrderedDict()
             for k, v_1 in model_a.items():

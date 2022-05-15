@@ -274,15 +274,15 @@ class NcnnInterpolateModelsNode(NodeBase):
         super().__init__()
         self.description = "Interpolate two NCNN models of the same type together."
         self.inputs = [
-            NcnnNetInput("Net A"),
-            NcnnNetInput("Net B"),
+            NcnnNetInput("Model A"),
+            NcnnNetInput("Model B"),
             SliderInput(
-                "Amount",
+                "Weights",
                 0,
                 100,
                 50,
-                note_expression="`Net A ${value}% ― Net B ${100 - value}%`",
-                hide_ends=True,
+                note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
+                ends=("A", "B"),
             ),
         ]
         self.outputs = [NcnnNetOutput()]
@@ -294,8 +294,8 @@ class NcnnInterpolateModelsNode(NodeBase):
 
     def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
         try:
-            amount_a = amount / 100
-            amount_b = 1 - amount_a
+            amount_b = amount / 100
+            amount_a = 1 - amount_b
 
             bin_a_mult = bin_a.astype(np.float64) * amount_a
             bin_b_mult = bin_b.astype(np.float64) * amount_b
