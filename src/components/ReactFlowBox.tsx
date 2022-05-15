@@ -31,11 +31,18 @@ const STARTING_Z_INDEX = 50;
  *
  * - Iterator nodes
  * - Nodes inside iterators
+ * - Related iterator nodes
+ * - Related nodes inside iterators
  * - Free nodes
  * - Selected nodes
- *   - Same layers within selected nodes as outside
+ *   - Iterator nodes
+ *   - Nodes inside iterators
+ *   - Free nodes
  *
  * Note that child nodes of selected iterator nodes are implicitly selected as well.
+ *
+ * Related iterator nodes are the parent nodes of a currently selected child node.
+ * Related nodes inside iterators are the sibling nodes of a currently selected child node.
  *
  * The zIndex of an edge will be `max(source, target) - 1`. Note that `-1` doesn't mean
  * "the layer below", but "in between this layer and the below layer".
@@ -48,11 +55,14 @@ const updateZIndexes = (
 ): void => {
     const ITERATOR_INDEX = STARTING_Z_INDEX;
     const ITERATOR_CHILDREN_INDEX = ITERATOR_INDEX + 2;
-    const FREE_NODES_INDEX = ITERATOR_CHILDREN_INDEX + 2;
-    const SELECTED_ADD = 10;
+    const RELATED_ITERATOR_INDEX = ITERATOR_CHILDREN_INDEX + 2;
+    const RELATED_ITERATOR_CHILDREN_INDEX = RELATED_ITERATOR_INDEX + 2;
+    const FREE_NODES_INDEX = RELATED_ITERATOR_CHILDREN_INDEX + 2;
+    const SELECTED_ADD = 20;
     const MIN_SELECTED_INDEX = STARTING_Z_INDEX + SELECTED_ADD;
 
     const selectedIterators = new Set<string>();
+    const relatedIterators = new Set<string>();
     const nodeZIndexes = new Map<string, number>();
 
     // set the zIndex of all nodes
@@ -60,9 +70,15 @@ const updateZIndexes = (
         let zIndex;
         if (n.type === 'iterator') {
             zIndex = ITERATOR_INDEX;
-            if (n.selected) selectedIterators.add(n.id);
+            if (n.selected) {
+                selectedIterators.add(n.id);
+                relatedIterators.delete(n.id);
+            }
         } else if (n.parentNode) {
             zIndex = ITERATOR_CHILDREN_INDEX;
+            if (n.selected && !selectedIterators.has(n.parentNode)) {
+                relatedIterators.add(n.parentNode);
+            }
         } else {
             zIndex = FREE_NODES_INDEX;
         }
@@ -74,7 +90,7 @@ const updateZIndexes = (
     }
 
     // fix up the child nodes of selected iterators
-    if (selectedIterators.size > 0) {
+    if (selectedIterators.size > 0 || relatedIterators.size > 0) {
         // all child nodes of selected iterators are implicitly selected
         for (const n of nodes) {
             if (selectedIterators.has(n.parentNode!)) {
@@ -82,6 +98,10 @@ const updateZIndexes = (
 
                 n.zIndex = zIndex;
                 nodeZIndexes.set(n.id, zIndex);
+            } else if (relatedIterators.has(n.id)) {
+                n.zIndex = RELATED_ITERATOR_INDEX;
+            } else if (relatedIterators.has(n.parentNode!) && !n.selected) {
+                n.zIndex = RELATED_ITERATOR_CHILDREN_INDEX;
             }
         }
     }
