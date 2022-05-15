@@ -21,7 +21,7 @@ interface SliderInputProps extends InputProps {
     max: number;
     def?: number;
     accentColor: string;
-    ends?: Array<string | number> | null;
+    ends?: [string | number, string | number] | null;
     noteExpression?: string;
 }
 
