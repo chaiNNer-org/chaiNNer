@@ -1,6 +1,8 @@
 import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, Heading, HStack, Spacer, useColorModeValue } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
+import { useContext } from 'use-context-selector';
+import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { IconFactory } from '../CustomIcons';
 
@@ -8,17 +10,29 @@ interface RepresentativeNodeProps {
     category: string;
     subcategory: string;
     icon: string;
-    type: string;
+    name: string;
+    collapsed?: boolean;
+    schemaId: string;
 }
 
-const RepresentativeNode = ({ category, subcategory, type, icon }: RepresentativeNodeProps) => {
+const RepresentativeNode = ({
+    category,
+    subcategory,
+    name,
+    icon,
+    schemaId,
+    collapsed = false,
+}: RepresentativeNodeProps) => {
     const bgColor = useColorModeValue('gray.300', 'gray.700');
     const borderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
 
-    const collapsed = false;
-
     const [hover, setHover] = useState<boolean>(false);
+
+    const { useNodeFavorites } = useContext(SettingsContext);
+    const [favorites, setFavorites] = useNodeFavorites;
+
+    const isFavorite = useMemo(() => !!favorites.includes(schemaId), [favorites.length]);
 
     return (
         <Center
@@ -61,6 +75,7 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                         alignContent="center"
                         alignItems="center"
                         h={4}
+                        py={3}
                         verticalAlign="middle"
                         w={4}
                     >
@@ -89,7 +104,7 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                                     // w="90%"
                                     whiteSpace="nowrap"
                                 >
-                                    {type.toUpperCase()}
+                                    {name.toUpperCase()}
                                 </Heading>
                             </Box>
                             <Spacer />
@@ -98,30 +113,43 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                                 verticalAlign="middle"
                                 w="fit-content"
                             >
-                                <SettingsIcon
-                                    _hover={{
-                                        stroke: 'gray.500',
-                                        transition: '0.15s ease-in-out',
-                                    }}
-                                    color={bgColor}
-                                    opacity={hover ? '100%' : '0%'}
-                                    stroke={borderColor}
-                                    strokeWidth={1}
-                                    transition="0.15s ease-in-out"
-                                    verticalAlign="middle"
-                                />
+                                {
+                                    // TODO: Re-enable when ready to do node settings
+                                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                                    false && (
+                                        <SettingsIcon
+                                            _hover={{
+                                                stroke: 'gray.500',
+                                                transition: '0.15s ease-in-out',
+                                            }}
+                                            color={bgColor}
+                                            opacity={hover ? '100%' : '0%'}
+                                            stroke={borderColor}
+                                            strokeWidth={1}
+                                            transition="0.15s ease-in-out"
+                                            verticalAlign="middle"
+                                        />
+                                    )
+                                }
                                 <StarIcon
                                     _hover={{
                                         stroke: 'yellow.500',
                                         transition: '0.15s ease-in-out',
                                     }}
                                     aria-label="dlksdmclsdk"
-                                    color={bgColor}
-                                    opacity={hover ? '100%' : '0%'}
+                                    color={isFavorite ? 'yellow.500' : bgColor}
+                                    opacity={isFavorite || hover ? '100%' : '0%'}
                                     stroke={borderColor}
                                     strokeWidth={1}
                                     transition="0.15s ease-in-out"
                                     verticalAlign="middle"
+                                    onClick={() => {
+                                        if (isFavorite) {
+                                            setFavorites(favorites.filter((f) => f !== schemaId));
+                                        } else {
+                                            setFavorites([...favorites, schemaId]);
+                                        }
+                                    }}
                                 />
                             </HStack>
                         </Flex>

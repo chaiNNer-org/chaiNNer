@@ -3,6 +3,7 @@ import { createContext } from 'use-context-selector';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface Settings {
+    // Global settings
     useIsCpu: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useIsFp16: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
@@ -13,6 +14,11 @@ interface Settings {
         snapToGridAmount: number,
         setSnapToGridAmount: React.Dispatch<React.SetStateAction<number>>
     ];
+
+    // Node Settings
+    useNodeFavorites: readonly [string[], React.Dispatch<React.SetStateAction<string[]>>];
+
+    // Port
     port: number;
 }
 
@@ -20,6 +26,7 @@ interface Settings {
 export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
 
 export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
+    // Global Settings
     const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
     const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
     const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
@@ -39,16 +46,27 @@ export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ p
     );
     const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel] as const, [isDisHwAccel]);
 
+    // Node Settings
+    const [favorites, setFavorites] = useLocalStorage<string[]>('node-favorites', []);
+
+    const useNodeFavorites = useMemo(() => [favorites, setFavorites] as const, [favorites]);
+
     const contextValue = useMemo<Readonly<Settings>>(
         () => ({
+            // Globals
             useIsCpu,
             useIsFp16,
             useIsSystemPython,
             useSnapToGrid,
             useDisHwAccel,
+
+            // Node
+            useNodeFavorites,
+
+            // Port
             port,
         }),
-        [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, port]
+        [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useNodeFavorites, port]
     );
 
     return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;

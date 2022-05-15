@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
-import RepresentativeNode from '../node/RepresentativeNode';
+import RepresentativeNode from './RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
     event.dataTransfer.setData('application/reactflow/schema', JSON.stringify(node));
@@ -17,9 +17,10 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
 
 interface RepresentativeNodeWrapperProps {
     node: NodeSchema;
+    collapsed?: boolean;
 }
 
-const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
+const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
     const reactFlowInstance = useReactFlow();
@@ -72,9 +73,11 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                 >
                     <RepresentativeNode
                         category={node.category}
+                        collapsed={collapsed}
                         icon={node.icon}
+                        name={node.name}
+                        schemaId={node.schemaId}
                         subcategory={node.subcategory}
-                        type={node.name}
                     />
                 </Center>
             </Tooltip>
