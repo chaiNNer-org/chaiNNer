@@ -16,7 +16,7 @@ interface Settings {
     ];
 
     // Node Settings
-    useNodeFavorites: readonly [string[], React.Dispatch<React.SetStateAction<string[]>>];
+    useNodeFavorites: readonly [readonly string[], React.Dispatch<React.SetStateAction<readonly string[]>>];
 
     // Port
     port: number;
