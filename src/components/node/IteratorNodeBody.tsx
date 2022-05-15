@@ -68,13 +68,13 @@ const IteratorNodeBody = ({
 }: IteratorNodeBodyProps) => {
     const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
     const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
-    const { useIteratorSize, setHoveredNode, updateIteratorBounds } = useContext(GlobalContext);
+    const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
+        useContext(GlobalContext);
 
     const { useSnapToGrid } = useContext(SettingsContext);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-    const [setIteratorSize, defaultSize] = useIteratorSize(id);
-    const { width, height } = iteratorSize ?? defaultSize;
+    const { width, height } = iteratorSize ?? defaultIteratorSize;
 
     const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
@@ -84,18 +84,18 @@ const IteratorNodeBody = ({
             const size = {
                 offsetTop: resizable.offsetTop,
                 offsetLeft: resizable.offsetLeft,
-                width: width || defaultSize.width,
-                height: height || defaultSize.height,
+                width,
+                height,
             };
-            setIteratorSize(size);
+            setIteratorSize(id, size);
             updateIteratorBounds(id, size);
         }
-    }, [resizeRef?.resizable]);
+    }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
 
     return (
         <Resizable
             className="nodrag"
-            defaultSize={defaultSize}
+            defaultSize={defaultIteratorSize}
             enable={{
                 top: false,
                 right: true,
@@ -132,7 +132,7 @@ const IteratorNodeBody = ({
                     width: (width < maxWidth ? maxWidth : width) + d.width,
                     height: (height < maxHeight ? maxHeight : height) + d.height,
                 };
-                setIteratorSize(size);
+                setIteratorSize(id, size);
                 updateIteratorBounds(id, size);
             }}
         >

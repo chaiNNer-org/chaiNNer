@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-restricted-syntax */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
 import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
@@ -16,13 +17,89 @@ import ReactFlow, {
     Viewport,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData, NodeSchema } from '../common-types';
+import { EdgeData, NodeData } from '../common-types';
+import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
+import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
 import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
-import { snapToGrid } from '../helpers/reactFlowUtil';
+import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 
 const STARTING_Z_INDEX = 50;
+/**
+ * We want the nodes and edges to form the following layers:
+ *
+ * - Iterator nodes
+ * - Nodes inside iterators
+ * - Free nodes
+ * - Selected nodes
+ *   - Same layers within selected nodes as outside
+ *
+ * Note that child nodes of selected iterator nodes are implicitly selected as well.
+ *
+ * The zIndex of an edge will be `max(source, target) - 1`. Note that `-1` doesn't mean
+ * "the layer below", but "in between this layer and the below layer".
+ * The only exception is when the edge is selected but neither its not its target are selected.
+ * In this case, the edge will to be in the highest selected layer.
+ */
+const updateZIndexes = (
+    nodes: readonly Node<NodeData>[],
+    edges: readonly Edge<EdgeData>[]
+): void => {
+    const ITERATOR_INDEX = STARTING_Z_INDEX;
+    const ITERATOR_CHILDREN_INDEX = ITERATOR_INDEX + 2;
+    const FREE_NODES_INDEX = ITERATOR_CHILDREN_INDEX + 2;
+    const SELECTED_ADD = 10;
+    const MIN_SELECTED_INDEX = STARTING_Z_INDEX + SELECTED_ADD;
+
+    const selectedIterators = new Set<string>();
+    const nodeZIndexes = new Map<string, number>();
+
+    // set the zIndex of all nodes
+    for (const n of nodes) {
+        let zIndex;
+        if (n.type === 'iterator') {
+            zIndex = ITERATOR_INDEX;
+            if (n.selected) selectedIterators.add(n.id);
+        } else if (n.parentNode) {
+            zIndex = ITERATOR_CHILDREN_INDEX;
+        } else {
+            zIndex = FREE_NODES_INDEX;
+        }
+
+        if (n.selected) zIndex += SELECTED_ADD;
+
+        n.zIndex = zIndex;
+        nodeZIndexes.set(n.id, zIndex);
+    }
+
+    // fix up the child nodes of selected iterators
+    if (selectedIterators.size > 0) {
+        // all child nodes of selected iterators are implicitly selected
+        for (const n of nodes) {
+            if (selectedIterators.has(n.parentNode!)) {
+                const zIndex = ITERATOR_CHILDREN_INDEX + SELECTED_ADD;
+
+                n.zIndex = zIndex;
+                nodeZIndexes.set(n.id, zIndex);
+            }
+        }
+    }
+
+    // set the zIndex of all edges
+    for (const e of edges) {
+        let zIndex = Math.max(
+            nodeZIndexes.get(e.source) ?? STARTING_Z_INDEX,
+            nodeZIndexes.get(e.target) ?? STARTING_Z_INDEX
+        );
+
+        if (e.selected && zIndex < MIN_SELECTED_INDEX) {
+            zIndex += SELECTED_ADD;
+        }
+
+        e.zIndex = zIndex - 1;
+    }
+};
 
 interface ReactFlowBoxProps {
     nodeTypes: NodeTypes;
@@ -30,115 +107,109 @@ interface ReactFlowBoxProps {
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
-    const { nodes, edges, createNode, createConnection } = useContext(GlobalVolatileContext);
-    const { setNodes, setEdges, setZoom, setHoveredNode } = useContext(GlobalContext);
+    const { sendAlert } = useContext(AlertBoxContext);
+    const { createNode, createConnection } = useContext(GlobalVolatileContext);
+    const {
+        schemata,
+        setZoom,
+        setHoveredNode,
+        addNodeChanges,
+        addEdgeChanges,
+        changeNodes,
+        changeEdges,
+        setSetNodes,
+        setSetEdges,
+    } = useContext(GlobalContext);
     const { closeAllMenus } = useContext(MenuFunctionsContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+
     const reactFlowInstance = useReactFlow();
 
-    const [_nodes, _setNodes, onNodesChange] = useNodesState<NodeData>([]);
-    const [_edges, _setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
-
-    const sortNodesAndEdges = useCallback(() => {
-        const iterators = nodes.filter((n) => n.type === 'iterator'); // .sort((i) => (i.selected ? 1 : -1));
-        let sortedNodes: Node<NodeData>[] = [];
-
-        // Sort the nodes in a way that makes iterators stack on each other correctly
-        // Put iterators below their children
-        iterators.forEach((_iterator, index) => {
-            const iterator = _iterator;
-            iterator.zIndex = STARTING_Z_INDEX + index * 5;
-            sortedNodes.push(iterator);
-            const children = nodes.filter((n) => n.parentNode === iterator.id);
-            // sorted.concat(children);
-            children.forEach((_child) => {
-                const child = _child;
-                child.zIndex = STARTING_Z_INDEX + index * 5 + 1;
-                // child.position.x = Math.min(Math.max(child.position.x, 0), iterator.width);
-                // child.position.y = Math.min(Math.max(child.position.y, 0), iterator.height);
-                sortedNodes.push(child);
-            });
-        });
-
-        // Put nodes not in iterators on top of the iterators
-        const freeNodes = nodes.filter((n) => n.type !== 'iterator' && !n.parentNode);
-        freeNodes.forEach((f) => {
-            sortedNodes.push(f);
-        });
-
-        const indexedEdges = edges.map((e) => {
-            const index = sortedNodes.find((n) => n.id === e.target)?.zIndex || 1000;
-            return { ...e, zIndex: index };
-        });
-
-        // This fixes the connection line being behind iterators if no edges are present
-        if (indexedEdges.length === 0) {
-            sortedNodes = sortedNodes.map((n) => ({ ...n, zIndex: -1 }));
-        }
-
-        _setNodes(sortedNodes);
-        _setEdges(indexedEdges);
-    }, [nodes, edges, _setNodes, _setEdges]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
 
     useEffect(() => {
-        sortNodesAndEdges();
-    }, [nodes, edges]);
+        setSetNodes(() => setNodes);
+        setSetEdges(() => setEdges);
+    }, [setNodes, setEdges]);
+
+    const selectedNodesKey = useMemo(
+        () =>
+            nodes
+                .filter((n) => n.selected)
+                .map((n) => n.id)
+                .join(''),
+        [nodes]
+    );
+    const selectedEdgesKey = useMemo(
+        () =>
+            edges
+                .filter((e) => e.selected)
+                .map((e) => e.id)
+                .join(''),
+        [edges]
+    );
+
+    // We don't want this to cause a re-render, so we will commit the greatest sin
+    // known to React developers: interior mutation.
+    useMemo(() => {
+        nodes.sort((a, b) => a.id.localeCompare(b.id));
+    }, [nodes.length]);
+    useMemo(() => {
+        edges.sort((a, b) => a.id.localeCompare(b.id));
+    }, [edges.length]);
+    useMemo(
+        () => updateZIndexes(nodes, edges),
+        [nodes.length, edges.length, selectedNodesKey, selectedEdgesKey]
+    );
+    useMemo(() => {
+        if (!isSnapToGrid) return;
+        for (const n of nodes) {
+            if (!isSnappedToGrid(n.position, snapToGridAmount)) {
+                n.position = snapToGrid(n.position, snapToGridAmount);
+            }
+        }
+    }, [isSnapToGrid && snapToGridAmount, nodes]);
 
     const onNodeDragStop = useCallback(() => {
-        setNodes(_nodes);
-        setEdges(_edges);
-    }, [_nodes, _edges]);
+        addNodeChanges();
+        addEdgeChanges();
+    }, [addNodeChanges, addEdgeChanges]);
 
     const onNodesDelete = useCallback(
         (_nodesToDelete: readonly Node<NodeData>[]) => {
-            // Prevent iterator helpers from being deleted
-            const iteratorsToDelete = _nodesToDelete
-                .filter((n) => n.type === 'iterator')
-                .map((n) => n.id);
-            const nodesToDelete = _nodesToDelete.filter(
-                (n) =>
-                    !(
-                        n.type === 'iteratorHelper' &&
-                        n.parentNode &&
-                        !iteratorsToDelete.includes(n.parentNode)
-                    )
-            );
+            const nodeIds = new Set(_nodesToDelete.map((n) => n.id));
 
-            const nodeIds = nodesToDelete.map((n) => n.id);
-            const newNodes = nodes.filter((n) => !nodeIds.includes(n.id));
-            setNodes(newNodes);
+            changeNodes((nodes) =>
+                nodes.filter((n) => {
+                    if (nodeIds.has(n.id)) {
+                        if (n.type === 'iteratorHelper') {
+                            // only delete iterator helper if the iterator itself is also removed
+                            return !nodeIds.has(n.parentNode!);
+                        }
+                        return false;
+                    }
+                    return true;
+                })
+            );
         },
-        [_setNodes, _nodes, setNodes, nodes]
+        [changeNodes]
     );
 
     const onEdgesDelete = useCallback(
         (edgesToDelete: readonly Edge<EdgeData>[]) => {
-            const edgeIds = edgesToDelete.map((e) => e.id);
-            const newEdges = edges.filter((e) => !edgeIds.includes(e.id));
-            setEdges(newEdges);
+            const edgeIds = new Set(edgesToDelete.map((e) => e.id));
+            changeEdges((edges) => edges.filter((e) => !edgeIds.has(e.id)));
         },
-        [setEdges, _edges, edges]
+        [changeEdges]
     );
 
     const onMoveEnd = useCallback(
         (event: unknown, viewport: Viewport) => setZoom(viewport.zoom),
         [setZoom]
     );
-
-    const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
-
-    useEffect(() => {
-        if (isSnapToGrid) {
-            const alignedNodes = nodes.map((n) => {
-                if (n.parentNode) {
-                    return n;
-                }
-                return { ...n, position: snapToGrid(n.position, snapToGridAmount) };
-            });
-            _setNodes(alignedNodes);
-        }
-    }, [snapToGridAmount, nodes]);
 
     const onDragOver = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
@@ -152,54 +223,48 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
 
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
-    }, []);
+    }, [setHoveredNode]);
 
     const onDrop = useCallback(
         (event: DragEvent<HTMLDivElement>) => {
-            // log.info('dropped');
             event.preventDefault();
-
             if (!wrapperRef.current) return;
 
-            const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
-
             try {
-                const nodeSchema = JSON.parse(
-                    event.dataTransfer.getData('application/reactflow/schema')
-                ) as NodeSchema;
-                const offsetX = Number(event.dataTransfer.getData('application/reactflow/offsetX'));
-                const offsetY = Number(event.dataTransfer.getData('application/reactflow/offsetY'));
+                const reactFlowBounds = wrapperRef.current.getBoundingClientRect();
 
-                const { zoom } = reactFlowInstance.getViewport();
-                const position = reactFlowInstance.project({
-                    x: event.clientX - reactFlowBounds.left - offsetX * zoom,
-                    y: event.clientY - reactFlowBounds.top - offsetY * zoom,
-                });
-
-                const nodeData = {
-                    schemaId: nodeSchema.schemaId,
-                    category: nodeSchema.category,
-                    type: nodeSchema.name,
-                    icon: nodeSchema.icon,
-                    subcategory: nodeSchema.subcategory,
+                const options: DataTransferProcessorOptions = {
+                    schemata,
+                    createNode,
+                    getNodePosition: (offsetX = 0, offsetY = 0) => {
+                        const { zoom } = reactFlowInstance.getViewport();
+                        return reactFlowInstance.project({
+                            x: event.clientX - reactFlowBounds.left - offsetX * zoom,
+                            y: event.clientY - reactFlowBounds.top - offsetY * zoom,
+                        });
+                    },
                 };
 
-                createNode({
-                    position,
-                    data: nodeData,
-                    nodeType: nodeSchema.nodeType,
+                for (const processor of dataTransferProcessors) {
+                    if (processor(event.dataTransfer, options)) {
+                        return;
+                    }
+                }
+
+                sendAlert({
+                    type: AlertType.WARN,
+                    message: `Unable to transfer dragged item(s).`,
                 });
             } catch (error) {
                 log.error(error);
+                sendAlert({
+                    type: AlertType.ERROR,
+                    message: `Failed to drag item.\n\nDetails: ${String(error)}`,
+                });
             }
         },
         [createNode, wrapperRef.current, reactFlowInstance]
     );
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const onNodeContextMenu = useCallback((event, node) => {
-        // TODO implement this
-    }, []);
 
     return (
         <Box
@@ -213,11 +278,11 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
             <ReactFlow
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
-                edges={_edges}
+                edges={edges}
                 maxZoom={8}
                 minZoom={0.125}
                 nodeTypes={nodeTypes}
-                nodes={_nodes}
+                nodes={nodes}
                 snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
                 snapToGrid={isSnapToGrid}
                 style={{
@@ -230,11 +295,9 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
-                // onSelectionChange={setSelectedElements}
                 onMouseDown={closeAllMenus}
                 onMoveEnd={onMoveEnd}
                 onMoveStart={closeAllMenus}
-                onNodeContextMenu={onNodeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}

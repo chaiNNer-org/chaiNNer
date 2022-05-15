@@ -1,8 +1,8 @@
 import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useEffect } from 'react';
+import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { useContextSelector } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ipcRenderer } from '../../helpers/safeIpc';
 import { checkFileExists } from '../../helpers/util';
@@ -10,6 +10,8 @@ import { useLastDirectory } from '../../helpers/hooks/useLastDirectory';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
 import { InputProps } from './props';
+import { AlertBoxContext } from '../../helpers/contexts/AlertBoxContext';
+import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 
 interface FileInputProps extends InputProps {
     filetypes: readonly string[];
@@ -21,6 +23,7 @@ const FileInput = memo(
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
             c.isNodeInputLocked(id, index)
         );
+        const { sendToast } = useContext(AlertBoxContext);
 
         const [filePath, setFilePath] = useInputData<string>(index);
 
@@ -106,8 +109,50 @@ const FileInput = memo(
             }
         };
 
+        const onDragOver = (event: DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+
+            if (event.dataTransfer.types.includes('Files')) {
+                event.stopPropagation();
+
+                // eslint-disable-next-line no-param-reassign
+                event.dataTransfer.dropEffect = 'move';
+            }
+        };
+
+        const onDrop = (event: DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+
+            if (event.dataTransfer.types.includes('Files')) {
+                event.stopPropagation();
+
+                const p = getSingleFileWithExtension(event.dataTransfer, filetypes);
+                if (p) {
+                    setFilePath(p);
+                    return;
+                }
+
+                if (event.dataTransfer.files.length !== 1) {
+                    sendToast({
+                        status: 'error',
+                        description: `Only one file is accepted by ${label}.`,
+                    });
+                } else {
+                    const ext = path.extname(event.dataTransfer.files[0].path);
+                    sendToast({
+                        status: 'error',
+                        description: `${label} does not accept ${ext} files.`,
+                    });
+                }
+            }
+        };
+
         return (
-            <VStack spacing={0}>
+            <VStack
+                spacing={0}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+            >
                 <Tooltip
                     borderRadius={8}
                     label={filePath}

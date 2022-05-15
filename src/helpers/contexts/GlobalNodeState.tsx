@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
 import log from 'electron-log';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -10,7 +9,7 @@ import {
     Viewport,
     XYPosition,
 } from 'react-flow-renderer';
-import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { createContext, useContext } from 'use-context-selector';
 import {
     EdgeData,
     InputData,
@@ -23,19 +22,18 @@ import {
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
-import { snapToGrid } from '../reactFlowUtil';
+import { useChangeCounter, ChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
 import { copyNode, parseHandle, createUniqueId, deriveUniqueId } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface GlobalVolatile {
-    nodes: readonly Node<NodeData>[];
-    edges: readonly Edge<EdgeData>[];
+    nodeChanges: ChangeCounter;
+    edgeChanges: ChangeCounter;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, index: number) => boolean;
@@ -45,8 +43,13 @@ interface GlobalVolatile {
 interface Global {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    setNodes: SetState<Node<NodeData>[]>;
-    setEdges: SetState<Edge<EdgeData>[]>;
+    defaultIteratorSize: Size;
+    setSetNodes: SetState<SetState<Node<NodeData>[]>>;
+    setSetEdges: SetState<SetState<Edge<EdgeData>[]>>;
+    addNodeChanges: () => void;
+    addEdgeChanges: () => void;
+    changeNodes: SetState<Node<NodeData>[]>;
+    changeEdges: SetState<Edge<EdgeData>[]>;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
@@ -64,9 +67,7 @@ interface Global {
     duplicateNode: (id: string) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    useIteratorSize: (
-        id: string
-    ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
+    setIteratorSize: (id: string, size: IteratorSize) => void;
     updateIteratorBounds: (
         id: string,
         iteratorSize: IteratorSize | null,
@@ -77,7 +78,7 @@ interface Global {
     setZoom: SetState<number>;
 }
 
-interface NodeProto {
+export interface NodeProto {
     position: XYPosition;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
@@ -90,14 +91,13 @@ export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 const createNodeImpl = (
     { position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
-    snapToGridAmount: number,
     parent?: Node<NodeData>
 ): Node<NodeData>[] => {
     const id = createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
-        position: snapToGrid(position, snapToGridAmount),
+        position,
         data: {
             ...data,
             id,
@@ -144,7 +144,6 @@ const createNodeImpl = (
                     },
                 },
                 schemata,
-                snapToGridAmount,
                 newNode
             );
             extraNodes.push(...subNode);
@@ -154,9 +153,7 @@ const createNodeImpl = (
     return [newNode, ...extraNodes];
 };
 
-const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
-const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
-const cachedViewport = getSessionStorageOrDefault<Viewport | null>('cachedViewport', null);
+const defaultIteratorSize: Size = { width: 1280, height: 720 };
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
@@ -168,30 +165,50 @@ export const GlobalProvider = ({
     schemata,
     reactFlowWrapper,
 }: React.PropsWithChildren<GlobalProviderProps>) => {
-    const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
-    const [, , snapToGridAmount] = useSnapToGrid;
-
     const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
 
-    const [nodes, setNodes] = useState<Node<NodeData>[]>(cachedNodes);
-    const [edges, setEdges] = useState<Edge<EdgeData>[]>(cachedEdges);
-    const { setViewport, getViewport, getNode, getNodes, getEdges } = useReactFlow<
-        NodeData,
-        EdgeData
-    >();
+    const [nodeChanges, addNodeChanges] = useChangeCounter();
+    const [edgeChanges, addEdgeChanges] = useChangeCounter();
+    const {
+        setViewport,
+        getViewport,
+        getNode,
+        getNodes,
+        getEdges,
+        setNodes: rfSetNodes,
+        setEdges: rfSetEdges,
+    } = useReactFlow<NodeData, EdgeData>();
+
+    const [setNodes, setSetNodes] = useState(() => rfSetNodes);
+    const [setEdges, setSetEdges] = useState(() => rfSetEdges);
+
+    const changeNodes = useMemo(
+        () => wrapChanges(setNodes, addNodeChanges),
+        [setNodes, addNodeChanges]
+    );
+    const changeEdges = useMemo(
+        () => wrapChanges(setEdges, addEdgeChanges),
+        [setEdges, addEdgeChanges]
+    );
 
     // Cache node state to avoid clearing state when refreshing
     useEffect(() => {
         const timerId = setTimeout(() => {
-            sessionStorage.setItem('cachedNodes', JSON.stringify(nodes));
-            sessionStorage.setItem('cachedEdges', JSON.stringify(edges));
+            sessionStorage.setItem('cachedNodes', JSON.stringify(getNodes()));
+            sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
             sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
-        }, 1000);
+        }, 100);
         return () => clearTimeout(timerId);
-    }, [nodes, edges]);
+    }, [nodeChanges, edgeChanges]);
     useEffect(() => {
+        const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
+        const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
+        const cachedViewport = getSessionStorageOrDefault<Viewport | null>('cachedViewport', null);
+
+        changeNodes(cachedNodes);
+        changeEdges(cachedEdges);
         if (cachedViewport) setViewport(cachedViewport);
-    }, []);
+    }, [changeNodes, changeEdges]);
 
     const [savePath, setSavePath] = useState<string | undefined>();
 
@@ -203,12 +220,14 @@ export const GlobalProvider = ({
      *
      * Some changes to the chain might not be worth saving (e.g. animation status).
      */
-    const hasRelevantUnsavedChanges: boolean =
-        hasUnsavedChanges && (nodes.length > 0 || !!savePath);
+    const [hasRelevantUnsavedChanges, setHasRelevantUnsavedChanges] = useState(false);
+    useEffect(() => {
+        setHasRelevantUnsavedChanges(hasUnsavedChanges && (getNodes().length > 0 || !!savePath));
+    }, [hasUnsavedChanges, savePath, nodeChanges]);
 
     useEffect(() => {
         setHasUnsavedChanges(true);
-    }, [nodes, edges]);
+    }, [nodeChanges, edgeChanges]);
     useEffect(() => {
         const id = setTimeout(() => {
             const dot = hasRelevantUnsavedChanges ? ' •' : '';
@@ -219,17 +238,22 @@ export const GlobalProvider = ({
 
     const modifyNode = useCallback(
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
-            setNodes((nodes) => {
-                const node = nodes.find((n) => n.id === id);
-                if (!node) {
-                    log.error(`Cannot modify missing node with id ${id}`);
-                    return nodes;
+            changeNodes((nodes) => {
+                const newNodes: Node<NodeData>[] = [];
+                // eslint-disable-next-line no-restricted-syntax
+                for (const n of nodes) {
+                    if (n.id === id) {
+                        const newNode = mapFn(n);
+                        if (newNode === n) return nodes;
+                        newNodes.push(newNode);
+                    } else {
+                        newNodes.push(n);
+                    }
                 }
-                const newNode = mapFn(node);
-                return [...nodes.filter((n) => n.id !== id), newNode];
+                return newNodes;
             });
         },
-        [setNodes]
+        [changeNodes]
     );
 
     const dumpState = useCallback((): SaveData => {
@@ -266,15 +290,15 @@ export const GlobalProvider = ({
                         'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
                 });
             }
-            setNodes(validNodes);
-            setEdges(validEdges);
+            changeNodes(validNodes);
+            changeEdges(validEdges);
             if (loadPosition) {
                 setViewport(savedData.viewport);
             }
             setSavePath(path);
             setHasUnsavedChanges(false);
         },
-        [schemata]
+        [schemata, changeNodes, changeEdges]
     );
 
     const clearState = useCallback(async () => {
@@ -293,11 +317,11 @@ export const GlobalProvider = ({
             }
         }
 
-        setEdges([]);
-        setNodes([]);
+        changeNodes([]);
+        changeEdges([]);
         setSavePath(undefined);
         setViewport({ x: 0, y: 0, zoom: 1 });
-    }, [hasRelevantUnsavedChanges, setEdges, setNodes, setSavePath, setViewport]);
+    }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
     const performSave = useCallback(
         (saveAs: boolean) => {
@@ -371,7 +395,7 @@ export const GlobalProvider = ({
 
     const removeNodeById = useCallback(
         (id: string) => {
-            setNodes((nodes) => {
+            changeNodes((nodes) => {
                 const node = nodes.find((n) => n.id === id);
                 if (node && node.type !== 'iteratorHelper') {
                     return nodes.filter((n) => n.id !== id && n.parentNode !== id);
@@ -379,25 +403,25 @@ export const GlobalProvider = ({
                 return nodes;
             });
         },
-        [setNodes]
+        [changeNodes]
     );
 
     const removeEdgeById = useCallback(
         (id: string) => {
-            setEdges((edges) => edges.filter((e) => e.id !== id));
+            changeEdges((edges) => edges.filter((e) => e.id !== id));
         },
-        [setEdges]
+        [changeEdges]
     );
 
     const createNode = useCallback(
         (proto: NodeProto): void => {
-            setNodes((nodes) => {
+            changeNodes((nodes) => {
                 const parent = hoveredNode ? nodes.find((n) => n.id === hoveredNode) : undefined;
-                const newNodes = createNodeImpl(proto, schemata, snapToGridAmount, parent);
+                const newNodes = createNodeImpl(proto, schemata, parent);
                 return [...nodes, ...newNodes];
             });
         },
-        [setNodes, schemata, hoveredNode]
+        [changeNodes, schemata, hoveredNode]
     );
 
     const createConnection = useCallback(
@@ -416,12 +440,12 @@ export const GlobalProvider = ({
                 animated: false,
                 data: {},
             };
-            setEdges((edges) => [
+            changeEdges((edges) => [
                 ...edges.filter((edge) => edge.targetHandle !== targetHandle),
                 newEdge,
             ]);
         },
-        [setEdges]
+        [changeEdges]
     );
 
     const isValidConnection = useCallback(
@@ -556,29 +580,23 @@ export const GlobalProvider = ({
 
     const isNodeInputLocked = useCallback(
         (id: string, index: number): boolean => {
-            return edges.some(
+            return getEdges().some(
                 (e) =>
                     e.target === id &&
                     !!e.targetHandle &&
                     parseHandle(e.targetHandle).index === index
             );
         },
-        [edges]
+        [edgeChanges]
     );
 
-    const useIteratorSize = useCallback(
-        (id: string) => {
-            const defaultSize: Size = { width: 1280, height: 720 };
-
-            const setIteratorSize = (size: IteratorSize) => {
-                modifyNode(id, (old) => {
-                    const newNode = copyNode(old);
-                    newNode.data.iteratorSize = size;
-                    return newNode;
-                });
-            };
-
-            return [setIteratorSize, defaultSize] as const;
+    const setIteratorSize = useCallback(
+        (id: string, size: IteratorSize) => {
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.iteratorSize = size;
+                return newNode;
+            });
         },
         [modifyNode]
     );
@@ -586,7 +604,7 @@ export const GlobalProvider = ({
     // TODO: this can probably be cleaned up but its good enough for now
     const updateIteratorBounds = useCallback(
         (id: string, iteratorSize: IteratorSize | null, dimensions?: Size) => {
-            setNodes((nodes) => {
+            changeNodes((nodes) => {
                 const nodesToUpdate = nodes.filter((n) => n.parentNode === id);
                 const iteratorNode = nodes.find((n) => n.id === id);
                 if (iteratorNode && nodesToUpdate.length > 0) {
@@ -637,7 +655,7 @@ export const GlobalProvider = ({
                 return nodes;
             });
         },
-        [setNodes]
+        [changeNodes]
     );
 
     const setIteratorPercent = useCallback(
@@ -660,7 +678,7 @@ export const GlobalProvider = ({
                     .map((n) => n.id),
             ]);
 
-            setNodes((nodes) => {
+            changeNodes((nodes) => {
                 const newNodes = nodes
                     .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
                     .map<Node<NodeData>>((n) => {
@@ -697,7 +715,7 @@ export const GlobalProvider = ({
                 return [...nodes, ...newNodes];
             });
 
-            setEdges((edges) => {
+            changeEdges((edges) => {
                 const newEdges = edges
                     .filter((e) => nodesToCopy.has(e.target))
                     .map<Edge<EdgeData>>((e) => {
@@ -720,7 +738,7 @@ export const GlobalProvider = ({
                 return [...edges, ...newEdges];
             });
         },
-        [getNodes, setNodes, setEdges]
+        [getNodes, changeNodes, changeEdges]
     );
 
     const clearNode = useCallback(
@@ -737,8 +755,8 @@ export const GlobalProvider = ({
     const [zoom, setZoom] = useState(1);
 
     let globalChainValue: GlobalVolatile = {
-        nodes,
-        edges,
+        nodeChanges,
+        edgeChanges,
         createNode,
         createConnection,
         isNodeInputLocked,
@@ -750,8 +768,13 @@ export const GlobalProvider = ({
     let globalValue: Global = {
         schemata,
         reactFlowWrapper,
-        setNodes,
-        setEdges,
+        defaultIteratorSize,
+        setSetNodes,
+        setSetEdges,
+        addNodeChanges,
+        addEdgeChanges,
+        changeNodes,
+        changeEdges,
         isValidConnection,
         useAnimateEdges,
         useInputData,
@@ -762,7 +785,7 @@ export const GlobalProvider = ({
         duplicateNode,
         updateIteratorBounds,
         setIteratorPercent,
-        useIteratorSize,
+        setIteratorSize,
         setHoveredNode,
         setZoom,
     };

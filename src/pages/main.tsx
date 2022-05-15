@@ -7,6 +7,7 @@ import useFetch, { CachePolicies } from 'use-http';
 import ChaiNNerLogo from '../components/chaiNNerLogo';
 import CustomEdge from '../components/CustomEdge';
 import Header from '../components/Header';
+import { HistoryProvider } from '../components/HistoryProvider';
 import IteratorHelperNode from '../components/node/IteratorHelperNode';
 import IteratorNode from '../components/node/IteratorNode';
 import Node from '../components/node/Node';
@@ -103,29 +104,31 @@ const Main = ({ port }: MainProps) => {
                     schemata={schemata}
                 >
                     <MenuFunctionsProvider>
-                        <VStack
-                            bg={bgColor}
-                            overflow="hidden"
-                            p={2}
-                        >
-                            <ExecutionProvider>
-                                <Header />
-                            </ExecutionProvider>
-                            <HStack
-                                h={height - 80}
-                                w="full"
+                        <HistoryProvider>
+                            <VStack
+                                bg={bgColor}
+                                overflow="hidden"
+                                p={2}
                             >
-                                <NodeSelector
-                                    height={height}
-                                    schemata={schemata}
-                                />
-                                <ReactFlowBox
-                                    edgeTypes={edgeTypes}
-                                    nodeTypes={nodeTypes}
-                                    wrapperRef={reactFlowWrapper}
-                                />
-                            </HStack>
-                        </VStack>
+                                <ExecutionProvider>
+                                    <Header />
+                                </ExecutionProvider>
+                                <HStack
+                                    h={height - 80}
+                                    w="full"
+                                >
+                                    <NodeSelector
+                                        height={height}
+                                        schemata={schemata}
+                                    />
+                                    <ReactFlowBox
+                                        edgeTypes={edgeTypes}
+                                        nodeTypes={nodeTypes}
+                                        wrapperRef={reactFlowWrapper}
+                                    />
+                                </HStack>
+                            </VStack>
+                        </HistoryProvider>
                     </MenuFunctionsProvider>
                 </GlobalProvider>
             </SettingsProvider>

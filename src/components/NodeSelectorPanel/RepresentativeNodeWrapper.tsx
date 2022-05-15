@@ -5,12 +5,17 @@ import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
+import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import RepresentativeNode from './RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
-    event.dataTransfer.setData('application/reactflow/schema', JSON.stringify(node));
-    event.dataTransfer.setData('application/reactflow/offsetX', String(event.nativeEvent.offsetX));
-    event.dataTransfer.setData('application/reactflow/offsetY', String(event.nativeEvent.offsetY));
+    const data: ChainnerDragData = {
+        schemaId: node.schemaId,
+        offsetX: event.nativeEvent.offsetX,
+        offsetY: event.nativeEvent.offsetY,
+    };
+
+    event.dataTransfer.setData(TransferTypes.ChainerSchema, JSON.stringify(data));
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.effectAllowed = 'move';
 };
