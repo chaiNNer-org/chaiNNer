@@ -1,10 +1,10 @@
-import { XYPosition } from 'react-flow-renderer';
 import log from 'electron-log';
 import { extname } from 'path';
+import { XYPosition } from 'react-flow-renderer';
 import { NodeProto } from './contexts/GlobalNodeState';
-import { SchemaMap } from './SchemaMap';
 import { FileOpenResult, ipcRenderer } from './safeIpc';
 import { SaveFile } from './SaveFile';
+import { SchemaMap } from './SchemaMap';
 
 export interface ChainnerDragData {
     schemaId: string;
@@ -13,7 +13,7 @@ export interface ChainnerDragData {
 }
 
 export const enum TransferTypes {
-    ChainerSchema = 'application/chainner/schema',
+    ChainnerSchema = 'application/chainner/schema',
 }
 
 export interface DataTransferProcessorOptions {
@@ -60,10 +60,10 @@ const chainnerSchemaProcessor: DataTransferProcessor = (
     dataTransfer,
     { getNodePosition, createNode, schemata }
 ) => {
-    if (!dataTransfer.getData(TransferTypes.ChainerSchema)) return false;
+    if (!dataTransfer.getData(TransferTypes.ChainnerSchema)) return false;
 
     const { schemaId, offsetX, offsetY } = JSON.parse(
-        dataTransfer.getData(TransferTypes.ChainerSchema)
+        dataTransfer.getData(TransferTypes.ChainnerSchema)
     ) as ChainnerDragData;
 
     const nodeSchema = schemata.get(schemaId);

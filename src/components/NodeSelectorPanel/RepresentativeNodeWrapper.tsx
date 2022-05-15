@@ -4,9 +4,9 @@ import { useReactFlow } from 'react-flow-renderer';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
-import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
-import RepresentativeNode from '../node/RepresentativeNode';
+import RepresentativeNode from './RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
     const data: ChainnerDragData = {
@@ -15,16 +15,17 @@ const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
         offsetY: event.nativeEvent.offsetY,
     };
 
-    event.dataTransfer.setData(TransferTypes.ChainerSchema, JSON.stringify(data));
+    event.dataTransfer.setData(TransferTypes.ChainnerSchema, JSON.stringify(data));
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.effectAllowed = 'move';
 };
 
 interface RepresentativeNodeWrapperProps {
     node: NodeSchema;
+    collapsed?: boolean;
 }
 
-const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => {
+const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
     const reactFlowInstance = useReactFlow();
@@ -33,7 +34,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
         <Box
             key={node.name}
             py={1.5}
-            w="full"
+            // w="full"
         >
             <Tooltip
                 closeOnMouseDown
@@ -47,7 +48,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                     draggable
                     boxSizing="content-box"
                     display="block"
-                    w="100%"
+                    // w="100%"
                     onDoubleClick={() => {
                         if (!reactFlowWrapper.current) return;
 
@@ -77,9 +78,11 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                 >
                     <RepresentativeNode
                         category={node.category}
+                        collapsed={collapsed}
                         icon={node.icon}
+                        name={node.name}
+                        schemaId={node.schemaId}
                         subcategory={node.subcategory}
-                        type={node.name}
                     />
                 </Center>
             </Tooltip>

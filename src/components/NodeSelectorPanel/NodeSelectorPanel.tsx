@@ -1,4 +1,4 @@
-import { SearchIcon, CloseIcon } from '@chakra-ui/icons';
+import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
@@ -9,6 +9,7 @@ import {
     Center,
     Heading,
     HStack,
+    IconButton,
     Input,
     InputGroup,
     InputLeftElement,
@@ -23,7 +24,9 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
+import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
+import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { SchemaMap } from '../../helpers/SchemaMap';
 import { IconFactory } from '../CustomIcons';
@@ -101,22 +104,51 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
         [matchingNodes]
     );
 
+    const [collapsed, setCollapsed] = useState<boolean>(false);
+
+    const { useNodeFavorites } = useContext(SettingsContext);
+    const [favorites] = useNodeFavorites;
+    const favoritesSubcategoriesMap: Map<string, NodeSchema[]> = useMemo(
+        () =>
+            getSubcategories(
+                favorites
+                    .filter((f) => matchingNodes.some((i) => i.schemaId === f))
+                    .map((f) => schemata.get(f))
+            ),
+        [favorites, matchingNodes.length]
+    );
+
     return (
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
             borderRadius="lg"
             borderWidth="1px"
             h="100%"
-            w="auto"
+            w={collapsed ? '84px' : 'auto'} // TODO: Figure out how to make this auto resize to this size
         >
             <Tabs
                 isFitted
                 h="100%"
                 w="100%"
             >
-                <TabList>
-                    <Tab>Nodes</Tab>
-                    <Tab isDisabled>Presets</Tab>
+                <TabList h="42px">
+                    {!collapsed && (
+                        <>
+                            <Tab>Nodes</Tab>
+                            <Tab isDisabled>Presets</Tab>
+                        </>
+                    )}
+                    <IconButton
+                        aria-label="collapse"
+                        bg="none"
+                        color="gray.500"
+                        h="full"
+                        icon={collapsed ? <ArrowRightIcon /> : <ArrowLeftIcon />}
+                        w={collapsed ? 'full' : 'auto'}
+                        onClick={() => setCollapsed(!collapsed)}
+                    >
+                        Collapse
+                    </IconButton>
                 </TabList>
                 <TabPanels>
                     <TabPanel
@@ -132,6 +164,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                             </InputLeftElement>
                             <Input
                                 borderRadius={0}
+                                disabled={collapsed}
                                 placeholder="Search..."
                                 spellCheck={false}
                                 type="text"
@@ -175,29 +208,39 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 allowMultiple
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
-                                {[...byCategories].map(([category, categoryNodes]) => {
-                                    const subcategoryMap = getSubcategories(categoryNodes);
-
-                                    return (
-                                        <AccordionItem key={category}>
-                                            <AccordionButton>
-                                                <HStack
-                                                    flex="1"
-                                                    textAlign="left"
-                                                >
-                                                    {IconFactory(
-                                                        category,
-                                                        getNodeAccentColor(category)
-                                                    )}
-                                                    <Heading size="5xl">{category}</Heading>
-                                                </HStack>
-                                                <AccordionIcon />
-                                            </AccordionButton>
-                                            <AccordionPanel>
-                                                {[...subcategoryMap].map(([subcategory, nodes]) => (
+                                {favorites.length > 0 && (
+                                    <AccordionItem>
+                                        <AccordionButton>
+                                            <HStack
+                                                flex="1"
+                                                h={6}
+                                                textAlign="left"
+                                                verticalAlign="center"
+                                            >
+                                                <Center>
+                                                    <StarIcon color="yellow.500" />
+                                                </Center>
+                                                {!collapsed && (
+                                                    <Heading
+                                                        size="5xl"
+                                                        textOverflow="clip"
+                                                        whiteSpace="nowrap"
+                                                    >
+                                                        Favorites
+                                                    </Heading>
+                                                )}
+                                            </HStack>
+                                            <AccordionIcon />
+                                        </AccordionButton>
+                                        <AccordionPanel>
+                                            {[...favoritesSubcategoriesMap].map(
+                                                ([subcategory, nodes]) => (
                                                     <Box key={subcategory}>
-                                                        <Center w="full">
+                                                        <Center
+                                                        // w="full"
+                                                        >
                                                             <SubcategoryHeading
+                                                                collapsed={collapsed}
                                                                 subcategory={subcategory}
                                                             />
                                                         </Center>
@@ -210,6 +253,69 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                                 )
                                                                 .map((node) => (
                                                                     <RepresentativeNodeWrapper
+                                                                        collapsed={collapsed}
+                                                                        key={node.name}
+                                                                        node={node}
+                                                                    />
+                                                                ))}
+                                                        </Box>
+                                                    </Box>
+                                                )
+                                            )}
+                                        </AccordionPanel>
+                                    </AccordionItem>
+                                )}
+                                {[...byCategories].map(([category, categoryNodes]) => {
+                                    const subcategoryMap = getSubcategories(categoryNodes);
+
+                                    return (
+                                        <AccordionItem key={category}>
+                                            <AccordionButton>
+                                                <HStack
+                                                    flex="1"
+                                                    h={6}
+                                                    textAlign="left"
+                                                    verticalAlign="center"
+                                                >
+                                                    <Center>
+                                                        {IconFactory(
+                                                            category,
+                                                            getNodeAccentColor(category)
+                                                        )}
+                                                    </Center>
+                                                    {!collapsed && (
+                                                        <Heading
+                                                            size="5xl"
+                                                            textOverflow="clip"
+                                                            whiteSpace="nowrap"
+                                                        >
+                                                            {category}
+                                                        </Heading>
+                                                    )}
+                                                </HStack>
+                                                <AccordionIcon />
+                                            </AccordionButton>
+                                            <AccordionPanel>
+                                                {[...subcategoryMap].map(([subcategory, nodes]) => (
+                                                    <Box key={subcategory}>
+                                                        <Center
+                                                        // w="full"
+                                                        >
+                                                            <SubcategoryHeading
+                                                                collapsed={collapsed}
+                                                                subcategory={subcategory}
+                                                            />
+                                                        </Center>
+                                                        <Box>
+                                                            {nodes
+                                                                .filter(
+                                                                    (e) =>
+                                                                        e.nodeType !==
+                                                                        'iteratorHelper'
+                                                                )
+                                                                .map((node) => (
+                                                                    <RepresentativeNodeWrapper
+                                                                        collapsed={collapsed}
                                                                         key={node.name}
                                                                         node={node}
                                                                     />
@@ -221,44 +327,49 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                         </AccordionItem>
                                     );
                                 })}
-                                <AccordionItem>
-                                    <Center
-                                        p={5}
-                                        textOverflow="ellipsis"
-                                    >
-                                        <Box
-                                            _hover={{
-                                                backgroundColor: 'gray.600',
-                                            }}
-                                            bg={useColorModeValue('gray.200', 'gray.700')}
-                                            borderRadius={10}
-                                            cursor="pointer"
-                                            p={2}
-                                            sx={{
-                                                cursor: 'pointer !important',
-                                                transition: '0.15s ease-in-out',
-                                            }}
-                                            onClick={onOpen}
+                                {!collapsed && (
+                                    <AccordionItem>
+                                        <Center
+                                            m={0}
+                                            p={3}
+                                            textOverflow="ellipsis"
+                                            w="full"
                                         >
-                                            <Text
+                                            <Box
+                                                _hover={{
+                                                    backgroundColor: 'gray.600',
+                                                }}
+                                                bg={useColorModeValue('gray.200', 'gray.700')}
+                                                borderRadius={10}
                                                 cursor="pointer"
-                                                fontWeight="bold"
+                                                p={2}
                                                 sx={{
                                                     cursor: 'pointer !important',
+                                                    transition: '0.15s ease-in-out',
                                                 }}
-                                                textAlign="center"
+                                                onClick={onOpen}
                                             >
-                                                Missing nodes? Check the dependency manager!
-                                            </Text>
-                                        </Box>
-                                    </Center>
-                                    {/* TODO: Replace this with a single instance of the
+                                                <Text
+                                                    cursor="pointer"
+                                                    fontSize="sm"
+                                                    fontWeight="bold"
+                                                    sx={{
+                                                        cursor: 'pointer !important',
+                                                    }}
+                                                    textAlign="center"
+                                                >
+                                                    Missing nodes? Check the dependency manager!
+                                                </Text>
+                                            </Box>
+                                        </Center>
+                                        {/* TODO: Replace this with a single instance of the
                    dep manager that shares a global open/close state */}
-                                    <DependencyManager
-                                        isOpen={isOpen}
-                                        onClose={onClose}
-                                    />
-                                </AccordionItem>
+                                        <DependencyManager
+                                            isOpen={isOpen}
+                                            onClose={onClose}
+                                        />
+                                    </AccordionItem>
+                                )}
                             </Accordion>
                         </Box>
                     </TabPanel>
