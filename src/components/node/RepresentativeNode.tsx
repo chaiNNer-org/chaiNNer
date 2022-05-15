@@ -1,4 +1,5 @@
-import { Box, Center, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
+import { StarIcon } from '@chakra-ui/icons';
+import { Box, Center, Flex, Heading, HStack, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { IconFactory } from '../CustomIcons';
@@ -14,6 +15,8 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
     const bgColor = useColorModeValue('gray.300', 'gray.700');
     const borderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
+
+    const collapsed = false;
 
     return (
         <Center
@@ -59,30 +62,51 @@ const RepresentativeNode = ({ category, subcategory, type, icon }: Representativ
                     >
                         {IconFactory(icon, useColorModeValue('gray.600', 'gray.400'))}
                     </Center>
-                    <Box
-                        overflow="hidden"
-                        textOverflow="ellipsis"
-                        verticalAlign="middle"
-                        w="full"
-                    >
-                        <Heading
-                            alignContent="center"
-                            as="h5"
-                            fontWeight={700}
-                            lineHeight="auto"
-                            m={0}
-                            overflow="hidden"
-                            p={0}
-                            size="sm"
-                            textAlign="left"
-                            textOverflow="ellipsis"
-                            verticalAlign="middle"
-                            w="90%"
-                            whiteSpace="nowrap"
-                        >
-                            {type.toUpperCase()}
-                        </Heading>
-                    </Box>
+                    {!collapsed && (
+                        <Flex w="full">
+                            <Box
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                                verticalAlign="middle"
+                                // w="full"
+                            >
+                                <Heading
+                                    alignContent="center"
+                                    as="h5"
+                                    fontWeight={700}
+                                    lineHeight="auto"
+                                    m={0}
+                                    overflow="hidden"
+                                    p={0}
+                                    size="sm"
+                                    textAlign="left"
+                                    textOverflow="ellipsis"
+                                    verticalAlign="middle"
+                                    // w="90%"
+                                    whiteSpace="nowrap"
+                                >
+                                    {type.toUpperCase()}
+                                </Heading>
+                            </Box>
+                            <HStack
+                                alignContent="right"
+                                alignItems="right"
+                                m={0}
+                                p={0}
+                                position="relative"
+                                right={0}
+                                verticalAlign="center"
+                                w="fit-content"
+                            >
+                                <StarIcon
+                                    aria-label="dlksdmclsdk"
+                                    position="relative"
+                                    right={0}
+                                    verticalAlign="center"
+                                />
+                            </HStack>
+                        </Flex>
+                    )}
                 </HStack>
             </Box>
         </Center>

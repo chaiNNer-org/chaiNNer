@@ -4,7 +4,7 @@ import { useReactFlow } from 'react-flow-renderer';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
-import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import RepresentativeNode from '../node/RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
@@ -28,7 +28,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
         <Box
             key={node.name}
             py={1.5}
-            w="full"
+            // w="full"
         >
             <Tooltip
                 closeOnMouseDown
@@ -42,7 +42,7 @@ const RepresentativeNodeWrapper = ({ node }: RepresentativeNodeWrapperProps) => 
                     draggable
                     boxSizing="content-box"
                     display="block"
-                    w="100%"
+                    // w="100%"
                     onDoubleClick={() => {
                         if (!reactFlowWrapper.current) return;
 

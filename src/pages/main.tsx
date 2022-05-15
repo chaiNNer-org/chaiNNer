@@ -1,5 +1,4 @@
 import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { Split } from '@geoffcox/react-splitter';
 import { useWindowHeight } from '@react-hook/window-size';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
@@ -113,22 +112,13 @@ const Main = ({ port }: MainProps) => {
                                 <Header />
                             </ExecutionProvider>
                             <HStack
-                                as={Split}
-                                defaultSplitterColors={{
-                                    color: '#71809633',
-                                    hover: '#71809666',
-                                    drag: '#718096EE',
-                                }}
-                                initialPrimarySize="380px"
-                                minPrimarySize="290px"
-                                minSecondarySize="65%"
-                                splitterSize="10px"
+                                h={height - 80}
+                                w="full"
                             >
                                 <NodeSelector
                                     height={height}
                                     schemata={schemata}
                                 />
-
                                 <ReactFlowBox
                                     edgeTypes={edgeTypes}
                                     nodeTypes={nodeTypes}

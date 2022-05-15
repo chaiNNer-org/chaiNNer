@@ -14,7 +14,7 @@ const SubcategoryHeading = ({ subcategory }: SubcategoryHeadingProps) => {
                 color="#71809699"
                 fontSize="sm"
                 py={1}
-                w="auto"
+                // w="auto"
                 whiteSpace="nowrap"
             >
                 {subcategory}

@@ -1,4 +1,4 @@
-import { SearchIcon, CloseIcon } from '@chakra-ui/icons';
+import { CloseIcon, SearchIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
@@ -107,12 +107,12 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
             borderRadius="lg"
             borderWidth="1px"
             h="100%"
-            w="auto"
+            // w="auto"
         >
             <Tabs
                 isFitted
                 h="100%"
-                w="100%"
+                // w="100%"
             >
                 <TabList>
                     <Tab>Nodes</Tab>
@@ -196,7 +196,9 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                             <AccordionPanel>
                                                 {[...subcategoryMap].map(([subcategory, nodes]) => (
                                                     <Box key={subcategory}>
-                                                        <Center w="full">
+                                                        <Center
+                                                        // w="full"
+                                                        >
                                                             <SubcategoryHeading
                                                                 subcategory={subcategory}
                                                             />
@@ -223,8 +225,10 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 })}
                                 <AccordionItem>
                                     <Center
-                                        p={5}
+                                        m={0}
+                                        p={3}
                                         textOverflow="ellipsis"
+                                        w="full"
                                     >
                                         <Box
                                             _hover={{
@@ -242,6 +246,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                         >
                                             <Text
                                                 cursor="pointer"
+                                                fontSize="sm"
                                                 fontWeight="bold"
                                                 sx={{
                                                     cursor: 'pointer !important',
