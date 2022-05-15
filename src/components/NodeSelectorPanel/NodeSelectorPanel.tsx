@@ -129,7 +129,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
             <Tabs
                 isFitted
                 h="100%"
-                w="full%"
+                w="100%"
             >
                 <TabList h="42px">
                     {!collapsed && (
