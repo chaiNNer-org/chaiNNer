@@ -261,6 +261,27 @@ const toV070 = (data) => {
     return data;
 };
 
+const toV072 = (data) => {
+    data.nodes.forEach((node) => {
+        // Convert Resize (Factor) and Average Color Fix to percentage
+        if (node.data.schemaId === 'chainner:image:resize_factor') {
+            node.data.inputData['1'] = node.data.inputData['1'] * 100.0;
+        }
+        if (node.data.schemaId === 'chainner:image:average_color_fix') {
+            node.data.inputData['2'] = node.data.inputData['2'] * 100.0;
+        }
+        // Invert interpolation weight
+        if (
+            [
+                'chainner:pytorch:interpolate_models', 'chainner:ncnn:interpolate_models'
+            ].includes(node.data.schemaId)
+        ) {
+            node.data.inputData['2'] = 100 - node.data.inputData['2'];
+        }
+    });
+    return data;
+}
+
 // ==============
 
 export const migrate = (_version, data) => {
@@ -310,6 +331,15 @@ export const migrate = (_version, data) => {
             convertedData = toV070(convertedData);
         } catch (error) {
             log.warn('Failed to convert to v0.7.0', error);
+        }
+    }
+
+    // v0.7.2
+    if (semver.lt(version, '0.7.2')) {
+        try {
+            convertedData = toV072(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.7.2', error);
         }
     }
 
