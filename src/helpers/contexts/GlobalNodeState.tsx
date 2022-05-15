@@ -43,6 +43,7 @@ interface GlobalVolatile {
 interface Global {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
+    defaultIteratorSize: Size;
     setSetNodes: SetState<SetState<Node<NodeData>[]>>;
     setSetEdges: SetState<SetState<Edge<EdgeData>[]>>;
     addNodeChanges: () => void;
@@ -66,9 +67,7 @@ interface Global {
     duplicateNode: (id: string) => void;
     toggleNodeLock: (id: string) => void;
     clearNode: (id: string) => void;
-    useIteratorSize: (
-        id: string
-    ) => readonly [setSize: (size: IteratorSize) => void, defaultSize: Size];
+    setIteratorSize: (id: string, size: IteratorSize) => void;
     updateIteratorBounds: (
         id: string,
         iteratorSize: IteratorSize | null,
@@ -153,6 +152,8 @@ const createNodeImpl = (
 
     return [newNode, ...extraNodes];
 };
+
+const defaultIteratorSize: Size = { width: 1280, height: 720 };
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
@@ -589,19 +590,13 @@ export const GlobalProvider = ({
         [edgeChanges]
     );
 
-    const useIteratorSize = useCallback(
-        (id: string) => {
-            const defaultSize: Size = { width: 1280, height: 720 };
-
-            const setIteratorSize = (size: IteratorSize) => {
-                modifyNode(id, (old) => {
-                    const newNode = copyNode(old);
-                    newNode.data.iteratorSize = size;
-                    return newNode;
-                });
-            };
-
-            return [setIteratorSize, defaultSize] as const;
+    const setIteratorSize = useCallback(
+        (id: string, size: IteratorSize) => {
+            modifyNode(id, (old) => {
+                const newNode = copyNode(old);
+                newNode.data.iteratorSize = size;
+                return newNode;
+            });
         },
         [modifyNode]
     );
@@ -773,6 +768,7 @@ export const GlobalProvider = ({
     let globalValue: Global = {
         schemata,
         reactFlowWrapper,
+        defaultIteratorSize,
         setSetNodes,
         setSetEdges,
         addNodeChanges,
@@ -789,7 +785,7 @@ export const GlobalProvider = ({
         duplicateNode,
         updateIteratorBounds,
         setIteratorPercent,
-        useIteratorSize,
+        setIteratorSize,
         setHoveredNode,
         setZoom,
     };
