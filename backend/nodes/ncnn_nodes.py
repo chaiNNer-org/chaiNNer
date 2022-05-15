@@ -300,7 +300,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             bin_a_mult = bin_a.astype(np.float64) * amount_a
             bin_b_mult = bin_b.astype(np.float64) * amount_b
             result = bin_a_mult + bin_b_mult
-            logger.info(result)
+
             return result.astype(np.float32)
         except Exception as e:
             raise ValueError(
@@ -314,7 +314,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         new_net_tuple = (param_path_a, interp_50, input_name_a, output_name_a)
         result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img)
         del interp_50, new_net_tuple
-        logger.info(result)
+
         mean_color = np.mean(result)
         del result
         return mean_color > 0.5
