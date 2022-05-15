@@ -130,7 +130,7 @@ class AverageColorFixNode(NodeBase):
                 minimum=0.1,
                 maximum=None,
                 default=12.5,
-                step=12.5
+                step=12.5,
             ),
         ]
         self.outputs = [ImageOutput()]

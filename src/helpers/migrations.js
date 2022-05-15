@@ -265,22 +265,25 @@ const toV072 = (data) => {
     data.nodes.forEach((node) => {
         // Convert Resize (Factor) and Average Color Fix to percentage
         if (node.data.schemaId === 'chainner:image:resize_factor') {
-            node.data.inputData['1'] = node.data.inputData['1'] * 100.0;
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['1'] *= 100.0;
         }
         if (node.data.schemaId === 'chainner:image:average_color_fix') {
-            node.data.inputData['2'] = node.data.inputData['2'] * 100.0;
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['2'] *= 100.0;
         }
         // Invert interpolation weight
         if (
-            [
-                'chainner:pytorch:interpolate_models', 'chainner:ncnn:interpolate_models'
-            ].includes(node.data.schemaId)
+            ['chainner:pytorch:interpolate_models', 'chainner:ncnn:interpolate_models'].includes(
+                node.data.schemaId
+            )
         ) {
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = 100 - node.data.inputData['2'];
         }
     });
     return data;
-}
+};
 
 // ==============
 

@@ -28,11 +28,7 @@ class ImResizeByFactorNode(NodeBase):
         self.inputs = [
             ImageInput(),
             BoundedNumberInput(
-                "Scale Factor (%)",
-                minimum=0.1,
-                maximum=None,
-                default=100.0,
-                step=25.0
+                "Scale Factor (%)", minimum=0.1, maximum=None, default=100.0, step=25.0
             ),
             InterpolationInput(),
         ]

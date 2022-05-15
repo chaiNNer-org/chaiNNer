@@ -35,7 +35,6 @@ module.exports = {
                 singleReturnOnly: false,
             },
         ],
-        endOfLine: 'auto',
     },
     settings: {
         'import/core-modules': ['electron'],
