@@ -246,9 +246,17 @@ const registerEventHandlers = () => {
 
     ipcMain.handle('get-app-version', () => app.getVersion());
 
+    let blockerId: number | undefined;
     ipcMain.on('start-sleep-blocker', () => {
-        const id = powerSaveBlocker.start('prevent-app-suspension');
-        ipcMain.on('stop-sleep-blocker', () => powerSaveBlocker.stop(id));
+        if (blockerId === undefined) {
+            blockerId = powerSaveBlocker.start('prevent-app-suspension');
+        }
+    });
+    ipcMain.on('stop-sleep-blocker', () => {
+        if (blockerId !== undefined) {
+           powerSaveBlocker.stop(blockerId);
+           blockerId = undefined;
+        }
     });
 };
 
