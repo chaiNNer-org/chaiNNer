@@ -26,6 +26,7 @@ import {
 import { memo, useMemo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../common-types';
+import { ExecutionProvider } from '../../helpers/contexts/ExecutionContext';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { SchemaMap } from '../../helpers/SchemaMap';
@@ -362,12 +363,13 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                 </Text>
                                             </Box>
                                         </Center>
-                                        {/* TODO: Replace this with a single instance of the
-                   dep manager that shares a global open/close state */}
-                                        <DependencyManager
-                                            isOpen={isOpen}
-                                            onClose={onClose}
-                                        />
+                                        {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
+                                        <ExecutionProvider>
+                                            <DependencyManager
+                                                isOpen={isOpen}
+                                                onClose={onClose}
+                                            />
+                                        </ExecutionProvider>
                                     </AccordionItem>
                                 )}
                             </Accordion>

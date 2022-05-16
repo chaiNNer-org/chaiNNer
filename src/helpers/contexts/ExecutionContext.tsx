@@ -27,6 +27,8 @@ interface ExecutionContextValue {
     pause: () => Promise<void>;
     kill: () => Promise<void>;
     status: ExecutionStatus;
+    isBackendKilled: boolean;
+    setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const convertToUsableFormat = (
@@ -86,8 +88,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimateEdges, setIteratorPercent, isBackendKilled } =
-        useContext(GlobalContext);
+    const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -100,6 +101,12 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
     const backend = getBackend(port);
+
+    const [isBackendKilled, setIsBackendKilled] = useState(false);
+
+    useEffect(() => {
+        console.log({ isBackendKilled });
+    }, [isBackendKilled]);
 
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
@@ -177,7 +184,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             unAnimateEdges();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimateEdges]);
+    }, [eventSourceStatus, unAnimateEdges, isBackendKilled]);
 
     const run = async () => {
         const nodes = getNodes();
@@ -264,7 +271,9 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
     };
 
     return (
-        <ExecutionContext.Provider value={{ run, pause, kill, status }}>
+        <ExecutionContext.Provider
+            value={{ run, pause, kill, status, isBackendKilled, setIsBackendKilled }}
+        >
             {children}
         </ExecutionContext.Provider>
     );

@@ -76,8 +76,6 @@ interface Global {
     setIteratorPercent: (id: string, percent: number) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
-    isBackendKilled: boolean;
-    setIsBackendKilled: SetState<boolean>;
 }
 
 export interface NodeProto {
@@ -792,8 +790,6 @@ export const GlobalProvider = ({
         setIteratorSize,
         setHoveredNode,
         setZoom,
-        isBackendKilled,
-        setIsBackendKilled,
     };
     globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
