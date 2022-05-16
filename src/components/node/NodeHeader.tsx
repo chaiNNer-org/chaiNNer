@@ -1,4 +1,4 @@
-import { Center, Heading, HStack, LayoutProps, useColorModeValue } from '@chakra-ui/react';
+import { Center, HStack, Heading, LayoutProps, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';
 

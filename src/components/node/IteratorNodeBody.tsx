@@ -3,7 +3,7 @@ import { Resizable } from 're-resizable';
 import { memo, useLayoutEffect, useMemo, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../common-types';
-import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
 
 const createGridDotsPath = (size: number, fill: string) => (

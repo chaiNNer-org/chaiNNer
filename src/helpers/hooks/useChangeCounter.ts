@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 export type ChangeCounter = number & { __changeCounter: true };
 

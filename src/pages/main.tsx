@@ -1,4 +1,4 @@
-import { Box, Center, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react';
 import { useWindowHeight } from '@react-hook/window-size';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';

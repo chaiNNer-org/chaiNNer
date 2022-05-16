@@ -10,16 +10,16 @@ import ReactFlow, {
     EdgeTypes,
     Node,
     NodeTypes,
+    Viewport,
     useEdgesState,
     useNodesState,
     useReactFlow,
-    Viewport,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../common-types';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AlertBoxContext, AlertType } from '../helpers/contexts/AlertBoxContext';
-import { GlobalVolatileContext, GlobalContext } from '../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../helpers/contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../helpers/contexts/MenuFunctions';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';

@@ -1,12 +1,12 @@
 import {
     BrowserWindow,
-    ipcMain as unsafeIpcMain,
     IpcMainEvent,
     IpcMainInvokeEvent,
-    ipcRenderer as unsafeIpcRenderer,
     IpcRendererEvent,
     MessagePortMain,
     WebContents,
+    ipcMain as unsafeIpcMain,
+    ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
 import { PythonKeys } from '../common-types';

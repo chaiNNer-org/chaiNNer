@@ -32,9 +32,9 @@ import {
     Text,
     Textarea,
     Tooltip,
+    VStack,
     useColorModeValue,
     useDisclosure,
-    VStack,
 } from '@chakra-ui/react';
 import { exec as _exec, spawn } from 'child_process';
 import log from 'electron-log';

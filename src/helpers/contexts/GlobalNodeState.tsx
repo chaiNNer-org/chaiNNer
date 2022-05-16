@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
     Edge,
-    getOutgoers,
     Node,
-    useReactFlow,
     Viewport,
     XYPosition,
+    getOutgoers,
+    useReactFlow,
 } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import {
@@ -22,11 +22,11 @@ import {
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
-import { useChangeCounter, ChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
+import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, parseHandle, createUniqueId, deriveUniqueId } from '../util';
+import { copyNode, createUniqueId, deriveUniqueId, parseHandle } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;

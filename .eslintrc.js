@@ -35,6 +35,7 @@ module.exports = {
                 singleReturnOnly: false,
             },
         ],
+        'sort-imports': 'error',
     },
     settings: {
         'import/core-modules': ['electron'],
@@ -79,6 +80,7 @@ module.exports = {
                         shorthandFirst: true,
                     },
                 ],
+                'sort-imports': 'error',
             },
         },
     ],
