@@ -43,6 +43,7 @@ import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import util from 'util';
 import { PythonKeys } from '../common-types';
+import { ExecutionContext } from '../helpers/contexts/ExecutionContext';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../helpers/dependencies';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
@@ -82,6 +83,7 @@ const DependencyManager = ({
     onClose,
     onPipListUpdate = () => {},
 }: DependencyManagerProps) => {
+    const { setIsBackendKilled } = useContext(ExecutionContext);
     const { useIsSystemPython } = useContext(SettingsContext);
 
     const [isSystemPython] = useIsSystemPython;
@@ -180,6 +182,7 @@ const DependencyManager = ({
 
     useAsyncEffect(async () => {
         if (depChanged) {
+            setIsBackendKilled(true);
             await ipcRenderer.invoke('kill-backend');
         }
     }, [depChanged]);

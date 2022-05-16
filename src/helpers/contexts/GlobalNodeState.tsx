@@ -20,13 +20,13 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
-import { useChangeCounter, ChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
-import { copyNode, parseHandle, createUniqueId, deriveUniqueId } from '../util';
+import { copyNode, createUniqueId, deriveUniqueId, parseHandle } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -211,6 +211,8 @@ export const GlobalProvider = ({
     }, [changeNodes, changeEdges]);
 
     const [savePath, setSavePath] = useState<string | undefined>();
+
+    const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 

@@ -362,8 +362,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                 </Text>
                                             </Box>
                                         </Center>
-                                        {/* TODO: Replace this with a single instance of the
-                   dep manager that shares a global open/close state */}
+                                        {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
                                         <DependencyManager
                                             isOpen={isOpen}
                                             onClose={onClose}
