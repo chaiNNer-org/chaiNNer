@@ -212,8 +212,6 @@ export const GlobalProvider = ({
 
     const [savePath, setSavePath] = useState<string | undefined>();
 
-    const [isBackendKilled, setIsBackendKilled] = useState(false);
-
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
