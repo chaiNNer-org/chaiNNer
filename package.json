@@ -37,7 +37,6 @@
         "extraResource": "./backend/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
-      "hooks": "require:./src/hooks.js",
       "publishers": [
         {
           "name": "@electron-forge/publisher-github",
