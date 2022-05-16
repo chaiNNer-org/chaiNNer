@@ -483,6 +483,7 @@ const DependencyManager = ({
             </Modal>
 
             <AlertDialog
+                isCentered
                 isOpen={isUninstallOpen}
                 leastDestructiveRef={cancelRef}
                 onClose={onUninstallClose}
