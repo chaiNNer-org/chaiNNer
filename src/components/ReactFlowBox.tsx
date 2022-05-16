@@ -64,15 +64,12 @@ const updateZIndexes = (
     const selectedIterators = new Set<string>();
     const relatedIterators = new Set<string>();
 
-    const nodeZIndexes = new Map<string, number>();
-    const setZIndex = (node: Node<unknown>, zIndex: number): void => {
-        // eslint-disable-next-line no-param-reassign
-        node.zIndex = zIndex;
-        nodeZIndexes.set(node.id, zIndex);
-    };
+    const byId = new Map<string, Node<unknown>>();
 
     // set the zIndex of all nodes
     for (const n of nodes) {
+        byId.set(n.id, n);
+
         let zIndex;
         if (n.type === 'iterator') {
             zIndex = ITERATOR_INDEX;
@@ -91,7 +88,7 @@ const updateZIndexes = (
 
         if (n.selected) zIndex += SELECTED_ADD;
 
-        setZIndex(n, zIndex);
+        n.zIndex = zIndex;
     }
 
     // fix up the child nodes of selected iterators
@@ -99,11 +96,11 @@ const updateZIndexes = (
         // all child nodes of selected iterators are implicitly selected
         for (const n of nodes) {
             if (selectedIterators.has(n.parentNode!)) {
-                setZIndex(n, ITERATOR_CHILDREN_INDEX + SELECTED_ADD);
+                n.zIndex = ITERATOR_CHILDREN_INDEX + SELECTED_ADD;
             } else if (relatedIterators.has(n.id)) {
-                setZIndex(n, RELATED_ITERATOR_INDEX);
+                n.zIndex = RELATED_ITERATOR_INDEX;
             } else if (relatedIterators.has(n.parentNode!) && !n.selected) {
-                setZIndex(n, RELATED_ITERATOR_CHILDREN_INDEX);
+                n.zIndex = RELATED_ITERATOR_CHILDREN_INDEX;
             }
         }
     }
@@ -111,8 +108,8 @@ const updateZIndexes = (
     // set the zIndex of all edges
     for (const e of edges) {
         let zIndex = Math.max(
-            nodeZIndexes.get(e.source) ?? STARTING_Z_INDEX,
-            nodeZIndexes.get(e.target) ?? STARTING_Z_INDEX
+            byId.get(e.source)?.zIndex ?? STARTING_Z_INDEX,
+            byId.get(e.target)?.zIndex ?? STARTING_Z_INDEX
         );
 
         if (e.selected && zIndex < MIN_SELECTED_INDEX) {
