@@ -254,8 +254,8 @@ const registerEventHandlers = () => {
     });
     ipcMain.on('stop-sleep-blocker', () => {
         if (blockerId !== undefined) {
-           powerSaveBlocker.stop(blockerId);
-           blockerId = undefined;
+            powerSaveBlocker.stop(blockerId);
+            blockerId = undefined;
         }
     });
 };
