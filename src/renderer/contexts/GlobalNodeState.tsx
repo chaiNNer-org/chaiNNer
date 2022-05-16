@@ -25,7 +25,7 @@ import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
-import {  createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
+import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SchemaMap } from '../../common/SchemaMap';
 import { copyNode } from '../helpers/reactFlowUtil';
