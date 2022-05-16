@@ -82,6 +82,8 @@ export interface SendChannels {
     progress: SendChannelInfo<[percentage: number]>;
     'spawning-backend': SendChannelInfo;
     'splash-finish': SendChannelInfo;
+    'start-sleep-blocker': SendChannelInfo;
+    'stop-sleep-blocker': SendChannelInfo;
 
     // history
     'history-undo': SendChannelInfo;
