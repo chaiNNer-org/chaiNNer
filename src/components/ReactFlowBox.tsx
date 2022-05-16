@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-restricted-syntax */
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
 import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';

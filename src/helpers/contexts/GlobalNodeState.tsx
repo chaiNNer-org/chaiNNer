@@ -240,7 +240,6 @@ export const GlobalProvider = ({
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
             changeNodes((nodes) => {
                 const newNodes: Node<NodeData>[] = [];
-                // eslint-disable-next-line no-restricted-syntax
                 for (const n of nodes) {
                     if (n.id === id) {
                         const newNode = mapFn(n);

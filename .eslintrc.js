@@ -64,12 +64,14 @@ module.exports = {
                 project: './tsconfig.json',
             },
             rules: {
+                'no-restricted-syntax': 'off',
                 'react/require-default-props': 'off',
                 '@typescript-eslint/no-non-null-assertion': 'off',
                 '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
                 '@typescript-eslint/no-unnecessary-condition': 'warn',
                 'eslint-comments/no-unused-enable': 'warn',
                 'eslint-comments/no-unused-disable': 'warn',
+                'import/prefer-default-export': 'off',
                 'react/jsx-sort-props': [
                     'error',
                     {
