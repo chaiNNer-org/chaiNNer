@@ -86,7 +86,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
+    const { schemata, useAnimateEdges, setIteratorPercent, isBackendKilled } =
+        useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -167,7 +168,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
     ]);
 
     useEffect(() => {
-        if (eventSourceStatus === 'error') {
+        if (!isBackendKilled && eventSourceStatus === 'error') {
             sendAlert(
                 AlertType.ERROR,
                 null,
