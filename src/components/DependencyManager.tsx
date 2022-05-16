@@ -43,7 +43,7 @@ import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import util from 'util';
 import { PythonKeys } from '../common-types';
-import { ExecutionContext, ExecutionProvider } from '../helpers/contexts/ExecutionContext';
+import { ExecutionContext } from '../helpers/contexts/ExecutionContext';
 import { SettingsContext } from '../helpers/contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../helpers/dependencies';
 import { useAsyncEffect } from '../helpers/hooks/useAsyncEffect';
@@ -605,13 +605,11 @@ export const DependencyManagerButton = memo(() => {
                     />
                 </VStack>
             </Tooltip>
-            <ExecutionProvider>
-                <DependencyManager
-                    isOpen={isOpen}
-                    onClose={onClose}
-                    onPipListUpdate={setPipList}
-                />
-            </ExecutionProvider>
+            <DependencyManager
+                isOpen={isOpen}
+                onClose={onClose}
+                onPipListUpdate={setPipList}
+            />
         </>
     );
 });

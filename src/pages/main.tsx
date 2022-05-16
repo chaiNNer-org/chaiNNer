@@ -117,10 +117,12 @@ const Main = ({ port }: MainProps) => {
                                     h={height - 80}
                                     w="full"
                                 >
-                                    <NodeSelector
-                                        height={height}
-                                        schemata={schemata}
-                                    />
+                                    <ExecutionProvider>
+                                        <NodeSelector
+                                            height={height}
+                                            schemata={schemata}
+                                        />
+                                    </ExecutionProvider>
                                     <ReactFlowBox
                                         edgeTypes={edgeTypes}
                                         nodeTypes={nodeTypes}
