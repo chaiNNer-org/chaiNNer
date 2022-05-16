@@ -37,7 +37,6 @@
         "extraResource": "./backend/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
-      "hooks": "require:./src/hooks.js",
       "publishers": [
         {
           "name": "@electron-forge/publisher-github",
@@ -97,13 +96,13 @@
               "contextIsolation": false,
               "entryPoints": [
                 {
-                  "html": "./src/index.html",
-                  "js": "./src/renderer.js",
+                  "html": "./src/renderer/index.html",
+                  "js": "./src/renderer/renderer.js",
                   "name": "main_window"
                 },
                 {
-                  "html": "./src/splash.html",
-                  "js": "./src/splash_renderer.js",
+                  "html": "./src/renderer/splash.html",
+                  "js": "./src/renderer/splash_renderer.js",
                   "name": "splash_screen"
                 }
               ]
