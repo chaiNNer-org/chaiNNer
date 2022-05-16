@@ -63,7 +63,13 @@ const updateZIndexes = (
 
     const selectedIterators = new Set<string>();
     const relatedIterators = new Set<string>();
+
     const nodeZIndexes = new Map<string, number>();
+    const setZIndex = (node: Node<unknown>, zIndex: number): void => {
+        // eslint-disable-next-line no-param-reassign
+        node.zIndex = zIndex;
+        nodeZIndexes.set(node.id, zIndex);
+    };
 
     // set the zIndex of all nodes
     for (const n of nodes) {
@@ -85,8 +91,7 @@ const updateZIndexes = (
 
         if (n.selected) zIndex += SELECTED_ADD;
 
-        n.zIndex = zIndex;
-        nodeZIndexes.set(n.id, zIndex);
+        setZIndex(n, zIndex);
     }
 
     // fix up the child nodes of selected iterators
@@ -94,14 +99,11 @@ const updateZIndexes = (
         // all child nodes of selected iterators are implicitly selected
         for (const n of nodes) {
             if (selectedIterators.has(n.parentNode!)) {
-                const zIndex = ITERATOR_CHILDREN_INDEX + SELECTED_ADD;
-
-                n.zIndex = zIndex;
-                nodeZIndexes.set(n.id, zIndex);
+                setZIndex(n, ITERATOR_CHILDREN_INDEX + SELECTED_ADD);
             } else if (relatedIterators.has(n.id)) {
-                n.zIndex = RELATED_ITERATOR_INDEX;
+                setZIndex(n, RELATED_ITERATOR_INDEX);
             } else if (relatedIterators.has(n.parentNode!) && !n.selected) {
-                n.zIndex = RELATED_ITERATOR_CHILDREN_INDEX;
+                setZIndex(n, RELATED_ITERATOR_CHILDREN_INDEX);
             }
         }
     }
