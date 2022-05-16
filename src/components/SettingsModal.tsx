@@ -25,9 +25,9 @@ import {
     Tabs,
     Text,
     Tooltip,
+    VStack,
     useColorMode,
     useDisclosure,
-    VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';

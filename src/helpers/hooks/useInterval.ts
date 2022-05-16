@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAsyncEffect, UseAsyncEffectOptions } from './useAsyncEffect';
+import { UseAsyncEffectOptions, useAsyncEffect } from './useAsyncEffect';
 
 export const useInterval = (
     callback: () => void,

@@ -106,10 +106,6 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     useEffect(() => {
-        console.log({ isBackendKilled });
-    }, [isBackendKilled]);
-
-    useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
         const id = setTimeout(() => {
             if (status !== ExecutionStatus.RUNNING) {

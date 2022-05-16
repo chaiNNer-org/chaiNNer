@@ -1,12 +1,12 @@
 import {
     Box,
     Center,
-    Heading,
     HStack,
+    Heading,
     LayoutProps,
     Tooltip,
-    useColorModeValue,
     VStack,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { memo } from 'react';
 import { IconFactory } from '../CustomIcons';

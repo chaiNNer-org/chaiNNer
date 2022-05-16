@@ -8,9 +8,9 @@ import {
     AlertDialogOverlay,
     Button,
     HStack,
+    UseToastOptions,
     useDisclosure,
     useToast,
-    UseToastOptions,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';

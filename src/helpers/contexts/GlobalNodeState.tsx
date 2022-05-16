@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
     Edge,
-    getOutgoers,
     Node,
-    useReactFlow,
     Viewport,
     XYPosition,
+    getOutgoers,
+    useReactFlow,
 } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import {
@@ -211,8 +211,6 @@ export const GlobalProvider = ({
     }, [changeNodes, changeEdges]);
 
     const [savePath, setSavePath] = useState<string | undefined>();
-
-    const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 

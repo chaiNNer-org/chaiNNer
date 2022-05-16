@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
 import {
-    app,
     BrowserWindow,
-    dialog,
     Menu,
     MenuItemConstructorOptions,
+    app,
+    dialog,
     nativeTheme,
     powerSaveBlocker,
     shell,
@@ -19,7 +19,7 @@ import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import { graphics, Systeminformation } from 'systeminformation';
+import { Systeminformation, graphics } from 'systeminformation';
 import util from 'util';
 import yargs from 'yargs/yargs';
 import { PythonKeys } from './common-types';
@@ -696,9 +696,7 @@ const doSplashScreenChecks = async () =>
         });
 
         splash.on('close', () => {
-            if (mainWindow) {
-                mainWindow.destroy();
-            }
+            mainWindow.destroy();
         });
 
         // Look, I just wanna see the cool animation

@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import log from 'electron-log';
 import { isEdge, isNode } from 'react-flow-renderer';
+import log from 'electron-log';
 import semver from 'semver';
 
 // ==============

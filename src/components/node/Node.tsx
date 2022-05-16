@@ -1,11 +1,11 @@
-import { Center, useColorModeValue, VStack } from '@chakra-ui/react';
+import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import path from 'path';
 import { EdgeData, Input, NodeData } from '../../common-types';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { GlobalVolatileContext, GlobalContext } from '../../helpers/contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../helpers/contexts/GlobalNodeState';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';

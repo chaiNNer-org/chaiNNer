@@ -23,6 +23,7 @@ interface FullInputProps extends Input, InputProps {
 
 // TODO: perhaps make this an object instead of a switch statement
 const pickInput = (type: string, props: FullInputProps) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let InputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericInput;
     switch (type) {
         case 'file::image':

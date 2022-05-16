@@ -1,5 +1,5 @@
 import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
-import { Box, Center, Flex, Heading, HStack, Spacer, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { SettingsContext } from '../../helpers/contexts/SettingsContext';
