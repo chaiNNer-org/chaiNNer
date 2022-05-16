@@ -1,8 +1,8 @@
 import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { ipcRenderer } from './helpers/safeIpc';
 import ChaiNNerLogo from './components/chaiNNerLogo';
+import { ipcRenderer } from './helpers/safeIpc';
 import './global.css';
 import theme from './splashTheme';
 
