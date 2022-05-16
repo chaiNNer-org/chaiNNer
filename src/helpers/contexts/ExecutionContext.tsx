@@ -10,6 +10,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { ipcRenderer } from '../safeIpc';
 import { SchemaMap } from '../SchemaMap';
 import { parseHandle } from '../util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
@@ -109,6 +110,14 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         }, 1000);
         return () => clearTimeout(id);
     }, [status, unAnimateEdges]);
+
+    useEffect(() => {
+        if (status === ExecutionStatus.RUNNING) {
+            ipcRenderer.send('start-sleep-blocker');
+        } else {
+            ipcRenderer.send('stop-sleep-blocker');
+        }
+    }, [status]);
 
     const [eventSource, eventSourceStatus] = useBackendEventSource(port);
 

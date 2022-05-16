@@ -8,6 +8,7 @@ import {
     Menu,
     MenuItemConstructorOptions,
     nativeTheme,
+    powerSaveBlocker,
     shell,
 } from 'electron';
 import log from 'electron-log';
@@ -244,6 +245,11 @@ const registerEventHandlers = () => {
     });
 
     ipcMain.handle('get-app-version', () => app.getVersion());
+
+    ipcMain.on('start-sleep-blocker', () => {
+        const id = powerSaveBlocker.start('prevent-app-suspension');
+        ipcMain.on('stop-sleep-blocker', () => powerSaveBlocker.stop(id));
+    });
 };
 
 const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
