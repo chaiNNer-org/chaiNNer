@@ -20,9 +20,9 @@ import {
     Size,
 } from '../../common-types';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
-import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { ipcRenderer } from '../safeIpc';
 import { ParsedSaveData, SaveData } from '../SaveFile';
 import { SchemaMap } from '../SchemaMap';
@@ -211,6 +211,8 @@ export const GlobalProvider = ({
     }, [changeNodes, changeEdges]);
 
     const [savePath, setSavePath] = useState<string | undefined>();
+
+    const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
