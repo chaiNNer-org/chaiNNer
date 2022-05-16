@@ -2,7 +2,6 @@ import { IpcRendererEvent } from 'electron';
 import { useEffect } from 'react';
 import { ChannelArgs, SendChannels, ipcRenderer } from '../safeIpc';
 
-// eslint-disable-next-line import/prefer-default-export
 export const useIpcRendererListener = <C extends keyof SendChannels>(
     channel: C,
     listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void,

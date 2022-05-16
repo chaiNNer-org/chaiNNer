@@ -13,7 +13,6 @@ const BLANK_SCHEMA: NodeSchema = {
     schemaId: '',
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export class SchemaMap {
     readonly schemata: readonly NodeSchema[];
 

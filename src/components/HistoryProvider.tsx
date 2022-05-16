@@ -61,7 +61,6 @@ class EditHistory<T> {
 
 type HistoryState = readonly [Node<NodeData>[], Edge<EdgeData>[], Viewport];
 
-// eslint-disable-next-line import/prefer-default-export
 export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>): JSX.Element => {
     const changeId = useContextSelector(
         GlobalVolatileContext,
