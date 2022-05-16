@@ -103,35 +103,33 @@ const Main = ({ port }: MainProps) => {
                     reactFlowWrapper={reactFlowWrapper}
                     schemata={schemata}
                 >
-                    <MenuFunctionsProvider>
-                        <HistoryProvider>
-                            <VStack
-                                bg={bgColor}
-                                overflow="hidden"
-                                p={2}
-                            >
-                                <ExecutionProvider>
-                                    <Header />
-                                </ExecutionProvider>
-                                <HStack
-                                    h={height - 80}
-                                    w="full"
+                    <ExecutionProvider>
+                        <MenuFunctionsProvider>
+                            <HistoryProvider>
+                                <VStack
+                                    bg={bgColor}
+                                    overflow="hidden"
+                                    p={2}
                                 >
-                                    <ExecutionProvider>
+                                    <Header />
+                                    <HStack
+                                        h={height - 80}
+                                        w="full"
+                                    >
                                         <NodeSelector
                                             height={height}
                                             schemata={schemata}
                                         />
-                                    </ExecutionProvider>
-                                    <ReactFlowBox
-                                        edgeTypes={edgeTypes}
-                                        nodeTypes={nodeTypes}
-                                        wrapperRef={reactFlowWrapper}
-                                    />
-                                </HStack>
-                            </VStack>
-                        </HistoryProvider>
-                    </MenuFunctionsProvider>
+                                        <ReactFlowBox
+                                            edgeTypes={edgeTypes}
+                                            nodeTypes={nodeTypes}
+                                            wrapperRef={reactFlowWrapper}
+                                        />
+                                    </HStack>
+                                </VStack>
+                            </HistoryProvider>
+                        </MenuFunctionsProvider>
+                    </ExecutionProvider>
                 </GlobalProvider>
             </SettingsProvider>
         </ReactFlowProvider>
