@@ -26,9 +26,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min_val=1, max_val=100),
+            SliderInput("Opacity A", default=50, min_val=0, max_val=100),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min_val=1, max_val=100, optional=True),
+            SliderInput("Opacity B", default=50, min_val=0, max_val=100, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
