@@ -131,7 +131,7 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
                         </Center>
                     </MenuButton>
                     <Portal>
-                        <MenuList>
+                        <MenuList className="nodrag">
                             <MenuItem
                                 icon={<CopyIcon />}
                                 onClick={() => {

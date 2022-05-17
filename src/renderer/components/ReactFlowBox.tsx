@@ -17,11 +17,11 @@ import ReactFlow, {
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
-import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { MenuFunctionsContext } from '../contexts/MenuFunctions';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 
 const STARTING_Z_INDEX = 50;
@@ -313,7 +313,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onDrop={onDrop}
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
-                onMouseDown={closeAllMenus}
                 onMoveEnd={onMoveEnd}
                 onMoveStart={closeAllMenus}
                 onNodeDragStop={onNodeDragStop}
