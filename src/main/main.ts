@@ -80,8 +80,6 @@ log.catchErrors({
     },
 });
 
-const getGpuInfo = lazy(() => graphics());
-
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 const isMac = process.platform === 'darwin';
@@ -166,6 +164,7 @@ const registerEventHandlers = () => {
     //   app.exit();
     // });
 
+    const getGpuInfo = lazy(() => graphics());
     ipcMain.handle('get-gpu-info', getGpuInfo);
 
     ipcMain.handle('get-app-version', () => app.getVersion());
