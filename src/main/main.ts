@@ -931,7 +931,7 @@ const createWindow = async () => {
                 message:
                     'The current chain has some unsaved changes. Do you really want to quit without saving?',
             });
-            if (choice > 0) event.preventDefault();
+            if (choice === 1) event.preventDefault();
         }
     });
 
