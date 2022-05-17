@@ -927,6 +927,7 @@ const createWindow = async () => {
             const choice = dialog.showMessageBoxSync(mainWindow, {
                 type: 'question',
                 buttons: ['Yes', 'No'],
+                defaultId: 1,
                 title: 'Discard unsaved changes?',
                 message:
                     'The current chain has some unsaved changes. Do you really want to quit without saving?',
