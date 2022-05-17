@@ -13,7 +13,6 @@ import {
 } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
-import https from 'https';
 import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
@@ -28,6 +27,7 @@ import { checkFileExists } from '../common/util';
 import { getArguments } from './arguments';
 import { getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+import { hasUpdate } from './update';
 
 const exec = util.promisify(_exec);
 
@@ -92,60 +92,23 @@ const pythonKeys: { python: string; version?: string } = {
 
 // Check for update
 if (app.isPackaged) {
-    const options = {
-        hostname: 'api.github.com',
-        path: '/repos/joeyballentine/chaiNNer/releases',
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'chaiNNer',
-        },
-    };
-    const req = https.request(options, (res) => {
-        let response = '';
+    hasUpdate(app.getVersion())
+        .then(async (latest) => {
+            if (!latest) return;
 
-        res.on('data', (data) => {
-            response += String(data);
-        });
-
-        res.on('close', async () => {
-            try {
-                const releases = JSON.parse(response) as { tag_name: string; html_url: string }[];
-                const gtVersions = releases.filter((v) =>
-                    semver.gt(semver.coerce(v.tag_name)!, app.getVersion())
-                );
-                if (gtVersions.length > 0) {
-                    const latestVersion = gtVersions.reduce((greatest, curr) =>
-                        semver.gt(curr.tag_name, greatest.tag_name) ? curr : greatest
-                    );
-                    const releaseUrl = latestVersion.html_url;
-                    const latestVersionNum = semver.coerce(latestVersion.tag_name)!;
-                    const buttonResult = await dialog.showMessageBox(
-                        BrowserWindow.getFocusedWindow()!,
-                        {
-                            type: 'info',
-                            title: 'An update is available for chaiNNer!',
-                            message: `Version ${latestVersionNum.version} is available for download from GitHub.`,
-                            buttons: [`Get version ${latestVersionNum.version}`, 'Ok'],
-                            defaultId: 1,
-                        }
-                    );
-                    if (buttonResult.response === 0) {
-                        await shell.openExternal(releaseUrl);
-                        app.exit();
-                    }
-                }
-            } catch (error) {
-                log.error(error);
+            const buttonResult = await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
+                type: 'info',
+                title: 'An update is available for chaiNNer!',
+                message: `Version ${latest.version} is available for download from GitHub.`,
+                buttons: [`Get version ${latest.version}`, 'Ok'],
+                defaultId: 1,
+            });
+            if (buttonResult.response === 0) {
+                await shell.openExternal(latest.releaseUrl);
+                app.exit();
             }
-        });
-    });
-
-    req.on('error', (error) => {
-        log.error(error);
-    });
-
-    req.end();
+        })
+        .catch((reason) => log.error(reason));
 }
 
 let splash: BrowserWindowWithSafeIpc;
