@@ -43,6 +43,7 @@ export interface InvokeChannels {
         [saveData: SaveData, savePath: string | undefined]
     >;
     'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
+    'owns-backend': ChannelInfo<boolean>;
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;

@@ -109,6 +109,9 @@ if (app.isPackaged) {
         .catch((reason) => log.error(reason));
 }
 
+const ownsBackend = !getArguments().noBackend;
+ipcMain.handle('owns-backend', () => ownsBackend);
+
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
 
