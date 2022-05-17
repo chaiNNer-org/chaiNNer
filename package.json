@@ -170,7 +170,6 @@
     "@emotion/react": "^11.8.1",
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.1",
-    "@geoffcox/react-splitter": "^2.1.1",
     "@react-hook/window-size": "^3.0.7",
     "@react-nano/use-event-source": "^0.11.0",
     "cross-fetch": "^3.1.5",
