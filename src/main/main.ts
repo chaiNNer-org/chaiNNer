@@ -18,7 +18,7 @@ import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import { graphics } from 'systeminformation';
+import { cpu, graphics } from 'systeminformation';
 import util from 'util';
 import { PythonKeys, WindowSize } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
@@ -115,6 +115,9 @@ if (app.isPackaged) {
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
 
+const getGpuInfo = lazy(() => graphics());
+const getCpuInfo = lazy(() => cpu());
+
 const registerEventHandlers = () => {
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
@@ -167,7 +170,6 @@ const registerEventHandlers = () => {
     //   app.exit();
     // });
 
-    const getGpuInfo = lazy(() => graphics());
     ipcMain.handle('get-gpu-info', getGpuInfo);
 
     ipcMain.handle('get-app-version', () => app.getVersion());
@@ -831,6 +833,35 @@ const createWindow = async () => {
                     label: 'Convert ONNX models to NCNN',
                     click: async () => {
                         await shell.openExternal('https://convertmodel.com/');
+                    },
+                },
+                { type: 'separator' },
+                {
+                    label: 'Collect system information',
+                    click: async () => {
+                        const [cpuInfo, gpuInfo] = await Promise.all([getCpuInfo(), getGpuInfo()]);
+
+                        const information: Record<string, unknown> = {
+                            app: {
+                                version: app.getVersion(),
+                                packaged: app.isPackaged,
+                                path: app.getAppPath(),
+                            },
+                            process: {
+                                cwd: process.cwd(),
+                                argv: process.argv,
+                            },
+                            os: {
+                                version: os.version(),
+                                release: os.release(),
+                                arch: os.arch(),
+                                endianness: os.endianness(),
+                            },
+                            cpu: { ...cpuInfo },
+                            gpus: gpuInfo.controllers.map((c) => ({ ...c })),
+                        };
+
+                        mainWindow.webContents.send('show-collected-information', information);
                     },
                 },
             ],

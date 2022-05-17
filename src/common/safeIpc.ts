@@ -70,6 +70,7 @@ export interface SendChannels {
     'stop-sleep-blocker': SendChannelInfo;
     'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
     'window-maximized-change': SendChannelInfo<[maximized: boolean]>;
+    'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
 
     // history
     'history-undo': SendChannelInfo;
