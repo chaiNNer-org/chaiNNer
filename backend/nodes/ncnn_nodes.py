@@ -120,17 +120,12 @@ class NcnnSaveNode(NodeBase):
         full_param_path = os.path.join(directory, full_param)
 
         logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        bin_is_fp16 = bin_data.dtype == "float16"
-        bin_file_data = struct.pack(
-            "<I",
-            (FLAG_FLOAT_16 if bin_is_fp16 or os.environ["isFp16"] else FLAG_FLOAT_32),
-        ) + bin_data.astype(
-            np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
-        ).tobytes(
-            "F"
-        )
+        is_fp16 = os.environ["isFp16"] == "True"
+        flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
+        dtype = np.float16 if is_fp16 else np.float32
+        packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
         with open(full_bin_path, "wb") as binary_file:
-            binary_file.write(bin_file_data)
+            binary_file.write(packed)
         with open(full_param_path, "w") as param_file:
             with open(param_path, "r") as original_param_file:
                 param_file.write(original_param_file.read())
@@ -189,24 +184,14 @@ class NcnnUpscaleImageNode(NodeBase):
         # Load model param and bin
         net.load_param(param_path)
 
-        bin_is_fp16 = True  # bin_data.dtype == "float16"
-
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
-            bin_file_data = struct.pack(
-                "<I",
-                (
-                    FLAG_FLOAT_16
-                    if bin_is_fp16 or os.environ["isFp16"]
-                    else FLAG_FLOAT_32
-                ),
-            ) + bin_data.astype(
-                np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
-            ).tobytes(
-                "F"
-            )
+            is_fp16 = os.environ["isFp16"] == "True"
+            flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
+            dtype = np.float16 if is_fp16 else np.float32
+            packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
             temp_file = os.path.join(tempdir, "ncnn.bin")
             with open(temp_file, "wb") as binary_file:
-                binary_file.write(bin_file_data)
+                binary_file.write(packed)
             net.load_model(temp_file)
 
         # ncnn only supports 3 apparently

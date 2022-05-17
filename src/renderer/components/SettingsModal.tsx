@@ -29,7 +29,7 @@ import {
     useColorMode,
     useDisclosure,
 } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -52,28 +52,17 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
     const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
 
-    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-
     useAsyncEffect(
         {
-            supplier: async () =>
-                [
-                    (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
-                    await ipcRenderer.invoke('get-has-nvidia'),
-                ] as const,
-            successEffect: ([gpuName, hasNvidia]) => {
+            supplier: async () => (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
+            successEffect: (gpuName) => {
                 if (gpuName.toLowerCase().includes('rtx')) {
                     setIsFp16(true);
                 }
-                setIsNvidiaAvailable(hasNvidia);
             },
         },
         []
     );
-
-    useEffect(() => {
-        setIsCpu(!isNvidiaAvailable);
-    }, [isNvidiaAvailable]);
 
     useEffect(() => {
         if (isCpu && isFp16) {
@@ -150,8 +139,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isSnapToGrid}
                         size="lg"
-                        onChange={() => {
-                            setIsSnapToGrid(!isSnapToGrid);
+                        onChange={(event) => {
+                            setIsSnapToGrid(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -226,17 +215,15 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         marginTop={0}
                         textAlign="left"
                     >
-                        Use CPU for PyTorch instead of GPU. Forced if Nvidia (CUDA) GPU not
-                        detected.
+                        Use CPU for PyTorch instead of GPU. This option does not affect NCNN.
                     </Text>
                 </VStack>
                 <HStack>
                     <Switch
                         defaultChecked={isCpu}
-                        isDisabled={!isNvidiaAvailable}
                         size="lg"
-                        onChange={() => {
-                            setIsCpu(!isCpu);
+                        onChange={(event) => {
+                            setIsCpu(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -263,17 +250,16 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         marginTop={0}
                         textAlign="left"
                     >
-                        Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs
-                        also get a speedup.
+                        Runs PyTorch and NCNN in half-precision (FP16) mode for less VRAM usage. RTX
+                        GPUs also get a speedup.
                     </Text>
                 </VStack>
                 <HStack>
                     <Switch
                         defaultChecked={isFp16}
-                        isDisabled={isCpu}
                         size="lg"
-                        onChange={() => {
-                            setIsFp16(!isFp16);
+                        onChange={(event) => {
+                            setIsFp16(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -315,8 +301,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isSystemPython}
                         size="lg"
-                        onChange={() => {
-                            setIsSystemPython(!isSystemPython);
+                        onChange={(event) => {
+                            setIsSystemPython(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -359,8 +345,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isDisHwAccel}
                         size="lg"
-                        onChange={() => {
-                            setIsDisHwAccel(!isDisHwAccel);
+                        onChange={(event) => {
+                            setIsDisHwAccel(event.target.checked);
                         }}
                     />
                 </HStack>

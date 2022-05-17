@@ -29,7 +29,8 @@ def check_env():
 
     if os.environ["isFp16"] == "True":
         if os.environ["device"] == "cpu":
-            torch.set_default_tensor_type(torch.HalfTensor)
+            os.environ["isFp16"] = "False"
+            torch.set_default_tensor_type(torch.FloatTensor)
         elif os.environ["device"] == "cuda":
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         else:
