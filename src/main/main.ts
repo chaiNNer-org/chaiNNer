@@ -917,6 +917,24 @@ const createWindow = async () => {
         mainWindow.webContents.openDevTools();
     }
 
+    let hasUnsavedChanges = false;
+    ipcMain.on('update-has-unsaved-changes', (_, value) => {
+        hasUnsavedChanges = value;
+    });
+
+    mainWindow.on('close', (event) => {
+        if (hasUnsavedChanges) {
+            const choice = dialog.showMessageBoxSync(mainWindow, {
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Discard unsaved changes?',
+                message:
+                    'The current chain has some unsaved changes. Do you really want to quit without saving?',
+            });
+            if (choice > 0) event.preventDefault();
+        }
+    });
+
     // Opening file with chaiNNer
     const { file: filepath } = getArguments();
     if (filepath) {

@@ -68,6 +68,7 @@ export interface SendChannels {
     'splash-finish': SendChannelInfo;
     'start-sleep-blocker': SendChannelInfo;
     'stop-sleep-blocker': SendChannelInfo;
+    'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
 
     // history
     'history-undo': SendChannelInfo;
