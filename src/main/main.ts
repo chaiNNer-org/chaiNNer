@@ -18,12 +18,12 @@ import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import { Systeminformation, graphics } from 'systeminformation';
+import { graphics } from 'systeminformation';
 import util from 'util';
 import { PythonKeys } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists } from '../common/util';
+import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
@@ -79,8 +79,6 @@ log.catchErrors({
             });
     },
 });
-
-let gpuInfo: Systeminformation.GraphicsData | undefined;
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
@@ -166,12 +164,8 @@ const registerEventHandlers = () => {
     //   app.exit();
     // });
 
-    ipcMain.handle('get-gpu-info', async () => {
-        if (!gpuInfo) {
-            gpuInfo = await graphics();
-        }
-        return gpuInfo;
-    });
+    const getGpuInfo = lazy(() => graphics());
+    ipcMain.handle('get-gpu-info', getGpuInfo);
 
     ipcMain.handle('get-app-version', () => app.getVersion());
 
