@@ -871,6 +871,7 @@ const createWindow = async () => {
                           { role: 'window' },
                       ]
                     : [{ role: 'close' }]),
+                ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
             ],
         },
         {
