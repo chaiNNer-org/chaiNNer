@@ -21,11 +21,11 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { Systeminformation, graphics } from 'systeminformation';
 import util from 'util';
-import yargs from 'yargs/yargs';
 import { PythonKeys } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists, lazy } from '../common/util';
+import { checkFileExists } from '../common/util';
+import { getArguments } from './arguments';
 import { getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 
@@ -147,39 +147,6 @@ if (app.isPackaged) {
 
     req.end();
 }
-
-interface ParsedArguments {
-    /**
-     * A file the user wants to open.
-     */
-    file?: string;
-    noBackend: boolean;
-}
-const getArguments = lazy<ParsedArguments>(() => {
-    try {
-        const args = process.argv.slice(app.isPackaged ? 1 : 2);
-        const parsed = yargs(args)
-            .options({
-                backend: { type: 'boolean', default: true },
-            })
-            .parseSync();
-
-        const file = parsed._[0];
-
-        return {
-            file: file ? String(file) : undefined,
-            noBackend: !parsed.backend,
-        };
-    } catch (error) {
-        log.error('Failed to parse command line arguments');
-        log.error(error);
-
-        return {
-            file: undefined,
-            noBackend: false,
-        };
-    }
-});
 
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
