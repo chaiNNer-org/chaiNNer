@@ -920,25 +920,7 @@ const createWindow = async () => {
     // Opening file with chaiNNer
     const { file: filepath } = getArguments();
     if (filepath) {
-        const result = SaveFile.read(filepath).then<
-            FileOpenResult<ParsedSaveData>,
-            FileOpenResult<ParsedSaveData>
-        >(
-            (saveData) => {
-                return {
-                    kind: 'Success',
-                    path: filepath,
-                    saveData,
-                };
-            },
-            (reason) => {
-                return {
-                    kind: 'Error',
-                    path: filepath,
-                    error: String(reason),
-                };
-            }
-        );
+        const result = openSaveFile(filepath);
         ipcMain.handle('get-cli-open', () => result);
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
