@@ -20,7 +20,7 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { cpu, graphics } from 'systeminformation';
 import util from 'util';
-import { PythonKeys } from '../common/common-types';
+import { PythonKeys, WindowSize } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
@@ -41,6 +41,9 @@ const localStorageLocation = path.join(app.getPath('userData'), 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
 const localStorage = new LocalStorage(localStorageLocation);
 
+const lastWindowSize = JSON.parse(
+    localStorage.getItem('use-last-window-size') || 'null'
+) as WindowSize | null;
 const disableHardwareAcceleration = localStorage.getItem('disable-hw-accel') === 'true';
 if (disableHardwareAcceleration) {
     app.disableHardwareAcceleration();
@@ -661,14 +664,17 @@ const doSplashScreenChecks = async () =>
             await sleep(500);
             splash.destroy();
             mainWindow.show();
+            if (lastWindowSize?.maximized) {
+                mainWindow.maximize();
+            }
         });
     });
 
 const createWindow = async () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 1280,
-        height: 720,
+        width: lastWindowSize?.width ?? 1280,
+        height: lastWindowSize?.height ?? 720,
         backgroundColor: '#1A202C',
         minWidth: 720,
         minHeight: 640,
@@ -890,6 +896,13 @@ const createWindow = async () => {
             });
             if (choice === 1) event.preventDefault();
         }
+    });
+
+    mainWindow.on('maximize', () => {
+        mainWindow.webContents.send('window-maximized-change', true);
+    });
+    mainWindow.on('unmaximize', () => {
+        mainWindow.webContents.send('window-maximized-change', false);
     });
 
     // Opening file with chaiNNer
