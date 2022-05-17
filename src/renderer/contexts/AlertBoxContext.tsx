@@ -213,6 +213,7 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
                 isCentered
                 isOpen={isOpen}
                 leastDestructiveRef={cancelRef}
+                scrollBehavior="inside"
                 onClose={() => cancelRef.current?.click()}
             >
                 <AlertDialogOverlay />

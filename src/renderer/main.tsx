@@ -7,6 +7,7 @@ import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
+import { getLocalStorage, getStorageKeys } from '../common/util';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import CustomEdge from './components/CustomEdge';
 import Header from './components/Header';
@@ -21,6 +22,7 @@ import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { MenuFunctionsProvider } from './contexts/MenuFunctions';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 
 const nodeTypes: NodeTypes = {
     regularNode: Node,
@@ -61,11 +63,25 @@ const Main = ({ port }: MainProps) => {
         }
     }, [response, data, loading, error, backendReady]);
 
-    const loadingLogo = (
-        <ChaiNNerLogo
-            percent={0}
-            size={256}
-        />
+    useIpcRendererListener(
+        'show-collected-information',
+        (_, info) => {
+            const localStorage = getLocalStorage();
+            const fullInfo = {
+                ...info,
+                settings: Object.fromEntries(
+                    getStorageKeys(localStorage).map((k) => [k, localStorage.getItem(k)])
+                ),
+            };
+
+            sendAlert({
+                type: AlertType.INFO,
+                title: 'System information',
+                message: JSON.stringify(fullInfo, undefined, 2),
+                copyToClipboard: true,
+            });
+        },
+        [sendAlert]
     );
 
     if (error) {
@@ -88,7 +104,10 @@ const Main = ({ port }: MainProps) => {
                     w="full"
                 >
                     <VStack>
-                        {loadingLogo}
+                        <ChaiNNerLogo
+                            percent={0}
+                            size={256}
+                        />
                         <Text>Loading...</Text>
                     </VStack>
                 </Center>

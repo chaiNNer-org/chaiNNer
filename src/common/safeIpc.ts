@@ -69,6 +69,7 @@ export interface SendChannels {
     'start-sleep-blocker': SendChannelInfo;
     'stop-sleep-blocker': SendChannelInfo;
     'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
+    'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
 
     // history
     'history-undo': SendChannelInfo;
