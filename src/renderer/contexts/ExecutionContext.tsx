@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
-import { EdgeData, NodeData, UsableData } from '../../common/common-types';
 import { getBackend } from '../../common/Backend';
+import { EdgeData, NodeData, UsableData } from '../../common/common-types';
+import { ipcRenderer } from '../../common/safeIpc';
+import { SchemaMap } from '../../common/SchemaMap';
+import { parseHandle } from '../../common/util';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
-import { ipcRenderer } from '../../common/safeIpc';
-import { SchemaMap } from '../../common/SchemaMap';
-import { parseHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';

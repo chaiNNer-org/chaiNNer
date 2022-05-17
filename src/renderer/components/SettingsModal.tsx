@@ -31,9 +31,9 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
+import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { ipcRenderer } from '../../common/safeIpc';
 
 interface SettingsModalProps {
     isOpen: boolean;

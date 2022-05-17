@@ -3,8 +3,8 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'rea
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import checkNodeValidity from '../../helpers/checkNodeValidity';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';

@@ -43,12 +43,12 @@ import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import util from 'util';
 import { PythonKeys } from '../../common/common-types';
-import { ExecutionContext } from '../contexts/ExecutionContext';
-import { SettingsContext } from '../contexts/SettingsContext';
 import getAvailableDeps, { Dependency } from '../../common/dependencies';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import pipInstallWithProgress from '../../common/pipInstallWithProgress';
 import { ipcRenderer } from '../../common/safeIpc';
+import { ExecutionContext } from '../contexts/ExecutionContext';
+import { SettingsContext } from '../contexts/SettingsContext';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 
 const exec = util.promisify(_exec);
 

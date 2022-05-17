@@ -1,10 +1,10 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { XYPosition } from 'react-flow-renderer';
-import { NodeProto } from '../contexts/GlobalNodeState';
 import { ipcRenderer } from '../../common/safeIpc';
-import { SchemaMap } from '../../common/SchemaMap';
 import { openSaveFile } from '../../common/SaveFile';
+import { SchemaMap } from '../../common/SchemaMap';
+import { NodeProto } from '../contexts/GlobalNodeState';
 
 export interface ChainnerDragData {
     schemaId: string;

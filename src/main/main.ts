@@ -23,10 +23,10 @@ import { Systeminformation, graphics } from 'systeminformation';
 import util from 'util';
 import yargs from 'yargs/yargs';
 import { FileOpenResult, PythonKeys } from '../common/common-types';
-import { getNvidiaSmi } from './nvidiaSmi';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { ParsedSaveData, SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
+import { getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
 
 const exec = util.promisify(_exec);

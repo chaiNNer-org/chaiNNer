@@ -4,8 +4,8 @@ import { BsFolderPlus } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { InputProps } from './props';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { InputProps } from './props';
 
 type DirectoryInputProps = InputProps;
 

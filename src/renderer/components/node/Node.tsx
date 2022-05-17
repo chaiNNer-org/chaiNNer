@@ -1,18 +1,18 @@
 import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import path from 'path';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import path from 'path';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
+import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
 import NodeHeader from './NodeHeader';
-import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 
 /**
  * If there is only one file input, then this input will be returned. `undefined` otherwise.

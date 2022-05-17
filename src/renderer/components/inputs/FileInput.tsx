@@ -3,15 +3,15 @@ import path from 'path';
 import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { checkFileExists } from '../../../common/util';
+import { AlertBoxContext } from '../../contexts/AlertBoxContext';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
 import { InputProps } from './props';
-import { AlertBoxContext } from '../../contexts/AlertBoxContext';
-import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 
 interface FileInputProps extends InputProps {
     filetypes: readonly string[];
