@@ -189,18 +189,12 @@ class NcnnUpscaleImageNode(NodeBase):
         # Load model param and bin
         net.load_param(param_path)
 
-        bin_is_fp16 = True  # bin_data.dtype == "float16"
-
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
             bin_file_data = struct.pack(
                 "<I",
-                (
-                    FLAG_FLOAT_16
-                    if bin_is_fp16 or os.environ["isFp16"]
-                    else FLAG_FLOAT_32
-                ),
+                (FLAG_FLOAT_16 if os.environ["isFp16"] else FLAG_FLOAT_32),
             ) + bin_data.astype(
-                np.float16 if bin_is_fp16 or os.environ["isFp16"] else np.float32
+                np.float16 if os.environ["isFp16"] else np.float32
             ).tobytes(
                 "F"
             )
