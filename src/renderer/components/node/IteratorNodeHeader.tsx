@@ -20,85 +20,87 @@ interface IteratorNodeHeaderProps {
     width?: LayoutProps['width'];
 }
 
-const IteratorNodeHeader = ({
+function IteratorNodeHeader({
     name,
     width,
     icon,
     accentColor,
     selected,
     percentComplete,
-}: IteratorNodeHeaderProps) => (
-    <VStack
-        spacing={0}
-        w={width || 'full'}
-    >
-        <Center
-            borderBottomColor={accentColor}
-            borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
-            borderStyle="default"
-            h="auto"
-            verticalAlign="middle"
+}: IteratorNodeHeaderProps) {
+    return (
+        <VStack
+            spacing={0}
             w={width || 'full'}
         >
-            <HStack
-                mb={-1}
-                mt={-1}
-                pb={2}
-                pl={6}
-                pr={6}
+            <Center
+                borderBottomColor={accentColor}
+                borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
+                borderStyle="default"
+                h="auto"
                 verticalAlign="middle"
+                w={width || 'full'}
             >
-                <Center
-                    alignContent="center"
-                    alignItems="center"
-                    h={4}
+                <HStack
+                    mb={-1}
+                    mt={-1}
+                    pb={2}
+                    pl={6}
+                    pr={6}
                     verticalAlign="middle"
-                    w={4}
                 >
-                    {IconFactory(
-                        icon,
-                        selected ? accentColor : useColorModeValue('gray.600', 'gray.400')
-                    )}
-                </Center>
-                <Center verticalAlign="middle">
-                    <Heading
+                    <Center
                         alignContent="center"
-                        as="h5"
-                        fontWeight={700}
-                        lineHeight="auto"
-                        m={0}
-                        p={0}
-                        size="sm"
-                        textAlign="center"
+                        alignItems="center"
+                        h={4}
                         verticalAlign="middle"
+                        w={4}
                     >
-                        {name.toUpperCase()}
-                    </Heading>
-                </Center>
-            </HStack>
-        </Center>
-        {percentComplete !== undefined && (
-            <Tooltip
-                borderRadius={8}
-                label={`${Number(percentComplete * 100).toFixed(1)}%`}
-                px={2}
-                py={1}
-            >
-                <Box
-                    bgColor="gray.500"
-                    h={1}
-                    w="full"
+                        {IconFactory(
+                            icon,
+                            selected ? accentColor : useColorModeValue('gray.600', 'gray.400')
+                        )}
+                    </Center>
+                    <Center verticalAlign="middle">
+                        <Heading
+                            alignContent="center"
+                            as="h5"
+                            fontWeight={700}
+                            lineHeight="auto"
+                            m={0}
+                            p={0}
+                            size="sm"
+                            textAlign="center"
+                            verticalAlign="middle"
+                        >
+                            {name.toUpperCase()}
+                        </Heading>
+                    </Center>
+                </HStack>
+            </Center>
+            {percentComplete !== undefined && (
+                <Tooltip
+                    borderRadius={8}
+                    label={`${Number(percentComplete * 100).toFixed(1)}%`}
+                    px={2}
+                    py={1}
                 >
                     <Box
-                        bgColor={accentColor}
-                        h="full"
-                        transition="all 0.15s ease-in-out"
-                        w={`${percentComplete * 100}%`}
-                    />
-                </Box>
-            </Tooltip>
-        )}
-    </VStack>
-);
+                        bgColor="gray.500"
+                        h={1}
+                        w="full"
+                    >
+                        <Box
+                            bgColor={accentColor}
+                            h="full"
+                            transition="all 0.15s ease-in-out"
+                            w={`${percentComplete * 100}%`}
+                        />
+                    </Box>
+                </Tooltip>
+            )}
+        </VStack>
+    );
+}
 
 export default memo(IteratorNodeHeader);

@@ -61,7 +61,7 @@ class EditHistory<T> {
 
 type HistoryState = readonly [Node<NodeData>[], Edge<EdgeData>[], Viewport];
 
-export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>): JSX.Element => {
+export function HistoryProvider({ children }: React.PropsWithChildren<unknown>): JSX.Element {
     const changeId = useContextSelector(
         GlobalVolatileContext,
         (c) => `${c.nodeChanges},${c.edgeChanges}`
@@ -123,4 +123,4 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
     );
 
     return <>{children}</>;
-};
+}

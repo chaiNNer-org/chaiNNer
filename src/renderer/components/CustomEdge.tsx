@@ -9,7 +9,7 @@ import { GlobalContext } from '../contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
-const CustomEdge = ({
+function CustomEdge({
     id,
     source,
     sourceX,
@@ -20,7 +20,7 @@ const CustomEdge = ({
     targetPosition,
     style = {},
     selected,
-}: EdgeProps<EdgeData>) => {
+}: EdgeProps<EdgeData>) {
     const edgePath = useMemo(
         () =>
             getBezierPath({
@@ -134,6 +134,6 @@ const CustomEdge = ({
             </foreignObject>
         </g>
     );
-};
+}
 
 export default memo(CustomEdge);

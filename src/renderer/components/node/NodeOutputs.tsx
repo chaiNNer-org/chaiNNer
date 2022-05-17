@@ -9,18 +9,20 @@ interface NodeOutputsProps {
     outputs: readonly Output[];
 }
 
-const NodeOutputs = ({ outputs, id }: NodeOutputsProps) => (
-    <>
-        {outputs.map((output, i) => {
-            return (
-                <GenericOutput
-                    id={id}
-                    index={i}
-                    key={`${output.label}-${i}`}
-                    label={output.label}
-                />
-            );
-        })}
-    </>
-);
+function NodeOutputs({ outputs, id }: NodeOutputsProps) {
+    return (
+        <>
+            {outputs.map((output, i) => {
+                return (
+                    <GenericOutput
+                        id={id}
+                        index={i}
+                        key={`${output.label}-${i}`}
+                        label={output.label}
+                    />
+                );
+            })}
+        </>
+    );
+}
 export default memo(NodeOutputs);

@@ -6,16 +6,14 @@ interface SubcategoryHeadingProps {
     collapsed?: boolean;
 }
 
-const SubcategoryHeading = ({ subcategory, collapsed = false }: SubcategoryHeadingProps) => {
+function SubcategoryHeading({ subcategory, collapsed = false }: SubcategoryHeadingProps) {
     return (
         <HStack
             h={8}
             w="full"
         >
             {collapsed ? (
-                <>
-                    <Divider orientation="horizontal" />
-                </>
+                <Divider orientation="horizontal" />
             ) : (
                 <>
                     <Divider orientation="horizontal" />
@@ -34,6 +32,6 @@ const SubcategoryHeading = ({ subcategory, collapsed = false }: SubcategoryHeadi
             )}
         </HStack>
     );
-};
+}
 
 export default memo(SubcategoryHeading);

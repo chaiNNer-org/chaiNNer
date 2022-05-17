@@ -15,14 +15,14 @@ interface RepresentativeNodeProps {
     schemaId: string;
 }
 
-const RepresentativeNode = ({
+function RepresentativeNode({
     category,
     subcategory,
     name,
     icon,
     schemaId,
     collapsed = false,
-}: RepresentativeNodeProps) => {
+}: RepresentativeNodeProps) {
     const bgColor = useColorModeValue('gray.300', 'gray.700');
     const borderColor = useColorModeValue('gray.400', 'gray.600');
     const accentColor = getAccentColor(category);
@@ -158,6 +158,6 @@ const RepresentativeNode = ({
             </Box>
         </Center>
     );
-};
+}
 
 export default memo(RepresentativeNode);

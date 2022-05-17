@@ -28,7 +28,7 @@ interface Settings {
 // TODO: create context requires default values
 export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
 
-export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
+export function SettingsProvider({ children, port }: React.PropsWithChildren<{ port: number }>) {
     // Global Settings
     const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
     const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
@@ -73,4 +73,4 @@ export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ p
     );
 
     return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
-};
+}

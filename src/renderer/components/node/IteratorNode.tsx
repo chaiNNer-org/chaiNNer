@@ -71,47 +71,24 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     }, [inputData, edgeChanges]);
 
     return (
-        <>
-            <Center
-                bg={useColorModeValue('gray.300', 'gray.700')}
-                borderColor={borderColor}
-                borderRadius="lg"
-                borderWidth="0.5px"
-                boxShadow="lg"
-                py={2}
-                transition="0.15s ease-in-out"
-            >
-                <VStack minWidth="240px">
-                    <IteratorNodeHeader
-                        accentColor={accentColor}
-                        icon={icon}
-                        name={name}
-                        percentComplete={percentComplete}
-                        selected={selected}
-                    />
-                    {inputs.length && (
-                        <Center>
-                            <Text
-                                fontSize="xs"
-                                m={0}
-                                mb={-1}
-                                mt={-1}
-                                p={0}
-                                pb={-1}
-                                pt={-1}
-                            >
-                                INPUTS
-                            </Text>
-                        </Center>
-                    )}
-                    <NodeInputs
-                        accentColor={accentColor}
-                        id={id}
-                        inputData={inputData}
-                        inputs={inputs}
-                        isLocked={isLocked}
-                        schemaId={schemaId}
-                    />
+        <Center
+            bg={useColorModeValue('gray.300', 'gray.700')}
+            borderColor={borderColor}
+            borderRadius="lg"
+            borderWidth="0.5px"
+            boxShadow="lg"
+            py={2}
+            transition="0.15s ease-in-out"
+        >
+            <VStack minWidth="240px">
+                <IteratorNodeHeader
+                    accentColor={accentColor}
+                    icon={icon}
+                    name={name}
+                    percentComplete={percentComplete}
+                    selected={selected}
+                />
+                {inputs.length && (
                     <Center>
                         <Text
                             fontSize="xs"
@@ -122,50 +99,71 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                             pb={-1}
                             pt={-1}
                         >
-                            ITERATION
+                            INPUTS
                         </Text>
                     </Center>
-                    <Center
+                )}
+                <NodeInputs
+                    accentColor={accentColor}
+                    id={id}
+                    inputData={inputData}
+                    inputs={inputs}
+                    isLocked={isLocked}
+                    schemaId={schemaId}
+                />
+                <Center>
+                    <Text
+                        fontSize="xs"
                         m={0}
+                        mb={-1}
+                        mt={-1}
                         p={0}
-                        ref={iteratorBoxRef}
+                        pb={-1}
+                        pt={-1}
                     >
-                        <IteratorNodeBody
-                            accentColor={accentColor}
-                            id={id}
-                            iteratorSize={iteratorSize}
-                            maxHeight={maxHeight}
-                            maxWidth={maxWidth}
-                        />
+                        ITERATION
+                    </Text>
+                </Center>
+                <Center
+                    m={0}
+                    p={0}
+                    ref={iteratorBoxRef}
+                >
+                    <IteratorNodeBody
+                        accentColor={accentColor}
+                        id={id}
+                        iteratorSize={iteratorSize}
+                        maxHeight={maxHeight}
+                        maxWidth={maxWidth}
+                    />
+                </Center>
+                {outputs.length > 0 && (
+                    <Center>
+                        <Text
+                            fontSize="xs"
+                            m={0}
+                            mb={-1}
+                            mt={-1}
+                            p={0}
+                            pb={-1}
+                            pt={-1}
+                        >
+                            OUTPUTS
+                        </Text>
                     </Center>
-                    {outputs.length > 0 && (
-                        <Center>
-                            <Text
-                                fontSize="xs"
-                                m={0}
-                                mb={-1}
-                                mt={-1}
-                                p={0}
-                                pb={-1}
-                                pt={-1}
-                            >
-                                OUTPUTS
-                            </Text>
-                        </Center>
-                    )}
-                    <NodeOutputs
-                        id={id}
-                        outputs={outputs}
-                    />
-                    <NodeFooter
-                        id={id}
-                        invalidReason={validity[1]}
-                        isLocked={isLocked}
-                        isValid={validity[0]}
-                    />
-                </VStack>
-            </Center>
-        </>
+                )}
+                <NodeOutputs
+                    id={id}
+                    outputs={outputs}
+                />
+                <NodeFooter
+                    id={id}
+                    invalidReason={validity[1]}
+                    isLocked={isLocked}
+                    isValid={validity[0]}
+                />
+            </VStack>
+        </Center>
     );
 });
 

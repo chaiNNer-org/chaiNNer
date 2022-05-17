@@ -15,7 +15,7 @@ interface NodeBodyProps {
     schemaId: string;
 }
 
-const NodeBody = ({
+function NodeBody({
     accentColor,
     inputs,
     outputs,
@@ -23,52 +23,54 @@ const NodeBody = ({
     inputData,
     isLocked,
     schemaId,
-}: NodeBodyProps) => (
-    <>
-        {inputs.length && (
-            <Center>
-                <Text
-                    fontSize="xs"
-                    m={0}
-                    mb={-1}
-                    mt={-1}
-                    p={0}
-                    pb={-1}
-                    pt={-1}
-                >
-                    INPUTS
-                </Text>
-            </Center>
-        )}
-        <NodeInputs
-            accentColor={accentColor}
-            id={id}
-            inputData={inputData}
-            inputs={inputs}
-            isLocked={isLocked}
-            schemaId={schemaId}
-        />
+}: NodeBodyProps) {
+    return (
+        <>
+            {inputs.length && (
+                <Center>
+                    <Text
+                        fontSize="xs"
+                        m={0}
+                        mb={-1}
+                        mt={-1}
+                        p={0}
+                        pb={-1}
+                        pt={-1}
+                    >
+                        INPUTS
+                    </Text>
+                </Center>
+            )}
+            <NodeInputs
+                accentColor={accentColor}
+                id={id}
+                inputData={inputData}
+                inputs={inputs}
+                isLocked={isLocked}
+                schemaId={schemaId}
+            />
 
-        {outputs.length > 0 && (
-            <Center>
-                <Text
-                    fontSize="xs"
-                    m={0}
-                    mb={-1}
-                    mt={-1}
-                    p={0}
-                    pb={-1}
-                    pt={-1}
-                >
-                    OUTPUTS
-                </Text>
-            </Center>
-        )}
-        <NodeOutputs
-            id={id}
-            outputs={outputs}
-        />
-    </>
-);
+            {outputs.length > 0 && (
+                <Center>
+                    <Text
+                        fontSize="xs"
+                        m={0}
+                        mb={-1}
+                        mt={-1}
+                        p={0}
+                        pb={-1}
+                        pt={-1}
+                    >
+                        OUTPUTS
+                    </Text>
+                </Center>
+            )}
+            <NodeOutputs
+                id={id}
+                outputs={outputs}
+            />
+        </>
+    );
+}
 
 export default memo(NodeBody);

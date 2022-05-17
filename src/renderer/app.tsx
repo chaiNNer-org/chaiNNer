@@ -8,7 +8,7 @@ import { useAsyncEffect } from './hooks/useAsyncEffect';
 import Main from './main';
 import theme from './theme';
 
-const App = () => {
+function App() {
     const [port, setPort] = useState<number | null>(null);
     const [storageInitialized, setStorageInitialized] = useState(false);
 
@@ -27,21 +27,27 @@ const App = () => {
     let Component;
 
     if (!port || !storageInitialized) {
-        Component = () => (
-            <Box
-                h="full"
-                w="full"
-            >
-                <Center
+        // eslint-disable-next-line react/no-unstable-nested-components
+        Component = function () {
+            return (
+                <Box
                     h="full"
                     w="full"
                 >
-                    <Spinner />
-                </Center>
-            </Box>
-        );
+                    <Center
+                        h="full"
+                        w="full"
+                    >
+                        <Spinner />
+                    </Center>
+                </Box>
+            );
+        };
     } else {
-        Component = () => <Main port={port} />;
+        // eslint-disable-next-line react/no-unstable-nested-components
+        Component = function () {
+            return <Main port={port} />;
+        };
     }
 
     return (
@@ -52,6 +58,6 @@ const App = () => {
             </AlertBoxProvider>
         </ChakraProvider>
     );
-};
+}
 
 export default App;

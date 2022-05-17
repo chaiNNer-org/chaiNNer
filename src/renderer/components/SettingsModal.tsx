@@ -40,7 +40,7 @@ interface SettingsModalProps {
     onClose: () => void;
 }
 
-const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
+function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
         useContext(SettingsContext);
 
@@ -70,289 +70,297 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         }
     }, [isCpu]);
 
-    const AppearanceSettings = () => (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
-            {/* Dark Theme */}
-            <Flex
-                align="center"
+    function AppearanceSettings() {
+        return (
+            <VStack
+                divider={<StackDivider />}
                 w="full"
             >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                {/* Dark Theme */}
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        Dark theme
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use dark mode throughout chaiNNer.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={colorMode === 'dark'}
-                        size="lg"
-                        onChange={() => {
-                            toggleColorMode();
-                        }}
-                    />
-                </HStack>
-            </Flex>
-            {/* Snap To Grid */}
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            Dark theme
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Use dark mode throughout chaiNNer.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={colorMode === 'dark'}
+                            size="lg"
+                            onChange={() => {
+                                toggleColorMode();
+                            }}
+                        />
+                    </HStack>
+                </Flex>
+                {/* Snap To Grid */}
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        Snap to grid
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Enable node grid snapping.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isSnapToGrid}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsSnapToGrid(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
-            {/* Snap To Grid Amount */}
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            Snap to grid
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Enable node grid snapping.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={isSnapToGrid}
+                            size="lg"
+                            onChange={(event) => {
+                                setIsSnapToGrid(event.target.checked);
+                            }}
+                        />
+                    </HStack>
+                </Flex>
+                {/* Snap To Grid Amount */}
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        Snap to grid amount
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        The amount to snap the grid to.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <NumberInput
-                        defaultValue={snapToGridAmount || 1}
-                        max={45}
-                        min={1}
-                        value={Number(snapToGridAmount || 1)}
-                        onChange={(number) => setSnapToGridAmount(Number(number || 1))}
-                    >
-                        <NumberInputField />
-                        <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                        </NumberInputStepper>
-                    </NumberInput>
-                </HStack>
-            </Flex>
-        </VStack>
-    );
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            Snap to grid amount
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            The amount to snap the grid to.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <NumberInput
+                            defaultValue={snapToGridAmount || 1}
+                            max={45}
+                            min={1}
+                            value={Number(snapToGridAmount || 1)}
+                            onChange={(number) => setSnapToGridAmount(Number(number || 1))}
+                        >
+                            <NumberInputField />
+                            <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
+                    </HStack>
+                </Flex>
+            </VStack>
+        );
+    }
 
-    const EnvironmentSettings = () => (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
-            <Flex
-                align="center"
+    function EnvironmentSettings() {
+        return (
+            <VStack
+                divider={<StackDivider />}
                 w="full"
             >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        CPU mode
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use CPU for PyTorch instead of GPU. This option does not affect NCNN.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isCpu}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsCpu(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            CPU mode
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Use CPU for PyTorch instead of GPU. This option does not affect NCNN.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={isCpu}
+                            size="lg"
+                            onChange={(event) => {
+                                setIsCpu(event.target.checked);
+                            }}
+                        />
+                    </HStack>
+                </Flex>
 
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        FP16 mode
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Runs PyTorch and NCNN in half-precision (FP16) mode for less VRAM usage. RTX
-                        GPUs also get a speedup.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isFp16}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsFp16(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
-        </VStack>
-    );
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            FP16 mode
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Runs PyTorch and NCNN in half-precision (FP16) mode for less VRAM usage.
+                            RTX GPUs also get a speedup.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={isFp16}
+                            size="lg"
+                            onChange={(event) => {
+                                setIsFp16(event.target.checked);
+                            }}
+                        />
+                    </HStack>
+                </Flex>
+            </VStack>
+        );
+    }
 
-    const PythonSettings = () => (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
-            <Flex
-                align="center"
+    function PythonSettings() {
+        return (
+            <VStack
+                divider={<StackDivider />}
                 w="full"
             >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        Use system Python (requires restart)
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use system Python for chaiNNer&apos;s processing instead of the bundled
-                        Python (not recommended)
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isSystemPython}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsSystemPython(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
-        </VStack>
-    );
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            Use system Python (requires restart)
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Use system Python for chaiNNer&apos;s processing instead of the bundled
+                            Python (not recommended)
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={isSystemPython}
+                            size="lg"
+                            onChange={(event) => {
+                                setIsSystemPython(event.target.checked);
+                            }}
+                        />
+                    </HStack>
+                </Flex>
+            </VStack>
+        );
+    }
 
-    const AdvancedSettings = () => (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
-            {/* Disable Hardware Acceleration */}
-            <Flex
-                align="center"
+    function AdvancedSettings() {
+        return (
+            <VStack
+                divider={<StackDivider />}
                 w="full"
             >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
+                {/* Disable Hardware Acceleration */}
+                <Flex
+                    align="center"
                     w="full"
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
+                    <VStack
+                        alignContent="left"
+                        alignItems="left"
+                        w="full"
                     >
-                        Disable Hardware Acceleration (requires restart)
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only
-                        disable this is you know hardware acceleration is causing you issues.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isDisHwAccel}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsDisHwAccel(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
-        </VStack>
-    );
+                        <Text
+                            flex="1"
+                            textAlign="left"
+                        >
+                            Disable Hardware Acceleration (requires restart)
+                        </Text>
+                        <Text
+                            flex="1"
+                            fontSize="xs"
+                            marginTop={0}
+                            textAlign="left"
+                        >
+                            Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only
+                            disable this is you know hardware acceleration is causing you issues.
+                        </Text>
+                    </VStack>
+                    <HStack>
+                        <Switch
+                            defaultChecked={isDisHwAccel}
+                            size="lg"
+                            onChange={(event) => {
+                                setIsDisHwAccel(event.target.checked);
+                            }}
+                        />
+                    </HStack>
+                </Flex>
+            </VStack>
+        );
+    }
 
     return (
         <Modal
@@ -420,7 +428,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </ModalContent>
         </Modal>
     );
-};
+}
 
 export const SettingsButton = memo(() => {
     const {

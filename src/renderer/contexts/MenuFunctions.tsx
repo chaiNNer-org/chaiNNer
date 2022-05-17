@@ -12,7 +12,7 @@ export const MenuFunctionsContext = createContext<Readonly<MenuFunctions>>({
     addMenuCloseFunction: () => noop,
 });
 
-export const MenuFunctionsProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export function MenuFunctionsProvider({ children }: React.PropsWithChildren<unknown>) {
     const [menuCloseFunctions, setMenuCloseFunctions] = useState<Record<string, () => void>>({});
 
     const addMenuCloseFunction = useCallback(
@@ -45,4 +45,4 @@ export const MenuFunctionsProvider = ({ children }: React.PropsWithChildren<unkn
             {children}
         </MenuFunctionsContext.Provider>
     );
-};
+}

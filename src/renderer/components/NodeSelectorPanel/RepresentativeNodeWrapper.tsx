@@ -25,7 +25,7 @@ interface RepresentativeNodeWrapperProps {
     collapsed?: boolean;
 }
 
-const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
+function RepresentativeNodeWrapper({ node, collapsed = false }: RepresentativeNodeWrapperProps) {
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
     const reactFlowInstance = useReactFlow();
@@ -88,6 +88,6 @@ const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNo
             </Tooltip>
         </Box>
     );
-};
+}
 
 export default memo(RepresentativeNodeWrapper);

@@ -124,7 +124,7 @@ interface ReactFlowBoxProps {
     edgeTypes: EdgeTypes;
     wrapperRef: React.RefObject<HTMLDivElement>;
 }
-const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
+function ReactFlowBox({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) {
     const { sendAlert } = useContext(AlertBoxContext);
     const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
@@ -329,6 +329,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
             </ReactFlow>
         </Box>
     );
-};
+}
 
 export default memo(ReactFlowBox);

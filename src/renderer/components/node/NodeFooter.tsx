@@ -33,7 +33,7 @@ interface NodeFooterProps {
     isLocked?: boolean;
 }
 
-const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) => {
+function NodeFooter({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) {
     const { removeNodeById, clearNode, toggleNodeLock, duplicateNode } = useContext(GlobalContext);
     const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
 
@@ -162,6 +162,6 @@ const NodeFooter = ({ id, isValid = false, invalidReason = '', isLocked }: NodeF
             </Center>
         </Flex>
     );
-};
+}
 
 export default memo(NodeFooter);

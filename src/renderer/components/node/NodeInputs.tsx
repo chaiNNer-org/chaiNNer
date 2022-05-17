@@ -108,14 +108,7 @@ interface NodeInputsProps {
     schemaId: string;
 }
 
-const NodeInputs = ({
-    inputs,
-    id,
-    inputData,
-    accentColor,
-    isLocked,
-    schemaId,
-}: NodeInputsProps) => {
+function NodeInputs({ inputs, id, inputData, accentColor, isLocked, schemaId }: NodeInputsProps) {
     const { useInputData: useInputDataContext } = useContext(GlobalContext);
 
     const useInputData = useCallback(
@@ -141,5 +134,5 @@ const NodeInputs = ({
             })}
         </>
     );
-};
+}
 export default memo(NodeInputs);

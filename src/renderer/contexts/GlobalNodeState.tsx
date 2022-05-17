@@ -161,11 +161,11 @@ interface GlobalProviderProps {
     reactFlowWrapper: React.RefObject<Element>;
 }
 
-export const GlobalProvider = ({
+export function GlobalProvider({
     children,
     schemata,
     reactFlowWrapper,
-}: React.PropsWithChildren<GlobalProviderProps>) => {
+}: React.PropsWithChildren<GlobalProviderProps>) {
     const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
 
     const [nodeChanges, addNodeChanges] = useChangeCounter();
@@ -798,4 +798,4 @@ export const GlobalProvider = ({
             <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
         </GlobalVolatileContext.Provider>
     );
-};
+}

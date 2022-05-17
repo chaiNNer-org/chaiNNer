@@ -15,7 +15,7 @@ const createGridDotsPath = (size: number, fill: string) => (
     />
 );
 
-const DotPattern = ({ id }: { id: string }) => {
+function DotPattern({ id }: { id: string }) {
     const gap = 15;
     const size = 0.5;
     const scaledGap = gap * 1;
@@ -49,7 +49,7 @@ const DotPattern = ({ id }: { id: string }) => {
             />
         </svg>
     );
-};
+}
 
 interface IteratorNodeBodyProps {
     id: string;
@@ -59,13 +59,13 @@ interface IteratorNodeBodyProps {
     maxHeight?: number;
 }
 
-const IteratorNodeBody = ({
+function IteratorNodeBody({
     id,
     iteratorSize,
     accentColor,
     maxWidth = 256,
     maxHeight = 256,
-}: IteratorNodeBodyProps) => {
+}: IteratorNodeBodyProps) {
     const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
     const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
     const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
@@ -165,6 +165,6 @@ const IteratorNodeBody = ({
             </Box>
         </Resizable>
     );
-};
+}
 
 export default memo(IteratorNodeBody);

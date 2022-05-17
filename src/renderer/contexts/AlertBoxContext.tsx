@@ -136,7 +136,7 @@ const getButtons = (
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export function AlertBoxProvider({ children }: React.PropsWithChildren<unknown>) {
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);
     const current = queue[0] as InternalMessage | undefined;
     const isLast = queue.length < 2;
@@ -230,4 +230,4 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
             {children}
         </AlertBoxContext.Provider>
     );
-};
+}

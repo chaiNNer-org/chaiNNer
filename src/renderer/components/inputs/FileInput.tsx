@@ -105,7 +105,7 @@ const FileInput = memo(
                         </Box>
                     );
                 default:
-                    return <></>;
+                    return null;
             }
         };
 
@@ -167,13 +167,13 @@ const FileInput = memo(
 
                         <Input
                             isReadOnly
-                            isTruncated
                             alt={filePath}
                             className="nodrag"
                             cursor="pointer"
                             disabled={isLocked || isInputLocked}
                             draggable={false}
                             placeholder="Select a file..."
+                            textOverflow="ellipsis"
                             value={filePath ? path.parse(filePath).base : ''}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onClick={onButtonClick}

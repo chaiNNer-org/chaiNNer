@@ -16,7 +16,7 @@ interface IteratorHelperNodeProps {
     selected: boolean;
 }
 
-const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
+function IteratorHelperNode({ data, selected }: IteratorHelperNodeProps) {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
@@ -98,6 +98,6 @@ const IteratorHelperNode = ({ data, selected }: IteratorHelperNodeProps) => {
             </VStack>
         </Center>
     );
-};
+}
 
 export default memo(IteratorHelperNode);

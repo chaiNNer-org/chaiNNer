@@ -78,11 +78,11 @@ interface DependencyManagerProps {
     onPipListUpdate?: (value: ParsedPipList) => void;
 }
 
-const DependencyManager = ({
+function DependencyManager({
     isOpen,
     onClose,
     onPipListUpdate = () => {},
-}: DependencyManagerProps) => {
+}: DependencyManagerProps) {
     const { setIsBackendKilled } = useContext(ExecutionContext);
     const { useIsSystemPython } = useContext(SettingsContext);
 
@@ -526,7 +526,7 @@ const DependencyManager = ({
             </AlertDialog>
         </>
     );
-};
+}
 
 export const DependencyManagerButton = memo(() => {
     const { isOpen, onOpen, onClose } = useDisclosure();

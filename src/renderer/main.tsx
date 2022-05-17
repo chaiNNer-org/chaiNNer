@@ -37,7 +37,7 @@ interface MainProps {
     port: number;
 }
 
-const Main = ({ port }: MainProps) => {
+function Main({ port }: MainProps) {
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [schemata, setSchemata] = useState<SchemaMap | null>(null);
@@ -153,6 +153,6 @@ const Main = ({ port }: MainProps) => {
             </SettingsProvider>
         </ReactFlowProvider>
     );
-};
+}
 
 export default memo(Main);
