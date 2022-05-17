@@ -22,9 +22,9 @@ import semver from 'semver';
 import { Systeminformation, graphics } from 'systeminformation';
 import util from 'util';
 import yargs from 'yargs/yargs';
-import { FileOpenResult, PythonKeys } from '../common/common-types';
+import { PythonKeys } from '../common/common-types';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
-import { ParsedSaveData, SaveFile, openSaveFile } from '../common/SaveFile';
+import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
 import { getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
@@ -186,14 +186,14 @@ let mainWindow: BrowserWindowWithSafeIpc;
 
 const registerEventHandlers = () => {
     ipcMain.handle('dir-select', (event, dirPath) =>
-        dialog.showOpenDialog({
+        dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
             properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
         })
     );
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
-        dialog.showOpenDialog({
+        dialog.showOpenDialog(mainWindow, {
             filters,
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
@@ -202,7 +202,7 @@ const registerEventHandlers = () => {
 
     ipcMain.handle('file-save-as-json', async (event, saveData, lastFilePath) => {
         try {
-            const { canceled, filePath } = await dialog.showSaveDialog({
+            const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
                 title: 'Save Chain File',
                 filters: [{ name: 'Chain File', extensions: ['chn'] }],
                 defaultPath: lastFilePath,
@@ -777,7 +777,7 @@ const createWindow = async () => {
                         const {
                             canceled,
                             filePaths: [filepath],
-                        } = await dialog.showOpenDialog({
+                        } = await dialog.showOpenDialog(mainWindow, {
                             title: 'Open Chain File',
                             filters: [{ name: 'Chain', extensions: ['chn'] }],
                             properties: ['openFile'],
