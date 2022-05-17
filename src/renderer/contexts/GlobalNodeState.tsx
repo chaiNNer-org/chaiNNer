@@ -223,7 +223,9 @@ export const GlobalProvider = ({
      */
     const [hasRelevantUnsavedChanges, setHasRelevantUnsavedChanges] = useState(false);
     useEffect(() => {
-        setHasRelevantUnsavedChanges(hasUnsavedChanges && (getNodes().length > 0 || !!savePath));
+        const value = hasUnsavedChanges && (getNodes().length > 0 || !!savePath);
+        setHasRelevantUnsavedChanges(value);
+        ipcRenderer.send('update-has-unsaved-changes', value);
     }, [hasUnsavedChanges, savePath, nodeChanges]);
 
     useEffect(() => {
