@@ -139,8 +139,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isSnapToGrid}
                         size="lg"
-                        onChange={() => {
-                            setIsSnapToGrid(!isSnapToGrid);
+                        onChange={(event) => {
+                            setIsSnapToGrid(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -301,8 +301,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isSystemPython}
                         size="lg"
-                        onChange={() => {
-                            setIsSystemPython(!isSystemPython);
+                        onChange={(event) => {
+                            setIsSystemPython(event.target.checked);
                         }}
                     />
                 </HStack>
@@ -345,8 +345,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     <Switch
                         defaultChecked={isDisHwAccel}
                         size="lg"
-                        onChange={() => {
-                            setIsDisHwAccel(!isDisHwAccel);
+                        onChange={(event) => {
+                            setIsDisHwAccel(event.target.checked);
                         }}
                     />
                 </HStack>
