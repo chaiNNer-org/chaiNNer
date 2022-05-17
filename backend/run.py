@@ -140,9 +140,7 @@ async def run(request: Request):
             logger.info(full_data)
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-            os.environ["isFp16"] = (
-                "False" if full_data["isCpu"] else str(full_data["isFp16"])
-            )
+            os.environ["isFp16"] = str(full_data["isFp16"])
             logger.info(f"Using device: {os.environ['device']}")
             executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
             request.app.ctx.executor = executor
@@ -181,7 +179,7 @@ async def run_individual(request: Request):
     full_data = request.json
     logger.info(full_data)
     os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-    os.environ["isFp16"] = "False" if full_data["isCpu"] else str(full_data["isFp16"])
+    os.environ["isFp16"] = str(full_data["isFp16"])
     logger.info(f"Using device: {os.environ['device']}")
     # Create node based on given category/name information
     node_instance = NodeFactory.create_node(full_data["schemaId"])

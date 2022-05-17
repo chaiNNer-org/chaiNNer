@@ -233,7 +233,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
                 const response = await backend.run({
                     data,
                     isCpu,
-                    isFp16: isFp16 && !isCpu,
+                    isFp16,
                 });
                 if (response.exception) {
                     sendAlert(AlertType.ERROR, null, response.exception);
