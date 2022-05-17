@@ -62,8 +62,8 @@ class ImResizeToResolutionNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            IntegerInput("Width"),
-            IntegerInput("Height"),
+            BoundedIntegerInput("Width", minimum=1, maximum=None, default=1),
+            BoundedIntegerInput("Height", minimum=1, maximum=None, default=1),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
