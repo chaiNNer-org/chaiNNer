@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import cv2
 import numpy as np
 
@@ -145,11 +147,16 @@ class AverageColorFixNode(NodeBase):
         """Fixes the average color of the input image"""
 
         if scale_factor != 100.0:
+            # Make sure reference image dims are not resized to 0
+            h, w = ref_img.shape[:2]
+            out_dims = (
+                math.ceil(w * (scale_factor / 100)),
+                math.ceil(h * (scale_factor / 100)),
+            )
+
             ref_img = cv2.resize(
                 ref_img,
-                None,
-                fx=scale_factor / 100,
-                fy=scale_factor / 100,
+                out_dims,
                 interpolation=cv2.INTER_AREA,
             )
 
