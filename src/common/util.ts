@@ -47,3 +47,11 @@ export const lazy = <T>(fn: () => T): (() => T) => {
         return value;
     };
 };
+
+export const debounce = (fn: () => void, delay: number): (() => void) => {
+    let id: NodeJS.Timeout | undefined;
+    return () => {
+        if (id !== undefined) clearTimeout(id);
+        id = setTimeout(fn, delay);
+    };
+};

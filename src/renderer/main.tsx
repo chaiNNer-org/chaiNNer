@@ -21,6 +21,7 @@ import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { MenuFunctionsProvider } from './contexts/MenuFunctions';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 const nodeTypes: NodeTypes = {
     regularNode: Node,
@@ -60,6 +61,8 @@ const Main = ({ port }: MainProps) => {
             ipcRenderer.send('backend-ready');
         }
     }, [response, data, loading, error, backendReady]);
+
+    useLastWindowSize();
 
     const loadingLogo = (
         <ChaiNNerLogo
