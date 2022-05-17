@@ -8,6 +8,7 @@ import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import { parseHandle } from '../../common/util';
 import checkNodeValidity from '../helpers/checkNodeValidity';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventSourceListener,
     useBackendEventSource,
@@ -179,8 +180,17 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         updateIteratorProgress,
     ]);
 
+    const [ownsBackend, setOwnsBackend] = useState(true);
+    useAsyncEffect(
+        {
+            supplier: () => ipcRenderer.invoke('owns-backend'),
+            successEffect: setOwnsBackend,
+        },
+        [setOwnsBackend]
+    );
+
     useEffect(() => {
-        if (!isBackendKilled && eventSourceStatus === 'error') {
+        if (ownsBackend && !isBackendKilled && eventSourceStatus === 'error') {
             sendAlert(
                 AlertType.ERROR,
                 null,
@@ -189,7 +199,7 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
             unAnimateEdges();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimateEdges, isBackendKilled]);
+    }, [eventSourceStatus, unAnimateEdges, isBackendKilled, ownsBackend]);
 
     const run = async () => {
         const nodes = getNodes();
