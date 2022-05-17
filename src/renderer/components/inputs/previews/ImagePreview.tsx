@@ -2,9 +2,9 @@ import { Center, HStack, Image, Spinner, Tag, VStack } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { checkFileExists } from '../../../../common/util';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
-import { checkFileExists } from '../../../../common/util';
 
 interface ImageObject {
     width: number;

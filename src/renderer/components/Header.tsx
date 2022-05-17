@@ -13,10 +13,10 @@ import {
 import { memo, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
 import { useContext } from 'use-context-selector';
-import { ExecutionContext, ExecutionStatus } from '../contexts/ExecutionContext';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ipcRenderer } from '../../common/safeIpc';
 import logo from '../../public/icons/png/256x256.png';
+import { ExecutionContext, ExecutionStatus } from '../contexts/ExecutionContext';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { DependencyManagerButton } from './DependencyManager';
 import { SettingsButton } from './SettingsModal';
 import SystemStats from './SystemStats';

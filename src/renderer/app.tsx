@@ -2,9 +2,9 @@ import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-u
 import { LocalStorage } from 'node-localstorage';
 import { useState } from 'react';
 import './global.css';
+import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
-import { ipcRenderer } from '../common/safeIpc';
 import Main from './main';
 import theme from './theme';
 

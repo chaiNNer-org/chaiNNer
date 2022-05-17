@@ -4,6 +4,9 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
+import { BackendNodesResponse } from '../common/Backend';
+import { ipcRenderer } from '../common/safeIpc';
+import { SchemaMap } from '../common/SchemaMap';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import CustomEdge from './components/CustomEdge';
 import Header from './components/Header';
@@ -13,14 +16,11 @@ import IteratorNode from './components/node/IteratorNode';
 import Node from './components/node/Node';
 import NodeSelector from './components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from './components/ReactFlowBox';
-import { BackendNodesResponse } from '../common/Backend';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { MenuFunctionsProvider } from './contexts/MenuFunctions';
 import { SettingsProvider } from './contexts/SettingsContext';
-import { ipcRenderer } from '../common/safeIpc';
-import { SchemaMap } from '../common/SchemaMap';
 
 const nodeTypes: NodeTypes = {
     regularNode: Node,

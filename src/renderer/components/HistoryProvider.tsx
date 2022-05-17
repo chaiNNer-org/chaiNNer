@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Edge, Node, Viewport, useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { noop } from '../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
-import { noop } from '../../common/util';
 
 /**
  * A variable-length linear edit history.
