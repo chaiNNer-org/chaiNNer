@@ -108,15 +108,10 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
 
     const { useNodeFavorites } = useContext(SettingsContext);
     const [favorites] = useNodeFavorites;
-    const favoritesSubcategoriesMap: Map<string, NodeSchema[]> = useMemo(
-        () =>
-            getSubcategories(
-                favorites
-                    .filter((f) => matchingNodes.some((i) => i.schemaId === f))
-                    .map((f) => schemata.get(f))
-            ),
-        [favorites, matchingNodes.length]
-    );
+    const favoriteNodes = useMemo(() => {
+        const favoriteSet = new Set(favorites);
+        return [...byCategories.values()].flat().filter((n) => favoriteSet.has(n.schemaId));
+    }, [byCategories]);
 
     return (
         <Box
@@ -232,36 +227,21 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                             </HStack>
                                             <AccordionIcon />
                                         </AccordionButton>
-                                        <AccordionPanel>
-                                            {[...favoritesSubcategoriesMap].map(
-                                                ([subcategory, nodes]) => (
-                                                    <Box key={subcategory}>
-                                                        <Center
-                                                        // w="full"
-                                                        >
-                                                            <SubcategoryHeading
-                                                                collapsed={collapsed}
-                                                                subcategory={subcategory}
-                                                            />
-                                                        </Center>
-                                                        <Box>
-                                                            {nodes
-                                                                .filter(
-                                                                    (e) =>
-                                                                        e.nodeType !==
-                                                                        'iteratorHelper'
-                                                                )
-                                                                .map((node) => (
-                                                                    <RepresentativeNodeWrapper
-                                                                        collapsed={collapsed}
-                                                                        key={node.name}
-                                                                        node={node}
-                                                                    />
-                                                                ))}
-                                                        </Box>
-                                                    </Box>
-                                                )
-                                            )}
+                                        <AccordionPanel
+                                            pb={2.5}
+                                            pt={0}
+                                        >
+                                            <Box>
+                                                {favoriteNodes
+                                                    .filter((e) => e.nodeType !== 'iteratorHelper')
+                                                    .map((node) => (
+                                                        <RepresentativeNodeWrapper
+                                                            collapsed={collapsed}
+                                                            key={node.name}
+                                                            node={node}
+                                                        />
+                                                    ))}
+                                            </Box>
                                         </AccordionPanel>
                                     </AccordionItem>
                                 )}
@@ -295,7 +275,10 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                                 </HStack>
                                                 <AccordionIcon />
                                             </AccordionButton>
-                                            <AccordionPanel>
+                                            <AccordionPanel
+                                                pb={2.5}
+                                                pt={0}
+                                            >
                                                 {[...subcategoryMap].map(([subcategory, nodes]) => (
                                                     <Box key={subcategory}>
                                                         <Center
