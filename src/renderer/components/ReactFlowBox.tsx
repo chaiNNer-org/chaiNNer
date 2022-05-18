@@ -294,6 +294,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
             w="100%"
         >
             <ReactFlow
+                connectionLineContainerStyle={{ zIndex: 1000 }}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
                 edges={edges}
