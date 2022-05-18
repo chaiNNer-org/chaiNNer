@@ -1,5 +1,6 @@
 import math
 import os
+import platform
 
 import numpy as np
 from process import Executor
@@ -214,15 +215,27 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
     ) -> any:
         h, w = img.shape[:2]
         if writer["out"] is None and video_type != "none":
-            if video_type == "mp4":
-                fourcc = cv2.VideoWriter_fourcc(*"h264")
-            else:
-                fourcc = cv2.VideoWriter_fourcc(*"divx")
-            video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
-            logger.info(f"Writing new video to path: {video_save_path}")
-            writer["out"] = cv2.VideoWriter(
-                filename=video_save_path, fourcc=fourcc, fps=fps, frameSize=(w, h)
-            )
+            # Use x264 if on linux
+            mp4_codec = "x264" if platform.platform() == "linux" else "h264"
+            avi_codec = "divx"
+            codec = mp4_codec if video_type == "mp4" else avi_codec
+            try:
+                logger.info(f"Trying to open writer with codec: {codec}")
+                fourcc = cv2.VideoWriter_fourcc(*codec)
+                logger.info(f"Trying to open writer with fourcc: {fourcc}")
+                video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
+                logger.info(f"Writing new video to path: {video_save_path}")
+                writer["out"] = cv2.VideoWriter(
+                    filename=video_save_path,
+                    fourcc=fourcc,
+                    fps=fps,
+                    frameSize=(w, h),
+                )
+                logger.info(writer["out"])
+            except Exception as e:
+                logger.warning(
+                    f"Failed to open video writer with codec: {codec} because: {e}"
+                )
         if video_type != "none":
             writer["out"].write((img * 255).astype(np.uint8))
         return ""
