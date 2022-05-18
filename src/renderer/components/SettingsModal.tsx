@@ -70,7 +70,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         }
     }, [isCpu]);
 
-    function AppearanceSettings() {
+    const AppearanceSettings = memo(() => {
         return (
             <VStack
                 divider={<StackDivider />}
@@ -189,9 +189,9 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </Flex>
             </VStack>
         );
-    }
+    });
 
-    function EnvironmentSettings() {
+    const EnvironmentSettings = memo(() => {
         return (
             <VStack
                 divider={<StackDivider />}
@@ -269,9 +269,9 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </Flex>
             </VStack>
         );
-    }
+    });
 
-    function PythonSettings() {
+    const PythonSettings = memo(() => {
         return (
             <VStack
                 divider={<StackDivider />}
@@ -314,9 +314,9 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </Flex>
             </VStack>
         );
-    }
+    });
 
-    function AdvancedSettings() {
+    const AdvancedSettings = memo(() => {
         return (
             <VStack
                 divider={<StackDivider />}
@@ -360,7 +360,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </Flex>
             </VStack>
         );
-    }
+    });
 
     return (
         <Modal

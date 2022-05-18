@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -275,11 +275,17 @@ export function ExecutionProvider({ children }: React.PropsWithChildren<{}>) {
         setStatus(ExecutionStatus.READY);
     };
 
-    return (
-        <ExecutionContext.Provider
-            value={{ run, pause, kill, status, isBackendKilled, setIsBackendKilled }}
-        >
-            {children}
-        </ExecutionContext.Provider>
+    const value = useMemo(
+        () => ({
+            run,
+            pause,
+            kill,
+            status,
+            isBackendKilled,
+            setIsBackendKilled,
+        }),
+        [run, pause, kill, status, isBackendKilled, setIsBackendKilled]
     );
+
+    return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
 }

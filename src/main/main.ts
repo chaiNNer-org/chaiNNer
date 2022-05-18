@@ -625,6 +625,7 @@ const doSplashScreenChecks = async () =>
         });
 
         // Look, I just wanna see the cool animation
+        // eslint-disable-next-line no-promise-executor-return
         const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
         // Send events to splash screen renderer as they happen

@@ -34,6 +34,7 @@ export function MenuFunctionsProvider({ children }: React.PropsWithChildren<unkn
         Object.values(menuCloseFunctions).forEach((fn) => fn());
     }, [menuCloseFunctions]);
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let contextValue: MenuFunctions = {
         addMenuCloseFunction,
         closeAllMenus,

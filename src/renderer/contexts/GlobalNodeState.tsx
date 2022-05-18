@@ -494,7 +494,7 @@ export function GlobalProvider({
     );
 
     const useInputData = useCallback(
-        // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
+        // eslint-disable-next-line func-names
         function <T extends NonNullable<InputValue>>(
             id: string,
             index: number,
@@ -756,6 +756,7 @@ export function GlobalProvider({
 
     const [zoom, setZoom] = useState(1);
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let globalChainValue: GlobalVolatile = {
         nodeChanges,
         edgeChanges,
@@ -767,6 +768,7 @@ export function GlobalProvider({
     };
     globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let globalValue: Global = {
         schemata,
         reactFlowWrapper,

@@ -122,5 +122,6 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
         [apply]
     );
 
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;
 }

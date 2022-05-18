@@ -56,7 +56,7 @@ const getButtons = (
     { type, message, copyToClipboard, buttons, defaultButton = 0 }: InternalMessage,
     onClose: (button: number) => void,
     cancelRef: React.Ref<HTMLButtonElement>
-): JSX.Element => {
+): JSX.Element[] => {
     const buttonElements: JSX.Element[] = [];
 
     // eslint-disable-next-line no-param-reassign
@@ -131,7 +131,7 @@ const getButtons = (
                 return assertNever(type);
         }
     }
-    return <>{buttonElements}</>;
+    return buttonElements;
 };
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
@@ -204,6 +204,7 @@ export function AlertBoxProvider({ children }: React.PropsWithChildren<unknown>)
         [toast]
     );
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let value: AlertBox = { sendAlert, showAlert, sendToast };
     value = useMemo(() => value, Object.values(value));
 

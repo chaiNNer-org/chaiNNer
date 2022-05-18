@@ -90,7 +90,7 @@ function Main({ port }: MainProps) {
             null,
             `chaiNNer has encountered a critical error: ${error.message}`
         );
-        return <></>;
+        return null;
     }
 
     if (!schemata || !data) {

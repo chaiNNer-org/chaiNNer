@@ -138,7 +138,7 @@ export function IconFactoryOld(category: string) {
         case 'OpenCV':
             return <OpenCVIcon />;
         default:
-            return <></>;
+            return null;
     }
 }
 

@@ -593,9 +593,7 @@ export const DependencyManagerButton = memo(() => {
                         >
                             <TagLabel textAlign="center">{availableUpdates.length}</TagLabel>
                         </Tag>
-                    ) : (
-                        <></>
-                    )}
+                    ) : null}
                     <IconButton
                         aria-label="Download button"
                         icon={<DownloadIcon />}
