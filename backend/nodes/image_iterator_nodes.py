@@ -221,7 +221,6 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
             try:
                 logger.info(f"Trying to open writer with codec: {codec}")
                 fourcc = cv2.VideoWriter_fourcc(*codec)
-                logger.info(f"Trying to open writer with fourcc: {fourcc}")
                 video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
                 logger.info(f"Writing new video to path: {video_save_path}")
                 writer["out"] = cv2.VideoWriter(
