@@ -88,6 +88,10 @@ const updateZIndexes = (
         if (n.selected) zIndex += SELECTED_ADD;
 
         n.zIndex = zIndex;
+        if (edges.length === 0) {
+            // This fixes the connection line being behind iterators if no edges are present
+            n.zIndex -= 1000;
+        }
     }
 
     // fix up the child nodes of selected iterators
