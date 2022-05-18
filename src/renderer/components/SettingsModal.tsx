@@ -250,8 +250,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         marginTop={0}
                         textAlign="left"
                     >
-                        Runs PyTorch and NCNN in half-precision (FP16) mode for less VRAM usage. RTX
-                        GPUs also get a speedup.
+                        Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs
+                        also get a speedup. This setting does not affect NCNN.
                     </Text>
                 </VStack>
                 <HStack>
