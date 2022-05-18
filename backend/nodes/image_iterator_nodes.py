@@ -215,8 +215,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
     ) -> any:
         h, w = img.shape[:2]
         if writer["out"] is None and video_type != "none":
-            # Use x264 if on linux
-            mp4_codec = "x264" if platform.platform() == "linux" else "h264"
+            mp4_codec = "av1c"
             avi_codec = "divx"
             codec = mp4_codec if video_type == "mp4" else avi_codec
             try:
