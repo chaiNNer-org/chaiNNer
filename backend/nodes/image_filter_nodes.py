@@ -130,7 +130,7 @@ class AverageColorFixNode(NodeBase):
             BoundedNumberInput(
                 "Reference Image Scale Factor (%)",
                 minimum=0.1,
-                maximum=None,
+                maximum=100,
                 default=12.5,
                 step=12.5,
             ),
