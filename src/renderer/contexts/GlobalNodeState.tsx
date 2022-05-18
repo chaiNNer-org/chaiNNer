@@ -92,7 +92,8 @@ export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 const createNodeImpl = (
     { position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
-    parent?: Node<NodeData>
+    parent?: Node<NodeData>,
+    selected = false
 ): Node<NodeData>[] => {
     const id = createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
@@ -104,6 +105,7 @@ const createNodeImpl = (
             id,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
+        selected,
     };
 
     if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
@@ -419,8 +421,11 @@ export const GlobalProvider = ({
         (proto: NodeProto): void => {
             changeNodes((nodes) => {
                 const parent = hoveredNode ? nodes.find((n) => n.id === hoveredNode) : undefined;
-                const newNodes = createNodeImpl(proto, schemata, parent);
-                return [...nodes, ...newNodes];
+                const newNodes = createNodeImpl(proto, schemata, parent, true);
+                return [
+                    ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
+                    ...newNodes,
+                ];
             });
         },
         [changeNodes, schemata, hoveredNode]
