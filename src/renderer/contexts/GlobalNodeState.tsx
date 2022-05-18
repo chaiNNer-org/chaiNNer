@@ -22,7 +22,7 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
-import { createUniqueId, deepCopy, deriveUniqueId, parseHandle } from '../../common/util';
+import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
 import { copyNode } from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
@@ -80,7 +80,7 @@ interface Global {
 }
 
 export interface NodeProto {
-    position: XYPosition;
+    position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
 }
@@ -95,16 +95,16 @@ const createNodeImpl = (
     parent?: Node<NodeData>
 ): Node<NodeData>[] => {
     const id = createUniqueId();
-    const newNode: Node<Mutable<NodeData>> = deepCopy({
+    const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
-        position,
+        position: { ...position },
         data: {
             ...data,
             id,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
-    });
+    };
 
     if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
         const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
