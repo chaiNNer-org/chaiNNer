@@ -120,7 +120,7 @@ class NcnnSaveNode(NodeBase):
         full_param_path = os.path.join(directory, full_param)
 
         logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        is_fp16 = os.environ["isFp16"] == "True"
+        is_fp16 = bin_data.dtype == np.float16
         flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
         dtype = np.float16 if is_fp16 else np.float32
         packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
@@ -185,7 +185,7 @@ class NcnnUpscaleImageNode(NodeBase):
         net.load_param(param_path)
 
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
-            is_fp16 = os.environ["isFp16"] == "True"
+            is_fp16 = bin_data.dtype == np.float16
             flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
             dtype = np.float16 if is_fp16 else np.float32
             packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")

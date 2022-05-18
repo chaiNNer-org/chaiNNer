@@ -43,6 +43,7 @@ export interface InvokeChannels {
         [saveData: SaveData, savePath: string | undefined]
     >;
     'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
+    'owns-backend': ChannelInfo<boolean>;
     'kill-backend': ChannelInfo<void>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
@@ -69,6 +70,7 @@ export interface SendChannels {
     'start-sleep-blocker': SendChannelInfo;
     'stop-sleep-blocker': SendChannelInfo;
     'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
+    'window-maximized-change': SendChannelInfo<[maximized: boolean]>;
     'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
 
     // history

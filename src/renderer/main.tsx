@@ -23,6 +23,7 @@ import { GlobalProvider } from './contexts/GlobalNodeState';
 import { MenuFunctionsProvider } from './contexts/MenuFunctions';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
+import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 const nodeTypes: NodeTypes = {
     regularNode: Node,
@@ -62,6 +63,8 @@ function Main({ port }: MainProps) {
             ipcRenderer.send('backend-ready');
         }
     }, [response, data, loading, error, backendReady]);
+
+    useLastWindowSize();
 
     useIpcRendererListener(
         'show-collected-information',

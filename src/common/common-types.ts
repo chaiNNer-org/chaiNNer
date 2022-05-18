@@ -102,3 +102,9 @@ export interface UsableData {
     nodeType: string | undefined;
     percent?: number;
 }
+
+export interface WindowSize {
+    readonly maximized: boolean;
+    readonly width: number;
+    readonly height: number;
+}

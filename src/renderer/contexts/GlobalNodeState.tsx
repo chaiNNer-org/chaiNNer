@@ -22,7 +22,7 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
-import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
+import { createUniqueId, deepCopy, deriveUniqueId, parseHandle } from '../../common/util';
 import { copyNode } from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
@@ -95,7 +95,7 @@ const createNodeImpl = (
     parent?: Node<NodeData>
 ): Node<NodeData>[] => {
     const id = createUniqueId();
-    const newNode: Node<Mutable<NodeData>> = {
+    const newNode: Node<Mutable<NodeData>> = deepCopy({
         type: nodeType,
         id,
         position,
@@ -104,7 +104,7 @@ const createNodeImpl = (
             id,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
-    };
+    });
 
     if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
         const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
