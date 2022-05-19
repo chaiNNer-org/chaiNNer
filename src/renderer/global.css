@@ -91,3 +91,24 @@ body {
 [data-theme=dark] .react-flow__controls-interactive {
     border-radius: 0px 0px 8px 8px;
 }
+
+::-webkit-scrollbar {
+    width: 6px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 8px;
+    width: 8px;
+}
+
+[data-theme=dark] ::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: var(--chakra-colors-gray-700);
+}
+
+[data-theme=light] ::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: var(--chakra-colors-gray-300);
+}
