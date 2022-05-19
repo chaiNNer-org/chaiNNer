@@ -28,15 +28,19 @@ const STARTING_Z_INDEX = 50;
 /**
  * We want the nodes and edges to form the following layers:
  *
- * - Iterator nodes
- * - Nodes inside iterators
- * - Related iterator nodes
- * - Related nodes inside iterators
+ * - Iterator node 1
+ * - Nodes inside iterator 1
+ * - Iterator node 2
+ * - Nodes inside iterator 2
+ * - ...
+ * - Related iterator node 1
+ * - Related nodes inside iterator 1
+ * - Related iterator node 2
+ * - Related nodes inside iterator 2
+ * - ...
  * - Free nodes
  * - Selected nodes
- *   - Iterator nodes
- *   - Nodes inside iterators
- *   - Free nodes
+ *   - Same relative order as not-selected nodes
  *
  * Note that child nodes of selected iterator nodes are implicitly selected as well.
  *
@@ -52,55 +56,71 @@ const updateZIndexes = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[]
 ): void => {
-    const ITERATOR_INDEX = STARTING_Z_INDEX;
-    const ITERATOR_CHILDREN_INDEX = ITERATOR_INDEX + 2;
-    const RELATED_ITERATOR_INDEX = ITERATOR_CHILDREN_INDEX + 2;
-    const RELATED_ITERATOR_CHILDREN_INDEX = RELATED_ITERATOR_INDEX + 2;
-    const FREE_NODES_INDEX = RELATED_ITERATOR_CHILDREN_INDEX + 2;
-    const SELECTED_ADD = 20;
-    const MIN_SELECTED_INDEX = STARTING_Z_INDEX + SELECTED_ADD;
-
     const selectedIterators = new Set<string>();
     const relatedIterators = new Set<string>();
+    /** Maps each iterator id to the relative position of the iterator in the node array */
+    const iteratorIndexMap = new Map<string, number>();
+    const byId = new Map<string, Node<NodeData>>();
 
-    const byId = new Map<string, Node<unknown>>();
-
-    // set the zIndex of all nodes
+    // go through all nodes to collect some information
     for (const n of nodes) {
         byId.set(n.id, n);
 
-        let zIndex;
         if (n.type === 'iterator') {
-            zIndex = ITERATOR_INDEX;
+            iteratorIndexMap.set(n.id, iteratorIndexMap.size);
             if (n.selected) {
                 selectedIterators.add(n.id);
                 relatedIterators.delete(n.id);
             }
         } else if (n.parentNode) {
-            zIndex = ITERATOR_CHILDREN_INDEX;
             if (n.selected && !selectedIterators.has(n.parentNode)) {
                 relatedIterators.add(n.parentNode);
             }
-        } else {
-            zIndex = FREE_NODES_INDEX;
         }
-
-        if (n.selected) zIndex += SELECTED_ADD;
-
-        n.zIndex = zIndex;
     }
 
-    // fix up the child nodes of selected iterators
-    if (selectedIterators.size > 0 || relatedIterators.size > 0) {
-        // all child nodes of selected iterators are implicitly selected
-        for (const n of nodes) {
-            if (selectedIterators.has(n.parentNode!)) {
-                n.zIndex = ITERATOR_CHILDREN_INDEX + SELECTED_ADD;
+    const getIteratorZIndex = (id: string): number => {
+        const iterIndex = iteratorIndexMap.get(id) ?? 0;
+        return STARTING_Z_INDEX + iterIndex * 4;
+    };
+
+    const iteratorsRange = iteratorIndexMap.size * 4;
+
+    const FREE_NODES_INDEX = STARTING_Z_INDEX + iteratorsRange * 2;
+    const RELATED_ADD = iteratorsRange;
+    const SELECTED_ADD = iteratorsRange * 2 + 20;
+    const MIN_SELECTED_INDEX = STARTING_Z_INDEX + SELECTED_ADD;
+
+    // set the zIndex of all nodes
+    for (const n of nodes) {
+        if (n.type === 'iterator') {
+            // Iterator
+
+            let zIndex = getIteratorZIndex(n.id);
+            if (n.selected) {
+                zIndex += SELECTED_ADD;
             } else if (relatedIterators.has(n.id)) {
-                n.zIndex = RELATED_ITERATOR_INDEX;
-            } else if (relatedIterators.has(n.parentNode!) && !n.selected) {
-                n.zIndex = RELATED_ITERATOR_CHILDREN_INDEX;
+                zIndex += RELATED_ADD;
             }
+            n.zIndex = zIndex;
+        } else if (n.parentNode) {
+            // Iterator child node
+
+            let zIndex = getIteratorZIndex(n.parentNode) + 2;
+            if (n.selected || selectedIterators.has(n.parentNode)) {
+                zIndex += SELECTED_ADD;
+            } else if (relatedIterators.has(n.parentNode)) {
+                zIndex += RELATED_ADD;
+            }
+            n.zIndex = zIndex;
+        } else {
+            // Free node
+
+            let zIndex = FREE_NODES_INDEX;
+            if (n.selected) {
+                zIndex += SELECTED_ADD;
+            }
+            n.zIndex = zIndex;
         }
     }
 
