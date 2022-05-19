@@ -1,4 +1,5 @@
 import log from 'electron-log';
+import { dirname } from 'path';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -27,6 +28,7 @@ import { copyNode } from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { useOpenRecent } from '../hooks/useOpenRecent';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 
@@ -213,7 +215,15 @@ export const GlobalProvider = ({
         if (cachedViewport) setViewport(cachedViewport);
     }, [changeNodes, changeEdges]);
 
-    const [savePath, setSavePath] = useState<string | undefined>();
+    const [savePath, setSavePathInternal] = useState<string | undefined>();
+    const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
+    const setSavePath = useCallback(
+        (path: string | undefined) => {
+            setSavePathInternal(path);
+            if (path) pushOpenPath(path);
+        },
+        [setSavePathInternal, pushOpenPath]
+    );
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
@@ -300,6 +310,7 @@ export const GlobalProvider = ({
                 setViewport(savedData.viewport);
             }
             setSavePath(path);
+            pushOpenPath(path);
             setHasUnsavedChanges(false);
         },
         [schemata, changeNodes, changeEdges]
@@ -338,7 +349,7 @@ export const GlobalProvider = ({
                         const result = await ipcRenderer.invoke(
                             'file-save-as-json',
                             saveData,
-                            savePath
+                            savePath || (openRecent[0] && dirname(openRecent[0]))
                         );
                         if (result.kind === 'Canceled') return;
                         setSavePath(result.path);
@@ -356,7 +367,7 @@ export const GlobalProvider = ({
                 }
             })();
         },
-        [dumpState, savePath]
+        [dumpState, savePath, openRecent]
     );
 
     // Register New File event handler
@@ -369,13 +380,14 @@ export const GlobalProvider = ({
             if (result.kind === 'Success') {
                 setStateFromJSON(result.saveData, result.path, true);
             } else {
+                removeRecentPath(result.path);
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `Unable to open file ${result.path}`,
                 });
             }
         }
-    }, [setStateFromJSON]);
+    }, [setStateFromJSON, removeRecentPath]);
 
     // Register Open File event handler
     useIpcRendererListener(
@@ -384,13 +396,14 @@ export const GlobalProvider = ({
             if (result.kind === 'Success') {
                 setStateFromJSON(result.saveData, result.path, true);
             } else {
+                removeRecentPath(result.path);
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `Unable to open file ${result.path}`,
                 });
             }
         },
-        [setStateFromJSON]
+        [setStateFromJSON, removeRecentPath]
     );
 
     // Register Save/Save-As event handlers
