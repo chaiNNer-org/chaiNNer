@@ -8,7 +8,10 @@ interface SubcategoryHeadingProps {
 
 const SubcategoryHeading = ({ subcategory, collapsed = false }: SubcategoryHeadingProps) => {
     return (
-        <HStack w="full">
+        <HStack
+            h={6}
+            w="full"
+        >
             {collapsed ? (
                 <>
                     <Divider orientation="horizontal" />
