@@ -20,8 +20,9 @@ interface FileInputProps extends InputProps {
 
 const FileInput = memo(
     ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
-            c.isNodeInputLocked(id, index)
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            index
         );
         const { sendToast } = useContext(AlertBoxContext);
 
