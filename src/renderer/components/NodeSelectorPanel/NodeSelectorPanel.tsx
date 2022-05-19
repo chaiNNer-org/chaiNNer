@@ -111,7 +111,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
     const favoriteNodes = useMemo(() => {
         const favoriteSet = new Set(favorites);
         return [...byCategories.values()].flat().filter((n) => favoriteSet.has(n.schemaId));
-    }, [byCategories]);
+    }, [byCategories, favorites]);
 
     return (
         <Box
