@@ -31,36 +31,37 @@ class NoteNode(NodeBase):
         return
 
 
-# @NodeFactory.register("Utility", "Math")
-# class MathNode(NodeBase):
-#     """Math node"""
+@NodeFactory.register("chainner:utility:math")
+class MathNode(NodeBase):
+    """Math node"""
 
-#     def __init__(self):
-#         """Constructor"""
-#         super().__init__()
-#         self.description = "Perform mathematical operations on numbers."
-#         self.inputs = [
-#             NumberInput("Operand A"),
-#             MathOpsDropdown(),
-#             NumberInput("Operand B"),
-#         ]
-#         self.outputs = [NumberOutput("Result")]
-#         self.icon = "MdCalculate"
-#         self.sub = "Miscellaneous"
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Perform mathematical operations on numbers."
+        self.inputs = [
+            NumberInput("Operand A"),
+            MathOpsDropdown(),
+            NumberInput("Operand B"),
+        ]
+        self.outputs = [NumberOutput("Result")]
 
-#     def run(self, in1: str, op: str, in2: str) -> int:
-#         in1, in2 = int(in1), int(in2)
+        self.category = UTILITY
+        self.name = "Math"
+        self.icon = "MdCalculate"
+        self.sub = "Math"
 
-#         if op == "add":
-#             return in1 + in2
-#         elif op == "sub":
-#             return in1 - in2
-#         elif op == "mul":
-#             return in1 * in2
-#         elif op == "div":
-#             return in1 / in2
-#         elif op == "pow":
-#             return in1 ** in2
+    def run(self, in1: int, op: str, in2: int) -> int:
+        if op == "add":
+            return in1 + in2
+        elif op == "sub":
+            return in1 - in2
+        elif op == "mul":
+            return in1 * in2
+        elif op == "div":
+            return in1 / in2
+        elif op == "pow":
+            return in1**in2
 
 
 @NodeFactory.register("chainner:utility:text_append")
@@ -93,5 +94,7 @@ class TextAppendNode(NodeBase):
         str3: str = None,
         str4: str = None,
     ) -> str:
-        strings = [x for x in [str1, str2, str3, str4] if x != "" and x is not None]
+        strings = [
+            str(x) for x in [str1, str2, str3, str4] if x != "" and x is not None
+        ]
         return separator.join(strings)
