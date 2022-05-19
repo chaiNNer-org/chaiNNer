@@ -1,7 +1,7 @@
 import { Edge } from 'react-flow-renderer';
 import { EdgeData, Input, InputData } from '../../common/common-types';
+import { parseHandle } from '../../common/util';
 
-// TODO: This file is a monstrosity, I need to make it so inputs are done by name and not by index
 const checkNodeValidity = ({
     id,
     inputs,
@@ -13,47 +13,25 @@ const checkNodeValidity = ({
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
 }): [boolean, string] => {
-    const filteredEdges = edges.filter((e) => e.target === id);
+    const targetedInputs = edges
+        .filter((e) => e.target === id && e.targetHandle)
+        .map((e) => parseHandle(e.targetHandle!).index);
 
-    // Check to make sure the node has all the data it should based on the schema.
-    // Compares the schema against the connections and the entered data
-    const nonOptionalInputs = inputs.filter((input) => !input.optional);
-    // Grabs all the indexes of the inputs that the connections are targeting
-    const edgeTargetIndexes = edges
-        .filter((edge) => edge.target === id)
-        .map((edge) => edge.targetHandle!.split('-').slice(-1)[0]);
-    // Finds all empty inputs
-    const emptyInputs = Object.entries(inputData)
-        .filter(([key, value]) => {
-            const index = Number(key);
-            return (
-                !inputs[index].optional &&
-                (value === '' || value === undefined) &&
-                !edgeTargetIndexes.includes(String(key))
-            );
-        })
-        .map(([key]) => String(key));
-    const enteredOptionalInputs = inputs.filter(
-        (input, i) =>
-            input.optional &&
-            Object.keys(inputData)
-                .map((index) => String(index))
-                .includes(String(i)) &&
-            inputData[i] !== ''
-    );
-    const filteredInputDataKeys = Object.entries(inputData)
-        .filter(([key, value]) => !edgeTargetIndexes.includes(String(key)) && value !== '')
-        .map(([key]) => key);
-    const isMissingInputs =
-        nonOptionalInputs.length + enteredOptionalInputs.length >
-        filteredInputDataKeys.length + filteredEdges.length;
-    if (isMissingInputs || emptyInputs.length > 0) {
-        // Grab all inputs that do not have data or a connected edge
-        const missingInputs = nonOptionalInputs.filter(
-            (input, i) =>
-                !edgeTargetIndexes.includes(String(i)) &&
-                (!Object.keys(inputData).includes(String(i)) || emptyInputs.includes(String(i)))
-        );
+    const missingInputs = inputs.filter((input, index) => {
+        // optional inputs can't be missing
+        if (input.optional) return false;
+
+        const inputValue = inputData[index];
+        // a value is assigned
+        if (inputValue !== undefined && inputValue !== '') return false;
+
+        // the value of the input is assigned by an edge
+        if (targetedInputs.includes(index)) return false;
+
+        return true;
+    });
+
+    if (missingInputs.length) {
         return [
             false,
             `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`,
