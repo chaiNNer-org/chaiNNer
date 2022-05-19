@@ -11,8 +11,9 @@ type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(
     ({ id, index, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
-            c.isNodeInputLocked(id, index)
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            index
         );
 
         const [directory, setDirectory] = useInputData<string>(index);

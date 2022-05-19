@@ -33,8 +33,9 @@ const NumericalInput = memo(
         type,
         isLocked,
     }: NumericalInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
-            c.isNodeInputLocked(id, index)
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            index
         );
 
         // TODO: make sure this is always a number

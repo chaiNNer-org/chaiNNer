@@ -11,8 +11,9 @@ interface TextInputProps extends InputProps {
 
 const TextInput = memo(
     ({ label, id, index, useInputData, isLocked, maxLength }: TextInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
-            c.isNodeInputLocked(id, index)
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            index
         );
 
         const [input, setInput] = useInputData<string>(index);
