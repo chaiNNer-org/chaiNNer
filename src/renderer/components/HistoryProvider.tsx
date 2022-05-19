@@ -125,7 +125,7 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
 
     // Handler for ctrl+shift+z
     useHotkeys(
-        'ctrl+shift+z, cmd+shift+z, meta+shift+z',
+        'ctrl+shift+z, cmd+shift+z',
         () => {
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);
