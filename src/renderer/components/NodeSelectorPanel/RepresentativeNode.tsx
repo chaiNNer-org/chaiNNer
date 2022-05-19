@@ -61,7 +61,7 @@ const RepresentativeNode = ({
                 borderRadius="6px 0 0 6px"
                 h="auto"
                 ml={2}
-                py={1}
+                py={0.5}
                 verticalAlign="middle"
                 w="full"
             >
@@ -95,13 +95,13 @@ const RepresentativeNode = ({
                                     fontWeight={700}
                                     lineHeight="auto"
                                     m={0}
+                                    opacity={0.92}
                                     overflow="hidden"
                                     p={0}
-                                    size="sm"
+                                    size="xs"
                                     textAlign="left"
                                     textOverflow="ellipsis"
                                     verticalAlign="middle"
-                                    // w="90%"
                                     whiteSpace="nowrap"
                                 >
                                     {name.toUpperCase()}
