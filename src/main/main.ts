@@ -717,18 +717,16 @@ const setMainMenu = (openRecentRev: string[]) => {
                                       enabled: false,
                                   } as MenuItemConstructorOptions,
                               ]
-                            : openRecent
-                                  .slice(0, 9)
-                                  .map<MenuItemConstructorOptions>((filepath, i) => ({
-                                      label: filepath,
-                                      accelerator: `CmdOrCtrl+${i + 1}`,
-                                      click: async () => {
-                                          mainWindow.webContents.send(
-                                              'file-open',
-                                              await openSaveFile(filepath)
-                                          );
-                                      },
-                                  }))),
+                            : openRecent.map<MenuItemConstructorOptions>((filepath, i) => ({
+                                  label: filepath,
+                                  accelerator: i <= 9 ? `CmdOrCtrl+${i + 1}` : undefined,
+                                  click: async () => {
+                                      mainWindow.webContents.send(
+                                          'file-open',
+                                          await openSaveFile(filepath)
+                                      );
+                                  },
+                              }))),
                         { type: 'separator' },
                         {
                             label: 'Clear Recently Opened',
