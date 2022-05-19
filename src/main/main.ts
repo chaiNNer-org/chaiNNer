@@ -690,7 +690,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                     },
                 },
                 {
-                    label: 'Open',
+                    label: 'Open...',
                     accelerator: 'CmdOrCtrl+O',
                     click: async () => {
                         const {
@@ -747,7 +747,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                     },
                 },
                 {
-                    label: 'Save As',
+                    label: 'Save As...',
                     accelerator: 'CmdOrCtrl+Shift+S',
                     click: () => {
                         mainWindow.webContents.send('file-save-as');
