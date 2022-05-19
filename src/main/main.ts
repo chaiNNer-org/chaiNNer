@@ -813,7 +813,7 @@ const createWindow = async () => {
             role: 'help',
             submenu: [
                 {
-                    label: 'View README...',
+                    label: 'View README',
                     click: async () => {
                         await shell.openExternal(
                             'https://github.com/joeyballentine/chaiNNer/blob/main/README.md'
@@ -821,19 +821,19 @@ const createWindow = async () => {
                     },
                 },
                 {
-                    label: 'Open logs folder...',
+                    label: 'Open logs folder',
                     click: async () => {
                         await shell.openPath(app.getPath('logs'));
                     },
                 },
                 {
-                    label: 'Get ESRGAN models...',
+                    label: 'Get ESRGAN models',
                     click: async () => {
                         await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
                     },
                 },
                 {
-                    label: 'Convert ONNX models to NCNN...',
+                    label: 'Convert ONNX models to NCNN',
                     click: async () => {
                         await shell.openExternal('https://convertmodel.com/');
                     },
