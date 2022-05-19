@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Edge, Node, Viewport, useKeyPress, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, Viewport, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
