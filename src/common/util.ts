@@ -65,3 +65,5 @@ export const debounce = (fn: () => void, delay: number): (() => void) => {
         id = setTimeout(fn, delay);
     };
 };
+
+export const areApproximatelyEqual = (a: number, b: number): boolean => Math.abs(a - b) < 1e-12;

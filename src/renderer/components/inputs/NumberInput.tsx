@@ -5,8 +5,9 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
+import { areApproximatelyEqual } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
@@ -41,6 +42,13 @@ const NumericalInput = memo(
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
         const [inputString, setInputString] = useState(String(input));
+
+        useEffect(() => {
+            const asNumber = Number(inputString);
+            if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
+                setInputString(String(input));
+            }
+        }, [input]);
 
         const handleChange = (numberAsString: string, numberAsNumber: number) => {
             setInputString(numberAsString);
