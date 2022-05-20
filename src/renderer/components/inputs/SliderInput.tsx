@@ -133,11 +133,7 @@ const SliderInput = memo(
                     <Text
                         fontSize="xs"
                         m={0}
-                        mb={-1}
-                        mt={-1}
                         p={0}
-                        pb={-1}
-                        pt={-1}
                     >
                         {units}
                     </Text>
