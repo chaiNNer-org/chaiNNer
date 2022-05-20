@@ -61,9 +61,12 @@ const NumericalInput = memo(
                 precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
 
             if (!Number.isNaN(valAsNumber)) {
-                const roundedVal = +`${Math.round(
-                    +`${Math.round((valAsNumber - offset) / step) * step + offset}e${precision}`
-                )}e-${precision}`;
+                const roundedVal =
+                    Math.round(
+                        (Math.round((valAsNumber - offset) / step) * step + offset) *
+                            10 ** precision
+                    ) *
+                    10 ** -precision;
 
                 const clampMax = (value: number, max_val: number | undefined | null) => {
                     if (max_val !== undefined && max_val !== null) {
