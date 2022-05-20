@@ -128,7 +128,6 @@ class AverageColorFixNode(NodeBase):
             ImageInput("Reference Image"),
             NumberInput(
                 "Reference Image Scale Factor",
-                precision=4,
                 step=0.0001,
                 controls_step=12.5,
                 maximum=100.0,
@@ -151,8 +150,8 @@ class AverageColorFixNode(NodeBase):
             # Make sure reference image dims are not resized to 0
             h, w = ref_img.shape[:2]
             out_dims = (
-                math.ceil(w * (scale_factor / 100)) or 1,
-                math.ceil(h * (scale_factor / 100)) or 1,
+                max(math.ceil(w * (scale_factor / 100)), 1),
+                max(math.ceil(h * (scale_factor / 100)), 1),
             )
 
             ref_img = cv2.resize(

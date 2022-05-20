@@ -29,7 +29,6 @@ class ImResizeByFactorNode(NodeBase):
             ImageInput(),
             NumberInput(
                 "Scale Factor",
-                precision=4,
                 step=0.0001,
                 controls_step=25.0,
                 default=100.0,
@@ -50,8 +49,8 @@ class ImResizeByFactorNode(NodeBase):
 
         h, w = img.shape[:2]
         out_dims = (
-            math.ceil(w * (scale / 100)) or 1,
-            math.ceil(h * (scale / 100)) or 1,
+            max(math.ceil(w * (scale / 100)), 1),
+            max(math.ceil(h * (scale / 100)), 1),
         )
 
         return resize(img, out_dims, interpolation)

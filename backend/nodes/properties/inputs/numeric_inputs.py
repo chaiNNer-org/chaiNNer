@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Union, Tuple
 
 from .base_input import BaseInput
@@ -12,7 +13,7 @@ def clampNumber(
     max_value: Union[float, int],
 ) -> Union[float, int]:
     # Convert proper number type
-    if precision:
+    if precision > 0:
         value = float(value)
     else:
         value = int(value)
@@ -38,7 +39,6 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
-        precision: int = 0,
         offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
         controls_step: Union[float, int] = None,
@@ -52,13 +52,12 @@ class NumberInput(BaseInput):
         note_expression: str = None,
     ):
         super().__init__(f"number::{number_type}", label)
-        # TODO: It might make sense to do some validation like making sure step matches precision, etc.
-        self.precision = precision
         self.offset = offset
         # Step is for the actual increment and should match precision.
         # controls_step is for increment/decrement arrows.
         self.step = step
         self.controls_step = step if controls_step is None else controls_step
+        self.precision = abs(Decimal(str(step)).as_tuple().exponent)
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
@@ -96,7 +95,6 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
-        precision: int = 0,
         offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
         controls_step: Union[float, int] = None,
@@ -111,7 +109,6 @@ class SliderInput(NumberInput):
     ):
         super().__init__(
             label,
-            precision=precision,
             offset=offset,
             step=step,
             controls_step=controls_step,
