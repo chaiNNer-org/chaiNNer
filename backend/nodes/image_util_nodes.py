@@ -25,7 +25,6 @@ class ImOverlay(NodeBase):
         self.description = "Overlay transparent images on base image."
         self.inputs = [
             ImageInput("Base"),
-            SliderInput("Base Opacity", minimum=0, maximum=100, default=100),
             ImageInput("Overlay A"),
             SliderInput("Opacity A", minimum=0, maximum=100, default=50),
             ImageInput("Overlay B ", optional=True),
