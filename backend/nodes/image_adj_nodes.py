@@ -22,8 +22,8 @@ class HueAndSaturationNode(NodeBase):
         self.description = "Adjust the hue and saturation of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Hue", -180, 180, 0),
-            SliderInput("Saturation", -255, 255, 0),
+            SliderInput("Hue", minimum=-180, maximum=180, default=0),
+            SliderInput("Saturation", minimum=-255, maximum=255, default=0),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -78,8 +78,8 @@ class BrightnessAndContrastNode(NodeBase):
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Brightness", -255, 255, 0),
-            SliderInput("Contrast", -255, 255, 0),
+            SliderInput("Brightness", minimum=-255, maximum=255, default=0),
+            SliderInput("Contrast", minimum=-255, maximum=255, default=0),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -138,8 +138,8 @@ class ThresholdNode(NodeBase):
         self.description = "Perform a threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Threshold", 0, 100, 50),
-            SliderInput("Maximum Value", 0, 100, 100),
+            SliderInput("Threshold", minimum=0, maximum=100, default=50),
+            SliderInput("Maximum Value", minimum=0, maximum=100, default=100),
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -175,11 +175,17 @@ class AdaptiveThresholdNode(NodeBase):
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Maximum Value", 0, 100, 100),
+            SliderInput("Maximum Value", minimum=0, maximum=100, default=100),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
-            OddIntegerInput("Block Size", default=3, minimum=3),
-            IntegerInput("Mean Subtraction"),
+            NumberInput(
+                "Block Size",
+                offset=1,
+                step=2,
+                default=3,
+                minimum=3,
+            ),
+            NumberInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT

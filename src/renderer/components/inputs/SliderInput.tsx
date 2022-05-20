@@ -19,7 +19,11 @@ import { InputProps } from './props';
 interface SliderInputProps extends InputProps {
     min: number;
     max: number;
+    precision: number;
+    step: number;
+    controlsStep: number;
     def?: number;
+    units?: number | null;
     accentColor: string;
     ends?: [string | number, string | number] | null;
     noteExpression?: string;
@@ -43,6 +47,10 @@ const SliderInput = memo(
         def,
         min,
         max,
+        precision,
+        step,
+        controlsStep,
+        units,
         ends,
         noteExpression,
         accentColor,
@@ -71,7 +79,7 @@ const SliderInput = memo(
                         isDisabled={isLocked}
                         max={max}
                         min={min}
-                        step={1}
+                        step={step}
                         value={sliderValue ?? def}
                         onChange={setSliderValue}
                         onChangeEnd={setInput}
@@ -100,13 +108,13 @@ const SliderInput = memo(
                         className="nodrag"
                         defaultValue={def}
                         draggable={false}
-                        // precision={precision}
                         isDisabled={isLocked}
                         max={max}
                         min={min}
                         placeholder={def !== undefined ? String(def) : undefined}
+                        precision={precision}
                         size="xs"
-                        step={1}
+                        step={controlsStep}
                         value={sliderValue ?? def}
                         onChange={(_, v) => {
                             setInput(Math.min(Math.max(v, min), max));
@@ -122,6 +130,17 @@ const SliderInput = memo(
                             <NumberDecrementStepper />
                         </NumberInputStepper>
                     </NumberInput>
+                    <Text
+                        fontSize="xs"
+                        m={0}
+                        mb={-1}
+                        mt={-1}
+                        p={0}
+                        pb={-1}
+                        pt={-1}
+                    >
+                        {units}
+                    </Text>
                 </HStack>
                 {expr && <Text fontSize="xs">{expr}</Text>}
             </VStack>

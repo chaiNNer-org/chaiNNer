@@ -1,9 +1,11 @@
 import {
+    HStack,
     NumberDecrementStepper,
     NumberIncrementStepper,
     NumberInput,
     NumberInputField,
     NumberInputStepper,
+    Text,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
@@ -11,12 +13,14 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 interface NumericalInputProps extends InputProps {
-    type: string;
+    precision: number;
+    offset: number;
+    step: number;
+    controlsStep: number;
     min?: number;
     max?: number;
-    precision?: number;
-    step?: number;
     def?: number;
+    units?: string | null;
 }
 
 const NumericalInput = memo(
@@ -29,8 +33,10 @@ const NumericalInput = memo(
         min,
         max,
         precision,
+        offset,
         step,
-        type,
+        controlsStep,
+        units,
         isLocked,
     }: NumericalInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
@@ -46,36 +52,81 @@ const NumericalInput = memo(
             setInputString(numberAsString);
 
             if (!Number.isNaN(numberAsNumber)) {
-                if (type.includes('odd')) {
-                    // Make the number odd if need be
-                    // round up the nearest odd number
-                    // eslint-disable-next-line no-param-reassign
-                    numberAsNumber += 1 - (numberAsNumber % 2);
-                }
                 setInput(numberAsNumber);
             }
         };
 
+        const onBlur = () => {
+            const valAsNumber =
+                precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
+
+            if (!Number.isNaN(valAsNumber)) {
+                const roundedVal = +`${Math.round(
+                    +`${Math.round((valAsNumber - offset) / step) * step + offset}e${precision}`
+                )}e-${precision}`;
+
+                const clampMax = (value: number, max_val: number | undefined | null) => {
+                    if (max_val !== undefined && max_val !== null) {
+                        const valOrMax = Math.min(value, max_val);
+                        return valOrMax;
+                    }
+                    return value;
+                };
+                const maxClamped = clampMax(roundedVal, max);
+
+                const clampMin = (value: number, min_val: number | undefined | null) => {
+                    if (min_val !== undefined && min_val !== null) {
+                        const valOrMin = Math.max(value, min_val);
+                        return valOrMin;
+                    }
+                    return value;
+                };
+                const minClamped = clampMin(maxClamped, min);
+
+                // Make sure the input value has been altered so onChange gets correct value if adjustment needed
+                Promise.resolve()
+                    .then(() => {
+                        setInput(minClamped);
+                        setInputString(String(minClamped));
+                    }) // eslint-disable-next-line no-console
+                    .catch(() => console.log('Failed to set input to minClamped.'));
+            }
+        };
+
         return (
-            <NumberInput
-                className="nodrag"
-                defaultValue={def}
-                draggable={false}
-                isDisabled={isLocked || isInputLocked}
-                max={max ?? Infinity}
-                min={min ?? -Infinity}
-                placeholder={label}
-                precision={precision}
-                step={step ?? 1}
-                value={inputString}
-                onChange={handleChange}
-            >
-                <NumberInputField />
-                <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                </NumberInputStepper>
-            </NumberInput>
+            <HStack w="full">
+                <NumberInput
+                    className="nodrag"
+                    defaultValue={def}
+                    draggable={false}
+                    isDisabled={isLocked || isInputLocked}
+                    max={max ?? Infinity}
+                    min={min ?? -Infinity}
+                    placeholder={label}
+                    precision={precision}
+                    step={controlsStep}
+                    value={inputString}
+                    onBlur={onBlur}
+                    onChange={handleChange}
+                >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+                <Text
+                    fontSize="xs"
+                    m={0}
+                    mb={-1}
+                    mt={-1}
+                    p={0}
+                    pb={-1}
+                    pt={-1}
+                >
+                    {units}
+                </Text>
+            </HStack>
         );
     }
 );
