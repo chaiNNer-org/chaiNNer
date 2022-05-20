@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Edge, Node, Viewport, useReactFlow } from 'react-flow-renderer';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { noop } from '../../common/util';
@@ -115,6 +116,16 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
 
     useIpcRendererListener(
         'history-redo',
+        () => {
+            historyObj.history = historyObj.history.redo();
+            apply(historyObj.history.current);
+        },
+        [apply]
+    );
+
+    // Handler for ctrl+shift+z
+    useHotkeys(
+        'ctrl+shift+z, cmd+shift+z',
         () => {
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);

@@ -61,7 +61,7 @@ function CustomEdge({
     return (
         <g
             style={{
-                cursor: isHovered ? 'pointer' : 'default',
+                cursor: 'pointer',
             }}
             onDragEnter={() => setHoveredNode(parentNode.parentNode)}
             onMouseEnter={() => setIsHovered(true)}
@@ -79,7 +79,7 @@ function CustomEdge({
                     transitionDuration: '0.15s',
                     transitionProperty: 'stroke-width, stroke',
                     transitionTimingFunction: 'ease-in-out',
-                    cursor: isHovered ? 'pointer' : 'default',
+                    cursor: 'pointer',
                 }}
             />
             <path
@@ -88,7 +88,7 @@ function CustomEdge({
                     strokeWidth: 18,
                     fill: 'none',
                     stroke: 'none',
-                    cursor: isHovered ? 'pointer' : 'default',
+                    cursor: 'pointer',
                 }}
             />
             <foreignObject

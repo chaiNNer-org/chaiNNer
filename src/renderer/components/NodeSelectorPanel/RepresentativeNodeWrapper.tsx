@@ -33,8 +33,7 @@ function RepresentativeNodeWrapper({ node, collapsed = false }: RepresentativeNo
     return (
         <Box
             key={node.name}
-            py={1.5}
-            // w="full"
+            my={1.5}
         >
             <Tooltip
                 closeOnMouseDown

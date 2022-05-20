@@ -1,4 +1,4 @@
-import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
+import { Input, InputGroup, InputLeftElement, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
@@ -11,8 +11,9 @@ type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(
     ({ id, index, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) =>
-            c.isNodeInputLocked(id, index)
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            index
         );
 
         const [directory, setDirectory] = useInputData<string>(index);
@@ -31,23 +32,31 @@ const DirectoryInput = memo(
         };
 
         return (
-            <InputGroup>
-                <InputLeftElement pointerEvents="none">
-                    <BsFolderPlus />
-                </InputLeftElement>
-                <Input
-                    isReadOnly
-                    className="nodrag"
-                    cursor="pointer"
-                    disabled={isLocked || isInputLocked}
-                    draggable={false}
-                    placeholder="Select a directory..."
-                    textOverflow="ellipsis"
-                    value={directory ?? ''}
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    onClick={onButtonClick}
-                />
-            </InputGroup>
+            <Tooltip
+                borderRadius={8}
+                label={isInputLocked ? undefined : directory}
+                maxW="auto"
+                px={2}
+                py={0}
+            >
+                <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                        <BsFolderPlus />
+                    </InputLeftElement>
+                    <Input
+                        isReadOnly
+                        className="nodrag"
+                        cursor="pointer"
+                        disabled={isLocked || isInputLocked}
+                        draggable={false}
+                        placeholder="Select a directory..."
+                        textOverflow="ellipsis"
+                        value={directory ?? ''}
+                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                        onClick={onButtonClick}
+                    />
+                </InputGroup>
+            </Tooltip>
         );
     }
 );

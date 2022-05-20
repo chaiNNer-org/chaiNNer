@@ -9,7 +9,7 @@ interface SubcategoryHeadingProps {
 function SubcategoryHeading({ subcategory, collapsed = false }: SubcategoryHeadingProps) {
     return (
         <HStack
-            h={8}
+            h={6}
             w="full"
         >
             {collapsed ? (
@@ -21,7 +21,7 @@ function SubcategoryHeading({ subcategory, collapsed = false }: SubcategoryHeadi
                         casing="uppercase"
                         color="#71809699"
                         fontSize="sm"
-                        py={1}
+                        py={0.5}
                         // w="auto"
                         whiteSpace="nowrap"
                     >

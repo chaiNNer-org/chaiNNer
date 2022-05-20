@@ -1,14 +1,9 @@
 import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
 import {
     Accordion,
-    AccordionButton,
-    AccordionIcon,
     AccordionItem,
-    AccordionPanel,
     Box,
     Center,
-    HStack,
-    Heading,
     IconButton,
     Input,
     InputGroup,
@@ -28,11 +23,9 @@ import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
 import { SchemaMap } from '../../../common/SchemaMap';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import getNodeAccentColor from '../../helpers/getNodeAccentColors';
-import { IconFactory } from '../CustomIcons';
 import DependencyManager from '../DependencyManager';
-import RepresentativeNodeWrapper from './RepresentativeNodeWrapper';
-import SubcategoryHeading from './SubcategoryHeading';
+import { FavoritesAccordionItem } from './FavoritesAccordionItem';
+import { RegularAccordionItem } from './RegularAccordionItem';
 
 const createSearchPredicate = (query: string): ((name: string) => boolean) => {
     const pattern = new RegExp(
@@ -108,15 +101,10 @@ function NodeSelector({ schemata, height }: NodeSelectorProps) {
 
     const { useNodeFavorites } = useContext(SettingsContext);
     const [favorites] = useNodeFavorites;
-    const favoritesSubcategoriesMap: Map<string, NodeSchema[]> = useMemo(
-        () =>
-            getSubcategories(
-                favorites
-                    .filter((f) => matchingNodes.some((i) => i.schemaId === f))
-                    .map((f) => schemata.get(f))
-            ),
-        [favorites, matchingNodes.length]
-    );
+    const favoriteNodes = useMemo(() => {
+        const favoriteSet = new Set(favorites);
+        return [...byCategories.values()].flat().filter((n) => favoriteSet.has(n.schemaId));
+    }, [byCategories, favorites]);
 
     return (
         <Box
@@ -188,143 +176,27 @@ function NodeSelector({ schemata, height }: NodeSelectorProps) {
                         <Box
                             h={height - 165}
                             overflowY="scroll"
-                            sx={{
-                                '&::-webkit-scrollbar': {
-                                    width: '6px',
-                                    borderRadius: '8px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                                },
-                                '&::-webkit-scrollbar-track': {
-                                    borderRadius: '8px',
-                                    width: '8px',
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                    borderRadius: '8px',
-                                    backgroundColor: useColorModeValue('gray.300', 'gray.700'),
-                                },
-                            }}
                         >
                             <Accordion
                                 allowMultiple
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
                                 {favorites.length > 0 && (
-                                    <AccordionItem>
-                                        <AccordionButton>
-                                            <HStack
-                                                flex="1"
-                                                h={6}
-                                                textAlign="left"
-                                                verticalAlign="center"
-                                            >
-                                                <Center>
-                                                    <StarIcon color="yellow.500" />
-                                                </Center>
-                                                {!collapsed && (
-                                                    <Heading
-                                                        size="5xl"
-                                                        textOverflow="clip"
-                                                        whiteSpace="nowrap"
-                                                    >
-                                                        Favorites
-                                                    </Heading>
-                                                )}
-                                            </HStack>
-                                            <AccordionIcon />
-                                        </AccordionButton>
-                                        <AccordionPanel>
-                                            {[...favoritesSubcategoriesMap].map(
-                                                ([subcategory, nodes]) => (
-                                                    <Box key={subcategory}>
-                                                        <Center
-                                                        // w="full"
-                                                        >
-                                                            <SubcategoryHeading
-                                                                collapsed={collapsed}
-                                                                subcategory={subcategory}
-                                                            />
-                                                        </Center>
-                                                        <Box>
-                                                            {nodes
-                                                                .filter(
-                                                                    (e) =>
-                                                                        e.nodeType !==
-                                                                        'iteratorHelper'
-                                                                )
-                                                                .map((node) => (
-                                                                    <RepresentativeNodeWrapper
-                                                                        collapsed={collapsed}
-                                                                        key={node.name}
-                                                                        node={node}
-                                                                    />
-                                                                ))}
-                                                        </Box>
-                                                    </Box>
-                                                )
-                                            )}
-                                        </AccordionPanel>
-                                    </AccordionItem>
+                                    <FavoritesAccordionItem
+                                        collapsed={collapsed}
+                                        favoriteNodes={favoriteNodes}
+                                    />
                                 )}
                                 {[...byCategories].map(([category, categoryNodes]) => {
                                     const subcategoryMap = getSubcategories(categoryNodes);
 
                                     return (
-                                        <AccordionItem key={category}>
-                                            <AccordionButton>
-                                                <HStack
-                                                    flex="1"
-                                                    h={6}
-                                                    textAlign="left"
-                                                    verticalAlign="center"
-                                                >
-                                                    <Center>
-                                                        {IconFactory(
-                                                            category,
-                                                            getNodeAccentColor(category)
-                                                        )}
-                                                    </Center>
-                                                    {!collapsed && (
-                                                        <Heading
-                                                            size="5xl"
-                                                            textOverflow="clip"
-                                                            whiteSpace="nowrap"
-                                                        >
-                                                            {category}
-                                                        </Heading>
-                                                    )}
-                                                </HStack>
-                                                <AccordionIcon />
-                                            </AccordionButton>
-                                            <AccordionPanel>
-                                                {[...subcategoryMap].map(([subcategory, nodes]) => (
-                                                    <Box key={subcategory}>
-                                                        <Center
-                                                        // w="full"
-                                                        >
-                                                            <SubcategoryHeading
-                                                                collapsed={collapsed}
-                                                                subcategory={subcategory}
-                                                            />
-                                                        </Center>
-                                                        <Box>
-                                                            {nodes
-                                                                .filter(
-                                                                    (e) =>
-                                                                        e.nodeType !==
-                                                                        'iteratorHelper'
-                                                                )
-                                                                .map((node) => (
-                                                                    <RepresentativeNodeWrapper
-                                                                        collapsed={collapsed}
-                                                                        key={node.name}
-                                                                        node={node}
-                                                                    />
-                                                                ))}
-                                                        </Box>
-                                                    </Box>
-                                                ))}
-                                            </AccordionPanel>
-                                        </AccordionItem>
+                                        <RegularAccordionItem
+                                            category={category}
+                                            collapsed={collapsed}
+                                            key={category}
+                                            subcategoryMap={subcategoryMap}
+                                        />
                                     );
                                 })}
                                 {!collapsed && (

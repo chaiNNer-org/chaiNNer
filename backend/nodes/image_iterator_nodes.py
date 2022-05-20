@@ -215,7 +215,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
     ) -> any:
         h, w = img.shape[:2]
         if writer["out"] is None and video_type != "none":
-            mp4_codec = "av1c"
+            mp4_codec = "avc1"
             avi_codec = "divx"
             codec = mp4_codec if video_type == "mp4" else avi_codec
             try:

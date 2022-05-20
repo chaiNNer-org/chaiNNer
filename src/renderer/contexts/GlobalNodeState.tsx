@@ -1,4 +1,5 @@
 import log from 'electron-log';
+import { dirname } from 'path';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Connection,
@@ -22,11 +23,12 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
-import { createUniqueId, deepCopy, deriveUniqueId, parseHandle } from '../../common/util';
+import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
 import { copyNode } from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { useOpenRecent } from '../hooks/useOpenRecent';
 import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 
@@ -80,7 +82,7 @@ interface Global {
 }
 
 export interface NodeProto {
-    position: XYPosition;
+    position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
 }
@@ -92,19 +94,21 @@ export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 const createNodeImpl = (
     { position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
-    parent?: Node<NodeData>
+    parent?: Node<NodeData>,
+    selected = false
 ): Node<NodeData>[] => {
     const id = createUniqueId();
-    const newNode: Node<Mutable<NodeData>> = deepCopy({
+    const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
-        position,
+        position: { ...position },
         data: {
             ...data,
             id,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
-    });
+        selected,
+    };
 
     if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
         const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
@@ -211,7 +215,15 @@ export function GlobalProvider({
         if (cachedViewport) setViewport(cachedViewport);
     }, [changeNodes, changeEdges]);
 
-    const [savePath, setSavePath] = useState<string | undefined>();
+    const [savePath, setSavePathInternal] = useState<string | undefined>();
+    const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
+    const setSavePath = useCallback(
+        (path: string | undefined) => {
+            setSavePathInternal(path);
+            if (path) pushOpenPath(path);
+        },
+        [setSavePathInternal, pushOpenPath]
+    );
 
     const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
@@ -298,6 +310,7 @@ export function GlobalProvider({
                 setViewport(savedData.viewport);
             }
             setSavePath(path);
+            pushOpenPath(path);
             setHasUnsavedChanges(false);
         },
         [schemata, changeNodes, changeEdges]
@@ -336,7 +349,7 @@ export function GlobalProvider({
                         const result = await ipcRenderer.invoke(
                             'file-save-as-json',
                             saveData,
-                            savePath
+                            savePath || (openRecent[0] && dirname(openRecent[0]))
                         );
                         if (result.kind === 'Canceled') return;
                         setSavePath(result.path);
@@ -354,7 +367,7 @@ export function GlobalProvider({
                 }
             })();
         },
-        [dumpState, savePath]
+        [dumpState, savePath, openRecent]
     );
 
     // Register New File event handler
@@ -367,13 +380,14 @@ export function GlobalProvider({
             if (result.kind === 'Success') {
                 setStateFromJSON(result.saveData, result.path, true);
             } else {
+                removeRecentPath(result.path);
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `Unable to open file ${result.path}`,
                 });
             }
         }
-    }, [setStateFromJSON]);
+    }, [setStateFromJSON, removeRecentPath]);
 
     // Register Open File event handler
     useIpcRendererListener(
@@ -382,13 +396,14 @@ export function GlobalProvider({
             if (result.kind === 'Success') {
                 setStateFromJSON(result.saveData, result.path, true);
             } else {
+                removeRecentPath(result.path);
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `Unable to open file ${result.path}`,
                 });
             }
         },
-        [setStateFromJSON]
+        [setStateFromJSON, removeRecentPath]
     );
 
     // Register Save/Save-As event handlers
@@ -419,8 +434,11 @@ export function GlobalProvider({
         (proto: NodeProto): void => {
             changeNodes((nodes) => {
                 const parent = hoveredNode ? nodes.find((n) => n.id === hoveredNode) : undefined;
-                const newNodes = createNodeImpl(proto, schemata, parent);
-                return [...nodes, ...newNodes];
+                const newNodes = createNodeImpl(proto, schemata, parent, true);
+                return [
+                    ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
+                    ...newNodes,
+                ];
             });
         },
         [changeNodes, schemata, hoveredNode]

@@ -137,12 +137,12 @@ const registerEventHandlers = () => {
         })
     );
 
-    ipcMain.handle('file-save-as-json', async (event, saveData, lastFilePath) => {
+    ipcMain.handle('file-save-as-json', async (event, saveData, defaultPath) => {
         try {
             const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
                 title: 'Save Chain File',
                 filters: [{ name: 'Chain File', extensions: ['chn'] }],
-                defaultPath: lastFilePath,
+                defaultPath,
             });
             if (!canceled && filePath) {
                 await SaveFile.write(filePath, saveData, app.getVersion());
@@ -234,12 +234,7 @@ const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
-    const localStorageVars = (await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
-        '({...localStorage});'
-    )) as Record<string, string>;
-    const useSystemPython =
-        localStorageVars['use-system-python'] === 'true' ||
-        localStorage.getItem('use-system-python') === 'true';
+    const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
     // User is using system python
     if (useSystemPython) {
@@ -674,27 +669,11 @@ const doSplashScreenChecks = async () =>
         });
     });
 
-const createWindow = async () => {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
-        width: lastWindowSize?.width ?? 1280,
-        height: lastWindowSize?.height ?? 720,
-        backgroundColor: '#1A202C',
-        minWidth: 720,
-        minHeight: 640,
-        darkTheme: nativeTheme.shouldUseDarkColors,
-        roundedCorners: true,
-        webPreferences: {
-            webSecurity: false,
-            nodeIntegration: true,
-            nodeIntegrationInWorker: true,
-            contextIsolation: false,
-        },
-        // icon: `${__dirname}/public/icons/cross_platform/icon`,
-        show: false,
-    }) as BrowserWindowWithSafeIpc;
+const setMainMenu = (openRecentRev: string[]) => {
+    const openRecent = openRecentRev.reverse();
+    const defaultPath = openRecent[0] ? path.dirname(openRecent[0]) : undefined;
 
-    const menu = Menu.buildFromTemplate([
+    const template = [
         ...(isMac ? [{ role: 'appMenu' }] : []),
         {
             label: 'File',
@@ -707,7 +686,7 @@ const createWindow = async () => {
                     },
                 },
                 {
-                    label: 'Open',
+                    label: 'Open...',
                     accelerator: 'CmdOrCtrl+O',
                     click: async () => {
                         const {
@@ -715,6 +694,7 @@ const createWindow = async () => {
                             filePaths: [filepath],
                         } = await dialog.showOpenDialog(mainWindow, {
                             title: 'Open Chain File',
+                            defaultPath,
                             filters: [{ name: 'Chain', extensions: ['chn'] }],
                             properties: ['openFile'],
                         });
@@ -722,6 +702,35 @@ const createWindow = async () => {
 
                         mainWindow.webContents.send('file-open', await openSaveFile(filepath));
                     },
+                },
+                {
+                    label: 'Open Recent',
+                    submenu: [
+                        ...(openRecent.length === 0
+                            ? [
+                                  {
+                                      label: 'No entries',
+                                      enabled: false,
+                                  } as MenuItemConstructorOptions,
+                              ]
+                            : openRecent.map<MenuItemConstructorOptions>((filepath, i) => ({
+                                  label: filepath,
+                                  accelerator: i <= 9 ? `CmdOrCtrl+${i + 1}` : undefined,
+                                  click: async () => {
+                                      mainWindow.webContents.send(
+                                          'file-open',
+                                          await openSaveFile(filepath)
+                                      );
+                                  },
+                              }))),
+                        { type: 'separator' },
+                        {
+                            label: 'Clear Recently Opened',
+                            click: () => {
+                                mainWindow.webContents.send('clear-open-recent');
+                            },
+                        },
+                    ],
                 },
                 { type: 'separator' },
                 {
@@ -732,7 +741,7 @@ const createWindow = async () => {
                     },
                 },
                 {
-                    label: 'Save As',
+                    label: 'Save As...',
                     accelerator: 'CmdOrCtrl+Shift+S',
                     click: () => {
                         mainWindow.webContents.send('file-save-as');
@@ -870,8 +879,34 @@ const createWindow = async () => {
                 },
             ],
         },
-    ] as MenuItemConstructorOptions[]);
+    ] as MenuItemConstructorOptions[];
+
+    const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+};
+
+const createWindow = async () => {
+    // Create the browser window.
+    mainWindow = new BrowserWindow({
+        width: lastWindowSize?.width ?? 1280,
+        height: lastWindowSize?.height ?? 720,
+        backgroundColor: '#1A202C',
+        minWidth: 720,
+        minHeight: 640,
+        darkTheme: nativeTheme.shouldUseDarkColors,
+        roundedCorners: true,
+        webPreferences: {
+            webSecurity: false,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: true,
+            contextIsolation: false,
+        },
+        // icon: `${__dirname}/public/icons/cross_platform/icon`,
+        show: false,
+    }) as BrowserWindowWithSafeIpc;
+
+    setMainMenu([]);
+    ipcMain.on('update-open-recent-menu', (_, openRecent) => setMainMenu(openRecent));
 
     await doSplashScreenChecks();
 

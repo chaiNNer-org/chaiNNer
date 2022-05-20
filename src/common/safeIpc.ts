@@ -40,7 +40,7 @@ export interface InvokeChannels {
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
     'file-save-as-json': ChannelInfo<
         FileSaveResult,
-        [saveData: SaveData, savePath: string | undefined]
+        [saveData: SaveData, defaultPath: string | undefined]
     >;
     'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
     'owns-backend': ChannelInfo<boolean>;
@@ -70,6 +70,8 @@ export interface SendChannels {
     'start-sleep-blocker': SendChannelInfo;
     'stop-sleep-blocker': SendChannelInfo;
     'update-has-unsaved-changes': SendChannelInfo<[boolean]>;
+    'update-open-recent-menu': SendChannelInfo<[string[]]>;
+    'clear-open-recent': SendChannelInfo;
     'window-maximized-change': SendChannelInfo<[maximized: boolean]>;
     'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
 
