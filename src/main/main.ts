@@ -234,12 +234,7 @@ const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
-    const localStorageVars = (await BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
-        '({...localStorage});'
-    )) as Record<string, string>;
-    const useSystemPython =
-        localStorageVars['use-system-python'] === 'true' ||
-        localStorage.getItem('use-system-python') === 'true';
+    const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
     // User is using system python
     if (useSystemPython) {
