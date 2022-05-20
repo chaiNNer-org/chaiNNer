@@ -238,7 +238,7 @@ class InterpolateNode(NodeBase):
             ModelInput("Model B"),
             SliderInput(
                 "Weights",
-                controlsSteps=5,
+                controls_step=5,
                 minimum=0,
                 maximum=100,
                 default=50,

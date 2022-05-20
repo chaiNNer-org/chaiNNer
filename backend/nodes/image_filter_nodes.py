@@ -130,7 +130,7 @@ class AverageColorFixNode(NodeBase):
                 "Reference Image Scale Factor",
                 precision=4,
                 step=0.0001,
-                controlsStep=12.5,
+                controls_step=12.5,
                 minimum=0.0,
                 maximum=100.0,
                 default=12.5,

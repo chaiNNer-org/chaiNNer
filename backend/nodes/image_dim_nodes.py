@@ -31,7 +31,7 @@ class ImResizeByFactorNode(NodeBase):
                 "Scale Factor",
                 precision=4,
                 step=0.0001,
-                controlsStep=25.0,
+                controls_step=25.0,
                 minimum=0,
                 default=100.0,
                 units="%",

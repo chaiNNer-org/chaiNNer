@@ -1,7 +1,5 @@
 from typing import Union, Tuple
 
-from numpy import isin
-
 from .base_input import BaseInput
 
 
@@ -43,7 +41,7 @@ class NumberInput(BaseInput):
         precision: int = 0,
         offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
-        controlsStep: Union[float, int] = None,
+        controls_step: Union[float, int] = None,
         default: Union[float, int] = 0,
         minimum: Union[float, int] = None,
         maximum: Union[float, int] = None,
@@ -58,9 +56,9 @@ class NumberInput(BaseInput):
         self.precision = precision
         self.offset = offset
         # Step is for the actual increment and should match precision.
-        # controlsStep is for increment/decrement arrows.
+        # controls_step is for increment/decrement arrows.
         self.step = step
-        self.controlsStep = step if controlsStep is None else controlsStep
+        self.controls_step = step if controls_step is None else controls_step
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
@@ -80,7 +78,7 @@ class NumberInput(BaseInput):
             "precision": self.precision,
             "offset": self.offset,
             "step": self.step,
-            "controlsStep": self.controlsStep,
+            "controlsStep": self.controls_step,
             "units": self.units,
             "hasHandle": self.has_handle,
             "optional": self.optional,
@@ -101,7 +99,7 @@ class SliderInput(NumberInput):
         precision: int = 0,
         offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
-        controlsStep: Union[float, int] = None,
+        controls_step: Union[float, int] = None,
         minimum: int = 0,
         maximum: int = 100,
         default: int = 50,
@@ -116,7 +114,7 @@ class SliderInput(NumberInput):
             precision=precision,
             offset=offset,
             step=step,
-            controlsStep=controlsStep,
+            controls_step=controls_step,
             default=default,
             minimum=minimum,
             maximum=maximum,
@@ -140,7 +138,7 @@ class SliderInput(NumberInput):
             "precision": self.precision,
             "offset": self.offset,
             "step": self.step,
-            "controlsStep": self.controlsStep,
+            "controlsStep": self.controls_step,
             "units": self.units,
             "hasHandle": True,
             "optional": self.optional,

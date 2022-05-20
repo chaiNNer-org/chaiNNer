@@ -263,7 +263,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             NcnnNetInput("Model B"),
             SliderInput(
                 "Weights",
-                controlsStep=5,
+                controls_step=5,
                 minimum=0,
                 maximum=100,
                 default=50,
