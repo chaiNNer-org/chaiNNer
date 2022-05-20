@@ -23,7 +23,7 @@ interface SliderInputProps extends InputProps {
     step: number;
     controlsStep: number;
     def?: number;
-    units?: number | null;
+    unit?: number | null;
     accentColor: string;
     ends?: [string | number, string | number] | null;
     noteExpression?: string;
@@ -50,7 +50,7 @@ const SliderInput = memo(
         precision,
         step,
         controlsStep,
-        units,
+        unit,
         ends,
         noteExpression,
         accentColor,
@@ -135,7 +135,7 @@ const SliderInput = memo(
                         m={0}
                         p={0}
                     >
-                        {units}
+                        {unit}
                     </Text>
                 </HStack>
                 {expr && <Text fontSize="xs">{expr}</Text>}

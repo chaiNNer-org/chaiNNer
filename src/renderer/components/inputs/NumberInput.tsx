@@ -20,7 +20,7 @@ interface NumericalInputProps extends InputProps {
     min?: number;
     max?: number;
     def?: number;
-    units?: string | null;
+    unit?: string | null;
 }
 
 const NumericalInput = memo(
@@ -36,7 +36,7 @@ const NumericalInput = memo(
         offset,
         step,
         controlsStep,
-        units,
+        unit,
         isLocked,
     }: NumericalInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
@@ -120,7 +120,7 @@ const NumericalInput = memo(
                     m={0}
                     p={0}
                 >
-                    {units}
+                    {unit}
                 </Text>
             </HStack>
         );

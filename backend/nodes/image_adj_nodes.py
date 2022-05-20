@@ -138,8 +138,8 @@ class ThresholdNode(NodeBase):
         self.description = "Perform a threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Threshold", minimum=0, maximum=100, default=50),
-            SliderInput("Maximum Value", minimum=0, maximum=100, default=100),
+            SliderInput("Threshold", maximum=100, default=50),
+            SliderInput("Maximum Value", maximum=100, default=100),
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -175,7 +175,7 @@ class AdaptiveThresholdNode(NodeBase):
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Maximum Value", minimum=0, maximum=100, default=100),
+            SliderInput("Maximum Value", maximum=100, default=100),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
             NumberInput(

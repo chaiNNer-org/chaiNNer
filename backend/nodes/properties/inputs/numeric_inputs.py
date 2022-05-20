@@ -43,9 +43,9 @@ class NumberInput(BaseInput):
         step: Union[float, int] = 1,
         controls_step: Union[float, int] = None,
         default: Union[float, int] = 0,
-        minimum: Union[float, int] = None,
+        minimum: Union[float, int] = 0,
         maximum: Union[float, int] = None,
-        units: str = None,
+        unit: str = None,
         has_handle: bool = True,
         optional: bool = False,
         number_type: str = "any",
@@ -62,7 +62,7 @@ class NumberInput(BaseInput):
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
-        self.units = units
+        self.unit = unit
         self.has_handle = has_handle
         self.optional = optional
         self.note_expression = note_expression
@@ -79,7 +79,7 @@ class NumberInput(BaseInput):
             "offset": self.offset,
             "step": self.step,
             "controlsStep": self.controls_step,
-            "units": self.units,
+            "unit": self.unit,
             "hasHandle": self.has_handle,
             "optional": self.optional,
         }
@@ -103,7 +103,7 @@ class SliderInput(NumberInput):
         minimum: int = 0,
         maximum: int = 100,
         default: int = 50,
-        units: str = None,
+        unit: str = None,
         has_handle: bool = True,
         optional: bool = False,
         note_expression: str = None,
@@ -118,7 +118,7 @@ class SliderInput(NumberInput):
             default=default,
             minimum=minimum,
             maximum=maximum,
-            units=units,
+            unit=unit,
             optional=optional,
             has_handle=has_handle,
             note_expression=note_expression,
@@ -139,7 +139,7 @@ class SliderInput(NumberInput):
             "offset": self.offset,
             "step": self.step,
             "controlsStep": self.controls_step,
-            "units": self.units,
+            "unit": self.unit,
             "hasHandle": True,
             "optional": self.optional,
         }

@@ -264,10 +264,9 @@ class NcnnInterpolateModelsNode(NodeBase):
             SliderInput(
                 "Weights",
                 controls_step=5,
-                minimum=0,
                 maximum=100,
                 default=50,
-                units="%",
+                unit="%",
                 note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
                 ends=("A", "B"),
             ),

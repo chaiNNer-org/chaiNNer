@@ -25,8 +25,8 @@ class BlurNode(NodeBase):
         self.description = "Apply blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", minimum=0),
-            NumberInput("Amount Y", minimum=0),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -59,8 +59,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", minimum=0),
-            NumberInput("Amount Y", minimum=0),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -91,7 +91,7 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount", minimum=0),
+            NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -131,10 +131,9 @@ class AverageColorFixNode(NodeBase):
                 precision=4,
                 step=0.0001,
                 controls_step=12.5,
-                minimum=0.0,
                 maximum=100.0,
                 default=12.5,
-                units="%",
+                unit="%",
             ),
         ]
         self.outputs = [ImageOutput()]
@@ -327,9 +326,9 @@ class NormalAdditionNode(NodeBase):
             is guaranteed to be normalized."""
         self.inputs = [
             ImageInput("Normal Map 1"),
-            SliderInput("Strength 1", minimum=0, maximum=100, default=100),
+            SliderInput("Strength 1", maximum=100, default=100),
             ImageInput("Normal Map 2"),
-            SliderInput("Strength 2", minimum=0, maximum=100, default=100),
+            SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [ImageOutput("Normal Map")]
         self.category = IMAGE_FILTER

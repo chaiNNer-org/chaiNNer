@@ -32,9 +32,8 @@ class ImResizeByFactorNode(NodeBase):
                 precision=4,
                 step=0.0001,
                 controls_step=25.0,
-                minimum=0,
                 default=100.0,
-                units="%",
+                unit="%",
             ),
             InterpolationInput(),
         ]
@@ -71,8 +70,8 @@ class ImResizeToResolutionNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Width", minimum=1, default=1, units="px"),
-            NumberInput("Height", minimum=1, default=1, units="px"),
+            NumberInput("Width", minimum=1, default=1, unit="px"),
+            NumberInput("Height", minimum=1, default=1, unit="px"),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -103,10 +102,10 @@ class CropNode(NodeBase):
         self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
         self.inputs = [
             ImageInput(),
-            NumberInput("Top Offset", minimum=0, units="px"),
-            NumberInput("Left Offset", minimum=0, units="px"),
-            NumberInput("Height", minimum=0, units="px"),
-            NumberInput("Width", minimum=0, units="px"),
+            NumberInput("Top Offset", unit="px"),
+            NumberInput("Left Offset", unit="px"),
+            NumberInput("Height", unit="px"),
+            NumberInput("Width", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -141,7 +140,7 @@ class BorderCropNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount", minimum=0, units="px"),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -172,10 +171,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            NumberInput("Top", minimum=0, units="px"),
-            NumberInput("Left", minimum=0, units="px"),
-            NumberInput("Right", minimum=0, units="px"),
-            NumberInput("Bottom", minimum=0, units="px"),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
