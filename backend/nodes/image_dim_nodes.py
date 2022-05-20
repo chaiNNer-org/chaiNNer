@@ -27,8 +27,12 @@ class ImResizeByFactorNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            BoundedNumberInput(
-                "Scale Factor (%)", minimum=0.1, maximum=None, default=100.0, step=25.0
+            NumberInput(
+                "Scale Factor",
+                step=0.0001,
+                controls_step=25.0,
+                default=100.0,
+                unit="%",
             ),
             InterpolationInput(),
         ]
@@ -44,7 +48,10 @@ class ImResizeByFactorNode(NodeBase):
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
         h, w = img.shape[:2]
-        out_dims = (math.ceil(w * (scale / 100)), math.ceil(h * (scale / 100)))
+        out_dims = (
+            max(math.ceil(w * (scale / 100)), 1),
+            max(math.ceil(h * (scale / 100)), 1),
+        )
 
         return resize(img, out_dims, interpolation)
 
@@ -62,8 +69,8 @@ class ImResizeToResolutionNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            BoundedIntegerInput("Width", minimum=1, maximum=None, default=1),
-            BoundedIntegerInput("Height", minimum=1, maximum=None, default=1),
+            NumberInput("Width", minimum=1, default=1, unit="px"),
+            NumberInput("Height", minimum=1, default=1, unit="px"),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -94,10 +101,10 @@ class CropNode(NodeBase):
         self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
         self.inputs = [
             ImageInput(),
-            IntegerInput("Top Offset"),
-            IntegerInput("Left Offset"),
-            IntegerInput("Height"),
-            IntegerInput("Width"),
+            NumberInput("Top Offset", unit="px"),
+            NumberInput("Left Offset", unit="px"),
+            NumberInput("Height", unit="px"),
+            NumberInput("Width", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -132,7 +139,7 @@ class BorderCropNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -163,10 +170,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            IntegerInput("Top"),
-            IntegerInput("Left"),
-            IntegerInput("Right"),
-            IntegerInput("Bottom"),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION

@@ -26,9 +26,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min_val=0, max_val=100),
+            SliderInput("Opacity A", maximum=100, default=50),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min_val=0, max_val=100, optional=True),
+            SliderInput("Opacity B", maximum=100, default=50, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -263,7 +263,7 @@ class BorderMakeNode(NodeBase):
         self.inputs = [
             ImageInput(),
             BorderInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -309,8 +309,8 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            BoundlessIntegerInput("Amount X"),
-            BoundlessIntegerInput("Amount Y"),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
