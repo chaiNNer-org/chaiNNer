@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import Union, Tuple
 
 from .base_input import BaseInput
@@ -6,23 +5,19 @@ from .base_input import BaseInput
 
 def clampNumber(
     value: Union[float, int],
-    precision: int,
     offset: Union[float, int],
     step: Union[float, int],
     min_value: Union[float, int],
     max_value: Union[float, int],
 ) -> Union[float, int]:
     # Convert proper number type
-    if precision > 0:
-        value = float(value)
-    else:
+    if offset % 1 == 0 and step % 1 == 0:
         value = int(value)
+    else:
+        value = float(value)
 
     # Ensure value adheres to step and offset
-    value = (
-        round((round((value - offset) / step) * step + offset) * 10**precision)
-        * 10**-precision
-    )
+    value = round((value - offset) / step) * step + offset
 
     # Clamp to max and min, correcting for max/min not aligning with offset + n * step
     if max_value is not None:
@@ -39,7 +34,6 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
-        offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
         controls_step: Union[float, int] = None,
         default: Union[float, int] = 0,
@@ -52,12 +46,11 @@ class NumberInput(BaseInput):
         note_expression: str = None,
     ):
         super().__init__(f"number::{number_type}", label)
-        self.offset = offset
-        # Step is for the actual increment and should match precision.
+        # Step is for the actual increment.
         # controls_step is for increment/decrement arrows.
         self.step = step
         self.controls_step = step if controls_step is None else controls_step
-        self.precision = abs(Decimal(str(step)).as_tuple().exponent)
+        self.offset = minimum % step if minimum is not None else 0
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
@@ -74,7 +67,6 @@ class NumberInput(BaseInput):
             "max": self.maximum,
             "noteExpression": self.note_expression,
             "def": self.default,
-            "precision": self.precision,
             "offset": self.offset,
             "step": self.step,
             "controlsStep": self.controls_step,
@@ -84,9 +76,7 @@ class NumberInput(BaseInput):
         }
 
     def enforce(self, value):
-        return clampNumber(
-            value, self.precision, self.offset, self.step, self.minimum, self.maximum
-        )
+        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
 
 
 class SliderInput(NumberInput):
@@ -95,7 +85,6 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
-        offset: Union[float, int] = 0,
         step: Union[float, int] = 1,
         controls_step: Union[float, int] = None,
         minimum: int = 0,
@@ -109,7 +98,6 @@ class SliderInput(NumberInput):
     ):
         super().__init__(
             label,
-            offset=offset,
             step=step,
             controls_step=controls_step,
             default=default,
@@ -132,7 +120,6 @@ class SliderInput(NumberInput):
             "noteExpression": self.note_expression,
             "ends": self.ends,
             "def": self.default,
-            "precision": self.precision,
             "offset": self.offset,
             "step": self.step,
             "controlsStep": self.controls_step,
@@ -142,6 +129,4 @@ class SliderInput(NumberInput):
         }
 
     def enforce(self, value):
-        return clampNumber(
-            value, self.precision, self.offset, self.step, self.minimum, self.maximum
-        )
+        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)

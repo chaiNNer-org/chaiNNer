@@ -180,7 +180,6 @@ class AdaptiveThresholdNode(NodeBase):
             AdaptiveThresholdInput(),
             NumberInput(
                 "Block Size",
-                offset=1,
                 step=2,
                 default=3,
                 minimum=3,

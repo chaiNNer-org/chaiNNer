@@ -13,7 +13,6 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 interface NumericalInputProps extends InputProps {
-    precision: number;
     offset: number;
     step: number;
     controlsStep: number;
@@ -22,6 +21,11 @@ interface NumericalInputProps extends InputProps {
     def?: number;
     unit?: string | null;
 }
+
+const getPrecision = (n: number) => {
+    if (n % 1 === 0) return 0;
+    return Math.min(10, n.toFixed(15).replace(/0+$/, '').split('.')[1]?.length ?? 0);
+};
 
 const NumericalInput = memo(
     ({
@@ -32,7 +36,6 @@ const NumericalInput = memo(
         def,
         min,
         max,
-        precision,
         offset,
         step,
         controlsStep,
@@ -43,6 +46,8 @@ const NumericalInput = memo(
             id,
             index
         );
+
+        const precision = Math.max(getPrecision(offset), getPrecision(step));
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
@@ -61,12 +66,7 @@ const NumericalInput = memo(
                 precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
 
             if (!Number.isNaN(valAsNumber)) {
-                const roundedVal =
-                    Math.round(
-                        (Math.round((valAsNumber - offset) / step) * step + offset) *
-                            10 ** precision
-                    ) *
-                    10 ** -precision;
+                const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
 
                 const clampMax = (value: number, max_val: number | undefined | null) => {
                     if (max_val !== undefined && max_val !== null) {
@@ -84,13 +84,13 @@ const NumericalInput = memo(
                     }
                     return value;
                 };
-                const minClamped = clampMin(maxClamped, min);
+                const minClamped = clampMin(maxClamped, min).toFixed(precision);
 
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                 Promise.resolve()
                     .then(() => {
-                        setInput(minClamped);
-                        setInputString(String(minClamped));
+                        setInput(Number(minClamped));
+                        setInputString(minClamped);
                     }) // eslint-disable-next-line no-console
                     .catch(() => console.log('Failed to set input to minClamped.'));
             }

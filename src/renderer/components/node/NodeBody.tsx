@@ -3,7 +3,6 @@ import { memo } from 'react';
 import { Input, InputData, Output } from '../../../common/common-types';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
-// useContext, useEffect, useMemo,
 
 interface NodeBodyProps {
     accentColor: string;
