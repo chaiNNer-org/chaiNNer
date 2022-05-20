@@ -57,14 +57,11 @@ const NumericalInput = memo(
         const [inputString, setInputString] = useState(String(input));
 
         useEffect(() => {
-            const timerId = setTimeout(() => {
-                const asNumber = parseFloat(inputString);
-                if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
-                    setInputString(String(input));
-                }
-            }, 16);
-            return () => clearTimeout(timerId);
-        }, [input, inputString]);
+            const asNumber = parseFloat(inputString);
+            if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
+                setInputString(String(input));
+            }
+        }, [input]);
 
         const handleChange = (numberAsString: string) => {
             setInputString(removeUnit(numberAsString));
