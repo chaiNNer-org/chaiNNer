@@ -5,7 +5,6 @@ import {
     NumberInput,
     NumberInputField,
     NumberInputStepper,
-    Text,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
@@ -48,13 +47,16 @@ const NumericalInput = memo(
         );
 
         const precision = Math.max(getPrecision(offset), getPrecision(step));
+        const formatValString = (val: string) => `${val}${unit ?? ''}`;
+        const parseValString = (val: string) => val.replace(/\${unit}^/, '');
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
         const [inputString, setInputString] = useState(String(input));
 
-        const handleChange = (numberAsString: string, numberAsNumber: number) => {
-            setInputString(numberAsString);
+        const handleChange = (numberAsString: string) => {
+            setInputString(parseValString(numberAsString));
+            const numberAsNumber = Number(inputString);
 
             if (!Number.isNaN(numberAsNumber)) {
                 setInput(numberAsNumber);
@@ -84,13 +86,13 @@ const NumericalInput = memo(
                     }
                     return value;
                 };
-                const minClamped = clampMin(maxClamped, min).toFixed(precision);
+                const minClamped = Number(clampMin(maxClamped, min).toFixed(precision));
 
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                 Promise.resolve()
                     .then(() => {
-                        setInput(Number(minClamped));
-                        setInputString(minClamped);
+                        setInput(minClamped);
+                        setInputString(String(minClamped));
                     }) // eslint-disable-next-line no-console
                     .catch(() => console.log('Failed to set input to minClamped.'));
             }
@@ -106,9 +108,8 @@ const NumericalInput = memo(
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
                     placeholder={label}
-                    precision={precision}
                     step={controlsStep}
-                    value={inputString}
+                    value={formatValString(inputString)}
                     onBlur={onBlur}
                     onChange={handleChange}
                 >
@@ -118,13 +119,6 @@ const NumericalInput = memo(
                         <NumberDecrementStepper />
                     </NumberInputStepper>
                 </NumberInput>
-                <Text
-                    fontSize="xs"
-                    m={0}
-                    p={0}
-                >
-                    {unit}
-                </Text>
             </HStack>
         );
     }

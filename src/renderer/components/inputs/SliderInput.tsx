@@ -60,6 +60,8 @@ const SliderInput = memo(
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
+        const formatValString = (val: string) => `${val}${unit ?? ''}`;
+
         useEffect(() => {
             setSliderValue(input);
         }, [input]);
@@ -115,7 +117,7 @@ const SliderInput = memo(
                         precision={precision}
                         size="xs"
                         step={controlsStep}
-                        value={sliderValue ?? def}
+                        value={formatValString(String(sliderValue ?? def))}
                         onChange={(_, v) => {
                             setInput(Math.min(Math.max(v, min), max));
                         }}
@@ -130,13 +132,6 @@ const SliderInput = memo(
                             <NumberDecrementStepper />
                         </NumberInputStepper>
                     </NumberInput>
-                    <Text
-                        fontSize="xs"
-                        m={0}
-                        p={0}
-                    >
-                        {unit}
-                    </Text>
                 </HStack>
                 {expr && <Text fontSize="xs">{expr}</Text>}
             </VStack>
