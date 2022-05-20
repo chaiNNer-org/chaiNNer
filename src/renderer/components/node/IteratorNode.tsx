@@ -97,8 +97,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                                 mb={-1}
                                 mt={-1}
                                 p={0}
-                                pb={-1}
-                                pt={-1}
                             >
                                 INPUTS
                             </Text>
@@ -119,8 +117,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                             mb={-1}
                             mt={-1}
                             p={0}
-                            pb={-1}
-                            pt={-1}
                         >
                             ITERATION
                         </Text>
@@ -146,8 +142,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                                 mb={-1}
                                 mt={-1}
                                 p={0}
-                                pb={-1}
-                                pt={-1}
                             >
                                 OUTPUTS
                             </Text>

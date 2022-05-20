@@ -19,7 +19,11 @@ import { InputProps } from './props';
 interface SliderInputProps extends InputProps {
     min: number;
     max: number;
+    precision: number;
+    step: number;
+    controlsStep: number;
     def?: number;
+    unit?: number | null;
     accentColor: string;
     ends?: [string | number, string | number] | null;
     noteExpression?: string;
@@ -43,6 +47,10 @@ const SliderInput = memo(
         def,
         min,
         max,
+        precision,
+        step,
+        controlsStep,
+        unit,
         ends,
         noteExpression,
         accentColor,
@@ -51,6 +59,8 @@ const SliderInput = memo(
         const [input, setInput] = useInputData<number>(index);
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
+
+        const formatValString = (val: string) => `${val}${unit ?? ''}`;
 
         useEffect(() => {
             setSliderValue(input);
@@ -71,7 +81,7 @@ const SliderInput = memo(
                         isDisabled={isLocked}
                         max={max}
                         min={min}
-                        step={1}
+                        step={step}
                         value={sliderValue ?? def}
                         onChange={setSliderValue}
                         onChangeEnd={setInput}
@@ -100,14 +110,14 @@ const SliderInput = memo(
                         className="nodrag"
                         defaultValue={def}
                         draggable={false}
-                        // precision={precision}
                         isDisabled={isLocked}
                         max={max}
                         min={min}
                         placeholder={def !== undefined ? String(def) : undefined}
+                        precision={precision}
                         size="xs"
-                        step={1}
-                        value={sliderValue ?? def}
+                        step={controlsStep}
+                        value={formatValString(String(sliderValue ?? def))}
                         onChange={(_, v) => {
                             setInput(Math.min(Math.max(v, min), max));
                         }}

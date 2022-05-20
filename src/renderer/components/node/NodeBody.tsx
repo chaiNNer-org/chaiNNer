@@ -3,7 +3,6 @@ import { memo } from 'react';
 import { Input, InputData, Output } from '../../../common/common-types';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
-// useContext, useEffect, useMemo,
 
 interface NodeBodyProps {
     accentColor: string;
@@ -33,8 +32,6 @@ const NodeBody = ({
                     mb={-1}
                     mt={-1}
                     p={0}
-                    pb={-1}
-                    pt={-1}
                 >
                     INPUTS
                 </Text>
@@ -57,8 +54,6 @@ const NodeBody = ({
                     mb={-1}
                     mt={-1}
                     p={0}
-                    pb={-1}
-                    pt={-1}
                 >
                     OUTPUTS
                 </Text>

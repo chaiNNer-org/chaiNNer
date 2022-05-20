@@ -25,9 +25,9 @@ class BlurNode(NodeBase):
         self.description = "Apply blur to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
-        ]  # , IntegerInput("Sigma")]#,BlurInput()]
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
+        ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
         self.name = "Blur"
@@ -39,10 +39,9 @@ class BlurNode(NodeBase):
         img: np.ndarray,
         amount_x: int,
         amount_y: int,
-        # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
-
+        # TODO: Fix this so it's not just a gaussian approximation
         ksize = (amount_x, amount_y)
         for __i in range(16):
             img = cv2.blur(img, ksize)
@@ -60,8 +59,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -92,7 +91,7 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -127,12 +126,13 @@ class AverageColorFixNode(NodeBase):
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
-            BoundedNumberInput(
-                "Reference Image Scale Factor (%)",
-                minimum=0.1,
-                maximum=100,
+            NumberInput(
+                "Reference Image Scale Factor",
+                step=0.0001,
+                controls_step=12.5,
+                maximum=100.0,
                 default=12.5,
-                step=12.5,
+                unit="%",
             ),
         ]
         self.outputs = [ImageOutput()]
@@ -150,8 +150,8 @@ class AverageColorFixNode(NodeBase):
             # Make sure reference image dims are not resized to 0
             h, w = ref_img.shape[:2]
             out_dims = (
-                math.ceil(w * (scale_factor / 100)),
-                math.ceil(h * (scale_factor / 100)),
+                max(math.ceil(w * (scale_factor / 100)), 1),
+                max(math.ceil(h * (scale_factor / 100)), 1),
             )
 
             ref_img = cv2.resize(
@@ -325,9 +325,9 @@ class NormalAdditionNode(NodeBase):
             is guaranteed to be normalized."""
         self.inputs = [
             ImageInput("Normal Map 1"),
-            SliderInput("Strength 1", 0, 100, 100),
+            SliderInput("Strength 1", maximum=100, default=100),
             ImageInput("Normal Map 2"),
-            SliderInput("Strength 2", 0, 100, 100),
+            SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [ImageOutput("Normal Map")]
         self.category = IMAGE_FILTER
