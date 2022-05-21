@@ -100,10 +100,11 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
 
         const id = setTimeout(() => {
             historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
-        }, 500);
+        }, 250);
         return () => clearTimeout(id);
     }, [changeId]);
 
+    // Handler for undo menuitem
     useIpcRendererListener(
         'history-undo',
         () => {
@@ -113,6 +114,7 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
         [apply]
     );
 
+    // Handler for redo menuitem
     useIpcRendererListener(
         'history-redo',
         () => {
@@ -122,9 +124,19 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
         [apply]
     );
 
-    // Handler for ctrl+shift+z
+    // Handler for undo hotkeys
     useHotkeys(
-        'ctrl+shift+z, cmd+shift+z',
+        'ctrl+z, cmd+z',
+        () => {
+            historyObj.history = historyObj.history.undo();
+            apply(historyObj.history.current);
+        },
+        [apply]
+    );
+
+    // Handler for redo hotkeys
+    useHotkeys(
+        'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
         () => {
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);

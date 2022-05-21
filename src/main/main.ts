@@ -756,6 +756,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                 {
                     label: 'Undo',
                     accelerator: 'CmdOrCtrl+Z',
+                    registerAccelerator: false,
                     click: () => {
                         mainWindow.webContents.send('history-undo');
                     },
@@ -763,6 +764,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                 {
                     label: 'Redo',
                     accelerator: 'CmdOrCtrl+Y',
+                    registerAccelerator: false,
                     click: () => {
                         mainWindow.webContents.send('history-redo');
                     },
