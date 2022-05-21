@@ -14,16 +14,17 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
+import { getPrecision } from './NumberInput';
 import { InputProps } from './props';
 
 interface SliderInputProps extends InputProps {
     min: number;
     max: number;
-    precision: number;
+    offset: number;
     step: number;
     controlsStep: number;
     def?: number;
-    unit?: number | null;
+    unit?: string | null;
     accentColor: string;
     ends?: [string | number, string | number] | null;
     noteExpression?: string;
@@ -47,7 +48,7 @@ const SliderInput = memo(
         def,
         min,
         max,
-        precision,
+        offset,
         step,
         controlsStep,
         unit,
@@ -57,17 +58,70 @@ const SliderInput = memo(
         isLocked,
     }: SliderInputProps) => {
         const [input, setInput] = useInputData<number>(index);
+        const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
-        const formatValString = (val: string) => `${val}${unit ?? ''}`;
+        const precision = Math.max(getPrecision(offset), getPrecision(step));
+        const addUnit = (val: string) => `${val}${unit ?? ''}`;
+        const dynamicNumInputWidth = 3.1 + 0.7 * precision;
 
         useEffect(() => {
             setSliderValue(input);
+            setInputString(String(input));
         }, [input]);
 
+        const onSliderChange = (sliderInput: number) => {
+            setInputString(String(sliderInput));
+            setSliderValue(sliderInput);
+        };
+
+        const onNumberInputChange = (numberAsString: string) => {
+            setInputString(numberAsString);
+            setSliderValue(Number(numberAsString));
+        };
+
+        const onBlur = () => {
+            const valAsNumber =
+                precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
+
+            if (!Number.isNaN(valAsNumber)) {
+                const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
+
+                const clampMax = (value: number, max_val: number | undefined | null) => {
+                    if (max_val !== undefined && max_val !== null) {
+                        const valOrMax = Math.min(value, max_val);
+                        return valOrMax;
+                    }
+                    return value;
+                };
+                const maxClamped = clampMax(roundedVal, max);
+
+                const clampMin = (value: number, min_val: number | undefined | null) => {
+                    if (min_val !== undefined && min_val !== null) {
+                        const valOrMin = Math.max(value, min_val);
+                        return valOrMin;
+                    }
+                    return value;
+                };
+                const minClamped = Number(clampMin(maxClamped, min).toFixed(precision));
+
+                // Make sure the input value has been altered so onChange gets correct value if adjustment needed
+                Promise.resolve()
+                    .then(() => {
+                        setInput(minClamped);
+                    }) // eslint-disable-next-line no-console
+                    .catch(() => console.log('Failed to set input to minClamped.'));
+            }
+        };
+
         const expr = noteExpression
-            ? tryEvaluate(noteExpression, { min, max, value: sliderValue ?? def })
+            ? tryEvaluate(noteExpression, {
+                  min,
+                  max,
+                  precision,
+                  value: sliderValue ?? def,
+              })
             : undefined;
         const filled = !expr;
 
@@ -83,7 +137,7 @@ const SliderInput = memo(
                         min={min}
                         step={step}
                         value={sliderValue ?? def}
-                        onChange={setSliderValue}
+                        onChange={onSliderChange}
                         onChangeEnd={setInput}
                         onMouseEnter={() => setShowTooltip(true)}
                         onMouseLeave={() => setShowTooltip(false)}
@@ -117,15 +171,14 @@ const SliderInput = memo(
                         precision={precision}
                         size="xs"
                         step={controlsStep}
-                        value={formatValString(String(sliderValue ?? def))}
-                        onChange={(_, v) => {
-                            setInput(Math.min(Math.max(v, min), max));
-                        }}
+                        value={addUnit(inputString)}
+                        onBlur={onBlur}
+                        onChange={onNumberInputChange}
                     >
                         <NumberInputField
                             m={0}
                             p={1}
-                            w="3.1rem"
+                            w={`${dynamicNumInputWidth}rem`}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />

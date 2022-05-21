@@ -22,7 +22,7 @@ interface NumericalInputProps extends InputProps {
     unit?: string | null;
 }
 
-const getPrecision = (n: number) => {
+export const getPrecision = (n: number) => {
     if (n % 1 === 0) return 0;
     return Math.min(10, n.toFixed(15).replace(/0+$/, '').split('.')[1]?.length ?? 0);
 };
