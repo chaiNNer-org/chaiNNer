@@ -6,8 +6,9 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
+import { areApproximatelyEqual } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
@@ -47,16 +48,24 @@ const NumericalInput = memo(
         );
 
         const precision = Math.max(getPrecision(offset), getPrecision(step));
-        const formatValString = (val: string) => `${val}${unit ?? ''}`;
-        const parseValString = (val: string) => val.replace(/\${unit}^/, '');
+        const addUnit = (val: string) => `${val}${unit ?? ''}`;
+        const removeUnit = (val: string) =>
+            unit && val.endsWith(unit) ? val.slice(0, val.length - unit.length) : val;
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
         const [inputString, setInputString] = useState(String(input));
 
+        useEffect(() => {
+            const asNumber = parseFloat(inputString);
+            if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
+                setInputString(String(input));
+            }
+        }, [input]);
+
         const handleChange = (numberAsString: string) => {
-            setInputString(parseValString(numberAsString));
-            const numberAsNumber = Number(inputString);
+            setInputString(removeUnit(numberAsString));
+            const numberAsNumber = parseFloat(numberAsString);
 
             if (!Number.isNaN(numberAsNumber)) {
                 setInput(numberAsNumber);
@@ -109,7 +118,7 @@ const NumericalInput = memo(
                     min={min ?? -Infinity}
                     placeholder={label}
                     step={controlsStep}
-                    value={formatValString(inputString)}
+                    value={addUnit(inputString)}
                     onBlur={onBlur}
                     onChange={handleChange}
                 >
