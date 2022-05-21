@@ -65,11 +65,11 @@ const NumericalInput = memo(
 
         const handleChange = (numberAsString: string) => {
             setInputString(removeUnit(numberAsString));
-            const numberAsNumber = parseFloat(numberAsString);
+            // const numberAsNumber = parseFloat(numberAsString);
 
-            if (!Number.isNaN(numberAsNumber)) {
-                setInput(numberAsNumber);
-            }
+            // if (!Number.isNaN(numberAsNumber)) {
+            //     setInput(numberAsNumber);
+            // }
         };
 
         const onBlur = () => {
