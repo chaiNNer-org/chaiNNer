@@ -64,7 +64,7 @@ const SliderInput = memo(
 
         const precision = Math.max(getPrecision(offset), getPrecision(step));
         const addUnit = (val: string) => `${val}${unit ?? ''}`;
-        const dynamicNumInputWidth = 3.1 + 0.7 * precision;
+        const dynamicNumInputWidth = 3 + 0.5 * precision + 0.5 * (unit?.length ?? 0);
 
         useEffect(() => {
             setSliderValue(input);
