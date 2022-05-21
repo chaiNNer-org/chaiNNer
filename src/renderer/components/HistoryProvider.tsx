@@ -100,7 +100,7 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
 
         const id = setTimeout(() => {
             historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
-        }, 500);
+        }, 250);
         return () => clearTimeout(id);
     }, [changeId]);
 
@@ -115,6 +115,24 @@ export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>):
 
     useIpcRendererListener(
         'history-redo',
+        () => {
+            historyObj.history = historyObj.history.redo();
+            apply(historyObj.history.current);
+        },
+        [apply]
+    );
+
+    useHotkeys(
+        'ctrl+z, cmd+z',
+        () => {
+            historyObj.history = historyObj.history.undo();
+            apply(historyObj.history.current);
+        },
+        [apply]
+    );
+
+    useHotkeys(
+        'ctrl+y, cmd+y',
         () => {
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);
