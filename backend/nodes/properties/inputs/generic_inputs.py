@@ -13,15 +13,13 @@ class DropDownInput(BaseInput):
         input_type: str = "generic",
         optional: bool = False,
     ):
-        super().__init__(f"dropdown::{input_type}", label, optional)
+        super().__init__(f"dropdown::{input_type}", label, optional, has_handle=False)
         self.options = options
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
+            **super().toDict(),
             "options": self.options,
-            "optional": self.optional,
         }
 
     def enforce(self, value):
@@ -41,23 +39,23 @@ class TextInput(BaseInput):
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
-            "hasHandle": self.has_handle,
+            **super().toDict(),
             "maxLength": self.max_length,
-            "optional": self.optional,
         }
 
 
-def NoteTextAreaInput() -> Dict:
+class NoteTextAreaInput(BaseInput):
     """Input for note text"""
-    return {
-        "type": "textarea::note",
-        "label": "Note Text",
-        "resizable": True,
-        "hasHandle": False,
-        "optional": True,
-    }
+
+    def __init__(self, label: str = "Note Text"):
+        super().__init__(f"textarea::note", label, optional=True, has_handle=False)
+        self.resizable = True
+
+    def toDict(self):
+        return {
+            **super().toDict(),
+            "resizable": self.resizable,
+        }
 
 
 def MathOpsDropdown() -> DropDownInput:
@@ -116,14 +114,11 @@ def StackOrientationDropdown() -> DropDownInput:
     )
 
 
-def IteratorInput() -> Dict:
+def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
-    return {
-        "type": "iterator::auto",
-        "label": "Auto (Iterator)",
-        "hasHandle": False,
-        "optional": True,
-    }
+    return BaseInput(
+        "iterator::auto", "Auto (Iterator)", optional=True, has_handle=False
+    )
 
 
 class AlphaFillMethod:

@@ -15,10 +15,8 @@ import SliderInput from '../inputs/SliderInput';
 import TextAreaInput from '../inputs/TextAreaInput';
 import TextInput from '../inputs/TextInput';
 
-interface FullInputProps extends Input, InputProps {
-    type: string;
+interface FullInputProps extends Omit<Input, 'id'>, InputProps {
     accentColor: string;
-    hasHandle?: boolean;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -71,10 +69,10 @@ const pickInput = (type: string, props: FullInputProps) => {
         default:
             return (
                 <InputContainer
-                    hasHandle={props.hasHandle ?? true}
+                    hasHandle={props.hasHandle}
                     id={props.id}
-                    index={props.index}
-                    key={`${props.id}-${props.index}`}
+                    inputId={props.inputId}
+                    key={`${props.id}-${props.inputId}`}
                 >
                     <GenericInput {...props} />
                 </InputContainer>
@@ -84,8 +82,8 @@ const pickInput = (type: string, props: FullInputProps) => {
         <InputContainer
             hasHandle={props.hasHandle}
             id={props.id}
-            index={props.index}
-            key={`${props.id}-${props.index}`}
+            inputId={props.inputId}
+            key={`${props.id}-${props.inputId}`}
             label={props.label}
         >
             <InputType {...props} />
@@ -113,17 +111,18 @@ const NodeInputs = ({
     const { useInputData: useInputDataContext } = useContext(GlobalContext);
 
     const useInputData = useCallback(
-        <T extends InputSchemaValue>(index: number) => useInputDataContext<T>(id, index, inputData),
+        <T extends InputSchemaValue>(inputId: number) =>
+            useInputDataContext<T>(id, inputId, inputData),
         [useInputDataContext, id, inputData]
     );
 
     return (
         <>
-            {inputs.map((input, i) => {
+            {inputs.map((input) => {
                 const props: FullInputProps = {
                     ...input,
                     id,
-                    index: i,
+                    inputId: input.id,
                     inputData,
                     useInputData,
                     type: input.type,

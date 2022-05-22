@@ -24,11 +24,8 @@ class FileInput(BaseInput):
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
+            **super().toDict(),
             "filetypes": self.filetypes,
-            "hasHandle": self.has_handle,
-            "optional": self.optional,
         }
 
     def enforce(self, value):
@@ -66,9 +63,9 @@ def TorchFileInput() -> FileInput:
     return FileInput("pt", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(has_handle: bool = False) -> FileInput:
+def DirectoryInput(label: str = None, has_handle: bool = False) -> FileInput:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Base Directory", ["directory"], has_handle)
+    return FileInput("directory", label or "Base Directory", ["directory"], has_handle)
 
 
 def ImageExtensionDropdown() -> DropDownInput:

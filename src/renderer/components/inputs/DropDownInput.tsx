@@ -7,8 +7,8 @@ interface DropDownInputProps extends InputProps {
     options: readonly InputOption[];
 }
 
-const DropDownInput = memo(({ options, index, useInputData, isLocked }: DropDownInputProps) => {
-    const [selection, setSelection] = useInputData<string | number>(index);
+const DropDownInput = memo(({ options, inputId, useInputData, isLocked }: DropDownInputProps) => {
+    const [selection, setSelection] = useInputData<string | number>(inputId);
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
         const { value } = event.target;

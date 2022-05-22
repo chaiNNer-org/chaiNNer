@@ -1,5 +1,3 @@
-/* eslint-disable react/no-array-index-key */
-
 import { memo } from 'react';
 import { Output } from '../../../common/common-types';
 import GenericOutput from '../outputs/GenericOutput';
@@ -11,13 +9,13 @@ interface NodeOutputsProps {
 
 const NodeOutputs = ({ outputs, id }: NodeOutputsProps) => (
     <>
-        {outputs.map((output, i) => {
+        {outputs.map((output) => {
             return (
                 <GenericOutput
                     id={id}
-                    index={i}
-                    key={`${output.label}-${i}`}
+                    key={`${output.label}-${output.id}`}
                     label={output.label}
+                    outputId={output.id}
                 />
             );
         })}

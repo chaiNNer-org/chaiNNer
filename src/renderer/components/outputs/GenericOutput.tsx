@@ -5,14 +5,14 @@ import OutputContainer from './OutputContainer';
 interface GenericOutputProps {
     id: string;
     label: string;
-    index: number;
+    outputId: number;
 }
 
-const GenericOutput = memo(({ label, id, index }: GenericOutputProps) => (
+const GenericOutput = memo(({ label, id, outputId }: GenericOutputProps) => (
     <OutputContainer
         hasHandle
         id={id}
-        index={index}
+        outputId={outputId}
     >
         <Text
             marginInlineEnd="0.5rem"

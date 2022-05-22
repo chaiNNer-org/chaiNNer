@@ -1,29 +1,28 @@
-from typing import Dict
+from .base_output import BaseOutput
 
 
-def NumPyOutput(input_type: str, label: str) -> Dict:
+class NumPyOutput(BaseOutput):
     """Output a NumPy array"""
-    return {
-        "type": f"numpy::{input_type}",
-        "label": label,
-    }
+
+    def __init__(self, numpy_type: str, label: str):
+        super().__init__(f"numpy::{numpy_type}", label)
 
 
-def AudioOutput() -> Dict:
+def AudioOutput():
     """Output a 1D Audio NumPy array"""
     return NumPyOutput("1d", "Audio")
 
 
-def ImageOutput(label: str = "Image") -> Dict:
+def ImageOutput(label: str = "Image"):
     """Output a 2D Image NumPy array"""
     return NumPyOutput("2d", label)
 
 
-def VideoOutput() -> Dict:
+def VideoOutput():
     """Output a 3D Video NumPy array"""
     return NumPyOutput("3d", "Video")
 
 
-def SplitImageChannelOutput() -> Dict:
+def SplitImageChannelOutput():
     """Split a single multi-channel numpy array into multiple single-channel arrays"""
     return NumPyOutput("2d::split", "Image")

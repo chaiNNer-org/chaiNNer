@@ -7,13 +7,13 @@ import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
     id: string;
-    index: number;
+    inputId: number;
     label?: string;
-    hasHandle?: boolean;
+    hasHandle: boolean;
 }
 
 const InputContainer = memo(
-    ({ children, hasHandle, id, index, label }: React.PropsWithChildren<InputContainerProps>) => {
+    ({ children, hasHandle, id, inputId, label }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
 
         let contents = children;
@@ -36,7 +36,7 @@ const InputContainer = memo(
                         <Handle
                             isConnectable
                             className="input-handle"
-                            id={`${id}-${index}`}
+                            id={`${id}-${inputId}`}
                             isValidConnection={isValidConnection}
                             position={Position.Left}
                             style={{

@@ -49,7 +49,7 @@ const NumericalInput = memo(
     ({
         label,
         id,
-        index,
+        inputId,
         useInputData,
         def,
         min,
@@ -62,13 +62,13 @@ const NumericalInput = memo(
     }: NumericalInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
-            index
+            inputId
         );
 
         const precision = Math.max(getPrecision(offset), getPrecision(step));
 
         // TODO: make sure this is always a number
-        const [input, setInput] = useInputData<number>(index);
+        const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
 
         useEffect(() => {

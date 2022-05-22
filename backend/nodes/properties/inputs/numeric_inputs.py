@@ -45,7 +45,9 @@ class NumberInput(BaseInput):
         number_type: str = "any",
         note_expression: str = None,
     ):
-        super().__init__(f"number::{number_type}", label)
+        super().__init__(
+            f"number::{number_type}", label, optional=optional, has_handle=has_handle
+        )
         # Step is for the actual increment.
         # controls_step is for increment/decrement arrows.
         self.step = step
@@ -55,14 +57,11 @@ class NumberInput(BaseInput):
         self.minimum = minimum
         self.maximum = maximum
         self.unit = unit
-        self.has_handle = has_handle
-        self.optional = optional
         self.note_expression = note_expression
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
+            **super().toDict(),
             "min": self.minimum,
             "max": self.maximum,
             "noteExpression": self.note_expression,
@@ -71,8 +70,6 @@ class NumberInput(BaseInput):
             "step": self.step,
             "controlsStep": self.controls_step,
             "unit": self.unit,
-            "hasHandle": self.has_handle,
-            "optional": self.optional,
         }
 
     def enforce(self, value):
@@ -113,19 +110,8 @@ class SliderInput(NumberInput):
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
-            "min": self.minimum,
-            "max": self.maximum,
-            "noteExpression": self.note_expression,
+            **super().toDict(),
             "ends": self.ends,
-            "def": self.default,
-            "offset": self.offset,
-            "step": self.step,
-            "controlsStep": self.controls_step,
-            "unit": self.unit,
-            "hasHandle": True,
-            "optional": self.optional,
         }
 
     def enforce(self, value):

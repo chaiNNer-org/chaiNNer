@@ -6,6 +6,7 @@ import os
 import re
 import struct
 import tempfile
+from typing import Any
 
 import numpy as np
 from ncnn_vulkan import ncnn

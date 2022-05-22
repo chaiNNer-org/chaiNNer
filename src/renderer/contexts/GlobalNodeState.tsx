@@ -39,7 +39,7 @@ interface GlobalVolatile {
     edgeChanges: ChangeCounter;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
-    isNodeInputLocked: (id: string, index: number) => boolean;
+    isNodeInputLocked: (id: string, inputId: number) => boolean;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -62,7 +62,7 @@ interface Global {
     ];
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
-        index: number,
+        inputId: number,
         inputData: InputData
     ) => readonly [T | undefined, (data: T) => void];
     removeNodeById: (id: string) => void;
@@ -280,7 +280,21 @@ export const GlobalProvider = ({
 
     const setStateFromJSON = useCallback(
         (savedData: ParsedSaveData, path: string, loadPosition = false) => {
-            const validNodes = savedData.nodes.filter((node) => schemata.has(node.data.schemaId));
+            const validNodes = savedData.nodes
+                // remove nodes that are not supported
+                .filter((node) => schemata.has(node.data.schemaId))
+                .map((node) => {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            inputData: {
+                                ...schemata.getDefaultInput(node.data.schemaId),
+                                ...node.data.inputData,
+                            },
+                        },
+                    };
+                });
             const validNodeIds = new Set(validNodes.map((n) => n.id));
             const validEdges = savedData.edges
                 // Filter out any edges that do not have a source or target node associated with it
@@ -473,8 +487,8 @@ export const GlobalProvider = ({
             if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                 return false;
             }
-            const sourceHandleIndex = parseHandle(sourceHandle).index;
-            const targetHandleIndex = parseHandle(targetHandle).index;
+            const sourceHandleId = parseHandle(sourceHandle).inoutId;
+            const targetHandleId = parseHandle(targetHandle).inoutId;
 
             const sourceNode = getNode(source);
             const targetNode = getNode(target);
@@ -486,8 +500,8 @@ export const GlobalProvider = ({
             const { outputs } = schemata.get(sourceNode.data.schemaId);
             const { inputs } = schemata.get(targetNode.data.schemaId);
 
-            const sourceOutput = outputs[sourceHandleIndex];
-            const targetInput = inputs[targetHandleIndex];
+            const sourceOutput = outputs.find((o) => o.id === sourceHandleId)!;
+            const targetInput = inputs.find((i) => i.id === targetHandleId)!;
 
             const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
                 const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
@@ -515,10 +529,10 @@ export const GlobalProvider = ({
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
         function <T extends NonNullable<InputValue>>(
             id: string,
-            index: number,
+            inputId: number,
             inputData: InputData
         ): readonly [T | undefined, (data: T) => void] {
-            const inputDataByIndex = (inputData[index] ?? undefined) as T | undefined;
+            const currentInput = (inputData[inputId] ?? undefined) as T | undefined;
             const setInputData = (data: T) => {
                 // This is a action that might be called asynchronously, so we cannot rely on of
                 // the captured data from `nodes` to be up-to-date anymore. For that reason, we
@@ -529,12 +543,12 @@ export const GlobalProvider = ({
                     const nodeCopy = copyNode(old);
                     nodeCopy.data.inputData = {
                         ...nodeCopy.data.inputData,
-                        [index]: data,
+                        [inputId]: data,
                     };
                     return nodeCopy;
                 });
             };
-            return [inputDataByIndex, setInputData] as const;
+            return [currentInput, setInputData] as const;
         },
         [modifyNode, schemata]
     );
@@ -599,12 +613,12 @@ export const GlobalProvider = ({
     );
 
     const isNodeInputLocked = useCallback(
-        (id: string, index: number): boolean => {
+        (id: string, inputId: number): boolean => {
             return getEdges().some(
                 (e) =>
                     e.target === id &&
                     !!e.targetHandle &&
-                    parseHandle(e.targetHandle).index === index
+                    parseHandle(e.targetHandle).inoutId === inputId
             );
         },
         [edgeChanges]

@@ -39,13 +39,13 @@ export class SchemaMap {
     getDefaultInput(schemaId: string): InputData {
         const defaultData: Record<number, InputValue> = {};
         const { inputs } = this.get(schemaId);
-        inputs.forEach((input, i) => {
+        inputs.forEach((input) => {
             if (input.def || input.def === 0) {
-                defaultData[i] = input.def;
+                defaultData[input.id] = input.def;
             } else if (input.default || input.default === 0) {
-                defaultData[i] = input.default;
+                defaultData[input.id] = input.default;
             } else if (input.options) {
-                defaultData[i] = input.options[0].value;
+                defaultData[input.id] = input.options[0].value;
             }
         });
         return defaultData;

@@ -15,18 +15,18 @@ const checkNodeValidity = ({
 }): [boolean, string] => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
-        .map((e) => parseHandle(e.targetHandle!).index);
+        .map((e) => parseHandle(e.targetHandle!).inoutId);
 
-    const missingInputs = inputs.filter((input, index) => {
+    const missingInputs = inputs.filter((input) => {
         // optional inputs can't be missing
         if (input.optional) return false;
 
-        const inputValue = inputData[index];
+        const inputValue = inputData[input.id];
         // a value is assigned
         if (inputValue !== undefined && inputValue !== '') return false;
 
         // the value of the input is assigned by an edge
-        if (targetedInputs.includes(index)) return false;
+        if (targetedInputs.includes(input.id)) return false;
 
         return true;
     });

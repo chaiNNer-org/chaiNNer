@@ -50,7 +50,7 @@ const convertToUsableFormat = (
         result[id] = {
             schemaId,
             id,
-            inputs: Array.from({ length: schema.inputs.length }, (_, i) => inputData[i] ?? null),
+            inputs: schema.inputs.map((input) => inputData[input.id] ?? null),
             outputs: [],
             child: false,
             nodeType,
@@ -76,8 +76,8 @@ const convertToUsableFormat = (
         // Connection
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (result[source] && result[target] && sourceHandle && targetHandle) {
-            result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
-            result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
+            result[source].outputs[parseHandle(sourceHandle).inoutId] = { id: targetHandle };
+            result[target].inputs[parseHandle(targetHandle).inoutId] = { id: sourceHandle };
         }
     });
 

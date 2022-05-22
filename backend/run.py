@@ -108,8 +108,12 @@ async def nodes(_):
             "schemaId": schema_id,
             "name": node_object.get_name(),
             "category": node_object.get_category(),
-            "inputs": [dict(x) for x in node_object.get_inputs()],
-            "outputs": [dict(x) for x in node_object.get_outputs()],
+            "inputs": [
+                x.toDict() for x in node_object.get_inputs(with_implicit_ids=True)
+            ],
+            "outputs": [
+                x.toDict() for x in node_object.get_outputs(with_implicit_ids=True)
+            ],
             "description": node_object.get_description(),
             "icon": node_object.get_icon(),
             "subcategory": node_object.get_sub_category(),

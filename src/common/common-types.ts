@@ -21,15 +21,18 @@ export interface InputOption {
     value: InputSchemaValue;
 }
 export interface Input {
+    readonly id: number;
     readonly type: string;
     readonly label: string;
-    readonly optional?: boolean;
+    readonly optional: boolean;
+    readonly hasHandle: boolean;
     readonly def?: InputSchemaValue;
     readonly default?: InputSchemaValue;
     readonly options?: InputOption[];
     readonly filetypes?: string[];
 }
 export interface Output {
+    readonly id: number;
     readonly type: string;
     readonly label: string;
 }
