@@ -32,7 +32,7 @@ def check_env():
             os.environ["isFp16"] = "False"
             torch.set_default_tensor_type(torch.FloatTensor)
         elif os.environ["device"] == "cuda":
-            torch.set_default_tensor_type(torch.cuda.HalfTensor)
+            torch.set_default_tensor_type(torch.cuda.HalfTensor)  # type: ignore
         else:
             logger.warning("Something isn't set right with the device env var")
 
@@ -77,20 +77,21 @@ class LoadModelNode(NodeBase):
         self.model = None  # Defined in run
 
     def get_extra_data(self) -> Dict:
-        if "SRVGG" in self.model.model_type:
-            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]
+        # TODO: Figure out how to make types for this
+        if "SRVGG" in self.model.model_type:  # type: ignore
+            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]  # type: ignore
         else:
             size = [
-                f"{self.model.num_filters}nf",
-                f"{self.model.num_blocks}nb",
+                f"{self.model.num_filters}nf",  # type: ignore
+                f"{self.model.num_blocks}nb",  # type: ignore
             ]
 
         return {
-            "modelType": self.model.model_type,
-            "inNc": self.model.in_nc,
-            "outNc": self.model.out_nc,
+            "modelType": self.model.model_type,  # type: ignore
+            "inNc": self.model.in_nc,  # type: ignore
+            "outNc": self.model.out_nc,  # type: ignore
             "size": size,
-            "scale": self.model.scale,
+            "scale": self.model.scale,  # type: ignore
         }
 
     def run(self, path: str) -> Any:
@@ -183,7 +184,7 @@ class ImageUpscaleNode(NodeBase):
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(img[:, :, :3], model, model.scale)
+                output = self.upscale(img[:, :, :3], model, model.scale)  # type: ignore
                 output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
             else:
                 img1 = np.copy(img[:, :, :3])
@@ -192,9 +193,9 @@ class ImageUpscaleNode(NodeBase):
                     img1[:, :, c] *= img[:, :, 3]
                     img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
-                output1 = self.upscale(img1, model, model.scale)
-                output2 = self.upscale(img2, model, model.scale)
-                alpha = 1 - np.mean(output2 - output1, axis=2)
+                output1 = self.upscale(img1, model, model.scale)  # type: ignore
+                output2 = self.upscale(img2, model, model.scale)  # type: ignore
+                alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
             # Add extra channels if not enough (i.e single channel img, three channel model)
@@ -202,9 +203,9 @@ class ImageUpscaleNode(NodeBase):
             if img.ndim == 2:
                 gray = True
                 logger.debug("Expanding image channels")
-                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
+                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))  # type: ignore
             # Remove extra channels if too many (i.e three channel image, single channel model)
-            elif img.shape[2] > in_nc:
+            elif img.shape[2] > in_nc:  # type: ignore
                 logger.warning("Truncating image channels")
                 img = img[:, :, :in_nc]
             # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
@@ -212,7 +213,7 @@ class ImageUpscaleNode(NodeBase):
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-            output = self.upscale(img, model, model.scale)
+            output = self.upscale(img, model, model.scale)  # type: ignore
 
             if gray:
                 output = np.average(output, axis=2).astype("float32")
@@ -292,12 +293,12 @@ class InterpolateNode(NodeBase):
         state_b = model_b.state
 
         logger.info(f"Interpolating models...")
-        if not self.check_can_interp(state_a, state_b):
+        if not self.check_can_interp(state_a, state_b):  # type: ignore
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        state_dict = self.perform_interp(state_a, state_b, amount)
+        state_dict = self.perform_interp(state_a, state_b, amount)  # type: ignore
         model = load_state_dict(state_dict)
 
         return model
@@ -319,7 +320,7 @@ class PthSaveNode(NodeBase):
         self.icon = "MdSave"
         self.sub = "Input & Output"
 
-    def run(self, model: torch.nn.Module, directory: str, name: str) -> bool:
+    def run(self, model: torch.nn.Module, directory: str, name: str) -> None:
         full_file = f"{name}.pth"
         full_path = os.path.join(directory, full_file)
         logger.info(f"Writing model to path: {full_path}")
@@ -453,7 +454,7 @@ class ConvertTorchToONNXNode(NodeBase):
             "data": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
-        dummy_input = torch.rand(1, model.in_nc, 64, 64)
+        dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
 

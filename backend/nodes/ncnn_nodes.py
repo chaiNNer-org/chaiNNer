@@ -1,11 +1,12 @@
 """
 Nodes that provide NCNN support
 """
-
+from __future__ import annotations
 import os
 import re
 import struct
 import tempfile
+from typing import List, Tuple
 
 import numpy as np
 from ncnn_vulkan import ncnn
@@ -54,7 +55,7 @@ class NcnnLoadModelNode(NodeBase):
             # scale = int(np.prod([float(n) for n in matches]))
 
             # Input name
-            regex = "Input\s+([\w.]+)\s+0\s1\s(\w+)"
+            regex = r"Input\s+([\w.]+)\s+0\s1\s(\w+)"
             matches = re.findall(regex, lines)
             if len(matches) > 0:
                 if any(isinstance(el, tuple) for el in matches):
@@ -63,7 +64,7 @@ class NcnnLoadModelNode(NodeBase):
 
             # Output name & out nc
             # regex = '\w+\s+([\w.]+)\s+\d+\s+\d+\s+\d+\s+([^\d\s]+)\s0=(\d)'
-            regex = "\s([^\s]+)\s0=(\d)"
+            regex = r"\s([^\s]+)\s0=(\d)"
             matches = re.findall(regex, lines)
             if len(matches) > 0:
                 if any(isinstance(el, tuple) for el in matches):
@@ -73,7 +74,9 @@ class NcnnLoadModelNode(NodeBase):
 
         return input_name, output_name, out_nc
 
-    def run(self, param_path: str, bin_path: bytes) -> Any:
+    def run(
+        self, param_path: str, bin_path: bytes
+    ) -> Tuple[Tuple[str, np.ndarray, str, str], str]:
         assert os.path.exists(
             param_path
         ), f"Param file at location {param_path} does not exist"
@@ -212,12 +215,12 @@ class NcnnUpscaleImageNode(NodeBase):
                 img1 = np.copy(img[:, :, :3])
                 img2 = np.copy(img[:, :, :3])
                 for c in range(3):
-                    img1[:, :, c] *= img[:, :, 3]
-                    img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
+                    img1[:, :, c] *= img[:, :, 3]  # type: ignore
+                    img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1  # type: ignore
 
                 output1 = self.upscale(img1, net, input_name, output_name)
                 output2 = self.upscale(img2, net, input_name, output_name)
-                alpha = 1 - np.mean(output2 - output1, axis=2)
+                alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
             gray = False
@@ -305,7 +308,9 @@ class NcnnInterpolateModelsNode(NodeBase):
         del result
         return mean_color > 0.5
 
-    def run(self, net_tuple_a: tuple, net_tuple_b: tuple, amount: str) -> Any:
+    def run(
+        self, net_tuple_a: tuple, net_tuple_b: tuple, amount: str
+    ) -> List[Tuple[str, np.ndarray, str, str]]:
 
         param_path_a, bin_data_a, input_name_a, output_name_a = net_tuple_a
         param_path_b, bin_data_b, input_name_b, output_name_b = net_tuple_b

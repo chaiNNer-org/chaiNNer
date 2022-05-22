@@ -43,7 +43,7 @@ class HueAndSaturationNode(NodeBase):
     def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
         """Adjust the hue and saturation of an image"""
 
-        _, _, c = get_h_w_c(img)[2]
+        _, _, c = get_h_w_c(img)
 
         # Pass through grayscale and unadjusted images
         if c == 1 or (hue == 0 and saturation == 0):
@@ -92,20 +92,20 @@ class BrightnessAndContrastNode(NodeBase):
     def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
 
-        b_amount /= 255
-        c_amount /= 255
+        b_norm_amount = b_amount / 255
+        c_norm_amount = c_amount / 255
 
         # Pass through unadjusted image
-        if b_amount == 0 and c_amount == 0:
+        if b_norm_amount == 0 and c_norm_amount == 0:
             return img
 
         # Calculate brightness adjustment
-        if b_amount > 0:
-            shadow = b_amount
+        if b_norm_amount > 0:
+            shadow = b_norm_amount
             highlight = 1
         else:
             shadow = 0
-            highlight = 1 + b_amount
+            highlight = 1 + b_norm_amount
         alpha_b = highlight - shadow
         if img.ndim == 2:
             img = cv2.addWeighted(img, alpha_b, img, 0, shadow)
@@ -115,8 +115,8 @@ class BrightnessAndContrastNode(NodeBase):
             )
 
         # Calculate contrast adjustment
-        alpha_c = ((259 / 255) * (c_amount + 1)) / (
-            (259 / 255) - c_amount
+        alpha_c = ((259 / 255) * (c_norm_amount + 1)) / (
+            (259 / 255) - c_norm_amount
         )  # Contrast correction factor
         gamma_c = 0.5 * (1 - alpha_c)
         if img.ndim == 2:

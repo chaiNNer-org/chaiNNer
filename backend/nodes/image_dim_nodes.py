@@ -185,7 +185,7 @@ class EdgeCropNode(NodeBase):
         self.sub = "Crop"
 
     def run(
-        self, img: np.ndarray, top: str, left: str, right: str, bottom: str
+        self, img: np.ndarray, top: int, left: int, right: int, bottom: int
     ) -> np.ndarray:
         """Crop an image"""
 

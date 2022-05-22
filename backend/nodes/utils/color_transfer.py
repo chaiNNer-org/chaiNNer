@@ -77,6 +77,15 @@ def color_transfer(
     "Color Transfer between Images" paper by Reinhard et al., 2001.
     """
 
+    a_clip_min, a_clip_max, b_clip_min, b_clip_max, c_clip_min, c_clip_max = (
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    )
+
     # Convert the images from the RGB to L*a*b* color space, if necessary
     if colorspace == "L*a*b*":
         a_clip_min, a_clip_max = (0, 100)

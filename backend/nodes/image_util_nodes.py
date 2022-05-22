@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import List
 
 import cv2
 import numpy as np
@@ -41,16 +42,16 @@ class ImOverlay(NodeBase):
         self,
         base: np.ndarray,
         ov1: np.ndarray,
-        op1: int = 50,
-        ov2: np.ndarray = None,
-        op2: int = 50,
+        op1_int: int = 50,
+        ov2: Union[np.ndarray, None] = None,
+        op2_int: int = 50,
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
         # Convert to 0.0-1.0 range
-        op1 /= 100
-        if op2 is not None:
-            op2 /= 100
+        op1 = op1_int / 100
+        if op2_int is not None:
+            op2 = op2_int / 100
 
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
@@ -122,17 +123,17 @@ class StackNode(NodeBase):
     def run(
         self,
         im1: np.ndarray,
-        im2: np.ndarray = None,
-        im3: np.ndarray = None,
-        im4: np.ndarray = None,
+        im2: Union[np.ndarray, None] = None,
+        im3: Union[np.ndarray, None] = None,
+        im4: Union[np.ndarray, None] = None,
         orientation: str = "horizontal",
     ) -> np.ndarray:
         """Concatenate multiple images horizontally"""
-
+        img = im1
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
-            if img is not None and type(img) != str:
+            if img is not None and not isinstance(img, str):
                 h, w, c = get_h_w_c(img)
                 if c == 1:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
@@ -141,11 +142,11 @@ class StackNode(NodeBase):
                 max_c = max(c, max_c)
                 imgs.append(img)
             # dirty fix for problem with optional inputs and them just being positional
-            # TODO: make the inputs named instead of positional
-            elif type(img) == str and img in ["horizontal", "vertical"]:
+            # TODO: Check if this is still needed or if that null stuff made it obsolete
+            elif isinstance(img, str) and img in ["horizontal", "vertical"]:
                 orientation = img
 
-        fixed_imgs = []
+        fixed_imgs: List[np.ndarray] = []
         for img in imgs:
             h, w, c = get_h_w_c(img)
 
@@ -184,7 +185,7 @@ class StackNode(NodeBase):
                 assert (
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
-            img = cv2.hconcat(fixed_imgs)
+            img = cv2.hconcat(fixed_imgs)  # type: ignore
         elif orientation == "vertical":
             for i in range(len(fixed_imgs)):
                 assert (
@@ -193,7 +194,7 @@ class StackNode(NodeBase):
                 assert (
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
-            img = cv2.vconcat(fixed_imgs)
+            img = cv2.vconcat(fixed_imgs)  # type: ignore
 
         return img
 
@@ -292,7 +293,6 @@ class BorderMakeNode(NodeBase):
             amount,
             amount,
             border_type,
-            None,
             value=value,
         )
 
@@ -327,6 +327,6 @@ class ShiftNode(NodeBase):
         """Adjusts the position of an image"""
 
         h, w, _ = get_h_w_c(img)
-        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
+        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img

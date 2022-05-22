@@ -115,7 +115,7 @@ def normalize_normals(
     return x, y, z
 
 
-def with_background(img: np.array, background: np.array):
+def with_background(img: np.ndarray, background: np.ndarray):
     """Changes the given image to the background overlayed with the image."""
     assert get_h_w_c(img)[2] == 4, "The image has to be an RGBA image"
     assert get_h_w_c(background)[2] == 4, "The background has to be an RGBA image"

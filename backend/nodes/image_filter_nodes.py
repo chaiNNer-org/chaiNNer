@@ -178,7 +178,7 @@ class AverageColorFixNode(NodeBase):
         )
 
         # Get difference between the reference image and downscaled input
-        downscaled_diff = ref_img - downscaled_input
+        downscaled_diff = ref_img - downscaled_input  # type: ignore
 
         # Upsample the difference
         diff = cv2.resize(
@@ -359,8 +359,8 @@ class NormalAdditionNode(NodeBase):
             n.ndim == 3 and m.ndim == 3
         ), "The input images must be RGB or RGBA images"
 
-        n_strength /= 100
-        m_strength /= 100
+        n_norm_strength = n_strength / 100
+        m_norm_strength = m_strength / 100
 
         # Convert BGR to XY
         n_x = n[:, :, 2] * 2 - 1
@@ -384,8 +384,8 @@ class NormalAdditionNode(NodeBase):
         # 5. The final normal will be normalize(cross(a,b)).
         # This works out as:
 
-        n_f = n_strength / n_z
-        m_f = m_strength / m_z
+        n_f = n_norm_strength / n_z
+        m_f = m_norm_strength / m_z
         a_z = n_x * n_f + m_x * m_f
         b_z = n_y * n_f + m_y * m_f
 

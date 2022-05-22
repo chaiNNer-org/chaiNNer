@@ -7,8 +7,8 @@ def clampNumber(
     value: Union[float, int],
     offset: Union[float, int],
     step: Union[float, int],
-    min_value: Union[float, int],
-    max_value: Union[float, int],
+    min_value: Union[float, int, None],
+    max_value: Union[float, int, None],
 ) -> Union[float, int]:
     # Convert proper number type
     if offset % 1 == 0 and step % 1 == 0:
@@ -35,15 +35,15 @@ class NumberInput(BaseInput):
         self,
         label: str,
         step: Union[float, int] = 1,
-        controls_step: Union[float, int] = None,
+        controls_step: Union[float, int, None] = None,
         default: Union[float, int] = 0,
         minimum: Union[float, int] = 0,
-        maximum: Union[float, int] = None,
-        unit: str = None,
+        maximum: Union[float, int, None] = None,
+        unit: Union[str, None] = None,
         has_handle: bool = True,
         optional: bool = False,
         number_type: str = "any",
-        note_expression: str = None,
+        note_expression: Union[str, None] = None,
     ):
         super().__init__(f"number::{number_type}", label)
         # Step is for the actual increment.
@@ -86,15 +86,15 @@ class SliderInput(NumberInput):
         self,
         label: str,
         step: Union[float, int] = 1,
-        controls_step: Union[float, int] = None,
+        controls_step: Union[float, int, None] = None,
         minimum: int = 0,
         maximum: int = 100,
         default: int = 50,
-        unit: str = None,
+        unit: Union[str, None] = None,
         has_handle: bool = True,
         optional: bool = False,
-        note_expression: str = None,
-        ends: Union[Tuple[int, int], Tuple[str, str]] = (None, None),
+        note_expression: Union[str, None] = None,
+        ends: Union[Tuple[int, int], Tuple[str, str], Tuple[None, None]] = (None, None),
     ):
         super().__init__(
             label,
