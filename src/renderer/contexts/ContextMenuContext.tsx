@@ -4,12 +4,14 @@ import { createContext } from 'use-context-selector';
 import { noop } from '../../common/util';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 
+type RenderFn = () => JSX.Element;
+
 interface MenuRendererProps {
     menuId: string;
     isOpen: boolean;
     position: readonly [x: number, y: number];
     onCloseHandler: () => void;
-    render?: () => JSX.Element;
+    render?: RenderFn;
 }
 
 const MenuRenderer = memo(
@@ -44,7 +46,7 @@ const MenuRenderer = memo(
 );
 
 interface ContentMenu {
-    registerContextMenu: (id: string, render: () => JSX.Element) => void;
+    registerContextMenu: (id: string, render: RenderFn) => void;
     unregisterContextMenu: (id: string) => void;
     openContextMenu: (id: string, x: number, y: number) => void;
     closeContextMenu: () => void;
@@ -57,29 +59,27 @@ export const ContextMenuContext = createContext<Readonly<ContentMenu>>({
     closeContextMenu: noop,
 });
 
-const EMPTY_MENUS: ReadonlyMap<string, () => JSX.Element> = new Map();
-
 export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknown>) => {
-    const [menus, setMenus] = useState(EMPTY_MENUS);
+    const [menus, setMenus] = useState<{ readonly map: Map<string, RenderFn> }>(() => ({
+        map: new Map(),
+    }));
     const [current, setCurrent] = useState<string | undefined>();
     const [position, setPosition] = useState<readonly [number, number]>([0, 0]);
 
     const registerContextMenu = useCallback(
-        (id: string, render: () => JSX.Element) => {
-            setMenus((prev) => {
-                const copy = new Map(prev);
-                copy.set(id, render);
-                return copy;
+        (id: string, render: RenderFn) => {
+            setMenus(({ map }) => {
+                map.set(id, render);
+                return { map };
             });
         },
         [setMenus]
     );
     const unregisterContextMenu = useCallback(
         (id: string) => {
-            setMenus((prev) => {
-                const copy = new Map(prev);
-                copy.delete(id);
-                return copy;
+            setMenus(({ map }) => {
+                map.delete(id);
+                return { map };
             });
         },
         [setMenus]
@@ -132,7 +132,7 @@ export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknow
     };
     value = useMemo(() => value, Object.values(value));
 
-    const currentRender = current !== undefined ? menus.get(current) : undefined;
+    const currentRender = current !== undefined ? menus.map.get(current) : undefined;
 
     return (
         <ContextMenuContext.Provider value={value}>
