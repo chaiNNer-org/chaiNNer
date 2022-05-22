@@ -59,7 +59,7 @@ export const ContextMenuContext = createContext<Readonly<ContentMenu>>({
     closeContextMenu: noop,
 });
 
-export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export function ContextMenuProvider({ children }: React.PropsWithChildren<unknown>) {
     const [menus, setMenus] = useState<{ readonly map: Map<string, RenderFn> }>(() => ({
         map: new Map(),
     }));
@@ -124,12 +124,15 @@ export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknow
 
     useIpcRendererListener('window-blur', closeContextMenu, [closeContextMenu]);
 
-    let value: ContentMenu = {
-        registerContextMenu,
-        unregisterContextMenu,
-        openContextMenu,
-        closeContextMenu,
-    };
+    let value: ContentMenu = useMemo(
+        () => ({
+            registerContextMenu,
+            unregisterContextMenu,
+            openContextMenu,
+            closeContextMenu,
+        }),
+        [registerContextMenu, unregisterContextMenu, openContextMenu, closeContextMenu]
+    );
     value = useMemo(() => value, Object.values(value));
 
     const currentRender = current !== undefined ? menus.map.get(current) : undefined;
@@ -146,4 +149,4 @@ export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknow
             />
         </ContextMenuContext.Provider>
     );
-};
+}

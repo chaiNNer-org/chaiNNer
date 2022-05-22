@@ -137,7 +137,7 @@ const getButtons = (
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export function AlertBoxProvider({ children }: React.PropsWithChildren<unknown>) {
     const { closeContextMenu } = useContext(ContextMenuContext);
 
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);

@@ -28,7 +28,7 @@ function App() {
     let Component;
 
     if (!port || !storageInitialized) {
-        // eslint-disable-next-line react/no-unstable-nested-components
+        // eslint-disable-next-line react/no-unstable-nested-components, func-names
         Component = function () {
             return (
                 <Box
@@ -45,7 +45,7 @@ function App() {
             );
         };
     } else {
-        // eslint-disable-next-line react/no-unstable-nested-components
+        // eslint-disable-next-line react/no-unstable-nested-components, func-names
         Component = function () {
             return <Main port={port} />;
         };

@@ -14,13 +14,7 @@ interface NodeFooterProps {
     menu?: UseContextMenu;
 }
 
-const NodeFooter = ({
-    id,
-    isValid = false,
-    invalidReason = '',
-    isLocked,
-    menu,
-}: NodeFooterProps) => {
+function NodeFooter({ id, isValid = false, invalidReason = '', isLocked, menu }: NodeFooterProps) {
     const { toggleNodeLock } = useContext(GlobalContext);
 
     const iconShade = useColorModeValue('gray.400', 'gray.800');

@@ -167,7 +167,7 @@
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@chakra-ui/icons": "^2.0.0",
-    "@chakra-ui/react": "^2.0.2",
+    "@chakra-ui/react": "^2.1.0",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.1",
@@ -186,7 +186,7 @@
     "re-resizable": "^6.9.5",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "react-flow-renderer": "^10.2.3-next.3",
+    "react-flow-renderer": "^10.2.4-next.2",
     "react-hotkeys-hook": "^3.4.6",
     "react-icons": "^4.3.1",
     "react-markdown": "^8.0.3",
