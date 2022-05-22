@@ -136,10 +136,10 @@ const RepresentativeNode = ({
                                         stroke: 'yellow.500',
                                         transition: '0.15s ease-in-out',
                                     }}
-                                    aria-label="dlksdmclsdk"
+                                    aria-label="Favorites"
                                     color={isFavorite ? 'yellow.500' : bgColor}
                                     opacity={isFavorite || hover ? '100%' : '0%'}
-                                    stroke={borderColor}
+                                    stroke={useColorModeValue('gray.600', 'gray.400')}
                                     strokeWidth={1}
                                     transition="0.15s ease-in-out"
                                     verticalAlign="middle"
