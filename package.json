@@ -15,6 +15,7 @@
     "publish": "cross-env NODE_ENV=production electron-forge publish",
     "lint": "npm run lint-js && npm run lint-py",
     "lint-js": "eslint . --ext \".js,.jsx,.ts,.tsx\"",
+    "lint-js-ci": "eslint . --ext \".js,.jsx,.ts,.tsx\" --max-warnings 0",
     "lint-py": "black --check ./backend",
     "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend"
   },
