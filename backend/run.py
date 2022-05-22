@@ -207,8 +207,8 @@ async def sse(request: Request):
 
 
 @app.after_server_start
-async def setup_queue(app: Sanic, _):
-    app.ctx.queue = asyncio.Queue()
+async def setup_queue(sanic_app: Sanic, _):
+    sanic_app.ctx.queue = asyncio.Queue()
 
 
 @app.route("/pause", methods=["POST"])

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import Union
 import cv2
 import numpy as np
 

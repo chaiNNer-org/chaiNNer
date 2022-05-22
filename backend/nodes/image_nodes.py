@@ -92,6 +92,7 @@ class ImReadNode(NodeBase):
                     ) from e
         elif ext.lower() in get_pil_formats():
             try:
+                # pylint: disable=redefined-outer-name, import-outside-toplevel
                 from PIL import Image
 
                 im = Image.open(path)
@@ -102,6 +103,7 @@ class ImReadNode(NodeBase):
                 elif c == 4:
                     img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
             except:
+                # pylint: disable=raise-missing-from
                 raise RuntimeError(
                     f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
                 )

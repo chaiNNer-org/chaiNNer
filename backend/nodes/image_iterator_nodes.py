@@ -78,11 +78,12 @@ class ImageFileIteratorNode(IteratorNodeBase):
             },
         ]
 
+    # pylint: disable=invalid-overridden-method
     async def run(
         self,
         directory: str,
-        nodes: dict = {},
-        external_cache: dict = {},
+        nodes: Union[dict, None] = None,
+        external_cache: Union[dict, None] = None,
         loop=None,
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
@@ -91,6 +92,9 @@ class ImageFileIteratorNode(IteratorNodeBase):
     ) -> None:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
+
+        assert nodes is not None, "Nodes must be provided"
+        assert external_cache is not None, "External cache must be provided"
 
         img_path_node_id = None
         child_nodes = []
@@ -267,11 +271,12 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.name = "Video Frame Iterator"
         self.icon = "MdVideoCameraBack"
 
+    # pylint: disable=invalid-overridden-method
     async def run(
         self,
         path: str,
-        nodes: dict = {},
-        external_cache: dict = {},
+        nodes: Union[dict, None] = None,
+        external_cache: Union[dict, None] = None,
         loop=None,
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
@@ -280,6 +285,9 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
     ) -> None:
         logger.info(f"Iterating over frames in video file: {path}")
         logger.info(nodes)
+
+        assert nodes is not None, "Nodes must be provided"
+        assert external_cache is not None, "External cache must be provided"
 
         input_node_id = None
         output_node_id = None

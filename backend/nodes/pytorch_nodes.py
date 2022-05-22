@@ -51,6 +51,7 @@ def load_state_dict(state_dict):
         try:
             model = ESRGAN(state_dict)
         except:
+            # pylint: disable=raise-missing-from
             raise ValueError("Model unsupported by chaiNNer. Please try another.")
     return model
 
@@ -263,7 +264,8 @@ class InterpolateNode(NodeBase):
                 v_2 = model_b[k]
                 state_dict[k] = (amount_a * v_1) + (amount_b * v_2)
             return state_dict
-        except Exception as e:
+        except:
+            # pylint: disable=raise-missing-from
             raise ValueError(
                 "These models are not compatible and able not able to be interpolated together"
             )

@@ -42,7 +42,7 @@ class NcnnLoadModelNode(NodeBase):
         output_name = "output"
         out_nc = 3
 
-        with open(param_path) as f:
+        with open(param_path, encoding="utf-8") as f:
             lines = f.read()
 
             assert (
@@ -116,7 +116,7 @@ class NcnnSaveNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
-        param_path, bin_data, input_name, output_name = net_tuple
+        param_path, bin_data, _, _ = net_tuple
         full_bin = f"{name}.bin"
         full_param = f"{name}.param"
         full_bin_path = os.path.join(directory, full_bin)
@@ -129,8 +129,8 @@ class NcnnSaveNode(NodeBase):
         packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
         with open(full_bin_path, "wb") as binary_file:
             binary_file.write(packed)
-        with open(full_param_path, "w") as param_file:
-            with open(param_path, "r") as original_param_file:
+        with open(full_param_path, "w", encoding="utf-8") as param_file:
+            with open(param_path, "r", encoding="utf-8") as original_param_file:
                 param_file.write(original_param_file.read())
 
         return True
@@ -171,6 +171,7 @@ class NcnnUpscaleImageNode(NodeBase):
             return output
         except Exception as e:
             logger.error(e)
+            # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(self, net_tuple: tuple, img: np.ndarray) -> np.ndarray:
@@ -291,7 +292,8 @@ class NcnnInterpolateModelsNode(NodeBase):
             result = bin_a_mult + bin_b_mult
 
             return result.astype(np.float32)
-        except Exception as e:
+        except:
+            # pylint: disable=raise-missing-from
             raise ValueError(
                 "These models are not compatible and able not able to be interpolated together"
             )
@@ -313,7 +315,7 @@ class NcnnInterpolateModelsNode(NodeBase):
     ) -> List[Tuple[str, np.ndarray, str, str]]:
 
         param_path_a, bin_data_a, input_name_a, output_name_a = net_tuple_a
-        param_path_b, bin_data_b, input_name_b, output_name_b = net_tuple_b
+        _, bin_data_b, _, _ = net_tuple_b
 
         logger.info(len(bin_data_a))
         logger.info(len(bin_data_b))

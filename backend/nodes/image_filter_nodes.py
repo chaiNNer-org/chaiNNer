@@ -44,7 +44,7 @@ class BlurNode(NodeBase):
         """Adjusts the blur of an image"""
         # TODO: Fix this so it's not just a gaussian approximation
         ksize = (amount_x, amount_y)
-        for __i in range(16):
+        for _ in range(16):
             img = cv2.blur(img, ksize)
 
         return np.clip(img, 0, 1)

@@ -60,6 +60,7 @@ class ImOverlay(NodeBase):
                 h, w, c = get_h_w_c(img)
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
+                max_c = max(c, max_c)
 
                 # All inputs must be BGRA for alpha compositing to work
                 if c == 1:
@@ -70,10 +71,9 @@ class ImOverlay(NodeBase):
                     logger.error(f"Number of channels ({c}) unexpected")
 
                 imgs.append(img)
-        else:
-            assert (
-                base.shape[0] >= max_h and base.shape[1] >= max_w
-            ), "Base must be largest image."
+        assert (
+            base.shape[0] >= max_h and base.shape[1] >= max_w
+        ), "Base must be largest image."
 
         imgout = imgs[0]
         imgs = imgs[1:]
