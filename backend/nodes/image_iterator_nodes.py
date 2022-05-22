@@ -1,9 +1,7 @@
+from __future__ import annotations
 import asyncio
 import math
 import os
-from typing import Union
-from __future__ import annotations
-
 
 import numpy as np
 from process import Executor
