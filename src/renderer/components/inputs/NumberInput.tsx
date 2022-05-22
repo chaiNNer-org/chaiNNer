@@ -22,7 +22,7 @@ interface NumericalInputProps extends InputProps {
     unit?: string | null;
 }
 
-const getPrecision = (n: number) => {
+export const getPrecision = (n: number) => {
     if (n % 1 === 0) return 0;
     return Math.min(10, n.toFixed(15).replace(/0+$/, '').split('.')[1]?.length ?? 0);
 };
@@ -68,8 +68,11 @@ const NumericalInput = memo(
         };
 
         const onBlur = () => {
+            // If inputString is empty due to clearing input field, set value to default
             const valAsNumber =
-                precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
+                precision > 0
+                    ? parseFloat(inputString !== '' ? inputString : String(def))
+                    : Math.round(parseFloat(inputString !== '' ? inputString : String(def)));
 
             if (!Number.isNaN(valAsNumber)) {
                 const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
