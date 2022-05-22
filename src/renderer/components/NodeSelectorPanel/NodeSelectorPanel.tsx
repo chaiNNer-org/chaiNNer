@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
+import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, SearchIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionItem,

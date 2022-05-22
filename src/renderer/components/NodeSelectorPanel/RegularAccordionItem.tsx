@@ -1,4 +1,3 @@
-import { StarIcon } from '@chakra-ui/icons';
 import {
     AccordionButton,
     AccordionIcon,
