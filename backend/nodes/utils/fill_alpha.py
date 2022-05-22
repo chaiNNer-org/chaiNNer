@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 
 from .image_utils import with_background
+from .utils import get_h_w_c
 
 
 class ImageAverage:
@@ -35,7 +36,8 @@ class ImageAverage:
 def with_self_as_background(img: np.array):
     """Changes the given image to the image overlayed with itself."""
 
-    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    _, _, c = get_h_w_c(img)
+    assert c == 4, "The image has to be an RGBA image"
     img[:, :, 3] = 1 - np.square(1 - img[:, :, 3])
 
 
@@ -43,7 +45,8 @@ def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
     """Sets all pixels with alpha <= threshold to RGBA=(0,0,0,0)
     and sets the alpha to 1 otherwise."""
 
-    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    _, _, c = get_h_w_c(img)
+    assert c == 4, "The image has to be an RGBA image"
 
     a = np.greater(img[:, :, 3], threshold).astype(np.float32)
     img[:, :, 0] *= a
@@ -55,10 +58,9 @@ def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
 def fragment_blur(
     img: np.array, n: int, start_angle: float, distance: float
 ) -> np.array:
-    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    h, w, c = get_h_w_c(img)
+    assert c == 4, "The image has to be an RGBA image"
     assert n >= 1
-
-    h, w = img.shape[:2]
 
     avg = ImageAverage()
     for i in range(n):
@@ -96,7 +98,8 @@ def fill_alpha_edge_extend(img: np.array, distance: int):
     convert_to_binary_alpha.
     """
 
-    assert img.ndim == 3 and img.shape[2] == 4, "The image has to be an RGBA image"
+    _, _, c = get_h_w_c(img)
+    assert c == 4, "The image has to be an RGBA image"
 
     proccessed_distance = 0
     it = 0

@@ -10,6 +10,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:hue_and_saturation")
@@ -42,12 +43,13 @@ class HueAndSaturationNode(NodeBase):
     def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
         """Adjust the hue and saturation of an image"""
 
+        _, _, c = get_h_w_c(img)[2]
+
         # Pass through grayscale and unadjusted images
-        if img.ndim < 3 or img.shape[2] == 1 or (hue == 0 and saturation == 0):
+        if c == 1 or (hue == 0 and saturation == 0):
             return img
 
         # Preserve alpha channel if it exists
-        c = img.shape[2]
         alpha = None
         if c > 3:
             alpha = img[:, :, 3]
