@@ -7,3 +7,4 @@ pylint
 pyright
 sanic
 sanic_cors
+torch
