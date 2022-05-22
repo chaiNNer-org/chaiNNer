@@ -1,5 +1,6 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
+from typing import Tuple
 import numpy as np
 import torch
 from sanic.log import logger
@@ -17,6 +18,13 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("float32"): 1.0,
     np.dtype("float64"): 1.0,
 }
+
+
+def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
+    """Returns the height, width, and number of channels."""
+    h, w = image.shape[:2]
+    c = image.shape[2] or 1
+    return h, w, c
 
 
 def bgr_to_rgb(image: Tensor) -> Tensor:

@@ -14,6 +14,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:resize_factor")
@@ -49,7 +50,7 @@ class ImResizeByFactorNode(NodeBase):
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
         out_dims = (
             max(math.ceil(w * (scale / 100)), 1),
             max(math.ceil(h * (scale / 100)), 1),
@@ -119,7 +120,7 @@ class CropNode(NodeBase):
     ) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
@@ -152,7 +153,7 @@ class BorderCropNode(NodeBase):
     def run(self, img: np.ndarray, amount: int) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
@@ -188,7 +189,7 @@ class EdgeCropNode(NodeBase):
     ) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"
@@ -225,7 +226,5 @@ class GetDimensionsNode(NodeBase):
         self,
         img: np.ndarray,
     ) -> Tuple[int, int, int]:
-        h, w = img.shape[:2]
-        c = img.shape[2] or 1
-
+        h, w, c = get_h_w_c(img)
         return w, h, c

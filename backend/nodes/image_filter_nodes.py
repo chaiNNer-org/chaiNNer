@@ -13,6 +13,7 @@ from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.image_utils import normalize_normals
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:blur")
@@ -148,7 +149,7 @@ class AverageColorFixNode(NodeBase):
 
         if scale_factor != 100.0:
             # Make sure reference image dims are not resized to 0
-            h, w = ref_img.shape[:2]
+            h, w, _ = get_h_w_c(ref_img)
             out_dims = (
                 max(math.ceil(w * (scale_factor / 100)), 1),
                 max(math.ceil(h * (scale_factor / 100)), 1),
@@ -160,8 +161,8 @@ class AverageColorFixNode(NodeBase):
                 interpolation=cv2.INTER_AREA,
             )
 
-        input_h, input_w = input_img.shape[:2]
-        ref_h, ref_w = ref_img.shape[:2]
+        input_h, input_w, _ = get_h_w_c(input_img)
+        ref_h, ref_w, _ = get_h_w_c(ref_img)
 
         assert (
             ref_w < input_w and ref_h < input_h
@@ -252,18 +253,18 @@ class ColorTransferNode(NodeBase):
         Transfers the color distribution from source image to target image.
         """
 
-        assert (
-            ref_img.ndim == 3 and ref_img.shape[2] >= 3
-        ), "Reference image should be RGB or RGBA"
+        _, _, img_c = get_h_w_c(img)
+        _, _, ref_c = get_h_w_c(ref_img)
+
+        assert ref_c >= 3, "Reference image should be RGB or RGBA"
 
         # Make sure target has at least 3 channels
-        if img.ndim == 2 or img.shape[2] == 1:
+        if img_c == 1:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
         # Preserve alpha
-        c = img.shape[2]
         alpha = None
-        if c == 4:
+        if img_c == 4:
             alpha = img[:, :, 3]
 
         transfer = color_transfer(
