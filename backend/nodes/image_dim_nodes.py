@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple
+
 import math
 
 import numpy as np
@@ -222,7 +224,7 @@ class GetDimensionsNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-    ) -> any:
+    ) -> Tuple[int, int, int]:
         h, w = img.shape[:2]
         c = img.shape[2] or 1
 
