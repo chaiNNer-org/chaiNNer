@@ -1,5 +1,7 @@
 import {
     HStack,
+    InputGroup,
+    InputLeftAddon,
     NumberDecrementStepper,
     NumberIncrementStepper,
     NumberInput,
@@ -27,6 +29,22 @@ export const getPrecision = (n: number) => {
     return Math.min(10, n.toFixed(15).replace(/0+$/, '').split('.')[1]?.length ?? 0);
 };
 
+const clampMax = (value: number, max_val: number | undefined | null) => {
+    if (max_val !== undefined && max_val !== null) {
+        const valOrMax = Math.min(value, max_val);
+        return valOrMax;
+    }
+    return value;
+};
+
+const clampMin = (value: number, min_val: number | undefined | null) => {
+    if (min_val !== undefined && min_val !== null) {
+        const valOrMin = Math.max(value, min_val);
+        return valOrMin;
+    }
+    return value;
+};
+
 const NumericalInput = memo(
     ({
         label,
@@ -48,9 +66,6 @@ const NumericalInput = memo(
         );
 
         const precision = Math.max(getPrecision(offset), getPrecision(step));
-        const addUnit = (val: string) => `${val}${unit ?? ''}`;
-        const removeUnit = (val: string) =>
-            unit && val.endsWith(unit) ? val.slice(0, val.length - unit.length) : val;
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(index);
@@ -64,7 +79,7 @@ const NumericalInput = memo(
         }, [input]);
 
         const handleChange = (numberAsString: string) => {
-            setInputString(removeUnit(numberAsString));
+            setInputString(numberAsString);
         };
 
         const onBlur = () => {
@@ -77,22 +92,8 @@ const NumericalInput = memo(
             if (!Number.isNaN(valAsNumber)) {
                 const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
 
-                const clampMax = (value: number, max_val: number | undefined | null) => {
-                    if (max_val !== undefined && max_val !== null) {
-                        const valOrMax = Math.min(value, max_val);
-                        return valOrMax;
-                    }
-                    return value;
-                };
                 const maxClamped = clampMax(roundedVal, max);
 
-                const clampMin = (value: number, min_val: number | undefined | null) => {
-                    if (min_val !== undefined && min_val !== null) {
-                        const valOrMin = Math.max(value, min_val);
-                        return valOrMin;
-                    }
-                    return value;
-                };
                 const minClamped = Number(clampMin(maxClamped, min).toFixed(precision));
 
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
@@ -107,25 +108,39 @@ const NumericalInput = memo(
 
         return (
             <HStack w="full">
-                <NumberInput
-                    className="nodrag"
-                    defaultValue={def}
-                    draggable={false}
-                    isDisabled={isLocked || isInputLocked}
-                    max={max ?? Infinity}
-                    min={min ?? -Infinity}
-                    placeholder={label}
-                    step={controlsStep}
-                    value={addUnit(inputString)}
-                    onBlur={onBlur}
-                    onChange={handleChange}
-                >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                    </NumberInputStepper>
-                </NumberInput>
+                <InputGroup>
+                    {unit ? (
+                        <InputLeftAddon
+                            px={2}
+                            w="fit-content"
+                        >
+                            {unit}
+                        </InputLeftAddon>
+                    ) : null}
+                    <NumberInput
+                        className="nodrag"
+                        defaultValue={def}
+                        draggable={false}
+                        isDisabled={isLocked || isInputLocked}
+                        max={max ?? Infinity}
+                        min={min ?? -Infinity}
+                        placeholder={label}
+                        step={controlsStep}
+                        value={inputString}
+                        w={unit ? '90%' : '100%'}
+                        onBlur={onBlur}
+                        onChange={handleChange}
+                    >
+                        <NumberInputField
+                            borderLeftRadius={unit ? 0 : 'md'}
+                            px={unit ? 2 : 4}
+                        />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </InputGroup>
             </HStack>
         );
     }
