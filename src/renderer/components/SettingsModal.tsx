@@ -80,6 +80,7 @@ const AppearanceSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={colorMode === 'dark'}
+                        isChecked={colorMode === 'dark'}
                         size="lg"
                         onChange={() => {
                             toggleColorMode();
@@ -115,6 +116,7 @@ const AppearanceSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={isSnapToGrid}
+                        isChecked={isSnapToGrid}
                         size="lg"
                         onChange={(event: ChangeEvent<HTMLInputElement>) => {
                             setIsSnapToGrid(event.target.checked);
@@ -234,6 +236,7 @@ const EnvironmentSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={isCpu}
+                        isChecked={isCpu}
                         isDisabled={!isNvidiaAvailable}
                         size="lg"
                         onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -271,6 +274,7 @@ const EnvironmentSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={isFp16}
+                        isChecked={isFp16}
                         isDisabled={!isNvidiaAvailable}
                         size="lg"
                         onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -321,6 +325,7 @@ const PythonSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={isSystemPython}
+                        isChecked={isSystemPython}
                         size="lg"
                         onChange={(event: ChangeEvent<HTMLInputElement>) => {
                             setIsSystemPython(event.target.checked);
@@ -370,6 +375,7 @@ const AdvancedSettings = memo(() => {
                 <HStack>
                     <Switch
                         defaultChecked={isDisHwAccel}
+                        isChecked={isDisHwAccel}
                         size="lg"
                         onChange={(event: ChangeEvent<HTMLInputElement>) => {
                             setIsDisHwAccel(event.target.checked);
