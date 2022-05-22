@@ -62,6 +62,12 @@ class MathNode(NodeBase):
             return in1 / in2
         elif op == "pow":
             return in1**in2
+        elif op == "max":
+            return max(in1, in2)
+        elif op == "min":
+            return min(in1, in2)
+        else:
+            raise RuntimeError(f"Unknown operator {op}")
 
 
 @NodeFactory.register("chainner:utility:text_append")
