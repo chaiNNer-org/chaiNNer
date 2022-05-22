@@ -73,6 +73,7 @@ export interface SendChannels {
     'update-open-recent-menu': SendChannelInfo<[string[]]>;
     'clear-open-recent': SendChannelInfo;
     'window-maximized-change': SendChannelInfo<[maximized: boolean]>;
+    'window-blur': SendChannelInfo;
     'show-collected-information': SendChannelInfo<[info: Record<string, unknown>]>;
 
     // history

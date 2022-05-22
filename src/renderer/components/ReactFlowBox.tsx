@@ -18,8 +18,8 @@ import ReactFlow, {
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
+import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { MenuFunctionsContext } from '../contexts/MenuFunctions';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
@@ -146,6 +146,7 @@ interface ReactFlowBoxProps {
 }
 const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
+    const { closeContextMenu } = useContext(ContextMenuContext);
     const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
         schemata,
@@ -158,7 +159,6 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         setSetNodes,
         setSetEdges,
     } = useContext(GlobalContext);
-    const { closeAllMenus } = useContext(MenuFunctionsContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
@@ -249,15 +249,11 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
         [setZoom]
     );
 
-    const onDragOver = useCallback(
-        (event: DragEvent<HTMLDivElement>) => {
-            closeAllMenus();
-            event.preventDefault();
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = 'move';
-        },
-        [closeAllMenus]
-    );
+    const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        // eslint-disable-next-line no-param-reassign
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
 
     const onDragStart = useCallback(() => {
         setHoveredNode(null);
@@ -335,11 +331,11 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesChange={onEdgesChange}
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}
-                onMoveStart={closeAllMenus}
+                onMoveStart={closeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
-                onPaneClick={closeAllMenus}
+                onPaneClick={closeContextMenu}
             >
                 <Background
                     gap={16}

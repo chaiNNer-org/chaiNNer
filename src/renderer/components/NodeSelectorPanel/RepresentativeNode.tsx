@@ -1,9 +1,8 @@
 import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
-import { memo, useMemo, useState } from 'react';
-import { useContext } from 'use-context-selector';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { memo, useState } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors';
+import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { IconFactory } from '../CustomIcons';
 
 interface RepresentativeNodeProps {
@@ -29,10 +28,8 @@ const RepresentativeNode = ({
 
     const [hover, setHover] = useState<boolean>(false);
 
-    const { useNodeFavorites } = useContext(SettingsContext);
-    const [favorites, setFavorites] = useNodeFavorites;
-
-    const isFavorite = useMemo(() => !!favorites.includes(schemaId), [favorites.length]);
+    const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
+    const isFavorite = favorites.has(schemaId);
 
     return (
         <Center
@@ -145,9 +142,9 @@ const RepresentativeNode = ({
                                     verticalAlign="middle"
                                     onClick={() => {
                                         if (isFavorite) {
-                                            setFavorites(favorites.filter((f) => f !== schemaId));
+                                            removeFavorite(schemaId);
                                         } else {
-                                            setFavorites([...favorites, schemaId]);
+                                            addFavorites(schemaId);
                                         }
                                     }}
                                 />

@@ -5,6 +5,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
+import { noContextMenu } from '../../hooks/useContextMenu';
 
 const createGridDotsPath = (size: number, fill: string) => (
     <circle
@@ -142,6 +143,7 @@ const IteratorNodeBody = ({
                 h="full"
                 my={0}
                 w="full"
+                onContextMenu={noContextMenu}
                 onDragEnter={() => {
                     setHoveredNode(id);
                 }}
