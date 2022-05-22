@@ -210,8 +210,8 @@ class GetDimensionsNode(NodeBase):
             ImageInput(),
         ]
         self.outputs = [
-            NumberOutput("Height"),
             NumberOutput("Width"),
+            NumberOutput("Height"),
             NumberOutput("Channels"),
         ]
         self.category = IMAGE_DIMENSION
@@ -226,4 +226,4 @@ class GetDimensionsNode(NodeBase):
         h, w = img.shape[:2]
         c = img.shape[2] or 1
 
-        return h, w, c
+        return w, h, c
