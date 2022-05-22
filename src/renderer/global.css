@@ -112,3 +112,10 @@ body {
     border-radius: 8px;
     background-color: var(--chakra-colors-gray-300);
 }
+
+#menu-button-global-context-menu {
+    pointer-events: none;
+}
+#menu-button-global-context-menu + div {
+    z-index: 100000;
+}

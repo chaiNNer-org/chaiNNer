@@ -20,7 +20,6 @@ import ReactFlowBox from './components/ReactFlowBox';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
-import { MenuFunctionsProvider } from './contexts/MenuFunctions';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
@@ -126,31 +125,29 @@ const Main = ({ port }: MainProps) => {
                     schemata={schemata}
                 >
                     <ExecutionProvider>
-                        <MenuFunctionsProvider>
-                            <HistoryProvider>
-                                <VStack
-                                    bg={bgColor}
-                                    overflow="hidden"
-                                    p={2}
+                        <HistoryProvider>
+                            <VStack
+                                bg={bgColor}
+                                overflow="hidden"
+                                p={2}
+                            >
+                                <Header />
+                                <HStack
+                                    h={height - 80}
+                                    w="full"
                                 >
-                                    <Header />
-                                    <HStack
-                                        h={height - 80}
-                                        w="full"
-                                    >
-                                        <NodeSelector
-                                            height={height}
-                                            schemata={schemata}
-                                        />
-                                        <ReactFlowBox
-                                            edgeTypes={edgeTypes}
-                                            nodeTypes={nodeTypes}
-                                            wrapperRef={reactFlowWrapper}
-                                        />
-                                    </HStack>
-                                </VStack>
-                            </HistoryProvider>
-                        </MenuFunctionsProvider>
+                                    <NodeSelector
+                                        height={height}
+                                        schemata={schemata}
+                                    />
+                                    <ReactFlowBox
+                                        edgeTypes={edgeTypes}
+                                        nodeTypes={nodeTypes}
+                                        wrapperRef={reactFlowWrapper}
+                                    />
+                                </HStack>
+                            </VStack>
+                        </HistoryProvider>
                     </ExecutionProvider>
                 </GlobalProvider>
             </SettingsProvider>

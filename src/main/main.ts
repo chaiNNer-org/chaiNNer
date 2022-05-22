@@ -944,6 +944,9 @@ const createWindow = async () => {
     mainWindow.on('unmaximize', () => {
         mainWindow.webContents.send('window-maximized-change', false);
     });
+    mainWindow.on('blur', () => {
+        mainWindow.webContents.send('window-blur');
+    });
 
     // Opening file with chaiNNer
     const { file: filepath } = getArguments();

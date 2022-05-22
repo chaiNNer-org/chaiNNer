@@ -4,6 +4,7 @@ import { useState } from 'react';
 import './global.css';
 import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
+import { ContextMenuProvider } from './contexts/ContextMenuContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import Main from './main';
 import theme from './theme';
@@ -47,9 +48,11 @@ const App = () => {
     return (
         <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-            <AlertBoxProvider>
-                <Component />
-            </AlertBoxProvider>
+            <ContextMenuProvider>
+                <AlertBoxProvider>
+                    <Component />
+                </AlertBoxProvider>
+            </ContextMenuProvider>
         </ChakraProvider>
     );
 };

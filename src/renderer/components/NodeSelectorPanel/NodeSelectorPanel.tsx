@@ -19,10 +19,9 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
-import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
 import { SchemaMap } from '../../../common/SchemaMap';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import DependencyManager from '../DependencyManager';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { RegularAccordionItem } from './RegularAccordionItem';
@@ -99,11 +98,9 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
 
     const [collapsed, setCollapsed] = useState<boolean>(false);
 
-    const { useNodeFavorites } = useContext(SettingsContext);
-    const [favorites] = useNodeFavorites;
+    const { favorites } = useNodeFavorites();
     const favoriteNodes = useMemo(() => {
-        const favoriteSet = new Set(favorites);
-        return [...byCategories.values()].flat().filter((n) => favoriteSet.has(n.schemaId));
+        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
     }, [byCategories, favorites]);
 
     return (
@@ -181,7 +178,7 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 allowMultiple
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
-                                {favorites.length > 0 && (
+                                {favorites.size > 0 && (
                                     <FavoritesAccordionItem
                                         collapsed={collapsed}
                                         favoriteNodes={favoriteNodes}

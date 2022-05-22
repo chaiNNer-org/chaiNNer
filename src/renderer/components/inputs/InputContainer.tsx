@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
     id: string;
@@ -47,6 +48,7 @@ const InputContainer = memo(
                                 background: handleColor,
                             }}
                             type="target"
+                            onContextMenu={noContextMenu}
                         />
                     </div>
                     {children}
