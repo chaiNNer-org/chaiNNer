@@ -14,6 +14,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
+import { areApproximatelyEqual } from '../../../common/util';
 import { getPrecision } from './NumberInput';
 import { InputProps } from './props';
 
@@ -62,13 +63,18 @@ const SliderInput = memo(
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
-        const precision = Math.max(getPrecision(offset), getPrecision(step));
+        // Clamping offset because for some reason it is coming in as an e-14 float
+        const clampedOffset = areApproximatelyEqual(offset, 0) ? 0 : offset;
+        const precision = Math.max(getPrecision(clampedOffset), getPrecision(step));
         const addUnit = (val: string) => `${val}${unit ?? ''}`;
-        const dynamicNumInputWidth = 3 + 0.5 * precision + 0.5 * (unit?.length ?? 0);
+        const dynamicNumInputWidth =
+            3 + 0.5 * precision + (unit !== null && unit !== undefined ? 1.1 : 0);
 
         useEffect(() => {
             setSliderValue(input);
-            setInputString(String(input));
+            if (!Number.isNaN(input)) {
+                setInputString(String(input));
+            }
         }, [input]);
 
         const onSliderChange = (sliderInput: number) => {
@@ -83,10 +89,13 @@ const SliderInput = memo(
 
         const onBlur = () => {
             const valAsNumber =
-                precision > 0 ? parseFloat(inputString) : Math.round(parseFloat(inputString));
+                precision > 0
+                    ? parseFloat(inputString !== '' ? inputString : String(def))
+                    : Math.round(parseFloat(inputString !== '' ? inputString : String(def)));
 
             if (!Number.isNaN(valAsNumber)) {
-                const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
+                const roundedVal =
+                    Math.round((valAsNumber - clampedOffset) / step) * step + clampedOffset;
 
                 const clampMax = (value: number, max_val: number | undefined | null) => {
                     if (max_val !== undefined && max_val !== null) {
@@ -110,6 +119,7 @@ const SliderInput = memo(
                 Promise.resolve()
                     .then(() => {
                         setInput(minClamped);
+                        setInputString(String(minClamped));
                     }) // eslint-disable-next-line no-console
                     .catch(() => console.log('Failed to set input to minClamped.'));
             }
@@ -168,7 +178,6 @@ const SliderInput = memo(
                         max={max}
                         min={min}
                         placeholder={def !== undefined ? String(def) : undefined}
-                        precision={precision}
                         size="xs"
                         step={controlsStep}
                         value={addUnit(inputString)}
