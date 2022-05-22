@@ -85,6 +85,14 @@ def MathOpsDropdown() -> DropDownInput:
                 "option": "Exponent/Power (^)",
                 "value": "pow",
             },
+            {
+                "option": "Maximum",
+                "value": "max",
+            },
+            {
+                "option": "Minimum",
+                "value": "min",
+            },
         ],
         input_type="math-operations",
     )
