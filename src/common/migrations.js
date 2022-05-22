@@ -261,7 +261,7 @@ const toV070 = (data) => {
     return data;
 };
 
-const toV072 = (data) => {
+const toV080 = (data) => {
     data.nodes.forEach((node) => {
         // Convert Resize (Factor) and Average Color Fix to percentage
         if (node.data.schemaId === 'chainner:image:resize_factor') {
@@ -337,12 +337,12 @@ export const migrate = (_version, data) => {
         }
     }
 
-    // v0.7.2
-    if (semver.lt(version, '0.7.2')) {
+    // v0.8.0
+    if (semver.lt(version, '0.8.0')) {
         try {
-            convertedData = toV072(convertedData);
+            convertedData = toV080(convertedData);
         } catch (error) {
-            log.warn('Failed to convert to v0.7.2', error);
+            log.warn('Failed to convert to v0.8.0', error);
         }
     }
 
