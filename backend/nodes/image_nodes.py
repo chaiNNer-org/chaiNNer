@@ -21,6 +21,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:load")
@@ -46,11 +47,7 @@ class ImReadNode(NodeBase):
 
     def get_extra_data(self) -> Dict:
         img = self.result[0]
-
-        if img.ndim == 2:
-            h, w, c = (*img.shape[:2], 1)
-        else:
-            h, w, c = img.shape
+        h, w, c = get_h_w_c(img)
 
         import base64
 
@@ -92,19 +89,18 @@ class ImReadNode(NodeBase):
                     logger.error("Error loading image.")
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
-                    )
+                    ) from e
         elif ext.lower() in get_pil_formats():
             try:
                 from PIL import Image
 
                 im = Image.open(path)
                 img = np.array(im)
-                if img.ndim > 2:
-                    h, w, c = img.shape
-                    if c == 3:
-                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                    elif c == 4:
-                        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
+                _, _, c = get_h_w_c(img)
+                if c == 3:
+                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                elif c == 4:
+                    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
             except:
                 raise RuntimeError(
                     f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'

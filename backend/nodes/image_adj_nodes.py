@@ -10,6 +10,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:hue_and_saturation")
@@ -22,8 +23,8 @@ class HueAndSaturationNode(NodeBase):
         self.description = "Adjust the hue and saturation of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Hue", -180, 180, 0),
-            SliderInput("Saturation", -255, 255, 0),
+            SliderInput("Hue", minimum=-180, maximum=180, default=0),
+            SliderInput("Saturation", minimum=-255, maximum=255, default=0),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -42,12 +43,13 @@ class HueAndSaturationNode(NodeBase):
     def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
         """Adjust the hue and saturation of an image"""
 
+        _, _, c = get_h_w_c(img)[2]
+
         # Pass through grayscale and unadjusted images
-        if img.ndim < 3 or img.shape[2] == 1 or (hue == 0 and saturation == 0):
+        if c == 1 or (hue == 0 and saturation == 0):
             return img
 
         # Preserve alpha channel if it exists
-        c = img.shape[2]
         alpha = None
         if c > 3:
             alpha = img[:, :, 3]
@@ -78,8 +80,8 @@ class BrightnessAndContrastNode(NodeBase):
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Brightness", -255, 255, 0),
-            SliderInput("Contrast", -255, 255, 0),
+            SliderInput("Brightness", minimum=-255, maximum=255, default=0),
+            SliderInput("Contrast", minimum=-255, maximum=255, default=0),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -138,8 +140,8 @@ class ThresholdNode(NodeBase):
         self.description = "Perform a threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Threshold", 0, 100, 50),
-            SliderInput("Maximum Value", 0, 100, 100),
+            SliderInput("Threshold", maximum=100, default=50),
+            SliderInput("Maximum Value", maximum=100, default=100),
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -175,11 +177,16 @@ class AdaptiveThresholdNode(NodeBase):
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Maximum Value", 0, 100, 100),
+            SliderInput("Maximum Value", maximum=100, default=100),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
-            OddIntegerInput("Block Size", default=3, minimum=3),
-            IntegerInput("Mean Subtraction"),
+            NumberInput(
+                "Block Size",
+                step=2,
+                default=3,
+                minimum=3,
+            ),
+            NumberInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT

@@ -13,6 +13,7 @@ from .properties.outputs import *
 from .utils.color_transfer import color_transfer
 from .utils.image_utils import normalize_normals
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:blur")
@@ -25,9 +26,9 @@ class BlurNode(NodeBase):
         self.description = "Apply blur to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
-        ]  # , IntegerInput("Sigma")]#,BlurInput()]
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
+        ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
         self.name = "Blur"
@@ -39,10 +40,9 @@ class BlurNode(NodeBase):
         img: np.ndarray,
         amount_x: int,
         amount_y: int,
-        # sigma: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
-
+        # TODO: Fix this so it's not just a gaussian approximation
         ksize = (amount_x, amount_y)
         for __i in range(16):
             img = cv2.blur(img, ksize)
@@ -60,8 +60,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount X"),
-            IntegerInput("Amount Y"),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -92,7 +92,7 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image"
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -127,12 +127,13 @@ class AverageColorFixNode(NodeBase):
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
-            BoundedNumberInput(
-                "Reference Image Scale Factor (%)",
-                minimum=0.1,
-                maximum=100,
+            NumberInput(
+                "Reference Image Scale Factor",
+                step=0.0001,
+                controls_step=12.5,
+                maximum=100.0,
                 default=12.5,
-                step=12.5,
+                unit="%",
             ),
         ]
         self.outputs = [ImageOutput()]
@@ -148,10 +149,10 @@ class AverageColorFixNode(NodeBase):
 
         if scale_factor != 100.0:
             # Make sure reference image dims are not resized to 0
-            h, w = ref_img.shape[:2]
+            h, w, _ = get_h_w_c(ref_img)
             out_dims = (
-                math.ceil(w * (scale_factor / 100)),
-                math.ceil(h * (scale_factor / 100)),
+                max(math.ceil(w * (scale_factor / 100)), 1),
+                max(math.ceil(h * (scale_factor / 100)), 1),
             )
 
             ref_img = cv2.resize(
@@ -160,8 +161,8 @@ class AverageColorFixNode(NodeBase):
                 interpolation=cv2.INTER_AREA,
             )
 
-        input_h, input_w = input_img.shape[:2]
-        ref_h, ref_w = ref_img.shape[:2]
+        input_h, input_w, _ = get_h_w_c(input_img)
+        ref_h, ref_w, _ = get_h_w_c(ref_img)
 
         assert (
             ref_w < input_w and ref_h < input_h
@@ -252,18 +253,18 @@ class ColorTransferNode(NodeBase):
         Transfers the color distribution from source image to target image.
         """
 
-        assert (
-            ref_img.ndim == 3 and ref_img.shape[2] >= 3
-        ), "Reference image should be RGB or RGBA"
+        _, _, img_c = get_h_w_c(img)
+        _, _, ref_c = get_h_w_c(ref_img)
+
+        assert ref_c >= 3, "Reference image should be RGB or RGBA"
 
         # Make sure target has at least 3 channels
-        if img.ndim == 2 or img.shape[2] == 1:
+        if img_c == 1:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
         # Preserve alpha
-        c = img.shape[2]
         alpha = None
-        if c == 4:
+        if img_c == 4:
             alpha = img[:, :, 3]
 
         transfer = color_transfer(
@@ -325,9 +326,9 @@ class NormalAdditionNode(NodeBase):
             is guaranteed to be normalized."""
         self.inputs = [
             ImageInput("Normal Map 1"),
-            SliderInput("Strength 1", 0, 100, 100),
+            SliderInput("Strength 1", maximum=100, default=100),
             ImageInput("Normal Map 2"),
-            SliderInput("Strength 2", 0, 100, 100),
+            SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [ImageOutput("Normal Map")]
         self.category = IMAGE_FILTER

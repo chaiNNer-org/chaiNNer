@@ -1,6 +1,5 @@
 import math
 import os
-import platform
 
 import numpy as np
 from process import Executor
@@ -13,6 +12,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_available_image_formats, normalize
+from .utils.utils import get_h_w_c
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -213,7 +213,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         writer,
         fps,
     ) -> any:
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
         if writer["out"] is None and video_type != "none":
             mp4_codec = "avc1"
             avi_codec = "divx"

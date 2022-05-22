@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Edge, Node, Viewport, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -60,7 +60,7 @@ class EditHistory<T> {
     }
 }
 
-type HistoryState = readonly [Node<NodeData>[], Edge<EdgeData>[], Viewport];
+type HistoryState = readonly [Node<NodeData>[], Edge<EdgeData>[]];
 
 export function HistoryProvider({ children }: React.PropsWithChildren<unknown>): JSX.Element {
     const changeId = useContextSelector(
@@ -68,10 +68,10 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
         (c) => `${c.nodeChanges},${c.edgeChanges}`
     );
     const { changeNodes, changeEdges } = useContext(GlobalContext);
-    const { getNodes, getEdges, getViewport, setViewport } = useReactFlow();
+    const { getNodes, getEdges } = useReactFlow();
 
     const [historyObj] = useState<{ history: EditHistory<HistoryState> }>(() => {
-        const initial: HistoryState = [getNodes(), getEdges(), getViewport()];
+        const initial: HistoryState = [getNodes(), getEdges()];
         return { history: EditHistory.create(initial, 100) };
     });
 
@@ -86,13 +86,12 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
     }, [selfUpdate, setSelfUpdate]);
 
     const apply = useCallback(
-        ([nodes, edges, viewport]: HistoryState) => {
+        ([nodes, edges]: HistoryState) => {
             setSelfUpdate(true);
             changeNodes(nodes);
             changeEdges(edges);
-            setViewport({ ...viewport });
         },
-        [setSelfUpdate, changeNodes, changeEdges, setViewport]
+        [setSelfUpdate, changeNodes, changeEdges]
     );
 
     // commit to history
@@ -100,11 +99,12 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
         if (selfUpdate) return noop;
 
         const id = setTimeout(() => {
-            historyObj.history = historyObj.history.commit([getNodes(), getEdges(), getViewport()]);
-        }, 200);
+            historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
+        }, 250);
         return () => clearTimeout(id);
     }, [changeId]);
 
+    // Handler for undo menuitem
     useIpcRendererListener(
         'history-undo',
         () => {
@@ -114,6 +114,7 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
         [apply]
     );
 
+    // Handler for redo menuitem
     useIpcRendererListener(
         'history-redo',
         () => {
@@ -123,9 +124,19 @@ export function HistoryProvider({ children }: React.PropsWithChildren<unknown>):
         [apply]
     );
 
-    // Handler for ctrl+shift+z
+    // Handler for undo hotkeys
     useHotkeys(
-        'ctrl+shift+z, cmd+shift+z',
+        'ctrl+z, cmd+z',
+        () => {
+            historyObj.history = historyObj.history.undo();
+            apply(historyObj.history.current);
+        },
+        [apply]
+    );
+
+    // Handler for redo hotkeys
+    useHotkeys(
+        'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
         () => {
             historyObj.history = historyObj.history.redo();
             apply(historyObj.history.current);

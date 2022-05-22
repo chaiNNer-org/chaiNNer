@@ -1,52 +1,33 @@
-import {
-    CheckCircleIcon,
-    CloseIcon,
-    CopyIcon,
-    DeleteIcon,
-    LockIcon,
-    UnlockIcon,
-    WarningIcon,
-} from '@chakra-ui/icons';
-import {
-    Center,
-    Flex,
-    Icon,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-    Portal,
-    Spacer,
-    Tooltip,
-    useColorModeValue,
-} from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { CheckCircleIcon, LockIcon, UnlockIcon, WarningIcon } from '@chakra-ui/icons';
+import { Center, Flex, Icon, Spacer, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { memo } from 'react';
 import { MdMoreHoriz } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { MenuFunctionsContext } from '../../contexts/MenuFunctions';
+import { UseContextMenu } from '../../hooks/useContextMenu';
 
 interface NodeFooterProps {
     id: string;
     isValid?: boolean;
     invalidReason?: string;
     isLocked?: boolean;
+    menu?: UseContextMenu;
 }
 
-function NodeFooter({ id, isValid = false, invalidReason = '', isLocked }: NodeFooterProps) {
-    const { removeNodeById, clearNode, toggleNodeLock, duplicateNode } = useContext(GlobalContext);
-    const { addMenuCloseFunction } = useContext(MenuFunctionsContext);
+const NodeFooter = ({
+    id,
+    isValid = false,
+    invalidReason = '',
+    isLocked,
+    menu,
+}: NodeFooterProps) => {
+    const { toggleNodeLock } = useContext(GlobalContext);
 
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     // const invalidShade = useColorModeValue('red.200', 'red.900');
     const invalidShade = useColorModeValue('red.400', 'red.600');
     // const iconShade = useColorModeValue('gray.400', 'gray.800');
-
-    const [isOpen, setIsOpen] = useState(false);
-    useEffect(() => {
-        return addMenuCloseFunction(() => setIsOpen(false), id);
-    }, [id]);
 
     return (
         <Flex
@@ -96,70 +77,20 @@ function NodeFooter({ id, isValid = false, invalidReason = '', isLocked }: NodeF
                 </Center>
             </Tooltip>
             <Spacer />
-            <Center>
-                <Menu
-                    closeOnBlur
-                    closeOnSelect
-                    isOpen={isOpen}
-                    onClose={() => {
-                        setIsOpen(false);
-                    }}
-                    onOpen={() => {
-                        setIsOpen(true);
-                    }}
-                    // isLazy
-                >
-                    <MenuButton
-                        as={Center}
-                        className="nodrag"
+            {menu && (
+                <Center className="nodrag">
+                    <Icon
+                        as={MdMoreHoriz}
+                        color={iconShade}
                         cursor="pointer"
                         h={6}
                         mb={-2}
                         mt={-2}
-                        verticalAlign="middle"
                         w={6}
-                    >
-                        <Center>
-                            <Icon
-                                as={MdMoreHoriz}
-                                color={iconShade}
-                                h={6}
-                                mb={-2}
-                                mt={-2}
-                                w={6}
-                            />
-                        </Center>
-                    </MenuButton>
-                    <Portal>
-                        <MenuList className="nodrag">
-                            <MenuItem
-                                icon={<CopyIcon />}
-                                onClick={() => {
-                                    duplicateNode(id);
-                                }}
-                            >
-                                Duplicate
-                            </MenuItem>
-                            <MenuItem
-                                icon={<CloseIcon />}
-                                onClick={() => {
-                                    clearNode(id);
-                                }}
-                            >
-                                Clear
-                            </MenuItem>
-                            <MenuItem
-                                icon={<DeleteIcon />}
-                                onClick={() => {
-                                    removeNodeById(id);
-                                }}
-                            >
-                                Delete
-                            </MenuItem>
-                        </MenuList>
-                    </Portal>
-                </Menu>
-            </Center>
+                        onClick={menu.onClick}
+                    />
+                </Center>
+            )}
         </Flex>
     );
 }

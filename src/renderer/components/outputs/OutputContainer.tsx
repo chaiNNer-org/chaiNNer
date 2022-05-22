@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface OutputContainerProps {
     hasHandle: boolean;
@@ -47,6 +48,7 @@ const OutputContainer = memo(
                                 background: handleColor,
                             }}
                             type="source"
+                            onContextMenu={noContextMenu}
                         />
                     </div>
                 </HStack>

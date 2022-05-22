@@ -757,6 +757,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                 {
                     label: 'Undo',
                     accelerator: 'CmdOrCtrl+Z',
+                    registerAccelerator: false,
                     click: () => {
                         mainWindow.webContents.send('history-undo');
                     },
@@ -764,6 +765,7 @@ const setMainMenu = (openRecentRev: string[]) => {
                 {
                     label: 'Redo',
                     accelerator: 'CmdOrCtrl+Y',
+                    registerAccelerator: false,
                     click: () => {
                         mainWindow.webContents.send('history-redo');
                     },
@@ -942,6 +944,9 @@ const createWindow = async () => {
     });
     mainWindow.on('unmaximize', () => {
         mainWindow.webContents.send('window-maximized-change', false);
+    });
+    mainWindow.on('blur', () => {
+        mainWindow.webContents.send('window-blur');
     });
 
     // Opening file with chaiNNer

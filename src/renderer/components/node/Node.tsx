@@ -10,6 +10,7 @@ import checkNodeValidity from '../../helpers/checkNodeValidity';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
+import { useNodeMenu } from '../../hooks/useNodeMenu';
 import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
 import NodeHeader from './NodeHeader';
@@ -131,6 +132,8 @@ const Node = memo(({ data, selected }: NodeProps) => {
         }
     };
 
+    const menu = useNodeMenu(id);
+
     return (
         <Center
             bg={useColorModeValue('gray.300', 'gray.700')}
@@ -141,6 +144,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             py={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
+            onContextMenu={menu.onContextMenu}
             onDragEnter={() => {
                 if (parentNode) {
                     setHoveredNode(parentNode);
@@ -171,6 +175,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                     invalidReason={validity[1]}
                     isLocked={isLocked}
                     isValid={validity[0]}
+                    menu={menu}
                 />
             </VStack>
         </Center>

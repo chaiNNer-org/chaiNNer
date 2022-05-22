@@ -263,9 +263,10 @@ class NcnnInterpolateModelsNode(NodeBase):
             NcnnNetInput("Model B"),
             SliderInput(
                 "Weights",
-                0,
-                100,
-                50,
+                controls_step=5,
+                maximum=100,
+                default=50,
+                unit="%",
                 note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
                 ends=("A", "B"),
             ),

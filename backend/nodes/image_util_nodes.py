@@ -13,6 +13,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import with_background
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:overlay")
@@ -26,9 +27,9 @@ class ImOverlay(NodeBase):
         self.inputs = [
             ImageInput("Base"),
             ImageInput("Overlay A"),
-            SliderInput("Opacity A", default=50, min_val=0, max_val=100),
+            SliderInput("Opacity A", maximum=100, default=50),
             ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", default=50, min_val=0, max_val=100, optional=True),
+            SliderInput("Opacity B", maximum=100, default=50, optional=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -55,17 +56,17 @@ class ImOverlay(NodeBase):
         max_h, max_w, max_c = 0, 0, 1
         for img in base, ov1, ov2:
             if img is not None:
-                h, w = img.shape[:2]
+                h, w, c = get_h_w_c(img)
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
 
                 # All inputs must be BGRA for alpha compositing to work
-                if img.ndim == 2 or img.shape[2] == 1:
+                if c == 1:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-                elif img.shape[2] == 3:
+                elif c == 3:
                     img = np.dstack((img, np.ones((h, w), np.float32)))
-                elif img.shape[2] != 4:  # Explode if there are not 1, 3, or 4 channels
-                    logger.error(f"Number of channels ({img.shape[2]}) unexpected")
+                elif c != 4:  # Explode if there are not 1, 3, or 4 channels
+                    logger.error(f"Number of channels ({c}) unexpected")
 
                 imgs.append(img)
         else:
@@ -132,10 +133,9 @@ class StackNode(NodeBase):
         max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
             if img is not None and type(img) != str:
-                h, w = img.shape[:2]
-                if img.ndim == 2:  # len(img.shape) needs to be 3, grayscale len only 2
+                h, w, c = get_h_w_c(img)
+                if c == 1:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-                c = img.shape[2]
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
@@ -147,8 +147,7 @@ class StackNode(NodeBase):
 
         fixed_imgs = []
         for img in imgs:
-            h, w = img.shape[:2]
-            c = img.shape[2] or 1
+            h, w, c = get_h_w_c(img)
 
             fixed_img = img
             # Fix images so they resize proportionally to the max image
@@ -263,7 +262,7 @@ class BorderMakeNode(NodeBase):
         self.inputs = [
             ImageInput(),
             BorderInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -277,7 +276,8 @@ class BorderMakeNode(NodeBase):
         amount = int(amount)
         border_type = int(border_type)
 
-        if (img.ndim == 3 and img.shape[2] == 4) and border_type == cv2.BORDER_CONSTANT:
+        _, _, c = get_h_w_c(img)
+        if c == 4 and border_type == cv2.BORDER_CONSTANT:
             value = (0, 0, 0, 1)
         else:
             value = 0
@@ -309,8 +309,8 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            BoundlessIntegerInput("Amount X"),
-            BoundlessIntegerInput("Amount Y"),
+            NumberInput("Amount X"),
+            NumberInput("Amount Y"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -326,7 +326,7 @@ class ShiftNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the position of an image"""
 
-        num_rows, num_cols = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])
-        img = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+        img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img

@@ -65,12 +65,6 @@ const pickInput = (type: string, props: FullInputProps) => {
         case 'number::any':
             InputType = NumberInput;
             break;
-        case 'number::integer':
-            InputType = NumberInput;
-            break;
-        case 'number::integer::odd':
-            InputType = NumberInput;
-            break;
         case 'number::slider':
             InputType = SliderInput;
             break;

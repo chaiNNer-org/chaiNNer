@@ -11,6 +11,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:split_channels")
@@ -113,13 +114,12 @@ class ChannelMergeRGBANode(NodeBase):
         img = np.concatenate(imgs, axis=2)
 
         # ensure output is safe number of channels
-        if img.ndim > 2:
-            h, w, c = img.shape
-            if c == 2:
-                b, g = cv2.split(img)
-                img = cv2.merge((b, g, g))
-            if c > 4:
-                img = img[:, :, :4]
+        _, _, c = get_h_w_c(img)
+        if c == 2:
+            b, g = cv2.split(img)
+            img = cv2.merge((b, g, g))
+        elif c > 4:
+            img = img[:, :, :4]
 
         return img
 
@@ -230,9 +230,8 @@ class FillAlphaNode(NodeBase):
     def run(self, img: np.ndarray, method: int) -> np.ndarray:
         """Fills transparent holes in the given image"""
 
-        assert (
-            img.ndim == 3 and img.shape[2] == 4
-        ), "The image has to be an RGBA image to fill its alpha"
+        _, _, c = get_h_w_c(img)
+        assert c == 4, "The image has to be an RGBA image to fill its alpha"
 
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha

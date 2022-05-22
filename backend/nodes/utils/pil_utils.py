@@ -6,6 +6,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 from sanic.log import logger
+from .utils import get_h_w_c
 
 
 class InterpolationMethod:
@@ -54,7 +55,7 @@ def resize(
     if interpolation == InterpolationMethod.AUTO:
         # automatically chose a method that works
         new_w, new_h = out_dims
-        old_h, old_w = img.shape[:2]
+        old_h, old_w, _ = get_h_w_c(img)
         if new_w > old_w or new_h > old_h:
             interpolation = InterpolationMethod.LANCZOS
         else:
@@ -84,8 +85,9 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
             os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"
         )
         font = ImageFont.truetype(font_path, 32)
-        text_x = img.shape[1] // 2
-        text_y = img.shape[0] - 21
+        h, w, _ = get_h_w_c(img)
+        text_x = w // 2
+        text_y = h - 21
 
         d = ImageDraw.Draw(pimg)
         d.text((text_x, text_y), caption, font=font, anchor="mm", align="center")
@@ -106,8 +108,9 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
             img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
 
-        text_x = floor((img.shape[1] - textsize[0]) / 2)
-        text_y = ceil(img.shape[0] - ((caption_height - textsize[1]) / 2))
+        h, w, _ = get_h_w_c(img)
+        text_x = floor((w - textsize[0]) / 2)
+        text_y = ceil(h - ((caption_height - textsize[1]) / 2))
 
         cv2.putText(
             img,

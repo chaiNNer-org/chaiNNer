@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple
+
 import math
 
 import numpy as np
@@ -12,6 +14,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
 from .utils.pil_utils import *
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:resize_factor")
@@ -27,8 +30,12 @@ class ImResizeByFactorNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            BoundedNumberInput(
-                "Scale Factor (%)", minimum=0.1, maximum=None, default=100.0, step=25.0
+            NumberInput(
+                "Scale Factor",
+                step=0.0001,
+                controls_step=25.0,
+                default=100.0,
+                unit="%",
             ),
             InterpolationInput(),
         ]
@@ -43,8 +50,11 @@ class ImResizeByFactorNode(NodeBase):
 
         logger.info(f"Resizing image by {scale} via {interpolation}")
 
-        h, w = img.shape[:2]
-        out_dims = (math.ceil(w * (scale / 100)), math.ceil(h * (scale / 100)))
+        h, w, _ = get_h_w_c(img)
+        out_dims = (
+            max(math.ceil(w * (scale / 100)), 1),
+            max(math.ceil(h * (scale / 100)), 1),
+        )
 
         return resize(img, out_dims, interpolation)
 
@@ -62,8 +72,8 @@ class ImResizeToResolutionNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            BoundedIntegerInput("Width", minimum=1, maximum=None, default=1),
-            BoundedIntegerInput("Height", minimum=1, maximum=None, default=1),
+            NumberInput("Width", minimum=1, default=1, unit="px"),
+            NumberInput("Height", minimum=1, default=1, unit="px"),
             InterpolationInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -94,10 +104,10 @@ class CropNode(NodeBase):
         self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
         self.inputs = [
             ImageInput(),
-            IntegerInput("Top Offset"),
-            IntegerInput("Left Offset"),
-            IntegerInput("Height"),
-            IntegerInput("Width"),
+            NumberInput("Top Offset", unit="px"),
+            NumberInput("Left Offset", unit="px"),
+            NumberInput("Height", unit="px"),
+            NumberInput("Width", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -110,7 +120,7 @@ class CropNode(NodeBase):
     ) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert top < h, "Cropped area would result in image with no height"
         assert left < w, "Cropped area would result in image with no width"
@@ -132,7 +142,7 @@ class BorderCropNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            IntegerInput("Amount"),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -143,7 +153,7 @@ class BorderCropNode(NodeBase):
     def run(self, img: np.ndarray, amount: int) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert 2 * amount < h, "Cropped area would result in image with no height"
         assert 2 * amount < w, "Cropped area would result in image with no width"
@@ -163,10 +173,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            IntegerInput("Top"),
-            IntegerInput("Left"),
-            IntegerInput("Right"),
-            IntegerInput("Bottom"),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
@@ -179,7 +189,7 @@ class EdgeCropNode(NodeBase):
     ) -> np.ndarray:
         """Crop an image"""
 
-        h, w = img.shape[:2]
+        h, w, _ = get_h_w_c(img)
 
         assert top + bottom < h, "Cropped area would result in image with no height"
         assert left + right < w, "Cropped area would result in image with no width"
@@ -187,3 +197,34 @@ class EdgeCropNode(NodeBase):
         result = img[top : h - bottom, left : w - right]
 
         return result
+
+
+@NodeFactory.register("chainner:image:get_dims")
+class GetDimensionsNode(NodeBase):
+    """Node for getting the dimensions of an image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Get the Height, Width, and number of Channels from an image."
+        )
+        self.inputs = [
+            ImageInput(),
+        ]
+        self.outputs = [
+            NumberOutput("Width"),
+            NumberOutput("Height"),
+            NumberOutput("Channels"),
+        ]
+        self.category = IMAGE_DIMENSION
+        self.name = "Get Dimensions"
+        self.icon = "BsRulers"
+        self.sub = "Utility"
+
+    def run(
+        self,
+        img: np.ndarray,
+    ) -> Tuple[int, int, int]:
+        h, w, c = get_h_w_c(img)
+        return w, h, c

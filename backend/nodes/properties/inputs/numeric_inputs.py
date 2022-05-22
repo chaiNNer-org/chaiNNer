@@ -3,21 +3,28 @@ from typing import Union, Tuple
 from .base_input import BaseInput
 
 
-def clampInt(value, min_value, max_value):
-    value = int(value)
+def clampNumber(
+    value: Union[float, int],
+    offset: Union[float, int],
+    step: Union[float, int],
+    min_value: Union[float, int],
+    max_value: Union[float, int],
+) -> Union[float, int]:
+    # Convert proper number type
+    if offset % 1 == 0 and step % 1 == 0:
+        value = int(value)
+    else:
+        value = float(value)
+
+    # Ensure value adheres to step and offset
+    value = round((value - offset) / step) * step + offset
+
+    # Clamp to max and min, correcting for max/min not aligning with offset + n * step
     if max_value is not None:
         value = min(value, max_value)
     if min_value is not None:
         value = max(value, min_value)
-    return value
 
-
-def clampFloat(value, min_value, max_value):
-    value = float(value)
-    if max_value is not None:
-        value = min(value, max_value)
-    if min_value is not None:
-        value = max(value, min_value)
     return value
 
 
@@ -27,19 +34,28 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
-        default=0.0,
-        minimum=0,
-        maximum=None,
-        step=1,
-        optional=False,
-        number_type="any",
+        step: Union[float, int] = 1,
+        controls_step: Union[float, int] = None,
+        default: Union[float, int] = 0,
+        minimum: Union[float, int] = 0,
+        maximum: Union[float, int] = None,
+        unit: str = None,
+        has_handle: bool = True,
+        optional: bool = False,
+        number_type: str = "any",
         note_expression: str = None,
     ):
         super().__init__(f"number::{number_type}", label)
+        # Step is for the actual increment.
+        # controls_step is for increment/decrement arrows.
+        self.step = step
+        self.controls_step = step if controls_step is None else controls_step
+        self.offset = minimum % step if minimum is not None else 0
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
-        self.step = step
+        self.unit = unit
+        self.has_handle = has_handle
         self.optional = optional
         self.note_expression = note_expression
 
@@ -51,94 +67,16 @@ class NumberInput(BaseInput):
             "max": self.maximum,
             "noteExpression": self.note_expression,
             "def": self.default,
+            "offset": self.offset,
             "step": self.step,
-            "hasHandle": True,
+            "controlsStep": self.controls_step,
+            "unit": self.unit,
+            "hasHandle": self.has_handle,
             "optional": self.optional,
         }
 
     def enforce(self, value):
-        return clampFloat(value, self.minimum, self.maximum)
-
-
-class IntegerInput(NumberInput):
-    """Input an integer number"""
-
-    def __init__(self, label: str):
-        super().__init__(label, default=0, minimum=0, maximum=None, step=None)
-
-    def enforce(self, value):
-        return clampInt(value, self.minimum, self.maximum)
-
-
-class BoundedNumberInput(NumberInput):
-    """Input for a bounded float number range"""
-
-    def __init__(
-        self,
-        label: str,
-        minimum: float = 0.0,
-        maximum: float = 1.0,
-        default: float = 0.5,
-        step: float = 0.25,
-    ):
-        super().__init__(
-            label, default=default, minimum=minimum, maximum=maximum, step=step
-        )
-
-    def enforce(self, value):
-        return clampFloat(value, self.minimum, self.maximum)
-
-
-class OddIntegerInput(NumberInput):
-    """Input for an odd integer number"""
-
-    def __init__(self, label: str, default: int = 1, minimum: int = 1):
-        super().__init__(label, default=default, minimum=minimum, maximum=None, step=2)
-
-    def enforce(self, value):
-        odd = int(value) + (1 - (int(value) % 2))
-        return clampInt(odd, self.minimum, self.maximum)
-
-
-class BoundedIntegerInput(NumberInput):
-    """Input for a bounded integer number range"""
-
-    def __init__(
-        self,
-        label: str,
-        minimum: int = 0,
-        maximum: int = 100,
-        default: int = 50,
-        optional: bool = False,
-    ):
-        super().__init__(
-            label,
-            default=default,
-            minimum=minimum,
-            maximum=maximum,
-            optional=optional,
-        )
-
-    def enforce(self, value):
-        return clampInt(value, self.minimum, self.maximum)
-
-
-class BoundlessIntegerInput(NumberInput):
-    """Input for a boundless integer number"""
-
-    def __init__(
-        self,
-        label: str,
-    ):
-        super().__init__(
-            label,
-            default=0,
-            minimum=None,
-            maximum=None,
-        )
-
-    def enforce(self, value):
-        return int(value)
+        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
 
 
 class SliderInput(NumberInput):
@@ -147,24 +85,31 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
-        min_val: int = 0,
-        max_val: int = 100,
+        step: Union[float, int] = 1,
+        controls_step: Union[float, int] = None,
+        minimum: int = 0,
+        maximum: int = 100,
         default: int = 50,
+        unit: str = None,
+        has_handle: bool = True,
         optional: bool = False,
         note_expression: str = None,
         ends: Union[Tuple[int, int], Tuple[str, str]] = (None, None),
     ):
         super().__init__(
             label,
+            step=step,
+            controls_step=controls_step,
             default=default,
-            minimum=min_val,
-            maximum=max_val,
-            step=1,
+            minimum=minimum,
+            maximum=maximum,
+            unit=unit,
             optional=optional,
+            has_handle=has_handle,
             note_expression=note_expression,
             number_type="slider",
         )
-        self.ends = (min_val, max_val) if ends == (None, None) else ends
+        self.ends = (minimum, maximum) if ends == (None, None) else ends
 
     def toDict(self):
         return {
@@ -175,10 +120,13 @@ class SliderInput(NumberInput):
             "noteExpression": self.note_expression,
             "ends": self.ends,
             "def": self.default,
+            "offset": self.offset,
             "step": self.step,
+            "controlsStep": self.controls_step,
+            "unit": self.unit,
             "hasHandle": True,
             "optional": self.optional,
         }
 
     def enforce(self, value):
-        return clampInt(value, self.minimum, self.maximum)
+        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)

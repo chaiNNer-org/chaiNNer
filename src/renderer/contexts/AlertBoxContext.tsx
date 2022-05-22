@@ -14,8 +14,9 @@ import {
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createContext } from 'use-context-selector';
+import { createContext, useContext } from 'use-context-selector';
 import { assertNever, noop } from '../../common/util';
+import { ContextMenuContext } from './ContextMenuContext';
 
 interface AlertBox {
     sendToast: (options: UseToastOptions) => void;
@@ -136,7 +137,9 @@ const getButtons = (
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export function AlertBoxProvider({ children }: React.PropsWithChildren<unknown>) {
+export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+    const { closeContextMenu } = useContext(ContextMenuContext);
+
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);
     const current = queue[0] as InternalMessage | undefined;
     const isLast = queue.length < 2;
@@ -147,11 +150,12 @@ export function AlertBoxProvider({ children }: React.PropsWithChildren<unknown>)
     );
     const showAlert = useCallback(
         (message: AlertOptions) => {
+            closeContextMenu();
             return new Promise<number>((resolve) => {
                 push({ ...message, title: message.title ?? message.type, resolve });
             });
         },
-        [push]
+        [push, closeContextMenu]
     );
     const sendAlert = useCallback<AlertBox['sendAlert']>(
         (type: AlertType | AlertOptions, title?: string | null, message?: string) => {

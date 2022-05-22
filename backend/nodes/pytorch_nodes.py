@@ -19,7 +19,7 @@ from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.pytorch_auto_split import auto_split_process
-from .utils.utils import np2tensor, tensor2np
+from .utils.utils import np2tensor, tensor2np, get_h_w_c
 
 
 def check_env():
@@ -168,8 +168,7 @@ class ImageUpscaleNode(NodeBase):
         in_nc = model.in_nc
         out_nc = model.out_nc
         scale = model.scale
-        h, w = img.shape[:2]
-        c = img.shape[2] if len(img.shape) > 2 else 1
+        h, w, c = get_h_w_c(img)
         logger.info(
             f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc: {out_nc})"
         )
@@ -238,9 +237,10 @@ class InterpolateNode(NodeBase):
             ModelInput("Model B"),
             SliderInput(
                 "Weights",
-                0,
-                100,
-                50,
+                controls_step=5,
+                maximum=100,
+                default=50,
+                unit="%",
                 note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
                 ends=("A", "B"),
             ),

@@ -7,6 +7,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import checkNodeValidity from '../../helpers/checkNodeValidity';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
+import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
 import NodeFooter from './NodeFooter';
@@ -70,6 +71,8 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         }
     }, [inputData, edgeChanges]);
 
+    const menu = useNodeMenu(id);
+
     return (
         <Center
             bg={useColorModeValue('gray.300', 'gray.700')}
@@ -79,6 +82,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             boxShadow="lg"
             py={2}
             transition="0.15s ease-in-out"
+            onContextMenu={menu.onContextMenu}
         >
             <VStack minWidth="240px">
                 <IteratorNodeHeader
@@ -96,8 +100,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                             mb={-1}
                             mt={-1}
                             p={0}
-                            pb={-1}
-                            pt={-1}
                         >
                             INPUTS
                         </Text>
@@ -118,8 +120,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                         mb={-1}
                         mt={-1}
                         p={0}
-                        pb={-1}
-                        pt={-1}
                     >
                         ITERATION
                     </Text>
@@ -145,8 +145,6 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                             mb={-1}
                             mt={-1}
                             p={0}
-                            pb={-1}
-                            pt={-1}
                         >
                             OUTPUTS
                         </Text>
@@ -161,6 +159,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     invalidReason={validity[1]}
                     isLocked={isLocked}
                     isValid={validity[0]}
+                    menu={menu}
                 />
             </VStack>
         </Center>
