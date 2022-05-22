@@ -272,7 +272,7 @@ class BorderMakeNode(NodeBase):
         self.inputs = [
             ImageInput(),
             BorderInput(),
-            NumberInput("Amount"),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -318,8 +318,8 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X"),
-            NumberInput("Amount Y"),
+            NumberInput("Amount X", unit="px"),
+            NumberInput("Amount Y", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
