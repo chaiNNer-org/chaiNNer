@@ -24,7 +24,7 @@ MAX_VALUES_BY_DTYPE = {
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
     """Returns the height, width, and number of channels."""
     h, w = image.shape[:2]
-    c = image.shape[2] or 1
+    c = 1 if image.ndim == 2 else image.shape[2]
     return h, w, c
 
 
