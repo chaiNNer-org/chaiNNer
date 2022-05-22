@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple
+
 import math
 
 import numpy as np
@@ -194,3 +196,36 @@ class EdgeCropNode(NodeBase):
         result = img[top : h - bottom, left : w - right]
 
         return result
+
+
+@NodeFactory.register("chainner:image:get_dims")
+class GetDimensionsNode(NodeBase):
+    """Node for getting the dimensions of an image"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Get the Height, Width, and number of Channels from an image."
+        )
+        self.inputs = [
+            ImageInput(),
+        ]
+        self.outputs = [
+            NumberOutput("Width"),
+            NumberOutput("Height"),
+            NumberOutput("Channels"),
+        ]
+        self.category = IMAGE_DIMENSION
+        self.name = "Get Dimensions"
+        self.icon = "BsRulers"
+        self.sub = "Utility"
+
+    def run(
+        self,
+        img: np.ndarray,
+    ) -> Tuple[int, int, int]:
+        h, w = img.shape[:2]
+        c = img.shape[2] or 1
+
+        return w, h, c
