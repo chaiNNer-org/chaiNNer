@@ -1,5 +1,14 @@
 import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
-import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
+import {
+    Box,
+    Center,
+    Flex,
+    HStack,
+    Heading,
+    Spacer,
+    useColorMode,
+    useColorModeValue,
+} from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { SettingsContext } from '../../contexts/SettingsContext';
@@ -136,10 +145,10 @@ const RepresentativeNode = ({
                                         stroke: 'yellow.500',
                                         transition: '0.15s ease-in-out',
                                     }}
-                                    aria-label="dlksdmclsdk"
+                                    aria-label="Favorites"
                                     color={isFavorite ? 'yellow.500' : bgColor}
                                     opacity={isFavorite || hover ? '100%' : '0%'}
-                                    stroke={borderColor}
+                                    stroke={useColorModeValue('gray.600', 'gray.400')}
                                     strokeWidth={1}
                                     transition="0.15s ease-in-out"
                                     verticalAlign="middle"
