@@ -473,7 +473,12 @@ const checkNvidiaSmi = async () => {
     }
 
     if (nvidiaSmi) {
-        await registerNvidiaSmiEvents(nvidiaSmi);
+        try {
+            await registerNvidiaSmiEvents(nvidiaSmi);
+        } catch (error) {
+            log.error(error);
+            registerEmptyGpuEvents();
+        }
     } else {
         registerEmptyGpuEvents();
     }
