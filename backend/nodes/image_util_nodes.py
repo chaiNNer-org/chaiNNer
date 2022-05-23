@@ -26,11 +26,33 @@ class ImOverlay(NodeBase):
         super().__init__()
         self.description = "Overlay transparent images on base image."
         self.inputs = [
-            ImageInput("Base"),
-            ImageInput("Overlay A"),
-            SliderInput("Opacity A", maximum=100, default=50),
-            ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", maximum=100, default=50, optional=True),
+            ImageInput("Base").with_id(0),
+            SliderInput(
+                "Base Opacity",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(5),
+            ImageInput("Overlay A").with_id(1),
+            SliderInput(
+                "Opacity A",
+                maximum=100,
+                default=50,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(2),
+            ImageInput("Overlay B ", optional=True).with_id(3),
+            SliderInput(
+                "Opacity B",
+                maximum=100,
+                default=50,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(4),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -41,26 +63,26 @@ class ImOverlay(NodeBase):
     def run(
         self,
         base: np.ndarray,
-        ov1: np.ndarray,
-        op1_int: int = 50,
+        opbase: float = 100.0,
+        ov1: Union[np.ndarray, None] = None,
+        op1: float = 50.0,
         ov2: Union[np.ndarray, None] = None,
-        op2_int: int = 50,
+        op2: float = 50.0,
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
         # Convert to 0.0-1.0 range
-        op1 = op1_int / 100
-        if op2_int is not None:
-            op2 = op2_int / 100
+        opbase /= 100
+        op1 /= 100
+        op2 /= 100
 
         imgs = []
-        max_h, max_w, max_c = 0, 0, 1
+        max_h, max_w = 0, 0
         for img in base, ov1, ov2:
             if img is not None:
                 h, w, c = get_h_w_c(img)
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
-                max_c = max(c, max_c)
 
                 # All inputs must be BGRA for alpha compositing to work
                 if c == 1:
@@ -81,8 +103,10 @@ class ImOverlay(NodeBase):
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
 
+        # Apply opacity to base, then overlay A and B sequentially at corresponding opacities
+        imgout[:, :, 3] *= opbase
         for img, op in zip(imgs, (op1, op2)):
-            h, w = img.shape[:2]
+            h, w, _ = get_h_w_c(img)
 
             # Center overlay
             x_offset = center_x - (w // 2)
@@ -263,7 +287,7 @@ class BorderMakeNode(NodeBase):
         self.inputs = [
             ImageInput(),
             BorderInput(),
-            NumberInput("Amount"),
+            NumberInput("Amount", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -309,8 +333,8 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X"),
-            NumberInput("Amount Y"),
+            NumberInput("Amount X", unit="px"),
+            NumberInput("Amount Y", unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
