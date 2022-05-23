@@ -15,7 +15,7 @@ const checkNodeValidity = ({
 }): [boolean, string] => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
-        .map((e) => parseHandle(e.targetHandle!).inoutId);
+        .map((e) => parseHandle(e.targetHandle!).inOutId);
 
     const missingInputs = inputs.filter((input) => {
         // optional inputs can't be missing

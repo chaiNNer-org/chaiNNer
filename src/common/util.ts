@@ -19,12 +19,12 @@ export const noop = () => {};
 
 export interface ParsedHandle {
     nodeId: string;
-    inoutId: number;
+    inOutId: number;
 }
 export const parseHandle = (handle: string): ParsedHandle => {
     return {
         nodeId: handle.substring(0, 36), // uuid
-        inoutId: Number(handle.substring(37)),
+        inOutId: Number(handle.substring(37)),
     };
 };
 

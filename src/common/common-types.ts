@@ -14,7 +14,7 @@ export interface IteratorSize extends Size {
     offsetLeft: number;
 }
 
-export type InputValue = InputSchemaValue | { id: string } | undefined;
+export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
@@ -95,11 +95,15 @@ export interface FileOpenError {
     error: string;
 }
 
+export interface EdgeHandle {
+    id: string;
+    index: number;
+}
 export interface UsableData {
     id: string;
     schemaId: string;
-    inputs: (InputValue | null)[];
-    outputs: InputValue[];
+    inputs: (InputValue | EdgeHandle | null)[];
+    outputs: (InputValue | EdgeHandle | null)[];
     child: boolean;
     children?: string[];
     nodeType: string | undefined;

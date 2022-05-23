@@ -487,8 +487,8 @@ export const GlobalProvider = ({
             if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                 return false;
             }
-            const sourceHandleId = parseHandle(sourceHandle).inoutId;
-            const targetHandleId = parseHandle(targetHandle).inoutId;
+            const sourceHandleId = parseHandle(sourceHandle).inOutId;
+            const targetHandleId = parseHandle(targetHandle).inOutId;
 
             const sourceNode = getNode(source);
             const targetNode = getNode(target);
@@ -618,7 +618,7 @@ export const GlobalProvider = ({
                 (e) =>
                     e.target === id &&
                     !!e.targetHandle &&
-                    parseHandle(e.targetHandle).inoutId === inputId
+                    parseHandle(e.targetHandle).inOutId === inputId
             );
         },
         [edgeChanges]
