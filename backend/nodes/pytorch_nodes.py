@@ -70,10 +70,10 @@ class LoadModelNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Load PyTorch state dict file (.pth) into an
-            auto-detected supported model architecture. Supports most variations
-            of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR)
-            and Real-ESRGAN's SRVGG architecture."""
+        self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
+            Supports most variations of the RRDB architecture
+            (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
+            Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
         self.inputs = [PthFileInput()]
         self.outputs = [ModelOutput(), TextOutput("Model Name")]
 
