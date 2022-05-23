@@ -106,7 +106,7 @@ class ImOverlay(NodeBase):
         # Apply opacity to base, then overlay A and B sequentially at corresponding opacities
         imgout[:, :, 3] *= opbase
         for img, op in zip(imgs, (op1, op2)):
-            h, w = img.shape[:2]
+            h, w, _ = get_h_w_c(img)
 
             # Center overlay
             x_offset = center_x - (w // 2)
