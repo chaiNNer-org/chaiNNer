@@ -4,5 +4,7 @@ numpy
 opencv-python
 Pillow
 pylint
+pyright
 sanic
 sanic_cors
+torch

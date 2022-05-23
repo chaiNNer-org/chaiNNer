@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 import gc
 import os
-from typing import Tuple
+
+from typing import Tuple, Union
 
 import torch
-from sanic.log import logger
 from torch import Tensor
-from torch.nn import functional as F
 
 
 def torch_center_crop(tensor, crop_x, crop_y):
@@ -29,7 +30,7 @@ def auto_split_process(
     model: torch.nn.Module,
     scale: int = 4,
     overlap: int = 16,
-    max_depth: int = None,
+    max_depth: Union[int, None] = None,
     current_depth: int = 1,
 ) -> Tuple[Tensor, int]:
     """

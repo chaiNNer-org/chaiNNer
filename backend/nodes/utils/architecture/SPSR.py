@@ -17,9 +17,9 @@ class Get_gradient_nopadding(nn.Module):
         kernel_h = [[0, 0, 0], [-1, 0, 1], [0, 0, 0]]
         kernel_h = torch.FloatTensor(kernel_h).unsqueeze(0).unsqueeze(0)
         kernel_v = torch.FloatTensor(kernel_v).unsqueeze(0).unsqueeze(0)
-        self.weight_h = nn.Parameter(data=kernel_h, requires_grad=False)
+        self.weight_h = nn.Parameter(data=kernel_h, requires_grad=False)  # type: ignore
 
-        self.weight_v = nn.Parameter(data=kernel_v, requires_grad=False)
+        self.weight_v = nn.Parameter(data=kernel_v, requires_grad=False)  # type: ignore
 
     def forward(self, x):
         x_list = []
@@ -67,7 +67,7 @@ class SPSRNet(nn.Module):
             n_upscale = 1
 
         fea_conv = B.conv_block(
-            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None
+            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None  # type: ignore
         )
         rb_blocks = [
             B.RRDB(
@@ -88,7 +88,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=norm,
-            act_type=None,
+            act_type=None,  # type: ignore
             mode=mode,
         )
 
@@ -119,7 +119,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
 
         self.model = B.sequential(
@@ -132,7 +132,7 @@ class SPSRNet(nn.Module):
         self.get_g_nopadding = Get_gradient_nopadding()
 
         self.b_fea_conv = B.conv_block(
-            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None
+            self.in_nc, self.num_filters, kernel_size=3, norm_type=None, act_type=None  # type: ignore
         )
 
         self.b_concat_1 = B.conv_block(
@@ -140,7 +140,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
         self.b_block_1 = B.RRDB(
             self.num_filters * 2,
@@ -159,7 +159,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
         self.b_block_2 = B.RRDB(
             self.num_filters * 2,
@@ -178,7 +178,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
         self.b_block_3 = B.RRDB(
             self.num_filters * 2,
@@ -197,7 +197,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
         self.b_block_4 = B.RRDB(
             self.num_filters * 2,
@@ -216,7 +216,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=norm,
-            act_type=None,
+            act_type=None,  # type: ignore
             mode=mode,
         )
 
@@ -248,13 +248,13 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
 
         self.b_module = B.sequential(*b_upsampler, b_HR_conv0, b_HR_conv1)
 
         self.conv_w = B.conv_block(
-            self.num_filters, self.out_nc, kernel_size=1, norm_type=None, act_type=None
+            self.num_filters, self.out_nc, kernel_size=1, norm_type=None, act_type=None  # type: ignore
         )
 
         self.f_concat = B.conv_block(
@@ -262,7 +262,7 @@ class SPSRNet(nn.Module):
             self.num_filters,
             kernel_size=3,
             norm_type=None,
-            act_type=None,
+            act_type=None,  # type: ignore
         )
 
         self.f_block = B.RRDB(
@@ -285,7 +285,7 @@ class SPSRNet(nn.Module):
             act_type=act,
         )
         self.f_HR_conv1 = B.conv_block(
-            self.num_filters, self.out_nc, kernel_size=3, norm_type=None, act_type=None
+            self.num_filters, self.out_nc, kernel_size=3, norm_type=None, act_type=None  # type: ignore
         )
 
         self.load_state_dict(self.state, strict=False)

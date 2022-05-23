@@ -61,7 +61,7 @@ class ImReadNode(NodeBase):
                 img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA
             )
 
-        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))
+        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))  # type: ignore
         base64_img = base64.b64encode(encoded_img).decode("utf8")
 
         return {
@@ -71,7 +71,7 @@ class ImReadNode(NodeBase):
             "channels": c,
         }
 
-    def run(self, path: str) -> list[np.ndarray, str, str]:
+    def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.info(f"Reading image from path: {path}")
@@ -92,6 +92,7 @@ class ImReadNode(NodeBase):
                     ) from e
         elif ext.lower() in get_pil_formats():
             try:
+                # pylint: disable=redefined-outer-name, import-outside-toplevel
                 from PIL import Image
 
                 im = Image.open(path)
@@ -102,6 +103,7 @@ class ImReadNode(NodeBase):
                 elif c == 4:
                     img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
             except:
+                # pylint: disable=raise-missing-from
                 raise RuntimeError(
                     f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
                 )
@@ -111,16 +113,16 @@ class ImReadNode(NodeBase):
             )
 
         # Uncomment if wild 2-channel image is encountered
-        """self.shape = img.shape
-        if img.shape[2] == 2:
-            color_channel = img[:, :, 0]
-            alpha_channel = img[:, :, 1]
-            img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)"""
+        # self.shape = img.shape
+        # if img.shape[2] == 2:
+        #     color_channel = img[:, :, 0]
+        #     alpha_channel = img[:, :, 1]
+        #     img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)
 
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        self.result = [img, dirname, basename]
+        self.result = (img, dirname, basename)
         return self.result
 
 
@@ -147,11 +149,11 @@ class ImWriteNode(NodeBase):
 
     def run(
         self,
-        img: np.ndarray = None,
-        base_directory: str = None,
-        relative_path: str = ".",
-        filename: str = None,
-        extension: str = None,
+        img: np.ndarray,
+        base_directory: str,
+        relative_path: str,
+        filename: str,
+        extension: str,
     ) -> bool:
         """Write an image to the specified path and return write status"""
 
@@ -204,8 +206,8 @@ class ImOpenNode(NodeBase):
 
         if status:
             if platform.system() == "Darwin":  # macOS
-                subprocess.call(("open", temp_save_dir))
+                subprocess.call(("open", temp_save_dir))  # type: ignore
             elif platform.system() == "Windows":  # Windows
-                os.startfile(temp_save_dir)
+                os.startfile(temp_save_dir)  # type: ignore
             else:  # linux variants
-                subprocess.call(("xdg-open", temp_save_dir))
+                subprocess.call(("xdg-open", temp_save_dir))  # type: ignore

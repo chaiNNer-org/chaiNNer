@@ -4,7 +4,7 @@ import asyncio
 import functools
 import os
 import uuid
-from typing import Dict
+from typing import Any, Dict
 
 from sanic.log import logger
 
@@ -18,7 +18,7 @@ class Executor:
 
     def __init__(
         self,
-        nodes: list[Dict],
+        nodes: Dict,
         loop,
         queue: asyncio.Queue,
         existing_cache: Dict,
@@ -39,7 +39,7 @@ class Executor:
 
         self.parent_executor = parent_executor
 
-    async def process(self, node: Dict):
+    async def process(self, node: Dict) -> Any:
         """Process a single node"""
         logger.debug(f"node: {node}")
         node_id = node["id"]
@@ -112,13 +112,13 @@ class Executor:
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
             output = await node_instance.run(
                 *enforced_inputs,
-                nodes=sub_nodes,
-                loop=self.loop,
-                queue=self.queue,
-                external_cache=self.output_cache,
-                iterator_id=node["id"],
-                parent_executor=self,
-                percent=node["percent"] if self.resumed else 0,
+                nodes=sub_nodes,  # type: ignore
+                loop=self.loop,  # type: ignore
+                queue=self.queue,  # type: ignore
+                external_cache=self.output_cache,  # type: ignore
+                iterator_id=node["id"],  # type: ignore
+                parent_executor=self,  # type: ignore
+                percent=node["percent"] if self.resumed else 0,  # type: ignore
             )
             # Cache the output of the node
             self.output_cache[node_id] = output

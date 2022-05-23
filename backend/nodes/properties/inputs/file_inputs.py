@@ -66,9 +66,11 @@ def TorchFileInput() -> FileInput:
     return FileInput("pt", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(has_handle: bool = False) -> FileInput:
+def DirectoryInput(
+    label: str = "Base Directory", has_handle: bool = False
+) -> FileInput:
     """Input for submitting a local directory"""
-    return FileInput("directory", "Base Directory", ["directory"], has_handle)
+    return FileInput("directory", label, ["directory"], has_handle)
 
 
 def ImageExtensionDropdown() -> DropDownInput:

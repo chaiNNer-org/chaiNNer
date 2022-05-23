@@ -468,7 +468,7 @@ def pixelshuffle_block(
         bias=bias,
         pad_type=pad_type,
         norm_type=None,
-        act_type=None,
+        act_type=None,  # type: ignore
     )
     pixel_shuffle = nn.PixelShuffle(upscale_factor)
 

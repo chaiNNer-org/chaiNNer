@@ -82,7 +82,7 @@ from sanic.log import access_logger
 
 class SSEFilter(logging.Filter):
     def filter(self, record):
-        return not (record.request.endswith("/sse") and record.status == 200)
+        return not (record.request.endswith("/sse") and record.status == 200)  # type: ignore
 
 
 access_logger.addFilter(SSEFilter())
@@ -116,7 +116,7 @@ async def nodes(_):
             "nodeType": node_object.get_type(),
         }
         if node_object.get_type() == "iterator":
-            node_dict["defaultNodes"] = node_object.get_default_nodes()
+            node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
     return json(node_list)
 
@@ -136,7 +136,7 @@ async def run(request: Request):
             await executor.resume()
         else:
             logger.info("Running new executor...")
-            full_data = request.json
+            full_data = dict(request.json)
             logger.info(full_data)
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
@@ -156,7 +156,7 @@ async def run(request: Request):
         )
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
-        logger.error(exception, exc_info=1)
+        logger.error(exception, exc_info=True)
         request.app.ctx.executor = None
         logger.error(traceback.format_exc())
         await queue.put(
@@ -176,7 +176,7 @@ async def run(request: Request):
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
-    full_data = request.json
+    full_data = dict(request.json)
     logger.info(full_data)
     os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
     os.environ["isFp16"] = str(full_data["isFp16"])
@@ -201,13 +201,14 @@ async def sse(request: Request):
         message = await request.app.ctx.queue.get()
         if not message:
             break
-        await response.send(f"event: {message['event']}\n")
-        await response.send(f"data: {stringify(message['data'])}\n\n")
+        if response is not None:
+            await response.send(f"event: {message['event']}\n")
+            await response.send(f"data: {stringify(message['data'])}\n\n")
 
 
 @app.after_server_start
-async def setup_queue(app: Sanic, _):
-    app.ctx.queue = asyncio.Queue()
+async def setup_queue(sanic_app: Sanic, _):
+    sanic_app.ctx.queue = asyncio.Queue()
 
 
 @app.route("/pause", methods=["POST"])
@@ -221,7 +222,7 @@ async def pause(request):
         logger.info("No executor to pause")
         return json({"message": "No executor to pause!"}, status=200)
     except Exception as exception:
-        logger.log(2, exception, exc_info=1)
+        logger.log(2, exception, exc_info=True)
         return json(
             {"message": "Error pausing execution!", "exception": str(exception)},
             status=500,
@@ -240,7 +241,7 @@ async def kill(request):
         logger.info("No executor to kill")
         return json({"message": "No executor to kill!"}, status=200)
     except Exception as exception:
-        logger.log(2, exception, exc_info=1)
+        logger.log(2, exception, exc_info=True)
         return json(
             {"message": "Error killing execution!", "exception": str(exception)},
             status=500,
@@ -249,7 +250,7 @@ async def kill(request):
 
 if __name__ == "__main__":
     try:
-        port = sys.argv[1] or 8000
+        port = int(sys.argv[1]) or 8000
     except:
         port = 8000
     app.run(port=port)

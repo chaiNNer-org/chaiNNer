@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 import cv2
 import numpy as np
@@ -12,7 +14,7 @@ class ImageAverage:
         self.total = None
         self.count = 0
 
-    def add(self, img: np.array):
+    def add(self, img: np.ndarray):
         self.count += 1
         if self.total is None:
             self.total = img
@@ -24,16 +26,17 @@ class ImageAverage:
             self.total[:, :, 2] += img[:, :, 2] * a
             self.total[:, :, 3] += a
 
-    def get_result(self) -> np.array:
-        f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
-        self.total[:, :, 0] *= f
-        self.total[:, :, 1] *= f
-        self.total[:, :, 2] *= f
-        self.total[:, :, 3] *= 1 / self.count
-        return self.total
+    def get_result(self) -> np.ndarray:
+        if self.total is not None:
+            f = 1 / np.maximum(self.total[:, :, 3], 0.0001)
+            self.total[:, :, 0] *= f
+            self.total[:, :, 1] *= f
+            self.total[:, :, 2] *= f
+            self.total[:, :, 3] *= 1 / self.count
+        return self.total  # type: ignore
 
 
-def with_self_as_background(img: np.array):
+def with_self_as_background(img: np.ndarray):
     """Changes the given image to the image overlayed with itself."""
 
     _, _, c = get_h_w_c(img)
@@ -41,7 +44,7 @@ def with_self_as_background(img: np.array):
     img[:, :, 3] = 1 - np.square(1 - img[:, :, 3])
 
 
-def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
+def convert_to_binary_alpha(img: np.ndarray, threshold: float = 0.05):
     """Sets all pixels with alpha <= threshold to RGBA=(0,0,0,0)
     and sets the alpha to 1 otherwise."""
 
@@ -56,8 +59,8 @@ def convert_to_binary_alpha(img: np.array, threshold: float = 0.05):
 
 
 def fragment_blur(
-    img: np.array, n: int, start_angle: float, distance: float
-) -> np.array:
+    img: np.ndarray, n: int, start_angle: float, distance: float
+) -> np.ndarray:
     h, w, c = get_h_w_c(img)
     assert c == 4, "The image has to be an RGBA image"
     assert n >= 1
@@ -71,14 +74,14 @@ def fragment_blur(
             [
                 [1, 0, x_offset],
                 [0, 1, y_offset],
-            ]
+            ]  # type: ignore
         )
         avg.add(cv2.warpAffine(img, m, (w, h)))
 
     return avg.get_result()
 
 
-def fill_alpha_fragment_blur(img: np.array) -> np.array:
+def fill_alpha_fragment_blur(img: np.ndarray) -> np.ndarray:
     result = img.copy()
     for i in range(0, 6):
         blurred = fragment_blur(img, 5, i, 1 << i)
@@ -89,7 +92,7 @@ def fill_alpha_fragment_blur(img: np.array) -> np.array:
     return result
 
 
-def fill_alpha_edge_extend(img: np.array, distance: int):
+def fill_alpha_edge_extend(img: np.ndarray, distance: int):
     """
     Given an image with binary alpha, with will fill transparent pixels by
     extending the closest color.

@@ -1,7 +1,7 @@
-from typing import Any, OrderedDict
+from typing import Dict
 
 
-def StateDictOutput() -> OrderedDict:
+def StateDictOutput() -> Dict:
     """Output a PyTorch state dict"""
     return {
         "type": "pytorch::state_dict",
@@ -9,7 +9,7 @@ def StateDictOutput() -> OrderedDict:
     }
 
 
-def ModelOutput() -> Any:
+def ModelOutput() -> Dict:
     """Output a loaded model"""
     return {
         "type": "pytorch::model",
@@ -17,7 +17,7 @@ def ModelOutput() -> Any:
     }
 
 
-def TorchScriptOutput() -> Any:
+def TorchScriptOutput() -> Dict:
     """Output a JIT traced model"""
     return {
         "type": "pytorch::torchscript",
