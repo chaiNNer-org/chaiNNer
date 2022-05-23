@@ -301,7 +301,7 @@ class BorderMakeNode(NodeBase):
         amount = int(amount)
         border_type = int(border_type)
 
-        c = get_h_w_c(img)[2]
+        _, _, c = get_h_w_c(img)
         if c == 4 and border_type == cv2.BORDER_CONSTANT:
             value = (0, 0, 0, 1)
         else:
@@ -350,7 +350,7 @@ class ShiftNode(NodeBase):
     ) -> np.ndarray:
         """Adjusts the position of an image"""
 
-        h, w = get_h_w_c(img)[:2]
+        h, w, _ = get_h_w_c(img)
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img
