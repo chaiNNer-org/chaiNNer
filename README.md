@@ -51,52 +51,53 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### Pytorch
 
-* ESRGAN (RRDBNet)
-  * This includes regular ESRGAN, ESRGAN+, "new-arch ESRGAN" (RealSR, BSRGAN), SPSR, and Real-ESRGAN
-* Real-ESRGAN Compact (SRVGGNet)
+- ESRGAN (RRDBNet)
+  - This includes regular ESRGAN, ESRGAN+, "new-arch ESRGAN" (RealSR, BSRGAN), SPSR, and Real-ESRGAN
+- Real-ESRGAN Compact (SRVGGNet)
+- Swift-SRGAN
 
 ### NCNN
 
-* Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
+- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
 
 ## Planned Features
 
 **Undo History, Copy & Paste**
 
-* For now I am having difficulty adding these in. I plan on revisiting this later after I am forced to refactor my implementation due to the node-graph library I use releasing breaking changes soon.
+- For now I am having difficulty adding these in. I plan on revisiting this later after I am forced to refactor my implementation due to the node-graph library I use releasing breaking changes soon.
 
 **Drag and Drop Images**
 
-* This is planned, ideally for both dragging into the file selection box and onto the window to make a new image read node
+- This is planned, ideally for both dragging into the file selection box and onto the window to make a new image read node
 
 **Presets**
 
-* Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
+- Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
 
 **More SR Networks, More Image Processing Libraries**
 
-* What the title says
+- What the title says
 
 **Live Updating**
 
-* This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
+- This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
 
 ## FAQ
 
 **What does the name mean?**
 
-* chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
+- chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
 
 **Why not just use Cupscale/IEU/CLI?**
 
-* All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
 
-* This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like running ESRGAN on video.
+- This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like running ESRGAN on video.
 
 **Wouldn't this make it more difficult to do things?**
 
-* In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
-* Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality.
+- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality.

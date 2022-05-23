@@ -18,6 +18,7 @@ from .properties.outputs import *
 from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
+from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import np2tensor, tensor2np, get_h_w_c
 
@@ -46,6 +47,12 @@ def load_state_dict(state_dict):
     # SPSR (ESRGAN with lots of extra layers)
     elif "f_HR_conv1.0.weight" in state_dict:
         model = SPSR(state_dict)
+    # Swift-SRGAN
+    elif (
+        "model" in state_dict.keys()
+        and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
+    ):
+        model = SwiftSRGAN(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
@@ -63,10 +70,10 @@ class LoadModelNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Load PyTorch state dict file (.pth) into an
-            auto-detected supported model architecture. Supports most variations
-            of the RRDB architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR)
-            and Real-ESRGAN's SRVGG architecture."""
+        self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
+            Supports most variations of the RRDB architecture
+            (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
+            Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
         self.inputs = [PthFileInput()]
         self.outputs = [ModelOutput(), TextOutput("Model Name")]
 
@@ -138,26 +145,27 @@ class ImageUpscaleNode(NodeBase):
         self.sub = "Processing"
 
     def upscale(self, img: np.ndarray, model: torch.nn.Module, scale: int):
-        # Borrowed from iNNfer
-        logger.info("Converting image to tensor")
-        img_tensor = np2tensor(img, change_range=True)
-        if os.environ["isFp16"] == "True":
-            model = model.half()
-            img_tensor = img_tensor.half()
-        logger.info("Upscaling image")
-        t_out, _ = auto_split_process(
-            img_tensor,
-            model,
-            scale,
-        )
-        del img_tensor, model
-        logger.info("Converting tensor to image")
-        img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
-        logger.info("Done upscaling")
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        del t_out
-        return img_out
+        with torch.no_grad():
+            # Borrowed from iNNfer
+            logger.info("Converting image to tensor")
+            img_tensor = np2tensor(img, change_range=True)
+            if os.environ["isFp16"] == "True":
+                model = model.half()
+                img_tensor = img_tensor.half()
+            logger.info("Upscaling image")
+            t_out, _ = auto_split_process(
+                img_tensor,
+                model,
+                scale,
+            )
+            del img_tensor, model
+            logger.info("Converting tensor to image")
+            img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
+            logger.info("Done upscaling")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            del t_out
+            return img_out
 
     def run(self, model: torch.nn.Module, img: np.ndarray) -> np.ndarray:
         """Upscales an image with a pretrained model"""
