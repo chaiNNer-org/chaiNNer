@@ -111,8 +111,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
             if (p) {
-                const index = inputs.indexOf(fileInput);
-                const [, setInput] = useInputData<string>(id, index, inputData);
+                const [, setInput] = useInputData<string>(id, fileInput.id, inputData);
                 setInput(p);
                 return;
             }

@@ -10,13 +10,13 @@ interface TextInputProps extends InputProps {
 }
 
 const TextInput = memo(
-    ({ label, id, index, useInputData, isLocked, maxLength }: TextInputProps) => {
+    ({ label, id, inputId, useInputData, isLocked, maxLength }: TextInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
-            index
+            inputId
         );
 
-        const [input, setInput] = useInputData<string>(index);
+        const [input, setInput] = useInputData<string>(inputId);
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {

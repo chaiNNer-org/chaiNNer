@@ -1,26 +1,16 @@
-from typing import Dict
+from .base_output import BaseOutput
 
 
-def NumberOutput(label: str) -> Dict:
+def NumberOutput(label: str):
     """Output for arbitrary number"""
-    return {
-        "type": "number::any",
-        "label": label,
-    }
+    return BaseOutput("number::any", label)
 
 
-def IntegerOutput(label: str) -> Dict:
+def IntegerOutput(label: str):
     """Output for integer number"""
-    return {
-        "type": "number::integer",
-        "label": label,
-    }
+    return BaseOutput("number::integer", label)
 
 
-def TextOutput(label: str) -> Dict:
+def TextOutput(label: str):
     """Output for arbitrary text"""
-    return {
-        "type": "text::any",
-        "label": label,
-        "hasHandle": True,
-    }
+    return BaseOutput("text::any", label)

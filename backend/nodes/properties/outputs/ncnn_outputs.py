@@ -1,9 +1,6 @@
-from typing import Dict
+from .base_output import BaseOutput
 
 
-def NcnnNetOutput(label: str = "Model") -> Dict:
+def NcnnNetOutput(label: str = "Model"):
     """Output for ncnn network"""
-    return {
-        "type": "ncnn::net",
-        "label": label,
-    }
+    return BaseOutput("ncnn::net", label)

@@ -1,3 +1,4 @@
+from .base_input import *
 from .cv_inputs import *
 from .file_inputs import *
 from .generic_inputs import *

@@ -24,11 +24,8 @@ class FileInput(BaseInput):
 
     def toDict(self):
         return {
-            "type": self.input_type,
-            "label": self.label,
+            **super().toDict(),
             "filetypes": self.filetypes,
-            "hasHandle": self.has_handle,
-            "optional": self.optional,
         }
 
     def enforce(self, value):

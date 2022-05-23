@@ -18,13 +18,13 @@ export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as
 export const noop = () => {};
 
 export interface ParsedHandle {
-    id: string;
-    index: number;
+    nodeId: string;
+    inOutId: number;
 }
 export const parseHandle = (handle: string): ParsedHandle => {
     return {
-        id: handle.substring(0, 36), // uuid
-        index: Number(handle.substring(37)),
+        nodeId: handle.substring(0, 36), // uuid
+        inOutId: Number(handle.substring(37)),
     };
 };
 

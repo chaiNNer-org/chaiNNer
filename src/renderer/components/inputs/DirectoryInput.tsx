@@ -10,14 +10,14 @@ import { InputProps } from './props';
 type DirectoryInputProps = InputProps;
 
 const DirectoryInput = memo(
-    ({ id, index, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
+    ({ id, inputId, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
-            index
+            inputId
         );
 
-        const [directory, setDirectory] = useInputData<string>(index);
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${index}`);
+        const [directory, setDirectory] = useInputData<string>(inputId);
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
 
         const onButtonClick = async () => {
             const { canceled, filePaths } = await ipcRenderer.invoke(

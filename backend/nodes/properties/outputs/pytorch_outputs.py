@@ -1,25 +1,21 @@
-from typing import Dict
+from .base_output import BaseOutput
 
 
-def StateDictOutput() -> Dict:
+class PyTorchOutput(BaseOutput):
+    def __init__(self, pytorch_type: str, label: str):
+        super().__init__(f"pytorch::{pytorch_type}", label)
+
+
+def StateDictOutput():
     """Output a PyTorch state dict"""
-    return {
-        "type": "pytorch::state_dict",
-        "label": "State Dict",
-    }
+    return PyTorchOutput("state_dict", "State Dict")
 
 
-def ModelOutput() -> Dict:
+def ModelOutput():
     """Output a loaded model"""
-    return {
-        "type": "pytorch::model",
-        "label": "Model",
-    }
+    return PyTorchOutput("model", "Model")
 
 
-def TorchScriptOutput() -> Dict:
+def TorchScriptOutput():
     """Output a JIT traced model"""
-    return {
-        "type": "pytorch::torchscript",
-        "label": "Traced Model",
-    }
+    return PyTorchOutput("torchscript", "Traced Model")

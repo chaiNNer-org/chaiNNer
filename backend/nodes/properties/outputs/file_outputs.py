@@ -1,28 +1,24 @@
 from __future__ import annotations
-from typing import Dict
+from .base_output import BaseOutput
 
 
-def FileOutput(input_type: str, label: str, filetypes: list[str]) -> Dict:
+class FileOutput(BaseOutput):
     """Output for saving a local file"""
-    return {
-        "type": f"file::{input_type}",
-        "label": label,
-        "filetypes": filetypes,
-    }
+
+    def __init__(self, file_type: str, label: str):
+        super().__init__(f"file::{file_type}", label)
 
 
-def ImageFileOutput(label: str = "image") -> Dict:
+def ImageFileOutput(file_type: str = "image") -> FileOutput:
     """Output for saving a local image file"""
-    return FileOutput(
-        label, "Image File", ["png", "jpg", "jpeg", "gif", "tiff", "webp"]
-    )
+    return FileOutput(file_type, "Image File")
 
 
-def DirectoryOutput(label: str = "directory") -> Dict:
+def DirectoryOutput(file_type: str = "directory") -> FileOutput:
     """Output for saving to a directory"""
-    return FileOutput(label, "Image Directory", ["directory"])
+    return FileOutput(file_type, "Image Directory")
 
 
-def OnnxFileOutput() -> Dict:
+def OnnxFileOutput() -> FileOutput:
     """Output for saving a .onnx file"""
-    return FileOutput("onnx", "ONNX Model", ["onnx"])
+    return FileOutput("onnx", "ONNX Model")

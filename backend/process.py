@@ -57,9 +57,9 @@ class Executor:
             # If input is a dict indicating another node, use that node's output value
             if isinstance(node_input, dict) and node_input.get("id", None):
                 # Get the next node by id
-                next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                next_node_id = str(node_input["id"])
                 next_input = self.nodes[next_node_id]
-                next_index = int(node_input["id"].split("-")[-1])
+                next_index = int(node_input["index"])
                 # Recursively get the value of the input
                 processed_input = await self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
@@ -101,7 +101,7 @@ class Executor:
                 for node_input in v["inputs"]:
                     logger.info(f"node_input, {node_input}")
                     if isinstance(node_input, dict) and node_input.get("id", None):
-                        next_node_id = "-".join(node_input["id"].split("-")[:-1])
+                        next_node_id = str(node_input["id"])
                         logger.info(f"next_node_id, {next_node_id}")
                         # Run all the connected nodes that are outside the iterator and cache the outputs
                         if next_node_id not in sub_nodes_ids:

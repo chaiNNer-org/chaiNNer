@@ -3,10 +3,10 @@ import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
-import { EdgeData, NodeData, UsableData } from '../../common/common-types';
+import { EdgeData, EdgeHandle, NodeData, UsableData } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { parseHandle } from '../../common/util';
+import { ParsedHandle, parseHandle } from '../../common/util';
 import checkNodeValidity from '../helpers/checkNodeValidity';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
@@ -40,6 +40,37 @@ const convertToUsableFormat = (
 ) => {
     const result: Record<string, UsableData> = {};
 
+    const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
+    const convertHandle = (handle: ParsedHandle, type: 'input' | 'output'): EdgeHandle => {
+        const schema = nodeSchemaMap.get(handle.nodeId);
+        if (!schema) {
+            throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
+        }
+
+        const index = schema[`${type}s`].findIndex((inOut) => inOut.id === handle.inOutId);
+        if (index === -1) {
+            throw new Error(
+                `Invalid handle: There is no ${type} with id ${handle.inOutId} in ${schema.name}`
+            );
+        }
+
+        return { id: handle.nodeId, index };
+    };
+
+    type Handles = Record<string, Record<number, EdgeHandle | undefined> | undefined>;
+    const inputHandles: Handles = {};
+    const outputHandles: Handles = {};
+    edges.forEach((element) => {
+        const { sourceHandle, targetHandle } = element;
+        if (!sourceHandle || !targetHandle) return;
+
+        const sourceH = parseHandle(sourceHandle);
+        const targetH = parseHandle(targetHandle);
+
+        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
+        (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
+    });
+
     // Set up each node in the result
     nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
@@ -50,8 +81,10 @@ const convertToUsableFormat = (
         result[id] = {
             schemaId,
             id,
-            inputs: Array.from({ length: schema.inputs.length }, (_, i) => inputData[i] ?? null),
-            outputs: [],
+            inputs: schema.inputs.map(
+                (input) => inputHandles[id]?.[input.id] ?? inputData[input.id] ?? null
+            ),
+            outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
             nodeType,
         };
@@ -66,18 +99,6 @@ const convertToUsableFormat = (
         if (node.parentNode) {
             result[node.parentNode].children!.push(node.id);
             result[node.id].child = true;
-        }
-    });
-
-    // Apply inputs and outputs from connections
-    // Note: As-is, this will overwrite inputted data from above
-    edges.forEach((element) => {
-        const { sourceHandle, targetHandle, source, target } = element;
-        // Connection
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (result[source] && result[target] && sourceHandle && targetHandle) {
-            result[source].outputs[parseHandle(sourceHandle).index] = { id: targetHandle };
-            result[target].inputs[parseHandle(targetHandle).index] = { id: sourceHandle };
         }
     });
 

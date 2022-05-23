@@ -14,22 +14,25 @@ export interface IteratorSize extends Size {
     offsetLeft: number;
 }
 
-export type InputValue = InputSchemaValue | { id: string } | undefined;
+export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
 }
 export interface Input {
+    readonly id: number;
     readonly type: string;
     readonly label: string;
-    readonly optional?: boolean;
+    readonly optional: boolean;
+    readonly hasHandle: boolean;
     readonly def?: InputSchemaValue;
     readonly default?: InputSchemaValue;
     readonly options?: InputOption[];
     readonly filetypes?: string[];
 }
 export interface Output {
+    readonly id: number;
     readonly type: string;
     readonly label: string;
 }
@@ -92,11 +95,15 @@ export interface FileOpenError {
     error: string;
 }
 
+export interface EdgeHandle {
+    id: string;
+    index: number;
+}
 export interface UsableData {
     id: string;
     schemaId: string;
-    inputs: (InputValue | null)[];
-    outputs: InputValue[];
+    inputs: (InputValue | EdgeHandle | null)[];
+    outputs: (InputValue | EdgeHandle | null)[];
     child: boolean;
     children?: string[];
     nodeType: string | undefined;

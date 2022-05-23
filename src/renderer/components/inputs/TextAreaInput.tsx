@@ -7,8 +7,8 @@ interface TextAreaInputProps extends InputProps {
 }
 
 const TextAreaInput = memo(
-    ({ label, index, useInputData, isLocked, resizable }: TextAreaInputProps) => {
-        const [input, setInput] = useInputData<string>(index);
+    ({ label, inputId, useInputData, isLocked, resizable }: TextAreaInputProps) => {
+        const [input, setInput] = useInputData<string>(inputId);
 
         useEffect(() => {
             if (!input) {

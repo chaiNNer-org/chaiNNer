@@ -4,6 +4,7 @@ class BaseInput:
         self.label = label
         self.optional = optional
         self.has_handle = has_handle
+        self.id = None
 
     # This is the method that should be created by each input
     def enforce(self, value):
@@ -21,11 +22,16 @@ class BaseInput:
 
     def toDict(self):
         return {
+            "id": self.id,
             "type": self.input_type,
             "label": self.label,
             "optional": self.optional,
             "hasHandle": self.has_handle,
         }
+
+    def with_id(self, input_id: int):
+        self.id = input_id
+        return self
 
     def __repr__(self):
         return str(self.toDict())

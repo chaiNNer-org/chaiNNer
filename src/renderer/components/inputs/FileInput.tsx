@@ -19,20 +19,20 @@ interface FileInputProps extends InputProps {
 }
 
 const FileInput = memo(
-    ({ filetypes, id, index, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
+    ({ filetypes, id, inputId, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
-            index
+            inputId
         );
         const { sendToast } = useContext(AlertBoxContext);
 
-        const [filePath, setFilePath] = useInputData<string>(index);
+        const [filePath, setFilePath] = useInputData<string>(inputId);
 
         // Handle case of NCNN model selection where param and bin files are named in pairs
         // Eventually, these should be combined into a single input type instead of using
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
-            const [paramFilePath] = useInputData<string>(index - 1);
+            const [paramFilePath] = useInputData<string>(inputId - 1);
             useEffect(() => {
                 (async () => {
                     if (paramFilePath) {
@@ -46,7 +46,7 @@ const FileInput = memo(
             }, [paramFilePath]);
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
-            const [binFilePath] = useInputData<string>(index + 1);
+            const [binFilePath] = useInputData<string>(inputId + 1);
             useEffect(() => {
                 (async () => {
                     if (binFilePath) {
@@ -60,7 +60,7 @@ const FileInput = memo(
             }, [binFilePath]);
         }
 
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${index}`);
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
 
         const onButtonClick = async () => {
             const fileDir = filePath ? path.dirname(filePath) : getLastDirectory();

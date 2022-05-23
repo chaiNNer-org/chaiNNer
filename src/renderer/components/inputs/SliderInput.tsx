@@ -44,7 +44,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
 
 const SliderInput = memo(
     ({
-        index,
+        inputId,
         useInputData,
         def,
         min,
@@ -58,7 +58,7 @@ const SliderInput = memo(
         accentColor,
         isLocked,
     }: SliderInputProps) => {
-        const [input, setInput] = useInputData<number>(index);
+        const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
