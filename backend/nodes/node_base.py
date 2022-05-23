@@ -5,7 +5,7 @@ from .properties.inputs import BaseInput
 from .properties.outputs import BaseOutput
 
 
-def assign_implicit_ids(l: List[Union[BaseInput, BaseOutput]]):
+def assign_implicit_ids(l: Union[List[BaseInput], List[BaseOutput]]):
     for i, inout in enumerate(l):
         if inout.id is None:
             inout.id = i
