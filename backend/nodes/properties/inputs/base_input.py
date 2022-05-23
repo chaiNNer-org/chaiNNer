@@ -1,6 +1,3 @@
-from typing_extensions import Self
-
-
 class BaseInput:
     def __init__(self, input_type: str, label: str, optional=False, has_handle=True):
         self.input_type = input_type
@@ -32,7 +29,7 @@ class BaseInput:
             "hasHandle": self.has_handle,
         }
 
-    def with_id(self, input_id: int) -> Self:
+    def with_id(self, input_id: int):
         self.id = input_id
         return self
 

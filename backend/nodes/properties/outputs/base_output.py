@@ -1,6 +1,3 @@
-from typing_extensions import Self
-
-
 class BaseOutput:
     def __init__(
         self,
@@ -18,7 +15,7 @@ class BaseOutput:
             "label": self.label,
         }
 
-    def with_id(self, output_id: int) -> Self:
+    def with_id(self, output_id: int):
         self.id = output_id
         return self
 
