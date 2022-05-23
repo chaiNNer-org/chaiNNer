@@ -161,12 +161,22 @@ class AverageColorFixNode(NodeBase):
                 interpolation=cv2.INTER_AREA,
             )
 
-        input_h, input_w, _ = get_h_w_c(input_img)
-        ref_h, ref_w, _ = get_h_w_c(ref_img)
+        input_h, input_w, input_c = get_h_w_c(input_img)
+        ref_h, ref_w, ref_c = get_h_w_c(ref_img)
 
         assert (
             ref_w < input_w and ref_h < input_h
         ), "Image must be larger than Reference Image"
+        assert input_c in (3, 4), "The input image must be an RGB or RGBA image"
+        assert ref_c in (3, 4), "The reference image must be an RGB or RGBA image"
+
+        # adjust channels
+        alpha = None
+        if input_c > ref_c:
+            alpha = input_img[:, :, 3:4]
+            input_img = input_img[:, :, :ref_c]
+        elif ref_c > input_c:
+            ref_img = ref_img[:, :, :input_c]
 
         # Find the diff of both images
 
@@ -188,6 +198,10 @@ class AverageColorFixNode(NodeBase):
         )
 
         result = input_img + diff
+
+        # add alpha back in
+        if alpha is not None:
+            result = np.concatenate([result, alpha], axis=2)
 
         return np.clip(result, 0, 1)
 
