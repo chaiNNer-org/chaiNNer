@@ -26,18 +26,33 @@ class ImOverlay(NodeBase):
         super().__init__()
         self.description = "Overlay transparent images on base image."
         self.inputs = [
-            ImageInput("Base"),
+            ImageInput("Base").with_id(0),
             SliderInput(
-                "Base Opacity", maximum=100, default=100, step=0.1, controls_step=1
-            ),
-            ImageInput("Overlay A"),
+                "Base Opacity",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(5),
+            ImageInput("Overlay A").with_id(1),
             SliderInput(
-                "Opacity A", maximum=100, default=50, step=0.1, controls_step=1
-            ),
-            ImageInput("Overlay B ", optional=True),
+                "Opacity A",
+                maximum=100,
+                default=50,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(2),
+            ImageInput("Overlay B ", optional=True).with_id(3),
             SliderInput(
-                "Opacity B", maximum=100, default=50, step=0.1, controls_step=1
-            ),
+                "Opacity B",
+                maximum=100,
+                default=50,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ).with_id(4),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
