@@ -1,3 +1,5 @@
+from __future__ import annotations
+import asyncio
 import math
 import os
 from typing import Any
@@ -5,6 +7,7 @@ from typing import Any
 import numpy as np
 from process import Executor
 from sanic.log import logger
+
 
 from .categories import IMAGE
 from .image_nodes import ImReadNode
@@ -42,18 +45,17 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
         self.type = "iteratorHelper"
 
-    def run(self, directory: str = "", root_dir: str = "") -> any:
+    def run(
+        self, directory: str = "", root_dir: str = ""
+    ) -> Tuple[np.ndarray, str, str, str]:
         imread = ImReadNode()
         imread_output = imread.run(directory)
+        img, _, basename = imread_output
 
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(imread_output[1], root_dir)
 
-        # Set ImRead directory output to root/base directory and insert relative path into outputs
-        imread_output[1] = root_dir
-        imread_output.insert(2, rel_path)
-
-        return imread_output
+        return img, root_dir, rel_path, basename
 
 
 @NodeFactory.register("chainner:image:file_iterator")
@@ -77,19 +79,23 @@ class ImageFileIteratorNode(IteratorNodeBase):
             },
         ]
 
+    # pylint: disable=invalid-overridden-method
     async def run(
         self,
         directory: str,
-        nodes: dict = {},
-        external_cache: dict = {},
+        nodes: Union[dict, None] = None,
+        external_cache: Union[dict, None] = None,
         loop=None,
-        queue=None,
+        queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
         percent=0,
-    ) -> Any:
+    ) -> None:
         logger.info(f"Iterating over images in directory: {directory}")
         logger.info(nodes)
+
+        assert nodes is not None, "Nodes must be provided"
+        assert external_cache is not None, "External cache must be provided"
 
         img_path_node_id = None
         child_nodes = []
@@ -112,7 +118,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
-            if parent_executor.should_stop_running():
+            if parent_executor is not None and parent_executor.should_stop_running():
                 return
 
             for name in files:
@@ -124,7 +130,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         file_len = len(just_image_files)
         start_idx = math.ceil(float(percent) * file_len)
         for idx, filepath in enumerate(just_image_files):
-            if parent_executor.should_stop_running():
+            if parent_executor is not None and parent_executor.should_stop_running():
                 return
             if idx >= start_idx:
                 await queue.put(
@@ -157,7 +163,6 @@ class ImageFileIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
-        return ""
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -178,7 +183,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
 
         self.type = "iteratorHelper"
 
-    def run(self, img: np.ndarray, idx: int) -> any:
+    def run(self, img: np.ndarray, idx: int) -> Tuple[np.ndarray, int]:
         return normalize(img), idx
 
 
@@ -213,7 +218,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         video_type: str,
         writer,
         fps,
-    ) -> any:
+    ) -> None:
         h, w, _ = get_h_w_c(img)
         if writer["out"] is None and video_type != "none":
             mp4_codec = "avc1"
@@ -237,7 +242,6 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 )
         if video_type != "none":
             writer["out"].write((img * 255).astype(np.uint8))
-        return ""
 
 
 @NodeFactory.register("chainner:image:video_frame_iterator")
@@ -268,19 +272,23 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.name = "Video Frame Iterator"
         self.icon = "MdVideoCameraBack"
 
+    # pylint: disable=invalid-overridden-method
     async def run(
         self,
         path: str,
-        nodes: dict = {},
-        external_cache: dict = {},
+        nodes: Union[dict, None] = None,
+        external_cache: Union[dict, None] = None,
         loop=None,
-        queue=None,
+        queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
         percent=0,
-    ) -> Any:
+    ) -> None:
         logger.info(f"Iterating over frames in video file: {path}")
         logger.info(nodes)
+
+        assert nodes is not None, "Nodes must be provided"
+        assert external_cache is not None, "External cache must be provided"
 
         input_node_id = None
         output_node_id = None
@@ -304,7 +312,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         start_idx = math.ceil(float(percent) * frame_count)
         nodes[output_node_id]["inputs"].extend((writer, fps))
         for idx in range(frame_count):
-            if parent_executor.should_stop_running():
+            if parent_executor is not None and parent_executor.should_stop_running():
                 cap.release()
                 if writer["out"] is not None:
                     writer["out"].release()
@@ -350,4 +358,3 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         cap.release()
         if writer["out"] is not None:
             writer["out"].release()
-        return ""

@@ -27,7 +27,7 @@ class NodeFactory:
                 cls.registry[schema_id] = wrapped_class
             else:
                 logger.warning(f"Node {schema_id} already exists. Will replace it")
-            return wrapped_class
+            return wrapped_class  # type: ignore
 
         return inner_wrapper
 

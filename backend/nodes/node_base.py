@@ -64,6 +64,7 @@ class NodeBase(metaclass=ABCMeta):
         return self.type
 
 
+# pylint: disable=abstract-method
 class IteratorNodeBase(NodeBase):
     """Base class for an iterator node"""
 

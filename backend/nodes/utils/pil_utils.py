@@ -20,7 +20,7 @@ class InterpolationMethod:
 
 try:
     from PIL import Image, ImageDraw, ImageFont
-    from PIL.Image import Resampling
+    from PIL.Image import Resampling  # type: ignore
 
     pil = Image
 
@@ -66,7 +66,7 @@ def resize(
     # Try PIL first, otherwise fall back to cv2
     if pil is not None:
         pimg = pil.fromarray((img * 255).astype("uint8"))
-        pimg = pimg.resize(out_dims, resample=interpolation)
+        pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
         return np.array(pimg).astype("float32") / 255
     else:
         return cv2.resize(img, out_dims, interpolation=interpolation)
@@ -75,14 +75,19 @@ def resize(
 def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
     """Add caption with PIL or fall back to cv2"""
 
-    if pil is not None:
+    if (
+        pil is not None
+        and Image is not None
+        and ImageFont is not None
+        and ImageDraw is not None
+    ):
         img = cv2.copyMakeBorder(
             img, 0, 42, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
         )
 
         pimg = Image.fromarray((img * 255).astype("uint8"))
         font_path = os.path.join(
-            os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"
+            os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
         )
         font = ImageFont.truetype(font_path, 32)
         h, w, _ = get_h_w_c(img)

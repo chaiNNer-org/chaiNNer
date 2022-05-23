@@ -2,6 +2,8 @@
 Nodes that provide various generic utility
 """
 
+from __future__ import annotations
+from typing import Union
 
 from .categories import UTILITY
 
@@ -51,7 +53,7 @@ class MathNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Math"
 
-    def run(self, in1: int, op: str, in2: int) -> int:
+    def run(self, in1: int, op: str, in2: int) -> Union[int, float]:
         if op == "add":
             return in1 + in2
         elif op == "sub":
@@ -96,9 +98,9 @@ class TextAppendNode(NodeBase):
         self,
         separator: str,
         str1: str,
-        str2: str,
-        str3: str = None,
-        str4: str = None,
+        str2: Union[str, None],
+        str3: Union[str, None] = None,
+        str4: Union[str, None] = None,
     ) -> str:
         strings = [
             str(x) for x in [str1, str2, str3, str4] if x != "" and x is not None

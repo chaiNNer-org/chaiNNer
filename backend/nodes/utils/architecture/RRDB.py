@@ -123,7 +123,7 @@ class RRDBNet(nn.Module):
                 out_nc=self.num_filters,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None,
+                act_type=None,  # type: ignore
             ),
             B.ShortcutBlock(
                 B.sequential(
@@ -149,7 +149,7 @@ class RRDBNet(nn.Module):
                         out_nc=self.num_filters,
                         kernel_size=3,
                         norm_type=self.norm,
-                        act_type=None,
+                        act_type=None,  # type: ignore
                         mode=self.mode,
                     ),
                 )
@@ -169,7 +169,7 @@ class RRDBNet(nn.Module):
                 out_nc=self.out_nc,
                 kernel_size=3,
                 norm_type=None,
-                act_type=None,
+                act_type=None,  # type: ignore
             ),
         )
 

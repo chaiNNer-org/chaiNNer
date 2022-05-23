@@ -1,5 +1,6 @@
+from __future__ import annotations
 import gc
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 from ncnn_vulkan import ncnn
@@ -26,7 +27,7 @@ def ncnn_auto_split_process(
     lr_img: np.ndarray,
     net,
     overlap: int = 16,
-    max_depth: int = None,
+    max_depth: Union[int, None] = None,
     current_depth: int = 1,
     input_name: str = "data",
     output_name: str = "output",
@@ -79,8 +80,9 @@ def ncnn_auto_split_process(
             # Check to see if its actually the NCNN out of memory error
             if "failed" in str(e):
                 # clear VRAM
-                blob_vkallocator.clear()
-                staging_vkallocator.clear()
+                if blob_vkallocator is not None and staging_vkallocator is not None:
+                    blob_vkallocator.clear()
+                    staging_vkallocator.clear()
                 del ex
                 gc.collect()
             else:

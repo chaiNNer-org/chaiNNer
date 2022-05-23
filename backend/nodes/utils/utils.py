@@ -1,6 +1,7 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
-from typing import Tuple
+from __future__ import annotations
+from typing import Tuple, Type, Union
 import numpy as np
 import torch
 from sanic.log import logger
@@ -23,7 +24,7 @@ MAX_VALUES_BY_DTYPE = {
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
     """Returns the height, width, and number of channels."""
     h, w = image.shape[:2]
-    c = image.shape[2] or 1
+    c = 1 if image.ndim == 2 else image.shape[2]
     return h, w, c
 
 
@@ -103,24 +104,25 @@ def np2tensor(
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
         t_dtype = np.dtype("float32")
         img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
+    # "HWC to CHW" and "numpy to tensor"
     img = torch.from_numpy(
         np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
-    ).float()  # "HWC to CHW" and "numpy to tensor"
+    ).float()  # type: ignore
     if bgr2rgb:
         # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
         if (
             img.shape[0] % 3 == 0
         ):  # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
-            img = bgr_to_rgb(img)
+            img = bgr_to_rgb(img)  # type: ignore
         elif img.shape[0] == 4:  # RGBA
-            img = bgra_to_rgba(img)
+            img = bgra_to_rgba(img)  # type: ignore
     if add_batch:
-        img.unsqueeze_(
+        img.unsqueeze_(  # type: ignore
             0
         )  # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
     if normalize:
         img = norm(img)
-    return img
+    return img  # type: ignore
 
 
 def tensor2np(
@@ -130,7 +132,7 @@ def tensor2np(
     data_range=255,
     denormalize=False,
     change_range=True,
-    imtype=np.uint8,
+    imtype: Type = np.uint8,
 ) -> np.ndarray:
     """Converts a Tensor array into a numpy image array.
     Parameters:

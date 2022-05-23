@@ -88,9 +88,9 @@ class ChannelMergeRGBANode(NodeBase):
     def run(
         self,
         im1: np.ndarray,
-        im2: np.ndarray = None,
-        im3: np.ndarray = None,
-        im4: np.ndarray = None,
+        im2: Union[np.ndarray, None] = None,
+        im3: Union[np.ndarray, None] = None,
+        im4: Union[np.ndarray, None] = None,
     ) -> np.ndarray:
         """Combine separate channels into a multi-chanel image"""
 
