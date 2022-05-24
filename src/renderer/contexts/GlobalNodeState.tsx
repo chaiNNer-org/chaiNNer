@@ -251,6 +251,15 @@ export const GlobalProvider = ({
         return () => clearTimeout(id);
     }, [savePath, hasRelevantUnsavedChanges]);
 
+    const unsavedChangesWarning = {
+        type: AlertType.WARN,
+        title: 'Discard unsaved changes?',
+        message:
+            'The current chain has some unsaved changes. Do you really want to discard those changes?',
+        buttons: ['Discard changes', 'No'],
+        defaultButton: 1,
+    };
+
     const modifyNode = useCallback(
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
             changeNodes((nodes) => {
@@ -279,7 +288,15 @@ export const GlobalProvider = ({
     }, [getNodes, getEdges]);
 
     const setStateFromJSON = useCallback(
-        (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+        async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+            if (hasRelevantUnsavedChanges) {
+                const resp = await showAlert(unsavedChangesWarning);
+                if (resp === 1) {
+                    // abort
+                    return;
+                }
+            }
+
             const validNodes = savedData.nodes
                 // remove nodes that are not supported
                 .filter((node) => schemata.has(node.data.schemaId))
@@ -327,19 +344,12 @@ export const GlobalProvider = ({
             pushOpenPath(path);
             setHasUnsavedChanges(false);
         },
-        [schemata, changeNodes, changeEdges]
+        [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges]
     );
 
     const clearState = useCallback(async () => {
         if (hasRelevantUnsavedChanges) {
-            const resp = await showAlert({
-                type: AlertType.WARN,
-                title: 'Discard unsaved changes?',
-                message:
-                    'The current chain has some unsaved changes. Do you really want to discard those changes?',
-                buttons: ['Discard changes', 'No'],
-                defaultButton: 1,
-            });
+            const resp = await showAlert(unsavedChangesWarning);
             if (resp === 1) {
                 // abort
                 return;
