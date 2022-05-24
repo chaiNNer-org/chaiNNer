@@ -285,6 +285,23 @@ const toV080 = (data) => {
     return data;
 };
 
+const toV090 = (data) => {
+    data.nodes.forEach((node) => {
+        // Convert slider scales for several Adjustment nodes
+        if (node.data.schemaId === 'chainner:image:hue_and_saturation') {
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
+        }
+        if (node.data.schemaId === 'chainner:image:brightness_and_contrast') {
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['1'] = ((node.data.inputData['1'] / 255) * 100.0).toFixed(1);
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
+        }
+    });
+    return data;
+};
+
 // ==============
 
 export const migrate = (_version, data) => {
@@ -341,6 +358,15 @@ export const migrate = (_version, data) => {
     if (semver.lt(version, '0.8.0')) {
         try {
             convertedData = toV080(convertedData);
+        } catch (error) {
+            log.warn('Failed to convert to v0.8.0', error);
+        }
+    }
+
+    // v0.9.0 or whatever is next
+    if (semver.lt(version, '0.9.0')) {
+        try {
+            convertedData = toV090(convertedData);
         } catch (error) {
             log.warn('Failed to convert to v0.8.0', error);
         }
