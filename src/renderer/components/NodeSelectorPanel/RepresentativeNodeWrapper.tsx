@@ -64,6 +64,7 @@ const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNo
                 hasArrow
                 borderRadius={8}
                 label={<ReactMarkdown>{node.description}</ReactMarkdown>}
+                openDelay={200}
                 px={2}
                 py={1}
             >
