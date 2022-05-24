@@ -2,6 +2,7 @@
   "python.formatting.provider": "black",
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.words": [
+    "Chainner",
     "Chakra",
     "geforce",
     "localstorage",
