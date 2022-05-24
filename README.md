@@ -1,6 +1,6 @@
 # chaiNNer
 
-[![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer)](https://github.com/joeyballentine/chaiNNer/releases/tag/v0.8.1)
+[![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer)](https://github.com/joeyballentine/chaiNNer/releases/tag/latest)
 [![GitHub Total Downloads](https://img.shields.io/github/downloads/joeyballentine/chaiNNer/total)](https://github.com/joeyballentine/chaiNNer/releases)
 [![License](https://img.shields.io/github/license/joeyballentine/chaiNNer)](./LICENSE)
 [![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)](https://discord.gg/pzvAKPKyHM)
