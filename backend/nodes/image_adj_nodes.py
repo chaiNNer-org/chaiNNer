@@ -226,7 +226,7 @@ class AdaptiveThresholdNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        maxval: int,
+        maxval: float,
         adaptive_method: int,
         thresh_type: int,
         block_size: int,
