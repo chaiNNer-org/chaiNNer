@@ -1,12 +1,5 @@
 import {
     HStack,
-    InputGroup,
-    InputLeftAddon,
-    NumberDecrementStepper,
-    NumberIncrementStepper,
-    NumberInput,
-    NumberInputField,
-    NumberInputStepper,
     Slider,
     SliderFilledTrack,
     SliderThumb,
@@ -16,8 +9,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { areApproximatelyEqual } from '../../../common/util';
-import { getPrecision } from './NumberInput';
+import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
 interface SliderInputProps extends InputProps {
@@ -65,11 +57,6 @@ const SliderInput = memo(
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
-        // Clamping offset because for some reason it is coming in as an e-14 float
-        const clampedOffset = areApproximatelyEqual(offset, 0) ? 0 : offset;
-        const precision = Math.max(getPrecision(clampedOffset), getPrecision(step));
-        const dynamicNumInputWidth = 3 + 0.5 * precision;
-
         useEffect(() => {
             setSliderValue(input);
             if (!Number.isNaN(input)) {
@@ -87,49 +74,10 @@ const SliderInput = memo(
             setSliderValue(Number(numberAsString));
         };
 
-        const onBlur = () => {
-            const valAsNumber =
-                precision > 0
-                    ? parseFloat(inputString !== '' ? inputString : String(def))
-                    : Math.round(parseFloat(inputString !== '' ? inputString : String(def)));
-
-            if (!Number.isNaN(valAsNumber)) {
-                const roundedVal =
-                    Math.round((valAsNumber - clampedOffset) / step) * step + clampedOffset;
-
-                const clampMax = (value: number, max_val: number | undefined | null) => {
-                    if (max_val !== undefined && max_val !== null) {
-                        const valOrMax = Math.min(value, max_val);
-                        return valOrMax;
-                    }
-                    return value;
-                };
-                const maxClamped = clampMax(roundedVal, max);
-
-                const clampMin = (value: number, min_val: number | undefined | null) => {
-                    if (min_val !== undefined && min_val !== null) {
-                        const valOrMin = Math.max(value, min_val);
-                        return valOrMin;
-                    }
-                    return value;
-                };
-                const minClamped = Number(clampMin(maxClamped, min).toFixed(precision));
-
-                // Make sure the input value has been altered so onChange gets correct value if adjustment needed
-                Promise.resolve()
-                    .then(() => {
-                        setInput(minClamped);
-                        setInputString(String(minClamped));
-                    }) // eslint-disable-next-line no-console
-                    .catch(() => console.log('Failed to set input to minClamped.'));
-            }
-        };
-
         const expr = noteExpression
             ? tryEvaluate(noteExpression, {
                   min,
                   max,
-                  precision,
                   value: sliderValue ?? def,
               })
             : undefined;
@@ -170,45 +118,20 @@ const SliderInput = memo(
                         </Tooltip>
                     </Slider>
                     {ends && <Text fontSize="xs">{ends[1]}</Text>}
-                    <InputGroup
-                        mx={0}
-                        size="xs"
-                        w="fit-content"
-                    >
-                        {unit ? (
-                            <InputLeftAddon
-                                px={1}
-                                w="fit-content"
-                            >
-                                {unit}
-                            </InputLeftAddon>
-                        ) : null}
-                        <NumberInput
-                            className="nodrag"
-                            defaultValue={def}
-                            draggable={false}
-                            isDisabled={isLocked}
-                            max={max}
-                            min={min}
-                            placeholder={def !== undefined ? String(def) : undefined}
-                            size="xs"
-                            step={controlsStep}
-                            value={inputString}
-                            onBlur={onBlur}
-                            onChange={onNumberInputChange}
-                        >
-                            <NumberInputField
-                                borderLeftRadius={unit ? 0 : 'xs'}
-                                m={0}
-                                p={1}
-                                w={`${dynamicNumInputWidth}rem`}
-                            />
-                            <NumberInputStepper w={4}>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                            </NumberInputStepper>
-                        </NumberInput>
-                    </InputGroup>
+                    <AdvancedNumberInput
+                        small
+                        controlsStep={controlsStep}
+                        defaultValue={def}
+                        inputString={inputString}
+                        isDisabled={isLocked}
+                        max={max}
+                        min={min}
+                        offset={offset}
+                        setInput={setInput}
+                        setInputString={onNumberInputChange}
+                        step={step}
+                        unit={unit}
+                    />
                 </HStack>
                 {expr && <Text fontSize="xs">{expr}</Text>}
             </VStack>
