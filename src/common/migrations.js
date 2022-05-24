@@ -304,73 +304,39 @@ const toV090 = (data) => {
 
 // ==============
 
-export const migrate = (_version, data) => {
-    let convertedData = data;
-    let version = _version;
+const versionToMigration = (version) => {
+    const versions = {
+        '0.1.0': 0, // Legacy files
+        '0.3.0': 1, // v0.1.x & v0.2.x to v0.3.0
+        '0.5.0': 2, // v0.3.x & v0.4.x to v0.5.0
+        '0.5.2': 3, // v0.5.0 & v0.5.1 to v0.5.2
+        '0.7.0': 4,
+        '0.8.0': 5,
+    };
 
-    // Legacy files
-    if (!version || semver.lt(version, '0.1.0')) {
-        try {
-            convertedData = preAlpha(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.1.0', error);
-        }
-        version = '0.0.0';
-    }
-
-    // v0.1.x & v0.2.x to v0.3.0
-    if (semver.lt(version, '0.3.0')) {
-        try {
-            convertedData = toV03(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.3.0', error);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [ver, migration] of Object.entries(versions)) {
+        if (semver.lt(version, ver)) {
+            return migration;
         }
     }
+    return 6;
+};
 
-    // v0.3.x & v0.4.x to v0.5.0
-    if (semver.lt(version, '0.5.0')) {
-        try {
-            convertedData = toV05(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.5.0', error);
-        }
+const migrations = [preAlpha, toV03, toV05, toV052, toV070, toV080, toV090];
+
+export const currentMigration = migrations.length;
+
+export const migrate = (version, data, migration) => {
+    // eslint-disable-next-line no-param-reassign
+    version ||= '0.0.0';
+    // eslint-disable-next-line no-param-reassign
+    migration ??= versionToMigration(version);
+
+    try {
+        return migrations.slice(migration).reduce((current, fn) => fn(current), data);
+    } catch (error) {
+        log.error(error);
+        throw error;
     }
-
-    // v0.5.0 & v0.5.1 to v0.5.2
-    if (semver.lt(version, '0.5.2')) {
-        try {
-            convertedData = toV052(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.5.2', error);
-        }
-    }
-
-    // v0.7.0
-    if (semver.lt(version, '0.7.0')) {
-        try {
-            convertedData = toV070(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.7.0', error);
-        }
-    }
-
-    // v0.8.0
-    if (semver.lt(version, '0.8.0')) {
-        try {
-            convertedData = toV080(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.8.0', error);
-        }
-    }
-
-    // v0.9.0 or whatever is next
-    if (semver.lt(version, '0.9.0')) {
-        try {
-            convertedData = toV090(convertedData);
-        } catch (error) {
-            log.warn('Failed to convert to v0.9.0', error);
-        }
-    }
-
-    return convertedData;
 };
