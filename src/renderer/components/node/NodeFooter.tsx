@@ -20,7 +20,6 @@ const NodeFooter = ({ isValid = false, invalidReason = '' }: NodeFooterProps) =>
             pr={2}
             w="full"
         >
-            <Center className="nodrag" />
             <Spacer />
             <Tooltip
                 hasArrow
@@ -50,7 +49,6 @@ const NodeFooter = ({ isValid = false, invalidReason = '' }: NodeFooterProps) =>
                 </Center>
             </Tooltip>
             <Spacer />
-            <Center className="nodrag" />
         </Flex>
     );
 };
