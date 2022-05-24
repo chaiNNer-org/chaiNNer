@@ -1,5 +1,3 @@
-from typing import Dict
-
 import cv2
 
 # pylint: disable=relative-beyond-top-level

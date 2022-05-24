@@ -21,7 +21,9 @@ class NoteNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = "Make a sticky note for whatever notes or comments you want to leave in the chain."
-        self.inputs = [NoteTextAreaInput()]
+        self.inputs = [
+            NoteTextAreaInput().make_optional(),
+        ]
         self.outputs = []
 
         self.category = UTILITY
@@ -29,7 +31,7 @@ class NoteNode(NodeBase):
         self.icon = "MdOutlineStickyNote2"
         self.sub = "Text"
 
-    def run(self, _text: str) -> None:
+    def run(self, _text: Union[str, None]) -> None:
         return
 
 
@@ -84,8 +86,8 @@ class TextAppendNode(NodeBase):
             TextInput("Separator", has_handle=False, max_length=3),
             TextInput("Text A"),
             TextInput("Text B"),
-            TextInput("Text C", optional=True),
-            TextInput("Text D", optional=True),
+            TextInput("Text C").make_optional(),
+            TextInput("Text D").make_optional(),
         ]
         self.outputs = [TextOutput("Output Text")]
 
@@ -99,8 +101,8 @@ class TextAppendNode(NodeBase):
         separator: str,
         str1: str,
         str2: Union[str, None],
-        str3: Union[str, None] = None,
-        str4: Union[str, None] = None,
+        str3: Union[str, None],
+        str4: Union[str, None],
     ) -> str:
         strings = [
             str(x) for x in [str1, str2, str3, str4] if x != "" and x is not None

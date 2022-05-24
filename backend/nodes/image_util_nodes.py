@@ -29,8 +29,8 @@ class ImOverlay(NodeBase):
             ImageInput("Base"),
             ImageInput("Overlay A"),
             SliderInput("Opacity A", maximum=100, default=50),
-            ImageInput("Overlay B ", optional=True),
-            SliderInput("Opacity B", maximum=100, default=50, optional=True),
+            ImageInput("Overlay B").make_optional(),
+            SliderInput("Opacity B", maximum=100, default=50),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -42,9 +42,9 @@ class ImOverlay(NodeBase):
         self,
         base: np.ndarray,
         ov1: np.ndarray,
-        op1_int: int = 50,
-        ov2: Union[np.ndarray, None] = None,
-        op2_int: int = 50,
+        op1_int: int,
+        ov2: Union[np.ndarray, None],
+        op2_int: int,
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
@@ -109,9 +109,9 @@ class StackNode(NodeBase):
         self.description = "Concatenate multiple images horizontally."
         self.inputs = [
             ImageInput("Image A"),
-            ImageInput("Image B", optional=True),
-            ImageInput("Image C", optional=True),
-            ImageInput("Image D", optional=True),
+            ImageInput("Image B").make_optional(),
+            ImageInput("Image C").make_optional(),
+            ImageInput("Image D").make_optional(),
             StackOrientationDropdown(),
         ]
         self.outputs = [ImageOutput()]
@@ -123,10 +123,10 @@ class StackNode(NodeBase):
     def run(
         self,
         im1: np.ndarray,
-        im2: Union[np.ndarray, None] = None,
-        im3: Union[np.ndarray, None] = None,
-        im4: Union[np.ndarray, None] = None,
-        orientation: str = "horizontal",
+        im2: Union[np.ndarray, None],
+        im3: Union[np.ndarray, None],
+        im4: Union[np.ndarray, None],
+        orientation: str,
     ) -> np.ndarray:
         """Concatenate multiple images horizontally"""
         img = im1

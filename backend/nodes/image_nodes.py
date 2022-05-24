@@ -137,7 +137,7 @@ class ImWriteNode(NodeBase):
         self.inputs = [
             ImageInput(),
             DirectoryInput(has_handle=True),
-            TextInput("Relative Path", optional=True),
+            TextInput("Relative Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
@@ -151,7 +151,7 @@ class ImWriteNode(NodeBase):
         self,
         img: np.ndarray,
         base_directory: str,
-        relative_path: str,
+        relative_path: Union[str, None],
         filename: str,
         extension: str,
     ) -> bool:

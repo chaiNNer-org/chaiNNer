@@ -40,14 +40,10 @@ class NumberInput(BaseInput):
         minimum: Union[float, int] = 0,
         maximum: Union[float, int, None] = None,
         unit: Union[str, None] = None,
-        has_handle: bool = True,
-        optional: bool = False,
         number_type: str = "any",
         note_expression: Union[str, None] = None,
     ):
-        super().__init__(
-            f"number::{number_type}", label, optional=optional, has_handle=has_handle
-        )
+        super().__init__(f"number::{number_type}", label, has_handle=True)
         # Step is for the actual increment.
         # controls_step is for increment/decrement arrows.
         self.step = step
@@ -72,6 +68,9 @@ class NumberInput(BaseInput):
             "unit": self.unit,
         }
 
+    def make_optional(self):
+        raise ValueError("DropDownInput cannot be made optional")
+
     def enforce(self, value):
         return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
 
@@ -88,8 +87,6 @@ class SliderInput(NumberInput):
         maximum: int = 100,
         default: int = 50,
         unit: Union[str, None] = None,
-        has_handle: bool = True,
-        optional: bool = False,
         note_expression: Union[str, None] = None,
         ends: Union[Tuple[int, int], Tuple[str, str], Tuple[None, None]] = (None, None),
     ):
@@ -101,8 +98,6 @@ class SliderInput(NumberInput):
             minimum=minimum,
             maximum=maximum,
             unit=unit,
-            optional=optional,
-            has_handle=has_handle,
             note_expression=note_expression,
             number_type="slider",
         )

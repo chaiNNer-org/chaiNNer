@@ -17,9 +17,8 @@ class FileInput(BaseInput):
         label: str,
         filetypes: list[str],
         has_handle: bool = False,
-        optional: bool = False,
     ):
-        super().__init__(f"file::{input_type}", label, optional, has_handle)
+        super().__init__(f"file::{input_type}", label, has_handle)
         self.filetypes = filetypes
 
     def toDict(self):
