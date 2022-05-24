@@ -3,7 +3,6 @@ import {
     Accordion,
     AccordionItem,
     Box,
-    Center,
     IconButton,
     Input,
     InputGroup,
@@ -14,7 +13,6 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    Text,
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
@@ -25,6 +23,7 @@ import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import DependencyManager from '../DependencyManager';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { RegularAccordionItem } from './RegularAccordionItem';
+import { TextBox } from './TextBox';
 
 const createSearchPredicate = (query: string): ((name: string) => boolean) => {
     const pattern = new RegExp(
@@ -178,12 +177,10 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 allowMultiple
                                 defaultIndex={schemata.schemata.map((item, index) => index)}
                             >
-                                {favorites.size > 0 && (
-                                    <FavoritesAccordionItem
-                                        collapsed={collapsed}
-                                        favoriteNodes={favoriteNodes}
-                                    />
-                                )}
+                                <FavoritesAccordionItem
+                                    collapsed={collapsed}
+                                    favoriteNodes={favoriteNodes}
+                                />
                                 {[...byCategories].map(([category, categoryNodes]) => {
                                     const subcategoryMap = getSubcategories(categoryNodes);
 
@@ -198,39 +195,10 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                 })}
                                 {!collapsed && (
                                     <AccordionItem>
-                                        <Center
-                                            m={0}
-                                            p={3}
-                                            textOverflow="ellipsis"
-                                            w="full"
-                                        >
-                                            <Box
-                                                _hover={{
-                                                    backgroundColor: 'gray.600',
-                                                }}
-                                                bg={useColorModeValue('gray.200', 'gray.700')}
-                                                borderRadius={10}
-                                                cursor="pointer"
-                                                p={2}
-                                                sx={{
-                                                    cursor: 'pointer !important',
-                                                    transition: '0.15s ease-in-out',
-                                                }}
-                                                onClick={onOpen}
-                                            >
-                                                <Text
-                                                    cursor="pointer"
-                                                    fontSize="sm"
-                                                    fontWeight="bold"
-                                                    sx={{
-                                                        cursor: 'pointer !important',
-                                                    }}
-                                                    textAlign="center"
-                                                >
-                                                    Missing nodes? Check the dependency manager!
-                                                </Text>
-                                            </Box>
-                                        </Center>
+                                        <TextBox
+                                            text="Missing nodes? Check the dependency manager!"
+                                            onClick={onOpen}
+                                        />
                                         {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
                                         <DependencyManager
                                             isOpen={isOpen}
