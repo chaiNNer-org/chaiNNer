@@ -75,9 +75,9 @@ class ChannelMergeRGBANode(NodeBase):
         )
         self.inputs = [
             ImageInput("Channel(s) A"),
-            ImageInput("Channel(s) B", optional=True),
-            ImageInput("Channel(s) C", optional=True),
-            ImageInput("Channel(s) D", optional=True),
+            ImageInput("Channel(s) B").make_optional(),
+            ImageInput("Channel(s) C").make_optional(),
+            ImageInput("Channel(s) D").make_optional(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_CHANNEL
@@ -88,9 +88,9 @@ class ChannelMergeRGBANode(NodeBase):
     def run(
         self,
         im1: np.ndarray,
-        im2: Union[np.ndarray, None] = None,
-        im3: Union[np.ndarray, None] = None,
-        im4: Union[np.ndarray, None] = None,
+        im2: Union[np.ndarray, None],
+        im3: Union[np.ndarray, None],
+        im4: Union[np.ndarray, None],
     ) -> np.ndarray:
         """Combine separate channels into a multi-chanel image"""
 
@@ -169,7 +169,10 @@ class TransparencyMergeNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
-        self.inputs = [ImageInput("RGB Channels"), ImageInput("Alpha Channel")]
+        self.inputs = [
+            ImageInput("RGB Channels"),
+            ImageInput("Alpha Channel"),
+        ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_CHANNEL
         self.name = "Merge Transparency"
@@ -220,7 +223,10 @@ class FillAlphaNode(NodeBase):
         self.description = (
             "Fills the transparent pixels of an image with nearby colors."
         )
-        self.inputs = [ImageInput("RGBA"), AlphaFillMethodInput()]
+        self.inputs = [
+            ImageInput("RGBA"),
+            AlphaFillMethodInput(),
+        ]
         self.outputs = [ImageOutput("RGB")]
         self.category = IMAGE_CHANNEL
         self.name = "Fill Alpha"

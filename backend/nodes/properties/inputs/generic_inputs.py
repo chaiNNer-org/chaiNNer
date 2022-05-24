@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from .base_input import BaseInput
 
@@ -11,9 +11,8 @@ class DropDownInput(BaseInput):
         label: str,
         options: List[Dict],
         input_type: str = "generic",
-        optional: bool = False,
     ):
-        super().__init__(f"dropdown::{input_type}", label, optional, has_handle=False)
+        super().__init__(f"dropdown::{input_type}", label, has_handle=False)
         self.options = options
 
     def toDict(self):
@@ -21,6 +20,9 @@ class DropDownInput(BaseInput):
             **super().toDict(),
             "options": self.options,
         }
+
+    def make_optional(self):
+        raise ValueError("DropDownInput cannot be made optional")
 
     def enforce(self, value):
         accepted_values = [o["value"] for o in self.options]
@@ -33,8 +35,13 @@ class DropDownInput(BaseInput):
 class TextInput(BaseInput):
     """Input for arbitrary text"""
 
-    def __init__(self, label: str, has_handle=True, max_length=None, optional=False):
-        super().__init__(f"text::any", label, optional, has_handle=has_handle)
+    def __init__(
+        self,
+        label: str,
+        has_handle=True,
+        max_length: Union[int, None] = None,
+    ):
+        super().__init__(f"text::any", label, has_handle=has_handle)
         self.max_length = max_length
 
     def toDict(self):
@@ -48,7 +55,7 @@ class NoteTextAreaInput(BaseInput):
     """Input for note text"""
 
     def __init__(self, label: str = "Note Text"):
-        super().__init__(f"textarea::note", label, optional=True, has_handle=False)
+        super().__init__(f"textarea::note", label, has_handle=False)
         self.resizable = True
 
     def toDict(self):
@@ -110,15 +117,12 @@ def StackOrientationDropdown() -> DropDownInput:
                 "value": "vertical",
             },
         ],
-        optional=True,
     )
 
 
 def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
-    return BaseInput(
-        "iterator::auto", "Auto (Iterator)", optional=True, has_handle=False
-    )
+    return BaseInput("iterator::auto", "Auto (Iterator)", has_handle=False)
 
 
 class AlphaFillMethod:

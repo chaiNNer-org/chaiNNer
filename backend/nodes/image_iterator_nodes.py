@@ -2,7 +2,6 @@ from __future__ import annotations
 import asyncio
 import math
 import os
-from typing import Any
 
 import numpy as np
 from process import Executor
@@ -32,7 +31,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = ""
-        self.inputs = [IteratorInput()]
+        self.inputs = [IteratorInput().make_optional()]
         self.outputs = ImReadNode().get_outputs()
         self.outputs.insert(
             2, TextOutput("Relative Path")
@@ -173,7 +172,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = ""
-        self.inputs = [IteratorInput()]
+        self.inputs = [IteratorInput().make_optional()]
         self.outputs = [ImageOutput("Frame Image"), TextOutput("Frame Index")]
 
         self.category = IMAGE
