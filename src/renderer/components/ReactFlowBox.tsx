@@ -332,6 +332,7 @@ const ReactFlowBox = ({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxProps) =
                 onEdgesDelete={onEdgesDelete}
                 onMoveEnd={onMoveEnd}
                 onMoveStart={closeContextMenu}
+                onNodeClick={closeContextMenu}
                 onNodeDragStop={onNodeDragStop}
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}

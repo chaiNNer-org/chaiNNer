@@ -187,7 +187,7 @@
     "re-resizable": "^6.9.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-flow-renderer": "file:thirdparty/react-flow-renderer-10.2.3.tgz",
+    "react-flow-renderer": "^10.3.0",
     "react-hotkeys-hook": "^3.4.4",
     "react-icons": "^4.2.0",
     "react-markdown": "^8.0.3",
