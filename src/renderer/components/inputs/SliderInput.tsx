@@ -1,5 +1,7 @@
 import {
     HStack,
+    InputGroup,
+    InputLeftAddon,
     NumberDecrementStepper,
     NumberIncrementStepper,
     NumberInput,
@@ -66,9 +68,7 @@ const SliderInput = memo(
         // Clamping offset because for some reason it is coming in as an e-14 float
         const clampedOffset = areApproximatelyEqual(offset, 0) ? 0 : offset;
         const precision = Math.max(getPrecision(clampedOffset), getPrecision(step));
-        const addUnit = (val: string) => `${val}${unit ?? ''}`;
-        const dynamicNumInputWidth =
-            3 + 0.5 * precision + (unit !== null && unit !== undefined ? 1.1 : 0);
+        const dynamicNumInputWidth = 3 + 0.5 * precision;
 
         useEffect(() => {
             setSliderValue(input);
@@ -161,7 +161,7 @@ const SliderInput = memo(
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}
-                            label={sliderValue}
+                            label={`${sliderValue ?? 0}${unit ?? ''}`}
                             placement="top"
                             px={2}
                             py={1}
@@ -170,30 +170,45 @@ const SliderInput = memo(
                         </Tooltip>
                     </Slider>
                     {ends && <Text fontSize="xs">{ends[1]}</Text>}
-                    <NumberInput
-                        className="nodrag"
-                        defaultValue={def}
-                        draggable={false}
-                        isDisabled={isLocked}
-                        max={max}
-                        min={min}
-                        placeholder={def !== undefined ? String(def) : undefined}
+                    <InputGroup
+                        mx={0}
                         size="xs"
-                        step={controlsStep}
-                        value={addUnit(inputString)}
-                        onBlur={onBlur}
-                        onChange={onNumberInputChange}
+                        w="fit-content"
                     >
-                        <NumberInputField
-                            m={0}
-                            p={1}
-                            w={`${dynamicNumInputWidth}rem`}
-                        />
-                        <NumberInputStepper w={4}>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                        </NumberInputStepper>
-                    </NumberInput>
+                        {unit ? (
+                            <InputLeftAddon
+                                px={1}
+                                w="fit-content"
+                            >
+                                {unit}
+                            </InputLeftAddon>
+                        ) : null}
+                        <NumberInput
+                            className="nodrag"
+                            defaultValue={def}
+                            draggable={false}
+                            isDisabled={isLocked}
+                            max={max}
+                            min={min}
+                            placeholder={def !== undefined ? String(def) : undefined}
+                            size="xs"
+                            step={controlsStep}
+                            value={inputString}
+                            onBlur={onBlur}
+                            onChange={onNumberInputChange}
+                        >
+                            <NumberInputField
+                                borderLeftRadius={unit ? 0 : 'xs'}
+                                m={0}
+                                p={1}
+                                w={`${dynamicNumInputWidth}rem`}
+                            />
+                            <NumberInputStepper w={4}>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
+                    </InputGroup>
                 </HStack>
                 {expr && <Text fontSize="xs">{expr}</Text>}
             </VStack>
