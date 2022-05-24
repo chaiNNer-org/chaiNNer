@@ -71,7 +71,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         }
     }, [inputData, edgeChanges]);
 
-    const menu = useNodeMenu(id);
+    const menu = useNodeMenu(id, undefined);
 
     return (
         <Center
@@ -155,11 +155,8 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     outputs={outputs}
                 />
                 <NodeFooter
-                    id={id}
                     invalidReason={validity[1]}
-                    isLocked={isLocked}
                     isValid={validity[0]}
-                    menu={menu}
                 />
             </VStack>
         </Center>

@@ -4,7 +4,7 @@ import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 
-export const useNodeMenu = (id: string, isLocked: boolean): UseContextMenu => {
+export const useNodeMenu = (id: string, isLocked: boolean | undefined): UseContextMenu => {
     const { removeNodeById, clearNode, duplicateNode, toggleNodeLock } = useContext(GlobalContext);
 
     return useContextMenu(
@@ -26,14 +26,16 @@ export const useNodeMenu = (id: string, isLocked: boolean): UseContextMenu => {
                 >
                     Clear
                 </MenuItem>
-                <MenuItem
-                    icon={isLocked ? <UnlockIcon /> : <LockIcon />}
-                    onClick={() => {
-                        toggleNodeLock(id);
-                    }}
-                >
-                    {isLocked ? 'Unlock' : 'Lock'}
-                </MenuItem>
+                {isLocked !== undefined ? (
+                    <MenuItem
+                        icon={isLocked ? <UnlockIcon /> : <LockIcon />}
+                        onClick={() => {
+                            toggleNodeLock(id);
+                        }}
+                    >
+                        {isLocked ? 'Unlock' : 'Lock'}
+                    </MenuItem>
+                ) : null}
                 <MenuItem
                     icon={<DeleteIcon />}
                     onClick={() => {
