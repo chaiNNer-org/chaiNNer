@@ -131,7 +131,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const menu = useNodeMenu(id);
+    const menu = useNodeMenu(id, isLocked ?? false);
 
     return (
         <Center
@@ -170,11 +170,8 @@ const Node = memo(({ data, selected }: NodeProps) => {
                     schemaId={schemaId}
                 />
                 <NodeFooter
-                    id={id}
                     invalidReason={validity[1]}
-                    isLocked={isLocked}
                     isValid={validity[0]}
-                    menu={menu}
                 />
             </VStack>
         </Center>
