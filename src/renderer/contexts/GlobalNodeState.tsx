@@ -402,7 +402,7 @@ export const GlobalProvider = ({
         const result = await ipcRenderer.invoke('get-cli-open');
         if (result) {
             if (result.kind === 'Success') {
-                setStateFromJSON(result.saveData, result.path, true);
+                await setStateFromJSON(result.saveData, result.path, true);
             } else {
                 removeRecentPath(result.path);
                 sendAlert({
@@ -416,9 +416,10 @@ export const GlobalProvider = ({
     // Register Open File event handler
     useIpcRendererListener(
         'file-open',
-        (event, result) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        async (event, result) => {
             if (result.kind === 'Success') {
-                setStateFromJSON(result.saveData, result.path, true);
+                await setStateFromJSON(result.saveData, result.path, true);
             } else {
                 removeRecentPath(result.path);
                 sendAlert({
