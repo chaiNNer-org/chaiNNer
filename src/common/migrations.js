@@ -368,7 +368,7 @@ export const migrate = (_version, data) => {
         try {
             convertedData = toV090(convertedData);
         } catch (error) {
-            log.warn('Failed to convert to v0.8.0', error);
+            log.warn('Failed to convert to v0.9.0', error);
         }
     }
 
