@@ -23,8 +23,17 @@ class HueAndSaturationNode(NodeBase):
         self.description = "Adjust the hue and saturation of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Hue", minimum=-180, maximum=180, default=0),
-            SliderInput("Saturation", minimum=-255, maximum=255, default=0),
+            SliderInput(
+                "Hue", minimum=-180, maximum=180, default=0, step=0.1, controls_step=1
+            ),
+            SliderInput(
+                "Saturation",
+                minimum=-100,
+                maximum=100,
+                default=0,
+                step=0.1,
+                controls_step=1,
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -40,7 +49,7 @@ class HueAndSaturationNode(NodeBase):
         img[img < 0] += 360  # Wrap negative overflow
         return img
 
-    def run(self, img: np.ndarray, hue: int, saturation: int) -> np.ndarray:
+    def run(self, img: np.ndarray, hue: float, saturation: float) -> np.ndarray:
         """Adjust the hue and saturation of an image"""
 
         _, _, c = get_h_w_c(img)
@@ -59,7 +68,7 @@ class HueAndSaturationNode(NodeBase):
 
         # Adjust hue and saturation
         hnew = self.add_and_wrap_hue(h, hue)
-        smod = 1 + (saturation / 255)
+        smod = 1 + (saturation / 100)
         snew = np.clip((s * smod), 0, 1)
 
         hlsnew = cv2.merge([hnew, l, snew])
@@ -80,8 +89,22 @@ class BrightnessAndContrastNode(NodeBase):
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Brightness", minimum=-255, maximum=255, default=0),
-            SliderInput("Contrast", minimum=-255, maximum=255, default=0),
+            SliderInput(
+                "Brightness",
+                minimum=-100,
+                maximum=100,
+                default=0,
+                step=0.1,
+                controls_step=1,
+            ),
+            SliderInput(
+                "Contrast",
+                minimum=-100,
+                maximum=100,
+                default=0,
+                step=0.1,
+                controls_step=1,
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT
@@ -89,11 +112,11 @@ class BrightnessAndContrastNode(NodeBase):
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
 
-    def run(self, img: np.ndarray, b_amount: int, c_amount: int) -> np.ndarray:
+    def run(self, img: np.ndarray, b_amount: float, c_amount: float) -> np.ndarray:
         """Adjusts the brightness and contrast of an image"""
 
-        b_norm_amount = b_amount / 255
-        c_norm_amount = c_amount / 255
+        b_norm_amount = b_amount / 100
+        c_norm_amount = c_amount / 100
 
         # Pass through unadjusted image
         if b_norm_amount == 0 and c_norm_amount == 0:
@@ -140,8 +163,12 @@ class ThresholdNode(NodeBase):
         self.description = "Perform a threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Threshold", maximum=100, default=50),
-            SliderInput("Maximum Value", maximum=100, default=100),
+            SliderInput(
+                "Threshold", maximum=100, default=50, step=0.1, controls_step=1
+            ),
+            SliderInput(
+                "Maximum Value", maximum=100, default=100, step=0.1, controls_step=1
+            ),
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput()]
@@ -151,7 +178,7 @@ class ThresholdNode(NodeBase):
         self.sub = "Adjustments"
 
     def run(
-        self, img: np.ndarray, thresh: int, maxval: int, thresh_type: int
+        self, img: np.ndarray, thresh: float, maxval: float, thresh_type: int
     ) -> np.ndarray:
         """Takes an image and applies a threshold to it"""
 
@@ -177,7 +204,9 @@ class AdaptiveThresholdNode(NodeBase):
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
             ImageInput(),
-            SliderInput("Maximum Value", maximum=100, default=100),
+            SliderInput(
+                "Maximum Value", maximum=100, default=100, step=0.1, controls_step=1
+            ),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
             NumberInput(
@@ -197,7 +226,7 @@ class AdaptiveThresholdNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        maxval: int,
+        maxval: float,
         adaptive_method: int,
         thresh_type: int,
         block_size: int,
