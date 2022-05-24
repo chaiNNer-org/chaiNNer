@@ -65,7 +65,8 @@ const FavoritesAccordionItem = memo(({ favoriteNodes, collapsed }: FavoritesAcco
                             toolTip={
                                 <>
                                     Add Favorites by hovering over nodes and clicking the{' '}
-                                    <StarIcon style={{ verticalAlign: 'baseline' }} /> icon.
+                                    <StarIcon style={{ verticalAlign: 'baseline' }} /> icon, or by
+                                    right-clicking and selecting <em>Add to Favorites</em>.
                                 </>
                             }
                         />
