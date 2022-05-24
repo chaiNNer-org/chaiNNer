@@ -12,6 +12,7 @@ import {
 import { memo } from 'react';
 import { NodeSchema } from '../../../common/common-types';
 import RepresentativeNodeWrapper from './RepresentativeNodeWrapper';
+import { TextBox } from './TextBox';
 
 interface FavoritesAccordionItemProps {
     favoriteNodes: NodeSchema[];
@@ -48,15 +49,28 @@ const FavoritesAccordionItem = memo(({ favoriteNodes, collapsed }: FavoritesAcco
                 pt={0}
             >
                 <Box>
-                    {favoriteNodes
-                        .filter((e) => e.nodeType !== 'iteratorHelper')
-                        .map((node) => (
-                            <RepresentativeNodeWrapper
-                                collapsed={collapsed}
-                                key={node.name}
-                                node={node}
-                            />
-                        ))}
+                    {favoriteNodes.length > 0 ? (
+                        favoriteNodes
+                            .filter((e) => e.nodeType !== 'iteratorHelper')
+                            .map((node) => (
+                                <RepresentativeNodeWrapper
+                                    collapsed={collapsed}
+                                    key={node.name}
+                                    node={node}
+                                />
+                            ))
+                    ) : (
+                        <TextBox
+                            text="No Favorites."
+                            toolTip={
+                                <>
+                                    Add Favorites by hovering over nodes and clicking the{' '}
+                                    <StarIcon style={{ verticalAlign: 'baseline' }} /> icon, or by
+                                    right-clicking and selecting <em>Add to Favorites</em>.
+                                </>
+                            }
+                        />
+                    )}
                 </Box>
             </AccordionPanel>
         </AccordionItem>

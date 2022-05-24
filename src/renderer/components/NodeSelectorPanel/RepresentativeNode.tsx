@@ -1,4 +1,4 @@
-import { SettingsIcon, StarIcon } from '@chakra-ui/icons';
+import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -110,34 +110,17 @@ const RepresentativeNode = ({
                                 verticalAlign="middle"
                                 w="fit-content"
                             >
-                                {
-                                    // TODO: Re-enable when ready to do node settings
-                                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                                    false && (
-                                        <SettingsIcon
-                                            _hover={{
-                                                stroke: 'gray.500',
-                                                transition: '0.15s ease-in-out',
-                                            }}
-                                            color={bgColor}
-                                            opacity={hover ? '100%' : '0%'}
-                                            stroke={borderColor}
-                                            strokeWidth={1}
-                                            transition="0.15s ease-in-out"
-                                            verticalAlign="middle"
-                                        />
-                                    )
-                                }
                                 <StarIcon
                                     _hover={{
                                         stroke: 'yellow.500',
+                                        color: isFavorite ? 'yellow.500' : bgColor,
                                         transition: '0.15s ease-in-out',
                                     }}
                                     aria-label="Favorites"
-                                    color={isFavorite ? 'yellow.500' : bgColor}
+                                    color={isFavorite ? 'gray.500' : bgColor}
                                     opacity={isFavorite || hover ? '100%' : '0%'}
-                                    stroke={useColorModeValue('gray.600', 'gray.400')}
-                                    strokeWidth={1}
+                                    stroke="gray.500"
+                                    strokeWidth={isFavorite ? 0 : 2}
                                     transition="0.15s ease-in-out"
                                     verticalAlign="middle"
                                     onClick={() => {
@@ -147,6 +130,7 @@ const RepresentativeNode = ({
                                             addFavorites(schemaId);
                                         }
                                     }}
+                                    onDoubleClick={(e) => e.stopPropagation()}
                                 />
                             </HStack>
                         </Flex>
