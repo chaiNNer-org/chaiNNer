@@ -67,16 +67,3 @@ export const debounce = (fn: () => void, delay: number): (() => void) => {
 };
 
 export const areApproximatelyEqual = (a: number, b: number): boolean => Math.abs(a - b) < 1e-12;
-
-export const clamp = (value: number, min?: number | null, max?: number | null): number => {
-    if (min != null && value < min) return min;
-    if (max != null && value > max) return max;
-    return value;
-};
-
-export const getPrecision = (n: number) => {
-    // eslint-disable-next-line no-param-reassign
-    n %= 1;
-    if (areApproximatelyEqual(n, 0)) return 0;
-    return Math.min(10, n.toFixed(10).replace(/0+$/, '').split('.')[1]?.length ?? 0);
-};
