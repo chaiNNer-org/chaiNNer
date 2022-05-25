@@ -18,10 +18,11 @@ interface SliderInputProps extends InputProps {
     offset: number;
     step: number;
     controlsStep: number;
+    sliderStep: number;
     def: number;
     unit?: string | null;
     accentColor: string;
-    ends?: [string | number, string | number] | null;
+    ends: [string | null, string | null];
     noteExpression?: string;
 }
 
@@ -46,6 +47,7 @@ const SliderInput = memo(
         offset,
         step,
         controlsStep,
+        sliderStep,
         unit,
         ends,
         noteExpression,
@@ -86,14 +88,14 @@ const SliderInput = memo(
         return (
             <VStack w="full">
                 <HStack w="full">
-                    {ends && <Text fontSize="xs">{ends[0]}</Text>}
+                    {ends[0] && <Text fontSize="xs">{ends[0]}</Text>}
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
                         isDisabled={isLocked}
                         max={max}
                         min={min}
-                        step={step}
+                        step={sliderStep}
                         value={sliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setInput}
@@ -117,7 +119,7 @@ const SliderInput = memo(
                             <SliderThumb />
                         </Tooltip>
                     </Slider>
-                    {ends && <Text fontSize="xs">{ends[1]}</Text>}
+                    {ends[1] && <Text fontSize="xs">{ends[1]}</Text>}
                     <AdvancedNumberInput
                         small
                         controlsStep={controlsStep}
