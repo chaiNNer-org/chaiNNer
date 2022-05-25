@@ -718,11 +718,14 @@ export const GlobalProvider = ({
 
     const copyNodesAndEdges = useCallback(
         (nodesToCopy: Set<string>, edgesToCopy: Set<string> | null) => {
+            const duplicateId = createUniqueId();
+            const deriveId = (oldId: string) => deriveUniqueId(duplicateId + oldId);
+
             changeNodes((nodes) => {
                 const newNodes = nodes
                     .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
                     .map<Node<NodeData>>((n) => {
-                        const newId = deriveUniqueId(n.id);
+                        const newId = deriveId(n.id);
                         if (!n.parentNode) {
                             const returnData = {
                                 ...n,
@@ -735,13 +738,13 @@ export const GlobalProvider = ({
                                     ...n.data,
                                     id: newId,
                                 },
-                                selected: false,
+                                selected: true,
                             };
                             delete returnData.handleBounds;
                             return returnData;
                         }
 
-                        const parentId = deriveUniqueId(n.parentNode);
+                        const parentId = deriveId(n.parentNode);
                         const returnData = {
                             ...n,
                             id: newId,
@@ -751,28 +754,27 @@ export const GlobalProvider = ({
                                 parentNode: parentId,
                             },
                             parentNode: parentId,
-                            selected: false,
+                            selected: true,
                         };
                         delete returnData.handleBounds;
                         return returnData;
                     });
-                return [...nodes, ...newNodes];
+                return [...nodes.map((n) => ({ ...n, selected: false })), ...newNodes];
             });
 
             changeEdges((edges) => {
                 const newEdges = edges
-                    .filter(
-                        (e) =>
-                            (nodesToCopy.has(e.target) && nodesToCopy.has(e.source)) ||
-                            (edgesToCopy !== null && edgesToCopy.has(e.id))
-                    )
+                    .filter((e) => {
+                        const copyEdge = edgesToCopy ? edgesToCopy.has(e.id) : true;
+                        return nodesToCopy.has(e.target) && nodesToCopy.has(e.source) && copyEdge;
+                    })
                     .map<Edge<EdgeData>>((e) => {
                         let { source, sourceHandle, target, targetHandle } = e;
                         if (nodesToCopy.has(source)) {
-                            source = deriveUniqueId(source);
+                            source = deriveId(source);
                             sourceHandle = sourceHandle?.replace(e.source, source);
                         }
-                        target = deriveUniqueId(target);
+                        target = deriveId(target);
                         targetHandle = targetHandle?.replace(e.target, target);
                         return {
                             ...e,
@@ -781,9 +783,10 @@ export const GlobalProvider = ({
                             sourceHandle,
                             target,
                             targetHandle,
+                            selected: true,
                         };
                     });
-                return [...edges, ...newEdges];
+                return [...edges.map((e) => ({ ...e, selected: false })), ...newEdges];
             });
         },
         [changeNodes, changeEdges]
