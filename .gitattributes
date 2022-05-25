@@ -1,1 +1,9 @@
 * text=auto
+*.py text eol=LF
+*.svg text eol=LF
+*.js text eol=LF
+*.jsx text eol=LF
+*.ts text eol=LF
+*.tsx text eol=LF
+*.css text eol=LF
+*.yml text eol=LF
