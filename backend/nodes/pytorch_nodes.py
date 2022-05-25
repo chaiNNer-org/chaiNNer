@@ -248,6 +248,7 @@ class InterpolateNode(NodeBase):
             SliderInput(
                 "Weights",
                 controls_step=5,
+                slider_step=1,
                 maximum=100,
                 default=50,
                 unit="%",
