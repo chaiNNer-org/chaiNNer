@@ -83,12 +83,13 @@ class SliderInput(NumberInput):
         label: str,
         step: Union[float, int] = 1,
         controls_step: Union[float, int, None] = None,
+        slider_step: Union[float, int, None] = None,
         minimum: int = 0,
         maximum: int = 100,
         default: int = 50,
         unit: Union[str, None] = None,
         note_expression: Union[str, None] = None,
-        ends: Union[Tuple[int, int], Tuple[str, str], Tuple[None, None]] = (None, None),
+        ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
     ):
         super().__init__(
             label,
@@ -101,12 +102,18 @@ class SliderInput(NumberInput):
             note_expression=note_expression,
             number_type="slider",
         )
-        self.ends = (minimum, maximum) if ends == (None, None) else ends
+        self.ends = ends
+        self.slider_step = (
+            slider_step
+            if slider_step is not None
+            else (controls_step if controls_step is not None else step)
+        )
 
     def toDict(self):
         return {
             **super().toDict(),
             "ends": self.ends,
+            "sliderStep": self.slider_step,
         }
 
     def enforce(self, value):
