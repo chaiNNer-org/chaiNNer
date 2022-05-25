@@ -816,20 +816,18 @@ export const GlobalProvider = ({
         [modifyNode]
     );
 
-interface ClipboardChain {
-                nodes: Node[];
-                edges: Edge[];
-            }
-            
+    interface ClipboardChain {
+        nodes: Node[];
+        edges: Edge[];
+    }
+
     useHotkeys(
         'ctrl+c, cmd+c',
         () => {
             const selectedNodes = getNodes().filter((n) => n.selected);
             const selectedEdges = getEdges().filter((e) => e.selected);
-            cosnt data: ClipboardChain = { nodes: selectedNodes, edges: selectedEdges }
-            const copyData = Buffer.from(
-                JSON.stringify(data)
-            );
+            const data: ClipboardChain = { nodes: selectedNodes, edges: selectedEdges };
+            const copyData = Buffer.from(JSON.stringify(data));
             clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
         },
         [getNodes]
