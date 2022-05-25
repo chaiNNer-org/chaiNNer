@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { Edge, Node, Viewport } from 'react-flow-renderer';
 import semver from 'semver';
 import { EdgeData, FileOpenResult, NodeData } from './common-types';
-import { migrate } from './migrations';
+import { currentMigration, migrate } from './migrations';
 
 export interface SaveData {
     nodes: Node<NodeData>[];
@@ -21,6 +21,7 @@ interface RawSaveFile {
     content: SaveData;
     timestamp?: string;
     checksum?: string;
+    migration?: number;
 }
 
 const hash = (value: string): string => {
@@ -40,17 +41,17 @@ export class SaveFile {
         let data: SaveData;
         let tamperedWith = false;
         if (rawData.version) {
-            const { version, content, checksum } = rawData;
+            const { version, content, checksum, migration } = rawData;
             if (checksum !== undefined) {
                 // checksum is present
                 tamperedWith = checksum !== hash(JSON.stringify(content));
             } else {
                 // checksum was added after v0.6.1, so any saves >0.6.1 without a checksum have
                 // been tampered with
-                tamperedWith = semver.gt(version, '0.6.1');
+                tamperedWith = semver.gt(version, '0.6.1') || (migration ?? 0) > 4;
             }
 
-            data = migrate(version, content) as SaveData;
+            data = migrate(version, content, migration) as SaveData;
         } else {
             // Legacy files
             data = migrate(null, rawData) as SaveData;
@@ -87,11 +88,12 @@ export class SaveFile {
             parentNode: n.parentNode,
         }));
         const sanitizedContent = { nodes: sanitizedNodes, edges, viewport };
-        const data: RawSaveFile = {
+        const data: Required<RawSaveFile> = {
             version,
             content: sanitizedContent,
             timestamp: new Date().toISOString(),
             checksum: hash(JSON.stringify(sanitizedContent)),
+            migration: currentMigration,
         };
         return JSON.stringify(data);
     }

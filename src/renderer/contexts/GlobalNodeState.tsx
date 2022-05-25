@@ -1,3 +1,4 @@
+import { clipboard } from 'electron';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -10,6 +11,7 @@ import {
     getOutgoers,
     useReactFlow,
 } from 'react-flow-renderer';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import {
     EdgeData,
@@ -251,6 +253,15 @@ export const GlobalProvider = ({
         return () => clearTimeout(id);
     }, [savePath, hasRelevantUnsavedChanges]);
 
+    const unsavedChangesWarning = {
+        type: AlertType.WARN,
+        title: 'Discard unsaved changes?',
+        message:
+            'The current chain has some unsaved changes. Do you really want to discard those changes?',
+        buttons: ['Discard changes', 'No'],
+        defaultButton: 1,
+    };
+
     const modifyNode = useCallback(
         (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
             changeNodes((nodes) => {
@@ -279,7 +290,15 @@ export const GlobalProvider = ({
     }, [getNodes, getEdges]);
 
     const setStateFromJSON = useCallback(
-        (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+        async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
+            if (hasRelevantUnsavedChanges) {
+                const resp = await showAlert(unsavedChangesWarning);
+                if (resp === 1) {
+                    // abort
+                    return;
+                }
+            }
+
             const validNodes = savedData.nodes
                 // remove nodes that are not supported
                 .filter((node) => schemata.has(node.data.schemaId))
@@ -327,19 +346,12 @@ export const GlobalProvider = ({
             pushOpenPath(path);
             setHasUnsavedChanges(false);
         },
-        [schemata, changeNodes, changeEdges]
+        [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges]
     );
 
     const clearState = useCallback(async () => {
         if (hasRelevantUnsavedChanges) {
-            const resp = await showAlert({
-                type: AlertType.WARN,
-                title: 'Discard unsaved changes?',
-                message:
-                    'The current chain has some unsaved changes. Do you really want to discard those changes?',
-                buttons: ['Discard changes', 'No'],
-                defaultButton: 1,
-            });
+            const resp = await showAlert(unsavedChangesWarning);
             if (resp === 1) {
                 // abort
                 return;
@@ -392,7 +404,7 @@ export const GlobalProvider = ({
         const result = await ipcRenderer.invoke('get-cli-open');
         if (result) {
             if (result.kind === 'Success') {
-                setStateFromJSON(result.saveData, result.path, true);
+                await setStateFromJSON(result.saveData, result.path, true);
             } else {
                 removeRecentPath(result.path);
                 sendAlert({
@@ -406,9 +418,10 @@ export const GlobalProvider = ({
     // Register Open File event handler
     useIpcRendererListener(
         'file-open',
-        (event, result) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        async (event, result) => {
             if (result.kind === 'Success') {
-                setStateFromJSON(result.saveData, result.path, true);
+                await setStateFromJSON(result.saveData, result.path, true);
             } else {
                 removeRecentPath(result.path);
                 sendAlert({
@@ -703,22 +716,18 @@ export const GlobalProvider = ({
         [modifyNode]
     );
 
-    const duplicateNode = useCallback(
-        (id: string) => {
-            const nodesToCopy = new Set([
-                id,
-                ...getNodes()
-                    .filter((n) => n.parentNode === id)
-                    .map((n) => n.id),
-            ]);
+    const copyNodesAndEdges = useCallback(
+        (nodesToCopy: Set<string>, edgesToCopy: Set<string> | null) => {
+            const duplicateId = createUniqueId();
+            const deriveId = (oldId: string) => deriveUniqueId(duplicateId + oldId);
 
             changeNodes((nodes) => {
                 const newNodes = nodes
                     .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
                     .map<Node<NodeData>>((n) => {
-                        const newId = deriveUniqueId(n.id);
-                        if (n.id === id) {
-                            return {
+                        const newId = deriveId(n.id);
+                        if (!n.parentNode) {
+                            const returnData = {
                                 ...n,
                                 id: newId,
                                 position: {
@@ -729,12 +738,14 @@ export const GlobalProvider = ({
                                     ...n.data,
                                     id: newId,
                                 },
-                                selected: false,
+                                selected: true,
                             };
+                            delete returnData.handleBounds;
+                            return returnData;
                         }
 
-                        const parentId = deriveUniqueId(n.parentNode!);
-                        return {
+                        const parentId = deriveId(n.parentNode);
+                        const returnData = {
                             ...n,
                             id: newId,
                             data: {
@@ -743,22 +754,27 @@ export const GlobalProvider = ({
                                 parentNode: parentId,
                             },
                             parentNode: parentId,
-                            selected: false,
+                            selected: true,
                         };
+                        delete returnData.handleBounds;
+                        return returnData;
                     });
-                return [...nodes, ...newNodes];
+                return [...nodes.map((n) => ({ ...n, selected: false })), ...newNodes];
             });
 
             changeEdges((edges) => {
                 const newEdges = edges
-                    .filter((e) => nodesToCopy.has(e.target))
+                    .filter((e) => {
+                        const copyEdge = edgesToCopy ? edgesToCopy.has(e.id) : true;
+                        return nodesToCopy.has(e.target) && nodesToCopy.has(e.source) && copyEdge;
+                    })
                     .map<Edge<EdgeData>>((e) => {
                         let { source, sourceHandle, target, targetHandle } = e;
                         if (nodesToCopy.has(source)) {
-                            source = deriveUniqueId(source);
+                            source = deriveId(source);
                             sourceHandle = sourceHandle?.replace(e.source, source);
                         }
-                        target = deriveUniqueId(target);
+                        target = deriveId(target);
                         targetHandle = targetHandle?.replace(e.target, target);
                         return {
                             ...e,
@@ -767,12 +783,26 @@ export const GlobalProvider = ({
                             sourceHandle,
                             target,
                             targetHandle,
+                            selected: true,
                         };
                     });
-                return [...edges, ...newEdges];
+                return [...edges.map((e) => ({ ...e, selected: false })), ...newEdges];
             });
         },
-        [getNodes, changeNodes, changeEdges]
+        [changeNodes, changeEdges]
+    );
+
+    const duplicateNode = useCallback(
+        (id: string) => {
+            const nodesToCopy = new Set([
+                id,
+                ...getNodes()
+                    .filter((n) => n.parentNode === id)
+                    .map((n) => n.id),
+            ]);
+            copyNodesAndEdges(nodesToCopy, null);
+        },
+        [getNodes, copyNodesAndEdges]
     );
 
     const clearNode = useCallback(
@@ -784,6 +814,38 @@ export const GlobalProvider = ({
             });
         },
         [modifyNode]
+    );
+
+    interface ClipboardChain {
+        nodes: Node[];
+        edges: Edge[];
+    }
+
+    useHotkeys(
+        'ctrl+c, cmd+c',
+        () => {
+            const selectedNodes = getNodes().filter((n) => n.selected);
+            const selectedEdges = getEdges().filter((e) => e.selected);
+            const data: ClipboardChain = { nodes: selectedNodes, edges: selectedEdges };
+            const copyData = Buffer.from(JSON.stringify(data));
+            clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
+        },
+        [getNodes]
+    );
+
+    useHotkeys(
+        'ctrl+v, cmd+v',
+        () => {
+            const { nodes, edges } = JSON.parse(
+                clipboard.readBuffer('application/chainner.chain').toString()
+            ) as ClipboardChain;
+            if (nodes.length > 0) {
+                const nodesToCopy = new Set(nodes.map((n) => n.id));
+                const edgesToCopy = edges.length > 0 ? new Set(edges.map((e) => e.id)) : null;
+                copyNodesAndEdges(nodesToCopy, edgesToCopy);
+            }
+        },
+        [copyNodesAndEdges]
     );
 
     const [zoom, setZoom] = useState(1);
