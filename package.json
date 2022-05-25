@@ -19,9 +19,6 @@
     "lint-py": "black --check ./backend",
     "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend"
   },
-  "pre-commit": [
-    "lint-py"
-  ],
   "keywords": [],
   "author": {
     "name": "Joey Ballentine",
