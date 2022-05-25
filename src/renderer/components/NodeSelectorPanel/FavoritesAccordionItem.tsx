@@ -61,13 +61,21 @@ const FavoritesAccordionItem = memo(({ favoriteNodes, collapsed }: FavoritesAcco
                             ))
                     ) : (
                         <TextBox
+                            collapsed={collapsed}
                             text="No Favorites."
                             toolTip={
-                                <>
-                                    Add Favorites by hovering over nodes and clicking the{' '}
-                                    <StarIcon style={{ verticalAlign: 'baseline' }} /> icon, or by
-                                    right-clicking and selecting <em>Add to Favorites</em>.
-                                </>
+                                collapsed ? (
+                                    <>
+                                        Add Favorites by right-clicking nodes and selecting{' '}
+                                        <em>Add to Favorites</em>.
+                                    </>
+                                ) : (
+                                    <>
+                                        Add Favorites by hovering over nodes and clicking the{' '}
+                                        <StarIcon style={{ verticalAlign: 'baseline' }} /> icon, or
+                                        by right-clicking and selecting <em>Add to Favorites</em>.
+                                    </>
+                                )
                             }
                         />
                     )}

@@ -3,17 +3,19 @@ import { MouseEventHandler, memo } from 'react';
 
 export interface TextBoxProps {
     text: string;
+    collapsed?: boolean;
     toolTip?: React.ReactNode;
     onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
-export const TextBox = memo(({ text, toolTip, onClick }: TextBoxProps) => {
+export const TextBox = memo(({ text, collapsed, toolTip, onClick }: TextBoxProps) => {
     const interactive = !!onClick;
 
     return (
         <Center
             m={0}
-            p={3}
+            px={collapsed ? 0 : 3}
+            py={collapsed ? 1 : 3}
             textOverflow="ellipsis"
             w="full"
         >
@@ -45,7 +47,7 @@ export const TextBox = memo(({ text, toolTip, onClick }: TextBoxProps) => {
                         fontWeight="bold"
                         textAlign="center"
                     >
-                        {text}
+                        {collapsed ? '…' : text}
                     </Text>
                 </Box>
             </Tooltip>
