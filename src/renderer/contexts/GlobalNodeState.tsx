@@ -716,6 +716,9 @@ export const GlobalProvider = ({
 
     const duplicateNode = useCallback(
         (id: string) => {
+            const duplicateId = createUniqueId();
+            const deriveId = (oldId: string) => deriveUniqueId(duplicateId + oldId);
+
             const nodesToCopy = new Set([
                 id,
                 ...getNodes()
@@ -727,7 +730,7 @@ export const GlobalProvider = ({
                 const newNodes = nodes
                     .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
                     .map<Node<NodeData>>((n) => {
-                        const newId = deriveUniqueId(n.id);
+                        const newId = deriveId(n.id);
                         if (n.id === id) {
                             return {
                                 ...n,
@@ -744,7 +747,7 @@ export const GlobalProvider = ({
                             };
                         }
 
-                        const parentId = deriveUniqueId(n.parentNode!);
+                        const parentId = deriveId(n.parentNode!);
                         return {
                             ...n,
                             id: newId,
@@ -766,10 +769,10 @@ export const GlobalProvider = ({
                     .map<Edge<EdgeData>>((e) => {
                         let { source, sourceHandle, target, targetHandle } = e;
                         if (nodesToCopy.has(source)) {
-                            source = deriveUniqueId(source);
+                            source = deriveId(source);
                             sourceHandle = sourceHandle?.replace(e.source, source);
                         }
-                        target = deriveUniqueId(target);
+                        target = deriveId(target);
                         targetHandle = targetHandle?.replace(e.target, target);
                         return {
                             ...e,
