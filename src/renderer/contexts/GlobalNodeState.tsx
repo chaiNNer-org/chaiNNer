@@ -716,7 +716,7 @@ export const GlobalProvider = ({
         [modifyNode]
     );
 
-    const copyNodesById = useCallback(
+    const copyNodesAndEdges = useCallback(
         (nodesToCopy: Set<string>, edgesToCopy: Set<string> | null) => {
             changeNodes((nodes) => {
                 const newNodes = nodes
@@ -797,9 +797,9 @@ export const GlobalProvider = ({
                     .filter((n) => n.parentNode === id)
                     .map((n) => n.id),
             ]);
-            copyNodesById(nodesToCopy, null);
+            copyNodesAndEdges(nodesToCopy, null);
         },
-        [getNodes, copyNodesById]
+        [getNodes, copyNodesAndEdges]
     );
 
     const clearNode = useCallback(
@@ -834,10 +834,10 @@ export const GlobalProvider = ({
             if (nodes.length > 0) {
                 const nodesToCopy = new Set(nodes.map((n) => n.id));
                 const edgesToCopy = edges.length > 0 ? new Set(edges.map((e) => e.id)) : null;
-                copyNodesById(nodesToCopy, edgesToCopy);
+                copyNodesAndEdges(nodesToCopy, edgesToCopy);
             }
         },
-        [copyNodesById]
+        [copyNodesAndEdges]
     );
 
     const [zoom, setZoom] = useState(1);
