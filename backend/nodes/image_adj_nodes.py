@@ -253,3 +253,4 @@ class AdaptiveThresholdNode(NodeBase):
         )
 
         return result.astype("float32") / 255
+
