@@ -7,7 +7,7 @@ interface NodeOutputsProps {
     outputs: readonly Output[];
 }
 
-const NodeOutputs = ({ outputs, id }: NodeOutputsProps) => (
+const NodeOutputs = memo(({ outputs, id }: NodeOutputsProps) => (
     <>
         {outputs.map((output) => {
             return (
@@ -20,5 +20,6 @@ const NodeOutputs = ({ outputs, id }: NodeOutputsProps) => (
             );
         })}
     </>
-);
-export default memo(NodeOutputs);
+));
+
+export default NodeOutputs;

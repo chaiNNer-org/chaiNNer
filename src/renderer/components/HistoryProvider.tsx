@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -62,87 +62,90 @@ class EditHistory<T> {
 
 type HistoryState = readonly [Node<NodeData>[], Edge<EdgeData>[]];
 
-export const HistoryProvider = ({ children }: React.PropsWithChildren<unknown>): JSX.Element => {
-    const changeId = useContextSelector(
-        GlobalVolatileContext,
-        (c) => `${c.nodeChanges},${c.edgeChanges}`
-    );
-    const { changeNodes, changeEdges } = useContext(GlobalContext);
-    const { getNodes, getEdges } = useReactFlow();
+export const HistoryProvider = memo(
+    ({ children }: React.PropsWithChildren<unknown>): JSX.Element => {
+        const changeId = useContextSelector(
+            GlobalVolatileContext,
+            (c) => `${c.nodeChanges},${c.edgeChanges}`
+        );
+        const { changeNodes, changeEdges } = useContext(GlobalContext);
+        const { getNodes, getEdges } = useReactFlow();
 
-    const [historyObj] = useState<{ history: EditHistory<HistoryState> }>(() => {
-        const initial: HistoryState = [getNodes(), getEdges()];
-        return { history: EditHistory.create(initial, 100) };
-    });
+        const [historyObj] = useState<{ history: EditHistory<HistoryState> }>(() => {
+            const initial: HistoryState = [getNodes(), getEdges()];
+            return { history: EditHistory.create(initial, 100) };
+        });
 
-    const [selfUpdate, setSelfUpdate] = useState(false);
-    useEffect(() => {
-        if (!selfUpdate) return noop;
+        const [selfUpdate, setSelfUpdate] = useState(false);
+        useEffect(() => {
+            if (!selfUpdate) return noop;
 
-        const id = setTimeout(() => {
-            setSelfUpdate(false);
-        }, 50);
-        return () => clearTimeout(id);
-    }, [selfUpdate, setSelfUpdate]);
+            const id = setTimeout(() => {
+                setSelfUpdate(false);
+            }, 50);
+            return () => clearTimeout(id);
+        }, [selfUpdate, setSelfUpdate]);
 
-    const apply = useCallback(
-        ([nodes, edges]: HistoryState) => {
-            setSelfUpdate(true);
-            changeNodes(nodes);
-            changeEdges(edges);
-        },
-        [setSelfUpdate, changeNodes, changeEdges]
-    );
+        const apply = useCallback(
+            ([nodes, edges]: HistoryState) => {
+                setSelfUpdate(true);
+                changeNodes(nodes);
+                changeEdges(edges);
+            },
+            [setSelfUpdate, changeNodes, changeEdges]
+        );
 
-    // commit to history
-    useEffect(() => {
-        if (selfUpdate) return noop;
+        // commit to history
+        useEffect(() => {
+            if (selfUpdate) return noop;
 
-        const id = setTimeout(() => {
-            historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
-        }, 250);
-        return () => clearTimeout(id);
-    }, [changeId]);
+            const id = setTimeout(() => {
+                historyObj.history = historyObj.history.commit([getNodes(), getEdges()]);
+            }, 250);
+            return () => clearTimeout(id);
+        }, [changeId]);
 
-    // Handler for undo menuitem
-    useIpcRendererListener(
-        'history-undo',
-        () => {
-            historyObj.history = historyObj.history.undo();
-            apply(historyObj.history.current);
-        },
-        [apply]
-    );
+        // Handler for undo menuitem
+        useIpcRendererListener(
+            'history-undo',
+            () => {
+                historyObj.history = historyObj.history.undo();
+                apply(historyObj.history.current);
+            },
+            [apply]
+        );
 
-    // Handler for redo menuitem
-    useIpcRendererListener(
-        'history-redo',
-        () => {
-            historyObj.history = historyObj.history.redo();
-            apply(historyObj.history.current);
-        },
-        [apply]
-    );
+        // Handler for redo menuitem
+        useIpcRendererListener(
+            'history-redo',
+            () => {
+                historyObj.history = historyObj.history.redo();
+                apply(historyObj.history.current);
+            },
+            [apply]
+        );
 
-    // Handler for undo hotkeys
-    useHotkeys(
-        'ctrl+z, cmd+z',
-        () => {
-            historyObj.history = historyObj.history.undo();
-            apply(historyObj.history.current);
-        },
-        [apply]
-    );
+        // Handler for undo hotkeys
+        useHotkeys(
+            'ctrl+z, cmd+z',
+            () => {
+                historyObj.history = historyObj.history.undo();
+                apply(historyObj.history.current);
+            },
+            [apply]
+        );
 
-    // Handler for redo hotkeys
-    useHotkeys(
-        'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
-        () => {
-            historyObj.history = historyObj.history.redo();
-            apply(historyObj.history.current);
-        },
-        [apply]
-    );
+        // Handler for redo hotkeys
+        useHotkeys(
+            'ctrl+y, cmd+y, ctrl+shift+z, cmd+shift+z',
+            () => {
+                historyObj.history = historyObj.history.redo();
+                apply(historyObj.history.current);
+            },
+            [apply]
+        );
 
-    return <>{children}</>;
-};
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        return <>{children}</>;
+    }
+);

@@ -178,4 +178,4 @@ const Node = memo(({ data, selected }: NodeProps) => {
     );
 });
 
-export default memo(NodeWrapper);
+export default NodeWrapper;

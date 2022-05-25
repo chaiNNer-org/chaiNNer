@@ -14,56 +14,50 @@ interface NodeBodyProps {
     schemaId: string;
 }
 
-const NodeBody = ({
-    accentColor,
-    inputs,
-    outputs,
-    id,
-    inputData,
-    isLocked,
-    schemaId,
-}: NodeBodyProps) => (
-    <>
-        {inputs.length && (
-            <Center>
-                <Text
-                    fontSize="xs"
-                    m={0}
-                    mb={-1}
-                    mt={-1}
-                    p={0}
-                >
-                    INPUTS
-                </Text>
-            </Center>
-        )}
-        <NodeInputs
-            accentColor={accentColor}
-            id={id}
-            inputData={inputData}
-            inputs={inputs}
-            isLocked={isLocked}
-            schemaId={schemaId}
-        />
+const NodeBody = memo(
+    ({ accentColor, inputs, outputs, id, inputData, isLocked, schemaId }: NodeBodyProps) => (
+        <>
+            {inputs.length && (
+                <Center>
+                    <Text
+                        fontSize="xs"
+                        m={0}
+                        mb={-1}
+                        mt={-1}
+                        p={0}
+                    >
+                        INPUTS
+                    </Text>
+                </Center>
+            )}
+            <NodeInputs
+                accentColor={accentColor}
+                id={id}
+                inputData={inputData}
+                inputs={inputs}
+                isLocked={isLocked}
+                schemaId={schemaId}
+            />
 
-        {outputs.length > 0 && (
-            <Center>
-                <Text
-                    fontSize="xs"
-                    m={0}
-                    mb={-1}
-                    mt={-1}
-                    p={0}
-                >
-                    OUTPUTS
-                </Text>
-            </Center>
-        )}
-        <NodeOutputs
-            id={id}
-            outputs={outputs}
-        />
-    </>
+            {outputs.length > 0 && (
+                <Center>
+                    <Text
+                        fontSize="xs"
+                        m={0}
+                        mb={-1}
+                        mt={-1}
+                        p={0}
+                    >
+                        OUTPUTS
+                    </Text>
+                </Center>
+            )}
+            <NodeOutputs
+                id={id}
+                outputs={outputs}
+            />
+        </>
+    )
 );
 
-export default memo(NodeBody);
+export default NodeBody;
