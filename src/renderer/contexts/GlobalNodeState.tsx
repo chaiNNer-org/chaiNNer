@@ -1,3 +1,4 @@
+import { clipboard } from 'electron';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -10,6 +11,7 @@ import {
     getOutgoers,
     useReactFlow,
 } from 'react-flow-renderer';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import {
     EdgeData,
@@ -18,6 +20,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    NodeSchema,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -714,21 +717,14 @@ export const GlobalProvider = ({
         [modifyNode]
     );
 
-    const duplicateNode = useCallback(
-        (id: string) => {
-            const nodesToCopy = new Set([
-                id,
-                ...getNodes()
-                    .filter((n) => n.parentNode === id)
-                    .map((n) => n.id),
-            ]);
-
+    const copyNodesById = useCallback(
+        (nodesToCopy: Set<string>, edgesToCopy: Set<string> | null) => {
             changeNodes((nodes) => {
                 const newNodes = nodes
                     .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
                     .map<Node<NodeData>>((n) => {
                         const newId = deriveUniqueId(n.id);
-                        if (n.id === id) {
+                        if (!n.parentNode) {
                             return {
                                 ...n,
                                 id: newId,
@@ -744,7 +740,7 @@ export const GlobalProvider = ({
                             };
                         }
 
-                        const parentId = deriveUniqueId(n.parentNode!);
+                        const parentId = deriveUniqueId(n.parentNode);
                         return {
                             ...n,
                             id: newId,
@@ -762,7 +758,11 @@ export const GlobalProvider = ({
 
             changeEdges((edges) => {
                 const newEdges = edges
-                    .filter((e) => nodesToCopy.has(e.target))
+                    .filter(
+                        (e) =>
+                            (nodesToCopy.has(e.target) && nodesToCopy.has(e.source)) ||
+                            (edgesToCopy !== null && edgesToCopy.has(e.id))
+                    )
                     .map<Edge<EdgeData>>((e) => {
                         let { source, sourceHandle, target, targetHandle } = e;
                         if (nodesToCopy.has(source)) {
@@ -771,6 +771,7 @@ export const GlobalProvider = ({
                         }
                         target = deriveUniqueId(target);
                         targetHandle = targetHandle?.replace(e.target, target);
+                        console.log({ source, sourceHandle, target, targetHandle });
                         return {
                             ...e,
                             id: createUniqueId(),
@@ -783,7 +784,20 @@ export const GlobalProvider = ({
                 return [...edges, ...newEdges];
             });
         },
-        [getNodes, changeNodes, changeEdges]
+        [changeNodes, changeEdges]
+    );
+
+    const duplicateNode = useCallback(
+        (id: string) => {
+            const nodesToCopy = new Set([
+                id,
+                ...getNodes()
+                    .filter((n) => n.parentNode === id)
+                    .map((n) => n.id),
+            ]);
+            copyNodesById(nodesToCopy, null);
+        },
+        [getNodes, copyNodesById]
     );
 
     const clearNode = useCallback(
@@ -795,6 +809,34 @@ export const GlobalProvider = ({
             });
         },
         [modifyNode]
+    );
+
+    useHotkeys(
+        'ctrl+c, cmd+c',
+        () => {
+            const selectedNodes = getNodes().filter((n) => n.selected);
+            const selectedEdges = getEdges().filter((e) => e.selected);
+            const copyData = JSON.stringify({ nodes: selectedNodes, edges: selectedEdges });
+            console.log('🚀 ~ file: GlobalNodeState.tsx ~ line 808 ~ copyData', copyData);
+            clipboard.writeText(copyData, 'clipboard');
+        },
+        [getNodes]
+    );
+
+    useHotkeys(
+        'ctrl+v, cmd+v',
+        () => {
+            const { nodes, edges } = JSON.parse(clipboard.readText()) as {
+                nodes: Node[];
+                edges: Edge[];
+            };
+            if (nodes.length > 0) {
+                const nodesToCopy = new Set(nodes.map((n) => n.id));
+                const edgesToCopy = new Set(edges.map((e) => e.id));
+                copyNodesById(nodesToCopy, edgesToCopy);
+            }
+        },
+        [getNodes]
     );
 
     const [zoom, setZoom] = useState(1);
