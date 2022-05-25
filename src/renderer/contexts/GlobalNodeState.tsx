@@ -821,8 +821,10 @@ export const GlobalProvider = ({
         () => {
             const selectedNodes = getNodes().filter((n) => n.selected);
             const selectedEdges = getEdges().filter((e) => e.selected);
-            const copyData = JSON.stringify({ nodes: selectedNodes, edges: selectedEdges });
-            clipboard.writeText(copyData, 'clipboard');
+            const copyData = Buffer.from(
+                JSON.stringify({ nodes: selectedNodes, edges: selectedEdges })
+            );
+            clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
         },
         [getNodes]
     );
@@ -830,7 +832,9 @@ export const GlobalProvider = ({
     useHotkeys(
         'ctrl+v, cmd+v',
         () => {
-            const { nodes, edges } = JSON.parse(clipboard.readText()) as {
+            const { nodes, edges } = JSON.parse(
+                clipboard.readBuffer('application/chainner.chain').toString()
+            ) as {
                 nodes: Node[];
                 edges: Edge[];
             };
