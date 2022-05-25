@@ -1,13 +1,1 @@
-* text=auto
-
-*.css eol=LF
-*.js eol=LF
-*.json eol=LF
-*.jsx eol=LF
-*.md eol=LF
-*.py eol=LF
-*.svg eol=LF
-*.ts eol=LF
-*.tsx eol=LF
-*.txt eol=LF
-*.yml eol=LF
+* text=auto eol=LF
