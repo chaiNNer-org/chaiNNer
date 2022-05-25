@@ -97,7 +97,7 @@ export const AdvancedNumberInput = memo(
                             m={0}
                             p={1}
                             // dynamic width based on precision
-                            w={`${3 + 0.5 * precision}em`}
+                            w={`${3 + 0.5 * precision}rem`}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />
@@ -127,7 +127,6 @@ export const AdvancedNumberInput = memo(
                     min={min}
                     step={controlsStep}
                     value={inputString}
-                    w={unit ? '90%' : '100%'}
                     onBlur={onBlur}
                     onChange={setInputString}
                 >
@@ -135,7 +134,7 @@ export const AdvancedNumberInput = memo(
                         borderLeftRadius={unit ? 0 : 'md'}
                         px={unit ? 2 : 4}
                     />
-                    <NumberInputStepper w={4}>
+                    <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
                     </NumberInputStepper>
