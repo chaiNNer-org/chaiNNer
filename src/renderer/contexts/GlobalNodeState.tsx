@@ -20,7 +20,6 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
-    NodeSchema,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -725,7 +724,7 @@ export const GlobalProvider = ({
                     .map<Node<NodeData>>((n) => {
                         const newId = deriveUniqueId(n.id);
                         if (!n.parentNode) {
-                            return {
+                            const returnData = {
                                 ...n,
                                 id: newId,
                                 position: {
@@ -738,10 +737,12 @@ export const GlobalProvider = ({
                                 },
                                 selected: false,
                             };
+                            delete returnData.handleBounds;
+                            return returnData;
                         }
 
                         const parentId = deriveUniqueId(n.parentNode);
-                        return {
+                        const returnData = {
                             ...n,
                             id: newId,
                             data: {
@@ -752,6 +753,8 @@ export const GlobalProvider = ({
                             parentNode: parentId,
                             selected: false,
                         };
+                        delete returnData.handleBounds;
+                        return returnData;
                     });
                 return [...nodes, ...newNodes];
             });
@@ -771,7 +774,6 @@ export const GlobalProvider = ({
                         }
                         target = deriveUniqueId(target);
                         targetHandle = targetHandle?.replace(e.target, target);
-                        console.log({ source, sourceHandle, target, targetHandle });
                         return {
                             ...e,
                             id: createUniqueId(),
@@ -817,7 +819,6 @@ export const GlobalProvider = ({
             const selectedNodes = getNodes().filter((n) => n.selected);
             const selectedEdges = getEdges().filter((e) => e.selected);
             const copyData = JSON.stringify({ nodes: selectedNodes, edges: selectedEdges });
-            console.log('🚀 ~ file: GlobalNodeState.tsx ~ line 808 ~ copyData', copyData);
             clipboard.writeText(copyData, 'clipboard');
         },
         [getNodes]
@@ -832,11 +833,11 @@ export const GlobalProvider = ({
             };
             if (nodes.length > 0) {
                 const nodesToCopy = new Set(nodes.map((n) => n.id));
-                const edgesToCopy = new Set(edges.map((e) => e.id));
+                const edgesToCopy = edges.length > 0 ? new Set(edges.map((e) => e.id)) : null;
                 copyNodesById(nodesToCopy, edgesToCopy);
             }
         },
-        [getNodes]
+        [copyNodesById]
     );
 
     const [zoom, setZoom] = useState(1);
