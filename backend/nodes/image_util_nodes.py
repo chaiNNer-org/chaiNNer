@@ -354,3 +354,23 @@ class ShiftNode(NodeBase):
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img
+
+@NodeFactory.register("chainner:image:difference")
+class DifferenceNode(NodeBase):
+    """OpenCV absdiff node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Compares two images."
+        self.inputs = [ImageInput("Image A"), ImageInput("Image B")]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Difference"
+        self.icon = "BsSubtract"
+        self.sub = "Miscellaneous"
+
+    def run(self, img_1: np.ndarray, img_2: np.ndarray) -> np.ndarray:
+        """Compares two images"""
+        assert img_1.shape == img_2.shape, "Images must be the same size"
+        return cv2.absdiff(img_1, img_2)
