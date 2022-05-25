@@ -253,3 +253,26 @@ class AdaptiveThresholdNode(NodeBase):
         )
 
         return result.astype("float32") / 255
+
+@NodeFactory.register("chainner:image:difference")
+class DifferenceNode(NodeBase):
+    """OpenCV absdiff node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Compares two images."
+        self.inputs = [
+            ImageInput("Image A"),
+            ImageInput("Image B")
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Difference"
+        self.icon = "MdShowChart"
+        self.sub = "Adjustments"
+
+    def run(self, img_1: np.ndarray, img_2: np.ndarray) -> np.ndarray:
+        """Compares two images"""
+        assert img_1.shape == img_2.shape, "Images must be the same size"
+        return cv2.absdiff(img_1, img_2)
