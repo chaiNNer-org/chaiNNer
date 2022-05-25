@@ -1,13 +1,26 @@
-import { Box, Input, InputGroup, InputLeftElement, Tooltip, VStack } from '@chakra-ui/react';
+import {
+    Box,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    MenuDivider,
+    MenuItem,
+    MenuList,
+    Tooltip,
+    VStack,
+} from '@chakra-ui/react';
+import { shell } from 'electron';
 import path from 'path';
 import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
+import { MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { checkFileExists } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import ImagePreview from './previews/ImagePreview';
 import TorchModelPreview from './previews/TorchModelPreview';
@@ -148,9 +161,34 @@ const FileInput = memo(
             }
         };
 
+        const menu = useContextMenu(() => (
+            <MenuList className="nodrag">
+                <MenuItem
+                    icon={<BsFileEarmarkPlus />}
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    onClick={onButtonClick}
+                >
+                    Select a file...
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<MdFolder />}
+                    isDisabled={!filePath}
+                    onClick={() => {
+                        if (filePath) {
+                            shell.showItemInFolder(filePath);
+                        }
+                    }}
+                >
+                    Open in File Explorer
+                </MenuItem>
+            </MenuList>
+        ));
+
         return (
             <VStack
                 spacing={0}
+                onContextMenu={menu.onContextMenu}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
             >
