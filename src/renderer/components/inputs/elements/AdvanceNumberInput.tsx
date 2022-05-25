@@ -6,7 +6,6 @@ import {
     NumberInput,
     NumberInputField,
     NumberInputStepper,
-    ThemingProps,
 } from '@chakra-ui/react';
 import { memo } from 'react';
 import { clamp, getPrecision } from '../../../../common/util';
@@ -19,7 +18,7 @@ interface AdvancedNumberInputProps {
     step: number;
     controlsStep: number;
 
-    defaultValue?: number;
+    defaultValue: number;
     isDisabled?: boolean;
     small?: true;
 
@@ -65,17 +64,55 @@ export const AdvancedNumberInput = memo(
             }
         };
 
-        const size = small && 'xs';
+        if (small) {
+            return (
+                <InputGroup
+                    mx={0}
+                    size="xs"
+                    w="fit-content"
+                >
+                    {unit && (
+                        <InputLeftAddon
+                            px={1}
+                            w="fit-content"
+                        >
+                            {unit}
+                        </InputLeftAddon>
+                    )}
+                    <NumberInput
+                        className="nodrag"
+                        defaultValue={defaultValue}
+                        draggable={false}
+                        isDisabled={isDisabled}
+                        max={max}
+                        min={min}
+                        size="xs"
+                        step={controlsStep}
+                        value={inputString}
+                        onBlur={onBlur}
+                        onChange={setInputString}
+                    >
+                        <NumberInputField
+                            borderLeftRadius={unit ? 0 : 'xs'}
+                            m={0}
+                            p={1}
+                            // dynamic width based on precision
+                            w={`${3 + 0.5 * precision}em`}
+                        />
+                        <NumberInputStepper w={4}>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                </InputGroup>
+            );
+        }
 
         return (
-            <InputGroup
-                mx={0}
-                size={size}
-                w={small && 'fit-content'}
-            >
+            <InputGroup>
                 {unit && (
                     <InputLeftAddon
-                        px={small ? 1 : 2}
+                        px={2}
                         w="fit-content"
                     >
                         {unit}
@@ -88,20 +125,15 @@ export const AdvancedNumberInput = memo(
                     isDisabled={isDisabled}
                     max={max}
                     min={min}
-                    size={size}
                     step={controlsStep}
                     value={inputString}
+                    w={unit ? '90%' : '100%'}
                     onBlur={onBlur}
                     onChange={setInputString}
                 >
                     <NumberInputField
-                        // eslint-disable-next-line no-nested-ternary
-                        borderLeftRadius={unit ? 0 : small ? 'xs' : 'md'}
-                        m={0}
-                        p={1}
+                        borderLeftRadius={unit ? 0 : 'md'}
                         px={unit ? 2 : 4}
-                        // dynamic width based on precision
-                        w={small && `${3 + 0.5 * precision}em`}
                     />
                     <NumberInputStepper w={4}>
                         <NumberIncrementStepper />

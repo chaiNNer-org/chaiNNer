@@ -18,7 +18,7 @@ interface SliderInputProps extends InputProps {
     offset: number;
     step: number;
     controlsStep: number;
-    def?: number;
+    def: number;
     unit?: string | null;
     accentColor: string;
     ends?: [string | number, string | number] | null;
@@ -58,7 +58,7 @@ const SliderInput = memo(
         const [showTooltip, setShowTooltip] = useState(false);
 
         useEffect(() => {
-            setSliderValue(input);
+            setSliderValue(input ?? def);
             if (!Number.isNaN(input)) {
                 setInputString(String(input));
             }
@@ -78,7 +78,7 @@ const SliderInput = memo(
             ? tryEvaluate(noteExpression, {
                   min,
                   max,
-                  value: sliderValue ?? def,
+                  value: sliderValue,
               })
             : undefined;
         const filled = !expr;
@@ -94,7 +94,7 @@ const SliderInput = memo(
                         max={max}
                         min={min}
                         step={step}
-                        value={sliderValue ?? def}
+                        value={sliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setInput}
                         onMouseEnter={() => setShowTooltip(true)}
@@ -109,7 +109,7 @@ const SliderInput = memo(
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}
-                            label={`${sliderValue ?? 0}${unit ?? ''}`}
+                            label={`${sliderValue}${unit ?? ''}`}
                             placement="top"
                             px={2}
                             py={1}
