@@ -7,7 +7,7 @@ export interface Dependency {
     findLink?: string;
 }
 
-export default (isNvidiaAvailable: boolean): Dependency[] => [
+export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => [
     {
         name: 'OpenCV',
         packageName: 'opencv-python',
@@ -35,5 +35,18 @@ export default (isNvidiaAvailable: boolean): Dependency[] => [
         name: 'Pillow (PIL)',
         packageName: 'Pillow',
         version: '9.1.0',
+    },
+];
+
+export const requiredDependencies: Dependency[] = [
+    {
+        name: 'Sanic',
+        packageName: 'sanic',
+        version: '21.9.3',
+    },
+    {
+        name: 'Sanic Cors',
+        packageName: 'Sanic-Cors',
+        version: '1.0.1',
     },
 ];
