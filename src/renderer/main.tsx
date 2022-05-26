@@ -37,7 +37,7 @@ interface MainProps {
     port: number;
 }
 
-const Main = ({ port }: MainProps) => {
+const Main = memo(({ port }: MainProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [schemata, setSchemata] = useState<SchemaMap | null>(null);
@@ -92,7 +92,7 @@ const Main = ({ port }: MainProps) => {
             null,
             `chaiNNer has encountered a critical error: ${error.message}`
         );
-        return <></>;
+        return null;
     }
 
     if (!schemata || !data) {
@@ -153,6 +153,6 @@ const Main = ({ port }: MainProps) => {
             </SettingsProvider>
         </ReactFlowProvider>
     );
-};
+});
 
-export default memo(Main);
+export default Main;

@@ -13,7 +13,7 @@ import {
     useToast,
 } from '@chakra-ui/react';
 import { app, clipboard } from 'electron';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext } from 'use-context-selector';
 import { assertNever, noop } from '../../common/util';
 import { ContextMenuContext } from './ContextMenuContext';
@@ -132,12 +132,13 @@ const getButtons = (
                 return assertNever(type);
         }
     }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{buttonElements}</>;
 };
 
 export const AlertBoxContext = createContext<Readonly<AlertBox>>({} as AlertBox);
 
-export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const { closeContextMenu } = useContext(ContextMenuContext);
 
     const [queue, setQueue] = useState<readonly InternalMessage[]>([]);
@@ -208,6 +209,7 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
         [toast]
     );
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let value: AlertBox = { sendAlert, showAlert, sendToast };
     value = useMemo(() => value, Object.values(value));
 
@@ -234,4 +236,4 @@ export const AlertBoxProvider = ({ children }: React.PropsWithChildren<unknown>)
             {children}
         </AlertBoxContext.Provider>
     );
-};
+});

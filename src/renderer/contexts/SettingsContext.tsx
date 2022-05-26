@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { createContext } from 'use-context-selector';
 import useLocalStorage from '../hooks/useLocalStorage';
 
@@ -28,49 +28,60 @@ interface Settings {
 // TODO: create context requires default values
 export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
 
-export const SettingsProvider = ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
-    // Global Settings
-    const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
-    const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
-    const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
-    const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
-    const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
-    const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
+export const SettingsProvider = memo(
+    ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
+        // Global Settings
+        const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
+        const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
+        const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
+        const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
+        const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
+        const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
 
-    const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu]);
-    const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16]);
-    const useIsSystemPython = useMemo(
-        () => [isSystemPython, setIsSystemPython] as const,
-        [isSystemPython]
-    );
-    const useSnapToGrid = useMemo(
-        () => [isSnapToGrid, setIsSnapToGrid, snapToGridAmount || 1, setSnapToGridAmount] as const,
-        [isSnapToGrid, snapToGridAmount]
-    );
-    const useDisHwAccel = useMemo(() => [isDisHwAccel, setIsDisHwAccel] as const, [isDisHwAccel]);
+        const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu]);
+        const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16]);
+        const useIsSystemPython = useMemo(
+            () => [isSystemPython, setIsSystemPython] as const,
+            [isSystemPython]
+        );
+        const useSnapToGrid = useMemo(
+            () =>
+                [
+                    isSnapToGrid,
+                    setIsSnapToGrid,
+                    snapToGridAmount || 1,
+                    setSnapToGridAmount,
+                ] as const,
+            [isSnapToGrid, snapToGridAmount]
+        );
+        const useDisHwAccel = useMemo(
+            () => [isDisHwAccel, setIsDisHwAccel] as const,
+            [isDisHwAccel]
+        );
 
-    // Node Settings
-    const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
+        // Node Settings
+        const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
 
-    const useNodeFavorites = useMemo(() => [favorites, setFavorites] as const, [favorites]);
+        const useNodeFavorites = useMemo(() => [favorites, setFavorites] as const, [favorites]);
 
-    const contextValue = useMemo<Readonly<Settings>>(
-        () => ({
-            // Globals
-            useIsCpu,
-            useIsFp16,
-            useIsSystemPython,
-            useSnapToGrid,
-            useDisHwAccel,
+        const contextValue = useMemo<Readonly<Settings>>(
+            () => ({
+                // Globals
+                useIsCpu,
+                useIsFp16,
+                useIsSystemPython,
+                useSnapToGrid,
+                useDisHwAccel,
 
-            // Node
-            useNodeFavorites,
+                // Node
+                useNodeFavorites,
 
-            // Port
-            port,
-        }),
-        [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useNodeFavorites, port]
-    );
+                // Port
+                port,
+            }),
+            [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useNodeFavorites, port]
+        );
 
-    return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
-};
+        return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
+    }
+);

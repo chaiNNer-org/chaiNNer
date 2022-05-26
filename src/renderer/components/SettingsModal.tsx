@@ -40,48 +40,14 @@ interface SettingsModalProps {
     onClose: () => void;
 }
 
-const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
-    const { useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useDisHwAccel } =
-        useContext(SettingsContext);
+const AppearanceSettings = memo(() => {
+    const { useSnapToGrid } = useContext(SettingsContext);
 
     const { colorMode, toggleColorMode } = useColorMode();
 
-    const [isCpu, setIsCpu] = useIsCpu;
-    const [isFp16, setIsFp16] = useIsFp16;
-    const [isSystemPython, setIsSystemPython] = useIsSystemPython;
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
-    const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
 
-    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-
-    useAsyncEffect(
-        {
-            supplier: async () =>
-                [
-                    (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
-                    await ipcRenderer.invoke('get-has-nvidia'),
-                ] as const,
-            successEffect: ([gpuName, hasNvidia]) => {
-                if (gpuName.toLowerCase().includes('rtx')) {
-                    setIsFp16(true);
-                }
-                setIsNvidiaAvailable(hasNvidia);
-            },
-        },
-        []
-    );
-
-    useEffect(() => {
-        setIsCpu(!isNvidiaAvailable);
-    }, [isNvidiaAvailable]);
-
-    useEffect(() => {
-        if (isCpu && isFp16) {
-            setIsFp16(false);
-        }
-    }, [isCpu]);
-
-    const AppearanceSettings = () => (
+    return (
         <VStack
             divider={<StackDivider />}
             w="full"
@@ -114,6 +80,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={colorMode === 'dark'}
+                        isChecked={colorMode === 'dark'}
                         size="lg"
                         onChange={() => {
                             toggleColorMode();
@@ -149,6 +116,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={isSnapToGrid}
+                        isChecked={isSnapToGrid}
                         size="lg"
                         onChange={(event) => {
                             setIsSnapToGrid(event.target.checked);
@@ -187,7 +155,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         max={45}
                         min={1}
                         value={Number(snapToGridAmount || 1)}
-                        onChange={(number) => setSnapToGridAmount(Number(number || 1))}
+                        onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
                     >
                         <NumberInputField />
                         <NumberInputStepper>
@@ -199,8 +167,44 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </Flex>
         </VStack>
     );
+});
 
-    const EnvironmentSettings = () => (
+const EnvironmentSettings = memo(() => {
+    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
+
+    const [isCpu, setIsCpu] = useIsCpu;
+    const [isFp16, setIsFp16] = useIsFp16;
+
+    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
+
+    useAsyncEffect(
+        {
+            supplier: async () =>
+                [
+                    (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
+                    await ipcRenderer.invoke('get-has-nvidia'),
+                ] as const,
+            successEffect: ([gpuName, hasNvidia]) => {
+                if (gpuName.toLowerCase().includes('rtx')) {
+                    setIsFp16(true);
+                }
+                setIsNvidiaAvailable(hasNvidia);
+            },
+        },
+        []
+    );
+
+    useEffect(() => {
+        setIsCpu(!isNvidiaAvailable);
+    }, [isNvidiaAvailable]);
+
+    useEffect(() => {
+        if (isCpu && isFp16) {
+            setIsFp16(false);
+        }
+    }, [isCpu]);
+
+    return (
         <VStack
             divider={<StackDivider />}
             w="full"
@@ -232,6 +236,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={isCpu}
+                        isChecked={isCpu}
                         isDisabled={!isNvidiaAvailable}
                         size="lg"
                         onChange={(event) => {
@@ -269,6 +274,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={isFp16}
+                        isChecked={isFp16}
                         isDisabled={!isNvidiaAvailable}
                         size="lg"
                         onChange={(event) => {
@@ -279,8 +285,14 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </Flex>
         </VStack>
     );
+});
 
-    const PythonSettings = () => (
+const PythonSettings = memo(() => {
+    const { useIsSystemPython } = useContext(SettingsContext);
+
+    const [isSystemPython, setIsSystemPython] = useIsSystemPython;
+
+    return (
         <VStack
             divider={<StackDivider />}
             w="full"
@@ -313,6 +325,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={isSystemPython}
+                        isChecked={isSystemPython}
                         size="lg"
                         onChange={(event) => {
                             setIsSystemPython(event.target.checked);
@@ -322,8 +335,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </Flex>
         </VStack>
     );
+});
 
-    const AdvancedSettings = () => (
+const AdvancedSettings = memo(() => {
+    const { useDisHwAccel } = useContext(SettingsContext);
+    const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
+
+    return (
         <VStack
             divider={<StackDivider />}
             w="full"
@@ -357,6 +375,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 <HStack>
                     <Switch
                         defaultChecked={isDisHwAccel}
+                        isChecked={isDisHwAccel}
                         size="lg"
                         onChange={(event) => {
                             setIsDisHwAccel(event.target.checked);
@@ -366,7 +385,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </Flex>
         </VStack>
     );
+});
 
+const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
     return (
         <Modal
             isCentered
@@ -433,7 +454,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </ModalContent>
         </Modal>
     );
-};
+});
 
 export const SettingsButton = memo(() => {
     const {
@@ -469,4 +490,4 @@ export const SettingsButton = memo(() => {
     );
 });
 
-export default memo(SettingsModal);
+export default SettingsModal;

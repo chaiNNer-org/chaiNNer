@@ -11,52 +11,56 @@ interface NodeHeaderProps {
     parentNode?: string;
 }
 
-const NodeHeader = ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
-    <Center
-        borderBottomColor={accentColor}
-        borderBottomStyle={parentNode ? 'double' : undefined}
-        borderBottomWidth="4px"
-        h="auto"
-        verticalAlign="middle"
-        w={width || 'full'}
-    >
-        <HStack
-            mb={-1}
-            mt={-1}
-            pb={2}
-            pl={6}
-            pr={6}
+const NodeHeader = memo(
+    ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
+        <Center
+            borderBottomColor={accentColor}
+            borderBottomStyle={parentNode ? 'double' : undefined}
+            borderBottomWidth="4px"
+            h="auto"
             verticalAlign="middle"
+            w={width || 'full'}
         >
-            <Center
-                alignContent="center"
-                alignItems="center"
-                h={4}
+            <HStack
+                mb={-1}
+                mt={-1}
+                pb={2}
+                pl={6}
+                pr={6}
                 verticalAlign="middle"
-                w={4}
             >
-                {IconFactory(
-                    icon,
-                    selected ? accentColor : useColorModeValue('gray.600', 'gray.400')
-                )}
-            </Center>
-            <Center verticalAlign="middle">
-                <Heading
+                <Center
                     alignContent="center"
-                    as="h5"
-                    fontWeight={700}
-                    lineHeight="auto"
-                    m={0}
-                    p={0}
-                    size="sm"
-                    textAlign="center"
+                    alignItems="center"
+                    h={4}
                     verticalAlign="middle"
+                    w={4}
                 >
-                    {name.toUpperCase()}
-                </Heading>
-            </Center>
-        </HStack>
-    </Center>
+                    <IconFactory
+                        accentColor={
+                            selected ? accentColor : useColorModeValue('gray.600', 'gray.400')
+                        }
+                        icon={icon}
+                    />
+                </Center>
+                <Center verticalAlign="middle">
+                    <Heading
+                        alignContent="center"
+                        as="h5"
+                        fontWeight={700}
+                        lineHeight="auto"
+                        m={0}
+                        p={0}
+                        size="sm"
+                        textAlign="center"
+                        verticalAlign="middle"
+                    >
+                        {name.toUpperCase()}
+                    </Heading>
+                </Center>
+            </HStack>
+        </Center>
+    )
 );
 
-export default memo(NodeHeader);
+export default NodeHeader;

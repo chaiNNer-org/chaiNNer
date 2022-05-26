@@ -59,7 +59,7 @@ export const ContextMenuContext = createContext<Readonly<ContentMenu>>({
     closeContextMenu: noop,
 });
 
-export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknown>) => {
+export const ContextMenuProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const [menus, setMenus] = useState<{ readonly map: Map<string, RenderFn> }>(() => ({
         map: new Map(),
     }));
@@ -124,6 +124,7 @@ export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknow
 
     useIpcRendererListener('window-blur', closeContextMenu, [closeContextMenu]);
 
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     let value: ContentMenu = {
         registerContextMenu,
         unregisterContextMenu,
@@ -146,4 +147,4 @@ export const ContextMenuProvider = ({ children }: React.PropsWithChildren<unknow
             />
         </ContextMenuContext.Provider>
     );
-};
+});

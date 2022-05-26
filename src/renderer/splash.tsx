@@ -1,12 +1,12 @@
 import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { ipcRenderer } from '../common/safeIpc';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import './global.css';
 import theme from './splashTheme';
 
-const Splash = () => {
+const Splash = memo(() => {
     const [status, setStatus] = useState('Loading...');
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [overallProgressPercentage, setOverallProgressPercentage] = useState(0);
@@ -127,7 +127,7 @@ const Splash = () => {
             </Center>
         </ChakraProvider>
     );
-};
+});
 
 ReactDOM.render(<Splash />, document.getElementById('root'));
 

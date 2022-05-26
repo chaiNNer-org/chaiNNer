@@ -33,7 +33,7 @@ interface TorchModelPreviewProps {
     schemaId: string;
 }
 
-export default memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
+const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
     const [modelData, setModelData] = useState<ModelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -106,3 +106,5 @@ export default memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
         </Center>
     );
 });
+
+export default TorchModelPreview;

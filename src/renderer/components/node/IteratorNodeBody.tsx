@@ -16,7 +16,7 @@ const createGridDotsPath = (size: number, fill: string) => (
     />
 );
 
-const DotPattern = ({ id }: { id: string }) => {
+const DotPattern = memo(({ id }: { id: string }) => {
     const gap = 15;
     const size = 0.5;
     const scaledGap = gap * 1;
@@ -50,7 +50,7 @@ const DotPattern = ({ id }: { id: string }) => {
             />
         </svg>
     );
-};
+});
 
 interface IteratorNodeBodyProps {
     id: string;
@@ -60,113 +60,111 @@ interface IteratorNodeBodyProps {
     maxHeight?: number;
 }
 
-const IteratorNodeBody = ({
-    id,
-    iteratorSize,
-    accentColor,
-    maxWidth = 256,
-    maxHeight = 256,
-}: IteratorNodeBodyProps) => {
-    const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-    const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
-    const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
-        useContext(GlobalContext);
+const IteratorNodeBody = memo(
+    ({ id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256 }: IteratorNodeBodyProps) => {
+        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
+        const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
+        const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
+            useContext(GlobalContext);
 
-    const { useSnapToGrid } = useContext(SettingsContext);
-    const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
+        const { useSnapToGrid } = useContext(SettingsContext);
+        const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-    const { width, height } = iteratorSize ?? defaultIteratorSize;
+        const { width, height } = iteratorSize ?? defaultIteratorSize;
 
-    const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
+        const [resizeRef, setResizeRef] = useState<Resizable | null>(null);
 
-    useLayoutEffect(() => {
-        if (resizeRef && resizeRef.resizable) {
-            const { resizable } = resizeRef;
-            const size = {
-                offsetTop: resizable.offsetTop,
-                offsetLeft: resizable.offsetLeft,
-                width,
-                height,
-            };
-            setIteratorSize(id, size);
-            updateIteratorBounds(id, size);
-        }
-    }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
-
-    return (
-        <Resizable
-            className="nodrag"
-            defaultSize={defaultIteratorSize}
-            enable={{
-                top: false,
-                right: true,
-                bottom: true,
-                left: false,
-                topRight: false,
-                bottomRight: true,
-                bottomLeft: false,
-                topLeft: false,
-            }}
-            grid={useMemo(
-                () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
-                [isSnapToGrid, snapToGridAmount]
-            )}
-            minHeight={maxHeight}
-            minWidth={maxWidth}
-            ref={(r) => {
-                setResizeRef(r);
-            }}
-            scale={zoom}
-            size={{
-                width: width < maxWidth ? maxWidth : width,
-                height: height < maxHeight ? maxHeight : height,
-            }}
-            style={{
-                margin: 8,
-                marginBottom: 0,
-                marginTop: 0,
-            }}
-            onResizeStop={(e, direction, ref, d) => {
+        useLayoutEffect(() => {
+            if (resizeRef && resizeRef.resizable) {
+                const { resizable } = resizeRef;
                 const size = {
-                    offsetTop: ref.offsetTop,
-                    offsetLeft: ref.offsetLeft,
-                    width: (width < maxWidth ? maxWidth : width) + d.width,
-                    height: (height < maxHeight ? maxHeight : height) + d.height,
+                    offsetTop: resizable.offsetTop,
+                    offsetLeft: resizable.offsetLeft,
+                    width,
+                    height,
                 };
                 setIteratorSize(id, size);
                 updateIteratorBounds(id, size);
-            }}
-        >
-            <Box
+            }
+        }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
+
+        return (
+            <Resizable
                 className="nodrag"
-                draggable={false}
-                h="full"
-                my={0}
-                w="full"
-                onContextMenu={noContextMenu}
-                onDragEnter={() => {
-                    setHoveredNode(id);
+                defaultSize={defaultIteratorSize}
+                enable={{
+                    top: false,
+                    right: true,
+                    bottom: true,
+                    left: false,
+                    topRight: false,
+                    bottomRight: true,
+                    bottomLeft: false,
+                    topLeft: false,
                 }}
-                onDragLeave={() => {
-                    setHoveredNode(null);
+                grid={useMemo(
+                    () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
+                    [isSnapToGrid, snapToGridAmount]
+                )}
+                minHeight={maxHeight}
+                minWidth={maxWidth}
+                ref={(r) => {
+                    setResizeRef(r);
+                }}
+                scale={zoom}
+                size={{
+                    width: width < maxWidth ? maxWidth : width,
+                    height: height < maxHeight ? maxHeight : height,
+                }}
+                style={{
+                    margin: 8,
+                    marginBottom: 0,
+                    marginTop: 0,
+                }}
+                onResizeStop={(e, direction, ref, d) => {
+                    const size = {
+                        offsetTop: ref.offsetTop,
+                        offsetLeft: ref.offsetLeft,
+                        width: (width < maxWidth ? maxWidth : width) + d.width,
+                        height: (height < maxHeight ? maxHeight : height) + d.height,
+                    };
+                    setIteratorSize(id, size);
+                    updateIteratorBounds(id, size);
                 }}
             >
                 <Box
-                    bg={useColorModeValue('gray.200', 'gray.800')}
-                    borderColor={
-                        hoveredNode === id ? accentColor : useColorModeValue('gray.400', 'gray.600')
-                    }
-                    borderRadius="lg"
-                    borderWidth={1}
+                    className="nodrag"
+                    draggable={false}
                     h="full"
-                    transition="0.15s ease-in-out"
+                    my={0}
                     w="full"
+                    onContextMenu={noContextMenu}
+                    onDragEnter={() => {
+                        setHoveredNode(id);
+                    }}
+                    onDragLeave={() => {
+                        setHoveredNode(null);
+                    }}
                 >
-                    <DotPattern id={id} />
+                    <Box
+                        bg={useColorModeValue('gray.200', 'gray.800')}
+                        borderColor={
+                            hoveredNode === id
+                                ? accentColor
+                                : useColorModeValue('gray.400', 'gray.600')
+                        }
+                        borderRadius="lg"
+                        borderWidth={1}
+                        h="full"
+                        transition="0.15s ease-in-out"
+                        w="full"
+                    >
+                        <DotPattern id={id} />
+                    </Box>
                 </Box>
-            </Box>
-        </Resizable>
-    );
-};
+            </Resizable>
+        );
+    }
+);
 
-export default memo(IteratorNodeBody);
+export default IteratorNodeBody;

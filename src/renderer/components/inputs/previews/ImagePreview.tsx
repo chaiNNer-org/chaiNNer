@@ -32,7 +32,7 @@ interface ImagePreviewProps {
     schemaId: string;
 }
 
-export default memo(({ path, schemaId, id }: ImagePreviewProps) => {
+const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [img, setImg] = useState<ImageObject | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -101,3 +101,5 @@ export default memo(({ path, schemaId, id }: ImagePreviewProps) => {
         </Center>
     );
 });
+
+export default ImagePreview;

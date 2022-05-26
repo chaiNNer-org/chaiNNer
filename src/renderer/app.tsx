@@ -1,6 +1,6 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import { LocalStorage } from 'node-localstorage';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import './global.css';
 import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
@@ -9,7 +9,23 @@ import { useAsyncEffect } from './hooks/useAsyncEffect';
 import Main from './main';
 import theme from './theme';
 
-const App = () => {
+const LoadingComponent = memo(() => (
+    <Box
+        h="full"
+        w="full"
+    >
+        <Center
+            h="full"
+            w="full"
+        >
+            <Spinner />
+        </Center>
+    </Box>
+));
+
+const MainComponent = memo(({ port }: { port: number }) => <Main port={port} />);
+
+const App = memo(() => {
     const [port, setPort] = useState<number | null>(null);
     const [storageInitialized, setStorageInitialized] = useState(false);
 
@@ -25,36 +41,20 @@ const App = () => {
         []
     );
 
-    let Component;
-
-    if (!port || !storageInitialized) {
-        Component = () => (
-            <Box
-                h="full"
-                w="full"
-            >
-                <Center
-                    h="full"
-                    w="full"
-                >
-                    <Spinner />
-                </Center>
-            </Box>
-        );
-    } else {
-        Component = () => <Main port={port} />;
-    }
-
     return (
         <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
             <ContextMenuProvider>
                 <AlertBoxProvider>
-                    <Component />
+                    {!port || !storageInitialized ? (
+                        <LoadingComponent />
+                    ) : (
+                        <MainComponent port={port} />
+                    )}
                 </AlertBoxProvider>
             </ContextMenuProvider>
         </ChakraProvider>
     );
-};
+});
 
 export default App;

@@ -77,7 +77,7 @@ interface NodeSelectorProps {
     schemata: SchemaMap;
 }
 
-const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
+const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -213,6 +213,6 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
             </Tabs>
         </Box>
     );
-};
+});
 
-export default memo(NodeSelector);
+export default NodeSelector;
