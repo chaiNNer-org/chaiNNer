@@ -94,6 +94,32 @@ class ImResizeToResolutionNode(NodeBase):
         return resize(img, out_dims, interpolation)
 
 
+@NodeFactory.register("chainner:image:tile_fill")
+class TileFillNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Tiles an image to an exact resolution."
+        self.inputs = [
+            ImageInput(),
+            NumberInput("Width", minimum=1, default=1, unit="px"),
+            NumberInput("Height", minimum=1, default=1, unit="px"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_DIMENSION
+        self.name = "Tile Fill"
+        self.icon = "MdWindow"
+        self.sub = "Resize"
+
+    def run(self, img: np.ndarray, width: int, height: int) -> np.ndarray:
+        h, w, _ = get_h_w_c(img)
+
+        # tile
+        img = np.tile(img, (ceil(height / h), ceil(width / w), 1))
+
+        # crop to make sure the dimensions are correct
+        return img[:height, :width]
+
+
 @NodeFactory.register("chainner:image:crop_offsets")
 class CropNode(NodeBase):
     """NumPy Crop node"""
