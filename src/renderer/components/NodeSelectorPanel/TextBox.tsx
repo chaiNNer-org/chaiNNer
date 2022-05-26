@@ -4,7 +4,7 @@ import { MouseEventHandler, memo } from 'react';
 export interface TextBoxProps {
     text: string;
     collapsed?: boolean;
-    toolTip?: React.ReactNode | string | string;
+    toolTip?: React.ReactNode;
     onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
