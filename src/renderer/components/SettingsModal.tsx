@@ -29,16 +29,72 @@ import {
     useColorMode,
     useDisclosure,
 } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { PropsWithChildren, ReactNode, memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 
-interface SettingsModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface SettingsItemProps {
+    title: ReactNode;
+    description: ReactNode;
 }
+
+const SettingsItem = memo(
+    ({ title, description, children }: PropsWithChildren<SettingsItemProps>) => {
+        return (
+            <Flex
+                align="center"
+                w="full"
+            >
+                <VStack
+                    alignContent="left"
+                    alignItems="left"
+                    w="full"
+                >
+                    <Text
+                        flex="1"
+                        textAlign="left"
+                    >
+                        {title}
+                    </Text>
+                    <Text
+                        flex="1"
+                        fontSize="xs"
+                        marginTop={0}
+                        textAlign="left"
+                    >
+                        {description}
+                    </Text>
+                </VStack>
+                <HStack>{children}</HStack>
+            </Flex>
+        );
+    }
+);
+
+interface ToggleProps extends SettingsItemProps {
+    isDisabled?: boolean;
+    value: boolean;
+    onToggle: () => void;
+}
+
+const Toggle = memo(({ title, description, isDisabled, value, onToggle }: ToggleProps) => {
+    return (
+        <SettingsItem
+            description={description}
+            title={title}
+        >
+            <Switch
+                defaultChecked={value}
+                isChecked={value}
+                isDisabled={isDisabled}
+                size="lg"
+                onChange={onToggle}
+            />
+        </SettingsItem>
+    );
+});
 
 const AppearanceSettings = memo(() => {
     const { useSnapToGrid } = useContext(SettingsContext);
@@ -52,119 +108,38 @@ const AppearanceSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            {/* Dark Theme */}
-            <Flex
-                align="center"
-                w="full"
+            <Toggle
+                description="Use dark mode throughout chaiNNer."
+                title="Dark theme"
+                value={colorMode === 'dark'}
+                onToggle={toggleColorMode}
+            />
+
+            <Toggle
+                description="Enable node grid snapping."
+                title="Snap to grid"
+                value={isSnapToGrid}
+                onToggle={() => setIsSnapToGrid((prev) => !prev)}
+            />
+
+            <SettingsItem
+                description="The amount to snap the grid to."
+                title="Snap to grid amount"
             >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
+                <NumberInput
+                    defaultValue={snapToGridAmount || 1}
+                    max={45}
+                    min={1}
+                    value={Number(snapToGridAmount || 1)}
+                    onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
                 >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        Dark theme
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use dark mode throughout chaiNNer.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={colorMode === 'dark'}
-                        isChecked={colorMode === 'dark'}
-                        size="lg"
-                        onChange={() => {
-                            toggleColorMode();
-                        }}
-                    />
-                </HStack>
-            </Flex>
-            {/* Snap To Grid */}
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        Snap to grid
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Enable node grid snapping.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isSnapToGrid}
-                        isChecked={isSnapToGrid}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsSnapToGrid(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
-            {/* Snap To Grid Amount */}
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        Snap to grid amount
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        The amount to snap the grid to.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <NumberInput
-                        defaultValue={snapToGridAmount || 1}
-                        max={45}
-                        min={1}
-                        value={Number(snapToGridAmount || 1)}
-                        onChange={(number: string) => setSnapToGridAmount(Number(number || 1))}
-                    >
-                        <NumberInputField />
-                        <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                        </NumberInputStepper>
-                    </NumberInput>
-                </HStack>
-            </Flex>
+                    <NumberInputField />
+                    <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                    </NumberInputStepper>
+                </NumberInput>
+            </SettingsItem>
         </VStack>
     );
 });
@@ -209,80 +184,21 @@ const EnvironmentSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        CPU mode
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use CPU for PyTorch instead of GPU.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isCpu}
-                        isChecked={isCpu}
-                        isDisabled={!isNvidiaAvailable}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsCpu(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
+            <Toggle
+                description="Use CPU for PyTorch instead of GPU."
+                isDisabled={!isNvidiaAvailable}
+                title="CPU mode"
+                value={isCpu}
+                onToggle={() => setIsCpu((prev) => !prev)}
+            />
 
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        FP16 mode
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs
-                        also get a speedup.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isFp16}
-                        isChecked={isFp16}
-                        isDisabled={!isNvidiaAvailable}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsFp16(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
+            <Toggle
+                description="Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
+                isDisabled={!isNvidiaAvailable}
+                title="FP16 mode"
+                value={isFp16}
+                onToggle={() => setIsFp16((prev) => !prev)}
+            />
         </VStack>
     );
 });
@@ -297,42 +213,12 @@ const PythonSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        Use system Python (requires restart)
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Use system Python for chaiNNer&apos;s processing instead of the bundled
-                        Python (not recommended)
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isSystemPython}
-                        isChecked={isSystemPython}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsSystemPython(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
+            <Toggle
+                description="Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
+                title="Use system Python (requires restart)"
+                value={isSystemPython}
+                onToggle={() => setIsSystemPython((prev) => !prev)}
+            />
         </VStack>
     );
 });
@@ -346,46 +232,20 @@ const AdvancedSettings = memo(() => {
             divider={<StackDivider />}
             w="full"
         >
-            {/* Disable Hardware Acceleration */}
-            <Flex
-                align="center"
-                w="full"
-            >
-                <VStack
-                    alignContent="left"
-                    alignItems="left"
-                    w="full"
-                >
-                    <Text
-                        flex="1"
-                        textAlign="left"
-                    >
-                        Disable Hardware Acceleration (requires restart)
-                    </Text>
-                    <Text
-                        flex="1"
-                        fontSize="xs"
-                        marginTop={0}
-                        textAlign="left"
-                    >
-                        Disable GPU hardware acceleration for rendering chaiNNer&apos;s UI. Only
-                        disable this is you know hardware acceleration is causing you issues.
-                    </Text>
-                </VStack>
-                <HStack>
-                    <Switch
-                        defaultChecked={isDisHwAccel}
-                        isChecked={isDisHwAccel}
-                        size="lg"
-                        onChange={(event) => {
-                            setIsDisHwAccel(event.target.checked);
-                        }}
-                    />
-                </HStack>
-            </Flex>
+            <Toggle
+                description="Disable GPU hardware acceleration for rendering chaiNNer's UI. Only disable this is you know hardware acceleration is causing you issues."
+                title="Disable Hardware Acceleration (requires restart)"
+                value={isDisHwAccel}
+                onToggle={() => setIsDisHwAccel((prev) => !prev)}
+            />
         </VStack>
     );
 });
+
+interface SettingsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
 
 const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
     return (
