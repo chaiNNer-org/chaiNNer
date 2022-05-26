@@ -4,7 +4,7 @@ import { MouseEventHandler, memo } from 'react';
 export interface TextBoxProps {
     text: string;
     collapsed?: boolean;
-    toolTip?: React.ReactNode;
+    toolTip?: React.ReactNode | string;
     onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
@@ -14,8 +14,7 @@ export const TextBox = memo(({ text, collapsed, toolTip, onClick }: TextBoxProps
     return (
         <Center
             m={0}
-            px={collapsed ? 0 : 3}
-            py={collapsed ? 1 : 3}
+            px={0}
             textOverflow="ellipsis"
             w="full"
         >
