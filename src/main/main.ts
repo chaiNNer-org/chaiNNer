@@ -27,7 +27,7 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { getNvidiaSmi } from './nvidiaSmi';
-import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+import { downloadPython, extractPython, installRequiredDeps } from './setupIntegratedPython';
 import { hasUpdate } from './update';
 
 const exec = util.promisify(_exec);
@@ -347,7 +347,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 splash.webContents.send('installing-main-deps');
                 onProgress(0);
                 log.info('Installing required deps...');
-                await installSanic(pythonPath, onProgress);
+                await installRequiredDeps(pythonPath, onProgress);
                 log.info('Done installing required deps...');
             } catch (error) {
                 log.error(error);

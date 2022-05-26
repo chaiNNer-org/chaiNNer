@@ -36,21 +36,16 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import { exec as _exec, spawn } from 'child_process';
 import log from 'electron-log';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { useContext } from 'use-context-selector';
-import util from 'util';
-import { PythonKeys } from '../../common/common-types';
 import { Dependency, getOptionalDependencies } from '../../common/dependencies';
-import pipInstallWithProgress from '../../common/pipInstallWithProgress';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ExecutionContext } from '../contexts/ExecutionContext';
 import { SettingsContext } from '../contexts/SettingsContext';
+import PipManager, { ParsedPipList } from '../helpers/pip';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-
-const exec = util.promisify(_exec);
 
 const checkSemver = (v1: string, v2: string) => {
     try {
@@ -59,17 +54,6 @@ const checkSemver = (v1: string, v2: string) => {
         log.error(error);
         return true;
     }
-};
-
-type ParsedPipList = Record<string, string>;
-
-const parsePipOutput = (output: string): ParsedPipList => {
-    const tempPipList = output.split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-    const pipObj: ParsedPipList = {};
-    tempPipList.forEach(([dep, version]) => {
-        pipObj[dep] = version;
-    });
-    return pipObj;
 };
 
 interface DependencyManagerProps {
@@ -91,8 +75,6 @@ const DependencyManager = memo(
             onClose: onUninstallClose,
         } = useDisclosure();
         const cancelRef = useRef<HTMLButtonElement>(null);
-
-        const [pythonKeys, setPythonKeys] = useState<PythonKeys>();
 
         const [isLoadingPipList, setIsLoadingPipList] = useState(true);
         const [pipList, setPipList] = useState<ParsedPipList>({});
@@ -136,13 +118,10 @@ const DependencyManager = memo(
 
         useAsyncEffect<ParsedPipList>(
             {
-                supplier: async (token) => {
-                    const pKeys = await ipcRenderer.invoke('get-python');
-                    token.causeEffect(() => setPythonKeys(pKeys));
-                    const { stdout } = await exec(
-                        `${pKeys.python} -m pip list --disable-pip-version-check`
-                    );
-                    return parsePipOutput(stdout);
+                supplier: async () => {
+                    setIsLoadingPipList(true);
+                    const pipOut = await PipManager.parsedPipList();
+                    return pipOut;
                 },
                 successEffect: (pipObj) => {
                     setPipList(pipObj);
@@ -156,13 +135,10 @@ const DependencyManager = memo(
         useAsyncEffect(
             {
                 supplier: async () => {
-                    if (!isRunningShell && pythonKeys) {
+                    if (!isRunningShell) {
                         setIsLoadingPipList(true);
-                        // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
-                        const { stdout } = await exec(
-                            `${pythonKeys.python} -m pip list --disable-pip-version-check`
-                        );
-                        return parsePipOutput(stdout);
+                        const pipOut = await PipManager.parsedPipList();
+                        return pipOut;
                     }
                     return undefined;
                 },
@@ -174,7 +150,7 @@ const DependencyManager = memo(
                 },
                 finallyEffect: () => setIsLoadingPipList(false),
             },
-            [isRunningShell, pythonKeys]
+            [isRunningShell]
         );
 
         useAsyncEffect(async () => {
@@ -184,46 +160,11 @@ const DependencyManager = memo(
             }
         }, [depChanged]);
 
-        const runPipCommand = (args: string[]) => {
-            setShellOutput('');
-            setIsRunningShell(true);
-            // TODO: hope and pray pythonKeys is non-null
-            const command = spawn(pythonKeys!.python, [
-                '-m',
-                'pip',
-                ...args,
-                '--disable-pip-version-check',
-            ]);
-
-            let outputString = '';
-
-            command.stdout.on('data', (data: unknown) => {
-                outputString += String(data);
-                setShellOutput(outputString);
-            });
-
-            command.stderr.on('data', (data: unknown) => {
-                setShellOutput(String(data));
-            });
-
-            command.on('error', (error) => {
-                setShellOutput(String(error));
-                setIsRunningShell(false);
-            });
-
-            command.on('close', (code) => {
-                log.info(`child process exited with code ${code ?? 'null'}`);
-                setIsRunningShell(false);
-            });
-        };
-
         const installPackage = async (dep: Dependency, upgrade: boolean) => {
             setIsRunningShell(true);
             setInstallingPackage(dep);
             let output = '';
-            await pipInstallWithProgress(
-                // TODO: hope and pray pythonKeys is non-null
-                pythonKeys!.python,
+            await PipManager.pipInstallWithProgress(
                 dep,
                 setProgress,
                 (data) => {
@@ -236,9 +177,16 @@ const DependencyManager = memo(
             setProgress(0);
         };
 
-        const uninstallPackage = (dep: Dependency) => {
+        const uninstallPackage = async (dep: Dependency) => {
+            setIsRunningShell(true);
             setInstallingPackage(null);
-            runPipCommand(['uninstall', '-y', dep.packageName]);
+            try {
+                const output = await PipManager.pipUninstall(dep.packageName);
+                setShellOutput(output);
+            } catch (error) {
+                log.error(error);
+            }
+            setIsRunningShell(false);
         };
 
         useEffect(() => {
@@ -294,7 +242,7 @@ const DependencyManager = memo(
                                             flex="1"
                                             textAlign="left"
                                         >
-                                            Python ({pythonKeys?.version}) [
+                                            Python ({PipManager.getVersion()}) [
                                             {isSystemPython ? 'System' : 'Integrated'}]
                                         </Text>
                                     </Flex>
@@ -512,6 +460,7 @@ const DependencyManager = memo(
                                         setDepChanged(true);
                                         onUninstallClose();
                                         // TODO: hope and pray that uninstallingPackage is actually non-null
+                                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
                                         uninstallPackage(uninstallingPackage!);
                                     }}
                                 >
