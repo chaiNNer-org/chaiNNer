@@ -34,7 +34,6 @@ class PipManager {
             })
             .catch((error) => {
                 log.error(error);
-                this.pythonPath = null;
             });
     }
 
