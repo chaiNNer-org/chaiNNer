@@ -403,7 +403,6 @@ class RotateNode(NodeBase):
         self.sub = "Modification"
 
     def run(self, img: np.ndarray, rotateCode: int) -> np.ndarray:
-        """Compares two images"""
         return cv2.rotate(img, rotateCode)
 
 
@@ -433,5 +432,4 @@ class FlipNode(NodeBase):
         self.sub = "Modification"
 
     def run(self, img: np.ndarray, axis: int) -> np.ndarray:
-        """Compares two images"""
         return cv2.flip(img, axis)
