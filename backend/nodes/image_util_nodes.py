@@ -355,6 +355,7 @@ class ShiftNode(NodeBase):
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img
 
+
 @NodeFactory.register("chainner:image:difference")
 class DifferenceNode(NodeBase):
     """OpenCV absdiff node"""
@@ -374,3 +375,61 @@ class DifferenceNode(NodeBase):
         """Compares two images"""
         assert img_1.shape == img_2.shape, "Images must be the same size"
         return cv2.absdiff(img_1, img_2)
+
+
+@NodeFactory.register("chainner:image:rotate")
+class RotateNode(NodeBase):
+    """Rotate node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Rotate an image."
+        self.inputs = [
+            ImageInput("Image"),
+            DropDownInput(
+                "Rotation Degree",
+                [
+                    {"option": "90", "value": cv2.ROTATE_90_CLOCKWISE},
+                    {"option": "180", "value": cv2.ROTATE_180},
+                    {"option": "270", "value": cv2.ROTATE_90_COUNTERCLOCKWISE},
+                ],
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Rotate"
+        self.icon = "MdRotate90DegreesCcw"
+        self.sub = "Modification"
+
+    def run(self, img: np.ndarray, rotateCode: int) -> np.ndarray:
+        return cv2.rotate(img, rotateCode)
+
+
+@NodeFactory.register("chainner:image:flip")
+class FlipNode(NodeBase):
+    """flip node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Flip an image."
+        self.inputs = [
+            ImageInput("Image"),
+            DropDownInput(
+                "Flip Axis",
+                [
+                    {"option": "Horizontal", "value": 1},
+                    {"option": "Vertical", "value": 0},
+                    {"option": "Both", "value": -1},
+                ],
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_UTILITY
+        self.name = "Flip"
+        self.icon = "MdFlip"
+        self.sub = "Modification"
+
+    def run(self, img: np.ndarray, axis: int) -> np.ndarray:
+        return cv2.flip(img, axis)
