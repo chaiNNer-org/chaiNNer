@@ -21,6 +21,7 @@ import semver from 'semver';
 import { cpu, graphics } from 'systeminformation';
 import util from 'util';
 import { PythonKeys, WindowSize } from '../common/common-types';
+import { requiredDependencies } from '../common/dependencies';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
@@ -370,15 +371,22 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python deps...');
     try {
         const { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
-        const list = String(pipList)
-            .split('\n')
-            .map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-        const hasSanic = list.some((pkg) => pkg[0] === 'sanic');
-        const hasSanicCors = list.some((pkg) => pkg[0] === 'Sanic-Cors');
-        if (!hasSanic || !hasSanicCors) {
-            log.info('Sanic not found. Installing sanic...');
+        const installedPackages = new Set(
+            String(pipList)
+                .split('\n')
+                .map((pkg) => pkg.replace(/\s+/g, ' ').split(' ')[0])
+        );
+
+        const pending = requiredDependencies.filter((dep) => {
+            if (installedPackages.has(dep.packageName)) return false;
+            log.info(`Dependency ${dep.name} (${dep.packageName}) not found.`);
+            return true;
+        });
+        if (pending.length > 0) {
+            log.info(`Installing ${pending.length} missing dependencies...`);
             splashWindow.webContents.send('installing-deps');
-            await exec(`${pythonKeys.python} -m pip install sanic==21.9.3 Sanic-Cors==1.0.1`);
+            const depsString = pending.map((dep) => `${dep.packageName}==${dep.version}`).join(' ');
+            await exec(`${pythonKeys.python} -m pip install ${depsString}`);
         }
     } catch (error) {
         log.error(error);

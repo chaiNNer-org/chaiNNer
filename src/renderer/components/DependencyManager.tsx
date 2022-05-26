@@ -43,7 +43,7 @@ import semver from 'semver';
 import { useContext } from 'use-context-selector';
 import util from 'util';
 import { PythonKeys } from '../../common/common-types';
-import getAvailableDeps, { Dependency } from '../../common/dependencies';
+import { Dependency, getOptionalDependencies } from '../../common/dependencies';
 import pipInstallWithProgress from '../../common/pipInstallWithProgress';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ExecutionContext } from '../contexts/ExecutionContext';
@@ -114,7 +114,7 @@ const DependencyManager = memo(
         const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
 
         useEffect(() => {
-            const depsArr = getAvailableDeps(isNvidiaAvailable);
+            const depsArr = getOptionalDependencies(isNvidiaAvailable);
             setAvailableDeps(depsArr);
         }, [isNvidiaAvailable]);
 
@@ -548,7 +548,7 @@ export const DependencyManagerButton = memo(() => {
     );
 
     useEffect(() => {
-        const depsArr = getAvailableDeps(isNvidiaAvailable);
+        const depsArr = getOptionalDependencies(isNvidiaAvailable);
         setAvailableDeps(depsArr);
     }, [isNvidiaAvailable]);
 
