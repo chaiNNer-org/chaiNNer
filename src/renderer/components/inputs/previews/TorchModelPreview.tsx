@@ -3,6 +3,7 @@ import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
 import { checkFileExists } from '../../../../common/util';
+import { AlertBoxContext, AlertType } from '../../../contexts/AlertBoxContext';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
@@ -43,6 +44,8 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
+    const { sendAlert } = useContext(AlertBoxContext);
+
     useAsyncEffect(
         {
             supplier: async (token) => {
@@ -62,7 +65,25 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                 }
                 return null;
             },
-            successEffect: setModelData,
+            successEffect: (value) => {
+                const data = value as ModelData;
+                if (data.modelType) {
+                    setModelData(data);
+                } else {
+                    sendAlert({
+                        type: AlertType.ERROR,
+                        message: 'Failed to load model. Model type is probably not supported.',
+                    });
+                }
+            },
+            catchEffect: (error) => {
+                sendAlert({
+                    type: AlertType.ERROR,
+                    title: 'Error',
+                    message: JSON.stringify(error, undefined, 2),
+                    copyToClipboard: true,
+                });
+            },
             finallyEffect: () => setIsLoading(false),
         },
         [path]

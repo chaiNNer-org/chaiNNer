@@ -79,7 +79,15 @@ export const SettingsProvider = memo(
                 // Port
                 port,
             }),
-            [useIsCpu, useIsFp16, useIsSystemPython, useSnapToGrid, useNodeFavorites, port]
+            [
+                useIsCpu,
+                useIsFp16,
+                useIsSystemPython,
+                useSnapToGrid,
+                useDisHwAccel,
+                useNodeFavorites,
+                port,
+            ]
         );
 
         return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
