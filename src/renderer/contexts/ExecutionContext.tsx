@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -110,7 +110,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 );
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => {
+export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
@@ -306,11 +306,9 @@ export const ExecutionProvider = ({ children }: React.PropsWithChildren<{}>) => 
         setStatus(ExecutionStatus.READY);
     };
 
-    return (
-        <ExecutionContext.Provider
-            value={{ run, pause, kill, status, isBackendKilled, setIsBackendKilled }}
-        >
-            {children}
-        </ExecutionContext.Provider>
-    );
-};
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    let value = { run, pause, kill, status, isBackendKilled, setIsBackendKilled };
+    value = useMemo(() => value, Object.values(value));
+
+    return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
+});

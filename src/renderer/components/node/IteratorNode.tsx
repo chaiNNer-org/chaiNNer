@@ -163,4 +163,4 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     );
 });
 
-export default memo(IteratorNodeWrapper);
+export default IteratorNodeWrapper;

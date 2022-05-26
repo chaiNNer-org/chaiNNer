@@ -1,7 +1,12 @@
 module.exports = {
     parser: '@typescript-eslint/parser',
     extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
-    plugins: ['prettier', '@typescript-eslint', 'prefer-arrow-functions'],
+    plugins: [
+        'prettier',
+        '@typescript-eslint',
+        'prefer-arrow-functions',
+        'eslint-plugin-react-memo',
+    ],
     globals: {
         MAIN_WINDOW_WEBPACK_ENTRY: true,
         SPLASH_SCREEN_WEBPACK_ENTRY: true,
@@ -51,6 +56,8 @@ module.exports = {
                 alphabetize: { order: 'asc', caseInsensitive: true },
             },
         ],
+        'react/function-component-definition': 'off',
+        'react-memo/require-memo': ['error', { strict: true }],
     },
     settings: {
         'import/core-modules': ['electron'],
@@ -75,6 +82,7 @@ module.exports = {
                 '@typescript-eslint',
                 'prefer-arrow-functions',
                 'eslint-comments',
+                'eslint-plugin-react-memo',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -111,6 +119,8 @@ module.exports = {
                         alphabetize: { order: 'asc', caseInsensitive: true },
                     },
                 ],
+                'react/function-component-definition': 'off',
+                'react-memo/require-memo': ['error', { strict: true }],
             },
         },
     ],

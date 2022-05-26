@@ -100,39 +100,35 @@ interface NodeInputsProps {
     schemaId: string;
 }
 
-const NodeInputs = ({
-    inputs,
-    id,
-    inputData,
-    accentColor,
-    isLocked,
-    schemaId,
-}: NodeInputsProps) => {
-    const { useInputData: useInputDataContext } = useContext(GlobalContext);
+const NodeInputs = memo(
+    ({ inputs, id, inputData, accentColor, isLocked, schemaId }: NodeInputsProps) => {
+        const { useInputData: useInputDataContext } = useContext(GlobalContext);
 
-    const useInputData = useCallback(
-        <T extends InputSchemaValue>(inputId: number) =>
-            useInputDataContext<T>(id, inputId, inputData),
-        [useInputDataContext, id, inputData]
-    );
+        const useInputData = useCallback(
+            <T extends InputSchemaValue>(inputId: number) =>
+                useInputDataContext<T>(id, inputId, inputData),
+            [useInputDataContext, id, inputData]
+        );
 
-    return (
-        <>
-            {inputs.map((input) => {
-                const props: FullInputProps = {
-                    ...input,
-                    id,
-                    inputId: input.id,
-                    inputData,
-                    useInputData,
-                    type: input.type,
-                    accentColor,
-                    isLocked: isLocked ?? false,
-                    schemaId,
-                };
-                return pickInput(input.type, props);
-            })}
-        </>
-    );
-};
-export default memo(NodeInputs);
+        return (
+            <>
+                {inputs.map((input) => {
+                    const props: FullInputProps = {
+                        ...input,
+                        id,
+                        inputId: input.id,
+                        inputData,
+                        useInputData,
+                        type: input.type,
+                        accentColor,
+                        isLocked: isLocked ?? false,
+                        schemaId,
+                    };
+                    return pickInput(input.type, props);
+                })}
+            </>
+        );
+    }
+);
+
+export default NodeInputs;

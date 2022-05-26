@@ -28,90 +28,92 @@ interface RepresentativeNodeWrapperProps {
     collapsed?: boolean;
 }
 
-const RepresentativeNodeWrapper = ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
-    const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
-    const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
-    const reactFlowInstance = useReactFlow();
+const RepresentativeNodeWrapper = memo(
+    ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
+        const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
+        const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
+        const reactFlowInstance = useReactFlow();
 
-    const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
-    const isFavorite = favorites.has(node.schemaId);
+        const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
+        const isFavorite = favorites.has(node.schemaId);
 
-    const { onContextMenu } = useContextMenu(() => (
-        <MenuList>
-            <MenuItem
-                icon={<StarIcon />}
-                onClick={() => {
-                    if (isFavorite) {
-                        removeFavorite(node.schemaId);
-                    } else {
-                        addFavorites(node.schemaId);
-                    }
-                }}
-            >
-                {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-            </MenuItem>
-        </MenuList>
-    ));
-
-    return (
-        <Box
-            key={node.name}
-            my={1.5}
-            onContextMenu={onContextMenu}
-        >
-            <Tooltip
-                closeOnMouseDown
-                hasArrow
-                borderRadius={8}
-                label={<ReactMarkdown>{node.description}</ReactMarkdown>}
-                openDelay={200}
-                px={2}
-                py={1}
-            >
-                <Center
-                    draggable
-                    boxSizing="content-box"
-                    display="block"
-                    // w="100%"
-                    onDoubleClick={() => {
-                        if (!reactFlowWrapper.current) return;
-
-                        const { height: wHeight, width } =
-                            reactFlowWrapper.current.getBoundingClientRect();
-
-                        const position = reactFlowInstance.project({
-                            x: width / 2,
-                            y: wHeight / 2,
-                        });
-
-                        createNode({
-                            nodeType: node.nodeType,
-                            position,
-                            data: {
-                                schemaId: node.schemaId,
-                            },
-                        });
-                    }}
-                    onDragEnd={() => {
-                        setHoveredNode(null);
-                    }}
-                    onDragStart={(event) => {
-                        onDragStart(event, node);
-                        setHoveredNode(null);
+        const { onContextMenu } = useContextMenu(() => (
+            <MenuList>
+                <MenuItem
+                    icon={<StarIcon />}
+                    onClick={() => {
+                        if (isFavorite) {
+                            removeFavorite(node.schemaId);
+                        } else {
+                            addFavorites(node.schemaId);
+                        }
                     }}
                 >
-                    <RepresentativeNode
-                        category={node.category}
-                        collapsed={collapsed}
-                        icon={node.icon}
-                        name={node.name}
-                        schemaId={node.schemaId}
-                        subcategory={node.subcategory}
-                    />
-                </Center>
-            </Tooltip>
-        </Box>
-    );
-};
+                    {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                </MenuItem>
+            </MenuList>
+        ));
 
-export default memo(RepresentativeNodeWrapper);
+        return (
+            <Box
+                key={node.name}
+                my={1.5}
+                onContextMenu={onContextMenu}
+            >
+                <Tooltip
+                    closeOnMouseDown
+                    hasArrow
+                    borderRadius={8}
+                    label={<ReactMarkdown>{node.description}</ReactMarkdown>}
+                    openDelay={200}
+                    px={2}
+                    py={1}
+                >
+                    <Center
+                        draggable
+                        boxSizing="content-box"
+                        display="block"
+                        // w="100%"
+                        onDoubleClick={() => {
+                            if (!reactFlowWrapper.current) return;
+
+                            const { height: wHeight, width } =
+                                reactFlowWrapper.current.getBoundingClientRect();
+
+                            const position = reactFlowInstance.project({
+                                x: width / 2,
+                                y: wHeight / 2,
+                            });
+
+                            createNode({
+                                nodeType: node.nodeType,
+                                position,
+                                data: {
+                                    schemaId: node.schemaId,
+                                },
+                            });
+                        }}
+                        onDragEnd={() => {
+                            setHoveredNode(null);
+                        }}
+                        onDragStart={(event) => {
+                            onDragStart(event, node);
+                            setHoveredNode(null);
+                        }}
+                    >
+                        <RepresentativeNode
+                            category={node.category}
+                            collapsed={collapsed}
+                            icon={node.icon}
+                            name={node.name}
+                            schemaId={node.schemaId}
+                            subcategory={node.subcategory}
+                        />
+                    </Center>
+                </Tooltip>
+            </Box>
+        );
+    }
+);
+
+export default RepresentativeNodeWrapper;

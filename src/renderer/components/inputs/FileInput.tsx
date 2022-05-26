@@ -119,7 +119,7 @@ const FileInput = memo(
                         </Box>
                     );
                 default:
-                    return <></>;
+                    return null;
             }
         };
 

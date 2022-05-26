@@ -77,7 +77,7 @@ interface NodeSelectorProps {
     schemata: SchemaMap;
 }
 
-const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
+const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -193,19 +193,25 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
                                         />
                                     );
                                 })}
-                                {!collapsed && (
-                                    <AccordionItem>
+                                <AccordionItem>
+                                    <Box p={4}>
                                         <TextBox
-                                            text="Missing nodes? Check the dependency manager!"
+                                            collapsed={collapsed}
+                                            text="Missing nodes? Click to open the dependency manager!"
+                                            toolTip={
+                                                collapsed
+                                                    ? 'Missing nodes? Click to open the dependency manager!'
+                                                    : ''
+                                            }
                                             onClick={onOpen}
                                         />
-                                        {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
-                                        <DependencyManager
-                                            isOpen={isOpen}
-                                            onClose={onClose}
-                                        />
-                                    </AccordionItem>
-                                )}
+                                    </Box>
+                                    {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
+                                    <DependencyManager
+                                        isOpen={isOpen}
+                                        onClose={onClose}
+                                    />
+                                </AccordionItem>
                             </Accordion>
                         </Box>
                     </TabPanel>
@@ -213,6 +219,6 @@ const NodeSelector = ({ schemata, height }: NodeSelectorProps) => {
             </Tabs>
         </Box>
     );
-};
+});
 
-export default memo(NodeSelector);
+export default NodeSelector;

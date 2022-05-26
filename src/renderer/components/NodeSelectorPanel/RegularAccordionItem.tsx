@@ -32,7 +32,12 @@ const RegularAccordionItem = memo(
                         textAlign="left"
                         verticalAlign="center"
                     >
-                        <Center>{IconFactory(category, getNodeAccentColor(category))}</Center>
+                        <Center>
+                            <IconFactory
+                                accentColor={getNodeAccentColor(category)}
+                                icon={category}
+                            />
+                        </Center>
                         {!collapsed && (
                             <Heading
                                 size="5xl"

@@ -3,7 +3,13 @@ import { memo } from 'react';
 import bg from '../../public/splash_imgs/background.png';
 import front from '../../public/splash_imgs/front.png';
 
-const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface chaiNNerLogoProps {
+    size?: number;
+    percent?: number;
+}
+
+const chaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProps) => (
     <Box
         boxSize={size}
         display="block"
@@ -85,6 +91,6 @@ const chaiNNerLogo = ({ size = 1024, percent = 1 }) => (
             top={-size * 3}
         />
     </Box>
-);
+));
 
-export default memo(chaiNNerLogo);
+export default chaiNNerLogo;

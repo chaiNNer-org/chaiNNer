@@ -7,7 +7,7 @@ interface NodeFooterProps {
     invalidReason?: string;
 }
 
-const NodeFooter = ({ isValid = false, invalidReason = '' }: NodeFooterProps) => {
+const NodeFooter = memo(({ isValid = false, invalidReason = '' }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     // const invalidShade = useColorModeValue('red.200', 'red.900');
@@ -52,6 +52,6 @@ const NodeFooter = ({ isValid = false, invalidReason = '' }: NodeFooterProps) =>
             <Spacer />
         </Flex>
     );
-};
+});
 
-export default memo(NodeFooter);
+export default NodeFooter;

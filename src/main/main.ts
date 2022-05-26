@@ -631,7 +631,10 @@ const doSplashScreenChecks = async () =>
         });
 
         // Look, I just wanna see the cool animation
-        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+        const sleep = (ms: number) =>
+            new Promise((r) => {
+                setTimeout(r, ms);
+            });
 
         // Send events to splash screen renderer as they happen
         // Added some sleep functions so I can see that this is doing what I want it to
