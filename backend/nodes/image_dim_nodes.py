@@ -107,7 +107,7 @@ class TileFillNode(NodeBase):
         self.outputs = [ImageOutput()]
         self.category = IMAGE_DIMENSION
         self.name = "Tile Fill"
-        self.icon = "MdOutlinePhotoSizeSelectLarge"
+        self.icon = "MdWindow"
         self.sub = "Resize"
 
     def run(self, img: np.ndarray, width: int, height: int) -> np.ndarray:
