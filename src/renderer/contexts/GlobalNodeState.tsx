@@ -160,6 +160,105 @@ const createNodeImpl = (
     return [newNode, ...extraNodes];
 };
 
+const copyNodes = (
+    nodesToCopy: readonly Node<NodeData>[],
+    deriveNodeId: (oldId: string) => string,
+    deriveParentNodeId: (parentOldId: string) => string | undefined
+): Mutable<Node<NodeData>>[] => {
+    const offsetX = 50 * (Math.random() * 2 - 1);
+    const offsetY = 50 * (Math.random() * 2 - 1);
+    return nodesToCopy.map((n) => {
+        const newId = deriveNodeId(n.id);
+        if (!n.parentNode) {
+            const returnData: Mutable<Node<NodeData>> = {
+                ...n,
+                id: newId,
+                position: {
+                    x: n.position.x + 200 + offsetX,
+                    y: n.position.y + 200 + offsetY,
+                },
+                data: {
+                    ...n.data,
+                    id: newId,
+                },
+                selected: false,
+            };
+            delete returnData.handleBounds;
+            return returnData;
+        }
+
+        const parentId = deriveParentNodeId(n.parentNode);
+        const returnData: Mutable<Node<NodeData>> = {
+            ...n,
+            id: newId,
+            position: {
+                x: n.position.x + offsetX,
+                y: n.position.y + offsetY,
+            },
+            data: {
+                ...n.data,
+                id: newId,
+                parentNode: parentId,
+            },
+            parentNode: parentId,
+            selected: false,
+        };
+        delete returnData.handleBounds;
+        if (!parentId) {
+            delete returnData.extent;
+        }
+        return returnData;
+    });
+};
+const copyEdges = (
+    edgesToCopy: readonly Edge<EdgeData>[],
+    deriveNodeId: (oldId: string) => string
+): Mutable<Edge<EdgeData>>[] => {
+    return edgesToCopy.map((e) => {
+        let { source, sourceHandle, target, targetHandle } = e;
+        source = deriveNodeId(source);
+        sourceHandle = sourceHandle?.replace(e.source, source);
+        target = deriveNodeId(target);
+        targetHandle = targetHandle?.replace(e.target, target);
+
+        return {
+            ...e,
+            id: createUniqueId(),
+            source,
+            sourceHandle,
+            target,
+            targetHandle,
+            selected: false,
+        };
+    });
+};
+
+const setSelected = <T extends { selected?: boolean }>(
+    selectable: readonly T[],
+    selected: boolean
+): T[] => selectable.map((s) => ({ ...s, selected }));
+
+const expandSelection = (
+    nodes: readonly Node<NodeData>[],
+    initialSelection: Iterable<string>
+): Set<string> => {
+    const selection = new Set(initialSelection);
+    for (const n of nodes) {
+        if (selection.has(n.parentNode!)) {
+            selection.add(n.id);
+        }
+    }
+
+    // remove iterator helper without their iterator
+    for (const n of nodes) {
+        if (n.type === 'iteratorHelper' && selection.has(n.id) && !selection.has(n.parentNode!)) {
+            selection.delete(n.id);
+        }
+    }
+
+    return selection;
+};
+
 const defaultIteratorSize: Size = { width: 1280, height: 720 };
 
 interface GlobalProviderProps {
@@ -726,95 +825,39 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        const copyNodesAndEdges = useCallback(
-            (nodesToCopy: Set<string>, edgesToCopy: Set<string> | null) => {
-                const duplicateId = createUniqueId();
-                const deriveId = (oldId: string) => deriveUniqueId(duplicateId + oldId);
+        const duplicateNode = useCallback(
+            (id: string) => {
+                const nodesToCopy = expandSelection(getNodes(), [id]);
+
+                const duplicationId = createUniqueId();
+                const deriveId = (oldId: string) =>
+                    nodesToCopy.has(oldId) ? deriveUniqueId(duplicationId + oldId) : oldId;
 
                 changeNodes((nodes) => {
-                    const newNodes = nodes
-                        .filter((n) => nodesToCopy.has(n.id) || nodesToCopy.has(n.parentNode!))
-                        .map<Node<NodeData>>((n) => {
-                            const newId = deriveId(n.id);
-                            if (!n.parentNode) {
-                                const returnData = {
-                                    ...n,
-                                    id: newId,
-                                    position: {
-                                        x: (n.position.x || 0) + 200,
-                                        y: (n.position.y || 0) + 200,
-                                    },
-                                    data: {
-                                        ...n.data,
-                                        id: newId,
-                                    },
-                                    selected: true,
-                                };
-                                delete returnData.handleBounds;
-                                return returnData;
-                            }
-
-                            const parentId = deriveId(n.parentNode);
-                            const returnData = {
-                                ...n,
-                                id: newId,
-                                data: {
-                                    ...n.data,
-                                    id: newId,
-                                    parentNode: parentId,
-                                },
-                                parentNode: parentId,
-                                selected: true,
-                            };
-                            delete returnData.handleBounds;
-                            return returnData;
-                        });
-                    return [...nodes.map((n) => ({ ...n, selected: false })), ...newNodes];
+                    const newNodes = copyNodes(
+                        nodes.filter((n) => nodesToCopy.has(n.id)),
+                        deriveId,
+                        deriveId
+                    );
+                    const derivedId = deriveId(id);
+                    newNodes.forEach((n) => {
+                        // eslint-disable-next-line no-param-reassign
+                        n.selected = n.id === derivedId;
+                    });
+                    return [...setSelected(nodes, false), ...newNodes];
                 });
 
                 changeEdges((edges) => {
-                    const newEdges = edges
-                        .filter((e) => {
-                            const copyEdge = edgesToCopy ? edgesToCopy.has(e.id) : true;
-                            return (
-                                nodesToCopy.has(e.target) && nodesToCopy.has(e.source) && copyEdge
-                            );
-                        })
-                        .map<Edge<EdgeData>>((e) => {
-                            let { source, sourceHandle, target, targetHandle } = e;
-                            if (nodesToCopy.has(source)) {
-                                source = deriveId(source);
-                                sourceHandle = sourceHandle?.replace(e.source, source);
-                            }
-                            target = deriveId(target);
-                            targetHandle = targetHandle?.replace(e.target, target);
-                            return {
-                                ...e,
-                                id: createUniqueId(),
-                                source,
-                                sourceHandle,
-                                target,
-                                targetHandle,
-                                selected: true,
-                            };
-                        });
-                    return [...edges.map((e) => ({ ...e, selected: false })), ...newEdges];
+                    const newEdge = copyEdges(
+                        edges.filter((e) => {
+                            return nodesToCopy.has(e.target) && nodesToCopy.has(e.source);
+                        }),
+                        deriveId
+                    );
+                    return [...setSelected(edges, false), ...newEdge];
                 });
             },
-            [changeNodes, changeEdges]
-        );
-
-        const duplicateNode = useCallback(
-            (id: string) => {
-                const nodesToCopy = new Set([
-                    id,
-                    ...getNodes()
-                        .filter((n) => n.parentNode === id)
-                        .map((n) => n.id),
-                ]);
-                copyNodesAndEdges(nodesToCopy, null);
-            },
-            [getNodes, copyNodesAndEdges]
+            [getNodes, changeNodes, changeEdges]
         );
 
         const clearNode = useCallback(
@@ -829,35 +872,61 @@ export const GlobalProvider = memo(
         );
 
         interface ClipboardChain {
-            nodes: Node[];
-            edges: Edge[];
+            nodes: Node<NodeData>[];
+            edges: Edge<EdgeData>[];
         }
 
         useHotkeys(
             'ctrl+c, cmd+c',
             () => {
-                const selectedNodes = getNodes().filter((n) => n.selected);
-                const selectedEdges = getEdges().filter((e) => e.selected);
-                const data: ClipboardChain = { nodes: selectedNodes, edges: selectedEdges };
+                const nodes = getNodes();
+                const edges = getEdges();
+
+                const selectedNodeId = expandSelection(
+                    nodes,
+                    nodes.filter((n) => n.selected).map((n) => n.id)
+                );
+
+                const data: ClipboardChain = {
+                    nodes: nodes.filter((n) => selectedNodeId.has(n.id)),
+                    edges: edges.filter(
+                        (e) => selectedNodeId.has(e.source) && selectedNodeId.has(e.target)
+                    ),
+                };
                 const copyData = Buffer.from(JSON.stringify(data));
                 clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
             },
-            [getNodes]
+            [getNodes, getEdges]
         );
 
         useHotkeys(
             'ctrl+v, cmd+v',
             () => {
-                const { nodes, edges } = JSON.parse(
+                const chain = JSON.parse(
                     clipboard.readBuffer('application/chainner.chain').toString()
                 ) as ClipboardChain;
-                if (nodes.length > 0) {
-                    const nodesToCopy = new Set(nodes.map((n) => n.id));
-                    const edgesToCopy = edges.length > 0 ? new Set(edges.map((e) => e.id)) : null;
-                    copyNodesAndEdges(nodesToCopy, edgesToCopy);
-                }
+
+                const duplicationId = createUniqueId();
+                const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
+
+                changeNodes((nodes) => {
+                    const currentIds = new Set(nodes.map((n) => n.id));
+                    const newIds = new Set(chain.nodes.map((n) => n.id));
+
+                    const newNodes = copyNodes(chain.nodes, deriveId, (oldId) => {
+                        if (newIds.has(oldId)) return deriveId(oldId);
+                        if (currentIds.has(oldId)) return oldId;
+                        return undefined;
+                    });
+
+                    return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
+                });
+                changeEdges((edges) => {
+                    const newEdges = copyEdges(chain.edges, deriveId);
+                    return [...setSelected(edges, false), ...setSelected(newEdges, true)];
+                });
             },
-            [copyNodesAndEdges]
+            [getNodes(), changeNodes, changeEdges]
         );
 
         const [zoom, setZoom] = useState(1);
