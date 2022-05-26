@@ -72,7 +72,7 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                 } else {
                     sendAlert({
                         type: AlertType.ERROR,
-                        message: 'Failed to load model',
+                        message: 'Failed to load model. Model type is probably not supported.',
                     });
                 }
             },
