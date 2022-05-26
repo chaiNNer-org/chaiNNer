@@ -379,7 +379,7 @@ class DifferenceNode(NodeBase):
 
 @NodeFactory.register("chainner:image:rotate")
 class RotateNode(NodeBase):
-    """flip node"""
+    """Rotate node"""
 
     def __init__(self):
         """Constructor"""
