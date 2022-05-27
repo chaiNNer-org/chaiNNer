@@ -196,6 +196,7 @@ const FileInput = memo(
                     borderRadius={8}
                     label={filePath}
                     maxW="auto"
+                    openDelay={500}
                     px={2}
                     py={0}
                 >

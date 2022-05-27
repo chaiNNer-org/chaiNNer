@@ -71,6 +71,7 @@ const DirectoryInput = memo(
                 borderRadius={8}
                 label={isInputLocked ? undefined : directory}
                 maxW="auto"
+                openDelay={500}
                 px={2}
                 py={0}
             >

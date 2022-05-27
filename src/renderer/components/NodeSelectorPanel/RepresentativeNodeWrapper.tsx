@@ -65,7 +65,7 @@ const RepresentativeNodeWrapper = memo(
                     hasArrow
                     borderRadius={8}
                     label={<ReactMarkdown>{node.description}</ReactMarkdown>}
-                    openDelay={200}
+                    openDelay={500}
                     px={2}
                     py={1}
                 >
