@@ -16,7 +16,7 @@ const NodeHeader = memo(
         <Center
             borderBottomColor={accentColor}
             borderBottomStyle={parentNode ? 'double' : undefined}
-            borderBottomWidth="4px"
+            borderBottomWidth={parentNode ? '4px' : '2px'}
             h="auto"
             verticalAlign="middle"
             w={width || 'full'}

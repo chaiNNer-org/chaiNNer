@@ -154,7 +154,7 @@ const IteratorNodeBody = memo(
                                 : useColorModeValue('gray.400', 'gray.600')
                         }
                         borderRadius="lg"
-                        borderWidth={1}
+                        borderWidth={0}
                         h="full"
                         transition="0.15s ease-in-out"
                         w="full"

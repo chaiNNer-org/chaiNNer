@@ -43,9 +43,9 @@ const RepresentativeNode = memo(
                         ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
                         : 'none'
                 }
-                borderColor={borderColor}
+                borderColor={bgColor}
                 borderRadius="lg"
-                borderWidth="0.5px"
+                borderWidth="1px"
                 boxShadow="lg"
                 overflow="hidden"
                 transition="0.15s ease-in-out"
@@ -56,9 +56,9 @@ const RepresentativeNode = memo(
             >
                 <Box
                     bg={bgColor}
-                    borderRadius="6px 0 0 6px"
+                    borderRadius="8px 0 0 8px"
                     h="auto"
-                    ml={2}
+                    ml="5px"
                     py={0.5}
                     verticalAlign="middle"
                     w="full"

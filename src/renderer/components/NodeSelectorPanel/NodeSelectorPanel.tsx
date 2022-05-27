@@ -106,7 +106,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
             borderRadius="lg"
-            borderWidth="1px"
+            borderWidth="0px"
             h="100%"
             w={collapsed ? '84px' : 'auto'} // TODO: Figure out how to make this auto resize to this size
         >

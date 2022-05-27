@@ -37,7 +37,7 @@ const Header = memo(() => {
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
             borderRadius="lg"
-            borderWidth="1px"
+            borderWidth="0px"
             h="56px"
             w="100%"
         >
