@@ -5,6 +5,7 @@ opencv-python
 Pillow
 pylint
 pyright
+pytest
 sanic
 sanic_cors
 torch
