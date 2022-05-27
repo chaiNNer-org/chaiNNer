@@ -786,9 +786,30 @@ const setMainMenu = (openRecentRev: string[]) => {
                     },
                 },
                 { type: 'separator' },
-                // { role: 'cut' },
-                // { role: 'copy' },
-                // { role: 'paste' },
+                {
+                    label: 'Cut',
+                    accelerator: 'CmdOrCtrl+X',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('cut');
+                    },
+                },
+                {
+                    label: 'Copy',
+                    accelerator: 'CmdOrCtrl+C',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('copy');
+                    },
+                },
+                {
+                    label: 'Paste',
+                    accelerator: 'CmdOrCtrl+V',
+                    registerAccelerator: false,
+                    click: () => {
+                        mainWindow.webContents.send('paste');
+                    },
+                },
                 // ...(isMac ? [
                 //   { role: 'delete' },
                 //   { role: 'selectAll' },
