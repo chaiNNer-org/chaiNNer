@@ -16,7 +16,7 @@ export interface ParsedSaveData extends SaveData {
     tamperedWith: boolean;
 }
 
-interface RawSaveFile {
+export interface RawSaveFile {
     version: string;
     content: SaveData;
     timestamp?: string;
