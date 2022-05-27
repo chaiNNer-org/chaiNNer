@@ -499,8 +499,8 @@ const spawnBackend = (port: number) => {
     log.info('Attempting to spawn backend...');
     try {
         const backendPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'backend', 'run.py')
-            : './backend/run.py';
+            ? path.join(process.resourcesPath, 'backend', 'src', 'run.py')
+            : './backend/src/run.py';
         const backend = spawn(pythonKeys.python, [backendPath, String(port)]);
         backend.stdout.on('data', (data) => {
             const dataString = String(data);

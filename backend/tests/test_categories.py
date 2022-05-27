@@ -1,4 +1,4 @@
-from ...backend.nodes.categories import category_order
+from ..src.nodes.categories import category_order
 
 
 def test_categories():

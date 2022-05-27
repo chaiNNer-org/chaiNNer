@@ -6,7 +6,7 @@
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
-    "dev": "concurrently \"nodemon ./backend/run.py 8000\" \"electron-forge start -- --no-backend\"",
+    "dev": "concurrently \"nodemon ./backend/src/run.py 8000\" \"electron-forge start -- --no-backend\"",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",
     "make-linux-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform linux",
@@ -19,7 +19,7 @@
     "lint-py": "black --check ./backend",
     "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend",
     "test-js": "jest",
-    "test-py": "pytest ./tests/backend/",
+    "test-py": "pytest ./backend/tests/",
     "test": "npm run test-js && npm run test-py"
   },
   "keywords": [],
@@ -35,7 +35,7 @@
     "forge": {
       "packagerConfig": {
         "executableName": "chainner",
-        "extraResource": "./backend/",
+        "extraResource": "./backend/src/",
         "icon": "./src/public/icons/cross_platform/icon"
       },
       "publishers": [
