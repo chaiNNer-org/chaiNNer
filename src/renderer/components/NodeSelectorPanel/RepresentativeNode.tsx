@@ -24,7 +24,6 @@ const RepresentativeNode = memo(
         collapsed = false,
     }: RepresentativeNodeProps) => {
         const bgColor = useColorModeValue('gray.300', 'gray.700');
-        const borderColor = useColorModeValue('gray.400', 'gray.600');
         const accentColor = getAccentColor(category);
 
         const [hover, setHover] = useState<boolean>(false);
