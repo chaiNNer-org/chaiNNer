@@ -31,17 +31,20 @@ const RepresentativeNode = memo(
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(schemaId);
 
+        const isIterator = subcategory === 'Iteration';
+        let bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 100%)`;
+        if (isIterator) {
+            bgGradient = `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`;
+        } else if (!hover) {
+            bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${bgColor} 100%)`;
+        }
+
         return (
             <Center
                 _hover={{
                     borderColor: accentColor,
                 }}
-                bg={subcategory === 'Iteration' ? 'none' : accentColor}
-                bgGradient={
-                    subcategory === 'Iteration'
-                        ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
-                        : 'none'
-                }
+                bgGradient={bgGradient}
                 borderColor={bgColor}
                 borderRadius="lg"
                 borderWidth="1px"
