@@ -18,7 +18,9 @@
     "lint-js-ci": "eslint . --ext \".js,.jsx,.ts,.tsx\" --max-warnings 0",
     "lint-py": "black --check ./backend",
     "lint-fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && black ./backend",
-    "test": "jest"
+    "test-js": "jest",
+    "test-py": "pytest ./tests/backend/",
+    "test": "npm run test-js && npm run test-py"
   },
   "keywords": [],
   "author": {
