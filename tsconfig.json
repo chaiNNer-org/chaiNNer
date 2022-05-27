@@ -9,10 +9,12 @@
     "checkJs": false,
     "strict": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "moduleResolution": "node"
   },
   "include": [
     "src",
+    "tests",
   ]
 }

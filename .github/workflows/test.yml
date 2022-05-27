@@ -1,0 +1,33 @@
+name: Tests
+
+# Controls when the workflow will run
+on:
+    schedule:
+        - cron: '*/15 * * * *'
+    pull_request:
+        branches: ['*']
+        types:
+            - opened
+            - synchronize
+            - closed
+    push:
+        branches: [main]
+
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+    frontend-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Use Node.js 14.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14.x
+              # Node v14 comes with npm@6.x by default.
+              # This version of npm does NOT install peer deps by default which is required by some of our deps
+            - run: npm i -g npm@7
+            - run: npm ci
+            - run: npm test
