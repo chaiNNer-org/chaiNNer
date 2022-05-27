@@ -1,4 +1,3 @@
-import { clipboard } from 'electron';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
@@ -26,7 +25,18 @@ import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
-import { copyNode } from '../helpers/reactFlowUtil';
+import {
+    copyToClipboard,
+    cutAndCopyToClipboard,
+    pasteFromClipboard,
+} from '../helpers/copyAndPaste';
+import {
+    copyEdges,
+    copyNode,
+    copyNodes,
+    expandCopySelection,
+    setSelected,
+} from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -158,105 +168,6 @@ const createNodeImpl = (
     }
 
     return [newNode, ...extraNodes];
-};
-
-const copyNodes = (
-    nodesToCopy: readonly Node<NodeData>[],
-    deriveNodeId: (oldId: string) => string,
-    deriveParentNodeId: (parentOldId: string) => string | undefined
-): Mutable<Node<NodeData>>[] => {
-    const offsetX = 50 * (Math.random() * 2 - 1);
-    const offsetY = 50 * (Math.random() * 2 - 1);
-    return nodesToCopy.map((n) => {
-        const newId = deriveNodeId(n.id);
-        if (!n.parentNode) {
-            const returnData: Mutable<Node<NodeData>> = {
-                ...n,
-                id: newId,
-                position: {
-                    x: n.position.x + 200 + offsetX,
-                    y: n.position.y + 200 + offsetY,
-                },
-                data: {
-                    ...n.data,
-                    id: newId,
-                },
-                selected: false,
-            };
-            delete returnData.handleBounds;
-            return returnData;
-        }
-
-        const parentId = deriveParentNodeId(n.parentNode);
-        const returnData: Mutable<Node<NodeData>> = {
-            ...n,
-            id: newId,
-            position: {
-                x: n.position.x + offsetX,
-                y: n.position.y + offsetY,
-            },
-            data: {
-                ...n.data,
-                id: newId,
-                parentNode: parentId,
-            },
-            parentNode: parentId,
-            selected: false,
-        };
-        delete returnData.handleBounds;
-        if (!parentId) {
-            delete returnData.extent;
-        }
-        return returnData;
-    });
-};
-const copyEdges = (
-    edgesToCopy: readonly Edge<EdgeData>[],
-    deriveNodeId: (oldId: string) => string
-): Mutable<Edge<EdgeData>>[] => {
-    return edgesToCopy.map((e) => {
-        let { source, sourceHandle, target, targetHandle } = e;
-        source = deriveNodeId(source);
-        sourceHandle = sourceHandle?.replace(e.source, source);
-        target = deriveNodeId(target);
-        targetHandle = targetHandle?.replace(e.target, target);
-
-        return {
-            ...e,
-            id: createUniqueId(),
-            source,
-            sourceHandle,
-            target,
-            targetHandle,
-            selected: false,
-        };
-    });
-};
-
-const setSelected = <T extends { selected?: boolean }>(
-    selectable: readonly T[],
-    selected: boolean
-): T[] => selectable.map((s) => ({ ...s, selected }));
-
-const expandSelection = (
-    nodes: readonly Node<NodeData>[],
-    initialSelection: Iterable<string>
-): Set<string> => {
-    const selection = new Set(initialSelection);
-    for (const n of nodes) {
-        if (selection.has(n.parentNode!)) {
-            selection.add(n.id);
-        }
-    }
-
-    // remove iterator helper without their iterator
-    for (const n of nodes) {
-        if (n.type === 'iteratorHelper' && selection.has(n.id) && !selection.has(n.parentNode!)) {
-            selection.delete(n.id);
-        }
-    }
-
-    return selection;
 };
 
 const defaultIteratorSize: Size = { width: 1280, height: 720 };
@@ -827,7 +738,7 @@ export const GlobalProvider = memo(
 
         const duplicateNode = useCallback(
             (id: string) => {
-                const nodesToCopy = expandSelection(getNodes(), [id]);
+                const nodesToCopy = expandCopySelection(getNodes(), [id]);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>
@@ -871,63 +782,22 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
-        interface ClipboardChain {
-            nodes: Node<NodeData>[];
-            edges: Edge<EdgeData>[];
-        }
+        const cutFn = useCallback(() => {
+            cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
+        }, [getNodes, getEdges, changeNodes, changeEdges]);
+        const copyFn = useCallback(() => {
+            copyToClipboard(getNodes(), getEdges());
+        }, [getNodes, getEdges]);
+        const pasteFn = useCallback(() => {
+            pasteFromClipboard(changeNodes, changeEdges);
+        }, [changeNodes, changeEdges]);
 
-        useHotkeys(
-            'ctrl+c, cmd+c',
-            () => {
-                const nodes = getNodes();
-                const edges = getEdges();
-
-                const selectedNodeId = expandSelection(
-                    nodes,
-                    nodes.filter((n) => n.selected).map((n) => n.id)
-                );
-
-                const data: ClipboardChain = {
-                    nodes: nodes.filter((n) => selectedNodeId.has(n.id)),
-                    edges: edges.filter(
-                        (e) => selectedNodeId.has(e.source) && selectedNodeId.has(e.target)
-                    ),
-                };
-                const copyData = Buffer.from(JSON.stringify(data));
-                clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
-            },
-            [getNodes, getEdges]
-        );
-
-        useHotkeys(
-            'ctrl+v, cmd+v',
-            () => {
-                const chain = JSON.parse(
-                    clipboard.readBuffer('application/chainner.chain').toString()
-                ) as ClipboardChain;
-
-                const duplicationId = createUniqueId();
-                const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
-
-                changeNodes((nodes) => {
-                    const currentIds = new Set(nodes.map((n) => n.id));
-                    const newIds = new Set(chain.nodes.map((n) => n.id));
-
-                    const newNodes = copyNodes(chain.nodes, deriveId, (oldId) => {
-                        if (newIds.has(oldId)) return deriveId(oldId);
-                        if (currentIds.has(oldId)) return oldId;
-                        return undefined;
-                    });
-
-                    return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
-                });
-                changeEdges((edges) => {
-                    const newEdges = copyEdges(chain.edges, deriveId);
-                    return [...setSelected(edges, false), ...setSelected(newEdges, true)];
-                });
-            },
-            [getNodes(), changeNodes, changeEdges]
-        );
+        useHotkeys('ctrl+x, cmd+x', cutFn, [cutFn]);
+        useIpcRendererListener('cut', cutFn, [cutFn]);
+        useHotkeys('ctrl+c, cmd+c', copyFn, [copyFn]);
+        useIpcRendererListener('copy', copyFn, [copyFn]);
+        useHotkeys('ctrl+v, cmd+v', pasteFn, [pasteFn]);
+        useIpcRendererListener('paste', pasteFn, [pasteFn]);
 
         const [zoom, setZoom] = useState(1);
 

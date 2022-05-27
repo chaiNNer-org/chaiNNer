@@ -79,6 +79,11 @@ export interface SendChannels {
     // history
     'history-undo': SendChannelInfo;
     'history-redo': SendChannelInfo;
+
+    // edit
+    cut: SendChannelInfo;
+    copy: SendChannelInfo;
+    paste: SendChannelInfo;
 }
 export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['args'];
