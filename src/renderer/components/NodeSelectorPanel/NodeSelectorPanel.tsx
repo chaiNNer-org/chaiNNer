@@ -30,7 +30,7 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
         `^${[...query]
             .map((char) => {
                 const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
-                return `[^${hex}]*${hex}`;
+                return `(?:[^${hex}]+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
             })
             .join('')}`,
         'iu'
@@ -91,7 +91,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
           );
 
     const byCategories: Map<string, NodeSchema[]> = useMemo(
-        () => byCategory(matchingNodes),
+        () => byCategory(matchingNodes.filter((e) => e.nodeType !== 'iteratorHelper')),
         [matchingNodes]
     );
 
@@ -180,6 +180,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                 <FavoritesAccordionItem
                                     collapsed={collapsed}
                                     favoriteNodes={favoriteNodes}
+                                    noFavorites={favorites.size === 0}
                                 />
                                 {[...byCategories].map(([category, categoryNodes]) => {
                                     const subcategoryMap = getSubcategories(categoryNodes);

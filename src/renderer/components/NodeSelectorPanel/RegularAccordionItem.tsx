@@ -65,15 +65,13 @@ const RegularAccordionItem = memo(
                                 />
                             </Center>
                             <Box>
-                                {nodes
-                                    .filter((e) => e.nodeType !== 'iteratorHelper')
-                                    .map((node) => (
-                                        <RepresentativeNodeWrapper
-                                            collapsed={collapsed}
-                                            key={node.name}
-                                            node={node}
-                                        />
-                                    ))}
+                                {nodes.map((node) => (
+                                    <RepresentativeNodeWrapper
+                                        collapsed={collapsed}
+                                        key={node.name}
+                                        node={node}
+                                    />
+                                ))}
                             </Box>
                         </Box>
                     ))}
