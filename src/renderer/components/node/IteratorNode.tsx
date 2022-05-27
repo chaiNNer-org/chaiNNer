@@ -47,7 +47,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     // This way, we have to do less in the migration file
     const { inputs, outputs, icon, category, name } = schemata.get(schemaId);
 
-    const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
+    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),

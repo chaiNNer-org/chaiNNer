@@ -62,7 +62,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const regularBorderColor = useColorModeValue('gray.400', 'gray.600');
+    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),

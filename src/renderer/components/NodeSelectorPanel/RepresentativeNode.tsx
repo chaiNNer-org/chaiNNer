@@ -24,7 +24,6 @@ const RepresentativeNode = memo(
         collapsed = false,
     }: RepresentativeNodeProps) => {
         const bgColor = useColorModeValue('gray.300', 'gray.700');
-        const borderColor = useColorModeValue('gray.400', 'gray.600');
         const accentColor = getAccentColor(category);
 
         const [hover, setHover] = useState<boolean>(false);
@@ -43,9 +42,9 @@ const RepresentativeNode = memo(
                         ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
                         : 'none'
                 }
-                borderColor={borderColor}
+                borderColor={bgColor}
                 borderRadius="lg"
-                borderWidth="0.5px"
+                borderWidth="1px"
                 boxShadow="lg"
                 overflow="hidden"
                 transition="0.15s ease-in-out"
@@ -56,9 +55,9 @@ const RepresentativeNode = memo(
             >
                 <Box
                     bg={bgColor}
-                    borderRadius="6px 0 0 6px"
+                    borderRadius="8px 0 0 8px"
                     h="auto"
-                    ml={2}
+                    ml="5px"
                     py={0.5}
                     verticalAlign="middle"
                     w="full"

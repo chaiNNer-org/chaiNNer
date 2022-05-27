@@ -35,7 +35,7 @@ body {
 }
 
 [data-theme=light] .react-flow__controls-button {
-    border: 0.5px solid rgba(113, 128, 150, 0.66) !important;
+    border: 0px solid rgba(113, 128, 150, 0.66) !important;
     background: rgba(203, 213, 224, 0.66) !important;
     transition: 0.15s background ease-in-out;
     transition: 0.15s border ease-in-out;
@@ -43,7 +43,7 @@ body {
 
 [data-theme=light] .react-flow__controls-button:hover {
     background: var(--chakra-colors-gray-400) !important;
-    border: 0.5px solid var(--chakra-colors-gray-500) !important;
+    border: 0px solid var(--chakra-colors-gray-500) !important;
     transition: 0.15s background ease-in-out !important;
     transition: 0.15s border ease-in-out;
 }
@@ -67,15 +67,15 @@ body {
 }
 
 [data-theme=dark] .react-flow__controls-button {
-    border: 0.5px solid rgba(74, 85, 104, 0.66) !important;
+    border: 0px solid rgba(74, 85, 104, 0.66) !important;
     background: rgba(45, 55, 72, 0.66) !important;
     transition: 0.15s background ease-in-out;
     transition: 0.15s border ease-in-out;
 }
 
 [data-theme=dark] .react-flow__controls-button:hover {
-    background: var(--chakra-colors-gray-800) !important;
-    border: 0.5px solid var(--chakra-colors-gray-600) !important;
+    background: var(--chakra-colors-gray-600) !important;
+    border: 0px solid var(--chakra-colors-gray-600) !important;
     transition: 0.15s background ease-in-out !important;
     transition: 0.15s border ease-in-out;
 }
