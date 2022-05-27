@@ -28,7 +28,7 @@ jobs:
               # This version of npm does NOT install peer deps by default which is required by some of our deps
             - run: npm i -g npm@7
             - run: npm ci
-            - run: npm test-js
+            - run: npm run test-js
     backend-tests:
         runs-on: ubuntu-latest
         steps:
@@ -40,4 +40,4 @@ jobs:
             - run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
-            - run: pytest ./test/backend
+            - run: pytest ./tests/backend
