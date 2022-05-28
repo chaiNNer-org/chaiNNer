@@ -9,6 +9,14 @@ const command = spawn('python', [
     '--disable-pip-version-check',
 ]);
 
+command.stdout.on('data', (data: unknown) => {
+    console.log(data);
+});
+
+command.stderr.on('data', (data: unknown) => {
+    console.error(data);
+});
+
 command.on('error', (error) => {
     console.error(error);
     process.exit(1);
