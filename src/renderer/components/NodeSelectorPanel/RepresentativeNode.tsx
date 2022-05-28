@@ -42,16 +42,17 @@ const RepresentativeNode = memo(
         return (
             <Center
                 _hover={{
-                    borderColor: accentColor,
+                    outlineColor: accentColor,
                 }}
                 bgGradient={bgGradient}
                 borderColor={bgColor}
                 borderRadius="lg"
-                borderWidth="1px"
+                borderWidth="0px"
                 boxShadow="lg"
+                outline="1px solid"
+                outlineColor={bgColor}
                 overflow="hidden"
-                transition="0.15s ease-in-out"
-                // opacity="0.95"
+                transition="outline 0.15s ease-in-out"
                 w="full"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}

@@ -53,7 +53,7 @@ const Main = memo(({ port }: MainProps) => {
         [port]
     );
 
-    const bgColor = useColorModeValue('gray.200', '#151a24');
+    const bgColor = useColorModeValue('gray.200', 'gray.900');
 
     useEffect(() => {
         if (response.ok && data && !loading && !error && !backendReady) {
