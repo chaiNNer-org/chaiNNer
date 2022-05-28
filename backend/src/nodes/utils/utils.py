@@ -1,11 +1,19 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
+
 from typing import Tuple, Type, Union
+
 import numpy as np
-import torch
 from sanic.log import logger
-from torch import Tensor
+
+try:
+    import torch
+    from torch import Tensor
+except:
+    torch = None
+    tensor = None
+    logger.info("modules not installed")
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
