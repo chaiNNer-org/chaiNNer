@@ -58,4 +58,4 @@ jobs:
             - run: npm i -g npm@7
             - run: npm ci
             - run: npx ts-node ./scripts/install-required-deps.ts
-            - run: pytest ./backend/tests
+            - run: python ./backend/src/run.py --no-run
