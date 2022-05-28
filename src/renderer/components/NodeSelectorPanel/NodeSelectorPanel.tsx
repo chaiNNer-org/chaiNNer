@@ -238,27 +238,25 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                             />
                                         );
                                     })}
-                                    {!collapsed && (
-                                        <AccordionItem>
-                                            <Box p={4}>
-                                                <TextBox
-                                                    collapsed={collapsed}
-                                                    text="Missing nodes? Click to open the dependency manager!"
-                                                    toolTip={
-                                                        collapsed
-                                                            ? 'Missing nodes? Click to open the dependency manager!'
-                                                            : ''
-                                                    }
-                                                    onClick={onOpen}
-                                                />
-                                            </Box>
-                                            {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
-                                            <DependencyManager
-                                                isOpen={isOpen}
-                                                onClose={onClose}
+                                    <AccordionItem>
+                                        <Box p={4}>
+                                            <TextBox
+                                                collapsed={collapsed}
+                                                text="Missing nodes? Click to open the dependency manager!"
+                                                toolTip={
+                                                    collapsed
+                                                        ? 'Missing nodes? Click to open the dependency manager!'
+                                                        : ''
+                                                }
+                                                onClick={onOpen}
                                             />
-                                        </AccordionItem>
-                                    )}
+                                        </Box>
+                                        {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
+                                        <DependencyManager
+                                            isOpen={isOpen}
+                                            onClose={onClose}
+                                        />
+                                    </AccordionItem>
                                 </Accordion>
                             </Box>
                         </TabPanel>
