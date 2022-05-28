@@ -109,13 +109,17 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
 
     const [showCollapseButtons, setShowCollapseButtons] = useState(false);
 
-    const defaultIndex = [['', favoriteNodes]].concat([...byCategories]).map((_, index) => index);
+    const defaultIndex = Array.from({ length: byCategories.size + 1 }, (_, i) => i);
     const [accordionIndex, setAccordionIndex] = useState<ExpandedIndex>(defaultIndex);
 
+    const accordionIsCollapsed = typeof accordionIndex !== 'number' && accordionIndex.length === 0;
+
     const toggleAccordion = () => {
-        if (typeof accordionIndex !== 'number' && accordionIndex.length === 0)
+        if (accordionIsCollapsed) {
             setAccordionIndex(defaultIndex);
-        else setAccordionIndex([]);
+        } else {
+            setAccordionIndex([]);
+        }
     };
 
     return (
@@ -205,8 +209,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                                 pt="2px"
                                                 w="20px"
                                             >
-                                                {typeof accordionIndex !== 'number' &&
-                                                accordionIndex.length === 0 ? (
+                                                {accordionIsCollapsed ? (
                                                     <BsCaretDownFill />
                                                 ) : (
                                                     <BsCaretUpFill />
