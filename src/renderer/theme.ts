@@ -37,7 +37,7 @@ const colors = {
 };
 
 const fonts = {
-    heading: 'Open Sans',
+    // heading: 'Open Sans',
 };
 
 // 3. extend the theme
