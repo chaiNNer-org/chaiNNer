@@ -10,6 +10,8 @@ import ReactFlow, {
     EdgeTypes,
     Node,
     NodeTypes,
+    OnEdgesChange,
+    OnNodesChange,
     Viewport,
     useEdgesState,
     useNodesState,
@@ -22,7 +24,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import { isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 
 const STARTING_Z_INDEX = 50;
 /**
@@ -165,8 +167,23 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
 
     const reactFlowInstance = useReactFlow();
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>([]);
+    const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
+    const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
+
+    const onNodesChange: OnNodesChange = useCallback(
+        (changes) => {
+            // we handle removes ourselves
+            internalOnNodesChange(changes.filter((c) => c.type !== 'remove'));
+        },
+        [internalOnNodesChange]
+    );
+    const onEdgesChange: OnEdgesChange = useCallback(
+        (changes) => {
+            // we handle removes ourselves
+            internalOnEdgesChange(changes.filter((c) => c.type !== 'remove'));
+        },
+        [internalOnEdgesChange]
+    );
 
     useEffect(() => {
         setSetNodes(() => setNodes);
@@ -217,21 +234,14 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
     }, [addNodeChanges, addEdgeChanges]);
 
     const onNodesDelete = useCallback(
-        (_nodesToDelete: readonly Node<NodeData>[]) => {
-            const nodeIds = new Set(_nodesToDelete.map((n) => n.id));
-
-            changeNodes((nodes) =>
-                nodes.filter((n) => {
-                    if (nodeIds.has(n.id)) {
-                        if (n.type === 'iteratorHelper') {
-                            // only delete iterator helper if the iterator itself is also removed
-                            return !nodeIds.has(n.parentNode!);
-                        }
-                        return false;
-                    }
-                    return true;
-                })
-            );
+        (toDelete: readonly Node<NodeData>[]) => {
+            changeNodes((nodes) => {
+                const ids = expandSelection(
+                    nodes,
+                    toDelete.map((n) => n.id)
+                );
+                return nodes.filter((n) => !ids.has(n.id));
+            });
         },
         [changeNodes]
     );

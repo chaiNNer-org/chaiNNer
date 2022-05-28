@@ -95,7 +95,7 @@ export const copyEdges = (
     });
 };
 
-export const expandCopySelection = (
+export const expandSelection = (
     nodes: readonly Node<NodeData>[],
     initialSelection: Iterable<string>
 ): Set<string> => {

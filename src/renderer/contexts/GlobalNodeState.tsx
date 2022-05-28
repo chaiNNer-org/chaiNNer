@@ -34,7 +34,7 @@ import {
     copyEdges,
     copyNode,
     copyNodes,
-    expandCopySelection,
+    expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -738,7 +738,7 @@ export const GlobalProvider = memo(
 
         const duplicateNode = useCallback(
             (id: string) => {
-                const nodesToCopy = expandCopySelection(getNodes(), [id]);
+                const nodesToCopy = expandSelection(getNodes(), [id]);
 
                 const duplicationId = createUniqueId();
                 const deriveId = (oldId: string) =>

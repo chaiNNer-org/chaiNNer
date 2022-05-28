@@ -2,7 +2,7 @@ import { clipboard } from 'electron';
 import { Edge, Node } from 'react-flow-renderer';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { copyEdges, copyNodes, expandCopySelection, setSelected } from './reactFlowUtil';
+import { copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -12,7 +12,7 @@ interface ClipboardChain {
 }
 
 const getCopySelection = (nodes: readonly Node<NodeData>[]): Set<string> => {
-    return expandCopySelection(
+    return expandSelection(
         nodes,
         nodes.filter((n) => n.selected).map((n) => n.id)
     );
