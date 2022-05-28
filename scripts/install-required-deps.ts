@@ -6,6 +6,7 @@ try {
     const command = spawn('python', [
         '-m',
         'pip',
+        'install',
         ...requiredDependencies.map((d) => `${d.packageName}==${d.version}`),
         '--disable-pip-version-check',
     ]);
