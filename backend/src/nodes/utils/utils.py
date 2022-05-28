@@ -1,11 +1,19 @@
 # pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
+
 from typing import Tuple, Type, Union
+
 import numpy as np
-import torch
 from sanic.log import logger
-from torch import Tensor
+
+try:
+    import torch
+    from torch import Tensor
+except:
+    torch = None
+    tensor = None
+    logger.info("modules not installed")
 
 MAX_VALUES_BY_DTYPE = {
     np.dtype("int8"): 127,
@@ -86,43 +94,44 @@ def np2tensor(
     normalize=False,
     change_range=True,
     add_batch=True,
-) -> Tensor:
+) -> Tensor:  # type: ignore
     """Converts a numpy image array into a Tensor array.
     Parameters:
         img (numpy array): the input image numpy array
         add_batch (bool): choose if new tensor needs batch dimension added
     """
-    if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
-        raise TypeError("Got unexpected object type, expected np.ndarray")
-    # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
-    # if bgr2rgb:
-    #     img = img[
-    #         :, :, [2, 1, 0]
-    #     ]  # BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
-    if change_range:
-        dtype = img.dtype
-        maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
-        t_dtype = np.dtype("float32")
-        img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
-    # "HWC to CHW" and "numpy to tensor"
-    img = torch.from_numpy(
-        np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
-    ).float()  # type: ignore
-    if bgr2rgb:
-        # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
-        if (
-            img.shape[0] % 3 == 0
-        ):  # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
-            img = bgr_to_rgb(img)  # type: ignore
-        elif img.shape[0] == 4:  # RGBA
-            img = bgra_to_rgba(img)  # type: ignore
-    if add_batch:
-        img.unsqueeze_(  # type: ignore
-            0
-        )  # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
-    if normalize:
-        img = norm(img)
-    return img  # type: ignore
+    if torch is not None:
+        if not isinstance(img, np.ndarray):  # images expected to be uint8 -> 255
+            raise TypeError("Got unexpected object type, expected np.ndarray")
+        # check how many channels the image has, then condition. ie. RGB, RGBA, Gray
+        # if bgr2rgb:
+        #     img = img[
+        #         :, :, [2, 1, 0]
+        #     ]  # BGR to RGB -> in numpy, if using OpenCV, else not needed. Only if image has colors.
+        if change_range:
+            dtype = img.dtype
+            maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
+            t_dtype = np.dtype("float32")
+            img = img.astype(t_dtype) / maxval  # ie: uint8 = /255
+        # "HWC to CHW" and "numpy to tensor"
+        img = torch.from_numpy(
+            np.ascontiguousarray(np.transpose(img, (2, 0, 1)))
+        ).float()  # type: ignore
+        if bgr2rgb:
+            # BGR to RGB -> in tensor, if using OpenCV, else not needed. Only if image has colors.)
+            if (
+                img.shape[0] % 3 == 0
+            ):  # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
+                img = bgr_to_rgb(img)  # type: ignore
+            elif img.shape[0] == 4:  # RGBA
+                img = bgra_to_rgba(img)  # type: ignore
+        if add_batch:
+            img.unsqueeze_(  # type: ignore
+                0
+            )  # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
+        if normalize:
+            img = norm(img)
+        return img  # type: ignore
 
 
 def tensor2np(
