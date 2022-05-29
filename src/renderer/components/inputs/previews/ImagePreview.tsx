@@ -42,6 +42,11 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
+    const setWidth =
+        img && img.height > img.width ? `${200 * (img.width / img.height)}px` : '200px';
+    const setHeight =
+        img && img.width > img.height ? `${200 * (img.height / img.width)}px` : '200px';
+
     useAsyncEffect(
         {
             supplier: async (token) => {
@@ -73,20 +78,23 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
                 <Spinner />
             ) : (
                 <VStack>
-                    <Image
-                        alt={
-                            img
-                                ? 'Image preview failed to load, probably unsupported file type.'
-                                : 'File does not exist on the system. Please select a different file.'
-                        }
-                        // boxSize="150px"
-                        borderRadius="md"
-                        draggable={false}
-                        maxH="200px"
-                        // fallbackSrc="https://via.placeholder.com/200"
-                        maxW="200px"
-                        src={img?.image || path}
-                    />
+                    <Center
+                        h="200px"
+                        w="200px"
+                    >
+                        <Image
+                            alt={
+                                img
+                                    ? 'Image preview failed to load, probably unsupported file type.'
+                                    : 'File does not exist on the system. Please select a different file.'
+                            }
+                            borderRadius="md"
+                            draggable={false}
+                            h={setHeight}
+                            src={img?.image || path}
+                            w={setWidth}
+                        />
+                    </Center>
                     {img && path && (
                         <HStack>
                             <Tag>
