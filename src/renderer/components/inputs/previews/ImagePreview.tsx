@@ -42,11 +42,6 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    const setWidth =
-        img && img.height > img.width ? `${200 * (img.width / img.height)}px` : '200px';
-    const setHeight =
-        img && img.width > img.height ? `${200 * (img.height / img.width)}px` : '200px';
-
     useAsyncEffect(
         {
             supplier: async (token) => {
@@ -90,9 +85,9 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
                             }
                             borderRadius="md"
                             draggable={false}
-                            h={setHeight}
+                            maxH="200px"
+                            maxW="200px"
                             src={img?.image || path}
-                            w={setWidth}
                         />
                     </Center>
                     {img && path && (
