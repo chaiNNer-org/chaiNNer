@@ -4,7 +4,7 @@ numpy
 opencv-python
 Pillow
 pylint
-pyright
+pyright==1.1.249
 pytest
 sanic
 sanic_cors
