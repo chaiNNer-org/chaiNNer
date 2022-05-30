@@ -114,7 +114,7 @@ class TileFillNode(NodeBase):
         h, w, _ = get_h_w_c(img)
 
         # tile
-        img = np.tile(img, (ceil(height / h), ceil(width / w), 1))
+        img = np.tile(img, (math.ceil(height / h), math.ceil(width / w), 1))
 
         # crop to make sure the dimensions are correct
         return img[:height, :width]
