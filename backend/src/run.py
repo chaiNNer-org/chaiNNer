@@ -257,4 +257,6 @@ if __name__ == "__main__":
         port = int(sys.argv[1]) or 8000
     except:
         port = 8000
-    app.run(port=port)
+
+    if sys.argv[1] != "--no-run":
+        app.run(port=port)

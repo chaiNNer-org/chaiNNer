@@ -41,3 +41,21 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
             - run: pytest ./backend/tests
+    backend-min-dependencies-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Use Node.js 14.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14.x
+              # Node v14 comes with npm@6.x by default.
+              # This version of npm does NOT install peer deps by default which is required by some of our deps
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.9
+            - run: npm i -g npm@7
+            - run: npm ci
+            - run: npx ts-node ./scripts/install-required-deps.ts
+            - run: python ./backend/src/run.py --no-run
