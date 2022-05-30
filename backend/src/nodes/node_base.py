@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Union
 
-from .properties.inputs import BaseInput
-from .properties.outputs import BaseOutput
+from .properties.inputs.base_input import BaseInput
+from .properties.outputs.base_output import BaseOutput
 
 
 def assign_implicit_ids(l: Union[List[BaseInput], List[BaseOutput]]):

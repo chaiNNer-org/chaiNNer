@@ -73,20 +73,23 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
                 <Spinner />
             ) : (
                 <VStack>
-                    <Image
-                        alt={
-                            img
-                                ? 'Image preview failed to load, probably unsupported file type.'
-                                : 'File does not exist on the system. Please select a different file.'
-                        }
-                        // boxSize="150px"
-                        borderRadius="md"
-                        draggable={false}
-                        maxH="200px"
-                        // fallbackSrc="https://via.placeholder.com/200"
-                        maxW="200px"
-                        src={img?.image || path}
-                    />
+                    <Center
+                        h="200px"
+                        w="200px"
+                    >
+                        <Image
+                            alt={
+                                img
+                                    ? 'Image preview failed to load, probably unsupported file type.'
+                                    : 'File does not exist on the system. Please select a different file.'
+                            }
+                            borderRadius="md"
+                            draggable={false}
+                            maxH="200px"
+                            maxW="200px"
+                            src={img?.image || path}
+                        />
+                    </Center>
                     {img && path && (
                         <HStack>
                             <Tag>

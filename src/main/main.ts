@@ -29,7 +29,7 @@ import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
-import { getNvidiaSmi } from './nvidiaSmi';
+import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython } from './setupIntegratedPython';
 import { hasUpdate } from './update';
 
@@ -361,33 +361,15 @@ const checkNvidiaSmi = async () => {
     };
 
     const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
-        const [nvidiaGpu] = (
-            await exec(
-                `${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${
-                    process.platform === 'linux' ? '  2>/dev/null' : ''
-                }`
-            )
-        ).stdout.split('\n');
+        const nvidiaGpu = await getNvidiaGpuName(nvidiaSmi);
         ipcMain.handle('get-nvidia-gpu-name', () => nvidiaGpu.trim());
 
         let vramChecker: ChildProcessWithoutNullStreams | undefined;
         let lastVRam: number | null = null;
         ipcMain.handle('get-vram-usage', () => {
             if (!vramChecker) {
-                const delay = 1000;
-                vramChecker = spawn(
-                    nvidiaSmi,
-                    `-lms ${delay} --query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory --format=csv,noheader,nounits`.split(
-                        ' '
-                    )
-                );
-
-                vramChecker.stdout.on('data', (data) => {
-                    const [, vramTotal, vramUsed] = String(data).split(/\s*,\s*/, 4);
-                    const usage = (Number(vramUsed) / Number(vramTotal)) * 100;
-                    if (Number.isFinite(usage)) {
-                        lastVRam = usage;
-                    }
+                vramChecker = createNvidiaSmiVRamChecker(nvidiaSmi, 1000, (usage) => {
+                    lastVRam = usage;
                 });
             }
 
@@ -395,49 +377,7 @@ const checkNvidiaSmi = async () => {
         });
     };
 
-    // Try using nvidia-smi from path
-    let nvidiaSmi: string | undefined;
-    try {
-        if (os.platform() === 'win32') {
-            const { stdout: nvidiaSmiTest } = await exec('where nvidia-smi');
-            if (nvidiaSmiTest) {
-                nvidiaSmi = 'nvidia-smi';
-            }
-        } else {
-            const { stdout: nvidiaSmiTest } = await exec('which nvidia-smi');
-            if (nvidiaSmiTest) {
-                nvidiaSmi = 'nvidia-smi';
-            }
-        }
-    } catch (_) {
-        log.warn('nvidia-smi binary could not be located, attempting to run directly...');
-        try {
-            const { stdout: nvidiaSmiTest } = await exec('nvidia-smi');
-            if (nvidiaSmiTest) {
-                nvidiaSmi = 'nvidia-smi';
-            }
-        } catch (__) {
-            log.warn('nvidia-smi failed to run.');
-        }
-    }
-
-    // If nvidia-smi not in path, it might still exist on windows
-    if (!nvidiaSmi) {
-        if (os.platform() === 'win32') {
-            log.info('Checking manually for nvidia-smi...');
-            // Check an easy command to see what the name of the gpu is
-            try {
-                const { stdout } = await exec('wmic path win32_VideoController get name');
-                const checks = ['geforce', 'nvidia', 'gtx', 'rtx', 'quadro'];
-                if (checks.some((keyword) => stdout.toLowerCase().includes(keyword))) {
-                    // Find the path to nvidia-smi
-                    nvidiaSmi = await getNvidiaSmi();
-                }
-            } catch (_) {
-                log.warn('Error occurred while checking for nvidia-smi');
-            }
-        }
-    }
+    const nvidiaSmi = await getNvidiaSmi();
 
     if (nvidiaSmi) {
         try {
