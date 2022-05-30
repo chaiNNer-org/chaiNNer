@@ -74,7 +74,7 @@ export interface EdgeData {
     readonly complete?: boolean;
 }
 
-export interface PythonKeys {
+export interface PythonInfo {
     python: string;
     version: string;
 }

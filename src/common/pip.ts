@@ -2,7 +2,7 @@
 import { spawn } from 'child_process';
 import log from 'electron-log';
 import { Dependency } from './dependencies';
-import { getPythonKeys } from './python';
+import { getPythonInfo } from './python';
 import { noop } from './util';
 
 export interface OnStdio {
@@ -13,7 +13,7 @@ export interface OnStdio {
 export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Promise<string> => {
     const { onStdout = noop, onStderr = (data) => log.error(data) } = onStdio;
 
-    const { python } = await getPythonKeys();
+    const { python } = await getPythonInfo();
 
     // defensive copy in case the args array is changed
     args = ['-m', 'pip', ...args, '--disable-pip-version-check'];

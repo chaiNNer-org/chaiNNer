@@ -34,10 +34,10 @@ import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { useContext } from 'use-context-selector';
-import { PythonKeys } from '../../common/common-types';
+import { PythonInfo } from '../../common/common-types';
 import { Dependency, getOptionalDependencies } from '../../common/dependencies';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
-import { getPythonKeys } from '../../common/python';
+import { getPythonInfo } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
@@ -70,16 +70,16 @@ const DependencyManager = memo(
 
         const [isSystemPython] = useIsSystemPython;
 
-        const [pythonKeys, setPythonKeys] = useState<PythonKeys>();
+        const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
         const [pipList, setPipList] = useState<PipList>();
         const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
         useAsyncEffect(
             {
-                supplier: getPythonKeys,
-                successEffect: setPythonKeys,
+                supplier: getPythonInfo,
+                successEffect: setPythonInfo,
             },
-            [setPythonKeys]
+            [setPythonInfo]
         );
         useAsyncEffect(
             {
@@ -235,7 +235,7 @@ const DependencyManager = memo(
                                         flex="1"
                                         textAlign="left"
                                     >
-                                        Python ({pythonKeys?.version}) [
+                                        Python ({pythonInfo?.version}) [
                                         {isSystemPython ? 'System' : 'Integrated'}]
                                     </Text>
                                 </Flex>

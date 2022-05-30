@@ -20,11 +20,11 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { cpu, graphics } from 'systeminformation';
 import util from 'util';
-import { PythonKeys, WindowSize } from '../common/common-types';
+import { PythonInfo, WindowSize } from '../common/common-types';
 import { requiredDependencies } from '../common/dependencies';
 import { isMac } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
-import { getPythonKeys, setPythonKeys } from '../common/python';
+import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
@@ -228,7 +228,7 @@ const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
-    let keys: PythonKeys;
+    let pythonInfo: PythonInfo;
 
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
@@ -267,7 +267,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             return;
         }
 
-        keys = { python: pythonBin, version: validPythonVersion };
+        pythonInfo = { python: pythonBin, version: validPythonVersion };
     } else {
         // User is using bundled python
         const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
@@ -323,14 +323,14 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             pythonVersion = 'unknown';
         }
 
-        keys = { python: pythonPath, version: pythonVersion };
+        pythonInfo = { python: pythonPath, version: pythonVersion };
     }
 
-    log.info(`Final Python binary: ${keys.python}`);
-    log.info(keys);
+    log.info(`Final Python binary: ${pythonInfo.python}`);
+    log.info(pythonInfo);
 
-    setPythonKeys(keys);
-    ipcMain.handle('get-python', () => keys);
+    setPythonInfo(pythonInfo);
+    ipcMain.handle('get-python', () => pythonInfo);
 };
 
 const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
@@ -401,7 +401,7 @@ const spawnBackend = async (port: number) => {
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'backend', 'src', 'run.py')
             : './backend/src/run.py';
-        const backend = spawn((await getPythonKeys()).python, [backendPath, String(port)]);
+        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)]);
         backend.stdout.on('data', (data) => {
             const dataString = String(data);
             // Remove unneeded timestamp

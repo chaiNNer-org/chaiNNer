@@ -1,25 +1,25 @@
-import { PythonKeys } from './common-types';
+import { PythonInfo } from './common-types';
 import { isRenderer } from './env';
 import { ipcRenderer } from './safeIpc';
 
-let keys: Promise<PythonKeys> | undefined;
+let info: Promise<PythonInfo> | undefined;
 
-export const setPythonKeys = (k: PromiseLike<PythonKeys> | PythonKeys): void => {
-    keys = Promise.resolve(k);
+export const setPythonInfo = (k: PromiseLike<PythonInfo> | PythonInfo): void => {
+    info = Promise.resolve(k);
 };
 
-export const getPythonKeys = (): Promise<PythonKeys> => {
-    if (!keys) {
+export const getPythonInfo = (): Promise<PythonInfo> => {
+    if (!info) {
         if (isRenderer) {
-            keys = ipcRenderer.invoke('get-python');
-            return keys;
+            info = ipcRenderer.invoke('get-python');
+            return info;
         }
 
         return Promise.reject(
             new Error(
-                'No python keys available. The main process must call `setPythonKeys` before calling any function that uses `getPythonKeys`.'
+                'No python info available. The main process must call `setPythonInfo` before calling any function that uses `getPythonInfo`.'
             )
         );
     }
-    return keys;
+    return info;
 };
