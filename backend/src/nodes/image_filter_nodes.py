@@ -5,6 +5,8 @@ import math
 import cv2
 import numpy as np
 
+from sanic.log import logger
+
 from .categories import IMAGE_FILTER
 from .node_base import NodeBase
 from .node_factory import NodeFactory
