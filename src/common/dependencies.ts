@@ -9,16 +9,6 @@ export interface Dependency {
 
 export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => [
     {
-        name: 'OpenCV',
-        packageName: 'opencv-python',
-        version: '4.5.5.64',
-    },
-    {
-        name: 'NumPy',
-        packageName: 'numpy',
-        version: '1.22.3',
-    },
-    {
         name: 'PyTorch',
         packageName: 'torch',
         version: `1.10.2+${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}`,
@@ -30,11 +20,6 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
         name: 'NCNN',
         packageName: 'ncnn-vulkan',
         version: '2022.4.1',
-    },
-    {
-        name: 'Pillow (PIL)',
-        packageName: 'Pillow',
-        version: '9.1.0',
     },
 ];
 
@@ -48,5 +33,20 @@ export const requiredDependencies: Dependency[] = [
         name: 'Sanic Cors',
         packageName: 'Sanic-Cors',
         version: '1.0.1',
+    },
+    {
+        name: 'OpenCV',
+        packageName: 'opencv-python',
+        version: '4.5.5.64',
+    },
+    {
+        name: 'NumPy',
+        packageName: 'numpy',
+        version: '1.22.3',
+    },
+    {
+        name: 'Pillow (PIL)',
+        packageName: 'Pillow',
+        version: '9.1.0',
     },
 ];
