@@ -20,14 +20,17 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import { cpu, graphics } from 'systeminformation';
 import util from 'util';
-import { PythonKeys, WindowSize } from '../common/common-types';
+import { PythonInfo, WindowSize } from '../common/common-types';
 import { requiredDependencies } from '../common/dependencies';
+import { isMac } from '../common/env';
+import { runPipInstall, runPipList } from '../common/pip';
+import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
-import { downloadPython, extractPython, installSanic } from './setupIntegratedPython';
+import { downloadPython, extractPython } from './setupIntegratedPython';
 import { hasUpdate } from './update';
 
 const exec = util.promisify(_exec);
@@ -85,12 +88,6 @@ log.catchErrors({
 });
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
-
-const isMac = process.platform === 'darwin';
-
-const pythonKeys: { python: string; version?: string } = {
-    python: 'python',
-};
 
 // Check for update
 if (app.isPackaged) {
@@ -218,16 +215,12 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
 };
 
 const getPythonVersion = async (pythonBin: string) => {
-    try {
-        const { stdout } = await exec(`${pythonBin} --version`);
-        log.info(`Python version (raw): ${stdout}`);
+    const { stdout } = await exec(`${pythonBin} --version`);
+    log.info(`Python version (raw): ${stdout}`);
 
-        const { version } = semver.coerce(stdout)!;
-        log.info(`Python version (semver): ${version}`);
-        return version;
-    } catch (error) {
-        return null;
-    }
+    const { version } = semver.coerce(stdout)!;
+    log.info(`Python version (semver): ${version}`);
+    return version;
 };
 
 const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
@@ -235,73 +228,48 @@ const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
+    let pythonInfo: PythonInfo;
+
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
-    // User is using system python
     if (useSystemPython) {
-        const pythonVersion = await getPythonVersion('python');
-        const python3Version = await getPythonVersion('python3');
+        // User is using system python
         let validPythonVersion;
         let pythonBin;
 
-        if (pythonVersion && checkPythonVersion(pythonVersion)) {
-            validPythonVersion = pythonVersion;
-            pythonBin = 'python';
-        } else if (python3Version && checkPythonVersion(python3Version)) {
-            validPythonVersion = python3Version;
-            pythonBin = 'python3';
+        for (const py of ['python', 'python3']) {
+            // eslint-disable-next-line no-await-in-loop
+            const version = await getPythonVersion(py).catch(() => null);
+            if (version && checkPythonVersion(version)) {
+                validPythonVersion = version;
+                pythonBin = py;
+                break;
+            }
         }
 
-        log.info(`Final Python binary: ${String(pythonBin)}`);
+        if (!pythonBin || !validPythonVersion) {
+            log.warn('Python binary not found or invalid');
 
-        if (!pythonBin) {
-            log.warn('Python binary not found');
             splashWindow.hide();
             const messageBoxOptions = {
                 type: 'error',
-                title: 'Python not installed',
+                title: 'Python not installed or invalid version',
                 buttons: ['Get Python', 'Exit'],
                 defaultId: 1,
                 message:
                     'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             };
             const buttonResult = await dialog.showMessageBox(messageBoxOptions);
-            if (buttonResult.response === 1) {
-                app.exit(1);
-            } else if (buttonResult.response === 0) {
+            if (buttonResult.response === 0) {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
+            return;
         }
 
-        if (pythonBin) {
-            pythonKeys.python = pythonBin;
-            pythonKeys.version = validPythonVersion;
-            log.info({ pythonKeys });
-        }
-
-        if (!validPythonVersion) {
-            splashWindow.hide();
-            const messageBoxOptions = {
-                type: 'error',
-                title: 'Python version invalid',
-                buttons: ['Get Python', 'Exit'],
-                defaultId: 1,
-                message:
-                    'It seems like your installed Python version does not meet the requirement (>=3.7). Please install a Python version at or above 3.7 to use this application. You can get Python from https://www.python.org/downloads/',
-            };
-            const buttonResult = await dialog.showMessageBox(messageBoxOptions);
-            if (buttonResult.response === 1) {
-                app.exit(1);
-            } else if (buttonResult.response === 0) {
-                await shell.openExternal('https://www.python.org/downloads/');
-            }
-            app.exit(1);
-        }
-
-        ipcMain.handle('get-python', () => pythonKeys as PythonKeys);
-        // User is using bundled python
+        pythonInfo = { python: pythonBin, version: validPythonVersion };
     } else {
+        // User is using bundled python
         const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
         const platform = os.platform();
@@ -344,38 +312,32 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 log.info('Extracting standalone python...');
                 await extractPython(integratedPythonFolderPath, pythonPath, onProgress);
                 log.info('Done extracting standalone python.');
-                splash.webContents.send('installing-main-deps');
-                onProgress(0);
-                log.info('Installing required deps...');
-                await installSanic(pythonPath, onProgress);
-                log.info('Done installing required deps...');
             } catch (error) {
                 log.error(error);
             }
         }
 
-        let pythonVersion = await getPythonVersion(pythonPath);
+        let pythonVersion = await getPythonVersion(pythonPath).catch(() => null);
         if (!pythonVersion) {
             // TODO: Find a solution for this hack
             pythonVersion = 'unknown';
         }
-        pythonKeys.python = pythonPath;
-        pythonKeys.version = pythonVersion;
-        log.info({ pythonKeys });
 
-        ipcMain.handle('get-python', () => pythonKeys as PythonKeys);
+        pythonInfo = { python: pythonPath, version: pythonVersion };
     }
+
+    log.info(`Final Python binary: ${pythonInfo.python}`);
+    log.info(pythonInfo);
+
+    setPythonInfo(pythonInfo);
+    ipcMain.handle('get-python', () => pythonInfo);
 };
 
 const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python deps...');
     try {
-        const { stdout: pipList } = await exec(`${pythonKeys.python} -m pip list`);
-        const installedPackages = new Set(
-            String(pipList)
-                .split('\n')
-                .map((pkg) => pkg.replace(/\s+/g, ' ').split(' ')[0])
-        );
+        const pipList = await runPipList();
+        const installedPackages = new Set(Object.keys(pipList));
 
         const pending = requiredDependencies.filter((dep) => {
             if (installedPackages.has(dep.packageName)) return false;
@@ -385,8 +347,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
         if (pending.length > 0) {
             log.info(`Installing ${pending.length} missing dependencies...`);
             splashWindow.webContents.send('installing-deps');
-            const depsString = pending.map((dep) => `${dep.packageName}==${dep.version}`).join(' ');
-            await exec(`${pythonKeys.python} -m pip install ${depsString}`);
+            await runPipInstall(pending);
         }
     } catch (error) {
         log.error(error);
@@ -395,15 +356,13 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
 const checkNvidiaSmi = async () => {
     const registerEmptyGpuEvents = () => {
-        ipcMain.handle('get-has-nvidia', () => false);
-        ipcMain.handle('get-gpu-name', () => null);
+        ipcMain.handle('get-nvidia-gpu-name', () => null);
         ipcMain.handle('get-vram-usage', () => null);
     };
 
     const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
         const nvidiaGpu = await getNvidiaGpuName(nvidiaSmi);
-        ipcMain.handle('get-has-nvidia', () => true);
-        ipcMain.handle('get-gpu-name', () => nvidiaGpu.trim());
+        ipcMain.handle('get-nvidia-gpu-name', () => nvidiaGpu.trim());
 
         let vramChecker: ChildProcessWithoutNullStreams | undefined;
         let lastVRam: number | null = null;
@@ -432,16 +391,17 @@ const checkNvidiaSmi = async () => {
     }
 };
 
-const spawnBackend = (port: number) => {
+const spawnBackend = async (port: number) => {
     if (getArguments().noBackend) {
         return;
     }
+
     log.info('Attempting to spawn backend...');
     try {
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'backend', 'src', 'run.py')
             : './backend/src/run.py';
-        const backend = spawn(pythonKeys.python, [backendPath, String(port)]);
+        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)]);
         backend.stdout.on('data', (data) => {
             const dataString = String(data);
             // Remove unneeded timestamp
@@ -602,7 +562,7 @@ const doSplashScreenChecks = async () =>
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
-            spawnBackend(port);
+            await spawnBackend(port);
 
             registerEventHandlers();
 
