@@ -5,8 +5,6 @@ from typing import Tuple
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from PIL.Image import Resampling  # type: ignore
-from sanic.log import logger
 from .utils import get_h_w_c
 
 
@@ -19,33 +17,19 @@ class InterpolationMethod:
     BOX = 4
 
 
-try:
-    pil = Image
-
-    INTERPOLATION_METHODS_MAP = {
-        InterpolationMethod.NEAREST: Resampling.NEAREST,
-        InterpolationMethod.BOX: Resampling.BOX,
-        InterpolationMethod.LINEAR: Resampling.BILINEAR,
-        InterpolationMethod.CUBIC: Resampling.BICUBIC,
-        InterpolationMethod.LANCZOS: Resampling.LANCZOS,
-    }
-except ImportError:
-    logger.error("No PIL found, defaulting to cv2 for resizing")
-    pil = None
-
-    INTERPOLATION_METHODS_MAP = {
-        InterpolationMethod.NEAREST: cv2.INTER_NEAREST,
-        InterpolationMethod.BOX: cv2.INTER_AREA,
-        InterpolationMethod.LINEAR: cv2.INTER_LINEAR,
-        InterpolationMethod.CUBIC: cv2.INTER_CUBIC,
-        InterpolationMethod.LANCZOS: cv2.INTER_LANCZOS4,
-    }
+INTERPOLATION_METHODS_MAP = {
+    InterpolationMethod.NEAREST: Image.NEAREST,
+    InterpolationMethod.BOX: Image.BOX,
+    InterpolationMethod.LINEAR: Image.BILINEAR,
+    InterpolationMethod.CUBIC: Image.BICUBIC,
+    InterpolationMethod.LANCZOS: Image.LANCZOS,
+}
 
 
 def resize(
     img: np.ndarray, out_dims: Tuple[int, int], interpolation: int
 ) -> np.ndarray:
-    """Perform PIL resize or fall back to cv2"""
+    """Perform PIL resize"""
 
     if interpolation == InterpolationMethod.AUTO:
         # automatically chose a method that works
@@ -59,12 +43,9 @@ def resize(
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
     # Try PIL first, otherwise fall back to cv2
-    if pil is not None:
-        pimg = pil.fromarray((img * 255).astype("uint8"))
-        pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
-        return np.array(pimg).astype("float32") / 255
-    else:
-        return cv2.resize(img, out_dims, interpolation=interpolation)
+    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
+    return np.array(pimg).astype("float32") / 255
 
 
 def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
