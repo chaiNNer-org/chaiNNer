@@ -42,7 +42,6 @@ def resize(
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
-    # Try PIL first, otherwise fall back to cv2
     pimg = Image.fromarray((img * 255).astype("uint8"))
     pimg = pimg.resize(out_dims, resample=interpolation)  # type: ignore
     return np.array(pimg).astype("float32") / 255
