@@ -5,12 +5,6 @@ import {
     AccordionIcon,
     AccordionItem,
     AccordionPanel,
-    AlertDialog,
-    AlertDialogBody,
-    AlertDialogContent,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogOverlay,
     Box,
     Button,
     Center,
@@ -36,21 +30,20 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import { exec as _exec, spawn } from 'child_process';
 import log from 'electron-log';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { useContext } from 'use-context-selector';
-import util from 'util';
 import { PythonKeys } from '../../common/common-types';
 import { Dependency, getOptionalDependencies } from '../../common/dependencies';
-import pipInstallWithProgress from '../../common/pipInstallWithProgress';
+import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
+import { getPythonKeys } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
+import { noop } from '../../common/util';
+import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ExecutionContext } from '../contexts/ExecutionContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-
-const exec = util.promisify(_exec);
 
 const checkSemver = (v1: string, v2: string) => {
     try {
@@ -61,41 +54,79 @@ const checkSemver = (v1: string, v2: string) => {
     }
 };
 
-type ParsedPipList = Record<string, string>;
-
-const parsePipOutput = (output: string): ParsedPipList => {
-    const tempPipList = output.split('\n').map((pkg) => pkg.replace(/\s+/g, ' ').split(' '));
-    const pipObj: ParsedPipList = {};
-    tempPipList.forEach(([dep, version]) => {
-        pipObj[dep] = version;
-    });
-    return pipObj;
-};
-
 interface DependencyManagerProps {
     isOpen: boolean;
     onClose: () => void;
-    onPipListUpdate?: (value: ParsedPipList) => void;
+    onPipListUpdate?: (value: PipList) => void;
 }
 
+type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
+
 const DependencyManager = memo(
-    ({ isOpen, onClose, onPipListUpdate = () => {} }: DependencyManagerProps) => {
+    ({ isOpen, onClose, onPipListUpdate = noop }: DependencyManagerProps) => {
+        const { showAlert } = useContext(AlertBoxContext);
         const { setIsBackendKilled } = useContext(ExecutionContext);
         const { useIsSystemPython } = useContext(SettingsContext);
 
         const [isSystemPython] = useIsSystemPython;
 
-        const {
-            isOpen: isUninstallOpen,
-            onOpen: onUninstallOpen,
-            onClose: onUninstallClose,
-        } = useDisclosure();
-        const cancelRef = useRef<HTMLButtonElement>(null);
-
         const [pythonKeys, setPythonKeys] = useState<PythonKeys>();
+        const [pipList, setPipList] = useState<PipList>();
+        const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
-        const [isLoadingPipList, setIsLoadingPipList] = useState(true);
-        const [pipList, setPipList] = useState<ParsedPipList>({});
+        useAsyncEffect(
+            {
+                supplier: getPythonKeys,
+                successEffect: setPythonKeys,
+            },
+            [setPythonKeys]
+        );
+        useAsyncEffect(
+            {
+                supplier: async () => {
+                    if (pipList) return undefined;
+                    return runPipList();
+                },
+                successEffect: (list) => {
+                    if (list) {
+                        setPipList(list);
+                        onPipListUpdate(list);
+                    }
+                },
+            },
+            [pipList, setPipList]
+        );
+
+        const [gpu, setGpu] = useState<GpuInfo>({ isNvidia: false, gpuNames: [] });
+        useAsyncEffect(
+            {
+                supplier: async (): Promise<GpuInfo> => {
+                    const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
+                    if (nvidiaGpu) {
+                        return { isNvidia: true, nvidiaGpu };
+                    }
+
+                    const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+                    const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
+                    return { isNvidia: false, gpuNames };
+                },
+                successEffect: setGpu,
+            },
+            []
+        );
+
+        const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
+        useAsyncEffect(
+            {
+                supplier: async () => {
+                    const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
+                    const isNvidiaAvailable = nvidiaGpu !== null;
+                    return getOptionalDependencies(isNvidiaAvailable);
+                },
+                successEffect: setAvailableDeps,
+            },
+            []
+        );
 
         const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
         const [uninstallingPackage, setUninstallingPackage] = useState<Dependency | null>(null);
@@ -104,79 +135,15 @@ const DependencyManager = memo(
         const [shellOutput, setShellOutput] = useState('');
         const [isRunningShell, setIsRunningShell] = useState(false);
         const [progress, setProgress] = useState(0);
+        const appendToOutput = useCallback(
+            (data: string) => {
+                setShellOutput((prev) => (prev + data).slice(-10_000));
+            },
+            [setShellOutput]
+        );
+        const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
         const [depChanged, setDepChanged] = useState(false);
-
-        const [gpuInfo, setGpuInfo] = useState<string[]>([]);
-        const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-        const [nvidiaGpuName, setNvidiaGpuName] = useState<string | null>(null);
-
-        const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
-
-        useEffect(() => {
-            const depsArr = getOptionalDependencies(isNvidiaAvailable);
-            setAvailableDeps(depsArr);
-        }, [isNvidiaAvailable]);
-
-        useAsyncEffect(async (token) => {
-            const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-            if (hasNvidia) {
-                const gpuName = await ipcRenderer.invoke('get-gpu-name');
-                const hasNv = await ipcRenderer.invoke('get-has-nvidia');
-                token.causeEffect(() => {
-                    setNvidiaGpuName(gpuName);
-                    setIsNvidiaAvailable(hasNv);
-                });
-            } else {
-                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-                const gpuNames = fullGpuInfo.controllers.map((gpu) => gpu.model);
-                token.causeEffect(() => setGpuInfo(gpuNames));
-            }
-        }, []);
-
-        useAsyncEffect<ParsedPipList>(
-            {
-                supplier: async (token) => {
-                    const pKeys = await ipcRenderer.invoke('get-python');
-                    token.causeEffect(() => setPythonKeys(pKeys));
-                    const { stdout } = await exec(
-                        `${pKeys.python} -m pip list --disable-pip-version-check`
-                    );
-                    return parsePipOutput(stdout);
-                },
-                successEffect: (pipObj) => {
-                    setPipList(pipObj);
-                    onPipListUpdate(pipObj);
-                },
-                finallyEffect: () => setIsLoadingPipList(false),
-            },
-            []
-        );
-
-        useAsyncEffect(
-            {
-                supplier: async () => {
-                    if (!isRunningShell && pythonKeys) {
-                        setIsLoadingPipList(true);
-                        // exec(`${pythonKeys.python} -m pip install --upgrade pip`);
-                        const { stdout } = await exec(
-                            `${pythonKeys.python} -m pip list --disable-pip-version-check`
-                        );
-                        return parsePipOutput(stdout);
-                    }
-                    return undefined;
-                },
-                successEffect: (pipObj) => {
-                    if (pipObj) {
-                        onPipListUpdate(pipObj);
-                        setPipList(pipObj);
-                    }
-                },
-                finallyEffect: () => setIsLoadingPipList(false),
-            },
-            [isRunningShell, pythonKeys]
-        );
-
         useAsyncEffect(async () => {
             if (depChanged) {
                 setIsBackendKilled(true);
@@ -184,61 +151,35 @@ const DependencyManager = memo(
             }
         }, [depChanged]);
 
-        const runPipCommand = (args: string[]) => {
+        const changePackages = (supplier: () => Promise<void>) => {
+            if (isRunningShell) throw new Error('Cannot run two pip commands at once');
+
             setShellOutput('');
             setIsRunningShell(true);
-            // TODO: hope and pray pythonKeys is non-null
-            const command = spawn(pythonKeys!.python, [
-                '-m',
-                'pip',
-                ...args,
-                '--disable-pip-version-check',
-            ]);
+            setProgress(0);
+            setDepChanged(true);
 
-            let outputString = '';
-
-            command.stdout.on('data', (data: unknown) => {
-                outputString += String(data);
-                setShellOutput(outputString);
-            });
-
-            command.stderr.on('data', (data: unknown) => {
-                setShellOutput(String(data));
-            });
-
-            command.on('error', (error) => {
-                setShellOutput(String(error));
-                setIsRunningShell(false);
-            });
-
-            command.on('close', (code) => {
-                log.info(`child process exited with code ${code ?? 'null'}`);
-                setIsRunningShell(false);
-            });
+            supplier()
+                .catch((error) => {
+                    appendToOutput(`${String(error)}\n`);
+                })
+                .finally(() => {
+                    setIsRunningShell(false);
+                    refreshInstalledPackages();
+                    setInstallingPackage(null);
+                    setUninstallingPackage(null);
+                    setProgress(0);
+                });
         };
 
-        const installPackage = async (dep: Dependency, upgrade: boolean) => {
-            setIsRunningShell(true);
+        const installPackage = (dep: Dependency) => {
             setInstallingPackage(dep);
-            let output = '';
-            await pipInstallWithProgress(
-                // TODO: hope and pray pythonKeys is non-null
-                pythonKeys!.python,
-                dep,
-                setProgress,
-                (data) => {
-                    output += data;
-                    setShellOutput(output);
-                },
-                upgrade
-            );
-            setIsRunningShell(false);
-            setProgress(0);
+            changePackages(() => runPipInstall([dep], setProgress, onStdio));
         };
 
         const uninstallPackage = (dep: Dependency) => {
-            setInstallingPackage(null);
-            runPipCommand(['uninstall', '-y', dep.packageName]);
+            setUninstallingPackage(dep);
+            changePackages(() => runPipUninstall([dep.packageName], onStdio));
         };
 
         useEffect(() => {
@@ -248,287 +189,252 @@ const DependencyManager = memo(
         }, [shellOutput]);
 
         return (
-            <>
-                <Modal
-                    isCentered
-                    closeOnOverlayClick={!depChanged}
-                    isOpen={isOpen}
-                    returnFocusOnClose={false}
-                    scrollBehavior="inside"
-                    size="xl"
-                    onClose={onClose}
-                >
-                    <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
-                    <ModalContent maxW="750px">
-                        <ModalHeader>Dependency Manager</ModalHeader>
-                        <ModalCloseButton disabled={depChanged} />
-                        <ModalBody>
+            <Modal
+                isCentered
+                closeOnOverlayClick={!depChanged}
+                isOpen={isOpen}
+                returnFocusOnClose={false}
+                scrollBehavior="inside"
+                size="xl"
+                onClose={onClose}
+            >
+                <ModalOverlay cursor={depChanged ? 'disabled' : 'default'} />
+                <ModalContent maxW="750px">
+                    <ModalHeader>Dependency Manager</ModalHeader>
+                    <ModalCloseButton disabled={depChanged} />
+                    <ModalBody>
+                        <VStack
+                            divider={<StackDivider />}
+                            w="full"
+                        >
                             <VStack
                                 divider={<StackDivider />}
                                 w="full"
                             >
-                                <VStack
-                                    divider={<StackDivider />}
+                                <Flex
+                                    align="center"
                                     w="full"
                                 >
-                                    <Flex
-                                        align="center"
-                                        w="full"
+                                    <Text
+                                        color={gpu.isNvidia ? 'inherit' : 'red.500'}
+                                        flex="1"
+                                        textAlign="left"
                                     >
-                                        <Text
-                                            color={isNvidiaAvailable ? 'inherit' : 'red.500'}
-                                            flex="1"
-                                            textAlign="left"
-                                        >
-                                            GPU (
-                                            {(isNvidiaAvailable ? nvidiaGpuName : gpuInfo[0]) ??
-                                                'No GPU Available'}
-                                            )
-                                        </Text>
-                                    </Flex>
-                                    <Flex
-                                        align="center"
-                                        w="full"
+                                        GPU (
+                                        {gpu.isNvidia
+                                            ? gpu.nvidiaGpu
+                                            : gpu.gpuNames[0] ?? 'No GPU available'}
+                                        )
+                                    </Text>
+                                </Flex>
+                                <Flex
+                                    align="center"
+                                    w="full"
+                                >
+                                    <Text
+                                        flex="1"
+                                        textAlign="left"
                                     >
-                                        <Text
-                                            flex="1"
-                                            textAlign="left"
+                                        Python ({pythonKeys?.version}) [
+                                        {isSystemPython ? 'System' : 'Integrated'}]
+                                    </Text>
+                                </Flex>
+                                {!pipList ? (
+                                    <Spinner />
+                                ) : (
+                                    availableDeps.map((dep) => (
+                                        <VStack
+                                            key={dep.name}
+                                            w="full"
                                         >
-                                            Python ({pythonKeys?.version}) [
-                                            {isSystemPython ? 'System' : 'Integrated'}]
-                                        </Text>
-                                    </Flex>
-                                    {isLoadingPipList ? (
-                                        <Spinner />
-                                    ) : (
-                                        availableDeps.map((dep) => (
-                                            <VStack
+                                            <Flex
+                                                align="center"
                                                 key={dep.name}
                                                 w="full"
                                             >
-                                                <Flex
-                                                    align="center"
-                                                    key={dep.name}
-                                                    w="full"
-                                                >
-                                                    {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
-                                                    <Text
-                                                        color={
-                                                            pipList[dep.packageName]
-                                                                ? 'inherit'
-                                                                : 'red.500'
-                                                        }
-                                                        flex="1"
-                                                        textAlign="left"
-                                                    >
-                                                        {`${dep.name} (${
-                                                            pipList[dep.packageName]
-                                                                ? pipList[dep.packageName]
-                                                                : 'not installed'
-                                                        })`}
-                                                    </Text>
-                                                    {pipList[dep.packageName] ? (
-                                                        <HStack>
-                                                            <Button
-                                                                colorScheme="blue"
-                                                                disabled={
-                                                                    checkSemver(
-                                                                        dep.version,
-                                                                        pipList[dep.packageName]
-                                                                    ) || isRunningShell
-                                                                }
-                                                                isLoading={isRunningShell}
-                                                                leftIcon={<DownloadIcon />}
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    setDepChanged(true);
-                                                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                                                    installPackage(dep, true);
-                                                                }}
-                                                            >
-                                                                {`Update${
-                                                                    !checkSemver(
-                                                                        dep.version,
-                                                                        pipList[dep.packageName]
-                                                                    )
-                                                                        ? ` (${dep.version})`
-                                                                        : ''
-                                                                }`}
-                                                            </Button>
-                                                            <Button
-                                                                colorScheme="red"
-                                                                disabled={isRunningShell}
-                                                                leftIcon={<DeleteIcon />}
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    setUninstallingPackage(dep);
-                                                                    onUninstallOpen();
-                                                                }}
-                                                            >
-                                                                Uninstall
-                                                            </Button>
-                                                        </HStack>
-                                                    ) : (
-                                                        <Button
-                                                            colorScheme="blue"
-                                                            disabled={isRunningShell}
-                                                            isLoading={isRunningShell}
-                                                            leftIcon={<DownloadIcon />}
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setDepChanged(true);
-                                                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                                                installPackage(dep, false);
-                                                            }}
-                                                        >
-                                                            Install
-                                                        </Button>
-                                                    )}
-                                                </Flex>
-                                                {isRunningShell &&
-                                                    installingPackage?.name === dep.name && (
-                                                        <Center
-                                                            h={8}
-                                                            w="full"
-                                                        >
-                                                            <Progress
-                                                                hasStripe
-                                                                value={progress}
-                                                                w="full"
-                                                            />
-                                                        </Center>
-                                                    )}
-                                            </VStack>
-                                        ))
-                                    )}
-                                </VStack>
-                                <Accordion
-                                    allowToggle
-                                    w="full"
-                                >
-                                    <AccordionItem>
-                                        <h2>
-                                            <AccordionButton>
-                                                <Box
+                                                {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
+                                                <Text
+                                                    color={
+                                                        pipList[dep.packageName]
+                                                            ? 'inherit'
+                                                            : 'red.500'
+                                                    }
                                                     flex="1"
                                                     textAlign="left"
                                                 >
-                                                    Console Output
-                                                </Box>
-                                                <AccordionIcon />
-                                            </AccordionButton>
-                                        </h2>
-                                        <AccordionPanel pb={4}>
-                                            <Textarea
-                                                readOnly
-                                                cursor="default"
-                                                fontFamily="monospace"
-                                                h="150"
-                                                overflowY="scroll"
-                                                placeholder=""
-                                                ref={consoleRef}
-                                                sx={{
-                                                    '&::-webkit-scrollbar': {
-                                                        width: '8px',
-                                                        borderRadius: '8px',
-                                                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                                                    },
-                                                    '&::-webkit-scrollbar-track': {
-                                                        borderRadius: '8px',
-                                                        width: '8px',
-                                                    },
-                                                    '&::-webkit-scrollbar-thumb': {
-                                                        borderRadius: '8px',
-                                                        backgroundColor: useColorModeValue(
-                                                            'gray.300',
-                                                            'gray.600'
-                                                        ),
-                                                    },
-                                                }}
-                                                value={shellOutput}
-                                                w="full"
-                                                onChange={(e) => e.preventDefault()}
-                                                onClick={(e) => e.preventDefault()}
-                                                onFocus={(e) => e.preventDefault()}
-                                            />
-                                        </AccordionPanel>
-                                    </AccordionItem>
-                                </Accordion>
+                                                    {`${dep.name} (${
+                                                        pipList[dep.packageName]
+                                                            ? pipList[dep.packageName]
+                                                            : 'not installed'
+                                                    })`}
+                                                </Text>
+                                                {pipList[dep.packageName] ? (
+                                                    <HStack>
+                                                        <Button
+                                                            colorScheme="blue"
+                                                            disabled={
+                                                                checkSemver(
+                                                                    dep.version,
+                                                                    pipList[dep.packageName]
+                                                                ) || isRunningShell
+                                                            }
+                                                            isLoading={isRunningShell}
+                                                            leftIcon={<DownloadIcon />}
+                                                            size="sm"
+                                                            onClick={() => installPackage(dep)}
+                                                        >
+                                                            {`Update${
+                                                                !checkSemver(
+                                                                    dep.version,
+                                                                    pipList[dep.packageName]
+                                                                )
+                                                                    ? ` (${dep.version})`
+                                                                    : ''
+                                                            }`}
+                                                        </Button>
+                                                        <Button
+                                                            colorScheme="red"
+                                                            disabled={isRunningShell}
+                                                            leftIcon={<DeleteIcon />}
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                showAlert({
+                                                                    type: AlertType.WARN,
+                                                                    title: 'Uninstall',
+                                                                    message: `Are you sure you want to uninstall ${dep.name}?`,
+                                                                    buttons: [
+                                                                        'Cancel',
+                                                                        'Uninstall',
+                                                                    ],
+                                                                    defaultButton: 0,
+                                                                })
+                                                                    .then((button) => {
+                                                                        if (button === 1) {
+                                                                            uninstallPackage(dep);
+                                                                        }
+                                                                    })
+                                                                    .catch((error) =>
+                                                                        log.error(error)
+                                                                    );
+                                                            }}
+                                                        >
+                                                            Uninstall
+                                                        </Button>
+                                                    </HStack>
+                                                ) : (
+                                                    <Button
+                                                        colorScheme="blue"
+                                                        disabled={isRunningShell}
+                                                        isLoading={isRunningShell}
+                                                        leftIcon={<DownloadIcon />}
+                                                        size="sm"
+                                                        onClick={() => installPackage(dep)}
+                                                    >
+                                                        Install
+                                                    </Button>
+                                                )}
+                                            </Flex>
+                                            {isRunningShell &&
+                                                (installingPackage || uninstallingPackage)?.name ===
+                                                    dep.name && (
+                                                    <Center
+                                                        h={8}
+                                                        w="full"
+                                                    >
+                                                        <Progress
+                                                            hasStripe
+                                                            value={progress}
+                                                            w="full"
+                                                        />
+                                                    </Center>
+                                                )}
+                                        </VStack>
+                                    ))
+                                )}
                             </VStack>
-                        </ModalBody>
-
-                        <ModalFooter>
-                            <Button
-                                colorScheme="blue"
-                                disabled={depChanged}
-                                mr={3}
-                                variant={depChanged ? 'ghost' : 'solid'}
-                                onClick={onClose}
+                            <Accordion
+                                allowToggle
+                                w="full"
                             >
-                                Close
-                            </Button>
-                            <Button
-                                colorScheme="blue"
-                                variant={depChanged ? 'solid' : 'ghost'}
-                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                                onClick={async () => ipcRenderer.invoke('relaunch-application')}
-                            >
-                                Restart chaiNNer
-                            </Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
+                                <AccordionItem>
+                                    <h2>
+                                        <AccordionButton>
+                                            <Box
+                                                flex="1"
+                                                textAlign="left"
+                                            >
+                                                Console Output
+                                            </Box>
+                                            <AccordionIcon />
+                                        </AccordionButton>
+                                    </h2>
+                                    <AccordionPanel pb={4}>
+                                        <Textarea
+                                            readOnly
+                                            cursor="default"
+                                            fontFamily="monospace"
+                                            h="150"
+                                            overflowY="scroll"
+                                            placeholder=""
+                                            ref={consoleRef}
+                                            sx={{
+                                                '&::-webkit-scrollbar': {
+                                                    width: '8px',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                                                },
+                                                '&::-webkit-scrollbar-track': {
+                                                    borderRadius: '8px',
+                                                    width: '8px',
+                                                },
+                                                '&::-webkit-scrollbar-thumb': {
+                                                    borderRadius: '8px',
+                                                    backgroundColor: useColorModeValue(
+                                                        'gray.300',
+                                                        'gray.600'
+                                                    ),
+                                                },
+                                            }}
+                                            value={shellOutput}
+                                            w="full"
+                                            onChange={(e) => e.preventDefault()}
+                                            onClick={(e) => e.preventDefault()}
+                                            onFocus={(e) => e.preventDefault()}
+                                        />
+                                    </AccordionPanel>
+                                </AccordionItem>
+                            </Accordion>
+                        </VStack>
+                    </ModalBody>
 
-                <AlertDialog
-                    isCentered
-                    isOpen={isUninstallOpen}
-                    leastDestructiveRef={cancelRef}
-                    onClose={onUninstallClose}
-                >
-                    <AlertDialogOverlay>
-                        <AlertDialogContent>
-                            <AlertDialogHeader
-                                fontSize="lg"
-                                fontWeight="bold"
-                            >
-                                Uninstall
-                            </AlertDialogHeader>
-
-                            <AlertDialogBody>
-                                Are you sure you want to uninstall {uninstallingPackage?.name}?
-                            </AlertDialogBody>
-
-                            <AlertDialogFooter>
-                                <Button
-                                    ref={cancelRef}
-                                    onClick={onUninstallClose}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    colorScheme="red"
-                                    ml={3}
-                                    onClick={() => {
-                                        setDepChanged(true);
-                                        onUninstallClose();
-                                        // TODO: hope and pray that uninstallingPackage is actually non-null
-                                        uninstallPackage(uninstallingPackage!);
-                                    }}
-                                >
-                                    Uninstall
-                                </Button>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialogOverlay>
-                </AlertDialog>
-            </>
+                    <ModalFooter>
+                        <Button
+                            colorScheme="blue"
+                            disabled={depChanged}
+                            mr={3}
+                            variant={depChanged ? 'ghost' : 'solid'}
+                            onClick={onClose}
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            colorScheme="blue"
+                            variant={depChanged ? 'solid' : 'ghost'}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onClick={async () => ipcRenderer.invoke('relaunch-application')}
+                        >
+                            Restart chaiNNer
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         );
     }
 );
 
 export const DependencyManagerButton = memo(() => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [pipList, setPipList] = useState<ParsedPipList>({});
+    const [pipList, setPipList] = useState<PipList>();
 
     const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
     const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
@@ -536,11 +442,8 @@ export const DependencyManagerButton = memo(() => {
     useAsyncEffect(
         {
             supplier: async () => {
-                const hasNvidia = await ipcRenderer.invoke('get-has-nvidia');
-                if (hasNvidia) {
-                    return ipcRenderer.invoke('get-has-nvidia');
-                }
-                return false;
+                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
+                return !!nvidiaGpu;
             },
             successEffect: setIsNvidiaAvailable,
         },
@@ -555,7 +458,7 @@ export const DependencyManagerButton = memo(() => {
     const availableUpdates = useMemo(
         () =>
             availableDeps.filter(({ packageName, version }) => {
-                if (Object.keys(pipList).length === 0) {
+                if (!pipList) {
                     return false;
                 }
                 if (!pipList[packageName]) {

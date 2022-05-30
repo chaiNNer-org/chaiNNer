@@ -154,16 +154,12 @@ const EnvironmentSettings = memo(() => {
 
     useAsyncEffect(
         {
-            supplier: async () =>
-                [
-                    (await ipcRenderer.invoke('get-gpu-name')) || 'GPU not detected',
-                    await ipcRenderer.invoke('get-has-nvidia'),
-                ] as const,
-            successEffect: ([gpuName, hasNvidia]) => {
-                if (gpuName.toLowerCase().includes('rtx')) {
+            supplier: () => ipcRenderer.invoke('get-nvidia-gpu-name'),
+            successEffect: (nvidiaGpu) => {
+                if (nvidiaGpu && nvidiaGpu.toLowerCase().includes('rtx')) {
                     setIsFp16(true);
                 }
-                setIsNvidiaAvailable(hasNvidia);
+                setIsNvidiaAvailable(nvidiaGpu !== null);
             },
         },
         []

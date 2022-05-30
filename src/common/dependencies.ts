@@ -1,4 +1,4 @@
-const isMac = process.platform === 'darwin';
+import { isMac } from './env';
 
 export interface Dependency {
     name: string;

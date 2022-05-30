@@ -19,8 +19,7 @@ interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
 type SendChannelInfo<Args extends unknown[] = []> = ChannelInfo<void, Args>;
 
 export interface InvokeChannels {
-    'get-gpu-name': ChannelInfo<string | null>;
-    'get-has-nvidia': ChannelInfo<boolean>;
+    'get-nvidia-gpu-name': ChannelInfo<string | null>;
     'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
     'get-python': ChannelInfo<PythonKeys>;
     'get-port': ChannelInfo<number>;

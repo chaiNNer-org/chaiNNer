@@ -1,7 +1,4 @@
-import os from 'os';
-
-const cpus = os.cpus();
-const isM1 = cpus[0].model.includes('Apple M1');
+import { isM1 } from '../common/env';
 
 const downloads = {
     python: {

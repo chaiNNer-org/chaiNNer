@@ -1,11 +1,9 @@
-import { spawn } from 'child_process';
 import decompress, { File } from 'decompress';
 import log from 'electron-log';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import os from 'os';
 import path from 'path';
-import pipInstallWithProgress from '../common/pipInstallWithProgress';
 import downloads from './downloads';
 
 export const downloadPython = async (directory: string, onProgress: (progress: string) => void) => {
@@ -23,11 +21,7 @@ export const downloadPython = async (directory: string, onProgress: (progress: s
         // (percentage, chunk, remainingSize)
         onProgress,
     });
-    try {
-        await downloader.download();
-    } catch (error) {
-        log.error(error);
-    }
+    await downloader.download();
 };
 
 export const extractPython = async (
@@ -60,50 +54,4 @@ export const extractPython = async (
             log.error(error);
         }
     }
-};
-
-const upgradePip = async (pythonPath: string) =>
-    new Promise<void>((resolve, reject) => {
-        const pipUpgrade = spawn(
-            pythonPath,
-            '-m pip install --upgrade pip --no-warn-script-location'.split(' ')
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        pipUpgrade.stdout.on('data', (data) => {
-            // onProgress(getPipPercentFromData(data));
-        });
-        pipUpgrade.stderr.on('data', (data) => {
-            log.error(`Error updating pip: ${String(data)}`);
-            reject(new Error(`Error updating pip: ${String(data)}`));
-        });
-        pipUpgrade.on('close', () => {
-            resolve();
-        });
-    });
-
-const pipInstallSanic = async (pythonPath: string, onProgress: (percent: number) => void) => {
-    const sanicDep = {
-        name: 'Sanic',
-        packageName: 'sanic',
-        version: '21.9.3',
-    };
-    await pipInstallWithProgress(pythonPath, sanicDep, onProgress);
-};
-
-const pipInstallSanicCors = async (pythonPath: string, onProgress: (percent: number) => void) => {
-    const sanicCorsDep = {
-        name: 'Sanic-Cors',
-        packageName: 'Sanic-Cors',
-        version: '1.0.1',
-    };
-    await pipInstallWithProgress(pythonPath, sanicCorsDep, onProgress);
-};
-
-export const installSanic = async (pythonPath: string, onProgress: (percent: number) => void) => {
-    log.info('Updating internal pip');
-    await upgradePip(pythonPath);
-    log.info('Installing Sanic to internal python');
-    await pipInstallSanic(pythonPath, onProgress);
-    log.info('Installing Sanic-Cors to internal python');
-    await pipInstallSanicCors(pythonPath, onProgress);
 };
