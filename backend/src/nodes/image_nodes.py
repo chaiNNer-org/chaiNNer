@@ -12,6 +12,7 @@ from tempfile import mkdtemp
 
 import cv2
 import numpy as np
+from PIL import Image
 from sanic.log import logger
 
 from .categories import IMAGE
@@ -91,22 +92,13 @@ class ImReadNode(NodeBase):
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     ) from e
         elif ext.lower() in get_pil_formats():
-            try:
-                # pylint: disable=redefined-outer-name, import-outside-toplevel
-                from PIL import Image
-
-                im = Image.open(path)
-                img = np.array(im)
-                _, _, c = get_h_w_c(img)
-                if c == 3:
-                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                elif c == 4:
-                    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
-            except:
-                # pylint: disable=raise-missing-from
-                raise RuntimeError(
-                    f'Error reading image image from path "{path}". Image may be corrupt or Pillow not installed.'
-                )
+            im = Image.open(path)
+            img = np.array(im)
+            _, _, c = get_h_w_c(img)
+            if c == 3:
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            elif c == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
         else:
             raise NotImplementedError(
                 "The image you are trying to read cannot be read by chaiNNer."

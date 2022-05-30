@@ -15,27 +15,23 @@ from sanic_cors import CORS
 
 from nodes.categories import category_order
 
-try:
-    # pylint: disable=unused-import
-    import cv2
+# pylint: disable=unused-import
+import cv2
 
-    # Remove broken QT env var
-    if platform.system() == "Linux":
-        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
+# Remove broken QT env var
+if platform.system() == "Linux":
+    os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
-    # pylint: disable=ungrouped-imports
-    from nodes import (
-        image_adj_nodes,
-        image_chan_nodes,
-        image_dim_nodes,
-        image_filter_nodes,
-        image_iterator_nodes,
-        image_nodes,
-        image_util_nodes,
-    )
-except Exception as e:
-    logger.warning(e)
-    logger.info("OpenCV most likely not installed")
+# pylint: disable=ungrouped-imports,wrong-import-position
+from nodes import (
+    image_adj_nodes,
+    image_chan_nodes,
+    image_dim_nodes,
+    image_filter_nodes,
+    image_iterator_nodes,
+    image_nodes,
+    image_util_nodes,
+)
 
 try:
     import torch
@@ -57,12 +53,8 @@ except Exception as e:
     logger.warning(e)
     logger.info("NCNN most likely not installed")
 
-
-try:
-    # pylint: disable=unused-import
-    from nodes import utility_nodes
-except Exception as e:
-    logger.warning(e)
+# pylint: disable=unused-import
+from nodes import utility_nodes
 
 from nodes.node_factory import NodeFactory
 from process import Executor

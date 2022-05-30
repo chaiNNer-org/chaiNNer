@@ -1,10 +1,11 @@
 import os
 import sys
-from math import ceil, floor
 from typing import Tuple
 
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+from PIL.Image import Resampling  # type: ignore
 from sanic.log import logger
 from .utils import get_h_w_c
 
@@ -19,9 +20,6 @@ class InterpolationMethod:
 
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
-    from PIL.Image import Resampling  # type: ignore
-
     pil = Image
 
     INTERPOLATION_METHODS_MAP = {
@@ -33,10 +31,7 @@ try:
     }
 except ImportError:
     logger.error("No PIL found, defaulting to cv2 for resizing")
-    Resampling = None
-    pil = Image = None
-    ImageDraw = None
-    ImageFont = None
+    pil = None
 
     INTERPOLATION_METHODS_MAP = {
         InterpolationMethod.NEAREST: cv2.INTER_NEAREST,
@@ -73,59 +68,22 @@ def resize(
 
 
 def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
-    """Add caption with PIL or fall back to cv2"""
+    """Add caption with PIL"""
 
-    if (
-        pil is not None
-        and Image is not None
-        and ImageFont is not None
-        and ImageDraw is not None
-    ):
-        img = cv2.copyMakeBorder(
-            img, 0, 42, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
-        )
+    img = cv2.copyMakeBorder(img, 0, 42, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1))
 
-        pimg = Image.fromarray((img * 255).astype("uint8"))
-        font_path = os.path.join(
-            os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
-        )
-        font = ImageFont.truetype(font_path, 32)
-        h, w, _ = get_h_w_c(img)
-        text_x = w // 2
-        text_y = h - 21
+    pimg = Image.fromarray((img * 255).astype("uint8"))
+    font_path = os.path.join(
+        os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
+    )
+    font = ImageFont.truetype(font_path, 32)
+    h, w, _ = get_h_w_c(img)
+    text_x = w // 2
+    text_y = h - 21
 
-        d = ImageDraw.Draw(pimg)
-        d.text((text_x, text_y), caption, font=font, anchor="mm", align="center")
+    d = ImageDraw.Draw(pimg)
+    d.text((text_x, text_y), caption, font=font, anchor="mm", align="center")
 
-        img = np.array(pimg)
-    else:  # Fall back to cv2 if PIL is not installed
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_size = 1
-        font_thickness = 1
-
-        textsize = cv2.getTextSize(caption, font, font_size, font_thickness)
-        logger.info(textsize)
-        textsize = textsize[0]
-
-        caption_height = textsize[1] + 20
-
-        img = cv2.copyMakeBorder(
-            img, 0, caption_height, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
-        )
-
-        h, w, _ = get_h_w_c(img)
-        text_x = floor((w - textsize[0]) / 2)
-        text_y = ceil(h - ((caption_height - textsize[1]) / 2))
-
-        cv2.putText(
-            img,
-            caption,
-            (text_x, text_y),
-            font,
-            font_size,
-            color=(255, 255, 255, 255),
-            thickness=font_thickness,
-            lineType=cv2.LINE_AA,
-        )
+    img = np.array(pimg)
 
     return img
