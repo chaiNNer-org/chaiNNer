@@ -15,14 +15,12 @@ from sanic_cors import CORS
 
 from nodes.categories import category_order
 
-# pylint: disable=unused-import
-import cv2
 
 # Remove broken QT env var
 if platform.system() == "Linux":
     os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
-# pylint: disable=ungrouped-imports,wrong-import-position
+# pylint: disable=ungrouped-imports,wrong-import-position,unused-import
 from nodes import (
     image_adj_nodes,
     image_chan_nodes,
