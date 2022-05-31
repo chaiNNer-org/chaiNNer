@@ -10,7 +10,6 @@ import {
     Center,
     Flex,
     HStack,
-    IconButton,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -21,11 +20,8 @@ import {
     Progress,
     Spinner,
     StackDivider,
-    Tag,
-    TagLabel,
     Text,
     Textarea,
-    Tooltip,
     VStack,
     useColorModeValue,
     useDisclosure,
@@ -33,17 +29,27 @@ import {
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
-import { useContext } from 'use-context-selector';
+import { createContext, useContext } from 'use-context-selector';
 import { PythonInfo } from '../../common/common-types';
 import { Dependency, getOptionalDependencies } from '../../common/dependencies';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { getPythonInfo } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
-import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
-import { ExecutionContext } from '../contexts/ExecutionContext';
-import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { ExecutionContext } from './ExecutionContext';
+import { SettingsContext } from './SettingsContext';
+
+export interface DependencyContextValue {
+    openDependencyManager: () => void;
+    availableUpdates: number;
+}
+
+export const DependencyContext = createContext<Readonly<DependencyContextValue>>({
+    openDependencyManager: noop,
+    availableUpdates: 0,
+});
 
 const checkSemver = (v1: string, v2: string) => {
     try {
@@ -54,141 +60,155 @@ const checkSemver = (v1: string, v2: string) => {
     }
 };
 
-interface DependencyManagerProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onPipListUpdate?: (value: PipList) => void;
-}
+export const DependencyProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
-type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
+    const { showAlert } = useContext(AlertBoxContext);
+    const { setIsBackendKilled } = useContext(ExecutionContext);
+    const { useIsSystemPython } = useContext(SettingsContext);
 
-const DependencyManager = memo(
-    ({ isOpen, onClose, onPipListUpdate = noop }: DependencyManagerProps) => {
-        const { showAlert } = useContext(AlertBoxContext);
-        const { setIsBackendKilled } = useContext(ExecutionContext);
-        const { useIsSystemPython } = useContext(SettingsContext);
+    const [isSystemPython] = useIsSystemPython;
 
-        const [isSystemPython] = useIsSystemPython;
+    const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
+    const [pipList, setPipList] = useState<PipList>();
+    const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
-        const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
-        const [pipList, setPipList] = useState<PipList>();
-        const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
-
-        useAsyncEffect(
-            {
-                supplier: getPythonInfo,
-                successEffect: setPythonInfo,
+    useAsyncEffect(
+        {
+            supplier: getPythonInfo,
+            successEffect: setPythonInfo,
+        },
+        [setPythonInfo]
+    );
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                if (pipList) return undefined;
+                return runPipList();
             },
-            [setPythonInfo]
-        );
-        useAsyncEffect(
-            {
-                supplier: async () => {
-                    if (pipList) return undefined;
-                    return runPipList();
-                },
-                successEffect: (list) => {
-                    if (list) {
-                        setPipList(list);
-                        onPipListUpdate(list);
-                    }
-                },
+            successEffect: (list) => {
+                if (list) {
+                    setPipList(list);
+                }
             },
-            [pipList, setPipList]
-        );
+        },
+        [pipList, setPipList]
+    );
 
-        const [gpu, setGpu] = useState<GpuInfo>({ isNvidia: false, gpuNames: [] });
-        useAsyncEffect(
-            {
-                supplier: async (): Promise<GpuInfo> => {
-                    const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                    if (nvidiaGpu) {
-                        return { isNvidia: true, nvidiaGpu };
-                    }
+    type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
+    const [gpu, setGpu] = useState<GpuInfo>({ isNvidia: false, gpuNames: [] });
+    useAsyncEffect(
+        {
+            supplier: async (): Promise<GpuInfo> => {
+                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
+                if (nvidiaGpu) {
+                    return { isNvidia: true, nvidiaGpu };
+                }
 
-                    const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-                    const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
-                    return { isNvidia: false, gpuNames };
-                },
-                successEffect: setGpu,
+                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
+                return { isNvidia: false, gpuNames };
             },
-            []
-        );
+            successEffect: setGpu,
+        },
+        []
+    );
 
-        const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
-        useAsyncEffect(
-            {
-                supplier: async () => {
-                    const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                    const isNvidiaAvailable = nvidiaGpu !== null;
-                    return getOptionalDependencies(isNvidiaAvailable);
-                },
-                successEffect: setAvailableDeps,
+    const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
+                const isNvidiaAvailable = nvidiaGpu !== null;
+                return getOptionalDependencies(isNvidiaAvailable);
             },
-            []
-        );
+            successEffect: setAvailableDeps,
+        },
+        []
+    );
 
-        const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
-        const [uninstallingPackage, setUninstallingPackage] = useState<Dependency | null>(null);
+    const [installingPackage, setInstallingPackage] = useState<Dependency | null>(null);
+    const [uninstallingPackage, setUninstallingPackage] = useState<Dependency | null>(null);
 
-        const consoleRef = useRef<HTMLTextAreaElement | null>(null);
-        const [shellOutput, setShellOutput] = useState('');
-        const [isRunningShell, setIsRunningShell] = useState(false);
-        const [progress, setProgress] = useState(0);
-        const appendToOutput = useCallback(
-            (data: string) => {
-                setShellOutput((prev) => (prev + data).slice(-10_000));
-            },
-            [setShellOutput]
-        );
-        const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
+    const consoleRef = useRef<HTMLTextAreaElement | null>(null);
+    const [shellOutput, setShellOutput] = useState('');
+    const [isRunningShell, setIsRunningShell] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const appendToOutput = useCallback(
+        (data: string) => {
+            setShellOutput((prev) => (prev + data).slice(-10_000));
+        },
+        [setShellOutput]
+    );
+    const onStdio: OnStdio = { onStderr: appendToOutput, onStdout: appendToOutput };
 
-        const [depChanged, setDepChanged] = useState(false);
-        useAsyncEffect(async () => {
-            if (depChanged) {
-                setIsBackendKilled(true);
-                await ipcRenderer.invoke('kill-backend');
+    const [depChanged, setDepChanged] = useState(false);
+    useAsyncEffect(async () => {
+        if (depChanged) {
+            setIsBackendKilled(true);
+            await ipcRenderer.invoke('kill-backend');
+        }
+    }, [depChanged]);
+
+    const changePackages = (supplier: () => Promise<void>) => {
+        if (isRunningShell) throw new Error('Cannot run two pip commands at once');
+
+        setShellOutput('');
+        setIsRunningShell(true);
+        setProgress(0);
+        setDepChanged(true);
+
+        supplier()
+            .catch((error) => {
+                appendToOutput(`${String(error)}\n`);
+            })
+            .finally(() => {
+                setIsRunningShell(false);
+                refreshInstalledPackages();
+                setInstallingPackage(null);
+                setUninstallingPackage(null);
+                setProgress(0);
+            });
+    };
+
+    const installPackage = (dep: Dependency) => {
+        setInstallingPackage(dep);
+        changePackages(() => runPipInstall([dep], setProgress, onStdio));
+    };
+
+    const uninstallPackage = (dep: Dependency) => {
+        setUninstallingPackage(dep);
+        changePackages(() => runPipUninstall([dep.packageName], onStdio));
+    };
+
+    useEffect(() => {
+        if (consoleRef.current) {
+            consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+        }
+    }, [shellOutput]);
+
+    const availableUpdates = useMemo(() => {
+        return availableDeps.filter(({ packageName, version }) => {
+            if (!pipList) {
+                return false;
             }
-        }, [depChanged]);
-
-        const changePackages = (supplier: () => Promise<void>) => {
-            if (isRunningShell) throw new Error('Cannot run two pip commands at once');
-
-            setShellOutput('');
-            setIsRunningShell(true);
-            setProgress(0);
-            setDepChanged(true);
-
-            supplier()
-                .catch((error) => {
-                    appendToOutput(`${String(error)}\n`);
-                })
-                .finally(() => {
-                    setIsRunningShell(false);
-                    refreshInstalledPackages();
-                    setInstallingPackage(null);
-                    setUninstallingPackage(null);
-                    setProgress(0);
-                });
-        };
-
-        const installPackage = (dep: Dependency) => {
-            setInstallingPackage(dep);
-            changePackages(() => runPipInstall([dep], setProgress, onStdio));
-        };
-
-        const uninstallPackage = (dep: Dependency) => {
-            setUninstallingPackage(dep);
-            changePackages(() => runPipUninstall([dep.packageName], onStdio));
-        };
-
-        useEffect(() => {
-            if (consoleRef.current) {
-                consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+            if (!pipList[packageName]) {
+                return true;
             }
-        }, [shellOutput]);
+            return !checkSemver(version, pipList[packageName]);
+        }).length;
+    }, [pipList, availableDeps]);
 
-        return (
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    let value: DependencyContextValue = {
+        openDependencyManager: onOpen,
+        availableUpdates,
+    };
+    value = useMemo(() => value, Object.values(value));
+
+    return (
+        <DependencyContext.Provider value={value}>
+            {children}
             <Modal
                 isCentered
                 closeOnOverlayClick={!depChanged}
@@ -428,90 +448,6 @@ const DependencyManager = memo(
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-        );
-    }
-);
-
-export const DependencyManagerButton = memo(() => {
-    const { isOpen, onOpen, onClose } = useDisclosure();
-    const [pipList, setPipList] = useState<PipList>();
-
-    const [availableDeps, setAvailableDeps] = useState<Dependency[]>([]);
-    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-
-    useAsyncEffect(
-        {
-            supplier: async () => {
-                const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                return !!nvidiaGpu;
-            },
-            successEffect: setIsNvidiaAvailable,
-        },
-        []
-    );
-
-    useEffect(() => {
-        const depsArr = getOptionalDependencies(isNvidiaAvailable);
-        setAvailableDeps(depsArr);
-    }, [isNvidiaAvailable]);
-
-    const availableUpdates = useMemo(
-        () =>
-            availableDeps.filter(({ packageName, version }) => {
-                if (!pipList) {
-                    return false;
-                }
-                if (!pipList[packageName]) {
-                    return true;
-                }
-                return !checkSemver(version, pipList[packageName]);
-            }),
-        [availableDeps, pipList, isNvidiaAvailable]
-    );
-
-    return (
-        <>
-            <Tooltip
-                closeOnClick
-                closeOnMouseDown
-                borderRadius={8}
-                label="Manage Dependencies"
-                px={2}
-                py={1}
-            >
-                <VStack
-                    m={0}
-                    spacing={0}
-                >
-                    {availableUpdates.length ? (
-                        <Tag
-                            borderRadius="full"
-                            colorScheme="red"
-                            ml={-7}
-                            mt={-1}
-                            position="fixed"
-                            size="sm"
-                        >
-                            <TagLabel textAlign="center">{availableUpdates.length}</TagLabel>
-                        </Tag>
-                    ) : null}
-                    <IconButton
-                        aria-label="Download button"
-                        icon={<DownloadIcon />}
-                        position="relative"
-                        size="md"
-                        variant="outline"
-                        onClick={onOpen}
-                    />
-                </VStack>
-            </Tooltip>
-            <DependencyManager
-                isOpen={isOpen}
-                onClose={onClose}
-                onPipListUpdate={setPipList}
-            />
-        </>
+        </DependencyContext.Provider>
     );
 });
-
-export default DependencyManager;

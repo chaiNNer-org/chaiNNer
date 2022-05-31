@@ -18,6 +18,7 @@ import Node from './components/node/Node';
 import NodeSelector from './components/NodeSelectorPanel/NodeSelectorPanel';
 import ReactFlowBox from './components/ReactFlowBox';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
+import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -125,29 +126,31 @@ const Main = memo(({ port }: MainProps) => {
                     schemata={schemata}
                 >
                     <ExecutionProvider>
-                        <HistoryProvider>
-                            <VStack
-                                bg={bgColor}
-                                overflow="hidden"
-                                p={2}
-                            >
-                                <Header />
-                                <HStack
-                                    h={height - 80}
-                                    w="full"
+                        <DependencyProvider>
+                            <HistoryProvider>
+                                <VStack
+                                    bg={bgColor}
+                                    overflow="hidden"
+                                    p={2}
                                 >
-                                    <NodeSelector
-                                        height={height}
-                                        schemata={schemata}
-                                    />
-                                    <ReactFlowBox
-                                        edgeTypes={edgeTypes}
-                                        nodeTypes={nodeTypes}
-                                        wrapperRef={reactFlowWrapper}
-                                    />
-                                </HStack>
-                            </VStack>
-                        </HistoryProvider>
+                                    <Header />
+                                    <HStack
+                                        h={height - 80}
+                                        w="full"
+                                    >
+                                        <NodeSelector
+                                            height={height}
+                                            schemata={schemata}
+                                        />
+                                        <ReactFlowBox
+                                            edgeTypes={edgeTypes}
+                                            nodeTypes={nodeTypes}
+                                            wrapperRef={reactFlowWrapper}
+                                        />
+                                    </HStack>
+                                </VStack>
+                            </HistoryProvider>
+                        </DependencyProvider>
                     </ExecutionProvider>
                 </GlobalProvider>
             </SettingsProvider>

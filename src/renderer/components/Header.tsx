@@ -17,7 +17,7 @@ import { ipcRenderer } from '../../common/safeIpc';
 import logo from '../../public/icons/png/256x256.png';
 import { ExecutionContext, ExecutionStatus } from '../contexts/ExecutionContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { DependencyManagerButton } from './DependencyManager';
+import { DependencyManagerButton } from './DependencyManagerButton';
 import { SettingsButton } from './SettingsModal';
 import SystemStats from './SystemStats';
 
