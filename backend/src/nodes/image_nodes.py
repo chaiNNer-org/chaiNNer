@@ -161,7 +161,10 @@ class ImWriteNode(NodeBase):
 
         os.makedirs(base_directory, exist_ok=True)
 
-        status = cv2.imwrite(full_path, img)
+        status, buf_img = cv2.imencode(f".{extension}", img)
+        with open(full_path, "wb") as outf:
+            bytes_written = outf.write(buf_img)
+            status = status and bytes_written == len(buf_img)
 
         return status
 

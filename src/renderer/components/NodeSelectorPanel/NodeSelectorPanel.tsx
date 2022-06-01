@@ -18,14 +18,14 @@ import {
     TabPanels,
     Tabs,
     useColorModeValue,
-    useDisclosure,
 } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
+import { useContext } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
 import { SchemaMap } from '../../../common/SchemaMap';
+import { DependencyContext } from '../../contexts/DependencyContext';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
-import DependencyManager from '../DependencyManager';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { RegularAccordionItem } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
@@ -83,8 +83,9 @@ interface NodeSelectorProps {
 }
 
 const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
+    const { openDependencyManager } = useContext(DependencyContext);
+
     const [searchQuery, setSearchQuery] = useState('');
-    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const matchesSearchQuery = createSearchPredicate(searchQuery);
     const matchingNodes = !searchQuery
@@ -251,14 +252,9 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                                         ? 'Missing nodes? Click to open the dependency manager!'
                                                         : ''
                                                 }
-                                                onClick={onOpen}
+                                                onClick={openDependencyManager}
                                             />
                                         </Box>
-                                        {/* TODO: Replace this with a single instance of the dep manager that shares a global open/close state */}
-                                        <DependencyManager
-                                            isOpen={isOpen}
-                                            onClose={onClose}
-                                        />
                                     </AccordionItem>
                                 </Accordion>
                             </Box>
