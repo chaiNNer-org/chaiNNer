@@ -5,7 +5,7 @@ import {
     MenuDivider,
     MenuItem,
     MenuList,
-    Tooltip,
+    Tooltip
 } from '@chakra-ui/react';
 import { shell } from 'electron';
 import { memo } from 'react';
@@ -81,7 +81,7 @@ const DirectoryInput = memo(
                     </InputLeftElement>
                     <Input
                         isReadOnly
-                        isTruncated
+                        textOverflow="ellipsis"
                         className="nodrag"
                         cursor="pointer"
                         disabled={isLocked || isInputLocked}

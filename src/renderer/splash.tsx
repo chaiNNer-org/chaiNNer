@@ -107,8 +107,8 @@ const Splash = memo(() => {
                     >
                         <Center>
                             <Text
-                                isTruncated
                                 color="gray.500"
+                                textOverflow="ellipsis"
                             >
                                 {status}
                             </Text>
