@@ -32,7 +32,7 @@ export const copyNodes = (
     return nodesToCopy.map((n) => {
         const newId = deriveNodeId(n.id);
         if (!n.parentNode) {
-            const returnData: Mutable<Node<NodeData>> = {
+            return {
                 ...n,
                 id: newId,
                 position: {
@@ -45,8 +45,6 @@ export const copyNodes = (
                 },
                 selected: false,
             };
-            delete returnData.handleBounds;
-            return returnData;
         }
 
         const parentId = deriveParentNodeId(n.parentNode);
@@ -65,7 +63,6 @@ export const copyNodes = (
             parentNode: parentId,
             selected: false,
         };
-        delete returnData.handleBounds;
         if (!parentId) {
             delete returnData.extent;
         }

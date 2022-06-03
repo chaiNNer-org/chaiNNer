@@ -81,12 +81,12 @@ const DirectoryInput = memo(
                     </InputLeftElement>
                     <Input
                         isReadOnly
-                        isTruncated
                         className="nodrag"
                         cursor="pointer"
                         disabled={isLocked || isInputLocked}
                         draggable={false}
                         placeholder="Select a directory..."
+                        textOverflow="ellipsis"
                         value={directory ?? ''}
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
                         onClick={onButtonClick}
