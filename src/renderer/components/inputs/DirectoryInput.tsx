@@ -5,7 +5,7 @@ import {
     MenuDivider,
     MenuItem,
     MenuList,
-    Tooltip
+    Tooltip,
 } from '@chakra-ui/react';
 import { shell } from 'electron';
 import { memo } from 'react';
@@ -81,12 +81,12 @@ const DirectoryInput = memo(
                     </InputLeftElement>
                     <Input
                         isReadOnly
-                        textOverflow="ellipsis"
                         className="nodrag"
                         cursor="pointer"
                         disabled={isLocked || isInputLocked}
                         draggable={false}
                         placeholder="Select a directory..."
+                        textOverflow="ellipsis"
                         value={directory ?? ''}
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
                         onClick={onButtonClick}
