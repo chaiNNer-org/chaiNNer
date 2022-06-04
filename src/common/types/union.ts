@@ -27,10 +27,22 @@ const unionLiteralNumber = (
 ): NumericLiteralType | IntervalType | IntIntervalType | undefined => {
     if (b.type === 'literal') {
         if (sameNumber(a.value, b.value)) return a;
+
+        if (Number.isInteger(a.value) && Number.isInteger(b.value)) {
+            const min = Math.min(a.value, b.value);
+            const max = Math.max(a.value, b.value);
+            if (min + 1 === max) return new IntIntervalType(min, max);
+        }
         return undefined;
     }
 
     if (b.has(a.value)) return b;
+
+    if (b.type === 'int-interval' && Number.isInteger(a.value)) {
+        if (a.value === b.min - 1) return new IntIntervalType(b.min - 1, b.max);
+        if (a.value === b.max + 1) return new IntIntervalType(b.min, b.max + 1);
+    }
+
     return undefined;
 };
 
