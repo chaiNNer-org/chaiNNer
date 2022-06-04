@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import gc
 import os
-
 from typing import Tuple, Union
 
 import torch
@@ -90,6 +89,7 @@ def auto_split_process(
         model,
         scale=scale,
         overlap=overlap,
+        max_depth=max_depth,
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = auto_split_process(

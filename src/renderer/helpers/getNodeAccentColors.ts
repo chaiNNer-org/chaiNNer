@@ -18,6 +18,8 @@ export default (category: string | undefined): string => {
             return '#2B6CB0';
         case 'PyTorch':
             return '#DD6B20';
+        case 'ONNX':
+            return '#63B3ED';
         case 'NCNN':
             return '#ED64A6';
         default:
