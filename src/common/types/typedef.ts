@@ -1,0 +1,138 @@
+/* eslint-disable max-classes-per-file */
+import { Expression, StructExpression } from './expression';
+import { assertValidStructFieldName, assertValidStructName } from './names';
+import {
+    AnyType,
+    IntIntervalType,
+    NeverType,
+    NumberType,
+    StringType,
+    StructType,
+    Type,
+} from './types';
+
+export type Definition = StructDefinition | AliasDefinition;
+
+export class StructFieldDefinition {
+    public readonly name: string;
+
+    public readonly type: Expression;
+
+    constructor(name: string, type: Expression) {
+        assertValidStructFieldName(name);
+        this.name = name;
+        this.type = type;
+    }
+}
+export class StructDefinition {
+    public readonly name: string;
+
+    public readonly fields: readonly StructFieldDefinition[];
+
+    public readonly fieldNames: ReadonlySet<string>;
+
+    constructor(name: string, fields: readonly StructFieldDefinition[] = []) {
+        assertValidStructName(name);
+        this.name = name;
+        this.fields = fields;
+
+        const names = new Set<string>();
+        this.fieldNames = names;
+        for (const f of fields) {
+            if (names.has(f.name)) {
+                throw new Error(
+                    `Invalid strut definition. ` +
+                        `The field ${f.name} was used twice in ${this.toString()}`
+                );
+            }
+            names.add(f.name);
+        }
+    }
+
+    toString(): string {
+        if (this.fields.length === 0) return `struct ${this.name};`;
+        return `struct ${this.name} { ${this.fields
+            .map((f) => `${f.name}: ${f.type.toString()}`)
+            .join(', ')} }`;
+    }
+}
+
+export class AliasDefinition {
+    public readonly name: string;
+
+    public readonly type: Expression;
+
+    constructor(name: string, type: Expression) {
+        assertValidStructName(name);
+        this.name = name;
+        this.type = type;
+    }
+
+    toString(): string {
+        return `alias ${this.name} = ${this.type.toString()}`;
+    }
+}
+
+interface AliasDefinitionEntry {
+    readonly kind: 'alias';
+    readonly definition: AliasDefinition;
+    evaluated?: Type;
+}
+interface StructDefinitionEntry {
+    readonly kind: 'struct';
+    readonly definition: StructDefinition;
+    evaluated?: StructType | NeverType;
+}
+type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
+
+export class TypeDefinitions {
+    private readonly defs = new Map<string, TypeDefinitionEntry>();
+
+    constructor() {
+        // alias fail-safes for primitives
+        this.add(new AliasDefinition('any', AnyType.instance));
+        this.add(new AliasDefinition('never', NeverType.instance));
+        this.add(new AliasDefinition('number', NumberType.instance));
+        this.add(new AliasDefinition('string', StringType.instance));
+
+        // built-in types
+        this.add(new StructDefinition('null'));
+        this.add(new AliasDefinition('int', new IntIntervalType(-Infinity, Infinity)));
+        this.add(new AliasDefinition('uint', new IntIntervalType(0, Infinity)));
+        this.add(
+            new StructDefinition('Image', [
+                new StructFieldDefinition('width', new StructExpression('uint')),
+                new StructFieldDefinition('height', new StructExpression('uint')),
+                new StructFieldDefinition('channels', new StructExpression('uint')),
+            ])
+        );
+    }
+
+    private assertUnusedName(name: string): void {
+        const foo = this.defs.get(name);
+        if (foo) {
+            throw new Error(`The name ${name} is already occupied by: ${foo.toString()}`);
+        }
+    }
+
+    add(definition: Definition): void {
+        this.assertUnusedName(definition.name);
+
+        let entry: TypeDefinitionEntry;
+        if (definition instanceof AliasDefinition) {
+            entry = { kind: 'alias', definition };
+        } else {
+            entry = { kind: 'struct', definition };
+        }
+
+        this.defs.set(definition.name, entry);
+    }
+
+    get(name: string): TypeDefinitionEntry | undefined {
+        return this.defs.get(name);
+    }
+
+    names(): Iterable<string> {
+        return this.defs.keys();
+    }
+}

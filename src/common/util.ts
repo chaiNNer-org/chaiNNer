@@ -3,6 +3,8 @@ import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 
+export const noop = () => {};
+
 export const checkFileExists = (file: string): Promise<boolean> =>
     fs.access(file, constants.F_OK).then(
         () => true,
@@ -12,10 +14,9 @@ export const checkFileExists = (file: string): Promise<boolean> =>
 export const assertNever = (value: never): never => {
     throw new Error(`Unreachable code path. The value ${String(value)} is invalid.`);
 };
+export const assertType: <T>(_: T) => void = noop;
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
-
-export const noop = () => {};
 
 export interface ParsedHandle {
     nodeId: string;
@@ -67,3 +68,49 @@ export const debounce = (fn: () => void, delay: number): (() => void) => {
 };
 
 export const areApproximatelyEqual = (a: number, b: number): boolean => Math.abs(a - b) < 1e-12;
+
+export const sameNumber = (a: number, b: number): boolean =>
+    a === b || (Number.isNaN(a) && Number.isNaN(b));
+
+// eslint-disable-next-line no-nested-ternary
+export const binaryCompare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+export type Comparator<T> = (a: T, b: T) => number;
+export const compareSequences = <T>(
+    a: readonly T[],
+    b: readonly T[],
+    compare: Comparator<T>
+): number => {
+    if (a.length !== b.length) return a.length - b.length;
+    for (let i = 0; i < a.length; i += 1) {
+        const r = compare(a[i], b[i]);
+        if (r !== 0) return r;
+    }
+    return 0;
+};
+
+/**
+ * Sorts numbers in the order:
+ * 1. Negative real numbers. E.g. -2
+ * 2. -0.0
+ * 3. 0.0
+ * 4. Positive real numbers. E.g. 2
+ * 5. -Infinity
+ * 6. Infinity
+ * 7. NaN
+ */
+export const compareNumber = (a: number, b: number): number => {
+    if (a === 0 && b === 0) {
+        // compare -0 and 0
+        return compareNumber(1 / a, 1 / b);
+    }
+    if (Number.isFinite(a) && Number.isFinite(b)) {
+        return a - b;
+    }
+    if (sameNumber(a, b)) return 0;
+    if (Number.isFinite(a)) return -1;
+    if (Number.isFinite(b)) return +1;
+    if (Number.isNaN(a)) return +1;
+    if (Number.isNaN(b)) return -1;
+    return a - b;
+};
