@@ -298,6 +298,18 @@ const toV090 = (data) => {
             // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
         }
+
+        // Convert Blur Nodes to Gaussian Blur nodes
+        if (node.data.schemaId === 'chainner:image:blur') {
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.schemaId = 'chainner:image:gaussian_blur';
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['1'] =
+                Math.round((1.16531 * node.data.inputData['1'] - 0.153601) * 10) / 10;
+            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            node.data.inputData['2'] =
+                Math.round((1.16531 * node.data.inputData['2'] - 0.153601) * 10) / 10;
+        }
     });
     return data;
 };
