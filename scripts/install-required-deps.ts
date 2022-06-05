@@ -7,7 +7,9 @@ try {
         '-m',
         'pip',
         'install',
-        ...requiredDependencies.map((d) => `${d.packageName}==${d.version}`),
+        ...requiredDependencies
+            .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
+            .flat(),
         '--disable-pip-version-check',
     ]);
 
