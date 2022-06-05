@@ -85,6 +85,20 @@ interface StructDefinitionEntry {
 }
 type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
 
+const addBuiltinTypes = (definitions: TypeDefinitions) => {
+    definitions.add(new StructDefinition('null'));
+    definitions.add(new AliasDefinition('int', new IntIntervalType(-Infinity, Infinity)));
+    definitions.add(new AliasDefinition('uint', new IntIntervalType(0, Infinity)));
+
+    definitions.add(
+        new StructDefinition('Image', [
+            new StructFieldDefinition('width', new StructExpression('uint')),
+            new StructFieldDefinition('height', new StructExpression('uint')),
+            new StructFieldDefinition('channels', new StructExpression('uint')),
+        ])
+    );
+};
+
 export class TypeDefinitions {
     private readonly defs = new Map<string, TypeDefinitionEntry>();
 
@@ -95,17 +109,7 @@ export class TypeDefinitions {
         this.add(new AliasDefinition('number', NumberType.instance));
         this.add(new AliasDefinition('string', StringType.instance));
 
-        // built-in types
-        this.add(new StructDefinition('null'));
-        this.add(new AliasDefinition('int', new IntIntervalType(-Infinity, Infinity)));
-        this.add(new AliasDefinition('uint', new IntIntervalType(0, Infinity)));
-        this.add(
-            new StructDefinition('Image', [
-                new StructFieldDefinition('width', new StructExpression('uint')),
-                new StructFieldDefinition('height', new StructExpression('uint')),
-                new StructFieldDefinition('channels', new StructExpression('uint')),
-            ])
-        );
+        addBuiltinTypes(this);
     }
 
     private assertUnusedName(name: string): void {
