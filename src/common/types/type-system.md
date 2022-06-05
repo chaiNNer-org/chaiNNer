@@ -1,0 +1,87 @@
+# Type system
+
+Types are sets of all their possible value.
+E.g. the type `string` is the set of all possible strings (e.g. `""`, `"foo"`), and the type `number` is the set of all floating point numbers (e.g. 0, -2, 3.14, Infinity, NaN).
+
+As such, set operations are as normal.
+In particular, we denote set intersection as `A & B`, and set union as `A | B`.
+Furthermore, proper subset, subset, proper superset, and superset are denoted as `A < B`, `A <=`, `A > B`, and `A >= B` respectively.
+
+The empty set is a special type called `never`.
+
+The set the contains all values is a special type called `any`.
+
+
+## Primitive types
+
+### `number`
+
+This type represents any real number plus ±infinity and NaN.
+
+#### Numeric literal types
+
+Numeric literal types (e.g. `2`, `3`, `3.1415`) are types that represent their numeric value.
+E.g. `2` (the type) is equal to the set that contain the number 2.
+
+#### Interval types
+
+Interval types (e.g. `0..4`, `0.25..3.14`, `-Infinity..Infinity`, `0..Infinity`) are types that represent all numbers between and including their ends.
+E.g. 0..4 includes all number 0 to 4 including 0 and 4.
+
+#### Integer interval types
+
+Integer interval types (e.g. `int(0..4)`, `int(-Infinity..Infinity)`, `int(0..Infinity)`) are types that represent all integer numbers between and including their integer ends.
+E.g. `int(0..4)` includes 0, 1, 2, 3, and 4.
+Importantly, the infinities are not integers, so e.g. `int(-Infinity..Infinity)` does not include infinity.
+
+### `string`
+
+This type represents any string.
+
+#### String literal types
+
+String literal types (e.g. `""`, `"foo"`) are types that represent their string value.
+E.g. `"foo"` (the type) is equal to the set that contain the string "foo".
+
+### Requirement for primitive types
+
+TODO:
+
+
+## Structure types
+
+Structure types are class-like types.
+They have a name and any number of fields.
+Structures with no fields are constants (e.g. `null`).
+
+E.g. `Image { width: uint, height: uint, channels: uint }` and `null` are structure types.
+
+### Structure type definitions
+
+Structure types also have type definitions.
+These definitions specify the fields all structure types of that name have.
+
+E.g. `struct Image { width: uint, height: uint, channels: uint }` and `struct null;` are structure type definitions.
+
+Not that all fields are optional when instantiating a type.
+So `Image`, `Image { width: uint }`, `Image { height: uint }`, and `Image { width: uint, height: uint, channels: uint }` all create the same type given the above type definition for `Image`.
+
+### New type pattern
+
+Structure types are only equivalent if their names are the same and all their fields are equivalent.
+This means that each structure type definitions creates a new type of structure types.
+
+### Set representation
+
+Internally, structure types are represented as a tuple `(name, field_1, field_2, ..., field_n)`.
+
+E.g. the set representation of the above `Image` structure is `(Image, uint, uint, uint)`.
+
+
+## Aliases
+
+Aliases are also supported.
+
+E.g. `uint` is an alias for `int(0..Infinity)`.
+
+Aliases use the syntax as structure types with no fields. However, aliases and structures can never have the same name, so there is no ambiguity.
