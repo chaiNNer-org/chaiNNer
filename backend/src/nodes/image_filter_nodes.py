@@ -57,9 +57,11 @@ class BlurNode(NodeBase):
         x_d = amount_x % 1
         y_d = amount_y % 1
         if y_d != 0:
-            kernel[(0, -1), :] *= y_d
+            kernel[0, :] *= y_d
+            kernel[-1, :] *= y_d
         if x_d != 0:
-            kernel[:, (0, -1)] *= x_d
+            kernel[:, 0] *= x_d
+            kernel[:, -1] *= x_d
 
         # Linear filter with reflected padding
         return np.clip(
