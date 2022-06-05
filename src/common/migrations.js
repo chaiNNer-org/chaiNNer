@@ -285,7 +285,7 @@ const toV080 = (data) => {
     return data;
 };
 
-const toV090 = (data) => {
+const updateAdjustmentScale = (data) => {
     data.nodes.forEach((node) => {
         // Convert slider scales for several Adjustment nodes
         if (node.data.schemaId === 'chainner:image:hue_and_saturation') {
@@ -298,7 +298,12 @@ const toV090 = (data) => {
             // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
         }
+    });
+    return data;
+};
 
+const fixBlurNode = (data) => {
+    data.nodes.forEach((node) => {
         // Convert Blur Nodes to Gaussian Blur nodes
         if (node.data.schemaId === 'chainner:image:blur') {
             // eslint-disable-next-line no-param-reassign, prefer-destructuring
@@ -335,7 +340,16 @@ const versionToMigration = (version) => {
     return 6;
 };
 
-const migrations = [preAlpha, toV03, toV05, toV052, toV070, toV080, toV090];
+const migrations = [
+    preAlpha,
+    toV03,
+    toV05,
+    toV052,
+    toV070,
+    toV080,
+    updateAdjustmentScale,
+    fixBlurNode,
+];
 
 export const currentMigration = migrations.length;
 
