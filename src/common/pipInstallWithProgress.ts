@@ -34,6 +34,7 @@ const downloadWheelAndInstall = async (
     onStdio: OnStdio = {}
 ) =>
     new Promise<void>((resolve, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { onStdout = noop, onStderr = (data) => log.error(data) } = onStdio;
         let lastProgressNum: number | null = null;
         const downloader = new Downloader({
