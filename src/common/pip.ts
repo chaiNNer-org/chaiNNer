@@ -24,6 +24,7 @@ export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Pr
         log.info(`Running pip command: ${args.slice(1).join(' ')}`);
 
         const child = spawn(python, args);
+
         let stdout = '';
 
         child.stdout.on('data', (data) => {

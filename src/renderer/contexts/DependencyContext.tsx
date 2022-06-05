@@ -385,6 +385,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                         >
                                                             <Progress
                                                                 hasStripe
+                                                                isAnimated
                                                                 value={progress}
                                                                 w="full"
                                                             />

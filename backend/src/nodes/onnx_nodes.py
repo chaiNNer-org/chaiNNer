@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import Any
+from typing import Tuple
 
 import numpy as np
 import onnx
@@ -35,7 +37,7 @@ class OnnxLoadModelNode(NodeBase):
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Any:
+    def run(self, path: str) -> Tuple[ort.InferenceSession, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -46,9 +48,20 @@ class OnnxLoadModelNode(NodeBase):
         logger.info(f"Reading onnx model from path: {path}")
         model = onnx.load_model(path)
 
+        model_as_string = model.SerializeToString()  # type: ignore
+
+        session = ort.InferenceSession(
+            model_as_string,
+            providers=[
+                "CPUExecutionProvider"
+                if os.environ["device"] == "cpu"
+                else "CUDAExecutionProvider"
+            ],
+        )
+
         basename = os.path.splitext(os.path.basename(path))[0]
 
-        return model, basename
+        return session, basename
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
@@ -58,8 +71,14 @@ class OnnxImageUpscaleNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Upscales an image using an ONNX Super-Resolution model."
-        self.inputs = [OnnxModelInput(), ImageInput()]
+        self.description = "Upscales an image using an ONNX Super-Resolution model. \
+            ONNX does not support automatic out-of-memory handling via automatic tiling. \
+            Therefore, you must set a split factor yourself. If you get an out-of-memory error, increase this number by 1."
+        self.inputs = [
+            OnnxModelInput(),
+            ImageInput(),
+            NumberInput("Split Factor", default=1, minimum=1, maximum=10),
+        ]
         self.outputs = [ImageOutput("Upscaled Image")]
 
         self.category = ONNX
@@ -67,31 +86,29 @@ class OnnxImageUpscaleNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Processing"
 
-    def upscale(self, img: np.ndarray, session: ort.InferenceSession):
+    def upscale(
+        self, img: np.ndarray, session: ort.InferenceSession, split_factor: int
+    ) -> np.ndarray:
         logger.info("Upscaling image")
         is_fp16_model = session.get_inputs()[0].type == "tensor(float16)"
         img = np2nptensor(img, change_range=False)
         out, _ = onnx_auto_split_process(
-            img.astype(np.float16) if is_fp16_model else img, session
+            img.astype(np.float16) if is_fp16_model else img,
+            session,
+            max_depth=split_factor,
         )
         out = nptensor2np(out, change_range=False, imtype=np.float32)
         del session
         logger.info("Done upscaling")
         return out
 
-    def run(self, model: onnx.ModelProto, img: np.ndarray) -> np.ndarray:
+    def run(
+        self, session: ort.InferenceSession, img: np.ndarray, split_factor: int
+    ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
 
-        session = ort.InferenceSession(
-            model.SerializeToString(),  # type: ignore
-            providers=[
-                "CPUExecutionProvider"
-                if os.environ["device"] == "cpu"
-                else "CUDAExecutionProvider"
-            ],
-        )
         in_nc = session.get_inputs()[0].shape[1]
 
         _, _, c = get_h_w_c(img)
@@ -107,7 +124,7 @@ class OnnxImageUpscaleNode(NodeBase):
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(img[:, :, :3], session)  # type: ignore
+                output = self.upscale(img[:, :, :3], session, split_factor)  # type: ignore
                 output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
             else:
                 img1 = np.copy(img[:, :, :3])
@@ -116,8 +133,8 @@ class OnnxImageUpscaleNode(NodeBase):
                     img1[:, :, c] *= img[:, :, 3]
                     img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
-                output1 = self.upscale(img1, session)  # type: ignore
-                output2 = self.upscale(img2, session)  # type: ignore
+                output1 = self.upscale(img1, session, split_factor)  # type: ignore
+                output2 = self.upscale(img2, session, split_factor)  # type: ignore
                 alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
@@ -136,7 +153,7 @@ class OnnxImageUpscaleNode(NodeBase):
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-            output = self.upscale(img, session)  # type: ignore
+            output = self.upscale(img, session, split_factor)  # type: ignore
 
             if gray:
                 output = np.average(output, axis=2).astype("float32")

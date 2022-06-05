@@ -4,20 +4,19 @@ import gc
 from typing import Tuple, Union
 
 import numpy as np
-import onnxruntime
-from sanic.log import logger
+import onnxruntime as ort
 
 
 # NCNN version of the 'auto_split_upscale' function
 def onnx_auto_split_process(
     lr_img: np.ndarray,
-    session: onnxruntime.InferenceSession,
+    session: ort.InferenceSession,
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
 ) -> Tuple[np.ndarray, int]:
     """
-    Run NCNN upscaling with automatic recursive tile splitting based on ability to process with current size
+    Run ONNX upscaling with automatic recursive tile splitting based on ability to process with current size
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
@@ -40,8 +39,17 @@ def onnx_auto_split_process(
             output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
             return output.copy(), current_depth
         except Exception as e:
-            if "ONNXRuntimeError" in str(e) and "allocate memory" in str(e):
+            if "ONNXRuntimeError" in str(e) and (
+                "allocate memory" in str(e)
+                or "out of memory" in str(e)
+                or "cudaMalloc" in str(e)
+            ):
+                del session
                 gc.collect()
+                # pylint: disable=raise-missing-from
+                raise RuntimeError(
+                    "Upscaling stopped due to out of memory error. Try increasing the split factor."
+                )
             else:
                 # Re-raise the exception if not an OOM error
                 raise
