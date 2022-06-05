@@ -7,7 +7,7 @@ import numpy as np
 import onnxruntime as ort
 
 
-# NCNN version of the 'auto_split_upscale' function
+# ONNX version of the 'auto_split_upscale' function
 def onnx_auto_split_process(
     lr_img: np.ndarray,
     session: ort.InferenceSession,
@@ -19,11 +19,6 @@ def onnx_auto_split_process(
     Run ONNX upscaling with automatic recursive tile splitting based on ability to process with current size
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
-
-    # if os.environ["killed"] == "True":
-    #     ncnn.destroy_gpu_instance()
-    #     gc.collect()
-    #     raise RuntimeError("Upscaling killed mid-processing")
 
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
