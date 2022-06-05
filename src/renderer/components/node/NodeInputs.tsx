@@ -25,22 +25,15 @@ const pickInput = (type: string, props: FullInputProps) => {
     let InputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericInput;
     switch (type) {
         case 'file::image':
-            InputType = FileInput;
-            break;
         case 'file::pth':
-            InputType = FileInput;
-            break;
         case 'file::video':
+        case 'file::bin':
+        case 'file::param':
+        case 'file::onnx':
             InputType = FileInput;
             break;
         case 'file::directory':
             InputType = DirectoryInput;
-            break;
-        case 'file::bin':
-            InputType = FileInput;
-            break;
-        case 'file::param':
-            InputType = FileInput;
             break;
         case 'text::any':
             InputType = TextInput;
@@ -49,14 +42,8 @@ const pickInput = (type: string, props: FullInputProps) => {
             InputType = TextAreaInput;
             break;
         case 'dropdown::str':
-            InputType = DropDownInput;
-            break;
         case 'dropdown::image-extensions':
-            InputType = DropDownInput;
-            break;
         case 'dropdown::math-operations':
-            InputType = DropDownInput;
-            break;
         case 'dropdown::generic':
             InputType = DropDownInput;
             break;

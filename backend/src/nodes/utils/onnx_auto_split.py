@@ -5,6 +5,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import onnxruntime
+from sanic.log import logger
 
 
 # NCNN version of the 'auto_split_upscale' function
@@ -35,9 +36,8 @@ def onnx_auto_split_process(
 
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
-        # ex.set_light_mode(True)
         try:
-            output: np.ndarray = session.run([output_name], {input_name: lr_img})
+            output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
             return output.copy(), current_depth
         except Exception as e:
             if "ONNXRuntimeError" in str(e) and "allocate memory" in str(e):
@@ -46,17 +46,13 @@ def onnx_auto_split_process(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    h, w = lr_img.shape[:2]
-    if lr_img.ndim > 2:
-        c = lr_img.shape[2]
-    else:
-        c = 1
+    b, c, h, w = lr_img.shape
 
     # Split image into 4ths
-    top_left = lr_img[: h // 2 + overlap, : w // 2 + overlap, ...]
-    top_right = lr_img[: h // 2 + overlap, w // 2 - overlap :, ...]
-    bottom_left = lr_img[h // 2 - overlap :, : w // 2 + overlap, ...]
-    bottom_right = lr_img[h // 2 - overlap :, w // 2 - overlap :, ...]
+    top_left = lr_img[..., : h // 2 + overlap, : w // 2 + overlap]
+    top_right = lr_img[..., : h // 2 + overlap, w // 2 - overlap :]
+    bottom_left = lr_img[..., h // 2 - overlap :, : w // 2 + overlap]
+    bottom_right = lr_img[..., h // 2 - overlap :, w // 2 - overlap :]
 
     # Recursively upscale the quadrants
     # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
@@ -89,8 +85,8 @@ def onnx_auto_split_process(
         current_depth=current_depth + 1,
     )
 
-    tl_h, _ = top_left.shape[:2]
-    up_h, _ = top_left_rlt.shape[:2]
+    tl_h = top_left.shape[-2]
+    up_h = top_left_rlt.shape[-2]
     scale = int(up_h / tl_h)
 
     # Define output shape
@@ -98,20 +94,20 @@ def onnx_auto_split_process(
     out_w = w * scale
 
     # Create blank output image
-    output_img = np.zeros((out_h, out_w, c), dtype=np.float32)
+    output_img = np.zeros((b, c, out_h, out_w), dtype=lr_img.dtype)
 
     # Fill output image with tiles, cropping out the overlaps
-    output_img[: out_h // 2, : out_w // 2, ...] = top_left_rlt[
-        : out_h // 2, : out_w // 2, ...
+    output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[
+        ..., : out_h // 2, : out_w // 2
     ]
-    output_img[: out_h // 2, -out_w // 2 :, ...] = top_right_rlt[
-        : out_h // 2, -out_w // 2 :, ...
+    output_img[..., : out_h // 2, -out_w // 2 :] = top_right_rlt[
+        ..., : out_h // 2, -out_w // 2 :
     ]
-    output_img[-out_h // 2 :, : out_w // 2, ...] = bottom_left_rlt[
-        -out_h // 2 :, : out_w // 2, ...
+    output_img[..., -out_h // 2 :, : out_w // 2] = bottom_left_rlt[
+        ..., -out_h // 2 :, : out_w // 2
     ]
-    output_img[-out_h // 2 :, -out_w // 2 :, ...] = bottom_right_rlt[
-        -out_h // 2 :, -out_w // 2 :, ...
+    output_img[..., -out_h // 2 :, -out_w // 2 :] = bottom_right_rlt[
+        ..., -out_h // 2 :, -out_w // 2 :
     ]
 
     return output_img.copy(), depth

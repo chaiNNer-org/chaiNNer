@@ -1,5 +1,5 @@
 import os
-from typing import Any, OrderedDict
+from typing import Any
 
 import numpy as np
 import onnx
@@ -12,7 +12,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.onnx_auto_split import onnx_auto_split_process
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, np2nptensor, nptensor2np
 
 
 @NodeFactory.register("chainner:onnx:load_model")
@@ -67,30 +67,35 @@ class OnnxImageUpscaleNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Processing"
 
-    def upscale(self, img: np.ndarray, model: onnx.ModelProto):
-        with torch.no_grad():
-            logger.info("Upscaling image")
-            session = ort.InferenceSession(
-                model,
-                providers=[
-                    "CPUExecutionProvider"
-                    if os.environ["device"] == "cpu"
-                    else "CUDAExecutionProvider"
-                ],
-            )
-            out, _ = onnx_auto_split_process(img, session)
-            del session
-            logger.info("Done upscaling")
-            return out
+    def upscale(self, img: np.ndarray, session: ort.InferenceSession):
+        logger.info("Upscaling image")
+        is_fp16_model = session.get_inputs()[0].type == "tensor(float16)"
+        img = np2nptensor(img, change_range=False)
+        out, _ = onnx_auto_split_process(
+            img.astype(np.float16) if is_fp16_model else img, session
+        )
+        out = nptensor2np(out, change_range=False, imtype=np.float32)
+        del session
+        logger.info("Done upscaling")
+        return out
 
     def run(self, model: onnx.ModelProto, img: np.ndarray) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
 
-        # Assume in_nc is 3
-        in_nc = 3
+        session = ort.InferenceSession(
+            model.SerializeToString(),  # type: ignore
+            providers=[
+                "CPUExecutionProvider"
+                if os.environ["device"] == "cpu"
+                else "CUDAExecutionProvider"
+            ],
+        )
+        in_nc = session.get_inputs()[0].shape[1]
+
         _, _, c = get_h_w_c(img)
+        logger.info(f"Image has {c} channels")
 
         # Ensure correct amount of image channels for the model.
         # The frontend should type-validate this enough where it shouldn't be needed,
@@ -102,7 +107,7 @@ class OnnxImageUpscaleNode(NodeBase):
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(img[:, :, :3], model)  # type: ignore
+                output = self.upscale(img[:, :, :3], session)  # type: ignore
                 output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
             else:
                 img1 = np.copy(img[:, :, :3])
@@ -111,8 +116,8 @@ class OnnxImageUpscaleNode(NodeBase):
                     img1[:, :, c] *= img[:, :, 3]
                     img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
-                output1 = self.upscale(img1, model)  # type: ignore
-                output2 = self.upscale(img2, model)  # type: ignore
+                output1 = self.upscale(img1, session)  # type: ignore
+                output2 = self.upscale(img2, session)  # type: ignore
                 alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
@@ -131,7 +136,7 @@ class OnnxImageUpscaleNode(NodeBase):
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-            output = self.upscale(img, model)  # type: ignore
+            output = self.upscale(img, session)  # type: ignore
 
             if gray:
                 output = np.average(output, axis=2).astype("float32")
@@ -139,3 +144,27 @@ class OnnxImageUpscaleNode(NodeBase):
         output = np.clip(output, 0, 1)
 
         return output
+
+
+# TODO: No point of this node for now
+# @NodeFactory.register("chainner:onnx:save_model")
+# class OnnxSaveNode(NodeBase):
+#     """Model Save node"""
+
+#     def __init__(self):
+#         """Constructor"""
+#         super().__init__()
+#         self.description = "Save an ONNX model to specified directory."
+#         self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
+#         self.outputs = []
+
+#         self.category = ONNX
+#         self.name = "Save Model"
+#         self.icon = "MdSave"
+#         self.sub = "Input & Output"
+
+#     def run(self, model: onnx.ModelProto, directory: str, name: str) -> None:
+#         full_file = f"{name}.onnx"
+#         full_path = os.path.join(directory, full_file)
+#         logger.info(f"Writing model to path: {full_path}")
+#         onnx.save_model(model, full_path)

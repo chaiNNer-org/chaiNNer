@@ -20,7 +20,7 @@ from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .utils.pytorch_auto_split import auto_split_process
-from .utils.utils import np2tensor, tensor2np, get_h_w_c
+from .utils.utils import get_h_w_c, np2tensor, tensor2np
 
 
 def check_env():
@@ -446,17 +446,17 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX (for converting to NCNN).
-            Use convertmodel.com to convert to NCNN for now."""
+        self.description = """Convert a PyTorch model to ONNX.
+            Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
-        self.outputs = []
+        self.outputs = [OnnxFileOutput()]
 
         self.category = PYTORCH
         self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: torch.nn.Module, directory: str, model_name: str) -> None:
+    def run(self, model: torch.nn.Module, directory: str, model_name: str) -> str:
         model = model.eval()
         if os.environ["device"] == "cuda":
             model = model.cuda()
@@ -469,13 +469,17 @@ class ConvertTorchToONNXNode(NodeBase):
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
 
+        out_filepath = os.path.join(directory, f"{model_name}.onnx")
+
         torch.onnx.export(
             model,
             dummy_input,
-            os.path.join(directory, f"{model_name}.onnx"),
+            out_filepath,
             opset_version=14,
             verbose=False,
             input_names=["data"],
             output_names=["output"],
             dynamic_axes=dynamic_axes,
         )
+
+        return out_filepath

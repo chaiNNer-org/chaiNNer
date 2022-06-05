@@ -111,4 +111,4 @@ def ParamFileInput() -> FileInput:
 
 def OnnxFileInput() -> FileInput:
     """Input for submitting a local .onnx file"""
-    return FileInput("onnx", "ONNX Model File", [".onnx"])
+    return FileInput("onnx", "ONNX Model File", [".onnx"], has_handle=True)
