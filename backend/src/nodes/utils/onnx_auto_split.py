@@ -43,7 +43,7 @@ def onnx_auto_split_process(
                 gc.collect()
                 # pylint: disable=raise-missing-from
                 raise RuntimeError(
-                    "Upscaling stopped due to out of memory error. Try increasing the split factor."
+                    "Upscaling stopped due to an out of memory error. Try setting a tile size, or using a smaller one if already set."
                 )
             else:
                 # Re-raise the exception if not an OOM error

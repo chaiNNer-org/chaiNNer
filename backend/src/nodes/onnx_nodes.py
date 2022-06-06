@@ -73,11 +73,12 @@ class OnnxImageUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales an image using an ONNX Super-Resolution model. \
             ONNX does not support automatic out-of-memory handling via automatic tiling. \
-            Therefore, you must set a split factor yourself. If you get an out-of-memory error, increase this number by 1."
+            Therefore, you must set a tile size target yourself. If you get an out-of-memory error, try decreasing this number by a large amount. \
+            Setting it to 0 will disable tiling."
         self.inputs = [
             OnnxModelInput(),
             ImageInput(),
-            NumberInput("Split Factor", default=1, minimum=1, maximum=10),
+            NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
         ]
         self.outputs = [ImageOutput("Upscaled Image")]
 
@@ -103,7 +104,7 @@ class OnnxImageUpscaleNode(NodeBase):
         return out
 
     def run(
-        self, session: ort.InferenceSession, img: np.ndarray, split_factor: int
+        self, session: ort.InferenceSession, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
@@ -111,12 +112,21 @@ class OnnxImageUpscaleNode(NodeBase):
 
         in_nc = session.get_inputs()[0].shape[1]
 
-        _, _, c = get_h_w_c(img)
-        logger.info(f"Image has {c} channels")
+        h, w, c = get_h_w_c(img)
+        logger.debug(f"Image is {h}x{w}x{c}")
+
+        if tile_size_target > 0:
+            # Calculate split factor using a tile size target
+            # Example: w == 1280, tile_size_target == 512
+            # 1280 / 512 = 2.5, ceil makes that 3, so split_factor == 3
+            # This effectively makes the tile size for the image 426
+            w_split_factor = int(np.ceil(w / tile_size_target))
+            h_split_factor = int(np.ceil(h / tile_size_target))
+            split_factor = max(w_split_factor, h_split_factor, 1)
+        else:
+            split_factor = 1
 
         # Ensure correct amount of image channels for the model.
-        # The frontend should type-validate this enough where it shouldn't be needed,
-        # But I want to be extra safe
 
         # Transparency hack (white/black background difference alpha)
         if in_nc == 3 and c == 4:
