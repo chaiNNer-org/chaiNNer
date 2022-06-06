@@ -23,7 +23,7 @@ Download the latest release from the [Github releases page](https://github.com/j
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
-If you do wish to use your system Python installation still, you will need to turn the system Python setting on, and make sure you have a version between 3.8 and 3.10. However, it is much more recommended to use the integrated Python.
+If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use the integrated Python. If you do wish to use your system Python, make sure the Python version you are using is either 3.8 or 3.9. 3.10 also should work for the most part, but it is not fully supported at this time.
 
 ## How To Use
 
@@ -45,6 +45,8 @@ For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvi
 
 If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch model to ONNX, and then convert that to NCNN (via convertmodel.com). Conversion straight from PyTorch to NCNN may come in the future, however I currently have no easy way of doing this.
 
+For Nvidia GPUs, ONNX is also an option to be used. ONNX will use CPU mode on non-Nvidia GPUs, similar to PyTorch.
+
 ## Model Architecture Support
 
 chaiNNer currently supports a limited amount of neural network architectures. More architectures will be supported in the future.
@@ -59,6 +61,10 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 ### NCNN
 
 - Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
+
+### ONNX
+
+- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
 
 ## Planned Features
 
