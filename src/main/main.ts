@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import { app, BrowserWindow, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
 import { LocalStorage } from 'node-localstorage';
@@ -15,7 +15,7 @@ import { requiredDependencies } from '../common/dependencies';
 import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
-import { SaveFile, openSaveFile } from '../common/SaveFile';
+import { openSaveFile, SaveFile } from '../common/SaveFile';
 import { checkFileExists } from '../common/util';
 import { getArguments } from './arguments';
 import { setMainMenu } from './menu';
@@ -337,7 +337,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
         if (pending.length > 0) {
             log.info(`Installing ${pending.length} missing dependencies...`);
             splashWindow.webContents.send('installing-deps');
-            await runPipInstall(pending, undefined, undefined, true);
+            await runPipInstall(pending, undefined, undefined);
         }
     } catch (error) {
         log.error(error);

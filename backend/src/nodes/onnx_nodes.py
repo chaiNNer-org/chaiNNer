@@ -165,23 +165,23 @@ class OnnxImageUpscaleNode(NodeBase):
 
 # TODO: No point of this node for now
 # @NodeFactory.register("chainner:onnx:save_model")
-# class OnnxSaveNode(NodeBase):
-#     """Model Save node"""
+class OnnxSaveNode(NodeBase):
+    """Model Save node"""
 
-#     def __init__(self):
-#         """Constructor"""
-#         super().__init__()
-#         self.description = "Save an ONNX model to specified directory."
-#         self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
-#         self.outputs = []
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Save an ONNX model to specified directory."
+        self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.outputs = []
 
-#         self.category = ONNX
-#         self.name = "Save Model"
-#         self.icon = "MdSave"
-#         self.sub = "Input & Output"
+        self.category = ONNX
+        self.name = "Save Model"
+        self.icon = "MdSave"
+        self.sub = "Input & Output"
 
-#     def run(self, model: onnx.ModelProto, directory: str, name: str) -> None:
-#         full_file = f"{name}.onnx"
-#         full_path = os.path.join(directory, full_file)
-#         logger.info(f"Writing model to path: {full_path}")
-#         onnx.save_model(model, full_path)
+    def run(self, model: onnx.ModelProto, directory: str, name: str) -> None:
+        full_file = f"{name}.onnx"
+        full_path = os.path.join(directory, full_file)
+        logger.info(f"Writing model to path: {full_path}")
+        onnx.save_model(model, full_path)

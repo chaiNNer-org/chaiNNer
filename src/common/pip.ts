@@ -70,21 +70,19 @@ export const runPipList = async (onStdio?: OnStdio): Promise<PipList> => {
 export const runPipInstall = async (
     dependencies: readonly Dependency[],
     onProgress?: (percentage: number) => void,
-    onStdio?: OnStdio,
-    noProgress = false
+    onStdio?: OnStdio
 ): Promise<void> => {
     onProgress?.(0);
-    if (noProgress) {
+    if (onProgress === undefined) {
         // TODO: implement progress via this method (if possible)
         const deps = dependencies
             .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
             .flat();
         await runPip(['install', '--upgrade', ...deps], onStdio);
     } else {
+        const { python } = await getPythonInfo();
         for (const dep of dependencies) {
             for (const pkg of dep.packages) {
-                // eslint-disable-next-line no-await-in-loop
-                const { python } = await getPythonInfo();
                 // eslint-disable-next-line no-await-in-loop
                 await pipInstallWithProgress(python, pkg, onProgress, onStdio);
             }

@@ -188,17 +188,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     }, [shellOutput]);
 
     const availableUpdates = useMemo(() => {
-        return availableDeps.filter(
-            ({ packages }) =>
-                packages.filter(({ packageName, version }) => {
-                    if (!pipList) {
-                        return false;
-                    }
-                    if (!pipList[packageName]) {
-                        return true;
-                    }
-                    return !checkSemver(version, pipList[packageName]);
-                }).length
+        return availableDeps.filter(({ packages }) =>
+            packages.some(({ packageName, version }) => {
+                if (!pipList) {
+                    return false;
+                }
+                if (!pipList[packageName]) {
+                    return true;
+                }
+                return !checkSemver(version, pipList[packageName]);
+            })
         ).length;
     }, [pipList, availableDeps]);
 
