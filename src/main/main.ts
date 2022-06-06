@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
 import { LocalStorage } from 'node-localstorage';
@@ -15,7 +15,7 @@ import { requiredDependencies } from '../common/dependencies';
 import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
-import { openSaveFile, SaveFile } from '../common/SaveFile';
+import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists } from '../common/util';
 import { getArguments } from './arguments';
 import { setMainMenu } from './menu';
