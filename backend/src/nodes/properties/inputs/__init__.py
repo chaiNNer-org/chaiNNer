@@ -5,4 +5,5 @@ from .generic_inputs import *
 from .ncnn_inputs import *
 from .numeric_inputs import *
 from .numpy_inputs import *
+from .onnx_inputs import *
 from .pytorch_inputs import *

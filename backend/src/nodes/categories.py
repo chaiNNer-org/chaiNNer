@@ -9,6 +9,9 @@ IMAGE_CHANNEL = "Image (Channels)"
 # PyTorch
 PYTORCH = "PyTorch"
 
+# ONNX
+ONNX = "ONNX"
+
 # NCNN
 NCNN = "NCNN"
 
@@ -23,6 +26,7 @@ category_order = [
     IMAGE_UTILITY,
     IMAGE_CHANNEL,
     PYTORCH,
+    ONNX,
     NCNN,
     UTILITY,
 ]

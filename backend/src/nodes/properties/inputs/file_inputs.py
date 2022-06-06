@@ -107,3 +107,8 @@ def BinFileInput() -> FileInput:
 def ParamFileInput() -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput("param", "NCNN Param File", [".param"])
+
+
+def OnnxFileInput() -> FileInput:
+    """Input for submitting a local .onnx file"""
+    return FileInput("onnx", "ONNX Model File", [".onnx"], has_handle=True)

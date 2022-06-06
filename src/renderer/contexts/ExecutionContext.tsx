@@ -271,8 +271,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     unAnimateEdges();
                     setStatus(ExecutionStatus.READY);
                 }
-            } catch (err) {
-                sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+            } catch (err: unknown) {
+                sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
                 unAnimateEdges();
                 setStatus(ExecutionStatus.READY);
             }
