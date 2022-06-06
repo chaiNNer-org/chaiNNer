@@ -337,7 +337,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
         if (pending.length > 0) {
             log.info(`Installing ${pending.length} missing dependencies...`);
             splashWindow.webContents.send('installing-deps');
-            await runPipInstall(pending, undefined, undefined);
+            await runPipInstall(pending);
         }
     } catch (error) {
         log.error(error);
