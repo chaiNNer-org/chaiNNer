@@ -37,7 +37,7 @@ class NumberInput(BaseInput):
         step: Union[float, int] = 1,
         controls_step: Union[float, int, None] = None,
         default: Union[float, int] = 0,
-        minimum: Union[float, int] = 0,
+        minimum: Union[float, int, None] = 0,
         maximum: Union[float, int, None] = None,
         unit: Union[str, None] = None,
         number_type: str = "any",
