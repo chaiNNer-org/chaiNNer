@@ -52,8 +52,8 @@ class ImResizeByFactorNode(NodeBase):
 
         h, w, _ = get_h_w_c(img)
         out_dims = (
-            max(math.ceil(w * (scale / 100)), 1),
-            max(math.ceil(h * (scale / 100)), 1),
+            max(round(w * (scale / 100)), 1),
+            max(round(h * (scale / 100)), 1),
         )
 
         return resize(img, out_dims, interpolation)
