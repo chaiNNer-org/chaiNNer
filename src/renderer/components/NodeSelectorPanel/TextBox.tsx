@@ -6,50 +6,56 @@ export interface TextBoxProps {
     collapsed?: boolean;
     toolTip?: React.ReactNode;
     onClick?: MouseEventHandler<HTMLDivElement>;
+    height?: string;
+    noWrap?: boolean;
 }
 
-export const TextBox = memo(({ text, collapsed, toolTip, onClick }: TextBoxProps) => {
-    const interactive = !!onClick;
+export const TextBox = memo(
+    ({ text, collapsed, toolTip, onClick, height, noWrap = false }: TextBoxProps) => {
+        const interactive = !!onClick;
 
-    return (
-        <Center
-            m={0}
-            px={0}
-            textOverflow="ellipsis"
-            w="full"
-        >
-            <Tooltip
-                closeOnMouseDown
-                hasArrow
-                borderRadius={8}
-                label={toolTip}
-                px={2}
-                py={1}
+        return (
+            <Center
+                m={0}
+                px={0}
+                textOverflow="ellipsis"
+                w="full"
             >
-                <Box
-                    _hover={interactive ? { backgroundColor: 'gray.600' } : undefined}
-                    bg={useColorModeValue('gray.200', 'gray.700')}
-                    borderRadius={10}
-                    cursor={interactive ? 'pointer' : undefined}
-                    p={2}
-                    sx={
-                        interactive
-                            ? { cursor: 'pointer !important', transition: '0.15s ease-in-out' }
-                            : undefined
-                    }
-                    w="full"
-                    onClick={onClick}
+                <Tooltip
+                    closeOnMouseDown
+                    hasArrow
+                    borderRadius={8}
+                    label={toolTip}
+                    px={2}
+                    py={1}
                 >
-                    <Text
-                        cursor="inherit"
-                        fontSize="sm"
-                        fontWeight="bold"
-                        textAlign="center"
+                    <Box
+                        _hover={interactive ? { backgroundColor: 'gray.600' } : undefined}
+                        bg={useColorModeValue('gray.200', 'gray.700')}
+                        borderRadius={10}
+                        cursor={interactive ? 'pointer' : undefined}
+                        p={2}
+                        sx={
+                            interactive
+                                ? { cursor: 'pointer !important', transition: '0.15s ease-in-out' }
+                                : undefined
+                        }
+                        w="full"
+                        onClick={onClick}
                     >
-                        {collapsed ? '…' : text}
-                    </Text>
-                </Box>
-            </Tooltip>
-        </Center>
-    );
-});
+                        <Text
+                            cursor="inherit"
+                            fontSize="sm"
+                            fontWeight="bold"
+                            height={height}
+                            textAlign="center"
+                            whiteSpace={noWrap ? 'nowrap' : 'inherit'}
+                        >
+                            {collapsed ? '…' : text}
+                        </Text>
+                    </Box>
+                </Tooltip>
+            </Center>
+        );
+    }
+);

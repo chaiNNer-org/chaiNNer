@@ -925,6 +925,37 @@ Object {
 }
 `;
 
+exports[`Read save file image-metrics.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+        "inputData": Object {},
+        "schemaId": "chainner:image:image_metrics",
+      },
+      "height": 295,
+      "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+      "position": Object {
+        "x": 624,
+        "y": 560,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-utilities.chn 1`] = `
 Object {
   "edges": Array [
@@ -2551,6 +2582,42 @@ Object {
         "type": "iteratorHelper",
         "width": 264,
         "zIndex": 80,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "migration": 8,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file image-metrics.chn 1`] = `
+Object {
+  "checksum": "b32ee40fefb7b627c825ae653b232c0a",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+          "inputData": Object {},
+          "schemaId": "chainner:image:image_metrics",
+        },
+        "height": 295,
+        "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+        "position": Object {
+          "x": 624,
+          "y": 560,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
+        "zIndex": 70,
       },
     ],
     "viewport": Object {

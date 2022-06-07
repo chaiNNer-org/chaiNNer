@@ -126,7 +126,7 @@ class MedianBlurNode(NodeBase):
         self,
         img: np.ndarray,
         amount: int,
-    ):
+    ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
         if amount == 0:
