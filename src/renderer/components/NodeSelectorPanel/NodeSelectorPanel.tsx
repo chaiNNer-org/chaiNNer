@@ -19,6 +19,7 @@ import {
     Tabs,
     useColorModeValue,
 } from '@chakra-ui/react';
+import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
@@ -136,131 +137,138 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
-                w={collapsed ? '84px' : '300px'} // TODO: Figure out how to make this auto resize to this size
+                overflowX="hidden"
             >
-                <Tabs
-                    isFitted
-                    h="100%"
-                    w="100%"
+                <motion.div
+                    animate={{ width: collapsed ? '74px' : '300px' }}
+                    initial={false}
+                    transition={{ ease: 'easeInOut', duration: 0.25 }}
                 >
-                    <TabList h="42px">
-                        {!collapsed && (
-                            <>
-                                <Tab>Nodes</Tab>
-                                <Tab isDisabled>Presets</Tab>
-                            </>
-                        )}
-                    </TabList>
-                    <TabPanels>
-                        <TabPanel
-                            m={0}
-                            p={0}
-                        >
-                            <InputGroup borderRadius={0}>
-                                <InputLeftElement
-                                    color={useColorModeValue('gray.500', 'gray.300')}
-                                    pointerEvents="none"
-                                >
-                                    <SearchIcon />
-                                </InputLeftElement>
-                                <Input
-                                    borderRadius={0}
-                                    disabled={collapsed}
-                                    placeholder="Search..."
-                                    spellCheck={false}
-                                    type="text"
-                                    value={searchQuery}
-                                    variant="filled"
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <InputRightElement
-                                    _hover={{ color: useColorModeValue('black', 'white') }}
-                                    style={{
-                                        color: useColorModeValue('gray.500', 'gray.300'),
-                                        cursor: 'pointer',
-                                        display: searchQuery ? undefined : 'none',
-                                        fontSize: '66%',
-                                    }}
-                                    onClick={() => setSearchQuery('')}
-                                >
-                                    <CloseIcon />
-                                </InputRightElement>
-                            </InputGroup>
-                            <Box
-                                h={height - 165}
-                                overflowY="scroll"
+                    <Tabs
+                        isFitted
+                        h="100%"
+                        w="100%"
+                    >
+                        <TabList h="42px">
+                            {!collapsed && (
+                                <>
+                                    <Tab>Nodes</Tab>
+                                    <Tab isDisabled>Presets</Tab>
+                                </>
+                            )}
+                        </TabList>
+                        <TabPanels>
+                            <TabPanel
+                                m={0}
+                                p={0}
                             >
-                                {showCollapseButtons && (
-                                    <Center>
-                                        <Button
-                                            _hover={{
-                                                bg: useColorModeValue('gray.400', 'gray.600'),
-                                            }}
-                                            aria-label="Collapse/Expand Categories"
-                                            bg={useColorModeValue('gray.300', 'gray.700')}
-                                            borderRadius="0px 0px 8px 8px"
-                                            h="0.5rem"
-                                            position="absolute"
-                                            top="155px"
-                                            w={collapsed ? 'auto' : '100px'}
-                                            onClick={toggleAccordion}
-                                        >
-                                            <Icon
-                                                h="14px"
-                                                pt="2px"
-                                                w="20px"
-                                            >
-                                                {accordionIsCollapsed ? (
-                                                    <BsCaretDownFill />
-                                                ) : (
-                                                    <BsCaretUpFill />
-                                                )}
-                                            </Icon>
-                                        </Button>
-                                    </Center>
-                                )}
-                                <Accordion
-                                    allowMultiple
-                                    defaultIndex={defaultIndex}
-                                    index={accordionIndex}
-                                    onChange={(event) => setAccordionIndex(event)}
-                                >
-                                    <FavoritesAccordionItem
-                                        collapsed={collapsed}
-                                        favoriteNodes={favoriteNodes}
-                                        noFavorites={favorites.size === 0}
+                                <InputGroup borderRadius={0}>
+                                    <InputLeftElement
+                                        color={useColorModeValue('gray.500', 'gray.300')}
+                                        pointerEvents="none"
+                                    >
+                                        <SearchIcon />
+                                    </InputLeftElement>
+                                    <Input
+                                        borderRadius={0}
+                                        disabled={collapsed}
+                                        placeholder="Search..."
+                                        spellCheck={false}
+                                        type="text"
+                                        value={searchQuery}
+                                        variant="filled"
+                                        onChange={(e) => setSearchQuery(e.target.value)}
                                     />
-                                    {[...byCategories].map(([category, categoryNodes]) => {
-                                        const subcategoryMap = getSubcategories(categoryNodes);
+                                    <InputRightElement
+                                        _hover={{ color: useColorModeValue('black', 'white') }}
+                                        style={{
+                                            color: useColorModeValue('gray.500', 'gray.300'),
+                                            cursor: 'pointer',
+                                            display: searchQuery ? undefined : 'none',
+                                            fontSize: '66%',
+                                        }}
+                                        onClick={() => setSearchQuery('')}
+                                    >
+                                        <CloseIcon />
+                                    </InputRightElement>
+                                </InputGroup>
+                                <Box
+                                    h={height - 165}
+                                    overflowX="hidden"
+                                    overflowY="scroll"
+                                >
+                                    {showCollapseButtons && (
+                                        <Center>
+                                            <Button
+                                                _hover={{
+                                                    bg: useColorModeValue('gray.400', 'gray.600'),
+                                                }}
+                                                aria-label="Collapse/Expand Categories"
+                                                bg={useColorModeValue('gray.300', 'gray.700')}
+                                                borderRadius="0px 0px 8px 8px"
+                                                h="0.5rem"
+                                                position="absolute"
+                                                top="155px"
+                                                w={collapsed ? 'auto' : '100px'}
+                                                onClick={toggleAccordion}
+                                            >
+                                                <Icon
+                                                    h="14px"
+                                                    pt="2px"
+                                                    w="20px"
+                                                >
+                                                    {accordionIsCollapsed ? (
+                                                        <BsCaretDownFill />
+                                                    ) : (
+                                                        <BsCaretUpFill />
+                                                    )}
+                                                </Icon>
+                                            </Button>
+                                        </Center>
+                                    )}
+                                    <Accordion
+                                        allowMultiple
+                                        defaultIndex={defaultIndex}
+                                        index={accordionIndex}
+                                        onChange={(event) => setAccordionIndex(event)}
+                                    >
+                                        <FavoritesAccordionItem
+                                            collapsed={collapsed}
+                                            favoriteNodes={favoriteNodes}
+                                            noFavorites={favorites.size === 0}
+                                        />
+                                        {[...byCategories].map(([category, categoryNodes]) => {
+                                            const subcategoryMap = getSubcategories(categoryNodes);
 
-                                        return (
-                                            <RegularAccordionItem
-                                                category={category}
-                                                collapsed={collapsed}
-                                                key={category}
-                                                subcategoryMap={subcategoryMap}
-                                            />
-                                        );
-                                    })}
-                                    <AccordionItem>
-                                        <Box p={4}>
-                                            <TextBox
-                                                collapsed={collapsed}
-                                                text="Missing nodes? Click to open the dependency manager!"
-                                                toolTip={
-                                                    collapsed
-                                                        ? 'Missing nodes? Click to open the dependency manager!'
-                                                        : ''
-                                                }
-                                                onClick={openDependencyManager}
-                                            />
-                                        </Box>
-                                    </AccordionItem>
-                                </Accordion>
-                            </Box>
-                        </TabPanel>
-                    </TabPanels>
-                </Tabs>
+                                            return (
+                                                <RegularAccordionItem
+                                                    category={category}
+                                                    collapsed={collapsed}
+                                                    key={category}
+                                                    subcategoryMap={subcategoryMap}
+                                                />
+                                            );
+                                        })}
+                                        <AccordionItem>
+                                            <Box p={4}>
+                                                <TextBox
+                                                    collapsed={collapsed}
+                                                    text="Missing nodes? Click to open the dependency manager!"
+                                                    toolTip={
+                                                        collapsed
+                                                            ? 'Missing nodes? Click to open the dependency manager!'
+                                                            : ''
+                                                    }
+                                                    onClick={openDependencyManager}
+                                                />
+                                            </Box>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </Box>
+                            </TabPanel>
+                        </TabPanels>
+                    </Tabs>
+                </motion.div>
             </Box>
             {showCollapseButtons && (
                 <Button

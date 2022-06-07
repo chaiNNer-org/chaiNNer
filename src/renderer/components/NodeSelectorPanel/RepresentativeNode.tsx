@@ -62,6 +62,7 @@ const RepresentativeNode = memo(
                     borderRadius="8px 0 0 8px"
                     h="auto"
                     ml="5px"
+                    overflow="hidden"
                     py={0.5}
                     verticalAlign="middle"
                     w="full"
@@ -86,12 +87,14 @@ const RepresentativeNode = memo(
                             />
                         </Center>
                         {!collapsed && (
-                            <Flex w="full">
+                            <Flex
+                                overflow="hidden"
+                                w="300px"
+                            >
                                 <Box
                                     overflow="hidden"
                                     textOverflow="ellipsis"
                                     verticalAlign="middle"
-                                    // w="full"
                                 >
                                     <Heading
                                         alignContent="center"
@@ -105,7 +108,7 @@ const RepresentativeNode = memo(
                                         p={0}
                                         size="xs"
                                         textAlign="left"
-                                        textOverflow="ellipsis"
+                                        textOverflow="hidden"
                                         verticalAlign="middle"
                                         whiteSpace="nowrap"
                                     >
@@ -114,6 +117,7 @@ const RepresentativeNode = memo(
                                 </Box>
                                 <Spacer />
                                 <HStack
+                                    overflow="hidden"
                                     px={2}
                                     verticalAlign="middle"
                                     w="fit-content"
@@ -127,6 +131,7 @@ const RepresentativeNode = memo(
                                         aria-label="Favorites"
                                         color={isFavorite ? 'gray.500' : bgColor}
                                         opacity={isFavorite || hover ? '100%' : '0%'}
+                                        overflow="hidden"
                                         stroke="gray.500"
                                         strokeWidth={isFavorite ? 0 : 2}
                                         transition="0.15s ease-in-out"
