@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -12,7 +12,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import with_background
+from .utils.image_utils import alpha_overlay, calculate_ssim
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -113,9 +113,7 @@ class ImOverlay(NodeBase):
             y_offset = center_y - (h // 2)
 
             img[:, :, 3] = img[:, :, 3] * op
-            with_background(
-                img, imgout[y_offset : y_offset + h, x_offset : x_offset + w]
-            )
+            alpha_overlay(img, imgout[y_offset : y_offset + h, x_offset : x_offset + w])
             imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
 
         imgout = np.clip(imgout, 0, 1)
@@ -220,7 +218,7 @@ class StackNode(NodeBase):
                 ), "The image types are not the same and could not be auto-fixed"
             img = cv2.vconcat(fixed_imgs)  # type: ignore
 
-        return img
+        return img  # type: ignore
 
 
 @NodeFactory.register("chainner:image:caption")
@@ -433,3 +431,48 @@ class FlipNode(NodeBase):
 
     def run(self, img: np.ndarray, axis: int) -> np.ndarray:
         return cv2.flip(img, axis)
+
+
+@NodeFactory.register("chainner:image:image_metrics")
+class ImageMetricsNode(NodeBase):
+    """Calculate image quality metrics of modified image."""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            """Calculate image quality metrics (MSE, PSNR, SSIM) between two images."""
+        )
+        self.inputs = [
+            ImageInput("Original Image"),
+            ImageInput("Comparison Image"),
+        ]
+        self.outputs = [
+            TextOutput("MSE"),
+            TextOutput("PSNR"),
+            TextOutput("SSIM"),
+        ]
+        self.category = IMAGE_UTILITY
+        self.name = "Image Metrics"
+        self.icon = "MdOutlineAssessment"
+        self.sub = "Miscellaneous"
+
+    def run(self, orig_img: np.ndarray, comp_img: np.ndarray) -> Tuple[str, str, str]:
+        """Compute MSE, PSNR, and SSIM"""
+
+        assert (
+            orig_img.shape == comp_img.shape
+        ), "Images must have same dimensions and color depth"
+
+        # If an image is not grayscale, convert to YCrCb and compute metrics
+        # on luma channel only
+        c = get_h_w_c(orig_img)[2]
+        if c > 1:
+            orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
+            comp_img = cv2.cvtColor(comp_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
+
+        mse = round(np.mean((comp_img - orig_img) ** 2), 6)  # type: ignore
+        psnr = round(10 * math.log(1 / mse), 6)
+        ssim = round(calculate_ssim(comp_img, orig_img), 6)
+
+        return (str(mse), str(psnr), str(ssim))
