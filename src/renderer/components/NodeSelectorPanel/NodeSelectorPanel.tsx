@@ -127,8 +127,8 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
     return (
         <HStack
             h="full"
-            mr={showCollapseButtons ? -4 : -2}
-            pr={showCollapseButtons ? 0 : 2}
+            mr={-5}
+            pr={0}
             onMouseEnter={() => setShowCollapseButtons(true)}
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
@@ -197,35 +197,36 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                     overflowX="hidden"
                                     overflowY="scroll"
                                 >
-                                    {showCollapseButtons && (
-                                        <Center>
-                                            <Button
-                                                _hover={{
-                                                    bg: useColorModeValue('gray.400', 'gray.600'),
-                                                }}
-                                                aria-label="Collapse/Expand Categories"
-                                                bg={useColorModeValue('gray.300', 'gray.700')}
-                                                borderRadius="0px 0px 8px 8px"
-                                                h="0.5rem"
-                                                position="absolute"
-                                                top="155px"
-                                                w={collapsed ? 'auto' : '100px'}
-                                                onClick={toggleAccordion}
+                                    <Center>
+                                        <Button
+                                            _hover={{
+                                                bg: useColorModeValue('gray.400', 'gray.600'),
+                                                opacity: 1,
+                                            }}
+                                            aria-label="Collapse/Expand Categories"
+                                            bg={useColorModeValue('gray.300', 'gray.700')}
+                                            borderRadius="0px 0px 8px 8px"
+                                            h="0.5rem"
+                                            opacity={showCollapseButtons ? 0.75 : 0}
+                                            position="absolute"
+                                            top="154px"
+                                            w={collapsed ? 'auto' : '100px'}
+                                            zIndex={999}
+                                            onClick={toggleAccordion}
+                                        >
+                                            <Icon
+                                                h="14px"
+                                                pt="2px"
+                                                w="20px"
                                             >
-                                                <Icon
-                                                    h="14px"
-                                                    pt="2px"
-                                                    w="20px"
-                                                >
-                                                    {accordionIsCollapsed ? (
-                                                        <BsCaretDownFill />
-                                                    ) : (
-                                                        <BsCaretUpFill />
-                                                    )}
-                                                </Icon>
-                                            </Button>
-                                        </Center>
-                                    )}
+                                                {accordionIsCollapsed ? (
+                                                    <BsCaretDownFill />
+                                                ) : (
+                                                    <BsCaretUpFill />
+                                                )}
+                                            </Icon>
+                                        </Button>
+                                    </Center>
                                     <Accordion
                                         allowMultiple
                                         defaultIndex={defaultIndex}
@@ -270,31 +271,32 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                     </Tabs>
                 </motion.div>
             </Box>
-            {showCollapseButtons && (
-                <Button
-                    _hover={{
-                        bg: useColorModeValue('gray.400', 'gray.600'),
-                    }}
-                    aria-label="collapse"
-                    bg={useColorModeValue('gray.300', 'gray.700')}
-                    borderRadius={0}
-                    borderRightRadius="lg"
-                    h="100px"
-                    left={-2}
-                    position="relative"
-                    size="none"
-                    w="0.5rem"
-                    onClick={() => setCollapsed(!collapsed)}
+            <Button
+                _hover={{
+                    bg: useColorModeValue('gray.400', 'gray.600'),
+                    opacity: 1,
+                }}
+                aria-label="collapse"
+                bg={useColorModeValue('gray.300', 'gray.700')}
+                borderRadius={0}
+                borderRightRadius="xl"
+                h="100px"
+                left={-2}
+                opacity={showCollapseButtons ? 0.75 : 0}
+                position="relative"
+                size="none"
+                w="0.75rem"
+                zIndex={999}
+                onClick={() => setCollapsed(!collapsed)}
+            >
+                <Icon
+                    pl={1}
+                    pos="relative"
+                    top="2px"
                 >
-                    <Icon
-                        pl={1}
-                        pos="relative"
-                        top="2px"
-                    >
-                        {collapsed ? <BsCaretRightFill /> : <BsCaretLeftFill />}
-                    </Icon>
-                </Button>
-            )}
+                    {collapsed ? <BsCaretRightFill /> : <BsCaretLeftFill />}
+                </Icon>
+            </Button>
         </HStack>
     );
 });
