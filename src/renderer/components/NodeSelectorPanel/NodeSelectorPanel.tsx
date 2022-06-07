@@ -197,78 +197,49 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                     overflowX="hidden"
                                     overflowY="scroll"
                                 >
-                                    <SearchIcon />
-                                </InputLeftElement>
-                                <Input
-                                    borderRadius={0}
-                                    disabled={collapsed}
-                                    placeholder="Search..."
-                                    spellCheck={false}
-                                    type="text"
-                                    value={searchQuery}
-                                    variant="filled"
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <InputRightElement
-                                    _hover={{ color: useColorModeValue('black', 'white') }}
-                                    style={{
-                                        color: useColorModeValue('gray.500', 'gray.300'),
-                                        cursor: 'pointer',
-                                        display: searchQuery ? undefined : 'none',
-                                        fontSize: '66%',
-                                    }}
-                                    onClick={() => setSearchQuery('')}
-                                >
-                                    <CloseIcon />
-                                </InputRightElement>
-                            </InputGroup>
-                            <Box
-                                h={height - 165}
-                                overflowY="scroll"
-                            >
-                                <Center>
-                                    <Button
-                                        _hover={{
-                                            bg: useColorModeValue('gray.400', 'gray.600'),
-                                            opacity: 1,
-                                        }}
-                                        aria-label="Collapse/Expand Categories"
-                                        bg={useColorModeValue('gray.300', 'gray.700')}
-                                        borderRadius="0px 0px 8px 8px"
-                                        h="0.5rem"
-                                        opacity={showCollapseButtons ? 0.75 : 0}
-                                        position="absolute"
-                                        top="154px"
-                                        w={collapsed ? 'auto' : '100px'}
-                                        zIndex={999}
-                                        onClick={toggleAccordion}
-                                    >
-                                        <Icon
-                                            h="14px"
-                                            pt="2px"
-                                            w="20px"
+                                    <Center>
+                                        <Button
+                                            _hover={{
+                                                bg: useColorModeValue('gray.400', 'gray.600'),
+                                                opacity: 1,
+                                            }}
+                                            aria-label="Collapse/Expand Categories"
+                                            bg={useColorModeValue('gray.300', 'gray.700')}
+                                            borderRadius="0px 0px 8px 8px"
+                                            h="0.5rem"
+                                            opacity={showCollapseButtons ? 0.75 : 0}
+                                            position="absolute"
+                                            top="154px"
+                                            w={collapsed ? 'auto' : '100px'}
+                                            zIndex={999}
+                                            onClick={toggleAccordion}
                                         >
-                                            {accordionIsCollapsed ? (
-                                                <BsCaretDownFill />
-                                            ) : (
-                                                <BsCaretUpFill />
-                                            )}
-                                        </Icon>
-                                    </Button>
-                                </Center>
-                                <Accordion
-                                    allowMultiple
-                                    defaultIndex={defaultIndex}
-                                    index={accordionIndex}
-                                    onChange={(event) => setAccordionIndex(event)}
-                                >
-                                    <FavoritesAccordionItem
-                                        collapsed={collapsed}
-                                        favoriteNodes={favoriteNodes}
-                                        noFavorites={favorites.size === 0}
-                                    />
-                                    {[...byCategories].map(([category, categoryNodes]) => {
-                                        const subcategoryMap = getSubcategories(categoryNodes);
+                                            <Icon
+                                                h="14px"
+                                                pt="2px"
+                                                w="20px"
+                                            >
+                                                {accordionIsCollapsed ? (
+                                                    <BsCaretDownFill />
+                                                ) : (
+                                                    <BsCaretUpFill />
+                                                )}
+                                            </Icon>
+                                        </Button>
+                                    </Center>
+                                    <Accordion
+                                        allowMultiple
+                                        defaultIndex={defaultIndex}
+                                        index={accordionIndex}
+                                        onChange={(event) => setAccordionIndex(event)}
+                                    >
+                                        <FavoritesAccordionItem
+                                            collapsed={collapsed}
+                                            favoriteNodes={favoriteNodes}
+                                            noFavorites={favorites.size === 0}
+                                        />
+                                        {[...byCategories].map(([category, categoryNodes]) => {
+                                            const subcategoryMap = getSubcategories(categoryNodes);
 
                                             return (
                                                 <RegularAccordionItem
@@ -309,7 +280,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                 bg={useColorModeValue('gray.300', 'gray.700')}
                 borderRadius={0}
                 borderRightRadius="xl"
-                h="200px"
+                h="100px"
                 left={-2}
                 opacity={showCollapseButtons ? 0.75 : 0}
                 position="relative"
