@@ -137,6 +137,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
+                overflowX="hidden"
             >
                 <motion.div
                     animate={{ width: collapsed ? '74px' : '300px' }}
@@ -193,6 +194,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                 </InputGroup>
                                 <Box
                                     h={height - 165}
+                                    overflowX="hidden"
                                     overflowY="scroll"
                                 >
                                     {showCollapseButtons && (
