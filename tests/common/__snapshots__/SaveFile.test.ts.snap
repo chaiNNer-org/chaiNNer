@@ -1,5 +1,70 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Read save file box-median-blur.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e8a88e5a-6d1f-44a6-9e42-e5f1b633d564",
+      "source": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+      "sourceHandle": "13626da8-98e4-4fc6-91ef-6b0e8e875619-0",
+      "target": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+      "targetHandle": "e7c3d964-716d-43d7-83b9-83825c35a7e2-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+        "inputData": Object {
+          "1": 3,
+          "2": 7,
+        },
+        "schemaId": "chainner:image:blur",
+      },
+      "height": 339,
+      "id": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+      "position": Object {
+        "x": 480,
+        "y": 400,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 257,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+        "inputData": Object {
+          "1": 4,
+        },
+        "schemaId": "chainner:image:median_blur",
+      },
+      "height": 257,
+      "id": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+      "position": Object {
+        "x": 768,
+        "y": 400,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 257,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
   "edges": Array [],
@@ -594,10 +659,10 @@ Object {
       "data": Object {
         "id": "e4e3c71b-e309-459e-a16e-373ad3762cd8",
         "inputData": Object {
-          "1": 12,
-          "2": 6,
+          "1": 13.8,
+          "2": 6.8,
         },
-        "schemaId": "chainner:image:blur",
+        "schemaId": "chainner:image:gaussian_blur",
       },
       "height": 342,
       "id": "e4e3c71b-e309-459e-a16e-373ad3762cd8",
@@ -849,6 +914,37 @@ Object {
       "type": "iteratorHelper",
       "width": 264,
       "zIndex": 80,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
+exports[`Read save file image-metrics.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+        "inputData": Object {},
+        "schemaId": "chainner:image:image_metrics",
+      },
+      "height": 295,
+      "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+      "position": Object {
+        "x": 624,
+        "y": 560,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
     },
   ],
   "tamperedWith": false,
@@ -1540,6 +1636,76 @@ Object {
 }
 `;
 
+exports[`Write save file box-median-blur.chn 1`] = `
+Object {
+  "checksum": "cbc68bacb9e1af4e16846bb25502daa9",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "e8a88e5a-6d1f-44a6-9e42-e5f1b633d564",
+        "source": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+        "sourceHandle": "13626da8-98e4-4fc6-91ef-6b0e8e875619-0",
+        "target": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+        "targetHandle": "e7c3d964-716d-43d7-83b9-83825c35a7e2-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+          "inputData": Object {
+            "1": 3,
+            "2": 7,
+          },
+          "schemaId": "chainner:image:blur",
+        },
+        "height": 339,
+        "id": "13626da8-98e4-4fc6-91ef-6b0e8e875619",
+        "position": Object {
+          "x": 480,
+          "y": 400,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 257,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+          "inputData": Object {
+            "1": 4,
+          },
+          "schemaId": "chainner:image:median_blur",
+        },
+        "height": 257,
+        "id": "e7c3d964-716d-43d7-83b9-83825c35a7e2",
+        "position": Object {
+          "x": 768,
+          "y": 400,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 257,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "migration": 8,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
 exports[`Write save file image-adjustments.chn 1`] = `
 Object {
   "checksum": "5e390b4028ca1e3d9849869c97336359",
@@ -1637,7 +1803,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -1799,7 +1965,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -1941,7 +2107,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -1949,7 +2115,7 @@ Object {
 
 exports[`Write save file image-filters.chn 1`] = `
 Object {
-  "checksum": "5ed169a10b905849cd21cf0d08fd17d0",
+  "checksum": "69b73b0c2a788c86d3c4ae8933f5aee4",
   "content": Object {
     "edges": Array [
       Object {
@@ -2151,10 +2317,10 @@ Object {
         "data": Object {
           "id": "e4e3c71b-e309-459e-a16e-373ad3762cd8",
           "inputData": Object {
-            "1": 12,
-            "2": 6,
+            "1": 13.8,
+            "2": 6.8,
           },
-          "schemaId": "chainner:image:blur",
+          "schemaId": "chainner:image:gaussian_blur",
         },
         "height": 342,
         "id": "e4e3c71b-e309-459e-a16e-373ad3762cd8",
@@ -2174,7 +2340,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -2293,7 +2459,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -2424,7 +2590,43 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file image-metrics.chn 1`] = `
+Object {
+  "checksum": "b32ee40fefb7b627c825ae653b232c0a",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+          "inputData": Object {},
+          "schemaId": "chainner:image:image_metrics",
+        },
+        "height": 295,
+        "id": "0a3ed516-9505-462d-9ada-c409da4c4d67",
+        "position": Object {
+          "x": 624,
+          "y": 560,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -2716,7 +2918,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -2852,7 +3054,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -3042,7 +3244,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }
@@ -3124,7 +3326,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 7,
+  "migration": 8,
   "timestamp": "",
   "version": "",
 }

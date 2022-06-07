@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import gc
 from typing import Tuple, Union
 
@@ -107,6 +108,7 @@ def ncnn_auto_split_process(
         top_left,
         net,
         overlap=overlap,
+        max_depth=max_depth,
         current_depth=current_depth + 1,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,

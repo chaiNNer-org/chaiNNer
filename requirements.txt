@@ -1,8 +1,11 @@
 black
 ncnn_vulkan
 numpy
+onnx
+onnxruntime
 opencv-python
 Pillow
+protobuf==3.16.0
 pylint
 pyright==1.1.249
 pytest

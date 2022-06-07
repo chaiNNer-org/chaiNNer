@@ -328,9 +328,11 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
         const installedPackages = new Set(Object.keys(pipList));
 
         const pending = requiredDependencies.filter((dep) => {
-            if (installedPackages.has(dep.packageName)) return false;
-            log.info(`Dependency ${dep.name} (${dep.packageName}) not found.`);
-            return true;
+            return dep.packages.some((pkg) => {
+                if (installedPackages.has(pkg.packageName)) return false;
+                log.info(`Dependency ${dep.name} (${pkg.packageName}) not found.`);
+                return true;
+            });
         });
         if (pending.length > 0) {
             log.info(`Installing ${pending.length} missing dependencies...`);

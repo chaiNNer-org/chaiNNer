@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import math
+from math import ceil
 
 import cv2
 import numpy as np
@@ -25,31 +25,48 @@ class BlurNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Apply blur to an image"
+        self.description = "Apply box/average blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X"),
-            NumberInput("Amount Y"),
+            NumberInput("Amount X", step=0.1, controls_step=1),
+            NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
-        self.name = "Blur"
+        self.name = "Box Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
 
     def run(
         self,
         img: np.ndarray,
-        amount_x: int,
-        amount_y: int,
+        amount_x: float,
+        amount_y: float,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
-        # TODO: Fix this so it's not just a gaussian approximation
-        ksize = (amount_x, amount_y)
-        for _ in range(16):
-            img = cv2.blur(img, ksize)
 
-        return np.clip(img, 0, 1)
+        if amount_x == 0 and amount_y == 0:
+            return img
+
+        # Create kernel of dims h * w, rounded up to the closest odd integer
+        kernel = np.ones(
+            (ceil(amount_y) * 2 + 1, ceil(amount_x) * 2 + 1), np.float32
+        ) / ((2 * amount_y + 1) * (2 * amount_x + 1))
+
+        # Modify edges of kernel by fractional amount if kernel size (2r+1) is not odd integer
+        x_d = amount_x % 1
+        y_d = amount_y % 1
+        if y_d != 0:
+            kernel[0, :] *= y_d
+            kernel[-1, :] *= y_d
+        if x_d != 0:
+            kernel[:, 0] *= x_d
+            kernel[:, -1] *= x_d
+
+        # Linear filter with reflected padding
+        return np.clip(
+            cv2.filter2D(img, -1, kernel, borderType=cv2.BORDER_REFLECT_101), 0, 1
+        )
 
 
 @NodeFactory.register("chainner:image:gaussian_blur")
@@ -62,8 +79,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X"),
-            NumberInput("Amount Y"),
+            NumberInput("Amount X", step=0.1, controls_step=1),
+            NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_FILTER
@@ -77,11 +94,51 @@ class GaussianBlurNode(NodeBase):
         amount_x: float,
         amount_y: float,
     ) -> np.ndarray:
-        """Adjusts the sharpening of an image"""
+        """Adjusts the blur of an image"""
 
-        blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y)
+        if amount_x == 0 and amount_y == 0:
+            return img
+        else:
+            return np.clip(
+                cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y), 0, 1
+            )
 
-        return np.clip(blurred, 0, 1)
+
+@NodeFactory.register("chainner:image:median_blur")
+class MedianBlurNode(NodeBase):
+    """Median Blur Node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Apply median blur to an image"
+        self.inputs = [
+            ImageInput(),
+            NumberInput("Amount"),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_FILTER
+        self.name = "Median Blur"
+        self.icon = "MdBlurOn"
+        self.sub = "Blur/Sharpen"
+
+    def run(
+        self,
+        img: np.ndarray,
+        amount: int,
+    ) -> np.ndarray:
+        """Adjusts the blur of an image"""
+
+        if amount == 0:
+            return img
+        else:
+            if amount < 3:
+                blurred = cv2.medianBlur(img, 2 * amount + 1)
+            else:  # cv2 requires uint8 for kernel size (2r+1) > 5
+                img = (img * 255).astype("uint8")
+                blurred = cv2.medianBlur(img, 2 * amount + 1).astype("float32") / 255
+
+            return np.clip(blurred, 0, 1)
 
 
 @NodeFactory.register("chainner:image:sharpen")
@@ -153,8 +210,8 @@ class AverageColorFixNode(NodeBase):
             # Make sure reference image dims are not resized to 0
             h, w, _ = get_h_w_c(ref_img)
             out_dims = (
-                max(math.ceil(w * (scale_factor / 100)), 1),
-                max(math.ceil(h * (scale_factor / 100)), 1),
+                max(ceil(w * (scale_factor / 100)), 1),
+                max(ceil(h * (scale_factor / 100)), 1),
             )
 
             ref_img = cv2.resize(

@@ -57,12 +57,20 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
         os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
     )
     font = ImageFont.truetype(font_path, 32)
-    h, w, _ = get_h_w_c(img)
+    h, w, c = get_h_w_c(img)
     text_x = w // 2
     text_y = h - 21
+    font_color = (255,) * c
 
     d = ImageDraw.Draw(pimg)
-    d.text((text_x, text_y), caption, font=font, anchor="mm", align="center")
+    d.text(
+        (text_x, text_y),
+        caption,
+        font=font,
+        anchor="mm",
+        align="center",
+        fill=font_color,
+    )
 
     img = np.array(pimg)
 

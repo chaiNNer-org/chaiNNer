@@ -1,77 +1,52 @@
 from __future__ import annotations
 
 import gc
-import os
 from typing import Tuple, Union
 
-import torch
-from torch import Tensor
+import numpy as np
+import onnxruntime as ort
 
 
-def torch_center_crop(tensor, crop_x, crop_y):
-    x, y = tensor.size()[-2:]
-    start_x = x // 2 - (crop_x // 2)
-    start_y = y // 2 - (crop_y // 2)
-    return tensor[..., start_x : start_x + crop_x, start_y : start_y + crop_y]
-
-
-def torch_center_replace(tensor, crop_x, crop_y, replacement):
-    x, y = tensor.size()[-2:]
-    start_x = x // 2 - (crop_x // 2)
-    start_y = y // 2 - (crop_y // 2)
-    tensor[..., start_x : start_x + crop_x, start_y : start_y + crop_y] = replacement
-    return tensor
-
-
-@torch.inference_mode()
-def auto_split_process(
-    lr_img: Tensor,
-    model: torch.nn.Module,
-    scale: int = 4,
+# ONNX version of the 'auto_split_upscale' function
+def onnx_auto_split_process(
+    lr_img: np.ndarray,
+    session: ort.InferenceSession,
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
-) -> Tuple[Tensor, int]:
+) -> Tuple[np.ndarray, int]:
     """
-    Run PyTorch upscaling with automatic recursive tile splitting based on ability to process with current size
+    Run ONNX upscaling with automatic recursive tile splitting based on ability to process with current size
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
-    # if os.environ["killed"] == "True":
-    #     torch.cuda.empty_cache()
-    #     gc.collect()
-    #     raise RuntimeError("Upscaling killed mid-processing")
+    input_name = session.get_inputs()[0].name
+    output_name = session.get_outputs()[0].name
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
-        torch.cuda.empty_cache()
         gc.collect()
         raise RuntimeError("Splitting stopped to prevent infinite loop")
 
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
-        d_img = None
         try:
-            device = torch.device(os.environ["device"])
-            model = model.to(device)
-            d_img = lr_img.to(device)
-            if os.environ["isFp16"] == "True":
-                model = model.half()
-                d_img = d_img.half()
-            result = model(d_img)
-            result = result.detach().cpu()
-            del d_img
-            return result, current_depth
-        except RuntimeError as e:
-            # Check to see if its actually the CUDA out of memory error
-            if "allocate" in str(e) or "CUDA" in str(e):
-                # Collect garbage (clear VRAM)
-                torch.cuda.empty_cache()
+            output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
+            return output.copy(), current_depth
+        except Exception as e:
+            if "ONNXRuntimeError" in str(e) and (
+                "allocate memory" in str(e)
+                or "out of memory" in str(e)
+                or "cudaMalloc" in str(e)
+            ):
+                del session
                 gc.collect()
-                if d_img is not None:
-                    del d_img
-            # Re-raise the exception if not an OOM error
+                # pylint: disable=raise-missing-from
+                raise RuntimeError(
+                    "Upscaling stopped due to an out of memory error. Try setting a tile size, or using a smaller one if already set."
+                )
             else:
+                # Re-raise the exception if not an OOM error
                 raise
 
     b, c, h, w = lr_img.shape
@@ -84,47 +59,45 @@ def auto_split_process(
 
     # Recursively upscale the quadrants
     # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
-    top_left_rlt, depth = auto_split_process(
+    top_left_rlt, depth = onnx_auto_split_process(
         top_left,
-        model,
-        scale=scale,
+        session,
         overlap=overlap,
         max_depth=max_depth,
         current_depth=current_depth + 1,
     )
-    top_right_rlt, _ = auto_split_process(
+    top_right_rlt, _ = onnx_auto_split_process(
         top_right,
-        model,
-        scale=scale,
+        session,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
     )
-    bottom_left_rlt, _ = auto_split_process(
+    bottom_left_rlt, _ = onnx_auto_split_process(
         bottom_left,
-        model,
-        scale=scale,
+        session,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
     )
-    bottom_right_rlt, _ = auto_split_process(
+    bottom_right_rlt, _ = onnx_auto_split_process(
         bottom_right,
-        model,
-        scale=scale,
+        session,
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+
+    tl_h = top_left.shape[-2]
+    up_h = top_left_rlt.shape[-2]
+    scale = int(up_h / tl_h)
 
     # Define output shape
     out_h = h * scale
     out_w = w * scale
 
     # Create blank output image
-    output_img = torch.empty(
-        (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
-    )
+    output_img = np.zeros((b, c, out_h, out_w), dtype=lr_img.dtype)
 
     # Fill output image with tiles, cropping out the overlaps
     output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[
@@ -140,4 +113,4 @@ def auto_split_process(
         ..., -out_h // 2 :, -out_w // 2 :
     ]
 
-    return output_img, depth
+    return output_img.copy(), depth

@@ -1,4 +1,5 @@
 module.exports = {
+    root: true,
     parser: '@typescript-eslint/parser',
     extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
     plugins: [

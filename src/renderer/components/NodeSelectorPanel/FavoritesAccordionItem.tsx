@@ -61,7 +61,9 @@ const FavoritesAccordionItem = memo(
                             ))
                         ) : (
                             <TextBox
+                                noWrap
                                 collapsed={collapsed}
+                                height="1.5rem"
                                 text="No Favorites."
                                 toolTip={
                                     collapsed ? (

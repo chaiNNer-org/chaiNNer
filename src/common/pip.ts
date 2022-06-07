@@ -2,6 +2,7 @@
 import { spawn } from 'child_process';
 import log from 'electron-log';
 import { Dependency } from './dependencies';
+import pipInstallWithProgress from './pipInstallWithProgress';
 import { getPythonInfo } from './python';
 import { noop } from './util';
 
@@ -31,6 +32,7 @@ export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Pr
             stdout += str;
             onStdout(str);
         });
+
         child.stderr.on('data', (data) => {
             onStderr(String(data));
         });
@@ -71,19 +73,34 @@ export const runPipInstall = async (
     onStdio?: OnStdio
 ): Promise<void> => {
     onProgress?.(0);
-    // TODO: implement progress
-    await runPip(
-        ['install', '--upgrade', ...dependencies.map((d) => `${d.packageName}==${d.version}`)],
-        onStdio
-    );
+    if (onProgress === undefined) {
+        // TODO: implement progress via this method (if possible)
+        const deps = dependencies
+            .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
+            .flat();
+        await runPip(['install', '--upgrade', ...deps], onStdio);
+    } else {
+        const { python } = await getPythonInfo();
+        for (const dep of dependencies) {
+            for (const pkg of dep.packages) {
+                // eslint-disable-next-line no-await-in-loop
+                await pipInstallWithProgress(python, pkg, onProgress, onStdio);
+            }
+        }
+    }
     onProgress?.(100);
 };
 
 export const runPipUninstall = async (
-    packages: readonly string[],
+    dependencies: readonly Dependency[],
+    onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
 ): Promise<void> => {
-    await runPip(['uninstall', '-y', ...packages], onStdio);
+    onProgress?.(10);
+    const deps = dependencies.map((d) => d.packages.map((p) => p.packageName)).flat();
+    onProgress?.(25);
+    await runPip(['uninstall', '-y', ...deps], onStdio);
+    onProgress?.(100);
 };
 
 export const upgradePip = async (onStdio?: OnStdio) => {
