@@ -93,13 +93,13 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 9px;
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0);
 }
 
 ::-webkit-scrollbar-track {
-    border-radius: 8px;
+    border-radius: 11px;
     width: 8px;
 }
 
@@ -116,6 +116,7 @@ body {
 #menu-button-global-context-menu {
     pointer-events: none;
 }
-#menu-button-global-context-menu + div {
+
+#menu-button-global-context-menu+div {
     z-index: 100000;
 }
