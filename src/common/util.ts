@@ -67,3 +67,10 @@ export const debounce = (fn: () => void, delay: number): (() => void) => {
 };
 
 export const areApproximatelyEqual = (a: number, b: number): boolean => Math.abs(a - b) < 1e-12;
+
+export const removeAnsiEscapeCodes = (text: string): string =>
+    text.replace(
+        // eslint-disable-next-line no-control-regex
+        /\x1b(?:\$[\x28-\x2F].|[\x20-\x2F].|[A-Z\\^_|`{}~]|\[(?:\d*(?:;\d*)*[A-Za-z~]|[78]|[=?]\d+[hl])|\].*?(?:\x1b\\|\x07))/g,
+        ''
+    );

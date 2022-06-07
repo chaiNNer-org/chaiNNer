@@ -186,6 +186,7 @@
     "html-to-image": "^1.9.0",
     "image-js": "^0.34.1",
     "node-localstorage": "^2.2.1",
+    "node-pty-prebuilt-multiarch": "^0.10.1-pre.5",
     "nodejs-file-downloader": "^4.9.3",
     "os-utils": "^0.0.14",
     "portfinder": "^1.0.28",
