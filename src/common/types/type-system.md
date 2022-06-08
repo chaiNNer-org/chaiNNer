@@ -49,7 +49,7 @@ There are a few requirements for primitive types that are necessary for the type
 
 1. The intersection and union of any two primitives must be unique.
 2. The intersection of two primitives must either the empty (`never`) or a primitive.
-3. If the union of two primitives can represented using a single primitive, then the single primitive must be used.
+3. For any set that can be represented as a union of primitives, there must only be one union of primitives that represents the set.
 
 These are properties the type system guarantees.
 Users of the type system don't have to worry about this.

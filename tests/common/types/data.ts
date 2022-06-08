@@ -34,7 +34,7 @@ const addExpressions = (expressions: readonly Expression[]): Expression[] => {
     return newExpressions;
 };
 
-const basicTypes: Type[] = [
+export const types: readonly Type[] = [
     NeverType.instance,
     AnyType.instance,
 
@@ -75,4 +75,4 @@ const basicTypes: Type[] = [
     new StructType('null'),
 ];
 
-export const expressions: readonly Expression[] = addExpressions(basicTypes);
+export const expressions: readonly Expression[] = addExpressions(types);

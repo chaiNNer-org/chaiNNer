@@ -21,10 +21,12 @@ import {
 } from './types';
 import { isSameStructType, isSameType } from './util';
 
+type Pair<T> = [T, T];
+
 const unionLiteralNumber = (
     a: NumericLiteralType,
     b: NumericLiteralType | IntervalType | IntIntervalType
-): NumericLiteralType | IntervalType | IntIntervalType | NumberType | undefined => {
+): NumberPrimitive | undefined => {
     if (b.type === 'literal') {
         if (sameNumber(a.value, b.value)) return a;
 
@@ -58,22 +60,25 @@ const unionLiteralNumber = (
 const unionIntInterval = (
     a: IntIntervalType,
     b: IntervalType | IntIntervalType
-): IntervalType | IntIntervalType | undefined => {
-    if (b.type === 'interval') {
-        if (b.min <= a.min && b.max >= a.min) return b;
-        return undefined;
+): NumberPrimitive | Pair<NumberPrimitive> | undefined => {
+    if (b.type === 'int-interval') {
+        const minMin = Math.min(a.min, b.min);
+        const maxMin = Math.max(a.min, b.min);
+        const minMax = Math.min(a.max, b.max);
+        const maxMax = Math.max(a.max, b.max);
+
+        if (maxMin - 1 > minMax) return undefined;
+        return new IntIntervalType(minMin, maxMax);
     }
 
-    const minMin = Math.min(a.min, b.min);
-    const maxMin = Math.max(a.min, b.min);
-    const minMax = Math.min(a.max, b.max);
-    const maxMax = Math.max(a.max, b.max);
-
-    if (maxMin - 1 > minMax) return undefined;
-    return new IntIntervalType(minMin, maxMax);
+    if (b.min <= a.min && a.max <= b.max) return b;
+    return undefined;
 };
 
-const unionNumber = (a: NumberPrimitive, b: NumberPrimitive): NumberPrimitive | undefined => {
+const unionNumber = (
+    a: NumberPrimitive,
+    b: NumberPrimitive
+): NumberPrimitive | Pair<NumberPrimitive> | undefined => {
     if (a.type === 'number' || b.type === 'number') return NumberType.instance;
 
     if (a.type === 'literal') return unionLiteralNumber(a, b);
@@ -132,19 +137,31 @@ const unionStruct = (a: StructType, b: StructType): StructType | undefined => {
     return new StructType(a.name, fields);
 };
 
-const unionIntoSet = <T>(set: T[], item: T, union: (a: T, b: T) => T | undefined): void => {
+const unionIntoSet = <T>(
+    set: T[],
+    item: T,
+    union: (a: T, b: T) => T | Pair<T> | undefined
+): void => {
     let didChange = true;
     while (didChange) {
         didChange = false;
         for (let i = 0; i < set.length; i += 1) {
             const setItem = set[i];
             const u = union(setItem, item);
-            if (u) {
+            if (u === undefined) continue;
+
+            set.splice(i, 1);
+            didChange = true;
+
+            if (Array.isArray(u)) {
+                // eslint-disable-next-line prefer-destructuring, no-param-reassign
+                item = u[0];
+                unionIntoSet(set, u[1], union);
+                break;
+            } else {
                 // eslint-disable-next-line no-param-reassign
                 item = u;
-                set.splice(i, 1);
                 i -= 1;
-                didChange = true;
             }
         }
     }
