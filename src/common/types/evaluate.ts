@@ -1,5 +1,5 @@
 import { assertNever } from '../util';
-import { Expression, StructExpression } from './expression';
+import { Expression, NamedExpression } from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
 import { AliasDefinition, StructDefinition, TypeDefinitions } from './typedef';
@@ -9,30 +9,30 @@ import { union } from './union';
 export type ErrorDetails =
     | {
           type: 'Generic parameter with fields';
-          expression: StructExpression;
+          expression: NamedExpression;
           message: string;
       }
     | {
           type: 'Alias with fields';
-          expression: StructExpression;
+          expression: NamedExpression;
           definition: AliasDefinition;
           message: string;
       }
     | {
           type: 'Unknown struct field';
-          expression: StructExpression;
+          expression: NamedExpression;
           definition: StructDefinition;
           field: string;
           message: string;
       }
     | {
           type: 'Unknown type definition';
-          expression: StructExpression;
+          expression: NamedExpression;
           message: string;
       }
     | {
           type: 'Incompatible field type';
-          expression: StructExpression;
+          expression: NamedExpression;
           definition: StructDefinition;
           field: {
               name: string;
@@ -85,8 +85,8 @@ const evaluateStructDefinition = (
     }
     return new StructType(def.name, fields);
 };
-const evaluateStruct = (
-    expression: StructExpression,
+const evaluateNamed = (
+    expression: NamedExpression,
     definitions: TypeDefinitions,
     genericParameters: ReadonlyMap<string, Type>
 ): Type => {
@@ -209,8 +209,8 @@ export const evaluate = (
     }
 
     switch (expression.type) {
-        case 'struct':
-            return evaluateStruct(expression, definitions, genericParameters);
+        case 'named':
+            return evaluateNamed(expression, definitions, genericParameters);
         case 'union':
             return union(
                 ...expression.items.map((e) => evaluate(e, definitions, genericParameters))

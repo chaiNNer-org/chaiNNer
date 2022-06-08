@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { Expression, StructExpression } from './expression';
+import { Expression, NamedExpression } from './expression';
 import { assertValidStructFieldName, assertValidStructName } from './names';
 import {
     AnyType,
@@ -92,9 +92,9 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
 
     definitions.add(
         new StructDefinition('Image', [
-            new StructFieldDefinition('width', new StructExpression('uint')),
-            new StructFieldDefinition('height', new StructExpression('uint')),
-            new StructFieldDefinition('channels', new StructExpression('uint')),
+            new StructFieldDefinition('width', new NamedExpression('uint')),
+            new StructFieldDefinition('height', new NamedExpression('uint')),
+            new StructFieldDefinition('channels', new NamedExpression('uint')),
         ])
     );
 };

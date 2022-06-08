@@ -2,7 +2,7 @@
 import { assertValidStructFieldName, assertValidStructName } from './names';
 import { Type } from './types';
 
-type PureExpression = UnionExpression | IntersectionExpression | StructExpression;
+type PureExpression = UnionExpression | IntersectionExpression | NamedExpression;
 
 export type Expression = Type | PureExpression;
 
@@ -50,7 +50,7 @@ export class IntersectionExpression implements ExpressionBase {
     }
 }
 
-export class StructExpressionField {
+export class NamedExpressionField {
     readonly name: string;
 
     readonly type: Expression;
@@ -61,16 +61,16 @@ export class StructExpressionField {
         this.type = type;
     }
 }
-export class StructExpression implements ExpressionBase {
-    readonly type = 'struct';
+export class NamedExpression implements ExpressionBase {
+    readonly type = 'named';
 
     readonly underlying = 'expression';
 
-    readonly fields: readonly StructExpressionField[];
+    readonly fields: readonly NamedExpressionField[];
 
     readonly name: string;
 
-    constructor(name: string, fields: readonly StructExpressionField[] = []) {
+    constructor(name: string, fields: readonly NamedExpressionField[] = []) {
         assertValidStructName(name);
         this.name = name;
         this.fields = fields;
@@ -78,7 +78,7 @@ export class StructExpression implements ExpressionBase {
 
     toString(): string {
         if (this.fields.length === 0) return this.name;
-        return `${this.name}{ ${this.fields
+        return `${this.name} { ${this.fields
             .map((f) => `${f.name}: ${f.type.toString()}`)
             .join(', ')} }`;
     }
