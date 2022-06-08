@@ -1,6 +1,7 @@
 import { assertNever } from '../util';
 import { Expression, StructExpression } from './expression';
 import { intersect } from './intersection';
+import { isSubsetOf } from './relation';
 import { StructDefinition, TypeDefinitions } from './typedef';
 import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
@@ -47,6 +48,12 @@ const evaluateStruct = (
     // generic parameter
     const genericParam = genericParameters.get(expression.name);
     if (genericParam) {
+        if (expression.fields.length > 0) {
+            throw new Error(
+                `Invalid expression ${expression.toString()}. ` +
+                    `${expression.name} refers to a generic parameter and does not support fields.`
+            );
+        }
         return genericParam;
     }
 
@@ -105,10 +112,19 @@ const evaluateStruct = (
         const eField = eFields.get(f.name);
         let type;
         if (eField) {
-            // TODO: Should this check that the evaluated type is a subset of def type?
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             type = evaluate(eField, definitions, genericParameters);
             if (type.type === 'never') return NeverType.instance;
+
+            if (!isSubsetOf(type, f.type)) {
+                throw new Error(
+                    `Invalid struct instantiation. ` +
+                        `The expression ${expression.toString()} is not compatible with the definition ${entry.definition.toString()}. ` +
+                        `The field ${
+                            f.name
+                        } evaluates to ${type.toString()} which is not compatible with the definition type ${f.type.toString()}.`
+                );
+            }
         } else {
             // default to definition type
             type = f.type;
