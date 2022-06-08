@@ -9,7 +9,7 @@ Furthermore, proper subset, subset, proper superset, and superset are denoted as
 
 The empty set is a special type called `never`.
 
-The set the contains all values is a special type called `any`.
+The set that contains all values is a special type called `any`.
 
 
 ## Primitive types
@@ -79,7 +79,14 @@ So `Image`, `Image { width: uint }`, `Image { height: uint }`, and `Image { widt
 Structure types are only equivalent if their names are the same and all their fields are equivalent.
 This means that each structure type definitions creates a new type of structure types.
 
+### Generics
+
+Each structure type is generic over all its field types.
+
 ### Set representation
+
+This is only important for the implementation and theory behind the type system.
+Users can ignore this section.
 
 Internally, structure types are represented as a tuple `(name, field_1, field_2, ..., field_n)`.
 
@@ -92,7 +99,21 @@ Aliases are also supported.
 
 E.g. `uint` is an alias for `int(0..Infinity)`.
 
-Aliases use the syntax as structure types with no fields. However, aliases and structures can never have the same name, so there is no ambiguity.
+Aliases use the syntax as structure types with no fields.
+However, aliases and structures can never have the same name, so there is no ambiguity.
+
+Aliases also have definitions. E.g. `alias uint = int(0..Infinity)` is the definition for `uint`.
+
+### Generics
+
+Aliases currently do not support generics.
+The following describes how generic aliases will function if implemented.
+
+Generic aliases use the same instantiation syntax as structures.
+
+E.g. given the generic alias definition `alias RgbImage { width: uint, height: uint } = Image { width: width, height: height, channels: 3 }`, the instantiations `RgbImage`, `RgbImage { width: uint }`, and `RgbImage { width: uint, height: uint }` will also resolve to the type `Image { width: uint, height: uint, channels: 3 }`.
+
+Just like with structures, all generic arguments/fields are optional and may be given in any order.
 
 
 ## Built-in type definitions
