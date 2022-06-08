@@ -93,3 +93,20 @@ Aliases are also supported.
 E.g. `uint` is an alias for `int(0..Infinity)`.
 
 Aliases use the syntax as structure types with no fields. However, aliases and structures can never have the same name, so there is no ambiguity.
+
+
+## Built-in type definitions
+
+### Aliases
+
+```
+alias int = int(-Infinity..Infinity)
+alias uint = int(0..Infinity)
+```
+
+### Structures
+
+```
+struct null;
+struct Image { width: uint, height: uint, channels: uint }
+```
