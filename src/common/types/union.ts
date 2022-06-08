@@ -24,7 +24,7 @@ import { isSameStructType, isSameType } from './util';
 const unionLiteralNumber = (
     a: NumericLiteralType,
     b: NumericLiteralType | IntervalType | IntIntervalType
-): NumericLiteralType | IntervalType | IntIntervalType | undefined => {
+): NumericLiteralType | IntervalType | IntIntervalType | NumberType | undefined => {
     if (b.type === 'literal') {
         if (sameNumber(a.value, b.value)) return a;
 
@@ -41,6 +41,15 @@ const unionLiteralNumber = (
     if (b.type === 'int-interval' && Number.isInteger(a.value)) {
         if (a.value === b.min - 1) return new IntIntervalType(b.min - 1, b.max);
         if (a.value === b.max + 1) return new IntIntervalType(b.min, b.max + 1);
+    }
+
+    if (
+        Number.isNaN(a.value) &&
+        b.type === 'interval' &&
+        b.min === -Infinity &&
+        b.max === Infinity
+    ) {
+        return NumberType.instance;
     }
 
     return undefined;
