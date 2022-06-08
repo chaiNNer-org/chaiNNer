@@ -2,9 +2,54 @@ import { assertNever } from '../util';
 import { Expression, StructExpression } from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
-import { StructDefinition, TypeDefinitions } from './typedef';
+import { AliasDefinition, StructDefinition, TypeDefinitions } from './typedef';
 import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
+
+export type ErrorDetails =
+    | {
+          type: 'Generic parameter with fields';
+          expression: StructExpression;
+          message: string;
+      }
+    | {
+          type: 'Alias with fields';
+          expression: StructExpression;
+          definition: AliasDefinition;
+          message: string;
+      }
+    | {
+          type: 'Unknown struct field';
+          expression: StructExpression;
+          definition: StructDefinition;
+          field: string;
+          message: string;
+      }
+    | {
+          type: 'Unknown type definition';
+          expression: StructExpression;
+          message: string;
+      }
+    | {
+          type: 'Incompatible field type';
+          expression: StructExpression;
+          definition: StructDefinition;
+          field: {
+              name: string;
+              expression: Type;
+              definition: Type;
+          };
+          message: string;
+      };
+
+export class EvaluationError extends Error {
+    details: ErrorDetails;
+
+    constructor(details: ErrorDetails) {
+        super(`${details.type}: ${details.message}`);
+        this.details = details;
+    }
+}
 
 /**
  * Implements an F1 score based on bi-grams.
@@ -49,10 +94,11 @@ const evaluateStruct = (
     const genericParam = genericParameters.get(expression.name);
     if (genericParam) {
         if (expression.fields.length > 0) {
-            throw new Error(
-                `Invalid expression ${expression.toString()}. ` +
-                    `${expression.name} refers to a generic parameter and does not support fields.`
-            );
+            throw new EvaluationError({
+                type: 'Generic parameter with fields',
+                expression,
+                message: `${expression.name} refers to a generic parameter and does not support fields.`,
+            });
         }
         return genericParam;
     }
@@ -67,21 +113,25 @@ const evaluateStruct = (
             .sort((a, b) => a.score - b.score)
             .map((n) => n.name);
 
-        throw new Error(
-            `Invalid expression ${expression.toString()}. ` +
+        throw new EvaluationError({
+            type: 'Unknown type definition',
+            expression,
+            message:
                 `Unknown type definition ${expression.name}. ` +
-                `Did you mean ${names.slice(-3).join(', ')}?`
-        );
+                `Did you mean ${names.slice(-3).join(', ')}?`,
+        });
     }
 
     // alias
     if (entry.kind === 'alias') {
-        if (expression.fields.length !== 0)
-            throw new Error(
-                `Invalid expression ${expression.toString()}. ` +
-                    `${expression.name} resolves to: ${entry.definition.toString()}. ` +
-                    `Aliases do not allow fields.`
-            );
+        if (expression.fields.length !== 0) {
+            throw new EvaluationError({
+                type: 'Alias with fields',
+                expression,
+                definition: entry.definition,
+                message: `${expression.name} refers to a generic parameter and does not support fields.`,
+            });
+        }
 
         if (entry.evaluated === undefined) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -93,10 +143,13 @@ const evaluateStruct = (
     // struct
     for (const f of expression.fields) {
         if (!entry.definition.fieldNames.has(f.name)) {
-            throw new Error(
-                `Invalid struct: ${expression.toString()}. ` +
-                    `The struct definition ${entry.definition.toString()} has no field ${f.name}.`
-            );
+            throw new EvaluationError({
+                type: 'Unknown struct field',
+                expression,
+                definition: entry.definition,
+                field: f.name,
+                message: `The struct definition for ${entry.definition.name} has no field ${f.name}.`,
+            });
         }
     }
 
@@ -117,13 +170,13 @@ const evaluateStruct = (
             if (type.type === 'never') return NeverType.instance;
 
             if (!isSubsetOf(type, f.type)) {
-                throw new Error(
-                    `Invalid struct instantiation. ` +
-                        `The expression ${expression.toString()} is not compatible with the definition ${entry.definition.toString()}. ` +
-                        `The field ${
-                            f.name
-                        } evaluates to ${type.toString()} which is not compatible with the definition type ${f.type.toString()}.`
-                );
+                throw new EvaluationError({
+                    type: 'Incompatible field type',
+                    expression,
+                    definition: entry.definition,
+                    field: { name: f.name, expression: type, definition: f.type },
+                    message: `The type expression of the ${f.name} field is not compatible with its type definition.`,
+                });
             }
         } else {
             // default to definition type
@@ -136,6 +189,15 @@ const evaluateStruct = (
 
 const NO_GENERICS = new Map<never, never>();
 
+/**
+ * Evaluates the given expression. If a type is given, then the type will be returned as is.
+ *
+ * @param expression
+ * @param definitions
+ * @param genericParameters
+ * @returns
+ * @throws {@link EvaluationError}
+ */
 export const evaluate = (
     expression: Expression,
     definitions: TypeDefinitions,
