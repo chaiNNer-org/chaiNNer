@@ -44,9 +44,21 @@ class MathNode(NodeBase):
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
         self.inputs = [
-            NumberInput("Operand A"),
+            NumberInput(
+                "Operand A",
+                minimum=None,
+                maximum=None,
+                step=1e-100,
+                controls_step=1,
+            ),
             MathOpsDropdown(),
-            NumberInput("Operand B"),
+            NumberInput(
+                "Operand B",
+                minimum=None,
+                maximum=None,
+                step=1e-100,
+                controls_step=1,
+            ),
         ]
         self.outputs = [NumberOutput("Result")]
 
@@ -55,7 +67,7 @@ class MathNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Math"
 
-    def run(self, in1: int, op: str, in2: int) -> Union[int, float]:
+    def run(self, in1: Union[int, float], op: str, in2: Union[int, float]) -> Union[int, float]:
         if op == "add":
             return in1 + in2
         elif op == "sub":
