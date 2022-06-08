@@ -39,7 +39,18 @@ const evaluateStructDefinition = (
     }
     return new StructType(def.name, fields);
 };
-const evaluateStruct = (expression: StructExpression, definitions: TypeDefinitions): Type => {
+const evaluateStruct = (
+    expression: StructExpression,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    // generic parameter
+    const genericParam = genericParameters.get(expression.name);
+    if (genericParam) {
+        return genericParam;
+    }
+
+    // definition
     const entry = definitions.get(expression.name);
     if (entry === undefined) {
         const names = [...definitions.names()]
@@ -96,7 +107,7 @@ const evaluateStruct = (expression: StructExpression, definitions: TypeDefinitio
         if (eField) {
             // TODO: Should this check that the evaluated type is a subset of def type?
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            type = evaluate(eField, definitions);
+            type = evaluate(eField, definitions, genericParameters);
             if (type.type === 'never') return NeverType.instance;
         } else {
             // default to definition type
@@ -107,7 +118,13 @@ const evaluateStruct = (expression: StructExpression, definitions: TypeDefinitio
     return new StructType(expression.name, fields);
 };
 
-export const evaluate = (expression: Expression, definitions: TypeDefinitions): Type => {
+const NO_GENERICS = new Map<never, never>();
+
+export const evaluate = (
+    expression: Expression,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type> = NO_GENERICS
+): Type => {
     if (expression.underlying !== 'expression') {
         // type
         return expression;
@@ -115,11 +132,15 @@ export const evaluate = (expression: Expression, definitions: TypeDefinitions): 
 
     switch (expression.type) {
         case 'struct':
-            return evaluateStruct(expression, definitions);
+            return evaluateStruct(expression, definitions, genericParameters);
         case 'union':
-            return union(...expression.items.map((e) => evaluate(e, definitions)));
+            return union(
+                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
+            );
         case 'intersection':
-            return intersect(...expression.items.map((e) => evaluate(e, definitions)));
+            return intersect(
+                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
+            );
         default:
             return assertNever(expression);
     }
