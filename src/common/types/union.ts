@@ -21,7 +21,7 @@ import {
 } from './types';
 import { isSameStructType, isSameType } from './util';
 
-type Pair<T> = [T, T];
+type NonEmptyArray<T> = [T, ...T[]];
 
 const unionLiteralNumber = (
     a: NumericLiteralType,
@@ -60,7 +60,7 @@ const unionLiteralNumber = (
 const unionIntInterval = (
     a: IntIntervalType,
     b: IntervalType | IntIntervalType
-): NumberPrimitive | Pair<NumberPrimitive> | undefined => {
+): NumberPrimitive | NonEmptyArray<NumberPrimitive> | undefined => {
     if (b.type === 'int-interval') {
         const minMin = Math.min(a.min, b.min);
         const maxMin = Math.max(a.min, b.min);
@@ -71,14 +71,37 @@ const unionIntInterval = (
         return new IntIntervalType(minMin, maxMax);
     }
 
+    // the interval completely contains the int interval
     if (b.min <= a.min && a.max <= b.max) return b;
-    return undefined;
+
+    // the two intervals are disjoint
+    if (b.max < a.min || a.max < b.min) return undefined;
+
+    const bIntMin = Math.ceil(b.min);
+    const bIntMax = Math.floor(b.max);
+
+    // the interval contains no integers
+    if (bIntMin > bIntMax) return undefined;
+
+    // we now know that the two intervals have at least one integer in common
+    const leftMax = bIntMin - 1;
+    const rightMin = bIntMax + 1;
+
+    const result: NonEmptyArray<NumberPrimitive> = [b];
+
+    if (a.min === leftMax) result.push(new NumericLiteralType(leftMax));
+    else if (a.min < leftMax) result.push(new IntIntervalType(a.min, leftMax));
+
+    if (a.max === rightMin) result.push(new NumericLiteralType(rightMin));
+    else if (rightMin < a.max) result.push(new IntIntervalType(rightMin, a.max));
+
+    return result;
 };
 
 const unionNumber = (
     a: NumberPrimitive,
     b: NumberPrimitive
-): NumberPrimitive | Pair<NumberPrimitive> | undefined => {
+): NumberPrimitive | NonEmptyArray<NumberPrimitive> | undefined => {
     if (a.type === 'number' || b.type === 'number') return NumberType.instance;
 
     if (a.type === 'literal') return unionLiteralNumber(a, b);
@@ -140,7 +163,7 @@ const unionStruct = (a: StructType, b: StructType): StructType | undefined => {
 const unionIntoSet = <T>(
     set: T[],
     item: T,
-    union: (a: T, b: T) => T | Pair<T> | undefined
+    union: (a: T, b: T) => T | NonEmptyArray<T> | undefined
 ): void => {
     let didChange = true;
     while (didChange) {
@@ -156,7 +179,9 @@ const unionIntoSet = <T>(
             if (Array.isArray(u)) {
                 // eslint-disable-next-line prefer-destructuring, no-param-reassign
                 item = u[0];
-                unionIntoSet(set, u[1], union);
+                for (const v of u.slice(1)) {
+                    unionIntoSet(set, v, union);
+                }
                 break;
             } else {
                 // eslint-disable-next-line no-param-reassign
