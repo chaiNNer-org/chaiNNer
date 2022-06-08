@@ -43,9 +43,17 @@ This type represents any string.
 String literal types (e.g. `""`, `"foo"`) are types that represent their string value.
 E.g. `"foo"` (the type) is equal to the set that contain the string "foo".
 
-### Requirement for primitive types
+### Requirements for primitive types
 
-TODO:
+There are a few requirements for primitive types that are necessary for the type system to work:
+
+1. The intersection and union of any two primitives must be unique.
+2. The intersection of two primitives must either the empty (`never`) or a primitive.
+3. If the union of two primitives can represented using a single primitive, then the single primitive must be used.
+
+These are properties the type system guarantees.
+Users of the type system don't have to worry about this.
+They only become relevant when changing the type system itself.
 
 
 ## Structure types
