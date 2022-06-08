@@ -129,5 +129,5 @@ alias uint = int(0..Infinity)
 
 ```
 struct null;
-struct Image { width: uint, height: uint, channels: uint }
+struct Image { width: uint, height: uint, channels: int(1..Infinity) }
 ```

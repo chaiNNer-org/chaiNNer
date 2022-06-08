@@ -94,7 +94,7 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         new StructDefinition('Image', [
             new StructFieldDefinition('width', new NamedExpression('uint')),
             new StructFieldDefinition('height', new NamedExpression('uint')),
-            new StructFieldDefinition('channels', new NamedExpression('uint')),
+            new StructFieldDefinition('channels', new IntIntervalType(1, Infinity)),
         ])
     );
 };
