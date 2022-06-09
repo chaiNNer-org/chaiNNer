@@ -1,8 +1,15 @@
+/* eslint-disable no-param-reassign */
 import { assertNever } from '../util';
-import { Expression, NamedExpression } from './expression';
+import { Expression, NamedExpression, NamedExpressionField } from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
-import { AliasDefinition, StructDefinition, TypeDefinitions } from './typedef';
+import {
+    AliasDefinition,
+    AliasDefinitionEntry,
+    StructDefinition,
+    StructDefinitionEntry,
+    TypeDefinitions,
+} from './typedef';
 import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
 
@@ -13,16 +20,17 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Alias with fields';
+          type: 'Unknown alias parameter';
           expression: NamedExpression;
           definition: AliasDefinition;
+          field: NamedExpressionField;
           message: string;
       }
     | {
           type: 'Unknown struct field';
           expression: NamedExpression;
           definition: StructDefinition;
-          field: string;
+          field: NamedExpressionField;
           message: string;
       }
     | {
@@ -35,6 +43,17 @@ export type ErrorDetails =
           expression: NamedExpression;
           definition: StructDefinition;
           field: {
+              name: string;
+              expression: Type;
+              definition: Type;
+          };
+          message: string;
+      }
+    | {
+          type: 'Incompatible parameter type';
+          expression: NamedExpression;
+          definition: AliasDefinition;
+          parameter: {
               name: string;
               expression: Type;
               definition: Type;
@@ -72,6 +91,76 @@ const getSimilarityScore = (a: string, b: string): number => {
     return (2 * intersection.length) / (aBi.size + bBi.size);
 };
 
+const evaluateAlias = (
+    expression: NamedExpression,
+    entry: AliasDefinitionEntry,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    const unknownField = expression.fields.find(
+        (f) => !entry.definition.parameterNames.has(f.name)
+    );
+    if (unknownField) {
+        throw new EvaluationError({
+            type: 'Unknown alias parameter',
+            expression,
+            definition: entry.definition,
+            field: unknownField,
+            message: `The alias definition for ${entry.definition.name} has no parameter ${unknownField.name}.`,
+        });
+    }
+
+    if (entry.evaluatedParams === undefined) {
+        entry.evaluatedParams = entry.definition.parameters.map((p) =>
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            evaluate(p.type, definitions)
+        );
+    }
+
+    if (entry.definition.parameters.length === 0) {
+        // non-generic alias
+        if (entry.evaluated === undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            entry.evaluated = evaluate(entry.definition.type, definitions);
+        }
+        return entry.evaluated;
+    }
+
+    // generic alias
+    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
+
+    const aliasParams = new Map<string, Type>();
+    for (let index = 0; index < entry.definition.parameters.length; index += 1) {
+        const p = entry.definition.parameters[index];
+        const pType = entry.evaluatedParams[index];
+        const eField = eFields.get(p.name);
+
+        let type;
+        if (eField) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            type = evaluate(eField, definitions, genericParameters);
+
+            if (!isSubsetOf(type, pType)) {
+                throw new EvaluationError({
+                    type: 'Incompatible parameter type',
+                    expression,
+                    definition: entry.definition,
+                    parameter: { name: p.name, expression: type, definition: pType },
+                    message: `The type expression of the ${p.name} parameter is not compatible with its type definition.`,
+                });
+            }
+        } else {
+            // default to definition type
+            type = pType;
+        }
+
+        aliasParams.set(p.name, type);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return evaluate(entry.definition.type, definitions, aliasParams);
+};
+
 const evaluateStructDefinition = (
     def: StructDefinition,
     definitions: TypeDefinitions
@@ -85,6 +174,57 @@ const evaluateStructDefinition = (
     }
     return new StructType(def.name, fields);
 };
+const evaluateStruct = (
+    expression: NamedExpression,
+    entry: StructDefinitionEntry,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    const unknownField = expression.fields.find((f) => !entry.definition.fieldNames.has(f.name));
+    if (unknownField) {
+        throw new EvaluationError({
+            type: 'Unknown struct field',
+            expression,
+            definition: entry.definition,
+            field: unknownField,
+            message: `The struct definition for ${entry.definition.name} has no field ${unknownField.name}.`,
+        });
+    }
+
+    if (entry.evaluated === undefined) {
+        entry.evaluated = evaluateStructDefinition(entry.definition, definitions);
+    }
+    if (entry.evaluated.type === 'never') return NeverType.instance;
+
+    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
+
+    const fields: StructTypeField[] = [];
+    for (const f of entry.evaluated.fields) {
+        const eField = eFields.get(f.name);
+        let type;
+        if (eField) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            type = evaluate(eField, definitions, genericParameters);
+            if (type.type === 'never') return NeverType.instance;
+
+            if (!isSubsetOf(type, f.type)) {
+                throw new EvaluationError({
+                    type: 'Incompatible field type',
+                    expression,
+                    definition: entry.definition,
+                    field: { name: f.name, expression: type, definition: f.type },
+                    message: `The type expression of the ${f.name} field is not compatible with its type definition.`,
+                });
+            }
+        } else {
+            // default to definition type
+            type = f.type;
+        }
+        fields.push(new StructTypeField(f.name, type));
+    }
+    return new StructType(expression.name, fields);
+};
+
 const evaluateNamed = (
     expression: NamedExpression,
     definitions: TypeDefinitions,
@@ -124,67 +264,10 @@ const evaluateNamed = (
 
     // alias
     if (entry.kind === 'alias') {
-        if (expression.fields.length !== 0) {
-            throw new EvaluationError({
-                type: 'Alias with fields',
-                expression,
-                definition: entry.definition,
-                message: `${expression.name} refers to a generic parameter and does not support fields.`,
-            });
-        }
-
-        if (entry.evaluated === undefined) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            entry.evaluated = evaluate(entry.definition.type, definitions);
-        }
-        return entry.evaluated;
+        return evaluateAlias(expression, entry, definitions, genericParameters);
     }
 
-    // struct
-    for (const f of expression.fields) {
-        if (!entry.definition.fieldNames.has(f.name)) {
-            throw new EvaluationError({
-                type: 'Unknown struct field',
-                expression,
-                definition: entry.definition,
-                field: f.name,
-                message: `The struct definition for ${entry.definition.name} has no field ${f.name}.`,
-            });
-        }
-    }
-
-    if (entry.evaluated === undefined) {
-        entry.evaluated = evaluateStructDefinition(entry.definition, definitions);
-    }
-    if (entry.evaluated.type === 'never') return NeverType.instance;
-
-    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
-
-    const fields: StructTypeField[] = [];
-    for (const f of entry.evaluated.fields) {
-        const eField = eFields.get(f.name);
-        let type;
-        if (eField) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            type = evaluate(eField, definitions, genericParameters);
-            if (type.type === 'never') return NeverType.instance;
-
-            if (!isSubsetOf(type, f.type)) {
-                throw new EvaluationError({
-                    type: 'Incompatible field type',
-                    expression,
-                    definition: entry.definition,
-                    field: { name: f.name, expression: type, definition: f.type },
-                    message: `The type expression of the ${f.name} field is not compatible with its type definition.`,
-                });
-            }
-        } else {
-            // default to definition type
-            type = f.type;
-        }
-        fields.push(new StructTypeField(f.name, type));
-    }
-    return new StructType(expression.name, fields);
+    return evaluateStruct(expression, entry, definitions, genericParameters);
 };
 
 const NO_GENERICS = new Map<never, never>();

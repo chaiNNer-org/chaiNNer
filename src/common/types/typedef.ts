@@ -57,38 +57,76 @@ export class StructDefinition {
     }
 }
 
-export class AliasDefinition {
+export class AliasParameterDefinition {
     public readonly name: string;
 
     public readonly type: Expression;
 
-    constructor(name: string, type: Expression) {
-        assertValidStructName(name);
+    constructor(name: string, type: Expression = AnyType.instance) {
+        assertValidStructFieldName(name);
         this.name = name;
         this.type = type;
     }
+}
+export class AliasDefinition {
+    public readonly name: string;
+
+    readonly parameters: readonly AliasParameterDefinition[];
+
+    readonly parameterNames: ReadonlySet<string>;
+
+    public readonly type: Expression;
+
+    constructor(name: string, parameters: readonly AliasParameterDefinition[], type: Expression) {
+        assertValidStructName(name);
+        this.name = name;
+        this.parameters = parameters;
+        this.type = type;
+
+        const names = new Set<string>();
+        this.parameterNames = names;
+        for (const f of parameters) {
+            if (names.has(f.name)) {
+                throw new Error(
+                    `Invalid alias definition. ` +
+                        `The parameter ${f.name} was used twice in ${this.toString()}`
+                );
+            }
+            names.add(f.name);
+        }
+    }
 
     toString(): string {
+        if (this.parameters.length > 0) {
+            const params = this.parameters
+                .map((p) => {
+                    if (p.type.type === 'any') return p.name;
+                    return `${p.name}: ${p.type.toString()}`;
+                })
+                .join(', ');
+            return `alias ${this.name} { ${params} } = ${this.type.toString()}`;
+        }
         return `alias ${this.name} = ${this.type.toString()}`;
     }
 }
 
-interface AliasDefinitionEntry {
+export interface AliasDefinitionEntry {
     readonly kind: 'alias';
     readonly definition: AliasDefinition;
+    evaluatedParams?: Type[];
     evaluated?: Type;
 }
-interface StructDefinitionEntry {
+export interface StructDefinitionEntry {
     readonly kind: 'struct';
     readonly definition: StructDefinition;
     evaluated?: StructType | NeverType;
 }
-type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
+export type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
 
 const addBuiltinTypes = (definitions: TypeDefinitions) => {
     definitions.add(new StructDefinition('null'));
-    definitions.add(new AliasDefinition('int', new IntIntervalType(-Infinity, Infinity)));
-    definitions.add(new AliasDefinition('uint', new IntIntervalType(0, Infinity)));
+    definitions.add(new AliasDefinition('int', [], new IntIntervalType(-Infinity, Infinity)));
+    definitions.add(new AliasDefinition('uint', [], new IntIntervalType(0, Infinity)));
 
     definitions.add(
         new StructDefinition('Image', [
@@ -104,10 +142,10 @@ export class TypeDefinitions {
 
     constructor() {
         // alias fail-safes for primitives
-        this.add(new AliasDefinition('any', AnyType.instance));
-        this.add(new AliasDefinition('never', NeverType.instance));
-        this.add(new AliasDefinition('number', NumberType.instance));
-        this.add(new AliasDefinition('string', StringType.instance));
+        this.add(new AliasDefinition('any', [], AnyType.instance));
+        this.add(new AliasDefinition('never', [], NeverType.instance));
+        this.add(new AliasDefinition('number', [], NumberType.instance));
+        this.add(new AliasDefinition('string', [], StringType.instance));
 
         addBuiltinTypes(this);
     }
