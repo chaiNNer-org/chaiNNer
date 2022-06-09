@@ -69,7 +69,7 @@ E.g. `Image { width: uint, height: uint, channels: uint }` and `null` are struct
 Structure types also have type definitions.
 These definitions specify the fields all structure types of that name have.
 
-E.g. `struct Image { width: uint, height: uint, channels: uint }` and `struct null;` are structure type definitions.
+E.g. `struct Image { width: uint, height: uint, channels: uint }` and `struct null` are structure type definitions.
 
 Not that all fields are optional when instantiating a type.
 So `Image`, `Image { width: uint }`, `Image { height: uint }`, and `Image { width: uint, height: uint, channels: uint }` all create the same type given the above type definition for `Image`.
@@ -104,13 +104,59 @@ However, aliases and structures can never have the same name, so there is no amb
 
 Aliases also have definitions. E.g. `alias uint = int(0..Infinity)` is the definition for `uint`.
 
+#### Example: boolean
+
+This type system intentionally does not include a boolean primitive.
+This is because any type described by a finite set of variants can be represented using integer intervals or unions of other types.
+
+A `boolean` type could be implemented like this:
+
+```
+struct false
+struct true
+alias boolean = false | true
+```
+
 ### Generics
 
-Generic aliases use the same instantiation syntax as structures.
+Aliases use the same instantiation syntax as structures and that includes fields. Fields are interpreted as generic parameters for aliases.
 
 E.g. given the generic alias definition `alias RgbImage { width: uint, height: uint } = Image { width: width, height: height, channels: 3 }`, the instantiations `RgbImage`, `RgbImage { width: uint }`, and `RgbImage { width: uint, height: uint }` will all resolve to the type `Image { width: uint, height: uint, channels: 3 }`.
 
 Just like with structures, all generic arguments/fields are optional and may be given in any order.
+
+#### Example: option type
+
+Many languages (e.g. Rust) has a explicit option type instead of `null`.
+Here is how a option type would be implemented in this type system:
+
+```
+struct Some { value: any }
+struct None
+
+alias Option { value: any } = Some { value: value } | None
+
+# Instantiation
+Option { value: int } == Some { value: value } | None
+Option { value: never } == None
+```
+
+#### Example: result type
+
+Many languages (e.g. Rust) has a result type.
+Here is how a result type would be implemented in this type system:
+
+```
+struct Success { value: any }
+struct Error { value: any }
+
+alias Result { success: any, error: any } = Success { value: success } | Error { value: error }
+
+# Instantiation
+Result { success: int } == Success { value: int } | Error { value: any }
+Result { success: int, error: string } == Success { value: int } | Error { value: string }
+Result { success: int, error: never } == Success { value: int }
+```
 
 
 ## Built-in type definitions
@@ -125,6 +171,6 @@ alias uint = int(0..Infinity)
 ### Structures
 
 ```
-struct null;
+struct null
 struct Image { width: uint, height: uint, channels: int(1..Infinity) }
 ```

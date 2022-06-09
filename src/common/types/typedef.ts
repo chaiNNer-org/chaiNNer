@@ -50,7 +50,7 @@ export class StructDefinition {
     }
 
     toString(): string {
-        if (this.fields.length === 0) return `struct ${this.name};`;
+        if (this.fields.length === 0) return `struct ${this.name}`;
         return `struct ${this.name} { ${this.fields
             .map((f) => `${f.name}: ${f.type.toString()}`)
             .join(', ')} }`;
