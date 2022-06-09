@@ -104,7 +104,7 @@ However, aliases and structures can never have the same name, so there is no amb
 
 Aliases also have definitions. E.g. `alias uint = int(0..Infinity)` is the definition for `uint`.
 
-#### Example: boolean
+#### Example: boolean type
 
 This type system intentionally does not include a boolean primitive.
 This is because any type described by a finite set of variants can be represented using integer intervals or unions of other types.
@@ -137,7 +137,7 @@ struct None
 alias Option { value: any } = Some { value: value } | None
 
 # Instantiation
-Option { value: int } == Some { value: value } | None
+Option { value: int } == Some { value: int } | None
 Option { value: never } == None
 ```
 
