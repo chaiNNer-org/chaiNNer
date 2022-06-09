@@ -150,23 +150,27 @@ const evaluateAlias = (
         });
     }
 
-    if (entry.definition.parameters.length === 0) {
-        // non-generic alias
-        if (entry.evaluated === undefined) {
-            try {
-                entry.evaluated = evaluate(entry.definition.type, definitions);
-            } catch (error: unknown) {
-                if (error instanceof EvaluationError) {
-                    throw new EvaluationError({
-                        type: 'Invalid alias definition type',
-                        definition: entry.definition,
-                        details: error.details,
-                        message: `The alias definition type for ${entry.definition.name} is invalid.`,
-                    });
-                }
-                throw error;
+    if (entry.evaluated === undefined) {
+        try {
+            const params = new Map(
+                entry.definition.parameters.map((p, i) => [p.name, entry.evaluatedParams![i]])
+            );
+            entry.evaluated = evaluate(entry.definition.type, definitions, params);
+        } catch (error: unknown) {
+            if (error instanceof EvaluationError) {
+                throw new EvaluationError({
+                    type: 'Invalid alias definition type',
+                    definition: entry.definition,
+                    details: error.details,
+                    message: `The alias definition type for ${entry.definition.name} is invalid.`,
+                });
             }
+            throw error;
         }
+    }
+
+    if (entry.definition.parameters.length === 0) {
+        // non-generic alias instantiation
         return entry.evaluated;
     }
 
