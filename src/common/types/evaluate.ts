@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-param-reassign */
 import { assertNever } from '../util';
 import { Expression, NamedExpression, NamedExpressionField } from './expression';
@@ -6,6 +7,7 @@ import { isSubsetOf } from './relation';
 import {
     AliasDefinition,
     AliasDefinitionEntry,
+    AliasParameterDefinition,
     StructDefinition,
     StructDefinitionEntry,
     TypeDefinitions,
@@ -59,6 +61,25 @@ export type ErrorDetails =
               definition: Type;
           };
           message: string;
+      }
+    | {
+          type: 'Invalid structure definition';
+          definition: StructDefinition;
+          details: ErrorDetails;
+          message: string;
+      }
+    | {
+          type: 'Invalid alias definition type';
+          definition: AliasDefinition;
+          details: ErrorDetails;
+          message: string;
+      }
+    | {
+          type: 'Invalid alias definition parameter type';
+          definition: AliasDefinition;
+          parameter: AliasParameterDefinition;
+          details: ErrorDetails;
+          message: string;
       };
 
 export class EvaluationError extends Error {
@@ -111,17 +132,40 @@ const evaluateAlias = (
     }
 
     if (entry.evaluatedParams === undefined) {
-        entry.evaluatedParams = entry.definition.parameters.map((p) =>
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            evaluate(p.type, definitions)
-        );
+        entry.evaluatedParams = entry.definition.parameters.map((p) => {
+            try {
+                return evaluate(p.type, definitions);
+            } catch (error: unknown) {
+                if (error instanceof EvaluationError) {
+                    throw new EvaluationError({
+                        type: 'Invalid alias definition parameter type',
+                        definition: entry.definition,
+                        parameter: p,
+                        details: error.details,
+                        message: `The alias definition parameter type for ${entry.definition.name}.${p.name} is invalid.`,
+                    });
+                }
+                throw error;
+            }
+        });
     }
 
     if (entry.definition.parameters.length === 0) {
         // non-generic alias
         if (entry.evaluated === undefined) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            entry.evaluated = evaluate(entry.definition.type, definitions);
+            try {
+                entry.evaluated = evaluate(entry.definition.type, definitions);
+            } catch (error: unknown) {
+                if (error instanceof EvaluationError) {
+                    throw new EvaluationError({
+                        type: 'Invalid alias definition type',
+                        definition: entry.definition,
+                        details: error.details,
+                        message: `The alias definition type for ${entry.definition.name} is invalid.`,
+                    });
+                }
+                throw error;
+            }
         }
         return entry.evaluated;
     }
@@ -137,7 +181,6 @@ const evaluateAlias = (
 
         let type;
         if (eField) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             type = evaluate(eField, definitions, genericParameters);
 
             if (!isSubsetOf(type, pType)) {
@@ -157,7 +200,6 @@ const evaluateAlias = (
         aliasParams.set(p.name, type);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     return evaluate(entry.definition.type, definitions, aliasParams);
 };
 
@@ -167,7 +209,6 @@ const evaluateStructDefinition = (
 ): StructType | NeverType => {
     const fields: StructTypeField[] = [];
     for (const f of def.fields) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const type = evaluate(f.type, definitions);
         if (type.type === 'never') return NeverType.instance;
         fields.push(new StructTypeField(f.name, type));
@@ -192,7 +233,19 @@ const evaluateStruct = (
     }
 
     if (entry.evaluated === undefined) {
-        entry.evaluated = evaluateStructDefinition(entry.definition, definitions);
+        try {
+            entry.evaluated = evaluateStructDefinition(entry.definition, definitions);
+        } catch (error: unknown) {
+            if (error instanceof EvaluationError) {
+                throw new EvaluationError({
+                    type: 'Invalid structure definition',
+                    definition: entry.definition,
+                    details: error.details,
+                    message: `The structure definition for ${entry.definition.name} is invalid.`,
+                });
+            }
+            throw error;
+        }
     }
     if (entry.evaluated.type === 'never') return NeverType.instance;
 
@@ -203,7 +256,6 @@ const evaluateStruct = (
         const eField = eFields.get(f.name);
         let type;
         if (eField) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             type = evaluate(eField, definitions, genericParameters);
             if (type.type === 'never') return NeverType.instance;
 
