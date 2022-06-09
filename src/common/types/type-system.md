@@ -108,7 +108,7 @@ Aliases also have definitions. E.g. `alias uint = int(0..Infinity)` is the defin
 
 Generic aliases use the same instantiation syntax as structures.
 
-E.g. given the generic alias definition `alias RgbImage { width: uint, height: uint } = Image { width: width, height: height, channels: 3 }`, the instantiations `RgbImage`, `RgbImage { width: uint }`, and `RgbImage { width: uint, height: uint }` will also resolve to the type `Image { width: uint, height: uint, channels: 3 }`.
+E.g. given the generic alias definition `alias RgbImage { width: uint, height: uint } = Image { width: width, height: height, channels: 3 }`, the instantiations `RgbImage`, `RgbImage { width: uint }`, and `RgbImage { width: uint, height: uint }` will all resolve to the type `Image { width: uint, height: uint, channels: 3 }`.
 
 Just like with structures, all generic arguments/fields are optional and may be given in any order.
 
