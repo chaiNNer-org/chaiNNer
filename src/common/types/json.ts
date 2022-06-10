@@ -21,6 +21,7 @@ export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 
 export type ExpressionJson =
     | string
+    | number
     | TypeJson
     | UnionExpressionJson
     | IntersectionExpressionJson
@@ -116,6 +117,10 @@ export const toJson = (e: Expression): ExpressionJson => {
 };
 
 export const fromJson = (e: ExpressionJson): Expression => {
+    if (typeof e === 'number') {
+        return new NumericLiteralType(e);
+    }
+
     if (typeof e === 'string') {
         switch (e) {
             case 'any':

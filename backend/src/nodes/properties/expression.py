@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict, Union
+from typing import Literal, Optional, TypedDict, Union
 import math
 
 
@@ -27,6 +27,7 @@ def from_number_json(n: NumberJson) -> Union[int, float]:
 
 ExpressionJson = Union[
     str,
+    int,
     "NumericLiteralTypeJson",
     "IntervalTypeJson",
     "IntIntervalTypeJson",
@@ -119,3 +120,18 @@ def intersection(items: list[ExpressionJson]) -> ExpressionJson:
 
 def named(name: str, fields: dict[str, ExpressionJson]) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
+
+
+def Image(
+    width: Optional[ExpressionJson] = None,
+    height: Optional[ExpressionJson] = None,
+    channels: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: dict[str, ExpressionJson] = {}
+    if width is not None:
+        fields["width"] = width
+    if height is not None:
+        fields["height"] = height
+    if channels is not None:
+        fields["channels"] = channels
+    return named("Image", fields)
