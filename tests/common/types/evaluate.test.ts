@@ -60,4 +60,27 @@ describe('intersection', () => {
             }
         }
     });
+    test('associative', () => {
+        for (const a of types) {
+            for (const b of types) {
+                for (const c of types) {
+                    const expected = evaluate(
+                        new IntersectionExpression([
+                            a,
+                            evaluate(new IntersectionExpression([b, c]), definitions),
+                        ]),
+                        definitions
+                    ).getTypeId();
+                    const actual = evaluate(
+                        new IntersectionExpression([
+                            evaluate(new IntersectionExpression([a, b]), definitions),
+                            c,
+                        ]),
+                        definitions
+                    ).getTypeId();
+                    expect(actual).toBe(expected);
+                }
+            }
+        }
+    });
 });
