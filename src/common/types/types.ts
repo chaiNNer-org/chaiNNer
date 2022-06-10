@@ -276,7 +276,7 @@ export class StructType implements TypeBase {
 
     getTypeId(): string {
         if (this.fields.length === 0) return this.name;
-        return `${this.name}{ ${this.fields
+        return `${this.name} { ${this.fields
             .map((f) => `${f.name}: ${f.type.getTypeId()}`)
             .join(', ')} }`;
     }
