@@ -13,6 +13,7 @@ import {
     StringLiteralType,
     StringType,
     StructType,
+    StructTypeField,
     Type,
 } from '../../../src/common/types/types';
 
@@ -38,7 +39,7 @@ const addExpressions = (expressions: readonly Expression[]): Expression[] => {
     return newExpressions;
 };
 
-export const types: readonly Type[] = [
+const primitives: readonly Type[] = [
     NeverType.instance,
     AnyType.instance,
 
@@ -78,8 +79,30 @@ export const types: readonly Type[] = [
     new StringLiteralType('foo'),
     new StringLiteralType('bar'),
 
-    // struct
     new StructType('null'),
 ];
+const structs: readonly Type[] = [
+    new StructType('Foo', [
+        new StructTypeField('a', new NumericLiteralType(1)),
+        new StructTypeField('b', new NumericLiteralType(2)),
+    ]),
+    new StructType('Foo', [
+        new StructTypeField('a', new NumericLiteralType(3)),
+        new StructTypeField('b', new NumericLiteralType(2)),
+    ]),
+    new StructType('Foo', [
+        new StructTypeField('a', new NumericLiteralType(3)),
+        new StructTypeField('b', new NumericLiteralType(4)),
+    ]),
+    new StructType('Foo', [
+        new StructTypeField('a', new NumericLiteralType(3)),
+        new StructTypeField('b', NumberType.instance),
+    ]),
+];
 
-export const expressions: readonly Expression[] = addExpressions(types);
+export const types: readonly Type[] = [...primitives, ...structs];
+
+export const expressions: readonly Expression[] = [
+    ...addExpressions(primitives),
+    ...addExpressions(structs),
+];

@@ -50,7 +50,14 @@ const comparators: {
     },
     struct: (a, b) => {
         if (a.fields.length !== b.fields.length) return a.fields.length - b.fields.length;
-        return binaryCompare(a.name, b.name);
+        if (a.name !== b.name) binaryCompare(a.name, b.name);
+
+        return compareSequences(
+            a.fields.map((f) => f.type),
+            b.fields.map((f) => f.type),
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            compareTypes
+        );
     },
     union: (a, b) => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
