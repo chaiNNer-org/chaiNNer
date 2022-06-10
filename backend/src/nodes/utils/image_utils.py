@@ -5,7 +5,7 @@ import numpy as np
 import numpy.typing as npt
 from sanic.log import logger
 
-from .blend_modes import BlendMode
+from .blend_modes import ImageBlender
 from .utils import get_h_w_c
 
 ndarray32 = npt.NDArray[np.float32]
@@ -130,7 +130,7 @@ def blend_images(ov: ndarray32, base: ndarray32, blend_mode: int):
     base_a = base[:, :, 3]
     combined_a = 1 - (1 - ov_a) * (1 - base_a)
 
-    blender = BlendMode()
+    blender = ImageBlender()
     ov[:, :, 0] = (
         ((ov_a - ov_a * base_a) * ov[:, :, 0])
         + ((base_a - ov_a * base_a) * base[:, :, 0])
