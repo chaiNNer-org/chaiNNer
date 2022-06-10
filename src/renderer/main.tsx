@@ -197,8 +197,10 @@ const Main = memo(({ port }: MainProps) => {
         <ReactFlowProvider>
             <SettingsProvider port={port}>
                 <GlobalProvider
+                    functionDefinitions={nodesInfo.functionDefinitions}
                     reactFlowWrapper={reactFlowWrapper}
                     schemata={nodesInfo.schemata}
+                    typeDefinitions={nodesInfo.typeDefinitions}
                 >
                     <ExecutionProvider>
                         <DependencyProvider>

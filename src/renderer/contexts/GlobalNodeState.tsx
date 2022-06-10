@@ -24,6 +24,8 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { FunctionDefinition } from '../../common/types/function';
+import { TypeDefinitions } from '../../common/types/typedef';
 import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
 import {
     copyToClipboard,
@@ -175,10 +177,19 @@ const defaultIteratorSize: Size = { width: 1280, height: 720 };
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
 export const GlobalProvider = memo(
-    ({ children, schemata, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
+    ({
+        children,
+        schemata,
+        reactFlowWrapper,
+        functionDefinitions,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        typeDefinitions,
+    }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
 
         const [nodeChanges, addNodeChanges] = useChangeCounter();
@@ -524,11 +535,15 @@ export const GlobalProvider = memo(
                 }
 
                 // Target inputs, source outputs
-                const { outputs } = schemata.get(sourceNode.data.schemaId);
-                const { inputs } = schemata.get(targetNode.data.schemaId);
+                const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
+                const targetFn = functionDefinitions.get(targetNode.data.schemaId);
+                if (!sourceFn || !targetFn) {
+                    return false;
+                }
 
-                const sourceOutput = outputs.find((o) => o.id === sourceHandleId)!;
-                const targetInput = inputs.find((i) => i.id === targetHandleId)!;
+                const outputType = sourceFn.outputs.get(sourceHandleId);
+                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
+                    return false;
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
                     const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
@@ -543,14 +558,14 @@ export const GlobalProvider = memo(
                     });
                 };
                 const isLoop = checkTargetChildren(targetNode);
+                if (isLoop) return false;
 
                 const iteratorLock =
                     !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
-                // TODO: type check
-                return !isLoop && iteratorLock;
+                return iteratorLock;
             },
-            [schemata, getNode, getNodes, getEdges]
+            [schemata, getNode, getNodes, getEdges, functionDefinitions]
         );
 
         const useInputData = useCallback(
