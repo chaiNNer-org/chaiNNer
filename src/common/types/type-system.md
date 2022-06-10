@@ -71,7 +71,7 @@ These definitions specify the fields all structure types of that name have.
 
 E.g. `struct Image { width: uint, height: uint, channels: uint }` and `struct null` are structure type definitions.
 
-Not that all fields are optional when instantiating a type.
+Note that all fields are optional when instantiating a type.
 So `Image`, `Image { width: uint }`, `Image { height: uint }`, and `Image { width: uint, height: uint, channels: uint }` all create the same type given the above type definition for `Image`.
 
 ### New type pattern
