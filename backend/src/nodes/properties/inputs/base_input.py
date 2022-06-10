@@ -1,5 +1,5 @@
 from typing import Union, Literal
-from .... import expression
+from .. import expression
 
 InputKind = Union[
     Literal["number"],

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .base_output import BaseOutput
-from .... import expression
+from .. import expression
 
 
 class FileOutput(BaseOutput):

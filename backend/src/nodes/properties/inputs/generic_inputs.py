@@ -1,5 +1,5 @@
 from typing import Dict, List, Union
-from .... import expression
+from .. import expression
 
 from .base_input import BaseInput
 

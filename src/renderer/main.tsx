@@ -6,11 +6,14 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
+import { NodeSchema } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
+import { evaluate } from '../common/types/evaluate';
 import { FunctionDefinition } from '../common/types/function';
 import { fromJson } from '../common/types/json';
 import { TypeDefinitions } from '../common/types/typedef';
+import { Type } from '../common/types/types';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import CustomEdge from './components/CustomEdge';
@@ -35,18 +38,48 @@ interface NodesInfo {
     typeDefinitions: TypeDefinitions;
 }
 
+const evaluateInputOutput = (
+    schema: NodeSchema,
+    type: 'input' | 'output',
+    typeDefinitions: TypeDefinitions,
+    errors: string[]
+): Map<number, Type> | null => {
+    const result = new Map<number, Type>();
+    const startErrors = errors.length;
+    for (const i of schema[`${type}s`]) {
+        try {
+            result.set(i.id, evaluate(fromJson(i.type), typeDefinitions));
+        } catch (error) {
+            errors.push(
+                `Unable to evaluate type of ${schema.name} (id: ${schema.schemaId}) > ${i.label} (id: ${i.id})` +
+                    `: ${String(error)}`
+            );
+        }
+    }
+    if (startErrors < errors.length) return null;
+    return result;
+};
+
 const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
     const schemata = new SchemaMap(response);
 
     const typeDefinitions = new TypeDefinitions();
     const functionDefinitions = new Map<string, FunctionDefinition>();
+
+    const errors: string[] = [];
+
     for (const schema of response) {
-        const fn = new FunctionDefinition(
-            new Map(schema.inputs.map((i) => [i.id, fromJson(i.type)])),
-            new Map(schema.outputs.map((o) => [o.id, fromJson(o.type)])),
-            typeDefinitions
-        );
-        functionDefinitions.set(schema.schemaId, fn);
+        const inputs = evaluateInputOutput(schema, 'input', typeDefinitions, errors);
+        const outputs = evaluateInputOutput(schema, 'output', typeDefinitions, errors);
+
+        if (inputs && outputs) {
+            const fn = new FunctionDefinition(inputs, outputs, typeDefinitions);
+            functionDefinitions.set(schema.schemaId, fn);
+        }
+    }
+
+    if (errors.length) {
+        throw new Error(errors.join('\n\n'));
     }
 
     return { schemata, functionDefinitions, typeDefinitions };
@@ -100,6 +133,16 @@ const Main = memo(({ port }: MainProps) => {
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
+
+        if (error) {
+            sendAlert(
+                AlertType.CRIT_ERROR,
+                null,
+                `chaiNNer has encountered a critical error: ${error.message}`
+            );
+            setBackendReady(true);
+            ipcRenderer.send('backend-ready');
+        }
     }, [response, data, loading, error, backendReady]);
 
     useLastWindowSize();
@@ -125,14 +168,7 @@ const Main = memo(({ port }: MainProps) => {
         [sendAlert]
     );
 
-    if (error) {
-        sendAlert(
-            AlertType.CRIT_ERROR,
-            null,
-            `chaiNNer has encountered a critical error: ${error.message}`
-        );
-        return null;
-    }
+    if (error) return null;
 
     if (!nodesInfo || !data) {
         return (

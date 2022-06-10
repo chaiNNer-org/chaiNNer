@@ -4,7 +4,7 @@ import os
 
 # pylint: disable=relative-beyond-top-level
 from ...utils.image_utils import get_available_image_formats
-from .... import expression
+from .. import expression
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 

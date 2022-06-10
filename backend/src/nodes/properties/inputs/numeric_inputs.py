@@ -1,7 +1,7 @@
 from typing import Union, Tuple
 
 from .base_input import BaseInput, InputKind
-from .... import expression
+from .. import expression
 
 
 def clampNumber(
