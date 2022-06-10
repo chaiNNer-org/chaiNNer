@@ -8,8 +8,9 @@ from .generic_inputs import DropDownInput
 def ColorModeInput() -> DropDownInput:
     """Converting color mode dropdown"""
     return DropDownInput(
-        "Color Mode",
-        [
+        input_type="ColorMode",
+        label="Color Mode",
+        options=[
             {
                 "option": "BGR -> Gray",
                 "value": cv2.COLOR_BGR2GRAY,
@@ -71,8 +72,9 @@ def ColorModeInput() -> DropDownInput:
 def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return DropDownInput(
-        "Interpolation Mode",
-        [
+        input_type="InterpolationMode",
+        label="Interpolation Mode",
+        options=[
             {
                 "option": "Auto",
                 "value": InterpolationMethod.AUTO,
@@ -101,20 +103,12 @@ def InterpolationInput() -> DropDownInput:
 def BlurInput() -> DropDownInput:
     """Blur option dropdown"""
     return DropDownInput(
-        "Blur Mode",
-        [
-            {
-                "option": "Box",
-                "value": 0,
-            },
-            {
-                "option": "Blur",
-                "value": 1,
-            },
-            {
-                "option": "Gaussian",
-                "value": 2,
-            },
+        input_type="BlurMode",
+        label="Blur Mode",
+        options=[
+            {"option": "Box", "value": 0},
+            {"option": "Blur", "value": 1},
+            {"option": "Gaussian", "value": 2},
         ],
     )
 
@@ -122,8 +116,9 @@ def BlurInput() -> DropDownInput:
 def BorderInput() -> DropDownInput:
     """CopyMakeBorder option dropdown"""
     return DropDownInput(
-        "Border Type",
-        [
+        input_type="BorderType",
+        label="Border Type",
+        options=[
             {
                 "option": "Reflect (Mirror)",
                 "value": cv2.BORDER_REFLECT101,
@@ -151,8 +146,9 @@ def BorderInput() -> DropDownInput:
 def ThresholdInput() -> DropDownInput:
     """Threshold type option dropdown"""
     return DropDownInput(
-        "Threshold Type",
-        [
+        input_type="ThresholdType",
+        label="Threshold Type",
+        options=[
             {
                 "option": "Binary",
                 "value": cv2.THRESH_BINARY,
@@ -180,8 +176,9 @@ def ThresholdInput() -> DropDownInput:
 def AdaptiveThresholdInput() -> DropDownInput:
     """Adaptive Threshold type option dropdown"""
     return DropDownInput(
-        "Threshold Type",
-        [
+        input_type="AdaptiveThresholdType",
+        label="Threshold Type",
+        options=[
             {
                 "option": "Binary",
                 "value": cv2.THRESH_BINARY,
@@ -197,8 +194,9 @@ def AdaptiveThresholdInput() -> DropDownInput:
 def AdaptiveMethodInput() -> DropDownInput:
     """Adaptive method border option dropdown"""
     return DropDownInput(
-        "Adaptive Method",
-        [
+        input_type="AdaptiveMethod",
+        label="Adaptive Method",
+        options=[
             {
                 "option": "Mean - C",
                 "value": cv2.ADAPTIVE_THRESH_MEAN_C,
@@ -207,5 +205,17 @@ def AdaptiveMethodInput() -> DropDownInput:
                 "option": "Gaussian - C",
                 "value": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             },
+        ],
+    )
+
+
+def RotationDegreeInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="RotationDegree",
+        label="Rotation Degree",
+        options=[
+            {"option": "90°", "value": cv2.ROTATE_90_CLOCKWISE},
+            {"option": "180°", "value": cv2.ROTATE_180},
+            {"option": "270°", "value": cv2.ROTATE_90_COUNTERCLOCKWISE},
         ],
     )

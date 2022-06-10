@@ -1,6 +1,7 @@
 from typing import Union, Tuple
 
-from .base_input import BaseInput
+from .base_input import BaseInput, InputKind
+from .... import expression
 
 
 def clampNumber(
@@ -28,6 +29,22 @@ def clampNumber(
     return value
 
 
+def get_number_type(
+    min: Union[float, int, None],
+    max: Union[float, int, None],
+    step: Union[float, int],
+) -> expression.ExpressionJson:
+    if step == 0 or step != int(step):
+        # step is not an integer
+        return expression.interval(min, max)
+
+    if (min is not None and min != int(min)) or (max is not None and max != int(max)):
+        # min or max is not an integer
+        return expression.interval(min, max)
+
+    return expression.int_interval(min, max)
+
+
 class NumberInput(BaseInput):
     """Input a number"""
 
@@ -40,10 +57,10 @@ class NumberInput(BaseInput):
         minimum: Union[float, int, None] = 0,
         maximum: Union[float, int, None] = None,
         unit: Union[str, None] = None,
-        number_type: str = "any",
         note_expression: Union[str, None] = None,
+        kind: InputKind = "number",
     ):
-        super().__init__(f"number::{number_type}", label, has_handle=True)
+        super().__init__("number", label, kind=kind, has_handle=True)
         # Step is for the actual increment.
         # controls_step is for increment/decrement arrows.
         self.step = step
@@ -54,6 +71,12 @@ class NumberInput(BaseInput):
         self.maximum = maximum
         self.unit = unit
         self.note_expression = note_expression
+
+        self.input_type = get_number_type(
+            self.minimum,
+            self.maximum,
+            self.step,
+        )
 
     def toDict(self):
         return {
@@ -100,7 +123,7 @@ class SliderInput(NumberInput):
             maximum=maximum,
             unit=unit,
             note_expression=note_expression,
-            number_type="slider",
+            kind="slider",
         )
         self.ends = ends
         self.slider_step = (

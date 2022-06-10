@@ -4,6 +4,7 @@ import os
 
 # pylint: disable=relative-beyond-top-level
 from ...utils.image_utils import get_available_image_formats
+from .... import expression
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 
@@ -13,12 +14,12 @@ class FileInput(BaseInput):
 
     def __init__(
         self,
-        input_type: str,
+        input_type: expression.ExpressionJson,
         label: str,
         filetypes: list[str],
         has_handle: bool = False,
     ):
-        super().__init__(f"file::{input_type}", label, has_handle)
+        super().__init__(input_type, label, kind="file", has_handle=has_handle)
         self.filetypes = filetypes
 
     def toDict(self):
@@ -28,14 +29,14 @@ class FileInput(BaseInput):
         }
 
     def enforce(self, value):
-        assert os.path.exists(value), f"{value} does not exist"
+        assert os.path.exists(value), f"File {value} does not exist"
         return value
 
 
 def ImageFileInput() -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
-        "image",
+        "ImageFile",
         "Image File",
         get_available_image_formats(),
         has_handle=False,
@@ -45,7 +46,7 @@ def ImageFileInput() -> FileInput:
 def VideoFileInput() -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
-        "video",
+        "VideoFile",
         "Video File",
         [".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
         has_handle=False,
@@ -54,26 +55,31 @@ def VideoFileInput() -> FileInput:
 
 def PthFileInput() -> FileInput:
     """Input for submitting a local .pth file"""
-    return FileInput("pth", "Pretrained Model", [".pth"])
+    return FileInput("PthFile", "Pretrained Model", [".pth"])
 
 
 def TorchFileInput() -> FileInput:
     """Input for submitting a local .pth or .pt file"""
-    return FileInput("pt", "Pretrained Model", [".pt"])
+    return FileInput("PtFile", "Pretrained Model", [".pt"])
 
 
-def DirectoryInput(
-    label: str = "Base Directory", has_handle: bool = False
-) -> FileInput:
+class DirectoryInput(BaseInput):
     """Input for submitting a local directory"""
-    return FileInput("directory", label, ["directory"], has_handle)
+
+    def __init__(self, label: str = "Base Directory", has_handle: bool = False):
+        super().__init__("Directory", label, kind="directory", has_handle=has_handle)
+
+    def enforce(self, value):
+        assert os.path.exists(value), f"Directory {value} does not exist"
+        return value
 
 
 def ImageExtensionDropdown() -> DropDownInput:
     """Input for selecting file type from dropdown"""
     return DropDownInput(
-        "Image Extension",
-        [
+        input_type="ImageExtension",
+        label="Image Extension",
+        options=[
             {
                 "option": "PNG",
                 "value": "png",
@@ -95,20 +101,19 @@ def ImageExtensionDropdown() -> DropDownInput:
                 "value": "webp",
             },
         ],
-        input_type="image-extensions",
     )
 
 
 def BinFileInput() -> FileInput:
     """Input for submitting a local .bin file"""
-    return FileInput("bin", "NCNN Bin File", [".bin"])
+    return FileInput("NcnnBinFile", "NCNN Bin File", [".bin"])
 
 
 def ParamFileInput() -> FileInput:
     """Input for submitting a local .param file"""
-    return FileInput("param", "NCNN Param File", [".param"])
+    return FileInput("NcnnParamFile", "NCNN Param File", [".param"])
 
 
 def OnnxFileInput() -> FileInput:
     """Input for submitting a local .onnx file"""
-    return FileInput("onnx", "ONNX Model File", [".onnx"], has_handle=True)
+    return FileInput("OnnxFile", "ONNX Model File", [".onnx"], has_handle=True)

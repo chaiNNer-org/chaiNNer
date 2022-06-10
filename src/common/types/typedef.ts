@@ -124,7 +124,38 @@ export interface StructDefinitionEntry {
 export type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
 
 const addBuiltinTypes = (definitions: TypeDefinitions) => {
-    definitions.add(new StructDefinition('null'));
+    const constants: string[] = [
+        'null',
+
+        'Audio',
+        'Video',
+
+        'Directory',
+
+        'ImageFile',
+        'VideoFile',
+        'AudioFile',
+
+        'PthFile',
+        'PtFile',
+        'PyTorchModel',
+        'PyTorchScript',
+
+        'NcnnBinFile',
+        'NcnnParamFile',
+        'NcnnNetwork',
+
+        'OnnxFile',
+        'OnnxModel',
+
+        'PyTorchScript',
+        'PyTorchScript',
+        'PyTorchScript',
+    ];
+    for (const name of constants) {
+        definitions.add(new StructDefinition(name));
+    }
+
     definitions.add(new AliasDefinition('int', [], new IntIntervalType(-Infinity, Infinity)));
     definitions.add(new AliasDefinition('uint', [], new IntIntervalType(0, Infinity)));
 

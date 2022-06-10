@@ -284,29 +284,9 @@ class ColorTransferNode(NodeBase):
         self.inputs = [
             ImageInput("Image"),
             ImageInput("Reference Image"),
-            DropDownInput(
-                "Colorspace",
-                [
-                    {"option": "L*a*b*", "value": "L*a*b*"},
-                    {"option": "RGB", "value": "RGB"},
-                ],
-                input_type="str",
-            ),
-            DropDownInput(
-                "Overflow Method",
-                [
-                    {"option": "Clip", "value": 1},
-                    {"option": "Scale", "value": 0},
-                ],
-                input_type="str",
-            ),
-            DropDownInput(
-                "Reciprocal Scaling Factor",
-                [
-                    {"option": "Yes", "value": 1},
-                    {"option": "No", "value": 0},
-                ],
-            ),
+            ColorspaceInput(),
+            OverflowMethodInput(),
+            ReciprocalScalingFactorInput(),
         ]
         self.outputs = [ImageOutput("Image")]
         self.category = IMAGE_FILTER

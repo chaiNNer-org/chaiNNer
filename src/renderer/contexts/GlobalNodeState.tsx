@@ -547,7 +547,8 @@ export const GlobalProvider = memo(
                 const iteratorLock =
                     !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
-                return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
+                // TODO: type check
+                return !isLoop && iteratorLock;
             },
             [schemata, getNode, getNodes, getEdges]
         );

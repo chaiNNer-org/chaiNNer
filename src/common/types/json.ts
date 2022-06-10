@@ -20,6 +20,7 @@ import {
 export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 
 export type ExpressionJson =
+    | string
     | TypeJson
     | UnionExpressionJson
     | IntersectionExpressionJson
@@ -39,13 +40,13 @@ export interface NumericLiteralTypeJson {
 }
 export interface IntervalTypeJson {
     type: 'interval';
-    min?: NumberJson | null;
-    max?: NumberJson | null;
+    min: NumberJson;
+    max: NumberJson;
 }
 export interface IntIntervalTypeJson {
     type: 'int-interval';
-    min?: NumberJson | null;
-    max?: NumberJson | null;
+    min: NumberJson;
+    max: NumberJson;
 }
 export interface StringLiteralTypeJson {
     type: 'string-literal';
@@ -126,7 +127,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
             case 'string':
                 return StringType.instance;
             default:
-                return assertNever(e);
+                return new NamedExpression(e);
         }
     }
 
@@ -136,15 +137,9 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'string-literal':
             return new StringLiteralType(e.value);
         case 'interval':
-            return new IntervalType(
-                fromNumberJson(e.min ?? '-inf'),
-                fromNumberJson(e.min ?? 'inf')
-            );
+            return new IntervalType(fromNumberJson(e.min), fromNumberJson(e.min));
         case 'int-interval':
-            return new IntIntervalType(
-                fromNumberJson(e.min ?? '-inf'),
-                fromNumberJson(e.min ?? 'inf')
-            );
+            return new IntIntervalType(fromNumberJson(e.min), fromNumberJson(e.min));
         case 'union':
             return new UnionExpression(e.items.map(fromJson));
         case 'intersection':

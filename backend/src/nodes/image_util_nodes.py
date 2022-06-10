@@ -385,14 +385,7 @@ class RotateNode(NodeBase):
         self.description = "Rotate an image."
         self.inputs = [
             ImageInput("Image"),
-            DropDownInput(
-                "Rotation Degree",
-                [
-                    {"option": "90", "value": cv2.ROTATE_90_CLOCKWISE},
-                    {"option": "180", "value": cv2.ROTATE_180},
-                    {"option": "270", "value": cv2.ROTATE_90_COUNTERCLOCKWISE},
-                ],
-            ),
+            RotationDegreeInput(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -414,14 +407,7 @@ class FlipNode(NodeBase):
         self.description = "Flip an image."
         self.inputs = [
             ImageInput("Image"),
-            DropDownInput(
-                "Flip Axis",
-                [
-                    {"option": "Horizontal", "value": 1},
-                    {"option": "Vertical", "value": 0},
-                    {"option": "Both", "value": -1},
-                ],
-            ),
+            FlipAxisInput(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
