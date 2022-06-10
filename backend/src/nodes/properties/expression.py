@@ -1,4 +1,6 @@
-from typing import Literal, Optional, TypedDict, Union
+from __future__ import annotations
+
+from typing import Literal, Optional, TypedDict, Union, List, Dict
 import math
 
 
@@ -62,18 +64,18 @@ class StringLiteralTypeJson(TypedDict):
 
 class UnionExpressionJson(TypedDict):
     type: Literal["union"]
-    items: list[ExpressionJson]
+    items: List[ExpressionJson]
 
 
 class IntersectionExpressionJson(TypedDict):
     type: Literal["intersection"]
-    items: list[ExpressionJson]
+    items: List[ExpressionJson]
 
 
 class NamedExpressionJson(TypedDict):
     type: Literal["named"]
     name: str
-    fields: dict[str, ExpressionJson]
+    fields: Dict[str, ExpressionJson]
 
 
 def literal(value: Union[str, int, float]) -> ExpressionJson:
@@ -110,15 +112,15 @@ def int_interval(
     }
 
 
-def union(items: list[ExpressionJson]) -> ExpressionJson:
+def union(items: List[ExpressionJson]) -> ExpressionJson:
     return {"type": "union", "items": items}
 
 
-def intersection(items: list[ExpressionJson]) -> ExpressionJson:
+def intersection(items: List[ExpressionJson]) -> ExpressionJson:
     return {"type": "intersection", "items": items}
 
 
-def named(name: str, fields: dict[str, ExpressionJson]) -> ExpressionJson:
+def named(name: str, fields: Dict[str, ExpressionJson]) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
 
 
@@ -127,7 +129,7 @@ def Image(
     height: Optional[ExpressionJson] = None,
     channels: Optional[ExpressionJson] = None,
 ) -> ExpressionJson:
-    fields: dict[str, ExpressionJson] = {}
+    fields: Dict[str, ExpressionJson] = {}
     if width is not None:
         fields["width"] = width
     if height is not None:
