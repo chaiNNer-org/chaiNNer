@@ -12,19 +12,20 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import alpha_overlay, calculate_ssim
+from .utils.image_utils import blend_images, calculate_ssim
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:overlay")
-class ImOverlay(NodeBase):
+class ImBlend(NodeBase):
     """OpenCV transparency overlay node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Overlay transparent images on base image."
+        self.description = """Blends overlay image onto base image using 
+            specified mode and opacities."""
         self.inputs = [
             ImageInput("Base").with_id(0),
             SliderInput(
@@ -35,28 +36,38 @@ class ImOverlay(NodeBase):
                 controls_step=1,
                 unit="%",
             ).with_id(5),
-            ImageInput("Overlay A").with_id(1),
+            ImageInput("Overlay").make_optional().with_id(1),
             SliderInput(
-                "Opacity A",
+                "Overlay Opacity",
                 maximum=100,
-                default=50,
+                default=100,
                 step=0.1,
                 controls_step=1,
                 unit="%",
             ).with_id(2),
-            ImageInput("Overlay B").make_optional().with_id(3),
-            SliderInput(
-                "Opacity B",
-                maximum=100,
-                default=50,
-                step=0.1,
-                controls_step=1,
-                unit="%",
-            ).with_id(4),
+            DropDownInput(
+                "Blend Mode",
+                [
+                    {"option": "Normal", "value": 0},
+                    {"option": "Multiply", "value": 1},
+                    {"option": "Darken", "value": 2},
+                    {"option": "Lighten", "value": 3},
+                    {"option": "Add", "value": 4},
+                    {"option": "Color Burn", "value": 5},
+                    {"option": "Color Dodge", "value": 6},
+                    {"option": "Reflect", "value": 7},
+                    {"option": "Glow", "value": 8},
+                    {"option": "Overlay", "value": 9},
+                    {"option": "Difference", "value": 10},
+                    {"option": "Negation", "value": 11},
+                    {"option": "Screen", "value": 12},
+                    {"option": "Xor", "value": 13},
+                ],
+            ).with_id(6),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
-        self.name = "Overlay Images"
+        self.name = "Blend Images"
         self.icon = "BsLayersHalf"
         self.sub = "Compositing"
 
@@ -64,38 +75,36 @@ class ImOverlay(NodeBase):
         self,
         base: np.ndarray,
         opbase: float,
-        ov1: np.ndarray,
-        op1: float,
-        ov2: Union[np.ndarray, None],
-        op2: float,
+        ov: np.ndarray | None,
+        op: float,
+        blend_mode: int,
     ) -> np.ndarray:
         """Overlay transparent images on base image"""
 
         # Convert to 0.0-1.0 range
         opbase /= 100
-        op1 /= 100
-        op2 /= 100
+        op /= 100
+
+        # Return base image * base opacity if there is no overlay image.
+        if ov is None:
+            if get_h_w_c(base)[2] == 4:
+                base[:, :, 3] *= opbase
+            return base
 
         imgs = []
-        max_h, max_w = 0, 0
-        for img in base, ov1, ov2:
+        for img in (base, ov):  # Using loops in case variable inputs possible later.
             if img is not None:
                 h, w, c = get_h_w_c(img)
-                max_h = max(h, max_h)
-                max_w = max(w, max_w)
 
                 # All inputs must be BGRA for alpha compositing to work
                 if c == 1:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
                 elif c == 3:
-                    img = np.dstack((img, np.ones((h, w), np.float32)))
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
                 elif c != 4:  # Explode if there are not 1, 3, or 4 channels
                     logger.error(f"Number of channels ({c}) unexpected")
 
                 imgs.append(img)
-        assert (
-            base.shape[0] >= max_h and base.shape[1] >= max_w
-        ), "Base must be largest image."
 
         imgout = imgs[0]
         imgs = imgs[1:]
@@ -103,9 +112,9 @@ class ImOverlay(NodeBase):
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
 
-        # Apply opacity to base, then overlay A and B sequentially at corresponding opacities
+        # Apply opacity to base, then blend overlay at specified opacity
         imgout[:, :, 3] *= opbase
-        for img, op in zip(imgs, (op1, op2)):
+        for img, op in zip(imgs, [op]):
             h, w, _ = get_h_w_c(img)
 
             # Center overlay
@@ -113,12 +122,16 @@ class ImOverlay(NodeBase):
             y_offset = center_y - (h // 2)
 
             img[:, :, 3] = img[:, :, 3] * op
-            alpha_overlay(img, imgout[y_offset : y_offset + h, x_offset : x_offset + w])
-            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+            img = blend_images(
+                img,
+                imgout[y_offset : y_offset + h, x_offset : x_offset + w],
+                blend_mode,
+            )
 
-        imgout = np.clip(imgout, 0, 1)
+            imgout = np.copy(img)
+        img = np.clip(imgout, 0, 1)
 
-        return imgout
+        return img
 
 
 @NodeFactory.register("chainner:image:stack")

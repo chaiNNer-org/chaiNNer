@@ -2,8 +2,10 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 from sanic.log import logger
 
+from .blend_modes import BlendMode
 from .utils import get_h_w_c
 
 
@@ -90,7 +92,7 @@ def get_available_image_formats():
     return sorted(list(no_dupes))
 
 
-def normalize(img: np.ndarray) -> np.ndarray:
+def normalize(img: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
     dtype_max = 1
     try:
         dtype_max = np.iinfo(img.dtype).max
@@ -100,8 +102,8 @@ def normalize(img: np.ndarray) -> np.ndarray:
 
 
 def normalize_normals(
-    x: np.ndarray, y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    x: npt.NDArray[np.float32], y: npt.NDArray[np.float32]
+) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
     # The square of the length of X and Y
     l_sq = np.square(x) + np.square(y)
 
@@ -117,25 +119,43 @@ def normalize_normals(
     return x, y, z
 
 
-def alpha_overlay(img: np.ndarray, background: np.ndarray):
+def blend_images(
+    ov: npt.NDArray[np.float32], base: npt.NDArray[np.float32], blend_mode: int
+):
     """Changes the given image to the background overlayed with the image."""
-    assert get_h_w_c(img)[2] == 4, "The image has to be an RGBA image"
-    assert get_h_w_c(background)[2] == 4, "The background has to be an RGBA image"
+    assert get_h_w_c(ov)[2] == 4, "The image has to be an RGBA image"
+    assert get_h_w_c(base)[2] == 4, "The background has to be an RGBA image"
 
-    a = 1 - (1 - img[:, :, 3]) * (1 - background[:, :, 3])
-    img_blend = img[:, :, 3] / np.maximum(a, 0.0001)
+    ov_a = ov[:, :, 3]
+    base_a = base[:, :, 3]
+    combined_a = 1 - (1 - ov_a) * (1 - base_a)
 
-    img[:, :, 0] *= img_blend
-    img[:, :, 1] *= img_blend
-    img[:, :, 2] *= img_blend
-    img_blend = 1 - img_blend
-    img[:, :, 0] += background[:, :, 0] * img_blend
-    img[:, :, 1] += background[:, :, 1] * img_blend
-    img[:, :, 2] += background[:, :, 2] * img_blend
-    img[:, :, 3] = a
+    blender = BlendMode()
+    ov[:, :, 0] = (
+        ((ov_a - ov_a * base_a) * ov[:, :, 0])
+        + ((base_a - ov_a * base_a) * base[:, :, 0])
+        + (ov_a * base_a * blender.apply_blend(ov[:, :, 0], base[:, :, 0], blend_mode))
+    )
+    ov[:, :, 1] = (
+        ((ov_a - ov_a * base_a) * ov[:, :, 1])
+        + ((base_a - ov_a * base_a) * base[:, :, 1])
+        + (ov_a * base_a * blender.apply_blend(ov[:, :, 1], base[:, :, 1], blend_mode))
+    )
+    ov[:, :, 2] = (
+        ((ov_a - ov_a * base_a) * ov[:, :, 2])
+        + ((base_a - ov_a * base_a) * base[:, :, 2])
+        + (ov_a * base_a * blender.apply_blend(ov[:, :, 2], base[:, :, 2], blend_mode))
+    )
+
+    ov[:, :, :3] = ov[:, :, :3] / np.maximum(np.dstack((combined_a,) * 3), 0.0001)
+    ov[:, :, 3] = combined_a
+
+    return ov
 
 
-def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
+def calculate_ssim(
+    img1: npt.NDArray[np.float32], img2: npt.NDArray[np.float32]
+) -> float:
     """Calculates mean localized Structural Similarity Index (SSIM)
     between two images."""
 

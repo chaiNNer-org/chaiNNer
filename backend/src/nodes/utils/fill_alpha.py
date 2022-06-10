@@ -4,7 +4,7 @@ import math
 import cv2
 import numpy as np
 
-from .image_utils import alpha_overlay
+from .image_utils import blend_images
 from .utils import get_h_w_c
 
 
@@ -87,7 +87,7 @@ def fill_alpha_fragment_blur(img: np.ndarray) -> np.ndarray:
         blurred = fragment_blur(img, 5, i, 1 << i)
         # Blurred tends to be a bit too transparent
         with_self_as_background(blurred)
-        alpha_overlay(result, blurred)
+        blend_images(result, blurred)
 
     return result
 
@@ -130,4 +130,4 @@ def fill_alpha_edge_extend(img: np.ndarray, distance: int):
         r[:, :, 2] *= f
         r[:, :, 3] = np.minimum(r[:, :, 3], 1)
 
-        alpha_overlay(img, r)
+        blend_images(img, r)
