@@ -14,9 +14,12 @@ def AudioOutput():
     return NumPyOutput("Audio", "Audio")
 
 
-def ImageOutput(label: str = "Image"):
+def ImageOutput(
+    label: str = "Image",
+    image_type: expression.ExpressionJson = "Image",
+):
     """Output a 2D Image NumPy array"""
-    return NumPyOutput("Image", label)
+    return NumPyOutput(image_type, label)
 
 
 def VideoOutput():

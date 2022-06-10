@@ -9,6 +9,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .properties import expression
 from .utils.fill_alpha import *
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
@@ -27,10 +28,10 @@ class ChannelSplitRGBANode(NodeBase):
         )
         self.inputs = [ImageInput()]
         self.outputs = [
-            ImageOutput("Blue Channel"),
-            ImageOutput("Green Channel"),
-            ImageOutput("Red Channel"),
-            ImageOutput("Alpha Channel"),
+            ImageOutput("Blue Channel", expression.Image(channels=1)),
+            ImageOutput("Green Channel", expression.Image(channels=1)),
+            ImageOutput("Red Channel", expression.Image(channels=1)),
+            ImageOutput("Alpha Channel", expression.Image(channels=1)),
         ]
         self.category = IMAGE_CHANNEL
         self.name = "Split Channels"
@@ -79,7 +80,11 @@ class ChannelMergeRGBANode(NodeBase):
             ImageInput("Channel(s) C").make_optional(),
             ImageInput("Channel(s) D").make_optional(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(channels=expression.union([1, 3, 4]))
+            )
+        ]
         self.category = IMAGE_CHANNEL
         self.name = "Merge Channels"
         self.icon = "MdCallMerge"
@@ -136,8 +141,8 @@ class TransparencySplitNode(NodeBase):
         )
         self.inputs = [ImageInput()]
         self.outputs = [
-            ImageOutput("RGB Channels"),
-            ImageOutput("Alpha Channel"),
+            ImageOutput("RGB Channels", expression.Image(channels=3)),
+            ImageOutput("Alpha Channel", expression.Image(channels=1)),
         ]
         self.category = IMAGE_CHANNEL
         self.name = "Split Transparency"
@@ -171,7 +176,7 @@ class TransparencyMergeNode(NodeBase):
         self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
         self.inputs = [
             ImageInput("RGB Channels"),
-            ImageInput("Alpha Channel"),
+            ImageInput("Alpha Channel", expression.Image(channels=1)),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_CHANNEL
@@ -224,10 +229,12 @@ class FillAlphaNode(NodeBase):
             "Fills the transparent pixels of an image with nearby colors."
         )
         self.inputs = [
-            ImageInput("RGBA"),
+            ImageInput("RGBA", expression.Image(channels=4)),
             AlphaFillMethodInput(),
         ]
-        self.outputs = [ImageOutput("RGB")]
+        self.outputs = [
+            ImageOutput("RGB", expression.Image(channels=3)),
+        ]
         self.category = IMAGE_CHANNEL
         self.name = "Fill Alpha"
         self.icon = "MdOutlineFormatColorFill"

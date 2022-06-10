@@ -54,7 +54,9 @@ class ImOverlay(NodeBase):
                 unit="%",
             ).with_id(4),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(image_type=expression.Image(channels=4)),
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Overlay Images"
         self.icon = "BsLayersHalf"
@@ -260,7 +262,11 @@ class ColorConvertNode(NodeBase):
             ImageInput(),
             ColorModeInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(channels=expression.union([1, 3, 4]))
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Change Colorspace"
         self.icon = "MdColorLens"

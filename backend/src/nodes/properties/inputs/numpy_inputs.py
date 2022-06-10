@@ -2,6 +2,7 @@
 
 from ...utils.image_utils import normalize
 from .base_input import BaseInput
+from .. import expression
 
 
 class AudioInput(BaseInput):
@@ -14,8 +15,12 @@ class AudioInput(BaseInput):
 class ImageInput(BaseInput):
     """Input a 2D Image NumPy array"""
 
-    def __init__(self, label: str = "Image"):
-        super().__init__("Image", label)
+    def __init__(
+        self,
+        label: str = "Image",
+        image_type: expression.ExpressionJson = "Image",
+    ):
+        super().__init__(image_type, label)
 
     def enforce(self, value):
         return normalize(value)
