@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import math
-from typing import List, Tuple
+from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 from sanic.log import logger
 
 from .categories import IMAGE_UTILITY
@@ -16,10 +17,12 @@ from .utils.image_utils import blend_images, calculate_ssim
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
+ndarray32 = npt.NDArray[np.float32]
 
-@NodeFactory.register("chainner:image:overlay")
+
+@NodeFactory.register("chainner:image:blend")
 class ImBlend(NodeBase):
-    """OpenCV transparency overlay node"""
+    """Blending mode node"""
 
     def __init__(self):
         """Constructor"""
@@ -27,7 +30,7 @@ class ImBlend(NodeBase):
         self.description = """Blends overlay image onto base image using 
             specified mode and opacities."""
         self.inputs = [
-            ImageInput("Base").with_id(0),
+            ImageInput("Base"),
             SliderInput(
                 "Base Opacity",
                 maximum=100,
@@ -35,8 +38,8 @@ class ImBlend(NodeBase):
                 step=0.1,
                 controls_step=1,
                 unit="%",
-            ).with_id(5),
-            ImageInput("Overlay").make_optional().with_id(1),
+            ),
+            ImageInput("Overlay").make_optional(),
             SliderInput(
                 "Overlay Opacity",
                 maximum=100,
@@ -44,7 +47,7 @@ class ImBlend(NodeBase):
                 step=0.1,
                 controls_step=1,
                 unit="%",
-            ).with_id(2),
+            ),
             DropDownInput(
                 "Blend Mode",
                 [
@@ -63,7 +66,7 @@ class ImBlend(NodeBase):
                     {"option": "Screen", "value": 12},
                     {"option": "Xor", "value": 13},
                 ],
-            ).with_id(6),
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -73,28 +76,31 @@ class ImBlend(NodeBase):
 
     def run(
         self,
-        base: np.ndarray,
+        base: ndarray32,
         opbase: float,
-        ov: np.ndarray | None,
+        ov: ndarray32 | None,
         op: float,
         blend_mode: int,
-    ) -> np.ndarray:
-        """Overlay transparent images on base image"""
+    ) -> ndarray32:
+        """Blend images together"""
+
+        # Return base image * base opacity if there is no overlay image.
+        if ov is None:
+            if get_h_w_c(base)[2] == 4:
+                base[:, :, 3] *= opbase / 100
+            return base
 
         # Convert to 0.0-1.0 range
         opbase /= 100
         op /= 100
 
-        # Return base image * base opacity if there is no overlay image.
-        if ov is None:
-            if get_h_w_c(base)[2] == 4:
-                base[:, :, 3] *= opbase
-            return base
-
         imgs = []
+        max_h = max_w = 0
         for img in (base, ov):  # Using loops in case variable inputs possible later.
             if img is not None:
                 h, w, c = get_h_w_c(img)
+                max_h = max(h, max_h)
+                max_w = max(w, max_w)
 
                 # All inputs must be BGRA for alpha compositing to work
                 if c == 1:
@@ -108,6 +114,19 @@ class ImBlend(NodeBase):
 
         imgout = imgs[0]
         imgs = imgs[1:]
+
+        # Pad base image with transparency if necessary to match size with overlay
+        h, w, _ = get_h_w_c(imgout)
+        tp = bm = lt = rt = 0
+        if h < max_h:
+            tp = (max_h - h) // 2
+            bm = max_h - h - tp
+        if w < max_w:
+            lt = (max_w - w) // 2
+            rt = max_w - w - lt
+        imgout = cv2.copyMakeBorder(
+            imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
+        )
 
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
@@ -128,7 +147,7 @@ class ImBlend(NodeBase):
                 blend_mode,
             )
 
-            imgout = np.copy(img)
+            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
         img = np.clip(imgout, 0, 1)
 
         return img
@@ -157,12 +176,12 @@ class StackNode(NodeBase):
 
     def run(
         self,
-        im1: np.ndarray,
-        im2: Union[np.ndarray, None],
-        im3: Union[np.ndarray, None],
-        im4: Union[np.ndarray, None],
+        im1: ndarray32,
+        im2: ndarray32 | None,
+        im3: ndarray32 | None,
+        im4: ndarray32 | None,
         orientation: str,
-    ) -> np.ndarray:
+    ) -> ndarray32:
         """Concatenate multiple images horizontally"""
         img = im1
         imgs = []
@@ -252,7 +271,7 @@ class CaptionNode(NodeBase):
         self.icon = "MdVideoLabel"
         self.sub = "Compositing"
 
-    def run(self, img: np.ndarray, caption: str) -> np.ndarray:
+    def run(self, img: ndarray32, caption: str) -> ndarray32:
         """Add caption an image"""
 
         return add_caption(img, caption)
@@ -279,12 +298,12 @@ class ColorConvertNode(NodeBase):
         self.icon = "MdColorLens"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
+    def run(self, img: ndarray32, color_mode: int) -> ndarray32:
         """Takes an image and changes the color mode it"""
 
         result = cv2.cvtColor(img, int(color_mode))
 
-        return result
+        return result  # type: ignore
 
 
 @NodeFactory.register("chainner:image:create_border")
@@ -306,7 +325,7 @@ class BorderMakeNode(NodeBase):
         self.icon = "BsBorderOuter"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
+    def run(self, img: ndarray32, border_type: int, amount: int) -> ndarray32:
         """Takes an image and applies a border to it"""
 
         amount = int(amount)
@@ -355,37 +374,16 @@ class ShiftNode(NodeBase):
 
     def run(
         self,
-        img: np.ndarray,
+        img: ndarray32,
         amount_x: int,
         amount_y: int,
-    ) -> np.ndarray:
+    ) -> ndarray32:
         """Adjusts the position of an image"""
 
         h, w, _ = get_h_w_c(img)
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img
-
-
-@NodeFactory.register("chainner:image:difference")
-class DifferenceNode(NodeBase):
-    """OpenCV absdiff node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Compares two images."
-        self.inputs = [ImageInput("Image A"), ImageInput("Image B")]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Difference"
-        self.icon = "BsSubtract"
-        self.sub = "Miscellaneous"
-
-    def run(self, img_1: np.ndarray, img_2: np.ndarray) -> np.ndarray:
-        """Compares two images"""
-        assert img_1.shape == img_2.shape, "Images must be the same size"
-        return cv2.absdiff(img_1, img_2)
 
 
 @NodeFactory.register("chainner:image:rotate")
@@ -413,7 +411,7 @@ class RotateNode(NodeBase):
         self.icon = "MdRotate90DegreesCcw"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, rotateCode: int) -> np.ndarray:
+    def run(self, img: ndarray32, rotateCode: int) -> ndarray32:
         return cv2.rotate(img, rotateCode)
 
 
@@ -442,7 +440,7 @@ class FlipNode(NodeBase):
         self.icon = "MdFlip"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, axis: int) -> np.ndarray:
+    def run(self, img: ndarray32, axis: int) -> ndarray32:
         return cv2.flip(img, axis)
 
 
@@ -470,7 +468,7 @@ class ImageMetricsNode(NodeBase):
         self.icon = "MdOutlineAssessment"
         self.sub = "Miscellaneous"
 
-    def run(self, orig_img: np.ndarray, comp_img: np.ndarray) -> Tuple[str, str, str]:
+    def run(self, orig_img: ndarray32, comp_img: ndarray32) -> Tuple[str, str, str]:
         """Compute MSE, PSNR, and SSIM"""
 
         assert (
@@ -484,7 +482,7 @@ class ImageMetricsNode(NodeBase):
             orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
             comp_img = cv2.cvtColor(comp_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
 
-        mse = round(np.mean((comp_img - orig_img) ** 2), 6)  # type: ignore
+        mse = round(np.mean((comp_img - orig_img) ** 2), 6)
         psnr = round(10 * math.log(1 / mse), 6)
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 

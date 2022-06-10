@@ -8,6 +8,8 @@ from sanic.log import logger
 from .blend_modes import BlendMode
 from .utils import get_h_w_c
 
+ndarray32 = npt.NDArray[np.float32]
+
 
 def get_opencv_formats():
     available_formats = [
@@ -92,7 +94,7 @@ def get_available_image_formats():
     return sorted(list(no_dupes))
 
 
-def normalize(img: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+def normalize(img: ndarray32) -> ndarray32:
     dtype_max = 1
     try:
         dtype_max = np.iinfo(img.dtype).max
@@ -102,8 +104,8 @@ def normalize(img: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
 
 
 def normalize_normals(
-    x: npt.NDArray[np.float32], y: npt.NDArray[np.float32]
-) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+    x: ndarray32, y: ndarray32
+) -> Tuple[ndarray32, ndarray32, ndarray32]:
     # The square of the length of X and Y
     l_sq = np.square(x) + np.square(y)
 
@@ -119,9 +121,7 @@ def normalize_normals(
     return x, y, z
 
 
-def blend_images(
-    ov: npt.NDArray[np.float32], base: npt.NDArray[np.float32], blend_mode: int
-):
+def blend_images(ov: ndarray32, base: ndarray32, blend_mode: int):
     """Changes the given image to the background overlayed with the image."""
     assert get_h_w_c(ov)[2] == 4, "The image has to be an RGBA image"
     assert get_h_w_c(base)[2] == 4, "The background has to be an RGBA image"
@@ -153,9 +153,7 @@ def blend_images(
     return ov
 
 
-def calculate_ssim(
-    img1: npt.NDArray[np.float32], img2: npt.NDArray[np.float32]
-) -> float:
+def calculate_ssim(img1: ndarray32, img2: ndarray32) -> float:
     """Calculates mean localized Structural Similarity Index (SSIM)
     between two images."""
 

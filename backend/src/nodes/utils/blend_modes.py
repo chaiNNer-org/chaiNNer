@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
+ndarray32 = npt.NDArray[np.float32]
+
 
 class BlendMode:
     def __init__(self):
@@ -22,53 +24,51 @@ class BlendMode:
             13: self.xor,
         }
 
-    def apply_blend(
-        self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32], blend_mode: int
-    ):
+    def apply_blend(self, a: ndarray32, b: ndarray32, blend_mode: int) -> ndarray32:
         return self.modes[blend_mode](a, b)
 
-    def normal(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def normal(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return a
 
-    def multiply(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def multiply(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return a * b
 
-    def darken(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def darken(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.minimum(a, b)
 
-    def lighten(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def lighten(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.maximum(a, b)
 
-    def add(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def add(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return a + b
 
-    def color_burn(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def color_burn(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.where(
             a == 0, 0, np.maximum(0, (1 - ((1 - b) / np.maximum(0.0001, a))))
         )
 
-    def color_dodge(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def color_dodge(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.where(a == 1, 1, np.minimum(1, b / np.maximum(0.0001, (1 - a))))
 
-    def reflect(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def reflect(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.where(a == 1, 1, np.minimum(1, b * b / np.maximum(0.0001, 1 - a)))
 
-    def glow(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def glow(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.where(b == 1, 1, np.minimum(1, a * a / np.maximum(0.0001, 1 - b)))
 
-    def overlay(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def overlay(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return np.where(b < 0.5, (2 * b * a), (1 - (2 * (1 - b) * (1 - a))))
 
-    def difference(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def difference(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return cv2.absdiff(a, b)
 
-    def negation(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def negation(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return 1 - cv2.absdiff(cv2.absdiff(np.ones(b.shape, np.float32), b), a)
 
-    def screen(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def screen(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return a + b - (a * b)
 
-    def xor(self, a: npt.NDArray[np.float32], b: npt.NDArray[np.float32]):
+    def xor(self, a: ndarray32, b: ndarray32) -> ndarray32:
         return (
             np.bitwise_xor(
                 (a * 255).astype(np.uint8), (b * 255).astype(np.uint8)
