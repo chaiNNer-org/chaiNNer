@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal, Union
 
 import os
 
@@ -8,6 +9,16 @@ from .. import expression
 from .base_input import BaseInput
 from .generic_inputs import DropDownInput
 
+FileInputKind = Union[
+    Literal["bin"],
+    Literal["image"],
+    Literal["onnx"],
+    Literal["param"],
+    Literal["pt"],
+    Literal["pth"],
+    Literal["video"],
+]
+
 
 class FileInput(BaseInput):
     """Input for submitting a local file"""
@@ -16,16 +27,19 @@ class FileInput(BaseInput):
         self,
         input_type: expression.ExpressionJson,
         label: str,
+        file_kind: FileInputKind,
         filetypes: list[str],
         has_handle: bool = False,
     ):
         super().__init__(input_type, label, kind="file", has_handle=has_handle)
         self.filetypes = filetypes
+        self.file_kind = file_kind
 
     def toDict(self):
         return {
             **super().toDict(),
             "filetypes": self.filetypes,
+            "fileKind": self.file_kind,
         }
 
     def enforce(self, value):
@@ -36,9 +50,10 @@ class FileInput(BaseInput):
 def ImageFileInput() -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
-        "ImageFile",
-        "Image File",
-        get_available_image_formats(),
+        input_type="ImageFile",
+        label="Image File",
+        file_kind="image",
+        filetypes=get_available_image_formats(),
         has_handle=False,
     )
 
@@ -46,21 +61,32 @@ def ImageFileInput() -> FileInput:
 def VideoFileInput() -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
-        "VideoFile",
-        "Video File",
-        [".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
+        input_type="VideoFile",
+        label="Video File",
+        file_kind="video",
+        filetypes=[".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
         has_handle=False,
     )
 
 
 def PthFileInput() -> FileInput:
     """Input for submitting a local .pth file"""
-    return FileInput("PthFile", "Pretrained Model", [".pth"])
+    return FileInput(
+        input_type="PthFile",
+        label="Pretrained Model",
+        file_kind="pth",
+        filetypes=[".pth"],
+    )
 
 
 def TorchFileInput() -> FileInput:
     """Input for submitting a local .pth or .pt file"""
-    return FileInput("PtFile", "Pretrained Model", [".pt"])
+    return FileInput(
+        input_type="PtFile",
+        label="Pretrained Model",
+        file_kind="pt",
+        filetypes=[".pt"],
+    )
 
 
 class DirectoryInput(BaseInput):
@@ -106,14 +132,30 @@ def ImageExtensionDropdown() -> DropDownInput:
 
 def BinFileInput() -> FileInput:
     """Input for submitting a local .bin file"""
-    return FileInput("NcnnBinFile", "NCNN Bin File", [".bin"])
+    return FileInput(
+        input_type="NcnnBinFile",
+        label="NCNN Bin File",
+        file_kind="bin",
+        filetypes=[".bin"],
+    )
 
 
 def ParamFileInput() -> FileInput:
     """Input for submitting a local .param file"""
-    return FileInput("NcnnParamFile", "NCNN Param File", [".param"])
+    return FileInput(
+        input_type="NcnnParamFile",
+        label="NCNN Param File",
+        file_kind="param",
+        filetypes=[".param"],
+    )
 
 
 def OnnxFileInput() -> FileInput:
     """Input for submitting a local .onnx file"""
-    return FileInput("OnnxFile", "ONNX Model File", [".onnx"], has_handle=True)
+    return FileInput(
+        input_type="OnnxFile",
+        label="ONNX Model File",
+        file_kind="onnx",
+        filetypes=[".onnx"],
+        has_handle=True,
+    )

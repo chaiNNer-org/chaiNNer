@@ -137,9 +137,9 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'string-literal':
             return new StringLiteralType(e.value);
         case 'interval':
-            return new IntervalType(fromNumberJson(e.min), fromNumberJson(e.min));
+            return new IntervalType(fromNumberJson(e.min), fromNumberJson(e.max));
         case 'int-interval':
-            return new IntIntervalType(fromNumberJson(e.min), fromNumberJson(e.min));
+            return new IntIntervalType(fromNumberJson(e.min), fromNumberJson(e.max));
         case 'union':
             return new UnionExpression(e.items.map(fromJson));
         case 'intersection':

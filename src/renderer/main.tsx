@@ -128,6 +128,7 @@ const Main = memo(({ port }: MainProps) => {
                     message:
                         `A critical error occurred while processing the node data returned by the backend.` +
                         `\n\n${String(e)}`,
+                    copyToClipboard: true,
                 });
             }
             setBackendReady(true);

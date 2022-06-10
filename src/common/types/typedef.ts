@@ -148,9 +148,24 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'OnnxFile',
         'OnnxModel',
 
-        'PyTorchScript',
-        'PyTorchScript',
-        'PyTorchScript',
+        'IteratorAuto',
+
+        'AdaptiveMethod',
+        'AdaptiveThresholdType',
+        'BorderType',
+        'ColorMode',
+        'Colorspace',
+        'FillMethod',
+        'FlipAxis',
+        'ImageExtension',
+        'InterpolationMode',
+        'MathOperation',
+        'Orientation',
+        'OverflowMethod',
+        'ReciprocalScalingFactor',
+        'RotationDegree',
+        'ThresholdType',
+        'VideoType',
     ];
     for (const name of constants) {
         definitions.add(new StructDefinition(name));

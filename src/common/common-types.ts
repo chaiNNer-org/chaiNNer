@@ -31,7 +31,7 @@ export type InputKind =
     | 'directory'
     | 'file'
     | 'generic';
-export type FileInputKind = 'image' | 'pth' | 'video' | 'bin' | 'param' | 'onnx';
+export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 export interface Input {
     readonly id: number;
     readonly type: ExpressionJson;
