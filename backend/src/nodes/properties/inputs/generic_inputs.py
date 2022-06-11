@@ -1,7 +1,7 @@
 from typing import Dict, List, Union
 
 from .base_input import BaseInput
-from ...utils.blend_modes import ImageBlender as ib
+from ...utils.blend_modes import BlendModes as bm
 
 
 class DropDownInput(BaseInput):
@@ -174,19 +174,19 @@ def BlendModeDropdown() -> DropDownInput:
     return DropDownInput(
         "Blend Mode",
         [
-            {"option": "Normal", "value": ib.NORMAL},
-            {"option": "Multiply", "value": ib.MULTIPLY},
-            {"option": "Darken", "value": ib.DARKEN},
-            {"option": "Lighten", "value": ib.LIGHTEN},
-            {"option": "Add", "value": ib.ADD},
-            {"option": "Color Burn", "value": ib.COLOR_BURN},
-            {"option": "Color Dodge", "value": ib.COLOR_DODGE},
-            {"option": "Reflect", "value": ib.REFLECT},
-            {"option": "Glow", "value": ib.GLOW},
-            {"option": "Overlay", "value": ib.OVERLAY},
-            {"option": "Difference", "value": ib.DIFFERENCE},
-            {"option": "Negation", "value": ib.NEGATION},
-            {"option": "Screen", "value": ib.SCREEN},
-            {"option": "Xor", "value": ib.XOR},
+            {"option": "Normal", "value": bm.NORMAL},
+            {"option": "Multiply", "value": bm.MULTIPLY},
+            {"option": "Darken", "value": bm.DARKEN},
+            {"option": "Lighten", "value": bm.LIGHTEN},
+            {"option": "Add", "value": bm.ADD},
+            {"option": "Color Burn", "value": bm.COLOR_BURN},
+            {"option": "Color Dodge", "value": bm.COLOR_DODGE},
+            {"option": "Reflect", "value": bm.REFLECT},
+            {"option": "Glow", "value": bm.GLOW},
+            {"option": "Overlay", "value": bm.OVERLAY},
+            {"option": "Difference", "value": bm.DIFFERENCE},
+            {"option": "Negation", "value": bm.NEGATION},
+            {"option": "Screen", "value": bm.SCREEN},
+            {"option": "Xor", "value": bm.XOR},
         ],
     )
