@@ -6,10 +6,9 @@ import numpy.typing as npt
 ndarray32 = npt.NDArray[np.float32]
 
 
-class ImageBlender:
-    """Class for compositing images using different blending modes."""
+class BlendModes:
+    """Blending mode constants"""
 
-    # Blend mode constants
     NORMAL = 0
     MULTIPLY = 1
     DARKEN = 2
@@ -25,22 +24,26 @@ class ImageBlender:
     SCREEN = 12
     XOR = 13
 
+
+class ImageBlender:
+    """Class for compositing images using different blending modes."""
+
     def __init__(self):
         self.modes = {
-            self.NORMAL: self.__normal,
-            self.MULTIPLY: self.__multiply,
-            self.DARKEN: self.__darken,
-            self.LIGHTEN: self.__lighten,
-            self.ADD: self.__add,
-            self.COLOR_BURN: self.__color_burn,
-            self.COLOR_DODGE: self.__color_dodge,
-            self.REFLECT: self.__reflect,
-            self.GLOW: self.__glow,
-            self.OVERLAY: self.__overlay,
-            self.DIFFERENCE: self.__difference,
-            self.NEGATION: self.__negation,
-            self.SCREEN: self.__screen,
-            self.XOR: self.__xor,
+            BlendModes.NORMAL: self.__normal,
+            BlendModes.MULTIPLY: self.__multiply,
+            BlendModes.DARKEN: self.__darken,
+            BlendModes.LIGHTEN: self.__lighten,
+            BlendModes.ADD: self.__add,
+            BlendModes.COLOR_BURN: self.__color_burn,
+            BlendModes.COLOR_DODGE: self.__color_dodge,
+            BlendModes.REFLECT: self.__reflect,
+            BlendModes.GLOW: self.__glow,
+            BlendModes.OVERLAY: self.__overlay,
+            BlendModes.DIFFERENCE: self.__difference,
+            BlendModes.NEGATION: self.__negation,
+            BlendModes.SCREEN: self.__screen,
+            BlendModes.XOR: self.__xor,
         }
 
     def apply_blend(self, a: ndarray32, b: ndarray32, blend_mode: int) -> ndarray32:
