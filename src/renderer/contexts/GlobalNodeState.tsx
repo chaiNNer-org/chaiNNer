@@ -451,6 +451,7 @@ export const GlobalProvider = memo(
 
         const removeNodeById = useCallback(
             (id: string) => {
+                changeEdges((edges) => edges.filter((e) => e.source !== id && e.target !== id));
                 changeNodes((nodes) => {
                     const node = nodes.find((n) => n.id === id);
                     if (node && node.type !== 'iteratorHelper') {
