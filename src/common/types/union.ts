@@ -19,7 +19,7 @@ import {
     UnionType,
     ValueType,
 } from './types';
-import { isSameStructType, isSameType } from './util';
+import { isSameStructType } from './util';
 
 type NonEmptyArray<T> = [T, ...T[]];
 
@@ -140,22 +140,12 @@ const unionStruct = (a: StructType, b: StructType): StructType | undefined => {
 
     if (a.fields.length === 0) return a;
 
-    if (a.fields.length === 1)
-        return new StructType(a.name, [unionStructField(a.fields[0], b.fields[0])]);
-
     const fields: StructTypeField[] = [];
-    let hasDifferent = false;
     for (let i = 0; i < a.fields.length; i += 1) {
         const aField = a.fields[i];
         const bField = b.fields[i];
 
-        if (isSameType(aField.type, bField.type)) {
-            fields.push(aField);
-        } else {
-            if (hasDifferent) return undefined;
-            hasDifferent = true;
-            fields.push(unionStructField(aField, bField));
-        }
+        fields.push(unionStructField(aField, bField));
     }
     return new StructType(a.name, fields);
 };

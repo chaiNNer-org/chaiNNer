@@ -32,6 +32,29 @@ describe('union', () => {
             }
         }
     });
+    test('associative', () => {
+        for (const a of types) {
+            for (const b of types) {
+                for (const c of types) {
+                    const expected = evaluate(
+                        new UnionExpression([
+                            a,
+                            evaluate(new UnionExpression([b, c]), definitions),
+                        ]),
+                        definitions
+                    ).getTypeId();
+                    const actual = evaluate(
+                        new UnionExpression([
+                            evaluate(new UnionExpression([a, b]), definitions),
+                            c,
+                        ]),
+                        definitions
+                    ).getTypeId();
+                    expect(actual).toBe(expected);
+                }
+            }
+        }
+    });
 });
 
 describe('intersection', () => {
