@@ -48,25 +48,7 @@ class ImBlend(NodeBase):
                 controls_step=1,
                 unit="%",
             ),
-            DropDownInput(
-                "Blend Mode",
-                [
-                    {"option": "Normal", "value": 0},
-                    {"option": "Multiply", "value": 1},
-                    {"option": "Darken", "value": 2},
-                    {"option": "Lighten", "value": 3},
-                    {"option": "Add", "value": 4},
-                    {"option": "Color Burn", "value": 5},
-                    {"option": "Color Dodge", "value": 6},
-                    {"option": "Reflect", "value": 7},
-                    {"option": "Glow", "value": 8},
-                    {"option": "Overlay", "value": 9},
-                    {"option": "Difference", "value": 10},
-                    {"option": "Negation", "value": 11},
-                    {"option": "Screen", "value": 12},
-                    {"option": "Xor", "value": 13},
-                ],
-            ),
+            BlendModeDropdown(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY

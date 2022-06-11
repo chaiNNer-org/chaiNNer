@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 from .base_input import BaseInput
+from ...utils.blend_modes import ImageBlender as ib
 
 
 class DropDownInput(BaseInput):
@@ -164,5 +165,28 @@ def VideoTypeDropdown() -> DropDownInput:
                 "option": "None",
                 "value": "none",
             },
+        ],
+    )
+
+
+def BlendModeDropdown() -> DropDownInput:
+    """Blending Mode option dropdown"""
+    return DropDownInput(
+        "Blend Mode",
+        [
+            {"option": "Normal", "value": ib.NORMAL},
+            {"option": "Multiply", "value": ib.MULTIPLY},
+            {"option": "Darken", "value": ib.DARKEN},
+            {"option": "Lighten", "value": ib.LIGHTEN},
+            {"option": "Add", "value": ib.ADD},
+            {"option": "Color Burn", "value": ib.COLOR_BURN},
+            {"option": "Color Dodge", "value": ib.COLOR_DODGE},
+            {"option": "Reflect", "value": ib.REFLECT},
+            {"option": "Glow", "value": ib.GLOW},
+            {"option": "Overlay", "value": ib.OVERLAY},
+            {"option": "Difference", "value": ib.DIFFERENCE},
+            {"option": "Negation", "value": ib.NEGATION},
+            {"option": "Screen", "value": ib.SCREEN},
+            {"option": "Xor", "value": ib.XOR},
         ],
     )

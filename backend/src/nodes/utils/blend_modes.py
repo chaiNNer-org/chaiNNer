@@ -1,3 +1,4 @@
+from turtle import Screen
 import cv2
 import numpy as np
 import numpy.typing as npt
@@ -8,28 +9,44 @@ ndarray32 = npt.NDArray[np.float32]
 class ImageBlender:
     """Class for compositing images using different blending modes."""
 
+    # Blend mode constants
+    NORMAL = 0
+    MULTIPLY = 1
+    DARKEN = 2
+    LIGHTEN = 3
+    ADD = 4
+    COLOR_BURN = 5
+    COLOR_DODGE = 6
+    REFLECT = 7
+    GLOW = 8
+    OVERLAY = 9
+    DIFFERENCE = 10
+    NEGATION = 11
+    SCREEN = 12
+    XOR = 13
+
     def __init__(self):
         self.modes = {
-            0: self.__normal,
-            1: self.__multiply,
-            2: self.__darken,
-            3: self.__lighten,
-            4: self.__add,
-            5: self.__color_burn,
-            6: self.__color_dodge,
-            7: self.__reflect,
-            8: self.__glow,
-            9: self.__overlay,
-            10: self.__difference,
-            11: self.__negation,
-            12: self.__screen,
-            13: self.__xor,
+            self.NORMAL: self.__normal,
+            self.MULTIPLY: self.__multiply,
+            self.DARKEN: self.__darken,
+            self.LIGHTEN: self.__lighten,
+            self.ADD: self.__add,
+            self.COLOR_BURN: self.__color_burn,
+            self.COLOR_DODGE: self.__color_dodge,
+            self.REFLECT: self.__reflect,
+            self.GLOW: self.__glow,
+            self.OVERLAY: self.__overlay,
+            self.DIFFERENCE: self.__difference,
+            self.NEGATION: self.__negation,
+            self.SCREEN: self.__screen,
+            self.XOR: self.__xor,
         }
 
     def apply_blend(self, a: ndarray32, b: ndarray32, blend_mode: int) -> ndarray32:
         return self.modes[blend_mode](a, b)
 
-    def __normal(self, a: ndarray32, b: ndarray32) -> ndarray32:
+    def __normal(self, a: ndarray32, _: ndarray32) -> ndarray32:
         return a
 
     def __multiply(self, a: ndarray32, b: ndarray32) -> ndarray32:
