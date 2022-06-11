@@ -30,7 +30,7 @@ class ImBlend(NodeBase):
         self.description = """Blends overlay image onto base image using 
             specified mode and opacities."""
         self.inputs = [
-            ImageInput("Base"),
+            ImageInput("Base Layer"),
             SliderInput(
                 "Base Opacity",
                 maximum=100,
@@ -39,7 +39,7 @@ class ImBlend(NodeBase):
                 controls_step=1,
                 unit="%",
             ).with_id(2),
-            ImageInput("Overlay").make_optional().with_id(1),
+            ImageInput("Overlay Layer").with_id(1),
             SliderInput(
                 "Overlay Opacity",
                 maximum=100,
