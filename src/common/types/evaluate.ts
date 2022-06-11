@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-param-reassign */
 import { assertNever } from '../util';
-import { Expression, NamedExpression, NamedExpressionField } from './expression';
+import {
+    Expression,
+    FieldAccessExpression,
+    NamedExpression,
+    NamedExpressionField,
+} from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
 import {
@@ -79,6 +84,13 @@ export type ErrorDetails =
           definition: AliasDefinition;
           parameter: AliasParameterDefinition;
           details: ErrorDetails;
+          message: string;
+      }
+    | {
+          type: 'Invalid field access';
+          expression: FieldAccessExpression;
+          fullExpressionType: Type;
+          offendingType: Type;
           message: string;
       };
 
@@ -326,6 +338,52 @@ const evaluateNamed = (
     return evaluateStruct(expression, entry, definitions, genericParameters);
 };
 
+const evaluateFieldAccess = (
+    expression: FieldAccessExpression,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    const type = evaluate(expression.of, definitions, genericParameters);
+    if (type.type === 'never') return NeverType.instance;
+    if (type.type === 'any') {
+        throw new EvaluationError({
+            type: 'Invalid field access',
+            expression,
+            fullExpressionType: type,
+            offendingType: type,
+            message: `The \`any\` type is not guaranteed to have a field \`${expression.field}\`.`,
+        });
+    }
+
+    const types = type.type === 'union' ? type.items : [type];
+    const accessed: Type[] = [];
+    for (const t of types) {
+        if (t.type !== 'struct') {
+            throw new EvaluationError({
+                type: 'Invalid field access',
+                expression,
+                fullExpressionType: type,
+                offendingType: t,
+                message: `Primitive types do not have fields.`,
+            });
+        }
+
+        const field = t.fields.find((f) => f.name === expression.field);
+        if (!field) {
+            throw new EvaluationError({
+                type: 'Invalid field access',
+                expression,
+                fullExpressionType: type,
+                offendingType: t,
+                message: `The ${t.name} structure does not define a field \`${expression.field}\`.`,
+            });
+        }
+
+        accessed.push(field.type);
+    }
+    return union(...accessed);
+};
+
 const NO_GENERICS = new Map<never, never>();
 
 /**
@@ -358,6 +416,8 @@ export const evaluate = (
             return intersect(
                 ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
             );
+        case 'field-access':
+            return evaluateFieldAccess(expression, definitions, genericParameters);
         default:
             return assertNever(expression);
     }

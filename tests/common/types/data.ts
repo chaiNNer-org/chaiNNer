@@ -1,5 +1,6 @@
 import {
     Expression,
+    FieldAccessExpression,
     IntersectionExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
@@ -37,6 +38,9 @@ const addExpressions = (expressions: readonly Expression[]): Expression[] => {
     }
 
     return newExpressions;
+};
+const fieldAccess = (expressions: readonly Expression[]): Expression[] => {
+    return expressions.map((e) => new FieldAccessExpression(e, 'a'));
 };
 
 const primitives: readonly Type[] = [
@@ -105,4 +109,8 @@ export const types: readonly Type[] = [...primitives, ...structs];
 export const expressions: readonly Expression[] = [
     ...addExpressions(primitives),
     ...addExpressions(structs),
+];
+
+export const potentiallyInvalidExpressions: readonly Expression[] = [
+    ...fieldAccess([...primitives, ...addExpressions(structs)]),
 ];

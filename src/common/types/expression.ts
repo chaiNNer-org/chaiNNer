@@ -2,7 +2,11 @@
 import { assertValidStructFieldName, assertValidStructName } from './names';
 import { Type } from './types';
 
-type PureExpression = UnionExpression | IntersectionExpression | NamedExpression;
+type PureExpression =
+    | UnionExpression
+    | IntersectionExpression
+    | NamedExpression
+    | FieldAccessExpression;
 
 export type Expression = Type | PureExpression;
 
@@ -81,5 +85,25 @@ export class NamedExpression implements ExpressionBase {
         return `${this.name} { ${this.fields
             .map((f) => `${f.name}: ${f.type.toString()}`)
             .join(', ')} }`;
+    }
+}
+
+export class FieldAccessExpression implements ExpressionBase {
+    readonly type = 'field-access';
+
+    readonly underlying = 'expression';
+
+    readonly of: Expression;
+
+    readonly field: string;
+
+    constructor(of: Expression, field: string) {
+        assertValidStructFieldName(field);
+        this.of = of;
+        this.field = field;
+    }
+
+    toString(): string {
+        return `${bracket(this.of)}.${this.field}`;
     }
 }

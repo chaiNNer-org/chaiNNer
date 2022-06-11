@@ -1,6 +1,7 @@
 import { assertNever } from '../util';
 import {
     Expression,
+    FieldAccessExpression,
     IntersectionExpression,
     NamedExpression,
     NamedExpressionField,
@@ -25,7 +26,8 @@ export type ExpressionJson =
     | TypeJson
     | UnionExpressionJson
     | IntersectionExpressionJson
-    | NamedExpressionJson;
+    | NamedExpressionJson
+    | FieldAccessExpressionJson;
 export type TypeJson = PrimitiveTypeJson | 'never' | 'any';
 export type PrimitiveTypeJson = NumberPrimitiveJson | StringPrimitiveJson;
 export type NumberPrimitiveJson =
@@ -66,6 +68,11 @@ export interface NamedExpressionJson {
     type: 'named';
     name: string;
     fields: Record<string, ExpressionJson>;
+}
+export interface FieldAccessExpressionJson {
+    type: 'field-access';
+    field: string;
+    of: ExpressionJson;
 }
 
 const toNumberJson = (number: number): NumberJson => {
@@ -110,6 +117,12 @@ export const toJson = (e: Expression): ExpressionJson => {
                 type: 'named',
                 name: e.name,
                 fields: Object.fromEntries(e.fields.map((f) => [e.name, toJson(f.type)])),
+            };
+        case 'field-access':
+            return {
+                type: 'field-access',
+                of: toJson(e.of),
+                field: e.field,
             };
         default:
             return assertNever(e);
@@ -156,6 +169,8 @@ export const fromJson = (e: ExpressionJson): Expression => {
                     ([name, type]) => new NamedExpressionField(name, fromJson(type))
                 )
             );
+        case 'field-access':
+            return new FieldAccessExpression(fromJson(e.of), e.field);
         default:
             return assertNever(e);
     }

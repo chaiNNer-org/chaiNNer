@@ -1,13 +1,21 @@
 import { evaluate } from '../../../src/common/types/evaluate';
 import { IntersectionExpression, UnionExpression } from '../../../src/common/types/expression';
 import { TypeDefinitions } from '../../../src/common/types/typedef';
-import { expressions, types } from './data';
+import { expressions, potentiallyInvalidExpressions, types } from './data';
 
 const definitions = new TypeDefinitions();
 
 test('Expression evaluation', () => {
-    const actual = expressions
-        .map((e) => `${e.toString()} => ${evaluate(e, definitions).toString()}`)
+    const actual = [...expressions, ...potentiallyInvalidExpressions]
+        .map((e) => {
+            let result;
+            try {
+                result = evaluate(e, definitions).toString();
+            } catch (error) {
+                result = String(error);
+            }
+            return `${e.toString()} => ${result}`;
+        })
         .join('\n');
     expect(actual).toMatchSnapshot();
 });
