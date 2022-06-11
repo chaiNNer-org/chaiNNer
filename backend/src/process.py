@@ -143,9 +143,17 @@ class Executor:
         for node in self.nodes.values():
             if self.killed:
                 break
-            if (node["outputs"] is None or len(node["outputs"]) == 0) and not node[
-                "child"
-            ]:
+            if (
+                # Normal case
+                (node["outputs"] is None or len(node["outputs"]) == 0)
+                or (
+                    # Temporary fix for convert to onnx.
+                    # TODO: remove this when we have a general solution for nodes with effects
+                    node["outputs"] is not None
+                    and len(node["outputs"]) > 0
+                    and node["schemaId"] == "chainner:pytorch:convert_to_onnx"
+                )
+            ) and not node["child"]:
                 output_nodes.append(node)
         # Run each of the output nodes through processing
         for output_node in output_nodes:
