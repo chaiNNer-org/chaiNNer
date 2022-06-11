@@ -2,6 +2,7 @@
 import log from 'electron-log';
 import { isEdge, isNode } from 'react-flow-renderer';
 import semver from 'semver';
+import { createUniqueId } from './util';
 
 // ==============
 //   pre-alpha
@@ -319,6 +320,90 @@ const fixBlurNode = (data) => {
     return data;
 };
 
+const addBlendNode = (data) => {
+    data.nodes.forEach((node) => {
+        // Convert Difference Nodes to Blend Image Nodes
+        if (node.data.schemaId === 'chainner:image:difference') {
+            // eslint-disable-next-line no-param-reassign
+            node.data.schemaId = 'chainner:image:blend';
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['2'] = 100;
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['3'] = 100;
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['4'] = 10;
+        }
+
+        // Convert Overlay Images Nodes to Blend Image Nodes
+        if (node.data.schemaId === 'chainner:image:overlay') {
+            const findEdgesToChange = () => {
+                const edgeList = {};
+                data.edges.forEach((edge, index) => {
+                    if (
+                        edge.target === node.id &&
+                        edge.targetHandle.split('-').slice(-1)[0] === '3'
+                    ) {
+                        edgeList.input = index;
+                    } else if (edge.source === node.id) {
+                        edgeList.output = index;
+                    }
+                });
+                return edgeList;
+            };
+            const edgesToChange = findEdgesToChange();
+
+            // If there is a second overlay input, need to add second blend node and
+            // update edges.
+            if (edgesToChange.input !== undefined) {
+                const newID = createUniqueId();
+                const newBlendNode = {
+                    data: {
+                        schemaId: 'chainner:image:blend',
+                        inputData: { 2: 100, 3: node.data.inputData['4'] },
+                        id: newID,
+                    },
+                    id: newID,
+                    position: { x: node.position.x + 300, y: node.position.y - 100 },
+                    type: 'regularNode',
+                    selected: false,
+                    height: node.height,
+                    width: node.width,
+                    zIndex: node.zIndex,
+                };
+                data.nodes.push(newBlendNode);
+
+                // eslint-disable-next-line no-param-reassign
+                data.edges[edgesToChange.input].target = newID;
+                // eslint-disable-next-line no-param-reassign
+                data.edges[edgesToChange.input].targetHandle = `${newID}-1`;
+
+                if (edgesToChange.output !== undefined) {
+                    const newOutputEdge = { ...data.edges[edgesToChange.output] };
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[edgesToChange.output].target = newID;
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[edgesToChange.output].targetHandle = `${newID}-0`;
+                    newOutputEdge.source = newID;
+                    newOutputEdge.sourceHandle = `${newID}-0`;
+                    data.edges.push(newOutputEdge);
+                }
+            }
+
+            // eslint-disable-next-line no-param-reassign
+            node.data.schemaId = 'chainner:image:blend';
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['3'] = node.data.inputData['2'];
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['2'] =
+                node.data.inputData['5'] !== undefined ? node.data.inputData['5'] : 100;
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['4'] = 0;
+            // console.log(data);
+        }
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -349,6 +434,7 @@ const migrations = [
     toV080,
     updateAdjustmentScale,
     fixBlurNode,
+    addBlendNode,
 ];
 
 export const currentMigration = migrations.length;

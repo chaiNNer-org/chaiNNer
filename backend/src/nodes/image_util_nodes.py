@@ -38,8 +38,8 @@ class ImBlend(NodeBase):
                 step=0.1,
                 controls_step=1,
                 unit="%",
-            ),
-            ImageInput("Overlay").make_optional(),
+            ).with_id(2),
+            ImageInput("Overlay").make_optional().with_id(1),
             SliderInput(
                 "Overlay Opacity",
                 maximum=100,
