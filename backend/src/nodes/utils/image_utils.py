@@ -129,20 +129,20 @@ def blend_images(ov: np.ndarray, base: np.ndarray, blend_mode: int):
 
     blender = ImageBlender()
     ov[:, :, 0] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 0])
-        + ((base_a - ov_a * base_a) * base[:, :, 0])
+        ((ov_a - ov_a * base_a) * ov[:, :, 0])  # type: ignore
+        + ((base_a - ov_a * base_a) * base[:, :, 0])  # type: ignore
         + (ov_a * base_a * blender.apply_blend(ov[:, :, 0], base[:, :, 0], blend_mode))
-    )  # type: ignore
+    )
     ov[:, :, 1] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 1])
-        + ((base_a - ov_a * base_a) * base[:, :, 1])
+        ((ov_a - ov_a * base_a) * ov[:, :, 1])  # type: ignore
+        + ((base_a - ov_a * base_a) * base[:, :, 1])  # type: ignore
         + (ov_a * base_a * blender.apply_blend(ov[:, :, 1], base[:, :, 1], blend_mode))
-    )  # type: ignore
+    )
     ov[:, :, 2] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 2])
-        + ((base_a - ov_a * base_a) * base[:, :, 2])
+        ((ov_a - ov_a * base_a) * ov[:, :, 2])  # type: ignore
+        + ((base_a - ov_a * base_a) * base[:, :, 2])  # type: ignore
         + (ov_a * base_a * blender.apply_blend(ov[:, :, 2], base[:, :, 2], blend_mode))
-    )  # type: ignore
+    )
 
     ov[:, :, :3] = ov[:, :, :3] / np.maximum(np.dstack((combined_a,) * 3), 0.0001)
     ov[:, :, 3] = combined_a
