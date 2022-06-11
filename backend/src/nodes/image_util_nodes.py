@@ -331,14 +331,14 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", unit="px"),
-            NumberInput("Amount Y", unit="px"),
+            NumberInput("Amount X", minimum=None, unit="px"),
+            NumberInput("Amount Y", minimum=None, unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
         self.name = "Shift"
         self.icon = "BsGraphDown"
-        self.sub = "Miscellaneous"
+        self.sub = "Modification"
 
     def run(
         self,
