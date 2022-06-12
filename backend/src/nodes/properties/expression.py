@@ -78,6 +78,12 @@ class NamedExpressionJson(TypedDict):
     fields: Dict[str, ExpressionJson]
 
 
+class FieldAccessExpressionJson(TypedDict):
+    type: Literal["field-access"]
+    of: ExpressionJson
+    field: str
+
+
 def literal(value: Union[str, int, float]) -> ExpressionJson:
     if isinstance(value, str):
         return {
@@ -122,6 +128,10 @@ def intersection(items: List[ExpressionJson]) -> ExpressionJson:
 
 def named(name: str, fields: Dict[str, ExpressionJson]) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
+
+
+def field(of: ExpressionJson, field: str) -> FieldAccessExpressionJson:
+    return {"type": "field-access", "of": of, "field": field}
 
 
 def Image(
