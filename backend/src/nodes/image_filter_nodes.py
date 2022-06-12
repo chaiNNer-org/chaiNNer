@@ -283,9 +283,7 @@ class ColorTransferNode(NodeBase):
             best results."""
         self.inputs = [
             ImageInput("Image"),
-            ImageInput(
-                "Reference Image", expression.Image(channels=expression.union([3, 4]))
-            ),
+            ImageInput("Reference Image", expression.Image(channels=[3, 4])),
             ColorspaceInput(),
             OverflowMethodInput(),
             ReciprocalScalingFactorInput(),
@@ -342,10 +340,7 @@ class NormalizeNode(NodeBase):
         self.description = """Normalizes the given normal map.
             Only the R and G channels of the input image will be used."""
         self.inputs = [
-            ImageInput(
-                "Normal Map",
-                expression.Image(channels=expression.union([3, 4])),
-            ),
+            ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]
         self.outputs = [
             ImageOutput("Normal Map", expression.Image(channels=3)),
@@ -385,15 +380,9 @@ class NormalAdditionNode(NodeBase):
             channels of the input image will be used. The output normal map
             is guaranteed to be normalized."""
         self.inputs = [
-            ImageInput(
-                "Normal Map 1",
-                expression.Image(channels=expression.union([3, 4])),
-            ),
+            ImageInput("Normal Map 1", expression.Image(channels=[3, 4])),
             SliderInput("Strength 1", maximum=100, default=100),
-            ImageInput(
-                "Normal Map 2",
-                expression.Image(channels=expression.union([3, 4])),
-            ),
+            ImageInput("Normal Map 2", expression.Image(channels=[3, 4])),
             SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [

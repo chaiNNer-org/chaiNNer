@@ -262,11 +262,7 @@ class ColorConvertNode(NodeBase):
             ImageInput(),
             ColorModeInput(),
         ]
-        self.outputs = [
-            ImageOutput(
-                image_type=expression.Image(channels=expression.union([1, 3, 4]))
-            )
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels=[1, 3, 4]))]
         self.category = IMAGE_UTILITY
         self.name = "Change Colorspace"
         self.icon = "MdColorLens"

@@ -80,11 +80,7 @@ class ChannelMergeRGBANode(NodeBase):
             ImageInput("Channel(s) C").make_optional(),
             ImageInput("Channel(s) D").make_optional(),
         ]
-        self.outputs = [
-            ImageOutput(
-                image_type=expression.Image(channels=expression.union([1, 3, 4]))
-            )
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels=[1, 3, 4]))]
         self.category = IMAGE_CHANNEL
         self.name = "Merge Channels"
         self.icon = "MdCallMerge"

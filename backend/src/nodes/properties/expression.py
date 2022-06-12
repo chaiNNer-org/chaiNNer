@@ -37,6 +37,7 @@ ExpressionJson = Union[
     "UnionExpressionJson",
     "IntersectionExpressionJson",
     "NamedExpressionJson",
+    List["ExpressionJson"],
 ]
 
 
@@ -75,7 +76,7 @@ class IntersectionExpressionJson(TypedDict):
 class NamedExpressionJson(TypedDict):
     type: Literal["named"]
     name: str
-    fields: Dict[str, ExpressionJson]
+    fields: Dict[str, ExpressionJson] | None
 
 
 class FieldAccessExpressionJson(TypedDict):
@@ -126,7 +127,7 @@ def intersection(items: List[ExpressionJson]) -> ExpressionJson:
     return {"type": "intersection", "items": items}
 
 
-def named(name: str, fields: Dict[str, ExpressionJson]) -> ExpressionJson:
+def named(name: str, fields: Dict[str, ExpressionJson] | None = None) -> ExpressionJson:
     return {"type": "named", "name": name, "fields": fields}
 
 

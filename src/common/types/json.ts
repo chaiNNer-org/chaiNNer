@@ -24,6 +24,7 @@ export type ExpressionJson =
     | string
     | number
     | TypeJson
+    | ExpressionJson[]
     | UnionExpressionJson
     | IntersectionExpressionJson
     | NamedExpressionJson
@@ -67,7 +68,7 @@ export interface IntersectionExpressionJson {
 export interface NamedExpressionJson {
     type: 'named';
     name: string;
-    fields: Record<string, ExpressionJson>;
+    fields?: Record<string, ExpressionJson> | null;
 }
 export interface FieldAccessExpressionJson {
     type: 'field-access';
@@ -149,6 +150,10 @@ export const fromJson = (e: ExpressionJson): Expression => {
         }
     }
 
+    if (Array.isArray(e)) {
+        return new UnionExpression(e.map(fromJson));
+    }
+
     switch (e.type) {
         case 'numeric-literal':
             return new NumericLiteralType(fromNumberJson(e.value));
@@ -165,7 +170,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'named':
             return new NamedExpression(
                 e.name,
-                Object.entries(e.fields).map(
+                Object.entries(e.fields ?? {}).map(
                     ([name, type]) => new NamedExpressionField(name, fromJson(type))
                 )
             );
