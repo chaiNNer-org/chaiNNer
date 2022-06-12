@@ -39,6 +39,7 @@ import {
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
+import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -51,9 +52,11 @@ type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
+    typeState: TypeState;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -67,7 +70,6 @@ interface Global {
     addEdgeChanges: () => void;
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
-    isValidConnection: (connection: Readonly<Connection>) => boolean;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -520,6 +522,11 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const typeState = useMemo(
+            () => TypeState.create(getNodes(), getEdges(), functionDefinitions),
+            [nodeChanges, edgeChanges, functionDefinitions]
+        );
+
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
                 if (source === target || !source || !target || !sourceHandle || !targetHandle) {
@@ -528,22 +535,22 @@ export const GlobalProvider = memo(
                 const sourceHandleId = parseHandle(sourceHandle).inOutId;
                 const targetHandleId = parseHandle(targetHandle).inOutId;
 
+                const sourceFn = typeState.functions.get(source);
+                const targetFn = typeState.functions.get(target);
+
+                if (!sourceFn || !targetFn) {
+                    return false;
+                }
+
+                const outputType = sourceFn.outputs.get(sourceHandleId);
+                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
+                    return false;
+
                 const sourceNode = getNode(source);
                 const targetNode = getNode(target);
                 if (!sourceNode || !targetNode) {
                     return false;
                 }
-
-                // Target inputs, source outputs
-                const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
-                const targetFn = functionDefinitions.get(targetNode.data.schemaId);
-                if (!sourceFn || !targetFn) {
-                    return false;
-                }
-
-                const outputType = sourceFn.outputDefaults.get(sourceHandleId);
-                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
-                    return false;
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
                     const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
@@ -565,7 +572,7 @@ export const GlobalProvider = memo(
 
                 return iteratorLock;
             },
-            [schemata, getNode, getNodes, getEdges, functionDefinitions]
+            [getNode, getNodes, getEdges, typeState]
         );
 
         const useInputData = useCallback(
@@ -821,9 +828,11 @@ export const GlobalProvider = memo(
         let globalChainValue: GlobalVolatile = {
             nodeChanges,
             edgeChanges,
+            typeState,
             createNode,
             createConnection,
             isNodeInputLocked,
+            isValidConnection,
             zoom,
             hoveredNode,
         };
@@ -840,7 +849,6 @@ export const GlobalProvider = memo(
             addEdgeChanges,
             changeNodes,
             changeEdges,
-            isValidConnection,
             useAnimateEdges,
             useInputData,
             toggleNodeLock,

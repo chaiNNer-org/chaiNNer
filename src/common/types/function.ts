@@ -4,12 +4,9 @@ import { evaluate } from './evaluate';
 import { Expression } from './expression';
 import { intersect } from './intersection';
 import { fromJson } from './json';
-import { isSubsetOf } from './relation';
 import { TypeDefinitions } from './typedef';
-import { StructType, Type } from './types';
-import { getReferences, isSameType } from './util';
-
-const Null = new StructType('null');
+import { Type } from './types';
+import { getReferences } from './util';
 
 const getParamName = (inputId: number) => `Input${inputId}`;
 
@@ -58,6 +55,8 @@ export class FunctionDefinition {
 
     readonly typeDefinitions: TypeDefinitions;
 
+    readonly defaultInstance: FunctionInstance;
+
     private constructor(
         inputs: ReadonlyMap<number, Type>,
         outputDefaults: ReadonlyMap<number, Type>,
@@ -83,6 +82,9 @@ export class FunctionDefinition {
                 })
                 .map(([id]) => id)
         );
+
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        this.defaultInstance = FunctionInstance.fromDefinition(this);
     }
 
     static fromSchema(schema: NodeSchema, definitions: TypeDefinitions): FunctionDefinition {
@@ -97,11 +99,6 @@ export class FunctionDefinition {
 
         return new FunctionDefinition(inputs, outputDefaults, outputExpressions, definitions);
     }
-
-    instantiate(): FunctionInstance {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return new FunctionInstance(this, this.inputs, this.outputDefaults);
-    }
 }
 
 export class FunctionInstance {
@@ -111,40 +108,34 @@ export class FunctionInstance {
 
     readonly outputs: ReadonlyMap<number, Type>;
 
-    constructor(
+    private constructor(
         definition: FunctionDefinition,
         inputs: ReadonlyMap<number, Type>,
         outputs: ReadonlyMap<number, Type>
     ) {
         this.definition = definition;
-
         this.inputs = inputs;
         this.outputs = outputs;
     }
 
-    evaluate(): void {
-        const parameters = new Map<string, Type>();
-        for (const [id, type] of this.inputs) {
-            parameters.set(getParamName(id), type);
+    static fromDefinition(definition: FunctionDefinition): FunctionInstance {
+        return new FunctionInstance(definition, definition.inputs, definition.outputDefaults);
+    }
+
+    static fromPartialInputs(
+        definition: FunctionDefinition,
+        partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined)
+    ): FunctionInstance {
+        if (typeof partialInputs === 'object') {
+            if (partialInputs.size === 0) return definition.defaultInstance;
+            const map = partialInputs;
+            // eslint-disable-next-line no-param-reassign
+            partialInputs = (id) => map.get(id);
         }
-    }
-
-    canAssign(inputId: number, type: Type): boolean {
-        const iType = this.inputs.get(inputId);
-        if (!iType) throw new Error(`Invalid input id ${inputId}`);
-
-        // we say that types A is assignable to type B if they are not disjoint
-        const overlap = intersect(type, iType);
-
-        return !isSubsetOf(overlap, Null);
-    }
-
-    withInputs(partialInputs: ReadonlyMap<number, Type>): FunctionInstance {
-        if (partialInputs.size === 0) return this.definition.instantiate();
 
         const newInputs = new Map<number, Type>();
-        for (const [id, definitionType] of this.definition.inputs) {
-            const assignedType = partialInputs.get(id);
+        for (const [id, definitionType] of definition.inputs) {
+            const assignedType = partialInputs(id);
 
             if (!assignedType) {
                 newInputs.set(id, definitionType);
@@ -154,19 +145,9 @@ export class FunctionInstance {
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
-        if (!this.definition.isGeneric) {
-            return new FunctionInstance(this.definition, newInputs, this.definition.outputDefaults);
+        if (!definition.isGeneric) {
+            return new FunctionInstance(definition, newInputs, definition.outputDefaults);
         }
-
-        // if the new inputs are the same as the current inputs, we can just reuse this instance
-        let isDifferent = false;
-        for (const [id, newType] of newInputs) {
-            if (!isSameType(newType, this.inputs.get(id)!)) {
-                isDifferent = true;
-                break;
-            }
-        }
-        if (!isDifferent) return this;
 
         // evaluate generic outputs
         const genericParameters = new Map<string, Type>();
@@ -175,17 +156,27 @@ export class FunctionInstance {
         }
 
         const newOutputs = new Map<number, Type>();
-        for (const [id, expression] of this.definition.outputExpressions) {
-            if (this.definition.genericOutputs.has(id)) {
+        for (const [id, expression] of definition.outputExpressions) {
+            if (definition.genericOutputs.has(id)) {
                 newOutputs.set(
                     id,
-                    evaluate(expression, this.definition.typeDefinitions, genericParameters)
+                    evaluate(expression, definition.typeDefinitions, genericParameters)
                 );
             } else {
-                newOutputs.set(id, this.definition.outputDefaults.get(id)!);
+                newOutputs.set(id, definition.outputDefaults.get(id)!);
             }
         }
 
-        return new FunctionInstance(this.definition, newInputs, newOutputs);
+        return new FunctionInstance(definition, newInputs, newOutputs);
+    }
+
+    canAssign(inputId: number, type: Type): boolean {
+        const iType = this.inputs.get(inputId);
+        if (!iType) throw new Error(`Invalid input id ${inputId}`);
+
+        // we say that types A is assignable to type B if they are not disjoint
+        const overlap = intersect(type, iType);
+
+        return overlap.type !== 'never';
     }
 }

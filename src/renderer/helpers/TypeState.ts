@@ -1,13 +1,16 @@
 import { Edge, Node } from 'react-flow-renderer';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
+import { NumericLiteralType, StringLiteralType, Type } from '../../common/types/types';
+import { parseHandle } from '../../common/util';
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
 
-    readonly invalidEdges: ReadonlyMap<string, Edge<EdgeData>>;
+    readonly invalidEdges: ReadonlySet<string>;
 
-    readonly evaluationErrors: ReadonlyMap<string, string>;
+    readonly evaluationErrors: ReadonlyMap<string, EvaluationError>;
 
     private constructor(
         functions: TypeState['functions'],
@@ -19,46 +22,94 @@ export class TypeState {
         this.evaluationErrors = evaluationErrors;
     }
 
-    static readonly empty = new TypeState(new Map(), new Map(), new Map());
+    static readonly empty = new TypeState(new Map(), new Set(), new Map());
 
-    private copyFunctionMap(
-        nodes: readonly Node<NodeData>[],
-        functionDefinitions: ReadonlyMap<string, FunctionDefinition>
-    ): [Map<string, FunctionInstance>, boolean] {
-        const fn = new Map(this.functions);
-        let didChange = false;
-
-        // add missing nodes
-        for (const n of nodes) {
-            if (!fn.has(n.id)) {
-                const def = functionDefinitions.get(n.data.schemaId);
-                if (!def) {
-                    throw new Error(`Unknown schema id: ${n.data.schemaId}`);
-                }
-                fn.set(n.id, def.instantiate());
-                didChange = true;
-            }
-        }
-
-        // remove old nodes
-        if (fn.size !== nodes.length) {
-            didChange = true;
-            const present = new Set(nodes.map((n) => n.id));
-            for (const key of [...fn.keys()].filter((k) => !present.has(k))) {
-                fn.delete(key);
-            }
-        }
-
-        return [fn, didChange];
-    }
-
-    update(
+    static create(
         nodes: readonly Node<NodeData>[],
         edges: readonly Edge<EdgeData>[],
         functionDefinitions: ReadonlyMap<string, FunctionDefinition>
     ): TypeState {
-        const [fn, didChange] = this.copyFunctionMap(nodes, functionDefinitions);
+        // eslint-disable-next-line no-param-reassign
+        edges = edges.filter((e) => e.sourceHandle && e.targetHandle);
 
-        if (!didChange) return this;
+        const byId = new Map(nodes.map((n) => [n.id, n]));
+        const byTargetHandle = new Map(edges.map((e) => [e.targetHandle!, e]));
+
+        const functions = new Map<string, FunctionInstance>();
+        const evaluationErrors = new Map<string, EvaluationError>();
+        const edgesToCheck: [nodeId: string, inputId: number][] = [];
+
+        const getSourceType = (id: string, inputId: number): Type | undefined => {
+            const edge = byTargetHandle.get(`${id}-${inputId}`);
+            if (edge) {
+                const sourceHandle = parseHandle(edge.sourceHandle!);
+                const sourceNode = byId.get(sourceHandle.nodeId);
+                if (sourceNode) {
+                    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                    const functionInstance = addNode(sourceNode);
+                    return functionInstance.outputs.get(sourceHandle.inOutId);
+                }
+            }
+            return undefined;
+        };
+        const addNode = (n: Node<NodeData>): FunctionInstance => {
+            const cached = functions.get(n.id);
+            if (cached) return cached;
+
+            const definition = functionDefinitions.get(n.data.schemaId);
+            if (!definition) {
+                throw new Error(`No function definition for schema id ${n.data.schemaId}`);
+            }
+
+            let instance;
+            try {
+                instance = FunctionInstance.fromPartialInputs(definition, (id) => {
+                    const edgeSource = getSourceType(n.id, id);
+                    if (edgeSource) {
+                        if (edgeSource.type !== 'never') {
+                            // we want to check non-trivial edges
+                            edgesToCheck.push([n.id, id]);
+                        }
+                        return edgeSource;
+                    }
+
+                    const inputValue = n.data.inputData[id];
+                    if (inputValue !== undefined) {
+                        if (typeof inputValue === 'number') {
+                            return new NumericLiteralType(inputValue);
+                        }
+                        return new StringLiteralType(inputValue);
+                    }
+
+                    return undefined;
+                });
+            } catch (error) {
+                if (error instanceof EvaluationError) {
+                    evaluationErrors.set(n.id, error);
+                } else {
+                    throw error;
+                }
+                instance = definition.defaultInstance;
+            }
+
+            functions.set(n.id, instance);
+            return instance;
+        };
+
+        for (const n of nodes) {
+            addNode(n);
+        }
+
+        const invalidEdges = new Set<string>();
+        for (const [nodeId, inputId] of edgesToCheck) {
+            const fn = functions.get(nodeId)!;
+
+            if (fn.inputs.get(inputId)!.type === 'never') {
+                const edge = byTargetHandle.get(`${nodeId}-${inputId}`)!;
+                invalidEdges.add(edge.id);
+            }
+        }
+
+        return new TypeState(functions, invalidEdges, evaluationErrors);
     }
 }
