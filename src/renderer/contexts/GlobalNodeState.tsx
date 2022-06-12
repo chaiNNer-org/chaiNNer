@@ -460,7 +460,7 @@ export const GlobalProvider = memo(
                     return nodes;
                 });
             },
-            [changeNodes]
+            [changeNodes, changeEdges]
         );
 
         const removeEdgeById = useCallback(
