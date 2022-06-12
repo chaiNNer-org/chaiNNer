@@ -541,7 +541,7 @@ export const GlobalProvider = memo(
                     return false;
                 }
 
-                const outputType = sourceFn.outputs.get(sourceHandleId);
+                const outputType = sourceFn.outputDefaults.get(sourceHandleId);
                 if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
                     return false;
 

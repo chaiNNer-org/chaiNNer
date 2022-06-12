@@ -217,13 +217,18 @@ export class UnionType implements TypeBase {
 
     readonly items: CanonicalTypes<ValueType>;
 
+    private cachedTypeId: string | undefined;
+
     constructor(items: CanonicalTypes<ValueType>) {
         if (items.length < 2) throw new Error('A union has to have at least 2 items.');
         this.items = items;
     }
 
     getTypeId(): string {
-        return this.items.map((item) => item.getTypeId()).join(' | ');
+        if (this.cachedTypeId === undefined) {
+            this.cachedTypeId = this.items.map((item) => item.getTypeId()).join(' | ');
+        }
+        return this.cachedTypeId;
     }
 
     toString(): string {
@@ -268,6 +273,8 @@ export class StructType implements TypeBase {
 
     readonly name: string;
 
+    private cachedTypeId: string | undefined;
+
     constructor(name: string, fields: readonly StructTypeField[] = []) {
         assertValidStructName(name);
         this.name = name;
@@ -276,9 +283,12 @@ export class StructType implements TypeBase {
 
     getTypeId(): string {
         if (this.fields.length === 0) return this.name;
-        return `${this.name} { ${this.fields
-            .map((f) => `${f.name}: ${f.type.getTypeId()}`)
-            .join(', ')} }`;
+        if (this.cachedTypeId === undefined) {
+            this.cachedTypeId = `${this.name} { ${this.fields
+                .map((f) => `${f.name}: ${f.type.getTypeId()}`)
+                .join(', ')} }`;
+        }
+        return this.cachedTypeId;
     }
 
     toString(): string {

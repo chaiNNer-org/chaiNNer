@@ -6,14 +6,10 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { NodeSchema } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
-import { evaluate } from '../common/types/evaluate';
 import { FunctionDefinition } from '../common/types/function';
-import { fromJson } from '../common/types/json';
 import { TypeDefinitions } from '../common/types/typedef';
-import { Type } from '../common/types/types';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import CustomEdge from './components/CustomEdge';
@@ -38,28 +34,6 @@ interface NodesInfo {
     typeDefinitions: TypeDefinitions;
 }
 
-const evaluateInputOutput = (
-    schema: NodeSchema,
-    type: 'input' | 'output',
-    typeDefinitions: TypeDefinitions,
-    errors: string[]
-): Map<number, Type> | null => {
-    const result = new Map<number, Type>();
-    const startErrors = errors.length;
-    for (const i of schema[`${type}s`]) {
-        try {
-            result.set(i.id, evaluate(fromJson(i.type), typeDefinitions));
-        } catch (error) {
-            errors.push(
-                `Unable to evaluate type of ${schema.name} (id: ${schema.schemaId}) > ${i.label} (id: ${i.id})` +
-                    `: ${String(error)}`
-            );
-        }
-    }
-    if (startErrors < errors.length) return null;
-    return result;
-};
-
 const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
     const schemata = new SchemaMap(response);
 
@@ -69,18 +43,31 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
     const errors: string[] = [];
 
     for (const schema of response) {
-        const inputs = evaluateInputOutput(schema, 'input', typeDefinitions, errors);
-        const outputs = evaluateInputOutput(schema, 'output', typeDefinitions, errors);
-
-        if (inputs && outputs) {
-            const fn = new FunctionDefinition(inputs, outputs, typeDefinitions);
-            functionDefinitions.set(schema.schemaId, fn);
+        try {
+            functionDefinitions.set(
+                schema.schemaId,
+                FunctionDefinition.fromSchema(schema, typeDefinitions)
+            );
+        } catch (error) {
+            errors.push(String(error));
         }
     }
 
     if (errors.length) {
         throw new Error(errors.join('\n\n'));
     }
+
+    console.log(
+        Object.fromEntries(
+            [...functionDefinitions].map(([id, fn]) => [
+                id,
+                {
+                    inputs: [...fn.inputs.values()].map(String),
+                    outputs: [...fn.outputDefaults.values()].map(String),
+                },
+            ])
+        )
+    );
 
     return { schemata, functionDefinitions, typeDefinitions };
 };
