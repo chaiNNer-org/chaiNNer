@@ -2,6 +2,7 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+from copy import deepcopy
 from sanic.log import logger
 
 from .blend_modes import ImageBlender
@@ -98,7 +99,7 @@ def convert_to_BGRA(img: np.ndarray, c: int) -> np.ndarray:
     elif c == 3:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
-    return img
+    return deepcopy(img)
 
 
 def normalize(img: np.ndarray) -> np.ndarray:
