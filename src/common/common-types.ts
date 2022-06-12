@@ -64,6 +64,7 @@ export interface NodeSchema {
     readonly outputs: Output[];
     readonly defaultNodes?: DefaultNode[];
     readonly schemaId: string;
+    readonly hasSideEffects: boolean;
 }
 
 export interface DefaultNode {
@@ -122,6 +123,7 @@ export interface UsableData {
     children?: string[];
     nodeType: string | undefined;
     percent?: number;
+    hasSideEffects: boolean;
 }
 
 export interface WindowSize {

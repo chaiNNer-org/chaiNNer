@@ -2,6 +2,7 @@
 Nodes that provide NCNN support
 """
 from __future__ import annotations
+
 import os
 import re
 import struct
@@ -114,6 +115,8 @@ class NcnnSaveNode(NodeBase):
         self.name = "Save Model"
         self.icon = "MdSave"
         self.sub = "Input & Output"
+
+        self.side_effects = True
 
     def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
         param_path, bin_data, _, _ = net_tuple

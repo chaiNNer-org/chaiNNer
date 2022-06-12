@@ -143,9 +143,8 @@ class Executor:
         for node in self.nodes.values():
             if self.killed:
                 break
-            if (node["outputs"] is None or len(node["outputs"]) == 0) and not node[
-                "child"
-            ]:
+            print(node["hasSideEffects"])
+            if (node["hasSideEffects"]) and not node["child"]:
                 output_nodes.append(node)
         # Run each of the output nodes through processing
         for output_node in output_nodes:
