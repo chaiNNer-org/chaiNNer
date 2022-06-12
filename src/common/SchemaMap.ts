@@ -11,6 +11,7 @@ const BLANK_SCHEMA: NodeSchema = {
     description: '',
     nodeType: '',
     schemaId: '',
+    hasSideEffects: false,
 };
 
 export class SchemaMap {

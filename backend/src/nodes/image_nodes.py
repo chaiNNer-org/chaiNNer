@@ -139,6 +139,8 @@ class ImWriteNode(NodeBase):
         self.icon = "MdSave"
         self.sub = "Input & Output"
 
+        self.side_effects = True
+
     def run(
         self,
         img: np.ndarray,
@@ -183,6 +185,8 @@ class ImOpenNode(NodeBase):
         self.name = "Preview Image"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
+
+        self.side_effects = True
 
     def run(self, img: np.ndarray):
         """Show image"""

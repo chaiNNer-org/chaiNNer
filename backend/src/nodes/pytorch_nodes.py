@@ -335,6 +335,8 @@ class PthSaveNode(NodeBase):
         self.icon = "MdSave"
         self.sub = "Input & Output"
 
+        self.side_effects = True
+
     def run(self, model: torch.nn.Module, directory: str, name: str) -> None:
         full_file = f"{name}.pth"
         full_path = os.path.join(directory, full_file)

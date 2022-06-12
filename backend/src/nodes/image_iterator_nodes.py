@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import math
 import os
@@ -6,7 +7,6 @@ import os
 import numpy as np
 from process import Executor
 from sanic.log import logger
-
 
 from .categories import IMAGE
 from .image_nodes import ImReadNode
@@ -208,6 +208,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         self.sub = "Iteration"
 
         self.type = "iteratorHelper"
+
+        self.side_effects = True
 
     def run(
         self,

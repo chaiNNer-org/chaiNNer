@@ -26,6 +26,8 @@ class NodeBase(metaclass=ABCMeta):
         self.sub = "Miscellaneous"
         self.type = "regularNode"
 
+        self.side_effects = False
+
     @abstractmethod
     def run(self) -> Any:
         """Abstract method to run a node's logic"""
@@ -63,6 +65,9 @@ class NodeBase(metaclass=ABCMeta):
     def get_type(self):
         return self.type
 
+    def get_has_side_effects(self):
+        return self.side_effects
+
 
 # pylint: disable=abstract-method
 class IteratorNodeBase(NodeBase):
@@ -75,6 +80,8 @@ class IteratorNodeBase(NodeBase):
         self.sub = "Iteration"
         self.type = "iterator"
         self.default_nodes = []
+
+        self.side_effects = True
 
     def get_default_nodes(self):
         return self.default_nodes
