@@ -57,18 +57,6 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
         throw new Error(errors.join('\n\n'));
     }
 
-    console.log(
-        Object.fromEntries(
-            [...functionDefinitions].map(([id, fn]) => [
-                id,
-                {
-                    inputs: [...fn.inputs.values()].map(String),
-                    outputs: [...fn.outputDefaults.values()].map(String),
-                },
-            ])
-        )
-    );
-
     return { schemata, functionDefinitions, typeDefinitions };
 };
 
