@@ -55,23 +55,25 @@ export class FunctionDefinition {
 
     readonly typeDefinitions: TypeDefinitions;
 
+    readonly inputDataLiterals: Set<number>;
+
     readonly defaultInstance: FunctionInstance;
 
-    private constructor(
-        inputs: ReadonlyMap<number, Type>,
-        outputDefaults: ReadonlyMap<number, Type>,
-        outputExpressions: ReadonlyMap<number, Expression>,
-        definitions: TypeDefinitions
-    ) {
+    private constructor(schema: NodeSchema, definitions: TypeDefinitions) {
         this.typeDefinitions = definitions;
 
-        this.inputs = inputs;
-        this.outputExpressions = outputExpressions;
-        this.outputDefaults = outputDefaults;
+        this.inputs = evaluateInputOutput(schema, 'input', definitions);
+        this.outputDefaults = evaluateInputOutput(
+            schema,
+            'output',
+            definitions,
+            createGenericParametersFromInputs(this.inputs)
+        );
+        this.outputExpressions = new Map(schema.outputs.map((o) => [o.id, fromJson(o.type)]));
 
-        const genericParameters = new Set([...inputs.keys()].map(getParamName));
+        const genericParameters = new Set([...this.inputs.keys()].map(getParamName));
         this.genericOutputs = new Set(
-            [...outputExpressions]
+            [...this.outputExpressions]
                 .filter(([, expression]) => {
                     for (const name of getReferences(expression)) {
                         if (genericParameters.has(name)) {
@@ -83,21 +85,25 @@ export class FunctionDefinition {
                 .map(([id]) => id)
         );
 
+        this.inputDataLiterals = new Set(
+            schema.inputs
+                .filter((i) => {
+                    return (
+                        i.kind === 'number' ||
+                        i.kind === 'slider' ||
+                        i.kind === 'text' ||
+                        i.kind === 'text-line'
+                    );
+                })
+                .map((i) => i.id)
+        );
+
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         this.defaultInstance = FunctionInstance.fromDefinition(this);
     }
 
     static fromSchema(schema: NodeSchema, definitions: TypeDefinitions): FunctionDefinition {
-        const inputs = evaluateInputOutput(schema, 'input', definitions);
-        const outputDefaults = evaluateInputOutput(
-            schema,
-            'output',
-            definitions,
-            createGenericParametersFromInputs(inputs)
-        );
-        const outputExpressions = new Map(schema.outputs.map((o) => [o.id, fromJson(o.type)]));
-
-        return new FunctionDefinition(inputs, outputDefaults, outputExpressions, definitions);
+        return new FunctionDefinition(schema, definitions);
     }
 }
 

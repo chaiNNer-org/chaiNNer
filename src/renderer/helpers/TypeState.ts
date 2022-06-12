@@ -73,12 +73,14 @@ export class TypeState {
                         return edgeSource;
                     }
 
-                    const inputValue = n.data.inputData[id];
-                    if (inputValue !== undefined) {
-                        if (typeof inputValue === 'number') {
-                            return new NumericLiteralType(inputValue);
+                    if (definition.inputDataLiterals.has(id)) {
+                        const inputValue = n.data.inputData[id];
+                        if (inputValue !== undefined) {
+                            if (typeof inputValue === 'number') {
+                                return new NumericLiteralType(inputValue);
+                            }
+                            return new StringLiteralType(inputValue);
                         }
-                        return new StringLiteralType(inputValue);
                     }
 
                     return undefined;
