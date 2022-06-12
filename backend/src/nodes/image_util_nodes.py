@@ -12,7 +12,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import blend_images, calculate_ssim
+from .utils.image_utils import blend_images, calculate_ssim, convert_to_BGRA
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -67,57 +67,45 @@ class ImBlend(NodeBase):
         opbase /= 100
         op /= 100
 
-        imgs = []
-        max_h = max_w = 0
-        for img in (base, ov):
-            h, w, c = get_h_w_c(img)
-            max_h = max(h, max_h)
-            max_w = max(w, max_w)
+        b_h, b_w, b_c = get_h_w_c(base)
+        o_h, o_w, o_c = get_h_w_c(ov)
+        max_h = max(b_h, o_h)
+        max_w = max(b_w, o_w)
 
-            # All inputs must be BGRA for alpha compositing to work
-            if c == 1:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-            elif c == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-            elif c != 4:  # Explode if there are not 1, 3, or 4 channels
-                logger.error(f"Number of channels ({c}) unexpected")
-
-            imgs.append(img)
-
-        imgout = imgs[0]
-        img = imgs[1]
+        # All inputs must be BGRA for alpha compositing to work
+        imgout = convert_to_BGRA(base, b_c)
+        ov_img = convert_to_BGRA(ov, o_c)
 
         # Pad base image with transparency if necessary to match size with overlay
-        h, w, _ = get_h_w_c(imgout)
         tp = bm = lt = rt = 0
-        if h < max_h:
-            tp = (max_h - h) // 2
-            bm = max_h - h - tp
-        if w < max_w:
-            lt = (max_w - w) // 2
-            rt = max_w - w - lt
+        if b_h < max_h:
+            tp = (max_h - b_h) // 2
+            bm = max_h - b_h - tp
+        if b_w < max_w:
+            lt = (max_w - b_w) // 2
+            rt = max_w - b_w - lt
         imgout = cv2.copyMakeBorder(
             imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
         )
+        logger.info((imgout.shape, base.shape))
 
         # Center overlay
-        h, w, _ = get_h_w_c(img)
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
-        x_offset = center_x - (w // 2)
-        y_offset = center_y - (h // 2)
+        x_offset = center_x - (o_w // 2)
+        y_offset = center_y - (o_h // 2)
 
         # Apply opacities to images, then blend overlay
         imgout[:, :, 3] *= opbase
-        img[:, :, 3] *= op
+        ov_img[:, :, 3] *= op
 
-        img = blend_images(
-            img,
-            imgout[y_offset : y_offset + h, x_offset : x_offset + w],
+        blended_img = blend_images(
+            ov_img,
+            imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
             blend_mode,
         )
 
-        imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
+        imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
         imgout = np.clip(imgout, 0, 1)
 
         return imgout

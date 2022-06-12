@@ -91,6 +91,16 @@ def get_available_image_formats():
     return sorted(list(no_dupes))
 
 
+def convert_to_BGRA(img: np.ndarray, c: int) -> np.ndarray:
+    assert c in (1, 3, 4), f"Number of channels ({c}) unexpected"
+    if c == 1:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+    elif c == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+
+    return img
+
+
 def normalize(img: np.ndarray) -> np.ndarray:
     dtype_max = 1
     try:
