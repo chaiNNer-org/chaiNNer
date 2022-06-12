@@ -87,7 +87,6 @@ class ImBlend(NodeBase):
         imgout = cv2.copyMakeBorder(
             imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
         )
-        logger.info((imgout.shape, base.shape))
 
         # Center overlay
         center_x = imgout.shape[1] // 2
