@@ -37,6 +37,7 @@ ExpressionJson = Union[
     "UnionExpressionJson",
     "IntersectionExpressionJson",
     "NamedExpressionJson",
+    "FieldAccessExpressionJson",
     List["ExpressionJson"],
 ]
 
@@ -148,3 +149,17 @@ def Image(
     if channels is not None:
         fields["channels"] = channels
     return named("Image", fields)
+
+
+def ImageWithSameAs(
+    width: Optional[ExpressionJson] = None,
+    height: Optional[ExpressionJson] = None,
+    channels: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    if width is not None:
+        width = field(width, "width")
+    if height is not None:
+        height = field(height, "height")
+    if channels is not None:
+        channels = field(channels, "channels")
+    return Image(width, height, channels)

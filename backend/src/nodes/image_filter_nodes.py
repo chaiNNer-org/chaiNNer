@@ -31,7 +31,7 @@ class BlurNode(NodeBase):
             NumberInput("Amount X", step=0.1, controls_step=1),
             NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Box Blur"
         self.icon = "MdBlurOn"
@@ -82,7 +82,7 @@ class GaussianBlurNode(NodeBase):
             NumberInput("Amount X", step=0.1, controls_step=1),
             NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
@@ -116,7 +116,7 @@ class MedianBlurNode(NodeBase):
             ImageInput(),
             NumberInput("Amount"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Median Blur"
         self.icon = "MdBlurOn"
@@ -153,7 +153,7 @@ class SharpenNode(NodeBase):
             ImageInput(),
             NumberInput("Amount"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Sharpen"
         self.icon = "MdBlurOff"
@@ -184,8 +184,8 @@ class AverageColorFixNode(NodeBase):
          Using significant downscaling increases generalization of averaging effect
          and can reduce artifacts in the output."""
         self.inputs = [
-            ImageInput("Image"),
-            ImageInput("Reference Image"),
+            ImageInput("Image", image_type=expression.Image(channels=[3, 4])),
+            ImageInput("Reference Image", image_type=expression.Image(channels=[3, 4])),
             NumberInput(
                 "Reference Image Scale Factor",
                 step=0.0001,
@@ -195,7 +195,7 @@ class AverageColorFixNode(NodeBase):
                 unit="%",
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Average Color Fix"
         self.icon = "MdAutoFixHigh"
@@ -282,13 +282,13 @@ class ColorTransferNode(NodeBase):
             different images. Try multiple setting combinations to find
             best results."""
         self.inputs = [
-            ImageInput("Image"),
+            ImageInput("Image", expression.Image(channels=[3, 4])),
             ImageInput("Reference Image", expression.Image(channels=[3, 4])),
             ColorspaceInput(),
             OverflowMethodInput(),
             ReciprocalScalingFactorInput(),
         ]
-        self.outputs = [ImageOutput("Image")]
+        self.outputs = [ImageOutput("Image", image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Color Transfer"
         self.icon = "MdInput"
@@ -343,7 +343,10 @@ class NormalizeNode(NodeBase):
             ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]
         self.outputs = [
-            ImageOutput("Normal Map", expression.Image(channels=3)),
+            ImageOutput(
+                "Normal Map",
+                expression.intersection(["Input0", expression.Image(channels=3)]),
+            ),
         ]
         self.category = IMAGE_FILTER
         self.name = "Normalize Normal Map"

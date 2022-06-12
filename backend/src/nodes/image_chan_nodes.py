@@ -135,7 +135,7 @@ class TransparencySplitNode(NodeBase):
         self.description = (
             "Split image channels into RGB and Alpha (transparency) channels."
         )
-        self.inputs = [ImageInput()]
+        self.inputs = [ImageInput(image_type=expression.Image(channels=[1, 3, 4]))]
         self.outputs = [
             ImageOutput("RGB Channels", expression.Image(channels=3)),
             ImageOutput("Alpha Channel", expression.Image(channels=1)),
@@ -174,7 +174,7 @@ class TransparencyMergeNode(NodeBase):
             ImageInput("RGB Channels"),
             ImageInput("Alpha Channel", expression.Image(channels=1)),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels=4))]
         self.category = IMAGE_CHANNEL
         self.name = "Merge Transparency"
         self.icon = "MdCallMerge"

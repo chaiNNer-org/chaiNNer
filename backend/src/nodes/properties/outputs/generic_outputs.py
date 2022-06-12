@@ -1,14 +1,10 @@
 from .base_output import BaseOutput
+from .. import expression
 
 
-def NumberOutput(label: str):
+def NumberOutput(label: str, output_type: expression.ExpressionJson = "number"):
     """Output for arbitrary number"""
-    return BaseOutput("number", label)
-
-
-def IntegerOutput(label: str):
-    """Output for integer number"""
-    return BaseOutput("int", label)
+    return BaseOutput(expression.intersection(["number", output_type]), label)
 
 
 def TextOutput(label: str):
