@@ -87,6 +87,7 @@ const convertToUsableFormat = (
             outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
             nodeType,
+            hasSideEffects: schema.hasSideEffects,
         };
         if (nodeType === 'iterator') {
             result[id].children = [];
