@@ -523,10 +523,14 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
-        const typeState = useMemo(
-            () => TypeState.create(getNodes(), getEdges(), functionDefinitions),
-            [nodeChanges, edgeChanges, functionDefinitions]
-        );
+        const [typeState, setTypeState] = useState(TypeState.empty);
+        useEffect(() => {
+            const id = setTimeout(() => {
+                const types = TypeState.create(getNodes(), getEdges(), functionDefinitions);
+                setTypeState(types);
+            }, 100);
+            return () => clearTimeout(id);
+        }, [nodeChanges, edgeChanges, functionDefinitions]);
 
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
