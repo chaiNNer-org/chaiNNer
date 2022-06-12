@@ -47,6 +47,16 @@ def resize(
     return np.array(pimg).astype("float32") / 255
 
 
+def rotate(img: np.ndarray, angle: float, interpolation: int) -> np.ndarray:
+    """Perform PIL rotate"""
+
+    c = get_h_w_c(img)[2]
+    fill_color = (0,) * c
+    pimg = Image.fromarray((img * 255).astype("uint8"))
+    pimg = pimg.rotate(angle, interpolation, True, fillcolor=fill_color)  # type: ignore
+    return np.array(pimg).astype("float32") / 255
+
+
 def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
     """Add caption with PIL"""
 
