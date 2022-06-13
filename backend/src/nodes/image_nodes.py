@@ -8,6 +8,7 @@ import os
 import platform
 import subprocess
 import time
+import base64
 from tempfile import mkdtemp
 
 import cv2
@@ -47,10 +48,8 @@ class ImReadNode(NodeBase):
         self.result = []
 
     def get_extra_data(self) -> Dict:
-        img = self.result[0]
+        img, dirname, basename = self.result
         h, w, c = get_h_w_c(img)
-
-        import base64
 
         # resize the image, so the preview loads faster and doesn't lag the UI
         # 512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
@@ -70,6 +69,8 @@ class ImReadNode(NodeBase):
             "height": h,
             "width": w,
             "channels": c,
+            "directory": dirname,
+            "name": basename,
         }
 
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:

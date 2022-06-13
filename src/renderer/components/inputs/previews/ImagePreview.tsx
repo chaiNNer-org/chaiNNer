@@ -3,17 +3,19 @@ import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
-import { NumericLiteralType } from '../../../../common/types/types';
+import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists } from '../../../../common/util';
 import { GlobalContext } from '../../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
 interface ImageObject {
+    image: string;
     width: number;
     height: number;
     channels: number;
-    image: string;
+    directory: string;
+    name: string;
 }
 
 const getColorMode = (img: ImageObject) => {
@@ -73,17 +75,29 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
 
     useEffect(() => {
         if (schemaId === 'chainner:image:load') {
-            let type;
             if (img) {
-                type = new NamedExpression('Image', [
-                    new NamedExpressionField('width', new NumericLiteralType(img.width)),
-                    new NamedExpressionField('height', new NumericLiteralType(img.height)),
-                    new NamedExpressionField('channels', new NumericLiteralType(img.channels)),
-                ]);
+                setManualOutputType(
+                    id,
+                    0,
+                    new NamedExpression('Image', [
+                        new NamedExpressionField('width', new NumericLiteralType(img.width)),
+                        new NamedExpressionField('height', new NumericLiteralType(img.height)),
+                        new NamedExpressionField('channels', new NumericLiteralType(img.channels)),
+                    ])
+                );
+                setManualOutputType(
+                    id,
+                    1,
+                    new NamedExpression('Directory', [
+                        new NamedExpressionField('path', new StringLiteralType(img.directory)),
+                    ])
+                );
+                setManualOutputType(id, 2, new StringLiteralType(img.name));
             } else {
-                type = undefined;
+                setManualOutputType(id, 0, undefined);
+                setManualOutputType(id, 1, undefined);
+                setManualOutputType(id, 2, undefined);
             }
-            setManualOutputType(id, 0, type);
         }
     }, [id, schemaId, img]);
 

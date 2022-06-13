@@ -130,8 +130,6 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'Audio',
         'Video',
 
-        'Directory',
-
         'ImageFile',
         'VideoFile',
         'AudioFile',
@@ -180,6 +178,9 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
             new StructFieldDefinition('height', new NamedExpression('uint')),
             new StructFieldDefinition('channels', new IntIntervalType(1, Infinity)),
         ])
+    );
+    definitions.add(
+        new StructDefinition('Directory', [new StructFieldDefinition('path', StringType.instance)])
     );
 };
 
