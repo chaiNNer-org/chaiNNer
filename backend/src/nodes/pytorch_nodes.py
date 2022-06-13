@@ -147,7 +147,19 @@ class ImageUpscaleNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
-                expression.Image(channels=expression.field("Input0", "outputChannels")),
+                expression.Image(
+                    width=expression.fn(
+                        "multiply",
+                        expression.field("Input0", "scale"),
+                        expression.field("Input1", "width"),
+                    ),
+                    height=expression.fn(
+                        "multiply",
+                        expression.field("Input0", "scale"),
+                        expression.field("Input1", "height"),
+                    ),
+                    channels=expression.field("Input0", "outputChannels"),
+                ),
             )
         ]
 

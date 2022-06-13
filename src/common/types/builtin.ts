@@ -123,6 +123,110 @@ export const negate = wrapUnary((n: NumberPrimitive) => {
 });
 export const subtract: BinaryFn<NumberPrimitive> = (a, b) => add(a, negate(b));
 
+const multiplyLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
+    if (Number.isNaN(a.value)) return a;
+    if (a.value === 1) return b;
+    if (a.value === -1) return negate(b);
+
+    if (b.type === 'literal') return new NumericLiteralType(a.value * b.value);
+
+    if (a.value === Infinity) {
+        if (b.type === 'number') {
+            return new UnionType(
+                canonicalize([
+                    new NumericLiteralType(NaN),
+                    new NumericLiteralType(-Infinity),
+                    new NumericLiteralType(Infinity),
+                ])
+            );
+        }
+
+        const items: NumberPrimitive[] = [];
+        if (b.has(0)) items.push(new NumericLiteralType(NaN));
+        if (b.min < 0) items.push(new NumericLiteralType(-Infinity));
+        if (b.max > 0) items.push(new NumericLiteralType(Infinity));
+
+        if (items.length === 1) return items[0];
+        return new UnionType(canonicalize(items));
+    }
+    if (a.value === -Infinity) {
+        if (b.type === 'number') {
+            return new UnionType(
+                canonicalize([
+                    new NumericLiteralType(NaN),
+                    new NumericLiteralType(-Infinity),
+                    new NumericLiteralType(Infinity),
+                ])
+            );
+        }
+
+        const items: NumberPrimitive[] = [];
+        if (b.has(0)) items.push(new NumericLiteralType(NaN));
+        if (b.min < 0) items.push(new NumericLiteralType(Infinity));
+        if (b.max > 0) items.push(new NumericLiteralType(-Infinity));
+
+        if (items.length === 1) return items[0];
+        return new UnionType(canonicalize(items));
+    }
+    if (a.value === 0) {
+        if (b.type === 'int-interval') return new NumericLiteralType(0);
+        if (b.type === 'number' || b.min === -Infinity || b.max === Infinity) {
+            return new UnionType(
+                canonicalize([new NumericLiteralType(NaN), new NumericLiteralType(0)])
+            );
+        }
+        return new NumericLiteralType(0);
+    }
+
+    if (b.type === 'number') return NumberType.instance;
+
+    if (b.type === 'interval') {
+        if (a.value < 0) return interval(b.max * a.value, b.min * a.value);
+        return interval(b.min * a.value, b.max * a.value);
+    }
+
+    // This is a problem. Multiplying int intervals with a constant is not easy.
+    // We cannot correctly represent int(0..Infinity) * 4. So we will multiply the elements of
+    // small int interval individually, and approximate larger intervals.
+    if (b.max - b.min <= 10) {
+        // small enough
+        const numbers: number[] = [];
+        for (let i = b.min; i <= b.max; i += 1) {
+            numbers.push(i * a.value);
+        }
+        return new UnionType(canonicalize(numbers.map((n) => new NumericLiteralType(n))));
+    }
+
+    if (Number.isInteger(a.value)) {
+        if (a.value < 0) return intInterval(b.max * a.value, b.min * a.value);
+        return intInterval(b.min * a.value, b.max * a.value);
+    }
+    if (a.value < 0) return interval(b.max * a.value, b.min * a.value);
+    return interval(b.min * a.value, b.max * a.value);
+};
+export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+    if (a.type === 'literal') return multiplyLiteral(a, b);
+    if (b.type === 'literal') return multiplyLiteral(b, a);
+
+    if (a.type === 'number' || b.type === 'number') return NumberType.instance;
+
+    const points = [a.min * b.min, a.min * b.max, a.max * b.min, a.max * b.max].filter(
+        (x) => !Number.isNaN(x)
+    );
+    const min = Math.min(...points);
+    const max = Math.min(...points);
+    const i =
+        a.type === 'interval' || b.type === 'interval' ? interval(min, max) : intInterval(min, max);
+
+    const hasNaN =
+        (a.has(0) && (b.has(Infinity) || b.has(-Infinity))) ||
+        (b.has(0) && (a.has(Infinity) || a.has(-Infinity)));
+    if (hasNaN) {
+        return new UnionType(canonicalize([new NumericLiteralType(NaN), i]));
+    }
+    return i;
+});
+
 export const round = wrapUnary((n: NumberPrimitive) => {
     if (n.type === 'literal') return new NumericLiteralType(Math.round(n.value));
     if (n.type === 'int-interval') return n;

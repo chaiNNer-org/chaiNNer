@@ -1,5 +1,15 @@
 /* eslint-disable max-classes-per-file */
-import { BinaryFn, UnaryFn, add, maximum, minimum, negate, round, subtract } from './builtin';
+import {
+    BinaryFn,
+    UnaryFn,
+    add,
+    maximum,
+    minimum,
+    multiply,
+    negate,
+    round,
+    subtract,
+} from './builtin';
 import { Expression, NamedExpression } from './expression';
 import {
     assertValidFunctionName,
@@ -239,6 +249,7 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
     const binaryNumber: Record<string, BinaryFn<NumberPrimitive>> = {
         add,
         subtract,
+        multiply,
         min: minimum,
         max: maximum,
     };
