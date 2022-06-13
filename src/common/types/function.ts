@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import { NodeSchema } from '../common-types';
+import { EMPTY_MAP } from '../util';
 import { evaluate } from './evaluate';
 import { Expression } from './expression';
 import { intersect } from './intersection';
@@ -130,7 +131,8 @@ export class FunctionInstance {
 
     static fromPartialInputs(
         definition: FunctionDefinition,
-        partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined)
+        partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined),
+        outputNarrowing: ReadonlyMap<number, Type> = EMPTY_MAP
     ): FunctionInstance {
         if (typeof partialInputs === 'object') {
             if (partialInputs.size === 0) return definition.defaultInstance;
@@ -139,45 +141,50 @@ export class FunctionInstance {
             partialInputs = (id) => map.get(id);
         }
 
-        const newInputs = new Map<number, Type>();
+        const inputs = new Map<number, Type>();
         for (const [id, definitionType] of definition.inputs) {
             const assignedType = partialInputs(id);
 
             if (!assignedType) {
-                newInputs.set(id, definitionType);
+                inputs.set(id, definitionType);
             } else {
-                newInputs.set(id, intersect(assignedType, definitionType));
+                inputs.set(id, intersect(assignedType, definitionType));
             }
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
-        if (!definition.isGeneric) {
-            return new FunctionInstance(definition, newInputs, definition.outputDefaults);
+        if (!definition.isGeneric && outputNarrowing.size === 0) {
+            return new FunctionInstance(definition, inputs, definition.outputDefaults);
         }
 
         // evaluate generic outputs
         const genericParameters = new Map<string, Type>();
-        for (const [id, type] of newInputs) {
+        for (const [id, type] of inputs) {
             genericParameters.set(getParamName(id), type);
         }
 
-        const newOutputs = new Map<number, Type>();
+        const outputs = new Map<number, Type>();
         for (const [id, expression] of definition.outputExpressions) {
+            let type;
             if (definition.genericOutputs.has(id)) {
-                newOutputs.set(
-                    id,
-                    evaluate(expression, definition.typeDefinitions, genericParameters)
-                );
+                type = evaluate(expression, definition.typeDefinitions, genericParameters);
             } else {
-                newOutputs.set(id, definition.outputDefaults.get(id)!);
+                type = definition.outputDefaults.get(id)!;
             }
+
+            const narrowing = outputNarrowing.get(id);
+            if (narrowing) {
+                type = intersect(narrowing, type);
+            }
+
+            outputs.set(id, type);
         }
 
-        return new FunctionInstance(definition, newInputs, newOutputs);
+        return new FunctionInstance(definition, inputs, outputs);
     }
 
     canAssign(inputId: number, type: Type): boolean {
-        const iType = this.inputs.get(inputId);
+        const iType = this.definition.inputs.get(inputId);
         if (!iType) throw new Error(`Invalid input id ${inputId}`);
 
         // we say that types A is assignable to type B if they are not disjoint

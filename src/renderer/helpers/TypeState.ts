@@ -25,14 +25,14 @@ export class TypeState {
     static readonly empty = new TypeState(new Map(), new Set(), new Map());
 
     static create(
-        nodes: readonly Node<NodeData>[],
+        nodesMap: ReadonlyMap<string, Node<NodeData>>,
         edges: readonly Edge<EdgeData>[],
+        outputNarrowing: ReadonlyMap<string, ReadonlyMap<number, Type>>,
         functionDefinitions: ReadonlyMap<string, FunctionDefinition>
     ): TypeState {
         // eslint-disable-next-line no-param-reassign
         edges = edges.filter((e) => e.sourceHandle && e.targetHandle);
 
-        const byId = new Map(nodes.map((n) => [n.id, n]));
         const byTargetHandle = new Map(edges.map((e) => [e.targetHandle!, e]));
 
         const functions = new Map<string, FunctionInstance>();
@@ -41,9 +41,9 @@ export class TypeState {
 
         const getSourceType = (id: string, inputId: number): Type | undefined => {
             const edge = byTargetHandle.get(`${id}-${inputId}`);
-            if (edge) {
-                const sourceHandle = parseHandle(edge.sourceHandle!);
-                const sourceNode = byId.get(sourceHandle.nodeId);
+            if (edge && edge.sourceHandle) {
+                const sourceHandle = parseHandle(edge.sourceHandle);
+                const sourceNode = nodesMap.get(sourceHandle.nodeId);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
@@ -63,28 +63,32 @@ export class TypeState {
 
             let instance;
             try {
-                instance = FunctionInstance.fromPartialInputs(definition, (id) => {
-                    const edgeSource = getSourceType(n.id, id);
-                    if (edgeSource) {
-                        if (edgeSource.type !== 'never') {
-                            // we want to check non-trivial edges
-                            edgesToCheck.push([n.id, id]);
-                        }
-                        return edgeSource;
-                    }
-
-                    if (definition.inputDataLiterals.has(id)) {
-                        const inputValue = n.data.inputData[id];
-                        if (inputValue !== undefined) {
-                            if (typeof inputValue === 'number') {
-                                return new NumericLiteralType(inputValue);
+                instance = FunctionInstance.fromPartialInputs(
+                    definition,
+                    (id) => {
+                        const edgeSource = getSourceType(n.id, id);
+                        if (edgeSource) {
+                            if (edgeSource.type !== 'never') {
+                                // we want to check non-trivial edges
+                                edgesToCheck.push([n.id, id]);
                             }
-                            return new StringLiteralType(inputValue);
+                            return edgeSource;
                         }
-                    }
 
-                    return undefined;
-                });
+                        if (definition.inputDataLiterals.has(id)) {
+                            const inputValue = n.data.inputData[id];
+                            if (inputValue !== undefined) {
+                                if (typeof inputValue === 'number') {
+                                    return new NumericLiteralType(inputValue);
+                                }
+                                return new StringLiteralType(inputValue);
+                            }
+                        }
+
+                        return undefined;
+                    },
+                    outputNarrowing.get(n.id)
+                );
             } catch (error) {
                 if (error instanceof EvaluationError) {
                     evaluationErrors.set(n.id, error);
@@ -98,7 +102,7 @@ export class TypeState {
             return instance;
         };
 
-        for (const n of nodes) {
+        for (const n of nodesMap.values()) {
             addNode(n);
         }
 

@@ -3,6 +3,10 @@ import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 
+export const EMPTY_ARRAY: readonly never[] = [];
+export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
+export const EMPTY_MAP: ReadonlyMap<never, never> = new Map<never, never>();
+
 export const noop = () => {};
 
 export const checkFileExists = (file: string): Promise<boolean> =>

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-param-reassign */
-import { assertNever } from '../util';
+import { EMPTY_MAP, assertNever } from '../util';
 import {
     Expression,
     FieldAccessExpression,
@@ -384,8 +384,6 @@ const evaluateFieldAccess = (
     return union(...accessed);
 };
 
-const NO_GENERICS = new Map<never, never>();
-
 /**
  * Evaluates the given expression. If a type is given, then the type will be returned as is.
  *
@@ -398,7 +396,7 @@ const NO_GENERICS = new Map<never, never>();
 export const evaluate = (
     expression: Expression,
     definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type> = NO_GENERICS
+    genericParameters: ReadonlyMap<string, Type> = EMPTY_MAP
 ): Type => {
     if (expression.underlying !== 'expression') {
         // type

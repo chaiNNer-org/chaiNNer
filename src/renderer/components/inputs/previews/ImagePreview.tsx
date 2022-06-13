@@ -1,8 +1,11 @@
 import { Center, HStack, Image, Spinner, Tag, VStack } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
+import { NumericLiteralType } from '../../../../common/types/types';
 import { checkFileExists } from '../../../../common/util';
+import { GlobalContext } from '../../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
@@ -36,6 +39,7 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [img, setImg] = useState<ImageObject | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const { setManualOutputType } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -66,6 +70,22 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
         },
         [path]
     );
+
+    useEffect(() => {
+        if (schemaId === 'chainner:image:load') {
+            let type;
+            if (img) {
+                type = new NamedExpression('Image', [
+                    new NamedExpressionField('width', new NumericLiteralType(img.width)),
+                    new NamedExpressionField('height', new NumericLiteralType(img.height)),
+                    new NamedExpressionField('channels', new NumericLiteralType(img.channels)),
+                ]);
+            } else {
+                type = undefined;
+            }
+            setManualOutputType(id, 0, type);
+        }
+    }, [id, schemaId, img]);
 
     return (
         <Center w="full">
