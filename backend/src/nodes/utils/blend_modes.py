@@ -19,6 +19,8 @@ class BlendModes:
     NEGATION = 11
     SCREEN = 12
     XOR = 13
+    SUBTRACT = 14
+    DIVIDE = 15
 
 
 class ImageBlender:
@@ -40,6 +42,8 @@ class ImageBlender:
             BlendModes.NEGATION: self.__negation,
             BlendModes.SCREEN: self.__screen,
             BlendModes.XOR: self.__xor,
+            BlendModes.SUBTRACT: self.__subtract,
+            BlendModes.DIVIDE: self.__divide,
         }
 
     def apply_blend(self, a: np.ndarray, b: np.ndarray, blend_mode: int) -> np.ndarray:
@@ -93,3 +97,9 @@ class ImageBlender:
             ).astype(np.float32)
             / 255
         )
+
+    def __subtract(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return b - a  # type: ignore
+
+    def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return b / a
