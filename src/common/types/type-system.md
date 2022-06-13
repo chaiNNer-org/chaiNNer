@@ -83,6 +83,10 @@ This means that each structure type definitions creates a new type of structure 
 
 Each structure type is generic over all its field types.
 
+### Field access
+
+Using a field access expression, it is possible to access for type of a field a structure or union of structures.
+
 ### Set representation
 
 This is only important for the implementation and theory behind the type system.
