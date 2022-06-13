@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 from .base_input import BaseInput
+from ...utils.blend_modes import BlendModes as bm
 
 
 class DropDownInput(BaseInput):
@@ -164,5 +165,31 @@ def VideoTypeDropdown() -> DropDownInput:
                 "option": "None",
                 "value": "none",
             },
+        ],
+    )
+
+
+def BlendModeDropdown() -> DropDownInput:
+    """Blending Mode option dropdown"""
+    return DropDownInput(
+        "Blend Mode",
+        [
+            {"option": "Normal", "value": bm.NORMAL},
+            {"option": "Darken", "value": bm.DARKEN},
+            {"option": "Multiply", "value": bm.MULTIPLY},
+            {"option": "Color Burn", "value": bm.COLOR_BURN},
+            {"option": "Lighten", "value": bm.LIGHTEN},
+            {"option": "Screen", "value": bm.SCREEN},
+            {"option": "Color Dodge", "value": bm.COLOR_DODGE},
+            {"option": "Add", "value": bm.ADD},
+            {"option": "Overlay", "value": bm.OVERLAY},
+            {"option": "Reflect", "value": bm.REFLECT},
+            {"option": "Glow", "value": bm.GLOW},
+            {"option": "Difference", "value": bm.DIFFERENCE},
+            {"option": "Exclusion", "value": bm.EXCLUSION},
+            {"option": "Negation", "value": bm.NEGATION},
+            {"option": "Subtract", "value": bm.SUBTRACT},
+            {"option": "Divide", "value": bm.DIVIDE},
+            {"option": "Xor", "value": bm.XOR},
         ],
     )

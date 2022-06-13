@@ -14,21 +14,22 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import alpha_overlay, calculate_ssim
+from .utils.image_utils import blend_images, calculate_ssim, convert_to_BGRA
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
 
-@NodeFactory.register("chainner:image:overlay")
-class ImOverlay(NodeBase):
-    """OpenCV transparency overlay node"""
+@NodeFactory.register("chainner:image:blend")
+class ImBlend(NodeBase):
+    """Blending mode node"""
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Overlay transparent images on base image."
+        self.description = """Blends overlay image onto base image using 
+            specified mode and opacities."""
         self.inputs = [
-            ImageInput("Base").with_id(0),
+            ImageInput("Base Layer"),
             SliderInput(
                 "Base Opacity",
                 maximum=100,
@@ -36,29 +37,21 @@ class ImOverlay(NodeBase):
                 step=0.1,
                 controls_step=1,
                 unit="%",
-            ).with_id(5),
-            ImageInput("Overlay A").with_id(1),
-            SliderInput(
-                "Opacity A",
-                maximum=100,
-                default=50,
-                step=0.1,
-                controls_step=1,
-                unit="%",
             ).with_id(2),
-            ImageInput("Overlay B").make_optional().with_id(3),
+            ImageInput("Overlay Layer").with_id(1),
             SliderInput(
-                "Opacity B",
+                "Overlay Opacity",
                 maximum=100,
-                default=50,
+                default=100,
                 step=0.1,
                 controls_step=1,
                 unit="%",
-            ).with_id(4),
+            ),
+            BlendModeDropdown(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
-        self.name = "Overlay Images"
+        self.name = "Blend Images"
         self.icon = "BsLayersHalf"
         self.sub = "Compositing"
 
@@ -66,58 +59,54 @@ class ImOverlay(NodeBase):
         self,
         base: np.ndarray,
         opbase: float,
-        ov1: np.ndarray,
-        op1: float,
-        ov2: Union[np.ndarray, None],
-        op2: float,
+        ov: np.ndarray,
+        op: float,
+        blend_mode: int,
     ) -> np.ndarray:
-        """Overlay transparent images on base image"""
+        """Blend images together"""
 
         # Convert to 0.0-1.0 range
         opbase /= 100
-        op1 /= 100
-        op2 /= 100
+        op /= 100
 
-        imgs = []
-        max_h, max_w = 0, 0
-        for img in base, ov1, ov2:
-            if img is not None:
-                h, w, c = get_h_w_c(img)
-                max_h = max(h, max_h)
-                max_w = max(w, max_w)
+        b_h, b_w, b_c = get_h_w_c(base)
+        o_h, o_w, o_c = get_h_w_c(ov)
+        max_h = max(b_h, o_h)
+        max_w = max(b_w, o_w)
 
-                # All inputs must be BGRA for alpha compositing to work
-                if c == 1:
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-                elif c == 3:
-                    img = np.dstack((img, np.ones((h, w), np.float32)))
-                elif c != 4:  # Explode if there are not 1, 3, or 4 channels
-                    logger.error(f"Number of channels ({c}) unexpected")
+        # All inputs must be BGRA for alpha compositing to work
+        imgout = convert_to_BGRA(base, b_c)
+        ov_img = convert_to_BGRA(ov, o_c)
 
-                imgs.append(img)
-        assert (
-            base.shape[0] >= max_h and base.shape[1] >= max_w
-        ), "Base must be largest image."
+        # Pad base image with transparency if necessary to match size with overlay
+        tp = bm = lt = rt = 0
+        if b_h < max_h:
+            tp = (max_h - b_h) // 2
+            bm = max_h - b_h - tp
+        if b_w < max_w:
+            lt = (max_w - b_w) // 2
+            rt = max_w - b_w - lt
+        imgout = cv2.copyMakeBorder(
+            imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
+        )
 
-        imgout = imgs[0]
-        imgs = imgs[1:]
-
+        # Center overlay
         center_x = imgout.shape[1] // 2
         center_y = imgout.shape[0] // 2
+        x_offset = center_x - (o_w // 2)
+        y_offset = center_y - (o_h // 2)
 
-        # Apply opacity to base, then overlay A and B sequentially at corresponding opacities
+        # Apply opacities to images, then blend overlay
         imgout[:, :, 3] *= opbase
-        for img, op in zip(imgs, (op1, op2)):
-            h, w, _ = get_h_w_c(img)
+        ov_img[:, :, 3] *= op
 
-            # Center overlay
-            x_offset = center_x - (w // 2)
-            y_offset = center_y - (h // 2)
+        blended_img = blend_images(
+            ov_img,
+            imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
+            blend_mode,
+        )
 
-            img[:, :, 3] = img[:, :, 3] * op
-            alpha_overlay(img, imgout[y_offset : y_offset + h, x_offset : x_offset + w])
-            imgout[y_offset : y_offset + h, x_offset : x_offset + w] = img
-
+        imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
         imgout = np.clip(imgout, 0, 1)
 
         return imgout
@@ -147,9 +136,9 @@ class StackNode(NodeBase):
     def run(
         self,
         im1: np.ndarray,
-        im2: Union[np.ndarray, None],
-        im3: Union[np.ndarray, None],
-        im4: Union[np.ndarray, None],
+        im2: np.ndarray | None,
+        im3: np.ndarray | None,
+        im4: np.ndarray | None,
         orientation: str,
     ) -> np.ndarray:
         """Concatenate multiple images horizontally"""
@@ -333,14 +322,14 @@ class ShiftNode(NodeBase):
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", unit="px"),
-            NumberInput("Amount Y", unit="px"),
+            NumberInput("Amount X", minimum=None, unit="px"),
+            NumberInput("Amount Y", minimum=None, unit="px"),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
         self.name = "Shift"
         self.icon = "BsGraphDown"
-        self.sub = "Miscellaneous"
+        self.sub = "Modification"
 
     def run(
         self,
@@ -354,27 +343,6 @@ class ShiftNode(NodeBase):
         translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
         img = cv2.warpAffine(img, translation_matrix, (w, h))
         return img
-
-
-@NodeFactory.register("chainner:image:difference")
-class DifferenceNode(NodeBase):
-    """OpenCV absdiff node"""
-
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
-        self.description = "Compares two images."
-        self.inputs = [ImageInput("Image A"), ImageInput("Image B")]
-        self.outputs = [ImageOutput()]
-        self.category = IMAGE_UTILITY
-        self.name = "Difference"
-        self.icon = "BsSubtract"
-        self.sub = "Miscellaneous"
-
-    def run(self, img_1: np.ndarray, img_2: np.ndarray) -> np.ndarray:
-        """Compares two images"""
-        assert img_1.shape == img_2.shape, "Images must be the same size"
-        return cv2.absdiff(img_1, img_2)
 
 
 @NodeFactory.register("chainner:image:rotate")

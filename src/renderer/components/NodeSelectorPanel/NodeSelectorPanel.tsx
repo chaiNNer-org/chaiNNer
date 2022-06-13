@@ -140,7 +140,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                 overflowX="hidden"
             >
                 <motion.div
-                    animate={{ width: collapsed ? '74px' : '300px' }}
+                    animate={{ width: collapsed ? '76px' : '300px' }}
                     initial={false}
                     transition={{ ease: 'easeInOut', duration: 0.25 }}
                 >

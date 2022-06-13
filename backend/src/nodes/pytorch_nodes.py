@@ -42,7 +42,11 @@ def load_state_dict(state_dict):
     logger.info(f"Loading state dict into ESRGAN model")
 
     # SRVGGNet Real-ESRGAN (v2)
-    if "params" in state_dict.keys() and "body.0.weight" in state_dict["params"].keys():
+    if (
+        "params" in state_dict.keys() and "body.0.weight" in state_dict["params"].keys()
+    ) or (
+        "body.0.weight" in state_dict.keys() and "body.1.weight" in state_dict.keys()
+    ):
         model = RealESRGANv2(state_dict)
     # SPSR (ESRGAN with lots of extra layers)
     elif "f_HR_conv1.0.weight" in state_dict:
@@ -330,6 +334,8 @@ class PthSaveNode(NodeBase):
         self.name = "Save Model"
         self.icon = "MdSave"
         self.sub = "Input & Output"
+
+        self.side_effects = True
 
     def run(self, model: torch.nn.Module, directory: str, name: str) -> None:
         full_file = f"{name}.pth"
