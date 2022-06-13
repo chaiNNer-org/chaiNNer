@@ -21,6 +21,7 @@ class BlendModes:
     XOR = 13
     SUBTRACT = 14
     DIVIDE = 15
+    EXCLUSION = 16
 
 
 class ImageBlender:
@@ -44,6 +45,7 @@ class ImageBlender:
             BlendModes.XOR: self.__xor,
             BlendModes.SUBTRACT: self.__subtract,
             BlendModes.DIVIDE: self.__divide,
+            BlendModes.EXCLUSION: self.__exclusion,
         }
 
     def apply_blend(self, a: np.ndarray, b: np.ndarray, blend_mode: int) -> np.ndarray:
@@ -103,3 +105,6 @@ class ImageBlender:
 
     def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return b / a
+
+    def __exclusion(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return a * (1 - b) + b * (1 - a)

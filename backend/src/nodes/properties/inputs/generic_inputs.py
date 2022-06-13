@@ -186,6 +186,7 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Reflect", "value": bm.REFLECT},
             {"option": "Glow", "value": bm.GLOW},
             {"option": "Difference", "value": bm.DIFFERENCE},
+            {"option": "Exclusion", "value": bm.EXCLUSION},
             {"option": "Negation", "value": bm.NEGATION},
             {"option": "Subtract", "value": bm.SUBTRACT},
             {"option": "Divide", "value": bm.DIVIDE},
