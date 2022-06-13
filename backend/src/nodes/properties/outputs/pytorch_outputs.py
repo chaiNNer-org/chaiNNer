@@ -1,9 +1,10 @@
+from .. import expression
 from .base_output import BaseOutput
 
 
-def ModelOutput():
+def ModelOutput(model_type: expression.ExpressionJson = "PyTorchModel"):
     """Output a loaded model"""
-    return BaseOutput("PyTorchModel", "Model")
+    return BaseOutput(model_type, "Model")
 
 
 def TorchScriptOutput():

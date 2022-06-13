@@ -280,7 +280,9 @@ class InterpolateNode(NodeBase):
                 ends=("A", "B"),
             ),
         ]
-        self.outputs = [ModelOutput()]
+        self.outputs = [
+            ModelOutput(model_type=expression.intersect("Input0", "Input1"))
+        ]
 
         self.category = PYTORCH
         self.name = "Interpolate Models"
