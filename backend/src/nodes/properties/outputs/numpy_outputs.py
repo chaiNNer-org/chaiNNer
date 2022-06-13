@@ -19,7 +19,7 @@ def ImageOutput(
     image_type: expression.ExpressionJson = "Image",
 ):
     """Output a 2D Image NumPy array"""
-    return NumPyOutput(expression.intersection([image_type, "Image"]), label)
+    return NumPyOutput(expression.intersect(image_type, "Image"), label)
 
 
 def VideoOutput():

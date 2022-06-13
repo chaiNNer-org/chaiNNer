@@ -45,7 +45,7 @@ class BaseInput:
 
     def toDict(self):
         actual_type = (
-            expression.union([self.input_type, "null"])
+            expression.union(self.input_type, "null")
             if self.optional
             else self.input_type
         )

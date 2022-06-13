@@ -4,7 +4,7 @@ from .. import expression
 
 def NumberOutput(label: str, output_type: expression.ExpressionJson = "number"):
     """Output for arbitrary number"""
-    return BaseOutput(expression.intersection(["number", output_type]), label)
+    return BaseOutput(expression.intersect("number", output_type), label)
 
 
 def TextOutput(label: str):

@@ -343,10 +343,7 @@ class NormalizeNode(NodeBase):
             ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]
         self.outputs = [
-            ImageOutput(
-                "Normal Map",
-                expression.intersection(["Input0", expression.Image(channels=3)]),
-            ),
+            ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
         ]
         self.category = IMAGE_FILTER
         self.name = "Normalize Normal Map"
@@ -389,7 +386,12 @@ class NormalAdditionNode(NodeBase):
             SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [
-            ImageOutput("Normal Map", expression.Image(channels=3)),
+            ImageOutput(
+                "Normal Map",
+                expression.Image(
+                    size_as=expression.intersect("Input0", "Input1"), channels=3
+                ),
+            ),
         ]
         self.category = IMAGE_FILTER
         self.name = "Add Normals"

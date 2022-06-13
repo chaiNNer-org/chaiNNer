@@ -127,12 +127,12 @@ def int_interval(
     }
 
 
-def union(items: List[ExpressionJson]) -> ExpressionJson:
-    return {"type": "union", "items": items}
+def union(*items: ExpressionJson) -> ExpressionJson:
+    return {"type": "union", "items": list(items)}
 
 
-def intersection(items: List[ExpressionJson]) -> ExpressionJson:
-    return {"type": "intersection", "items": items}
+def intersect(*items: ExpressionJson) -> ExpressionJson:
+    return {"type": "intersection", "items": list(items)}
 
 
 def named(name: str, fields: Dict[str, ExpressionJson] | None = None) -> ExpressionJson:
@@ -151,6 +151,10 @@ def Image(
     width: Optional[ExpressionJson] = None,
     height: Optional[ExpressionJson] = None,
     channels: Optional[ExpressionJson] = None,
+    width_as: Optional[ExpressionJson] = None,
+    height_as: Optional[ExpressionJson] = None,
+    channels_as: Optional[ExpressionJson] = None,
+    size_as: Optional[ExpressionJson] = None,
 ) -> ExpressionJson:
     fields: Dict[str, ExpressionJson] = {}
     if width is not None:
@@ -159,18 +163,13 @@ def Image(
         fields["height"] = height
     if channels is not None:
         fields["channels"] = channels
+    if width_as is not None:
+        fields["width"] = field(width_as, "width")
+    if height_as is not None:
+        fields["height"] = field(height_as, "height")
+    if channels_as is not None:
+        fields["channels"] = field(channels_as, "channels")
+    if size_as is not None:
+        fields["width"] = field(size_as, "width")
+        fields["height"] = field(size_as, "height")
     return named("Image", fields)
-
-
-def ImageWithSameAs(
-    width: Optional[ExpressionJson] = None,
-    height: Optional[ExpressionJson] = None,
-    channels: Optional[ExpressionJson] = None,
-) -> ExpressionJson:
-    if width is not None:
-        width = field(width, "width")
-    if height is not None:
-        height = field(height, "height")
-    if channels is not None:
-        channels = field(channels, "channels")
-    return Image(width, height, channels)

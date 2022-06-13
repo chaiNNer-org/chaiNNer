@@ -41,9 +41,7 @@ class ImResizeByFactorNode(NodeBase):
         ]
         self.category = IMAGE_DIMENSION
         self.name = "Resize (Factor)"
-        self.outputs = [
-            ImageOutput(image_type=expression.ImageWithSameAs(channels="Input0"))
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 
@@ -153,9 +151,7 @@ class CropNode(NodeBase):
             NumberInput("Height", unit="px"),
             NumberInput("Width", unit="px"),
         ]
-        self.outputs = [
-            ImageOutput(image_type=expression.ImageWithSameAs(channels="Input0"))
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Offsets)"
         self.icon = "MdCrop"
@@ -190,9 +186,7 @@ class BorderCropNode(NodeBase):
             ImageInput(),
             NumberInput("Amount", unit="px"),
         ]
-        self.outputs = [
-            ImageOutput(image_type=expression.ImageWithSameAs(channels="Input0"))
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Border)"
         self.icon = "MdCrop"
@@ -226,9 +220,7 @@ class EdgeCropNode(NodeBase):
             NumberInput("Right", unit="px"),
             NumberInput("Bottom", unit="px"),
         ]
-        self.outputs = [
-            ImageOutput(image_type=expression.ImageWithSameAs(channels="Input0"))
-        ]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Edges)"
         self.icon = "MdCrop"
