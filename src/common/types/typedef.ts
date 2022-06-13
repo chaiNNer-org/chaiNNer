@@ -136,7 +136,6 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
 
         'PthFile',
         'PtFile',
-        'PyTorchModel',
         'PyTorchScript',
 
         'NcnnBinFile',
@@ -181,6 +180,13 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
     );
     definitions.add(
         new StructDefinition('Directory', [new StructFieldDefinition('path', StringType.instance)])
+    );
+    definitions.add(
+        new StructDefinition('PyTorchModel', [
+            new StructFieldDefinition('scale', new IntIntervalType(1, Infinity)),
+            new StructFieldDefinition('inputChannels', new IntIntervalType(1, Infinity)),
+            new StructFieldDefinition('outputChannels', new IntIntervalType(1, Infinity)),
+        ])
     );
 };
 

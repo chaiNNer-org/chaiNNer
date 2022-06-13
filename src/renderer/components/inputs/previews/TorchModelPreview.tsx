@@ -1,14 +1,18 @@
 import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
+import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists } from '../../../../common/util';
 import { AlertBoxContext, AlertType } from '../../../contexts/AlertBoxContext';
+import { GlobalContext } from '../../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
 interface ModelData {
     modelType?: string;
+    name: string;
     scale: number;
     inNc: number;
     outNc: number;
@@ -38,6 +42,7 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
     const [modelData, setModelData] = useState<ModelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const { setManualOutputType } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -88,6 +93,32 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
         },
         [path]
     );
+
+    useEffect(() => {
+        if (schemaId === 'chainner:pytorch:load_model') {
+            if (modelData) {
+                setManualOutputType(
+                    id,
+                    0,
+                    new NamedExpression('PyTorchModel', [
+                        new NamedExpressionField('scale', new NumericLiteralType(modelData.scale)),
+                        new NamedExpressionField(
+                            'inputChannels',
+                            new NumericLiteralType(modelData.inNc)
+                        ),
+                        new NamedExpressionField(
+                            'outputChannels',
+                            new NumericLiteralType(modelData.outNc)
+                        ),
+                    ])
+                );
+                setManualOutputType(id, 1, new StringLiteralType(modelData.name));
+            } else {
+                setManualOutputType(id, 0, undefined);
+                setManualOutputType(id, 1, undefined);
+            }
+        }
+    }, [id, schemaId, modelData]);
 
     return (
         <Center w="full">

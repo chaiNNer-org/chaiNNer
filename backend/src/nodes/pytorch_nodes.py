@@ -86,7 +86,9 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-        self.model = None  # Defined in run
+        # Defined in run
+        self.model = None
+        self.basename = None
 
     def get_extra_data(self) -> Dict:
         # TODO: Figure out how to make types for this
@@ -104,6 +106,7 @@ class LoadModelNode(NodeBase):
             "outNc": self.model.out_nc,  # type: ignore
             "size": size,
             "scale": self.model.scale,  # type: ignore
+            "name": self.basename,
         }
 
     def run(self, path: str) -> Any:
@@ -126,9 +129,9 @@ class LoadModelNode(NodeBase):
         self.model.eval()
         self.model = self.model.to(torch.device(os.environ["device"]))
 
-        basename = os.path.splitext(os.path.basename(path))[0]
+        self.basename = os.path.splitext(os.path.basename(path))[0]
 
-        return self.model, basename
+        return self.model, self.basename
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
