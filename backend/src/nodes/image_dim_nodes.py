@@ -151,7 +151,13 @@ class CropNode(NodeBase):
             NumberInput("Height", unit="px"),
             NumberInput("Width", unit="px"),
         ]
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input4", height="Input3", channels_as="Input0"
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Offsets)"
         self.icon = "MdCrop"
@@ -186,7 +192,29 @@ class BorderCropNode(NodeBase):
             ImageInput(),
             NumberInput("Amount", unit="px"),
         ]
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "width"),
+                            expression.fn("add", "Input1", "Input1"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    height=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "height"),
+                            expression.fn("add", "Input1", "Input1"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Border)"
         self.icon = "MdCrop"
@@ -220,7 +248,29 @@ class EdgeCropNode(NodeBase):
             NumberInput("Right", unit="px"),
             NumberInput("Bottom", unit="px"),
         ]
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "width"),
+                            expression.fn("add", "Input2", "Input3"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    height=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "height"),
+                            expression.fn("add", "Input1", "Input4"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Edges)"
         self.icon = "MdCrop"

@@ -143,8 +143,8 @@ def field(of: ExpressionJson, field: str) -> ExpressionJson:
     return {"type": "field-access", "of": of, "field": field}
 
 
-def fn(name: str, args: List[ExpressionJson]) -> ExpressionJson:
-    return {"type": "builtin-function", "name": name, "args": args}
+def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
+    return {"type": "builtin-function", "name": name, "args": list(args)}
 
 
 def Image(
