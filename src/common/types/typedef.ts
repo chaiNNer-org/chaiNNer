@@ -3,6 +3,7 @@ import {
     BinaryFn,
     UnaryFn,
     add,
+    divide,
     maximum,
     minimum,
     multiply,
@@ -250,6 +251,7 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
         add,
         subtract,
         multiply,
+        divide,
         min: minimum,
         max: maximum,
     };

@@ -253,7 +253,15 @@ export const unionValueTypes = (...types: ValueType[]): ValueType | UnionType | 
     return u.getResult();
 };
 
-export const union = (...types: Type[]): Type => {
+export function union(
+    ...types: (NumberPrimitive | UnionType<NumberPrimitive> | NeverType)[]
+): NumberPrimitive | UnionType<NumberPrimitive> | NeverType;
+export function union(
+    ...types: (StringPrimitive | UnionType<StringPrimitive> | NeverType)[]
+): StringPrimitive | UnionType<StringPrimitive> | NeverType;
+export function union(...types: Type[]): Type;
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
+export function union(...types: Type[]): Type {
     if (types.length === 0) return NeverType.instance;
     if (types.length === 1) return types[0];
 
@@ -284,4 +292,4 @@ export const union = (...types: Type[]): Type => {
     }
 
     return u.getResult();
-};
+}
