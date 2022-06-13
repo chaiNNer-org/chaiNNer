@@ -144,7 +144,12 @@ class ImageUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model."
         self.inputs = [ModelInput(), ImageInput()]
-        self.outputs = [ImageOutput("Upscaled Image")]
+        self.outputs = [
+            ImageOutput(
+                "Upscaled Image",
+                expression.Image(channels=expression.field("Input0", "outputChannels")),
+            )
+        ]
 
         self.category = PYTORCH
         self.name = "Upscale Image"
