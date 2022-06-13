@@ -104,7 +104,7 @@ class ImageBlender:
         return b - a  # type: ignore
 
     def __divide(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return b / a
+        return b / np.maximum(0.0001, a)
 
     def __exclusion(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return a * (1 - b) + b * (1 - a)
