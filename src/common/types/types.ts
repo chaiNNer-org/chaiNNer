@@ -210,16 +210,16 @@ export class AnyType implements TypeBase {
     static readonly instance = new AnyType();
 }
 
-export class UnionType implements TypeBase {
+export class UnionType<T extends ValueType = ValueType> implements TypeBase {
     readonly type = 'union';
 
     readonly underlying = 'union';
 
-    readonly items: CanonicalTypes<ValueType>;
+    readonly items: CanonicalTypes<T>;
 
     private cachedTypeId: string | undefined;
 
-    constructor(items: CanonicalTypes<ValueType>) {
+    constructor(items: CanonicalTypes<T>) {
         if (items.length < 2) throw new Error('A union has to have at least 2 items.');
         this.items = items;
     }

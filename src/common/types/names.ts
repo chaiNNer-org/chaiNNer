@@ -15,3 +15,11 @@ export const assertValidStructFieldName = (name: string): void => {
             )}`
         );
 };
+export const assertValidFunctionName = (name: string): void => {
+    if (!namePattern.test(name))
+        throw new Error(
+            `Invalid name. Struct field name ${JSON.stringify(name)} must match ${String(
+                namePattern
+            )}`
+        );
+};

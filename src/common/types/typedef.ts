@@ -1,10 +1,16 @@
 /* eslint-disable max-classes-per-file */
+import { BinaryFn, UnaryFn, add, maximum, minimum, negate, round, subtract } from './builtin';
 import { Expression, NamedExpression } from './expression';
-import { assertValidStructFieldName, assertValidStructName } from './names';
+import {
+    assertValidFunctionName,
+    assertValidStructFieldName,
+    assertValidStructName,
+} from './names';
 import {
     AnyType,
     IntIntervalType,
     NeverType,
+    NumberPrimitive,
     NumberType,
     StringType,
     StructType,
@@ -110,6 +116,38 @@ export class AliasDefinition {
     }
 }
 
+export class BuiltinFunctionDefinition {
+    readonly name: string;
+
+    readonly args: readonly Expression[];
+
+    readonly fn: (...args: Type[]) => Type;
+
+    constructor(name: string, fn: (..._: Type[]) => Type, args: readonly Expression[]) {
+        assertValidFunctionName(name);
+        this.name = name;
+        this.args = args;
+        this.fn = fn;
+    }
+
+    static unary<T extends Type>(
+        name: string,
+        fn: (a: T) => Type,
+        arg: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [arg]);
+    }
+
+    static binary<T1 extends Type, T2 extends Type>(
+        name: string,
+        fn: (a: T1, b: T2) => Type,
+        arg0: Expression,
+        arg1: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [arg0, arg1]);
+    }
+}
+
 export interface AliasDefinitionEntry {
     readonly kind: 'alias';
     readonly definition: AliasDefinition;
@@ -120,6 +158,10 @@ export interface StructDefinitionEntry {
     readonly kind: 'struct';
     readonly definition: StructDefinition;
     evaluated?: StructType | NeverType;
+}
+export interface BuiltinFunctionDefinitionEntry {
+    readonly definition: BuiltinFunctionDefinition;
+    evaluatedArgs?: Type[];
 }
 export type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
 
@@ -189,9 +231,32 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         ])
     );
 };
+const addBuiltinFunctions = (definitions: TypeDefinitions) => {
+    const unaryNumber: Record<string, UnaryFn<NumberPrimitive>> = {
+        negate,
+        round,
+    };
+    const binaryNumber: Record<string, BinaryFn<NumberPrimitive>> = {
+        add,
+        subtract,
+        min: minimum,
+        max: maximum,
+    };
+
+    for (const [name, fn] of Object.entries(unaryNumber)) {
+        definitions.addFunction(BuiltinFunctionDefinition.unary(name, fn, NumberType.instance));
+    }
+    for (const [name, fn] of Object.entries(binaryNumber)) {
+        definitions.addFunction(
+            BuiltinFunctionDefinition.binary(name, fn, NumberType.instance, NumberType.instance)
+        );
+    }
+};
 
 export class TypeDefinitions {
     private readonly defs = new Map<string, TypeDefinitionEntry>();
+
+    private readonly functions = new Map<string, BuiltinFunctionDefinitionEntry>();
 
     constructor() {
         // alias fail-safes for primitives
@@ -201,6 +266,7 @@ export class TypeDefinitions {
         this.add(new AliasDefinition('string', [], StringType.instance));
 
         addBuiltinTypes(this);
+        addBuiltinFunctions(this);
     }
 
     private assertUnusedName(name: string): void {
@@ -223,8 +289,20 @@ export class TypeDefinitions {
         this.defs.set(definition.name, entry);
     }
 
+    addFunction(definition: BuiltinFunctionDefinition): void {
+        if (this.functions.has(definition.name)) {
+            throw new Error(`The function name ${definition.name} is already occupied.`);
+        }
+
+        this.functions.set(definition.name, { definition });
+    }
+
     get(name: string): TypeDefinitionEntry | undefined {
         return this.defs.get(name);
+    }
+
+    getFunction(name: string): BuiltinFunctionDefinitionEntry | undefined {
+        return this.functions.get(name);
     }
 
     names(): Iterable<string> {

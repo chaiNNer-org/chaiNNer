@@ -65,6 +65,11 @@ export function* getReferences(expression: Expression): Iterable<string> {
             case 'field-access':
                 yield* getReferences(expression.of);
                 break;
+            case 'builtin-function':
+                for (const f of expression.args) {
+                    yield* getReferences(f);
+                }
+                break;
             default:
                 yield assertNever(expression);
         }

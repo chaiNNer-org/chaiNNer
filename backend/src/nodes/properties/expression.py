@@ -38,6 +38,7 @@ ExpressionJson = Union[
     "IntersectionExpressionJson",
     "NamedExpressionJson",
     "FieldAccessExpressionJson",
+    "BuiltFunctionExpressionJson",
     List["ExpressionJson"],
 ]
 
@@ -86,6 +87,12 @@ class FieldAccessExpressionJson(TypedDict):
     field: str
 
 
+class BuiltFunctionExpressionJson(TypedDict):
+    type: Literal["builtin-function"]
+    name: str
+    args: List[ExpressionJson]
+
+
 def literal(value: Union[str, int, float]) -> ExpressionJson:
     if isinstance(value, str):
         return {
@@ -132,8 +139,12 @@ def named(name: str, fields: Dict[str, ExpressionJson] | None = None) -> Express
     return {"type": "named", "name": name, "fields": fields}
 
 
-def field(of: ExpressionJson, field: str) -> FieldAccessExpressionJson:
+def field(of: ExpressionJson, field: str) -> ExpressionJson:
     return {"type": "field-access", "of": of, "field": field}
+
+
+def fn(name: str, args: List[ExpressionJson]) -> ExpressionJson:
+    return {"type": "builtin-function", "name": name, "args": args}
 
 
 def Image(

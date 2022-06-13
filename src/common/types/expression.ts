@@ -1,12 +1,17 @@
 /* eslint-disable max-classes-per-file */
-import { assertValidStructFieldName, assertValidStructName } from './names';
+import {
+    assertValidFunctionName,
+    assertValidStructFieldName,
+    assertValidStructName,
+} from './names';
 import { Type } from './types';
 
 type PureExpression =
     | UnionExpression
     | IntersectionExpression
     | NamedExpression
-    | FieldAccessExpression;
+    | FieldAccessExpression
+    | BuiltinFunctionExpression;
 
 export type Expression = Type | PureExpression;
 
@@ -105,5 +110,25 @@ export class FieldAccessExpression implements ExpressionBase {
 
     toString(): string {
         return `${bracket(this.of)}.${this.field}`;
+    }
+}
+
+export class BuiltinFunctionExpression implements ExpressionBase {
+    readonly type = 'builtin-function';
+
+    readonly underlying = 'expression';
+
+    readonly functionName: string;
+
+    readonly args: readonly Expression[];
+
+    constructor(functionName: string, args: readonly Expression[]) {
+        assertValidFunctionName(functionName);
+        this.functionName = functionName;
+        this.args = args;
+    }
+
+    toString(): string {
+        return `${this.functionName}(${this.args.map((e) => e.toString()).join(', ')})`;
     }
 }

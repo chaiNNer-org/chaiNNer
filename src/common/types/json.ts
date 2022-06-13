@@ -1,5 +1,6 @@
 import { assertNever } from '../util';
 import {
+    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
     IntersectionExpression,
@@ -28,7 +29,8 @@ export type ExpressionJson =
     | UnionExpressionJson
     | IntersectionExpressionJson
     | NamedExpressionJson
-    | FieldAccessExpressionJson;
+    | FieldAccessExpressionJson
+    | BuiltinFunctionExpressionJson;
 export type TypeJson = PrimitiveTypeJson | 'never' | 'any';
 export type PrimitiveTypeJson = NumberPrimitiveJson | StringPrimitiveJson;
 export type NumberPrimitiveJson =
@@ -75,6 +77,11 @@ export interface FieldAccessExpressionJson {
     field: string;
     of: ExpressionJson;
 }
+export interface BuiltinFunctionExpressionJson {
+    type: 'builtin-function';
+    name: string;
+    args: ExpressionJson[];
+}
 
 const toNumberJson = (number: number): NumberJson => {
     if (Number.isNaN(number)) return 'NaN';
@@ -120,11 +127,9 @@ export const toJson = (e: Expression): ExpressionJson => {
                 fields: Object.fromEntries(e.fields.map((f) => [e.name, toJson(f.type)])),
             };
         case 'field-access':
-            return {
-                type: 'field-access',
-                of: toJson(e.of),
-                field: e.field,
-            };
+            return { type: 'field-access', of: toJson(e.of), field: e.field };
+        case 'builtin-function':
+            return { type: 'builtin-function', name: e.functionName, args: e.args.map(toJson) };
         default:
             return assertNever(e);
     }
@@ -176,6 +181,8 @@ export const fromJson = (e: ExpressionJson): Expression => {
             );
         case 'field-access':
             return new FieldAccessExpression(fromJson(e.of), e.field);
+        case 'builtin-function':
+            return new BuiltinFunctionExpression(e.name, e.args.map(fromJson));
         default:
             return assertNever(e);
     }

@@ -2,6 +2,7 @@
 /* eslint-disable no-param-reassign */
 import { EMPTY_MAP, assertNever } from '../util';
 import {
+    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
     NamedExpression,
@@ -13,6 +14,7 @@ import {
     AliasDefinition,
     AliasDefinitionEntry,
     AliasParameterDefinition,
+    BuiltinFunctionDefinition,
     StructDefinition,
     StructDefinitionEntry,
     TypeDefinitions,
@@ -43,6 +45,11 @@ export type ErrorDetails =
     | {
           type: 'Unknown type definition';
           expression: NamedExpression;
+          message: string;
+      }
+    | {
+          type: 'Unknown builtin function';
+          expression: BuiltinFunctionExpression;
           message: string;
       }
     | {
@@ -91,6 +98,23 @@ export type ErrorDetails =
           expression: FieldAccessExpression;
           fullExpressionType: Type;
           offendingType: Type;
+          message: string;
+      }
+    | {
+          type: 'Incorrect builtin function argument count';
+          expression: BuiltinFunctionExpression;
+          definition: BuiltinFunctionDefinition;
+          message: string;
+      }
+    | {
+          type: 'Incompatible argument type';
+          expression: BuiltinFunctionExpression;
+          definition: BuiltinFunctionDefinition;
+          argument: {
+              index: number;
+              expression: Type;
+              definition: Type;
+          };
           message: string;
       };
 
@@ -384,6 +408,53 @@ const evaluateFieldAccess = (
     return union(...accessed);
 };
 
+const evaluateBuiltinFunction = (
+    expression: BuiltinFunctionExpression,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    const entry = definitions.getFunction(expression.functionName);
+    if (entry === undefined) {
+        throw new EvaluationError({
+            type: 'Unknown builtin function',
+            expression,
+            message: `No builtin function ${expression.functionName} available.`,
+        });
+    }
+
+    if (entry.definition.args.length !== expression.args.length) {
+        throw new EvaluationError({
+            type: 'Incorrect builtin function argument count',
+            expression,
+            definition: entry.definition,
+            message: `${expression.functionName} expected ${entry.definition.args.length} but got ${expression.args.length}.`,
+        });
+    }
+
+    if (!entry.evaluatedArgs) {
+        entry.evaluatedArgs = entry.definition.args.map((arg) => evaluate(arg, definitions));
+    }
+
+    const args = expression.args.map((arg) => evaluate(arg, definitions, genericParameters));
+
+    for (let i = 0; i < args.length; i += 1) {
+        const eType = args[i];
+        const dType = entry.evaluatedArgs[i];
+
+        if (!isSubsetOf(eType, dType)) {
+            throw new EvaluationError({
+                type: 'Incompatible argument type',
+                expression,
+                definition: entry.definition,
+                argument: { index: i, expression: eType, definition: dType },
+                message: `The supplied argument type is not  compatible with the definition type.`,
+            });
+        }
+    }
+
+    return entry.definition.fn(...args);
+};
+
 /**
  * Evaluates the given expression. If a type is given, then the type will be returned as is.
  *
@@ -416,6 +487,8 @@ export const evaluate = (
             );
         case 'field-access':
             return evaluateFieldAccess(expression, definitions, genericParameters);
+        case 'builtin-function':
+            return evaluateBuiltinFunction(expression, definitions, genericParameters);
         default:
             return assertNever(expression);
     }
