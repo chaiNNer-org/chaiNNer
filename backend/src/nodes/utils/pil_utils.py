@@ -5,6 +5,9 @@ from typing import Tuple
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from sanic.log import logger
+
+from .image_utils import convert_to_BGRA
 from .utils import get_h_w_c
 
 
@@ -47,13 +50,24 @@ def resize(
     return np.array(pimg).astype("float32") / 255
 
 
-def rotate(img: np.ndarray, angle: float, interpolation: int) -> np.ndarray:
+def rotate(
+    img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+) -> np.ndarray:
     """Perform PIL rotate"""
 
+    # Select how to fill negative space that results from rotation
     c = get_h_w_c(img)[2]
-    fill_color = (0,) * c
+    if fill == 0:
+        fill_color = (0,) * c
+    elif fill == 1:
+        fill_color = (0,) * c if c < 4 else (0, 0, 0, 255)
+        logger.info(fill_color)
+    else:
+        img = convert_to_BGRA(img, c)
+        fill_color = (0, 0, 0, 0)
+
     pimg = Image.fromarray((img * 255).astype("uint8"))
-    pimg = pimg.rotate(angle, interpolation, True, fillcolor=fill_color)  # type: ignore
+    pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore
     return np.array(pimg).astype("float32") / 255
 
 

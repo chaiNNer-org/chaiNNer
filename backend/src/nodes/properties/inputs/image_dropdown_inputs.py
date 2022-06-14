@@ -71,7 +71,7 @@ def ColorModeInput() -> DropDownInput:
 def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return DropDownInput(
-        "Interpolation Mode",
+        "Interpolation Method",
         [
             {
                 "option": "Auto",

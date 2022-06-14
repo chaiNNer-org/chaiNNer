@@ -357,6 +357,7 @@ class RotateNode(NodeBase):
             ImageInput("Image"),
             SliderInput(
                 "Rotation Angle",
+                default=0,
                 maximum=360,
                 step=0.1,
                 controls_step=1,
@@ -364,6 +365,21 @@ class RotateNode(NodeBase):
                 unit="°",
             ),
             ReducedInterpolationInput(),
+            DropDownInput(
+                "Image Dimensions",
+                [
+                    {"option": "Expand to fit", "value": 1},
+                    {"option": "Crop to original", "value": 0},
+                ],
+            ),
+            DropDownInput(
+                "Negative Space Fill",
+                [
+                    {"option": "Auto", "value": 0},
+                    {"option": "Black Fill", "value": 1},
+                    {"option": "Transparency", "value": 2},
+                ],
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -371,8 +387,10 @@ class RotateNode(NodeBase):
         self.icon = "MdRotate90DegreesCcw"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, angle: float, interpolation: int) -> np.ndarray:
-        return rotate(img, angle, interpolation)
+    def run(
+        self, img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+    ) -> np.ndarray:
+        return rotate(img, angle, interpolation, expand, fill)
 
 
 @NodeFactory.register("chainner:image:flip")
