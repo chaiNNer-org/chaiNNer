@@ -46,11 +46,15 @@ const fieldAccess = (expressions: readonly Expression[]): Expression[] => {
 export const sets: readonly Type[] = [NeverType.instance, AnyType.instance];
 export const numbers: readonly Type[] = [
     NumberType.instance,
+    new NumericLiteralType(-3.14),
     new NumericLiteralType(-2),
     new NumericLiteralType(-1),
     new NumericLiteralType(0),
+    new NumericLiteralType(0.5),
     new NumericLiteralType(1),
     new NumericLiteralType(2),
+    new NumericLiteralType(2.78),
+    new NumericLiteralType(3.14),
     new NumericLiteralType(10),
     new NumericLiteralType(100),
     new NumericLiteralType(-Infinity),
@@ -60,10 +64,13 @@ export const numbers: readonly Type[] = [
     new IntervalType(0, 2),
     new IntervalType(0.5, 1.5),
     new IntervalType(0.5, 2.5),
+    new IntervalType(-2.56, 3.35),
     new IntervalType(0.5, 0.75),
     new IntervalType(1, 2),
     new IntervalType(0, Infinity),
     new IntervalType(1, Infinity),
+    new IntervalType(2, Infinity),
+    new IntervalType(2.5, Infinity),
     new IntervalType(-Infinity, 0),
     new IntervalType(-Infinity, Infinity),
     new IntIntervalType(0, 1),
@@ -72,6 +79,7 @@ export const numbers: readonly Type[] = [
     new IntIntervalType(0, Infinity),
     new IntIntervalType(1, Infinity),
     new IntIntervalType(-Infinity, 0),
+    new IntIntervalType(-Infinity, 1),
     new IntIntervalType(-Infinity, Infinity),
 ];
 export const strings: readonly Type[] = [
