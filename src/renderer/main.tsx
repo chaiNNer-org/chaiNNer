@@ -146,7 +146,7 @@ const Main = memo(({ port }: MainProps) => {
 
     if (error) return null;
 
-    if (!nodesInfo || !data) {
+    if (!nodesInfo || !data || !height) {
         return (
             <Box
                 h="100vh"
