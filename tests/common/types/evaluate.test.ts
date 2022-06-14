@@ -1,6 +1,7 @@
 import { evaluate } from '../../../src/common/types/evaluate';
 import {
     BuiltinFunctionExpression,
+    Expression,
     IntersectionExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
@@ -16,6 +17,15 @@ import {
 } from './data';
 
 const definitions = new TypeDefinitions();
+
+const assertSame = (a: Expression, b: Expression): void => {
+    const expected = evaluate(a, definitions).getTypeId();
+    const actual = evaluate(b, definitions).getTypeId();
+    if (expected !== actual) {
+        const prefix = `a = ${a.toString()}\nb = ${b.toString()}\n`;
+        expect(prefix + actual).toBe(prefix + expected);
+    }
+};
 
 test('Expression evaluation', () => {
     const actual = [...expressions, ...potentiallyInvalidExpressions]
@@ -35,20 +45,13 @@ test('Expression evaluation', () => {
 describe('union', () => {
     test('reflexive', () => {
         for (const expression of expressions) {
-            const expected = evaluate(expression, definitions).getTypeId();
-            const actual = evaluate(
-                new UnionExpression([expression, expression]),
-                definitions
-            ).getTypeId();
-            expect(actual).toBe(expected);
+            assertSame(expression, new UnionExpression([expression, expression]));
         }
     });
     test('commutative', () => {
         for (const a of types) {
             for (const b of types) {
-                const expected = evaluate(new UnionExpression([a, b]), definitions).getTypeId();
-                const actual = evaluate(new UnionExpression([b, a]), definitions).getTypeId();
-                expect(actual).toBe(expected);
+                assertSame(new UnionExpression([a, b]), new UnionExpression([b, a]));
             }
         }
     });
@@ -56,21 +59,13 @@ describe('union', () => {
         for (const a of types) {
             for (const b of types) {
                 for (const c of types) {
-                    const expected = evaluate(
+                    assertSame(
                         new UnionExpression([
                             a,
                             evaluate(new UnionExpression([b, c]), definitions),
                         ]),
-                        definitions
-                    ).getTypeId();
-                    const actual = evaluate(
-                        new UnionExpression([
-                            evaluate(new UnionExpression([a, b]), definitions),
-                            c,
-                        ]),
-                        definitions
-                    ).getTypeId();
-                    expect(actual).toBe(expected);
+                        new UnionExpression([evaluate(new UnionExpression([a, b]), definitions), c])
+                    );
                 }
             }
         }
@@ -80,26 +75,13 @@ describe('union', () => {
 describe('intersection', () => {
     test('reflexive', () => {
         for (const expression of expressions) {
-            const expected = evaluate(expression, definitions).getTypeId();
-            const actual = evaluate(
-                new IntersectionExpression([expression, expression]),
-                definitions
-            ).getTypeId();
-            expect(actual).toBe(expected);
+            assertSame(expression, new IntersectionExpression([expression, expression]));
         }
     });
     test('commutative', () => {
         for (const a of types) {
             for (const b of types) {
-                const expected = evaluate(
-                    new IntersectionExpression([a, b]),
-                    definitions
-                ).getTypeId();
-                const actual = evaluate(
-                    new IntersectionExpression([b, a]),
-                    definitions
-                ).getTypeId();
-                expect(actual).toBe(expected);
+                assertSame(new IntersectionExpression([a, b]), new IntersectionExpression([b, a]));
             }
         }
     });
@@ -107,21 +89,16 @@ describe('intersection', () => {
         for (const a of types) {
             for (const b of types) {
                 for (const c of types) {
-                    const expected = evaluate(
+                    assertSame(
                         new IntersectionExpression([
                             a,
                             evaluate(new IntersectionExpression([b, c]), definitions),
                         ]),
-                        definitions
-                    ).getTypeId();
-                    const actual = evaluate(
                         new IntersectionExpression([
                             evaluate(new IntersectionExpression([a, b]), definitions),
                             c,
-                        ]),
-                        definitions
-                    ).getTypeId();
-                    expect(actual).toBe(expected);
+                        ])
+                    );
                 }
             }
         }
@@ -148,7 +125,7 @@ describe('Builtin functions', () => {
     };
     const testBinaryNumber = (
         name: string,
-        properties: { commutative: boolean; reflexive: boolean }
+        properties: { commutative: boolean; reflexive: boolean; associative: boolean }
     ) => {
         describe(name, () => {
             test('evaluate', () => {
@@ -175,15 +152,10 @@ describe('Builtin functions', () => {
                 test('commutative', () => {
                     for (const a of numbers) {
                         for (const b of numbers) {
-                            const expected = evaluate(
+                            assertSame(
                                 new BuiltinFunctionExpression(name, [a, b]),
-                                definitions
-                            ).getTypeId();
-                            const actual = evaluate(
-                                new BuiltinFunctionExpression(name, [b, a]),
-                                definitions
-                            ).getTypeId();
-                            expect(actual).toBe(expected);
+                                new BuiltinFunctionExpression(name, [b, a])
+                            );
                         }
                     }
                 });
@@ -192,12 +164,34 @@ describe('Builtin functions', () => {
             if (properties.reflexive) {
                 test('reflexive', () => {
                     for (const a of numbers) {
-                        const expected = evaluate(a, definitions).getTypeId();
-                        const actual = evaluate(
-                            new BuiltinFunctionExpression(name, [a, a]),
-                            definitions
-                        ).getTypeId();
-                        expect(actual).toBe(expected);
+                        assertSame(a, new BuiltinFunctionExpression(name, [a, a]));
+                    }
+                });
+            }
+
+            if (properties.associative) {
+                test('associative', () => {
+                    for (const a of numbers) {
+                        for (const b of numbers) {
+                            for (const c of numbers) {
+                                assertSame(
+                                    new BuiltinFunctionExpression(name, [
+                                        a,
+                                        evaluate(
+                                            new BuiltinFunctionExpression(name, [b, c]),
+                                            definitions
+                                        ),
+                                    ]),
+                                    new BuiltinFunctionExpression(name, [
+                                        evaluate(
+                                            new BuiltinFunctionExpression(name, [a, b]),
+                                            definitions
+                                        ),
+                                        c,
+                                    ])
+                                );
+                            }
+                        }
                     }
                 });
             }
@@ -207,6 +201,6 @@ describe('Builtin functions', () => {
     testUnaryNumber('negate');
     testUnaryNumber('round');
 
-    testBinaryNumber('min', { commutative: true, reflexive: true });
-    testBinaryNumber('add', { commutative: true, reflexive: false });
+    testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
+    testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
 });
