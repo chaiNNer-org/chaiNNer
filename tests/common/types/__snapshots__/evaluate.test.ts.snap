@@ -1304,7 +1304,7 @@ negate(int(-Infinity..0)) => int(0..Infinity)
 negate(int(-Infinity..1)) => int(-1..Infinity)
 negate(int(-Infinity..Infinity)) => int(-Infinity..Infinity)
 negate(never) => never
-negate(any) => Error: Incompatible argument type: The supplied argument type is not  compatible with the definition type."
+negate(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
 `;
 
 exports[`Builtin functions round 1`] = `
@@ -1345,7 +1345,7 @@ round(int(-Infinity..0)) => int(-Infinity..0)
 round(int(-Infinity..1)) => int(-Infinity..1)
 round(int(-Infinity..Infinity)) => int(-Infinity..Infinity)
 round(never) => never
-round(any) => Error: Incompatible argument type: The supplied argument type is not  compatible with the definition type."
+round(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
 `;
 
 exports[`Expression evaluation 1`] = `

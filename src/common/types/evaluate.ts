@@ -305,7 +305,9 @@ const evaluateStruct = (
                     expression,
                     definition: entry.definition,
                     field: { name: f.name, expression: type, definition: f.type },
-                    message: `The type expression of the ${f.name} field is not compatible with its type definition.`,
+                    message: `The type ${type.toString()} of the ${
+                        f.name
+                    } field is not compatible with its type definition ${f.type.toString()}.`,
                 });
             }
         } else {
@@ -447,7 +449,7 @@ const evaluateBuiltinFunction = (
                 expression,
                 definition: entry.definition,
                 argument: { index: i, expression: eType, definition: dType },
-                message: `The supplied argument type is not  compatible with the definition type.`,
+                message: `The supplied argument type ${eType.toString()} is not compatible with the definition type.`,
             });
         }
     }
