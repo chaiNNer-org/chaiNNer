@@ -73,10 +73,45 @@ const CustomEdge = memo(
                     className="react-flow__edge-path"
                     d={edgePath}
                     id={id}
+                    // strokeLinecap="round"
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '2px',
                         stroke: currentColor,
+                        transitionDuration: '0.15s',
+                        transitionProperty: 'stroke-width, stroke',
+                        transitionTimingFunction: 'ease-in-out',
+                        cursor: 'pointer',
+                    }}
+                />
+                <path
+                    className="react-flow__edge-path"
+                    d={edgePath}
+                    id={id}
+                    strokeDasharray="1 10"
+                    strokeDashoffset="2"
+                    strokeLinecap="round"
+                    style={{
+                        ...style,
+                        strokeWidth: isHovered ? '8px' : '6px',
+                        stroke: currentColor,
+                        transitionDuration: '0.15s',
+                        transitionProperty: 'stroke-width, stroke',
+                        transitionTimingFunction: 'ease-in-out',
+                        cursor: 'pointer',
+                    }}
+                />
+                <path
+                    className="react-flow__edge-path"
+                    d={edgePath}
+                    id={id}
+                    strokeDasharray="1 10"
+                    strokeDashoffset="2"
+                    strokeLinecap="round"
+                    style={{
+                        ...style,
+                        strokeWidth: isHovered ? '4px' : '3px',
+                        stroke: '#1A202C',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
