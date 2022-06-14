@@ -5,7 +5,6 @@ from typing import Tuple
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from sanic.log import logger
 
 from .image_utils import convert_to_BGRA
 from .utils import get_h_w_c
@@ -61,7 +60,6 @@ def rotate(
         fill_color = (0,) * c
     elif fill == 1:
         fill_color = (0,) * c if c < 4 else (0, 0, 0, 255)
-        logger.info(fill_color)
     else:
         img = convert_to_BGRA(img, c)
         fill_color = (0, 0, 0, 0)

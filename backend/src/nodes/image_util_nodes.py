@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import math
-from turtle import fillcolor
 from typing import List, Tuple
 
 import cv2
 import numpy as np
-from PIL import Image
-from sanic.log import logger
 
 from .categories import IMAGE_UTILITY
 from .node_base import NodeBase
