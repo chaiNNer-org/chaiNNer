@@ -215,7 +215,7 @@ export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
         .map(fixRoundingError)
         .filter((x) => !Number.isNaN(x));
     const min = Math.min(...points);
-    const max = Math.min(...points);
+    const max = Math.max(...points);
     const i =
         a.type === 'interval' || b.type === 'interval' ? interval(min, max) : intInterval(min, max);
 
