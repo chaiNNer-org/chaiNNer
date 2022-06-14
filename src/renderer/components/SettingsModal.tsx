@@ -214,24 +214,33 @@ const EnvironmentSettings = memo(() => {
                 title="Startup Template"
             >
                 <HStack>
-                    <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                            <LinkIcon />
-                        </InputLeftElement>
+                    <Tooltip
+                        borderRadius={8}
+                        label={startupTemplate}
+                        maxW="auto"
+                        openDelay={500}
+                        px={2}
+                        py={0}
+                    >
+                        <InputGroup>
+                            <InputLeftElement pointerEvents="none">
+                                <LinkIcon />
+                            </InputLeftElement>
 
-                        <Input
-                            isReadOnly
-                            alt="Pick startup template file"
-                            className="nodrag"
-                            cursor="pointer"
-                            draggable={false}
-                            placeholder="Select a file..."
-                            textOverflow="ellipsis"
-                            value={startupTemplate ? path.parse(startupTemplate).base : ''}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onClick={onButtonClick}
-                        />
-                    </InputGroup>
+                            <Input
+                                isReadOnly
+                                alt="Pick startup template file"
+                                className="nodrag"
+                                cursor="pointer"
+                                draggable={false}
+                                placeholder="Select a file..."
+                                textOverflow="ellipsis"
+                                value={startupTemplate ? path.parse(startupTemplate).base : ''}
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                onClick={onButtonClick}
+                            />
+                        </InputGroup>
+                    </Tooltip>
                     <IconButton
                         aria-label="clear"
                         icon={<SmallCloseIcon />}
