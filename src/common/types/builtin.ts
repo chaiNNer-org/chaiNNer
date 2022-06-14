@@ -92,8 +92,18 @@ const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimit
     const max = a.value + b.max;
     if (min === max) return literal(min);
 
-    if (b.type === 'int-interval' && Number.isInteger(a.value))
-        return new IntIntervalType(min, max);
+    if (b.type === 'int-interval') {
+        if (Number.isInteger(a.value)) return new IntIntervalType(min, max);
+
+        if (b.max - b.min <= 10) {
+            const items: NumberPrimitive[] = [];
+            for (let i = b.min; i <= b.max; i += 1) {
+                items.push(literal(i + a.value));
+            }
+            return union(...items);
+        }
+    }
+
     return new IntervalType(min, max);
 };
 export const add = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
