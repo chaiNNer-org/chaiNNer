@@ -404,6 +404,26 @@ const addBlendNode = (data) => {
     return data;
 };
 
+const udpateRotateNode = (data) => {
+    data.nodes.forEach((node) => {
+        // Update rotation angle from dropdown to slider
+        if (node.data.schemaId === 'chainner:image:rotate') {
+            const RotDeg = node.data.inputData['1'];
+            if (RotDeg === 0) {
+                // eslint-disable-next-line no-param-reassign
+                node.data.inputData['1'] = 90;
+            } else if (RotDeg === '1') {
+                // eslint-disable-next-line no-param-reassign
+                node.data.inputData['1'] = 180;
+            } else {
+                // eslint-disable-next-line no-param-reassign
+                node.data.inputData['1'] = 270;
+            }
+        }
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -435,6 +455,7 @@ const migrations = [
     updateAdjustmentScale,
     fixBlurNode,
     addBlendNode,
+    udpateRotateNode,
 ];
 
 export const currentMigration = migrations.length;
