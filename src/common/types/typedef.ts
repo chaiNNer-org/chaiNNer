@@ -202,6 +202,7 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
 
         'AdaptiveMethod',
         'AdaptiveThresholdType',
+        'BlendMode',
         'BorderType',
         'ColorMode',
         'Colorspace',

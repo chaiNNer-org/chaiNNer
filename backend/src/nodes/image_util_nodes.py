@@ -5,7 +5,6 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
 from .categories import IMAGE_UTILITY
 from .node_base import NodeBase
@@ -24,7 +23,7 @@ class ImBlend(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Blends overlay image onto base image using 
+        self.description = """Blends overlay image onto base image using
             specified mode and opacities."""
         self.inputs = [
             ImageInput("Base Layer"),
@@ -79,15 +78,15 @@ class ImBlend(NodeBase):
         ov_img = convert_to_BGRA(ov, o_c)
 
         # Pad base image with transparency if necessary to match size with overlay
-        tp = bm = lt = rt = 0
+        top = bottom = left = right = 0
         if b_h < max_h:
-            tp = (max_h - b_h) // 2
-            bm = max_h - b_h - tp
+            top = (max_h - b_h) // 2
+            bottom = max_h - b_h - top
         if b_w < max_w:
-            lt = (max_w - b_w) // 2
-            rt = max_w - b_w - lt
+            left = (max_w - b_w) // 2
+            right = max_w - b_w - left
         imgout = cv2.copyMakeBorder(
-            imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
+            imgout, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
         )
 
         # Center overlay

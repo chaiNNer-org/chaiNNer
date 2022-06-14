@@ -206,8 +206,9 @@ def ReciprocalScalingFactorInput() -> DropDownInput:
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return DropDownInput(
-        "Blend Mode",
-        [
+        input_type="BlendMode",
+        label="Blend Mode",
+        options=[
             {"option": "Normal", "value": bm.NORMAL},
             {"option": "Darken", "value": bm.DARKEN},
             {"option": "Multiply", "value": bm.MULTIPLY},
