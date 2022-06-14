@@ -389,7 +389,7 @@ class NormalAdditionNode(NodeBase):
             ImageOutput(
                 "Normal Map",
                 expression.Image(
-                    size_as=expression.intersect("Input0", "Input1"), channels=3
+                    size_as=expression.intersect("Input0", "Input2"), channels=3
                 ),
             ),
         ]
