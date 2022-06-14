@@ -18,26 +18,27 @@ import {
     Type,
 } from '../../../src/common/types/types';
 
+export const orderedPairs = <T>(array: readonly T[]): [T, T][] => {
+    return array.flatMap((a) => array.map<[T, T]>((b) => [a, b]));
+};
+export const unorderedPairs = <T>(array: readonly T[]): [T, T][] => {
+    const result: [T, T][] = [];
+    for (let i = 0; i < array.length; i += 1) {
+        const a = array[i];
+        for (let j = i + 1; j < array.length; j += 1) {
+            const b = array[j];
+            result.push([a, b]);
+        }
+    }
+    return result;
+};
+
 const addExpressions = (expressions: readonly Expression[]): Expression[] => {
-    const newExpressions: Expression[] = [...expressions];
-
-    for (let i = 0; i < expressions.length; i += 1) {
-        const a = expressions[i];
-        for (let j = i + 1; j < expressions.length; j += 1) {
-            const b = expressions[j];
-            newExpressions.push(new UnionExpression([a, b]));
-        }
-    }
-
-    for (let i = 0; i < expressions.length; i += 1) {
-        const a = expressions[i];
-        for (let j = i + 1; j < expressions.length; j += 1) {
-            const b = expressions[j];
-            newExpressions.push(new IntersectionExpression([a, b]));
-        }
-    }
-
-    return newExpressions;
+    return [
+        ...expressions,
+        ...unorderedPairs(expressions).map((items) => new UnionExpression(items)),
+        ...unorderedPairs(expressions).map((items) => new IntersectionExpression(items)),
+    ];
 };
 const fieldAccess = (expressions: readonly Expression[]): Expression[] => {
     return expressions.map((e) => new FieldAccessExpression(e, 'a'));

@@ -5,7 +5,15 @@ import {
     UnionExpression,
 } from '../../../src/common/types/expression';
 import { TypeDefinitions } from '../../../src/common/types/typedef';
-import { expressions, numbers, potentiallyInvalidExpressions, sets, types } from './data';
+import {
+    expressions,
+    numbers,
+    orderedPairs,
+    potentiallyInvalidExpressions,
+    sets,
+    types,
+    unorderedPairs,
+} from './data';
 
 const definitions = new TypeDefinitions();
 
@@ -138,7 +146,50 @@ describe('Builtin functions', () => {
             expect(actual).toMatchSnapshot();
         });
     };
+    const testBinaryNumber = (name: string, properties: { commutative: boolean }) => {
+        describe(name, () => {
+            test('evaluate', () => {
+                const inputs = properties.commutative
+                    ? unorderedPairs(numbers)
+                    : orderedPairs(numbers);
+
+                const actual = inputs
+                    .map((args) => new BuiltinFunctionExpression(name, args))
+                    .map((e) => {
+                        let result;
+                        try {
+                            result = evaluate(e, definitions).toString();
+                        } catch (error) {
+                            result = String(error);
+                        }
+                        return `${e.toString()} => ${result}`;
+                    })
+                    .join('\n');
+                expect(actual).toMatchSnapshot();
+            });
+
+            if (properties.commutative) {
+                test('commutative', () => {
+                    for (const a of numbers) {
+                        for (const b of numbers) {
+                            const expected = evaluate(
+                                new IntersectionExpression([a, b]),
+                                definitions
+                            ).getTypeId();
+                            const actual = evaluate(
+                                new IntersectionExpression([b, a]),
+                                definitions
+                            ).getTypeId();
+                            expect(actual).toBe(expected);
+                        }
+                    }
+                });
+            }
+        });
+    };
 
     testUnaryNumber('negate');
     testUnaryNumber('round');
+
+    testBinaryNumber('add', { commutative: true });
 });
