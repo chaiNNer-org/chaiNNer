@@ -104,7 +104,7 @@ def InterpolationInput() -> DropDownInput:
 def ReducedInterpolationInput() -> DropDownInput:
     """Rotate interpolation dropdown"""
     return DropDownInput(
-        "Interpolation Mode",
+        "Interpolation Method",
         [
             {
                 "option": "Cubic",
