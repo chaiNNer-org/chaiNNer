@@ -96,7 +96,7 @@ const Main = memo(({ port }: MainProps) => {
         return null;
     }
 
-    if (!schemata || !data) {
+    if (!schemata || !data || !height) {
         return (
             <Box
                 h="100vh"
