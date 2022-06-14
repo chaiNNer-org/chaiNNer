@@ -41,7 +41,43 @@ class ImResizeByFactorNode(NodeBase):
         ]
         self.category = IMAGE_DIMENSION
         self.name = "Resize (Factor)"
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "max",
+                        1,
+                        expression.intersect(
+                            "int",
+                            expression.fn(
+                                "round",
+                                expression.fn(
+                                    "multiply",
+                                    expression.field("Input0", "width"),
+                                    expression.fn("divide", "Input1", 100),
+                                ),
+                            ),
+                        ),
+                    ),
+                    height=expression.fn(
+                        "max",
+                        1,
+                        expression.intersect(
+                            "int",
+                            expression.fn(
+                                "round",
+                                expression.fn(
+                                    "multiply",
+                                    expression.field("Input0", "height"),
+                                    expression.fn("divide", "Input1", 100),
+                                ),
+                            ),
+                        ),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 
