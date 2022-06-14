@@ -191,5 +191,6 @@ describe('Builtin functions', () => {
     testUnaryNumber('negate');
     testUnaryNumber('round');
 
+    testBinaryNumber('min', { commutative: true });
     testBinaryNumber('add', { commutative: true });
 });
