@@ -4,6 +4,8 @@
 
 import { assertValidStructFieldName, assertValidStructName } from './names';
 
+const numberToString = (n: number): string => String(Number(n.toPrecision(10)));
+
 export type Type = PrimitiveType | NeverType | AnyType | UnionType | StructType;
 export type ValueType = PrimitiveType | StructType;
 export type PrimitiveType = NumberPrimitive | StringPrimitive;
@@ -70,7 +72,7 @@ export class NumericLiteralType implements TypeBase {
     }
 
     getTypeId(): string {
-        return String(this.value);
+        return numberToString(this.value);
     }
 
     toString(): string {
@@ -107,7 +109,7 @@ export class IntervalType implements TypeBase {
     }
 
     getTypeId(): string {
-        return `${this.min}..${this.max}`;
+        return `${numberToString(this.min)}..${numberToString(this.max)}`;
     }
 
     toString(): string {
