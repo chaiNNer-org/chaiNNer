@@ -383,6 +383,8 @@ const addBlendNode = (data) => {
                     data.edges[edgesToChange.output].target = newID;
                     // eslint-disable-next-line no-param-reassign
                     data.edges[edgesToChange.output].targetHandle = `${newID}-0`;
+                    // eslint-disable-next-line no-param-reassign
+                    newOutputEdge.id = createUniqueId();
                     newOutputEdge.source = newID;
                     newOutputEdge.sourceHandle = `${newID}-0`;
                     data.edges.push(newOutputEdge);
