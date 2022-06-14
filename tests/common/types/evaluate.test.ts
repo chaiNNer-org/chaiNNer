@@ -33,7 +33,7 @@ test('Expression evaluation', () => {
 });
 
 describe('union', () => {
-    test('Reflective', () => {
+    test('reflexive', () => {
         for (const expression of expressions) {
             const expected = evaluate(expression, definitions).getTypeId();
             const actual = evaluate(
@@ -78,7 +78,7 @@ describe('union', () => {
 });
 
 describe('intersection', () => {
-    test('Reflective', () => {
+    test('reflexive', () => {
         for (const expression of expressions) {
             const expected = evaluate(expression, definitions).getTypeId();
             const actual = evaluate(
@@ -146,7 +146,10 @@ describe('Builtin functions', () => {
             expect(actual).toMatchSnapshot();
         });
     };
-    const testBinaryNumber = (name: string, properties: { commutative: boolean }) => {
+    const testBinaryNumber = (
+        name: string,
+        properties: { commutative: boolean; reflexive: boolean }
+    ) => {
         describe(name, () => {
             test('evaluate', () => {
                 const inputs = properties.commutative
@@ -173,15 +176,28 @@ describe('Builtin functions', () => {
                     for (const a of numbers) {
                         for (const b of numbers) {
                             const expected = evaluate(
-                                new IntersectionExpression([a, b]),
+                                new BuiltinFunctionExpression(name, [a, b]),
                                 definitions
                             ).getTypeId();
                             const actual = evaluate(
-                                new IntersectionExpression([b, a]),
+                                new BuiltinFunctionExpression(name, [b, a]),
                                 definitions
                             ).getTypeId();
                             expect(actual).toBe(expected);
                         }
+                    }
+                });
+            }
+
+            if (properties.reflexive) {
+                test('reflexive', () => {
+                    for (const a of numbers) {
+                        const expected = evaluate(a, definitions).getTypeId();
+                        const actual = evaluate(
+                            new BuiltinFunctionExpression(name, [a, a]),
+                            definitions
+                        ).getTypeId();
+                        expect(actual).toBe(expected);
                     }
                 });
             }
@@ -191,6 +207,6 @@ describe('Builtin functions', () => {
     testUnaryNumber('negate');
     testUnaryNumber('round');
 
-    testBinaryNumber('min', { commutative: true });
-    testBinaryNumber('add', { commutative: true });
+    testBinaryNumber('min', { commutative: true, reflexive: true });
+    testBinaryNumber('add', { commutative: true, reflexive: false });
 });
