@@ -357,24 +357,24 @@ class RotateNode(NodeBase):
                 default=0,
                 maximum=360,
                 step=0.1,
-                controls_step=1,
+                controls_step=45,
                 slider_step=1,
                 unit="°",
             ),
-            ReducedInterpolationInput(),
+            RotateInterpolationInput(),
             DropDownInput(
                 "Image Dimensions",
                 [
-                    {"option": "Expand to fit", "value": 1},
-                    {"option": "Crop to original", "value": 0},
+                    {"option": "Expand to fit", "value": RotateExpandCrop.EXPAND},
+                    {"option": "Crop to original", "value": RotateExpandCrop.CROP},
                 ],
             ),
             DropDownInput(
                 "Negative Space Fill",
                 [
-                    {"option": "Auto", "value": 0},
-                    {"option": "Black Fill", "value": 1},
-                    {"option": "Transparency", "value": 2},
+                    {"option": "Auto", "value": RotateFillColor.AUTO},
+                    {"option": "Black Fill", "value": RotateFillColor.BLACK},
+                    {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
                 ],
             ),
         ]

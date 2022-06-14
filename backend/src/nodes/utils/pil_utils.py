@@ -28,6 +28,17 @@ INTERPOLATION_METHODS_MAP = {
 }
 
 
+class RotateExpandCrop:
+    EXPAND = 1
+    CROP = 0
+
+
+class RotateFillColor:
+    AUTO = -1
+    BLACK = 0
+    TRANSPARENT = 1
+
+
 def resize(
     img: np.ndarray, out_dims: Tuple[int, int], interpolation: int
 ) -> np.ndarray:
@@ -56,13 +67,15 @@ def rotate(
 
     # Select how to fill negative space that results from rotation
     c = get_h_w_c(img)[2]
-    if fill == 0:
+    if fill == RotateFillColor.AUTO:
         fill_color = (0,) * c
-    elif fill == 1:
+    elif fill == RotateFillColor.BLACK:
         fill_color = (0,) * c if c < 4 else (0, 0, 0, 255)
     else:
         img = convert_to_BGRA(img, c)
         fill_color = (0, 0, 0, 0)
+
+    interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
     pimg = Image.fromarray((img * 255).astype("uint8"))
     pimg = pimg.rotate(angle, interpolation, expand, fillcolor=fill_color)  # type: ignore

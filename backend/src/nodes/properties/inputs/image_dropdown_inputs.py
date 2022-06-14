@@ -101,7 +101,7 @@ def InterpolationInput() -> DropDownInput:
     )
 
 
-def ReducedInterpolationInput() -> DropDownInput:
+def RotateInterpolationInput() -> DropDownInput:
     """Rotate interpolation dropdown"""
     return DropDownInput(
         "Interpolation Method",
