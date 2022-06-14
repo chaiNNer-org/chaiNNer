@@ -1307,6 +1307,47 @@ negate(never) => never
 negate(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
 `;
 
+exports[`Builtin functions reciprocal 1`] = `
+"reciprocal(number) => number
+reciprocal(-3.14) => -0.3184713375796178
+reciprocal(-2) => -0.5
+reciprocal(-1) => -1
+reciprocal(0) => -Infinity | Infinity
+reciprocal(0.5) => 2
+reciprocal(1) => 1
+reciprocal(2) => 0.5
+reciprocal(2.78) => 0.3597122302158274
+reciprocal(3.14) => 0.3184713375796178
+reciprocal(10) => 0.1
+reciprocal(100) => 0.01
+reciprocal(-Infinity) => 0
+reciprocal(Infinity) => 0
+reciprocal(NaN) => NaN
+reciprocal(0..1) => -Infinity | 1..Infinity
+reciprocal(0..2) => -Infinity | 0.5..Infinity
+reciprocal(0.5..1.5) => 0.6666666666666666..2
+reciprocal(0.5..2.5) => 0.4..2
+reciprocal(-2.56..3.35) => 0.29850746268656714..Infinity | -Infinity..-0.390625
+reciprocal(0.5..0.75) => 1.3333333333333333..2
+reciprocal(1..2) => 0.5..1
+reciprocal(0..Infinity) => -Infinity | 0..Infinity
+reciprocal(1..Infinity) => 0..1
+reciprocal(2..Infinity) => 0..0.5
+reciprocal(2.5..Infinity) => 0..0.4
+reciprocal(-Infinity..0) => Infinity | -Infinity..0
+reciprocal(-Infinity..Infinity) => -Infinity..Infinity
+reciprocal(int(0..1)) => 1 | -Infinity | Infinity
+reciprocal(int(0..2)) => 0.5 | 1 | -Infinity | Infinity
+reciprocal(int(1..2)) => 0.5 | 1
+reciprocal(int(0..Infinity)) => -Infinity | Infinity | 0..1
+reciprocal(int(1..Infinity)) => 0..1
+reciprocal(int(-Infinity..0)) => -Infinity | Infinity | -1..0
+reciprocal(int(-Infinity..1)) => 1 | -Infinity | Infinity | -1..0
+reciprocal(int(-Infinity..Infinity)) => -Infinity | Infinity | -1..1
+reciprocal(never) => never
+reciprocal(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
+`;
+
 exports[`Builtin functions round 1`] = `
 "round(number) => -Infinity | Infinity | NaN | int(-Infinity..Infinity)
 round(-3.14) => -3

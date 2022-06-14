@@ -227,7 +227,7 @@ export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
     }
     return i;
 });
-const reciprocal = wrapUnary((n: NumberPrimitive) => {
+export const reciprocal = wrapUnary((n: NumberPrimitive) => {
     // In this function, 1/0 is -Infinity | Infinity
     if (n.type === 'number') return NumberType.instance;
     if (n.type === 'literal') {

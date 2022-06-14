@@ -1,3 +1,4 @@
+import { reciprocal } from '../../../src/common/types/builtin';
 import { evaluate } from '../../../src/common/types/evaluate';
 import {
     BuiltinFunctionExpression,
@@ -5,7 +6,8 @@ import {
     IntersectionExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { TypeDefinitions } from '../../../src/common/types/typedef';
+import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
+import { NumberType } from '../../../src/common/types/types';
 import {
     expressions,
     numbers,
@@ -17,6 +19,9 @@ import {
 } from './data';
 
 const definitions = new TypeDefinitions();
+definitions.addFunction(
+    BuiltinFunctionDefinition.unary('reciprocal', reciprocal, NumberType.instance)
+);
 
 const assertSame = (a: Expression, b: Expression): void => {
     const expected = evaluate(a, definitions).getTypeId();
@@ -200,6 +205,7 @@ describe('Builtin functions', () => {
 
     testUnaryNumber('negate');
     testUnaryNumber('round');
+    testUnaryNumber('reciprocal');
 
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
     testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
