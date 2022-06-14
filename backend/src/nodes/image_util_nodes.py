@@ -5,7 +5,6 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
 from .categories import IMAGE_UTILITY
 from .node_base import NodeBase
@@ -353,12 +352,29 @@ class RotateNode(NodeBase):
         self.description = "Rotate an image."
         self.inputs = [
             ImageInput("Image"),
+            SliderInput(
+                "Rotation Angle",
+                default=0,
+                maximum=360,
+                step=0.1,
+                controls_step=45,
+                slider_step=1,
+                unit="°",
+            ),
+            RotateInterpolationInput(),
             DropDownInput(
-                "Rotation Degree",
+                "Image Dimensions",
                 [
-                    {"option": "90", "value": cv2.ROTATE_90_CLOCKWISE},
-                    {"option": "180", "value": cv2.ROTATE_180},
-                    {"option": "270", "value": cv2.ROTATE_90_COUNTERCLOCKWISE},
+                    {"option": "Expand to fit", "value": RotateExpandCrop.EXPAND},
+                    {"option": "Crop to original", "value": RotateExpandCrop.CROP},
+                ],
+            ),
+            DropDownInput(
+                "Negative Space Fill",
+                [
+                    {"option": "Auto", "value": RotateFillColor.AUTO},
+                    {"option": "Black Fill", "value": RotateFillColor.BLACK},
+                    {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
                 ],
             ),
         ]
@@ -368,13 +384,15 @@ class RotateNode(NodeBase):
         self.icon = "MdRotate90DegreesCcw"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, rotateCode: int) -> np.ndarray:
-        return cv2.rotate(img, rotateCode)
+    def run(
+        self, img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+    ) -> np.ndarray:
+        return rotate(img, angle, interpolation, expand, fill)
 
 
 @NodeFactory.register("chainner:image:flip")
 class FlipNode(NodeBase):
-    """flip node"""
+    """Flip node"""
 
     def __init__(self):
         """Constructor"""

@@ -1258,7 +1258,7 @@ Object {
       "data": Object {
         "id": "c56c2f68-0478-4db5-b038-24f83f8ae275",
         "inputData": Object {
-          "1": 0,
+          "1": 90,
         },
         "schemaId": "chainner:image:rotate",
       },
@@ -1710,7 +1710,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -1780,7 +1780,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -1883,7 +1883,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2045,7 +2045,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2187,7 +2187,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2420,7 +2420,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2539,7 +2539,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2670,7 +2670,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2706,7 +2706,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -2714,7 +2714,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "ef9a9e579972e27435cea0dcf010036d",
+  "checksum": "290882fb8d7aae023c65e4e157d4d89f",
   "content": Object {
     "edges": Array [
       Object {
@@ -2981,7 +2981,7 @@ Object {
         "data": Object {
           "id": "c56c2f68-0478-4db5-b038-24f83f8ae275",
           "inputData": Object {
-            "1": 0,
+            "1": 90,
           },
           "schemaId": "chainner:image:rotate",
         },
@@ -3003,7 +3003,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -3139,7 +3139,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -3329,7 +3329,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }
@@ -3411,7 +3411,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 9,
+  "migration": 10,
   "timestamp": "",
   "version": "",
 }

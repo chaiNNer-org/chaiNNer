@@ -1,5 +1,5 @@
 from .base_input import *
-from .cv_inputs import *
+from .image_dropdown_inputs import *
 from .file_inputs import *
 from .generic_inputs import *
 from .ncnn_inputs import *
