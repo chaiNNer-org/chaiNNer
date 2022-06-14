@@ -1,9 +1,12 @@
-import { SettingsIcon } from '@chakra-ui/icons';
+import { LinkIcon, SettingsIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import {
     Button,
     Flex,
     HStack,
     IconButton,
+    Input,
+    InputGroup,
+    InputLeftElement,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -29,7 +32,8 @@ import {
     useColorMode,
     useDisclosure,
 } from '@chakra-ui/react';
-import { PropsWithChildren, ReactNode, memo, useEffect, useState } from 'react';
+import path from 'path';
+import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -145,7 +149,9 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
-    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, useStartupTemplate } = useContext(SettingsContext);
+
+    const [startupTemplate, setStartupTemplate] = useStartupTemplate;
 
     const [isCpu, setIsCpu] = useIsCpu;
     const [isFp16, setIsFp16] = useIsFp16;
@@ -175,11 +181,65 @@ const EnvironmentSettings = memo(() => {
         }
     }, [isCpu]);
 
+    const [lastDirectory, setLastDirectory] = useState(startupTemplate || '');
+
+    const onButtonClick = useCallback(async () => {
+        const fileDir = startupTemplate ? path.dirname(startupTemplate) : lastDirectory;
+        const fileFilter = [
+            {
+                name: 'Select Chain',
+                extensions: ['chn'],
+            },
+        ];
+        const { canceled, filePaths } = await ipcRenderer.invoke(
+            'file-select',
+            fileFilter,
+            false,
+            fileDir
+        );
+        const selectedPath = filePaths[0];
+        if (!canceled && selectedPath) {
+            setStartupTemplate(selectedPath);
+            setLastDirectory(path.dirname(selectedPath));
+        }
+    }, [startupTemplate, lastDirectory]);
+
     return (
         <VStack
             divider={<StackDivider />}
             w="full"
         >
+            <SettingsItem
+                description="Set a chain template to use by default when chaiNNer starts up."
+                title="Startup Template"
+            >
+                <HStack>
+                    <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                            <LinkIcon />
+                        </InputLeftElement>
+
+                        <Input
+                            isReadOnly
+                            alt="Pick startup template file"
+                            className="nodrag"
+                            cursor="pointer"
+                            draggable={false}
+                            placeholder="Select a file..."
+                            textOverflow="ellipsis"
+                            value={startupTemplate ? path.parse(startupTemplate).base : ''}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onClick={onButtonClick}
+                        />
+                    </InputGroup>
+                    <IconButton
+                        aria-label="clear"
+                        icon={<SmallCloseIcon />}
+                        size="xs"
+                        onClick={() => setStartupTemplate('')}
+                    />
+                </HStack>
+            </SettingsItem>
             <Toggle
                 description="Use CPU for PyTorch instead of GPU."
                 isDisabled={!isNvidiaAvailable}
