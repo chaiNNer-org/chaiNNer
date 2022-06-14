@@ -43,11 +43,8 @@ const fieldAccess = (expressions: readonly Expression[]): Expression[] => {
     return expressions.map((e) => new FieldAccessExpression(e, 'a'));
 };
 
-const primitives: readonly Type[] = [
-    NeverType.instance,
-    AnyType.instance,
-
-    // number
+export const sets: readonly Type[] = [NeverType.instance, AnyType.instance];
+export const numbers: readonly Type[] = [
     NumberType.instance,
     new NumericLiteralType(-2),
     new NumericLiteralType(-1),
@@ -76,16 +73,16 @@ const primitives: readonly Type[] = [
     new IntIntervalType(1, Infinity),
     new IntIntervalType(-Infinity, 0),
     new IntIntervalType(-Infinity, Infinity),
-
-    // string
+];
+export const strings: readonly Type[] = [
     StringType.instance,
     new StringLiteralType(''),
     new StringLiteralType('foo'),
     new StringLiteralType('bar'),
-
-    new StructType('null'),
 ];
-const structs: readonly Type[] = [
+export const structs: readonly Type[] = [
+    new StructType('null'),
+
     new StructType('Foo', [
         new StructTypeField('a', new NumericLiteralType(1)),
         new StructTypeField('b', new NumericLiteralType(2)),
@@ -104,13 +101,13 @@ const structs: readonly Type[] = [
     ]),
 ];
 
-export const types: readonly Type[] = [...primitives, ...structs];
+export const types: readonly Type[] = [...sets, ...numbers, ...strings, ...structs];
 
 export const expressions: readonly Expression[] = [
-    ...addExpressions(primitives),
+    ...addExpressions([...sets, ...numbers, ...strings]),
     ...addExpressions(structs),
 ];
 
 export const potentiallyInvalidExpressions: readonly Expression[] = [
-    ...fieldAccess([...primitives, ...addExpressions(structs)]),
+    ...fieldAccess([...sets, ...numbers, ...strings, ...addExpressions(structs)]),
 ];

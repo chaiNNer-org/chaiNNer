@@ -1,7 +1,11 @@
 import { evaluate } from '../../../src/common/types/evaluate';
-import { IntersectionExpression, UnionExpression } from '../../../src/common/types/expression';
+import {
+    BuiltinFunctionExpression,
+    IntersectionExpression,
+    UnionExpression,
+} from '../../../src/common/types/expression';
 import { TypeDefinitions } from '../../../src/common/types/typedef';
-import { expressions, potentiallyInvalidExpressions, types } from './data';
+import { expressions, numbers, potentiallyInvalidExpressions, sets, types } from './data';
 
 const definitions = new TypeDefinitions();
 
@@ -114,4 +118,27 @@ describe('intersection', () => {
             }
         }
     });
+});
+
+describe('Builtin functions', () => {
+    const testUnaryNumber = (name: string) => {
+        test(name, () => {
+            const actual = [...numbers, ...sets]
+                .map((e) => new BuiltinFunctionExpression(name, [e]))
+                .map((e) => {
+                    let result;
+                    try {
+                        result = evaluate(e, definitions).toString();
+                    } catch (error) {
+                        result = String(error);
+                    }
+                    return `${e.toString()} => ${result}`;
+                })
+                .join('\n');
+            expect(actual).toMatchSnapshot();
+        });
+    };
+
+    testUnaryNumber('negate');
+    testUnaryNumber('round');
 });
