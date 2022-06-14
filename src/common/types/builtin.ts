@@ -11,6 +11,15 @@ import {
 } from './types';
 import { union } from './union';
 
+const fixRoundingError = (n: number): number => {
+    if (!Number.isFinite(n) || Number.isInteger(n)) return n; // no fixing necessary
+    const s = String(n);
+    if (/(?:9{6}[6-9]|0{6}[0-3])\d$/.test(s)) {
+        return Number(n.toPrecision(12));
+    }
+    return n;
+};
+
 const literal = (n: number) => {
     return new NumericLiteralType(n);
 };
@@ -71,7 +80,7 @@ function wrapBinary<T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T
 const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
     if (Number.isNaN(a.value)) return a;
 
-    if (b.type === 'literal') return literal(a.value + b.value);
+    if (b.type === 'literal') return literal(fixRoundingError(a.value + b.value));
 
     if (a.value === Infinity) {
         if (b.type === 'number' || b.min === -Infinity) {
@@ -88,8 +97,8 @@ const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimit
 
     if (b.type === 'number') return NumberType.instance;
 
-    const min = a.value + b.min;
-    const max = a.value + b.max;
+    const min = fixRoundingError(a.value + b.min);
+    const max = fixRoundingError(a.value + b.max);
     if (min === max) return literal(min);
 
     if (b.type === 'int-interval') {
@@ -98,7 +107,7 @@ const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimit
         if (b.max - b.min <= 10) {
             const items: NumberPrimitive[] = [];
             for (let i = b.min; i <= b.max; i += 1) {
-                items.push(literal(i + a.value));
+                items.push(literal(fixRoundingError(i + a.value)));
             }
             return union(...items);
         }
@@ -112,8 +121,8 @@ export const add = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
 
     if (a.type === 'number' || b.type === 'number') return NumberType.instance;
 
-    const min = a.min + b.min;
-    const max = a.max + b.max;
+    const min = fixRoundingError(a.min + b.min);
+    const max = fixRoundingError(a.max + b.max);
     if (min === max) return literal(min);
 
     if (a.type === 'int-interval' && b.type === 'int-interval')
@@ -133,7 +142,7 @@ const multiplyLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberP
     if (a.value === 1) return b;
     if (a.value === -1) return negate(b);
 
-    if (b.type === 'literal') return literal(a.value * b.value);
+    if (b.type === 'literal') return literal(fixRoundingError(a.value * b.value));
 
     if (a.value === Infinity) {
         if (b.type === 'number') {
@@ -171,29 +180,30 @@ const multiplyLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberP
 
     if (b.type === 'number') return NumberType.instance;
 
-    if (b.type === 'interval') {
-        if (a.value < 0) return interval(b.max * a.value, b.min * a.value);
-        return interval(b.min * a.value, b.max * a.value);
-    }
+    const min = fixRoundingError(b.min * a.value);
+    const max = fixRoundingError(b.max * a.value);
 
-    // This is a problem. Multiplying int intervals with a constant is not easy.
-    // We cannot correctly represent int(0..Infinity) * 4. So we will multiply the elements of
-    // small int interval individually, and approximate larger intervals.
-    if (b.max - b.min <= 10) {
-        // small enough
-        const numbers: number[] = [];
-        for (let i = b.min; i <= b.max; i += 1) {
-            numbers.push(i * a.value);
+    if (b.type === 'int-interval') {
+        // This is a problem. Multiplying int intervals with a constant is not easy.
+        // We cannot correctly represent int(0..Infinity) * 4. So we will multiply the elements of
+        // small int interval individually, and approximate larger intervals.
+        if (b.max - b.min <= 10) {
+            // small enough
+            const items: NumberPrimitive[] = [];
+            for (let i = b.min; i <= b.max; i += 1) {
+                items.push(literal(fixRoundingError(i * a.value)));
+            }
+            return union(...items);
         }
-        return union(...numbers.map((n) => literal(n)));
+
+        if (Number.isInteger(a.value)) {
+            if (a.value < 0) return intInterval(max, min);
+            return intInterval(min, max);
+        }
     }
 
-    if (Number.isInteger(a.value)) {
-        if (a.value < 0) return intInterval(b.max * a.value, b.min * a.value);
-        return intInterval(b.min * a.value, b.max * a.value);
-    }
-    if (a.value < 0) return interval(b.max * a.value, b.min * a.value);
-    return interval(b.min * a.value, b.max * a.value);
+    if (a.value < 0) return interval(max, min);
+    return interval(min, max);
 };
 export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
     if (a.type === 'literal') return multiplyLiteral(a, b);
@@ -201,9 +211,9 @@ export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
 
     if (a.type === 'number' || b.type === 'number') return NumberType.instance;
 
-    const points = [a.min * b.min, a.min * b.max, a.max * b.min, a.max * b.max].filter(
-        (x) => !Number.isNaN(x)
-    );
+    const points = [a.min * b.min, a.min * b.max, a.max * b.min, a.max * b.max]
+        .map(fixRoundingError)
+        .filter((x) => !Number.isNaN(x));
     const min = Math.min(...points);
     const max = Math.min(...points);
     const i =
