@@ -232,15 +232,3 @@ def AdaptiveMethodInput() -> DropDownInput:
             },
         ],
     )
-
-
-def RotationDegreeInput() -> DropDownInput:
-    return DropDownInput(
-        input_type="RotationDegree",
-        label="Rotation Degree",
-        options=[
-            {"option": "90°", "value": cv2.ROTATE_90_CLOCKWISE},
-            {"option": "180°", "value": cv2.ROTATE_180},
-            {"option": "270°", "value": cv2.ROTATE_90_COUNTERCLOCKWISE},
-        ],
-    )
