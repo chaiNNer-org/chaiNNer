@@ -68,7 +68,7 @@ const SliderInput = memo(
         useEffect(() => {
             setSliderValue(input ?? def);
             if (!Number.isNaN(input)) {
-                setInputString(input === undefined ? String(input) : precisionOutput(input));
+                setInputString(precisionOutput(input ?? def));
             }
         }, [input]);
 
