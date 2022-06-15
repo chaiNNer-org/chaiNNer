@@ -47,7 +47,21 @@ class ImBlend(NodeBase):
             BlendModeDropdown(),
         ]
         self.outputs = [
-            ImageOutput(image_type=expression.Image(channels=4)),
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "max",
+                        expression.field("Input0", "width"),
+                        expression.field("Input1", "width"),
+                    ),
+                    height=expression.fn(
+                        "max",
+                        expression.field("Input0", "height"),
+                        expression.field("Input1", "height"),
+                    ),
+                    channels=4,
+                )
+            ),
         ]
         self.category = IMAGE_UTILITY
         self.name = "Blend Images"
@@ -281,7 +295,22 @@ class BorderMakeNode(NodeBase):
             BorderInput(),
             NumberInput("Amount", unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "add",
+                        expression.field("Input0", "width"),
+                        expression.fn("multiply", "Input2", 2),
+                    ),
+                    height=expression.fn(
+                        "add",
+                        expression.field("Input0", "height"),
+                        expression.fn("multiply", "Input2", 2),
+                    )
+                )
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Create Border"
         self.icon = "BsBorderOuter"
@@ -328,7 +357,7 @@ class ShiftNode(NodeBase):
             NumberInput("Amount X", minimum=None, unit="px"),
             NumberInput("Amount Y", minimum=None, unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
         self.name = "Shift"
         self.icon = "BsGraphDown"
@@ -410,7 +439,21 @@ class FlipNode(NodeBase):
             ImageInput("Image"),
             FlipAxisInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=[
+                        expression.field("Input0", "width"),
+                        expression.field("Input0", "height"),
+                    ],
+                    height=[
+                        expression.field("Input0", "width"),
+                        expression.field("Input0", "height"),
+                    ],
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Flip"
         self.icon = "MdFlip"
