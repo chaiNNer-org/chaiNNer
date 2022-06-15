@@ -12,7 +12,7 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -30,12 +30,14 @@ import ReactFlow, {
     useReactFlow,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData, NodeSchema } from '../../common/common-types';
+import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
+import getNodeAccentColors from '../helpers/getNodeAccentColors';
+import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { IconFactory } from './CustomIcons';
@@ -324,96 +326,21 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         [createNode, wrapperRef.current, reactFlowInstance]
     );
 
-    const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
-
-    const onConnectStart = useCallback(
-        (event: React.MouseEvent, { nodeId, handleId }: OnConnectStartParams) => {
-            log.info({ nodeId, handleId });
-            setConnectingFrom(handleId);
-        },
-        [connectingFrom, setConnectingFrom]
-    );
-
-    interface DummyOnConnectStopEvent extends Omit<React.MouseEvent, 'target'> {
-        target: HTMLElement;
-        offsetX: number;
-        offsetY: number;
-    }
-
-    const onConnectStop = useCallback(
-        (event: DummyOnConnectStopEvent) => {
-            const isStoppedOnPane = String(event.target.className).includes('pane');
-            if (isStoppedOnPane) {
-                const { offsetX, offsetY } = event;
-                console.log('open node context menu at ', offsetX, offsetY, 'for', connectingFrom);
-            }
-        },
-        [connectingFrom, setConnectingFrom]
-    );
-
-    const createSearchPredicate = (query: string): ((name: string) => boolean) => {
-        const pattern = new RegExp(
-            `^${[...query]
-                .map((char) => {
-                    const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
-                    return `(?:[^${hex}]+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
-                })
-                .join('')}`,
-            'iu'
-        );
-        return (name) => pattern.test(name);
-    };
-
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const matchesSearchQuery = createSearchPredicate(searchQuery);
-    const matchingNodes = !searchQuery
-        ? schemata.schemata
-        : schemata.schemata.filter(
-              (n) =>
-                  matchesSearchQuery(`${n.category} ${n.name}`) ||
-                  matchesSearchQuery(`${n.subcategory} ${n.name}`)
-          );
-
-    const compareIgnoreCase = (a: string, b: string): number => {
-        return a.toUpperCase().localeCompare(b.toUpperCase());
-    };
-
-    const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => {
-        const map = new Map<string, NodeSchema[]>();
-        nodes.forEach((node) => {
-            let list = map.get(node.category);
-            if (list === undefined) map.set(node.category, (list = []));
-            list.push(node);
-        });
-        return map;
-    };
-
-    const getSubcategories = (nodes: readonly NodeSchema[]) => {
-        const map = new Map<string, NodeSchema[]>();
-        [...nodes]
-            .sort(
-                (a, b) =>
-                    compareIgnoreCase(a.subcategory, b.subcategory) ||
-                    compareIgnoreCase(a.name, b.name)
-            )
-            .forEach((n) => {
-                const list = map.get(n.subcategory) ?? [];
-                map.set(n.subcategory, list);
-                list.push(n);
-            });
-        return map;
-    };
-
-    const byCategories: Map<string, NodeSchema[]> = useMemo(
-        () => byCategory(matchingNodes.filter((e) => e.nodeType !== 'iteratorHelper')),
-        [matchingNodes]
-    );
+    const matchingNodes = getMatchingNodes(searchQuery, schemata.schemata);
+    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+    const menuRef = useRef<HTMLDivElement>(null);
     const menu = useContextMenu(() => (
         <MenuList
             bgColor="gray.800"
+            borderWidth={0}
             className="nodrag"
+            ref={menuRef}
         >
-            <InputGroup borderRadius={0}>
+            <InputGroup
+                borderBottomWidth={1}
+                borderRadius={0}
+            >
                 <InputLeftElement
                     color={useColorModeValue('gray.500', 'gray.300')}
                     pointerEvents="none"
@@ -443,40 +370,96 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 </InputRightElement>
             </InputGroup>
             <Box
-                h={500}
-                overflow="scroll"
+                h={400}
+                overflowY="scroll"
+                p={1}
             >
                 {[...byCategories].map(([category, categoryNodes]) => {
-                    const subcategoryMap = getSubcategories(categoryNodes);
+                    // const subcategoryMap = getSubcategories(categoryNodes);
+                    const accentColor = getNodeAccentColors(category);
                     return (
-                        <>
-                            <Text fontSize="xs">{category}</Text>
-                            {[...subcategoryMap].map(([subcategory, nodes]) => (
-                                <>
-                                    {/* <Text>{subcategory}</Text> */}
-                                    {nodes.map((node) => (
-                                        <HStack
-                                            _hover={{ backgroundColor: 'gray.700' }}
-                                            borderRadius="md"
-                                            mx={1}
-                                            px={2}
-                                            py={0.5}
-                                        >
-                                            <IconFactory
-                                                accentColor="gray.500"
-                                                icon={node.icon}
-                                            />
-                                            <Text>{node.name}</Text>
-                                        </HStack>
-                                    ))}
-                                </>
+                        <Box key={category}>
+                            <HStack
+                                borderRadius="md"
+                                mx={1}
+                                py={0.5}
+                            >
+                                <IconFactory
+                                    accentColor={accentColor}
+                                    boxSize={3}
+                                    icon={category}
+                                />
+                                <Text fontSize="xs">{category}</Text>
+                            </HStack>
+                            {[...categoryNodes].map((node) => (
+                                <HStack
+                                    _hover={{ backgroundColor: 'gray.700' }}
+                                    borderRadius="md"
+                                    key={node.schemaId}
+                                    mx={1}
+                                    px={2}
+                                    py={0.5}
+                                    onClick={() => {
+                                        const reactFlowBounds =
+                                            wrapperRef.current!.getBoundingClientRect();
+                                        const { x, y } = menuRef.current!.getBoundingClientRect();
+                                        const position = reactFlowInstance.project({
+                                            x: x - reactFlowBounds.left,
+                                            y: y - reactFlowBounds.top,
+                                        });
+                                        const nodeToMake: NodeProto = {
+                                            position,
+                                            data: {
+                                                ...node,
+                                                inputData: {},
+                                            },
+                                            nodeType: node.nodeType,
+                                        };
+                                        createNode(nodeToMake);
+                                        closeContextMenu();
+                                    }}
+                                >
+                                    <IconFactory
+                                        accentColor="gray.500"
+                                        icon={node.icon}
+                                    />
+                                    <Text>{node.name}</Text>
+                                </HStack>
                             ))}
-                        </>
+                        </Box>
                     );
                 })}
             </Box>
         </MenuList>
     ));
+
+    const connectingFromRef = useRef<string | null>();
+
+    const onConnectStart = useCallback(
+        (event: MouseEvent, { handleId }: OnConnectStartParams) => {
+            connectingFromRef.current = handleId;
+        },
+        [connectingFromRef]
+    );
+
+    const onConnectStop = useCallback(
+        (event: MouseEvent) => {
+            const isStoppedOnPane = String((event.target as Element).className).includes('pane');
+            if (isStoppedOnPane) {
+                const { pageX, pageY } = event;
+                // eslint-disable-next-line no-console
+                console.log(
+                    'open node context menu at ',
+                    pageX,
+                    pageY,
+                    'for',
+                    connectingFromRef.current
+                );
+                menu.manuallyOpenContextMenu(pageX, pageY);
+            }
+        },
+        [connectingFromRef]
+    );
 
     return (
         <Box

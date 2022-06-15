@@ -143,148 +143,158 @@ export const IconFactoryOld = memo(({ category }: { category: string }) => {
     }
 });
 
-export const IconFactory = memo(({ icon, accentColor }: { icon: string; accentColor: string }) => {
-    if (!icon) {
-        return <OpenCVIcon />;
-    }
-    switch (icon) {
-        case 'NumPy':
-            return (
-                <NumPyIcon
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                />
-            );
-        case 'PyTorch':
-            return (
-                <PyTorchIcon
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                />
-            );
-        case 'Image':
-            // return <OpenCVIcon color={accentColor} transition="0.15s ease-in-out" />;
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.bs.BsImageFill}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'Image (Dimensions)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.md.MdOutlinePhotoSizeSelectLarge}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'Image (Adjustments)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.bs.BsSliders}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'Image (Filters)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.md.MdFilterAlt}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'Image (Utilities)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.bs.BsGear}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'Image (Channels)':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.md.MdAllOut}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        case 'ONNX':
-            return (
-                <OnnxIcon
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                />
-            );
-        case 'NCNN':
-            return (
-                <NcnnIcon
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                />
-            );
-        case 'Utility':
-            return (
-                <Icon
-                    alignContent="center"
-                    alignItems="center"
-                    as={libraries.bs.BsGearFill}
-                    boxSize={4}
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                    viewBox="0 0 4 4"
-                />
-            );
-        default:
-        // nothing
-    }
+export const IconFactory = memo(
+    ({
+        icon,
+        accentColor,
+        boxSize = 4,
+    }: {
+        icon: string;
+        accentColor: string;
+        boxSize?: number;
+    }) => {
+        if (!icon) {
+            return <OpenCVIcon />;
+        }
+        switch (icon) {
+            case 'NumPy':
+                return (
+                    <NumPyIcon
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                    />
+                );
+            case 'PyTorch':
+                return (
+                    <PyTorchIcon
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                    />
+                );
+            case 'Image':
+                // return <OpenCVIcon color={accentColor} transition="0.15s ease-in-out" />;
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.bs.BsImageFill}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'Image (Dimensions)':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.md.MdOutlinePhotoSizeSelectLarge}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'Image (Adjustments)':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.bs.BsSliders}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'Image (Filters)':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.md.MdFilterAlt}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'Image (Utilities)':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.bs.BsGear}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'Image (Channels)':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.md.MdAllOut}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            case 'ONNX':
+                return (
+                    <OnnxIcon
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                    />
+                );
+            case 'NCNN':
+                return (
+                    <NcnnIcon
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                    />
+                );
+            case 'Utility':
+                return (
+                    <Icon
+                        alignContent="center"
+                        alignItems="center"
+                        as={libraries.bs.BsGearFill}
+                        boxSize={boxSize}
+                        color={accentColor}
+                        transition="0.15s ease-in-out"
+                        viewBox="0 0 4 4"
+                    />
+                );
+            default:
+            // nothing
+        }
 
-    const prefix = icon.slice(0, 2).toLowerCase();
-    const library = (libraries as Partial<Record<string, Partial<Record<string, IconType>>>>)[
-        prefix
-    ];
-    if (!library) {
-        return <OpenCVIcon />;
+        const prefix = icon.slice(0, 2).toLowerCase();
+        const library = (libraries as Partial<Record<string, Partial<Record<string, IconType>>>>)[
+            prefix
+        ];
+        if (!library) {
+            return <OpenCVIcon />;
+        }
+        const libraryIcon = library[icon];
+        return (
+            <Icon
+                alignContent="center"
+                alignItems="center"
+                as={libraryIcon}
+                color={accentColor}
+                height={boxSize}
+                transition="0.15s ease-in-out"
+                viewBox={`0 0 ${boxSize} ${boxSize}`}
+                width={boxSize}
+            />
+        );
     }
-    const libraryIcon = library[icon];
-    return (
-        <Icon
-            alignContent="center"
-            alignItems="center"
-            as={libraryIcon}
-            color={accentColor}
-            height={4}
-            transition="0.15s ease-in-out"
-            viewBox="0 0 4 4"
-            width={4}
-        />
-    );
-});
+);
 
 // color={shadeColor(accentColor, 100)}

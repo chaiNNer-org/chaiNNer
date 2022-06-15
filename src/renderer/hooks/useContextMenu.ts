@@ -7,6 +7,7 @@ export interface UseContextMenu {
     readonly id: string;
     readonly onContextMenu: MouseEventHandler;
     readonly onClick: MouseEventHandler;
+    readonly manuallyOpenContextMenu: (pageX: number, pageY: number) => void;
 }
 
 export const useContextMenu = (
@@ -37,6 +38,13 @@ export const useContextMenu = (
         [openContextMenu]
     );
 
+    const manuallyOpenContextMenu = useCallback(
+        (pageX: number, pageY: number): void => {
+            openContextMenu(id, pageX, pageY);
+        },
+        [openContextMenu]
+    );
+
     const onClick = useCallback(
         (e: MouseEvent): void => {
             if (e.isDefaultPrevented()) return;
@@ -50,7 +58,7 @@ export const useContextMenu = (
         [openContextMenu]
     );
 
-    let value: UseContextMenu = { id, onContextMenu, onClick };
+    let value: UseContextMenu = { id, onContextMenu, onClick, manuallyOpenContextMenu };
     value = useMemo(() => value, Object.values(value));
 
     return value;
