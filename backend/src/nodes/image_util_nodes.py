@@ -24,26 +24,10 @@ class ImBlend(NodeBase):
         """Constructor"""
         super().__init__()
         self.description = """Blends overlay image onto base image using 
-            specified mode and opacities."""
+            specified mode."""
         self.inputs = [
             ImageInput("Base Layer"),
-            SliderInput(
-                "Base Opacity",
-                maximum=100,
-                default=100,
-                step=0.1,
-                controls_step=1,
-                unit="%",
-            ).with_id(2),
-            ImageInput("Overlay Layer").with_id(1),
-            SliderInput(
-                "Overlay Opacity",
-                maximum=100,
-                default=100,
-                step=0.1,
-                controls_step=1,
-                unit="%",
-            ),
+            ImageInput("Overlay Layer"),
             BlendModeDropdown(),
         ]
         self.outputs = [ImageOutput()]
@@ -55,16 +39,10 @@ class ImBlend(NodeBase):
     def run(
         self,
         base: np.ndarray,
-        opbase: float,
         ov: np.ndarray,
-        op: float,
         blend_mode: int,
     ) -> np.ndarray:
         """Blend images together"""
-
-        # Convert to 0.0-1.0 range
-        opbase /= 100
-        op /= 100
 
         b_h, b_w, b_c = get_h_w_c(base)
         o_h, o_w, o_c = get_h_w_c(ov)
@@ -92,10 +70,6 @@ class ImBlend(NodeBase):
         center_y = imgout.shape[0] // 2
         x_offset = center_x - (o_w // 2)
         y_offset = center_y - (o_h // 2)
-
-        # Apply opacities to images, then blend overlay
-        imgout[:, :, 3] *= opbase
-        ov_img[:, :, 3] *= op
 
         blended_img = blend_images(
             ov_img,
