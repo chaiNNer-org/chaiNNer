@@ -358,7 +358,33 @@ class RotateNode(NodeBase):
         self.description = "Rotate an image."
         self.inputs = [
             ImageInput("Image"),
-            RotationDegreeInput(),
+            SliderInput(
+                "Rotation Angle",
+                default=0,
+                maximum=360,
+                step=0.1,
+                controls_step=45,
+                slider_step=1,
+                unit="°",
+            ),
+            RotateInterpolationInput(),
+            DropDownInput(
+                input_type="RotateExpandCrop",
+                label="Image Dimensions",
+                options=[
+                    {"option": "Expand to fit", "value": RotateExpandCrop.EXPAND},
+                    {"option": "Crop to original", "value": RotateExpandCrop.CROP},
+                ],
+            ),
+            DropDownInput(
+                input_type="RotateFillColor",
+                label="Negative Space Fill",
+                options=[
+                    {"option": "Auto", "value": RotateFillColor.AUTO},
+                    {"option": "Black Fill", "value": RotateFillColor.BLACK},
+                    {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
+                ],
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -366,13 +392,15 @@ class RotateNode(NodeBase):
         self.icon = "MdRotate90DegreesCcw"
         self.sub = "Modification"
 
-    def run(self, img: np.ndarray, rotateCode: int) -> np.ndarray:
-        return cv2.rotate(img, rotateCode)
+    def run(
+        self, img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
+    ) -> np.ndarray:
+        return rotate(img, angle, interpolation, expand, fill)
 
 
 @NodeFactory.register("chainner:image:flip")
 class FlipNode(NodeBase):
-    """flip node"""
+    """Flip node"""
 
     def __init__(self):
         """Constructor"""

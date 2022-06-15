@@ -73,7 +73,7 @@ def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return DropDownInput(
         input_type="InterpolationMode",
-        label="Interpolation Mode",
+        label="Interpolation Method",
         options=[
             {
                 "option": "Auto",
@@ -95,7 +95,32 @@ def InterpolationInput() -> DropDownInput:
                 "option": "Cubic",
                 "value": InterpolationMethod.CUBIC,
             },
-            {"option": "Lanczos", "value": InterpolationMethod.LANCZOS},
+            {
+                "option": "Lanczos",
+                "value": InterpolationMethod.LANCZOS,
+            },
+        ],
+    )
+
+
+def RotateInterpolationInput() -> DropDownInput:
+    """Rotate interpolation dropdown"""
+    return DropDownInput(
+        input_type="RotateInterpolationMode",
+        label="Interpolation Method",
+        options=[
+            {
+                "option": "Cubic",
+                "value": InterpolationMethod.CUBIC,
+            },
+            {
+                "option": "Linear",
+                "value": InterpolationMethod.LINEAR,
+            },
+            {
+                "option": "Nearest Neighbor",
+                "value": InterpolationMethod.NEAREST,
+            },
         ],
     )
 
