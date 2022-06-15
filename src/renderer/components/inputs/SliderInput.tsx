@@ -9,7 +9,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
+import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
 interface SliderInputProps extends InputProps {
@@ -24,6 +24,7 @@ interface SliderInputProps extends InputProps {
     accentColor: string;
     ends: [string | null, string | null];
     noteExpression?: string;
+    hideTrailingZeros: boolean;
 }
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
@@ -52,6 +53,7 @@ const SliderInput = memo(
         ends,
         noteExpression,
         accentColor,
+        hideTrailingZeros,
         isLocked,
     }: SliderInputProps) => {
         const [input, setInput] = useInputData<number>(inputId);
@@ -59,15 +61,19 @@ const SliderInput = memo(
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
+        const precision = Math.max(getPrecision(offset), getPrecision(step));
+        const precisionOutput = (val: number) =>
+            hideTrailingZeros ? String(val) : val.toFixed(precision);
+
         useEffect(() => {
             setSliderValue(input ?? def);
             if (!Number.isNaN(input)) {
-                setInputString(String(input));
+                setInputString(input === undefined ? String(input) : precisionOutput(input));
             }
         }, [input]);
 
         const onSliderChange = (sliderInput: number) => {
-            setInputString(String(sliderInput));
+            setInputString(precisionOutput(sliderInput));
             setSliderValue(sliderInput);
         };
 
@@ -111,7 +117,7 @@ const SliderInput = memo(
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}
-                            label={`${sliderValue}${unit ?? ''}`}
+                            label={`${precisionOutput(sliderValue)}${unit ?? ''}`}
                             placement="top"
                             px={2}
                             py={1}
@@ -124,6 +130,7 @@ const SliderInput = memo(
                         small
                         controlsStep={controlsStep}
                         defaultValue={def}
+                        hideTrailingZeros={hideTrailingZeros}
                         inputString={inputString}
                         isDisabled={isLocked}
                         max={max}
