@@ -1,7 +1,18 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { CloseIcon, SearchIcon } from '@chakra-ui/icons';
+import {
+    Box,
+    HStack,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    InputRightElement,
+    MenuList,
+    Text,
+    useColorModeValue,
+} from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -10,6 +21,7 @@ import ReactFlow, {
     EdgeTypes,
     Node,
     NodeTypes,
+    OnConnectStartParams,
     OnEdgesChange,
     OnNodesChange,
     Viewport,
@@ -18,13 +30,15 @@ import ReactFlow, {
     useReactFlow,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { EdgeData, NodeData, NodeSchema } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { useContextMenu } from '../hooks/useContextMenu';
+import { IconFactory } from './CustomIcons';
 
 const STARTING_Z_INDEX = 50;
 /**
@@ -310,6 +324,160 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         [createNode, wrapperRef.current, reactFlowInstance]
     );
 
+    const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
+
+    const onConnectStart = useCallback(
+        (event: React.MouseEvent, { nodeId, handleId }: OnConnectStartParams) => {
+            log.info({ nodeId, handleId });
+            setConnectingFrom(handleId);
+        },
+        [connectingFrom, setConnectingFrom]
+    );
+
+    interface DummyOnConnectStopEvent extends Omit<React.MouseEvent, 'target'> {
+        target: HTMLElement;
+        offsetX: number;
+        offsetY: number;
+    }
+
+    const onConnectStop = useCallback(
+        (event: DummyOnConnectStopEvent) => {
+            const isStoppedOnPane = String(event.target.className).includes('pane');
+            if (isStoppedOnPane) {
+                const { offsetX, offsetY } = event;
+                console.log('open node context menu at ', offsetX, offsetY, 'for', connectingFrom);
+            }
+        },
+        [connectingFrom, setConnectingFrom]
+    );
+
+    const createSearchPredicate = (query: string): ((name: string) => boolean) => {
+        const pattern = new RegExp(
+            `^${[...query]
+                .map((char) => {
+                    const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
+                    return `(?:[^${hex}]+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
+                })
+                .join('')}`,
+            'iu'
+        );
+        return (name) => pattern.test(name);
+    };
+
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const matchesSearchQuery = createSearchPredicate(searchQuery);
+    const matchingNodes = !searchQuery
+        ? schemata.schemata
+        : schemata.schemata.filter(
+              (n) =>
+                  matchesSearchQuery(`${n.category} ${n.name}`) ||
+                  matchesSearchQuery(`${n.subcategory} ${n.name}`)
+          );
+
+    const compareIgnoreCase = (a: string, b: string): number => {
+        return a.toUpperCase().localeCompare(b.toUpperCase());
+    };
+
+    const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => {
+        const map = new Map<string, NodeSchema[]>();
+        nodes.forEach((node) => {
+            let list = map.get(node.category);
+            if (list === undefined) map.set(node.category, (list = []));
+            list.push(node);
+        });
+        return map;
+    };
+
+    const getSubcategories = (nodes: readonly NodeSchema[]) => {
+        const map = new Map<string, NodeSchema[]>();
+        [...nodes]
+            .sort(
+                (a, b) =>
+                    compareIgnoreCase(a.subcategory, b.subcategory) ||
+                    compareIgnoreCase(a.name, b.name)
+            )
+            .forEach((n) => {
+                const list = map.get(n.subcategory) ?? [];
+                map.set(n.subcategory, list);
+                list.push(n);
+            });
+        return map;
+    };
+
+    const byCategories: Map<string, NodeSchema[]> = useMemo(
+        () => byCategory(matchingNodes.filter((e) => e.nodeType !== 'iteratorHelper')),
+        [matchingNodes]
+    );
+    const menu = useContextMenu(() => (
+        <MenuList
+            bgColor="gray.800"
+            className="nodrag"
+        >
+            <InputGroup borderRadius={0}>
+                <InputLeftElement
+                    color={useColorModeValue('gray.500', 'gray.300')}
+                    pointerEvents="none"
+                >
+                    <SearchIcon />
+                </InputLeftElement>
+                <Input
+                    borderRadius={0}
+                    placeholder="Search..."
+                    spellCheck={false}
+                    type="text"
+                    value={searchQuery}
+                    variant="filled"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <InputRightElement
+                    _hover={{ color: useColorModeValue('black', 'white') }}
+                    style={{
+                        color: useColorModeValue('gray.500', 'gray.300'),
+                        cursor: 'pointer',
+                        display: searchQuery ? undefined : 'none',
+                        fontSize: '66%',
+                    }}
+                    onClick={() => setSearchQuery('')}
+                >
+                    <CloseIcon />
+                </InputRightElement>
+            </InputGroup>
+            <Box
+                h={500}
+                overflow="scroll"
+            >
+                {[...byCategories].map(([category, categoryNodes]) => {
+                    const subcategoryMap = getSubcategories(categoryNodes);
+                    return (
+                        <>
+                            <Text fontSize="xs">{category}</Text>
+                            {[...subcategoryMap].map(([subcategory, nodes]) => (
+                                <>
+                                    {/* <Text>{subcategory}</Text> */}
+                                    {nodes.map((node) => (
+                                        <HStack
+                                            _hover={{ backgroundColor: 'gray.700' }}
+                                            borderRadius="md"
+                                            mx={1}
+                                            px={2}
+                                            py={0.5}
+                                        >
+                                            <IconFactory
+                                                accentColor="gray.500"
+                                                icon={node.icon}
+                                            />
+                                            <Text>{node.name}</Text>
+                                        </HStack>
+                                    ))}
+                                </>
+                            ))}
+                        </>
+                    );
+                })}
+            </Box>
+        </MenuList>
+    ));
+
     return (
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
@@ -335,6 +503,9 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                     borderRadius: '0.5rem',
                 }}
                 onConnect={createConnection}
+                onConnectEnd={onConnectStop}
+                onConnectStart={onConnectStart}
+                onConnectStop={onConnectStop}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
@@ -348,6 +519,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
                 onPaneClick={closeContextMenu}
+                onPaneContextMenu={menu.onContextMenu}
             >
                 <Background
                     gap={16}
