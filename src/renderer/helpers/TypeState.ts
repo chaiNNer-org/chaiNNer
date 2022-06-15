@@ -87,6 +87,7 @@ export class TypeState {
 
                         return undefined;
                     },
+                    true,
                     outputNarrowing.get(n.id)
                 );
             } catch (error) {

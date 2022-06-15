@@ -132,6 +132,7 @@ export class FunctionInstance {
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined),
+        neverDefaultsToDefaultOutput: boolean,
         outputNarrowing: ReadonlyMap<number, Type> = EMPTY_MAP
     ): FunctionInstance {
         if (typeof partialInputs === 'object') {
@@ -175,6 +176,13 @@ export class FunctionInstance {
             const narrowing = outputNarrowing.get(id);
             if (narrowing) {
                 type = intersect(narrowing, type);
+            }
+
+            if (neverDefaultsToDefaultOutput && type.type === 'never') {
+                // If the output type is never, then there is some error with the input.
+                // However, we don't have the means to communicate this error yet, so we''ll just
+                // ignore it for now.
+                type = definition.outputDefaults.get(id)!;
             }
 
             outputs.set(id, type);
