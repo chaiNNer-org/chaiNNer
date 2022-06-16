@@ -370,24 +370,35 @@ const addBlendNode = (data) => {
                     width: node.width,
                     zIndex: node.zIndex,
                 };
+                if (node.parentNode !== undefined) {
+                    newBlendNode.parentNode = node.parentNode;
+                    newBlendNode.data.parentNode = node.parentNode;
+                }
                 data.nodes.push(newBlendNode);
 
                 // eslint-disable-next-line no-param-reassign
                 data.edges[edgesToChange.input].target = newID;
                 // eslint-disable-next-line no-param-reassign
                 data.edges[edgesToChange.input].targetHandle = `${newID}-1`;
-
                 if (edgesToChange.output !== undefined) {
-                    const newOutputEdge = { ...data.edges[edgesToChange.output] };
                     // eslint-disable-next-line no-param-reassign
-                    data.edges[edgesToChange.output].target = newID;
+                    data.edges[edgesToChange.output].source = newID;
                     // eslint-disable-next-line no-param-reassign
-                    data.edges[edgesToChange.output].targetHandle = `${newID}-0`;
-                    newOutputEdge.id = createUniqueId();
-                    newOutputEdge.source = newID;
-                    newOutputEdge.sourceHandle = `${newID}-0`;
-                    data.edges.push(newOutputEdge);
+                    data.edges[edgesToChange.output].sourceHandle = `${newID}-0`;
                 }
+
+                const newOutputEdge = {
+                    id: createUniqueId(),
+                    sourceHandle: `${node.id}-0`,
+                    targetHandle: `${newID}-0`,
+                    source: node.id,
+                    target: newID,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                    zIndex: node.zIndex - 1,
+                };
+                data.edges.push(newOutputEdge);
             }
 
             // eslint-disable-next-line no-param-reassign
