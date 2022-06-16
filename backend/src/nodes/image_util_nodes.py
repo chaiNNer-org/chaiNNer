@@ -11,7 +11,12 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import blend_images, calculate_ssim, convert_to_BGRA
+from .utils.image_utils import (
+    blend_images,
+    calculate_ssim,
+    convert_from_BGRA,
+    convert_to_BGRA,
+)
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -48,6 +53,7 @@ class ImBlend(NodeBase):
         o_h, o_w, o_c = get_h_w_c(ov)
         max_h = max(b_h, o_h)
         max_w = max(b_w, o_w)
+        max_c = max(b_c, o_c)
 
         # All inputs must be BGRA for alpha compositing to work
         imgout = convert_to_BGRA(base, b_c)
@@ -79,6 +85,9 @@ class ImBlend(NodeBase):
 
         imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
         imgout = np.clip(imgout, 0, 1)
+
+        if max_c < 4:
+            imgout = convert_from_BGRA(imgout, max_c)
 
         return imgout
 
