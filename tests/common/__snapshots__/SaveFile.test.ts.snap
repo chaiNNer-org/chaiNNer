@@ -8,7 +8,7 @@ Object {
       "data": Object {
         "id": "eb71587e-3c78-4267-a64d-e0d943ccaefb",
         "inputData": Object {
-          "2": 100,
+          "2": 0,
           "3": 100,
           "4": 0,
         },
@@ -1044,8 +1044,8 @@ Object {
       "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
       "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
       "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+      "target": "d7538305-39e5-4aa7-906f-f7a1f4640eab",
+      "targetHandle": "d7538305-39e5-4aa7-906f-f7a1f4640eab-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1066,8 +1066,8 @@ Object {
       "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
       "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
       "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+      "target": "c955ecd6-3204-493c-a0bd-ff8308381b52",
+      "targetHandle": "c955ecd6-3204-493c-a0bd-ff8308381b52-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1093,13 +1093,35 @@ Object {
       "type": "main",
       "zIndex": 49,
     },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e984588b-f33b-44d2-84bd-353477cdbe5f",
+      "source": "c955ecd6-3204-493c-a0bd-ff8308381b52",
+      "sourceHandle": "c955ecd6-3204-493c-a0bd-ff8308381b52-0",
+      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "8402ff7b-3368-4994-878c-4eb0a3502baf",
+      "source": "d7538305-39e5-4aa7-906f-f7a1f4640eab",
+      "sourceHandle": "d7538305-39e5-4aa7-906f-f7a1f4640eab-0",
+      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+      "type": "main",
+      "zIndex": 49,
+    },
   ],
   "nodes": Array [
     Object {
       "data": Object {
         "id": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
         "inputData": Object {
-          "2": 81,
+          "2": 0,
           "3": 69,
           "4": 0,
           "5": 81,
@@ -1180,7 +1202,7 @@ Object {
       "data": Object {
         "id": "94e84d6f-5179-42c9-8d63-2f3ddfd121d9",
         "inputData": Object {
-          "2": 100,
+          "2": 10,
           "3": 100,
           "4": 10,
         },
@@ -1272,6 +1294,44 @@ Object {
       "type": "regularNode",
       "width": 242,
       "zIndex": 70,
+    },
+    Object {
+      "data": Object {
+        "id": "c955ecd6-3204-493c-a0bd-ff8308381b52",
+        "inputData": Object {
+          "1": 81,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 456,
+      "id": "c955ecd6-3204-493c-a0bd-ff8308381b52",
+      "position": Object {
+        "x": 193.03125,
+        "y": -37,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "d7538305-39e5-4aa7-906f-f7a1f4640eab",
+        "inputData": Object {
+          "1": 69,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 456,
+      "id": "d7538305-39e5-4aa7-906f-f7a1f4640eab",
+      "position": Object {
+        "x": 193.03125,
+        "y": 263,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
     },
   ],
   "tamperedWith": false,
@@ -1403,6 +1463,39 @@ Object {
       "type": "regularNode",
       "width": 257,
       "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
+exports[`Read save file opacity.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+        "inputData": Object {
+          "1": 72,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 241,
+      "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+      "position": Object {
+        "x": 480,
+        "y": 400,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
     },
   ],
   "tamperedWith": false,
@@ -1678,7 +1771,7 @@ Object {
 
 exports[`Write save file blend-images.chn 1`] = `
 Object {
-  "checksum": "59501e2ad7437bd2ae4b084a1ae4f001",
+  "checksum": "cc0b6777568df9eec21d83884267defd",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -1686,7 +1779,7 @@ Object {
         "data": Object {
           "id": "eb71587e-3c78-4267-a64d-e0d943ccaefb",
           "inputData": Object {
-            "2": 100,
+            "2": 0,
             "3": 100,
             "4": 0,
           },
@@ -1710,7 +1803,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -1780,7 +1873,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -1883,7 +1976,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2045,7 +2138,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2187,7 +2280,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2420,7 +2513,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2539,7 +2632,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2670,7 +2763,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2706,7 +2799,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2714,7 +2807,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "290882fb8d7aae023c65e4e157d4d89f",
+  "checksum": "6af37399da4aa05d71cffd9a2902ecf5",
   "content": Object {
     "edges": Array [
       Object {
@@ -2767,8 +2860,8 @@ Object {
         "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
         "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
         "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+        "target": "9d5a6f44-0836-438f-9a6f-c13adb341273",
+        "targetHandle": "9d5a6f44-0836-438f-9a6f-c13adb341273-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2789,8 +2882,8 @@ Object {
         "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
         "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
         "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+        "target": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef",
+        "targetHandle": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2816,13 +2909,35 @@ Object {
         "type": "main",
         "zIndex": 49,
       },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "de45b093-761d-4a23-b519-2fac6a86a81b",
+        "source": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef",
+        "sourceHandle": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef-0",
+        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "1bc613f9-da2f-41b0-8c31-2d925df732d0",
+        "source": "9d5a6f44-0836-438f-9a6f-c13adb341273",
+        "sourceHandle": "9d5a6f44-0836-438f-9a6f-c13adb341273-0",
+        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+        "type": "main",
+        "zIndex": 49,
+      },
     ],
     "nodes": Array [
       Object {
         "data": Object {
           "id": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
           "inputData": Object {
-            "2": 81,
+            "2": 0,
             "3": 69,
             "4": 0,
             "5": 81,
@@ -2903,7 +3018,7 @@ Object {
         "data": Object {
           "id": "94e84d6f-5179-42c9-8d63-2f3ddfd121d9",
           "inputData": Object {
-            "2": 100,
+            "2": 10,
             "3": 100,
             "4": 10,
           },
@@ -2996,6 +3111,44 @@ Object {
         "width": 242,
         "zIndex": 70,
       },
+      Object {
+        "data": Object {
+          "id": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef",
+          "inputData": Object {
+            "1": 81,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 456,
+        "id": "f70e7bcc-f2ff-45f2-9bfb-45cea954f8ef",
+        "position": Object {
+          "x": 193.03125,
+          "y": -37,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "9d5a6f44-0836-438f-9a6f-c13adb341273",
+          "inputData": Object {
+            "1": 69,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 456,
+        "id": "9d5a6f44-0836-438f-9a6f-c13adb341273",
+        "position": Object {
+          "x": 193.03125,
+          "y": 263,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
     ],
     "viewport": Object {
       "x": 0,
@@ -3003,7 +3156,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3139,7 +3292,45 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file opacity.chn 1`] = `
+Object {
+  "checksum": "07014c123db5bd7ebbb1d5a50421555f",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+          "inputData": Object {
+            "1": 72,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 241,
+        "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+        "position": Object {
+          "x": 480,
+          "y": 400,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3329,7 +3520,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3411,7 +3602,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
