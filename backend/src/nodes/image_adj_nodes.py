@@ -262,7 +262,7 @@ class OpacityNode(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = "Adjusts the opacity of an image"
+        self.description = "Adjusts the opacity of an image."
         self.inputs = [
             ImageInput(),
             SliderInput(
