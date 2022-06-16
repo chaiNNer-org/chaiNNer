@@ -514,7 +514,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
     ));
 
     const onConnectStart = useCallback(
-        (event: MouseEvent, handle: OnConnectStartParams) => {
+        (event: React.MouseEvent, handle: OnConnectStartParams) => {
             setIsStoppedOnPane(false);
             setConnectingFrom(handle);
         },
