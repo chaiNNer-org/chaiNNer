@@ -39,11 +39,15 @@ const NumericalInput = memo(
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(inputId);
-        const [inputString, setInputString] = useState(String(input));
+        const [inputString, setInputString] = useState(String(input ?? def));
 
         useEffect(() => {
             const asNumber = parseFloat(inputString);
-            if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
+            if (
+                !Number.isNaN(asNumber) &&
+                input !== undefined &&
+                !areApproximatelyEqual(asNumber, input)
+            ) {
                 setInputString(String(input));
             }
         }, [input]);
