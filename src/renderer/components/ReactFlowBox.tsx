@@ -584,6 +584,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onPaneClick={closeContextMenu}
                 onPaneContextMenu={(event) => {
                     setConnectingFrom(null);
+                    setSearchQuery('');
                     menu.onContextMenu(event);
                 }}
             >
