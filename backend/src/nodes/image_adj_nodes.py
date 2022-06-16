@@ -265,7 +265,14 @@ class OpacityNode(NodeBase):
         self.description = "Adjusts the opacity of an image"
         self.inputs = [
             ImageInput(),
-            SliderInput("Opacity", maximum=100, default=100, step=0.1, controls_step=1),
+            SliderInput(
+                "Opacity",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_ADJUSTMENT

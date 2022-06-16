@@ -436,6 +436,116 @@ const udpateRotateNode = (data) => {
     return data;
 };
 
+const addOpacityNode = (data) => {
+    const createOpacityNode = (node, opacityValue, yMoveDirection) => {
+        const newID = createUniqueId();
+        const newNode = {
+            data: {
+                schemaId: 'chainner:image:opacity',
+                inputData: { 1: opacityValue },
+                id: newID,
+            },
+            id: newID,
+            position: {
+                x: node.position.x - 260,
+                y: node.position.y + yMoveDirection * 150,
+            },
+            type: 'regularNode',
+            selected: false,
+            height: node.height,
+            width: node.width,
+            zIndex: node.zIndex,
+        };
+        if (node.parentNode !== undefined) {
+            newNode.parentNode = node.parentNode;
+            newNode.data.parentNode = node.parentNode;
+        }
+        return [newID, newNode];
+    };
+
+    const createOutputEdge = (opacityNodeID, blendNodeID, handleID, nodeZIndex) => {
+        return {
+            id: createUniqueId(),
+            sourceHandle: `${opacityNodeID}-0`,
+            targetHandle: `${blendNodeID}-${handleID}`,
+            source: opacityNodeID,
+            target: blendNodeID,
+            type: 'main',
+            animated: false,
+            data: {},
+            zIndex: nodeZIndex,
+        };
+    };
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:blend') {
+            const findEdgesToChange = () => {
+                const edgeList = {};
+                data.edges.forEach((edge, index) => {
+                    if (edge.target === node.id) {
+                        if (
+                            edge.targetHandle.split('-').slice(-1)[0] === '0' &&
+                            node.data.inputData['2'] !== 100
+                        ) {
+                            edgeList.baseInput = index;
+                        } else if (
+                            edge.targetHandle.split('-').slice(-1)[0] === '1' &&
+                            node.data.inputData['3'] !== 100
+                        ) {
+                            edgeList.ovInput = index;
+                        }
+                    }
+                });
+                return edgeList;
+            };
+            const edgesToChange = findEdgesToChange();
+
+            const newOpacityNodeIDs = {};
+            if (node.data.inputData['2'] !== 100) {
+                const [newID, newNode] = createOpacityNode(node, node.data.inputData['2'], -1);
+                newOpacityNodeIDs.baseOpacityNode = newID;
+                data.nodes.push(newNode);
+            }
+            if (node.data.inputData['3'] !== 100) {
+                const [newID, newNode] = createOpacityNode(node, node.data.inputData['3'], 1);
+                newOpacityNodeIDs.ovOpacityNode = newID;
+                data.nodes.push(newNode);
+            }
+
+            if (newOpacityNodeIDs.baseOpacityNode !== undefined) {
+                if (edgesToChange.baseInput !== undefined) {
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[edgesToChange.baseInput].target = newOpacityNodeIDs.baseOpacityNode;
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[
+                        edgesToChange.baseInput
+                    ].targetHandle = `${newOpacityNodeIDs.baseOpacityNode}-0`;
+                }
+                data.edges.push(
+                    createOutputEdge(newOpacityNodeIDs.baseOpacityNode, node.id, 0, node.zIndex - 1)
+                );
+            }
+            if (newOpacityNodeIDs.ovOpacityNode !== undefined) {
+                if (edgesToChange.ovInput !== undefined) {
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[edgesToChange.ovInput].target = newOpacityNodeIDs.ovOpacityNode;
+                    // eslint-disable-next-line no-param-reassign
+                    data.edges[
+                        edgesToChange.ovInput
+                    ].targetHandle = `${newOpacityNodeIDs.ovOpacityNode}-0`;
+                }
+                data.edges.push(
+                    createOutputEdge(newOpacityNodeIDs.ovOpacityNode, node.id, 1, node.zIndex - 1)
+                );
+            }
+
+            // eslint-disable-next-line no-param-reassign
+            node.data.inputData['2'] = node.data.inputData['4'];
+        }
+    });
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -468,6 +578,7 @@ const migrations = [
     fixBlurNode,
     addBlendNode,
     udpateRotateNode,
+    addOpacityNode,
 ];
 
 export const currentMigration = migrations.length;
