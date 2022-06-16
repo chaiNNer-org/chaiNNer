@@ -49,7 +49,7 @@ type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
-    createNode: (proto: NodeProto) => void;
+    createNode: (proto: NodeProto, onNodeCreate?: (newNodes: Node<NodeData>[]) => void) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
     zoom: number;
@@ -471,12 +471,16 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (proto: NodeProto): void => {
+            (
+                proto: NodeProto,
+                onNodeCreate: (newNodes: Node<NodeData>[]) => void = () => {}
+            ): void => {
                 changeNodes((nodes) => {
                     const parent = hoveredNode
                         ? nodes.find((n) => n.id === hoveredNode)
                         : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
+                    onNodeCreate(newNodes);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
                         ...newNodes,

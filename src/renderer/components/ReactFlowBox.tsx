@@ -31,6 +31,7 @@ import ReactFlow, {
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { parseHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
@@ -326,8 +327,51 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         [createNode, wrapperRef.current, reactFlowInstance]
     );
 
+    const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>();
+    const [connectingFromType, setConnectingFromType] = useState<string | null>();
+    const [isStoppedOnPane, setIsStoppedOnPane] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (connectingFrom) {
+            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId!);
+            const node = nodes.find((n) => n.id === nodeId);
+            if (node) {
+                const nodeSchema = schemata.get(node.data.schemaId);
+                if (connectingFrom.handleType === 'source') {
+                    const outputType = nodeSchema.outputs[inOutId]?.type;
+                    setConnectingFromType(outputType);
+                } else if (connectingFrom.handleType === 'target') {
+                    const inputType = nodeSchema.inputs[inOutId]?.type;
+                    setConnectingFromType(inputType);
+                } else {
+                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                }
+            }
+        }
+    }, [connectingFrom]);
+
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const matchingNodes = getMatchingNodes(searchQuery, schemata.schemata);
+    const matchingNodes = useMemo(
+        () =>
+            getMatchingNodes(searchQuery, schemata.schemata).filter((node) => {
+                if (!connectingFrom || !connectingFromType) {
+                    return true;
+                }
+                if (connectingFrom.handleType === 'source') {
+                    return node.inputs.some((input) => {
+                        return connectingFromType === input.type;
+                    });
+                }
+                if (connectingFrom.handleType === 'target') {
+                    return node.outputs.some((output) => {
+                        return connectingFromType === output.type;
+                    });
+                }
+                log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                return true;
+            }),
+        [connectingFrom, connectingFromType, searchQuery, schemata.schemata]
+    );
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
     const menuRef = useRef<HTMLDivElement>(null);
     const menu = useContextMenu(() => (
@@ -370,12 +414,12 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 </InputRightElement>
             </InputGroup>
             <Box
-                h={400}
+                h="auto"
+                maxH={400}
                 overflowY="scroll"
                 p={1}
             >
                 {[...byCategories].map(([category, categoryNodes]) => {
-                    // const subcategoryMap = getSubcategories(categoryNodes);
                     const accentColor = getNodeAccentColors(category);
                     return (
                         <Box key={category}>
@@ -410,12 +454,48 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                                         const nodeToMake: NodeProto = {
                                             position,
                                             data: {
-                                                ...node,
-                                                inputData: {},
+                                                schemaId: node.schemaId,
                                             },
                                             nodeType: node.nodeType,
                                         };
-                                        createNode(nodeToMake);
+                                        createNode(nodeToMake, (newNodes) => {
+                                            const filtered = newNodes.filter((n) => !n.parentNode);
+                                            const nodeId = filtered[0].id;
+                                            if (isStoppedOnPane && connectingFrom) {
+                                                if (connectingFrom.handleType === 'source') {
+                                                    const firstValidHandle = schemata
+                                                        .get(node.schemaId)!
+                                                        .inputs.find(
+                                                            (input) =>
+                                                                input.type === connectingFromType
+                                                        )!.id;
+                                                    createConnection({
+                                                        source: connectingFrom.nodeId,
+                                                        sourceHandle: connectingFrom.handleId,
+                                                        target: nodeId,
+                                                        targetHandle: `${nodeId}-${firstValidHandle}`,
+                                                    });
+                                                } else if (connectingFrom.handleType === 'target') {
+                                                    const firstValidHandle = schemata
+                                                        .get(node.schemaId)!
+                                                        .outputs.find(
+                                                            (output) =>
+                                                                output.type === connectingFromType
+                                                        )!.id;
+                                                    createConnection({
+                                                        source: nodeId,
+                                                        sourceHandle: `${nodeId}-${firstValidHandle}`,
+                                                        target: connectingFrom.nodeId,
+                                                        targetHandle: connectingFrom.handleId,
+                                                    });
+                                                } else {
+                                                    log.error(
+                                                        `Unknown handle type: ${connectingFrom.handleType!}`
+                                                    );
+                                                }
+                                            }
+                                        });
+                                        setConnectingFrom(null);
                                         closeContextMenu();
                                     }}
                                 >
@@ -433,33 +513,33 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         </MenuList>
     ));
 
-    const connectingFromRef = useRef<string | null>();
-
     const onConnectStart = useCallback(
-        (event: MouseEvent, { handleId }: OnConnectStartParams) => {
-            connectingFromRef.current = handleId;
+        (event: MouseEvent, handle: OnConnectStartParams) => {
+            setIsStoppedOnPane(false);
+            setConnectingFrom(handle);
         },
-        [connectingFromRef]
+        [setConnectingFrom, setIsStoppedOnPane]
     );
+
+    const [coordinates, setCoordinates] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
-            const isStoppedOnPane = String((event.target as Element).className).includes('pane');
-            if (isStoppedOnPane) {
-                const { pageX, pageY } = event;
-                // eslint-disable-next-line no-console
-                console.log(
-                    'open node context menu at ',
-                    pageX,
-                    pageY,
-                    'for',
-                    connectingFromRef.current
-                );
-                menu.manuallyOpenContextMenu(pageX, pageY);
-            }
+            setIsStoppedOnPane(String((event.target as Element).className).includes('pane'));
+            setCoordinates({
+                x: event.pageX,
+                y: event.pageY,
+            });
         },
-        [connectingFromRef]
+        [setCoordinates, setIsStoppedOnPane]
     );
+
+    useEffect(() => {
+        if (isStoppedOnPane && connectingFrom) {
+            const { x, y } = coordinates;
+            menu.manuallyOpenContextMenu(x, y);
+        }
+    }, [isStoppedOnPane, coordinates, connectingFrom]);
 
     return (
         <Box
@@ -502,7 +582,10 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
                 onPaneClick={closeContextMenu}
-                onPaneContextMenu={menu.onContextMenu}
+                onPaneContextMenu={(event) => {
+                    setConnectingFrom(null);
+                    menu.onContextMenu(event);
+                }}
             >
                 <Background
                     gap={16}
