@@ -2,7 +2,7 @@
 import log from 'electron-log';
 import { isEdge, isNode } from 'react-flow-renderer';
 import semver from 'semver';
-import { createUniqueId } from './util';
+import { deriveUniqueId } from './util';
 
 // ==============
 //   pre-alpha
@@ -355,7 +355,7 @@ const addBlendNode = (data) => {
             // If there is a second overlay input, need to add second blend node and
             // update edges.
             if (edgesToChange.input !== undefined) {
-                const newID = createUniqueId();
+                const newID = deriveUniqueId(node.id + String(node.data.inputData['4']));
                 const newBlendNode = {
                     data: {
                         schemaId: 'chainner:image:blend',
@@ -388,7 +388,7 @@ const addBlendNode = (data) => {
                 }
 
                 const newOutputEdge = {
-                    id: createUniqueId(),
+                    id: deriveUniqueId(node.id + newID),
                     sourceHandle: `${node.id}-0`,
                     targetHandle: `${newID}-0`,
                     source: node.id,
@@ -438,7 +438,7 @@ const udpateRotateNode = (data) => {
 
 const addOpacityNode = (data) => {
     const createOpacityNode = (node, opacityValue, yMoveDirection) => {
-        const newID = createUniqueId();
+        const newID = deriveUniqueId(node.id + String(opacityValue));
         const newNode = {
             data: {
                 schemaId: 'chainner:image:opacity',
@@ -465,7 +465,7 @@ const addOpacityNode = (data) => {
 
     const createOutputEdge = (opacityNodeID, blendNodeID, handleID, nodeZIndex) => {
         return {
-            id: createUniqueId(),
+            id: deriveUniqueId(opacityNodeID + blendNodeID + handleID),
             sourceHandle: `${opacityNodeID}-0`,
             targetHandle: `${blendNodeID}-${handleID}`,
             source: opacityNodeID,
