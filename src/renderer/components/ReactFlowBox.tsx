@@ -525,7 +525,10 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
-            setIsStoppedOnPane(String((event.target as Element).className).includes('pane'));
+            setIsStoppedOnPane(
+                (event.ctrlKey || event.altKey) &&
+                    String((event.target as Element).className).includes('pane')
+            );
             setCoordinates({
                 x: event.pageX,
                 y: event.pageY,
