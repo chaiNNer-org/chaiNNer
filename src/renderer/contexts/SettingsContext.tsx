@@ -14,6 +14,7 @@ interface Settings {
         snapToGridAmount: number,
         setSnapToGridAmount: React.Dispatch<React.SetStateAction<number>>
     ];
+    useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
 
     // Node Settings
     useNodeFavorites: readonly [
@@ -37,6 +38,7 @@ export const SettingsProvider = memo(
         const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
         const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
         const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
+        const [startupTemplate, setStartupTemplate] = useLocalStorage('startup-template', '');
 
         const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu]);
         const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16]);
@@ -58,6 +60,10 @@ export const SettingsProvider = memo(
             () => [isDisHwAccel, setIsDisHwAccel] as const,
             [isDisHwAccel]
         );
+        const useStartupTemplate = useMemo(
+            () => [startupTemplate, setStartupTemplate] as const,
+            [startupTemplate]
+        );
 
         // Node Settings
         const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
@@ -72,6 +78,7 @@ export const SettingsProvider = memo(
                 useIsSystemPython,
                 useSnapToGrid,
                 useDisHwAccel,
+                useStartupTemplate,
 
                 // Node
                 useNodeFavorites,
@@ -85,6 +92,7 @@ export const SettingsProvider = memo(
                 useIsSystemPython,
                 useSnapToGrid,
                 useDisHwAccel,
+                useStartupTemplate,
                 useNodeFavorites,
                 port,
             ]
