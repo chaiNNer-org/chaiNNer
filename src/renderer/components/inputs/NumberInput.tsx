@@ -14,6 +14,7 @@ interface NumericalInputProps extends InputProps {
     max?: number | null;
     def: number;
     unit?: string | null;
+    hideTrailingZeros: boolean;
 }
 
 const NumericalInput = memo(
@@ -28,6 +29,7 @@ const NumericalInput = memo(
         step,
         controlsStep,
         unit,
+        hideTrailingZeros,
         isLocked,
     }: NumericalInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
@@ -37,11 +39,15 @@ const NumericalInput = memo(
 
         // TODO: make sure this is always a number
         const [input, setInput] = useInputData<number>(inputId);
-        const [inputString, setInputString] = useState(String(input));
+        const [inputString, setInputString] = useState(String(input ?? def));
 
         useEffect(() => {
             const asNumber = parseFloat(inputString);
-            if (!Number.isNaN(asNumber) && !areApproximatelyEqual(asNumber, input!)) {
+            if (
+                !Number.isNaN(asNumber) &&
+                input !== undefined &&
+                !areApproximatelyEqual(asNumber, input)
+            ) {
                 setInputString(String(input));
             }
         }, [input]);
@@ -51,6 +57,7 @@ const NumericalInput = memo(
                 <AdvancedNumberInput
                     controlsStep={controlsStep}
                     defaultValue={def}
+                    hideTrailingZeros={hideTrailingZeros}
                     inputString={inputString}
                     isDisabled={isLocked || isInputLocked}
                     max={max ?? Infinity}

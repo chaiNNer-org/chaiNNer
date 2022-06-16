@@ -24,7 +24,12 @@ class HueAndSaturationNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput(
-                "Hue", minimum=-180, maximum=180, default=0, step=0.1, controls_step=1
+                "Hue",
+                minimum=-180,
+                maximum=180,
+                default=0,
+                step=0.1,
+                controls_step=1,
             ),
             SliderInput(
                 "Saturation",
@@ -164,10 +169,18 @@ class ThresholdNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput(
-                "Threshold", maximum=100, default=50, step=0.1, controls_step=1
+                "Threshold",
+                maximum=100,
+                default=50,
+                step=0.1,
+                controls_step=1,
             ),
             SliderInput(
-                "Maximum Value", maximum=100, default=100, step=0.1, controls_step=1
+                "Maximum Value",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
             ),
             ThresholdInput(),
         ]
@@ -205,7 +218,11 @@ class AdaptiveThresholdNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput(
-                "Maximum Value", maximum=100, default=100, step=0.1, controls_step=1
+                "Maximum Value",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
             ),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
