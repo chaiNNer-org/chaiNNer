@@ -392,6 +392,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                     <SearchIcon />
                 </InputLeftElement>
                 <Input
+                    autoFocus
                     borderRadius={0}
                     placeholder="Search..."
                     spellCheck={false}
