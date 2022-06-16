@@ -566,7 +566,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                     borderRadius: '0.5rem',
                 }}
                 onConnect={createConnection}
-                onConnectEnd={onConnectStop}
+                // onConnectEnd={onConnectStop}
                 onConnectStart={onConnectStart}
                 onConnectStop={onConnectStop}
                 onDragOver={onDragOver}
