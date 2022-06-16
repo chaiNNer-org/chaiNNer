@@ -438,7 +438,7 @@ const udpateRotateNode = (data) => {
 
 const addOpacityNode = (data) => {
     const createOpacityNode = (node, opacityValue, yMoveDirection) => {
-        const newID = deriveUniqueId(node.id + String(opacityValue));
+        const newID = deriveUniqueId(node.id + yMoveDirection);
         const newNode = {
             data: {
                 schemaId: 'chainner:image:opacity',
