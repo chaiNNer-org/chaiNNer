@@ -31,7 +31,7 @@ import ReactFlow, {
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
-import { parseHandle } from '../../common/util';
+import { createUniqueId, parseHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
@@ -359,7 +359,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 }
                 if (connectingFrom.handleType === 'source') {
                     return node.inputs.some((input) => {
-                        return connectingFromType === input.type;
+                        return connectingFromType === input.type && input.hasHandle;
                     });
                 }
                 if (connectingFrom.handleType === 'target') {
@@ -451,50 +451,49 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                                             x: x - reactFlowBounds.left,
                                             y: y - reactFlowBounds.top,
                                         });
+                                        const nodeId = createUniqueId();
                                         const nodeToMake: NodeProto = {
+                                            id: nodeId,
                                             position,
                                             data: {
                                                 schemaId: node.schemaId,
                                             },
                                             nodeType: node.nodeType,
                                         };
-                                        createNode(nodeToMake, (newNodes) => {
-                                            const filtered = newNodes.filter((n) => !n.parentNode);
-                                            const nodeId = filtered[0].id;
-                                            if (isStoppedOnPane && connectingFrom) {
-                                                if (connectingFrom.handleType === 'source') {
-                                                    const firstValidHandle = schemata
-                                                        .get(node.schemaId)!
-                                                        .inputs.find(
-                                                            (input) =>
-                                                                input.type === connectingFromType
-                                                        )!.id;
-                                                    createConnection({
-                                                        source: connectingFrom.nodeId,
-                                                        sourceHandle: connectingFrom.handleId,
-                                                        target: nodeId,
-                                                        targetHandle: `${nodeId}-${firstValidHandle}`,
-                                                    });
-                                                } else if (connectingFrom.handleType === 'target') {
-                                                    const firstValidHandle = schemata
-                                                        .get(node.schemaId)!
-                                                        .outputs.find(
-                                                            (output) =>
-                                                                output.type === connectingFromType
-                                                        )!.id;
-                                                    createConnection({
-                                                        source: nodeId,
-                                                        sourceHandle: `${nodeId}-${firstValidHandle}`,
-                                                        target: connectingFrom.nodeId,
-                                                        targetHandle: connectingFrom.handleId,
-                                                    });
-                                                } else {
-                                                    log.error(
-                                                        `Unknown handle type: ${connectingFrom.handleType!}`
-                                                    );
-                                                }
+                                        createNode(nodeToMake);
+                                        if (isStoppedOnPane && connectingFrom) {
+                                            if (connectingFrom.handleType === 'source') {
+                                                const firstValidHandle = schemata
+                                                    .get(node.schemaId)!
+                                                    .inputs.find(
+                                                        (input) => input.type === connectingFromType
+                                                    )!.id;
+                                                createConnection({
+                                                    source: connectingFrom.nodeId,
+                                                    sourceHandle: connectingFrom.handleId,
+                                                    target: nodeId,
+                                                    targetHandle: `${nodeId}-${firstValidHandle}`,
+                                                });
+                                            } else if (connectingFrom.handleType === 'target') {
+                                                const firstValidHandle = schemata
+                                                    .get(node.schemaId)!
+                                                    .outputs.find(
+                                                        (output) =>
+                                                            output.type === connectingFromType
+                                                    )!.id;
+                                                createConnection({
+                                                    source: nodeId,
+                                                    sourceHandle: `${nodeId}-${firstValidHandle}`,
+                                                    target: connectingFrom.nodeId,
+                                                    targetHandle: connectingFrom.handleId,
+                                                });
+                                            } else {
+                                                log.error(
+                                                    `Unknown handle type: ${connectingFrom.handleType!}`
+                                                );
                                             }
-                                        });
+                                        }
+
                                         setConnectingFrom(null);
                                         closeContextMenu();
                                     }}

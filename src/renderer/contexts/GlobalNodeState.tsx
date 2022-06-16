@@ -94,6 +94,7 @@ interface Global {
 }
 
 export interface NodeProto {
+    id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
@@ -104,19 +105,19 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createNodeImpl = (
-    { position, data, nodeType }: NodeProto,
+    { id, position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
     parent?: Node<NodeData>,
     selected = false
 ): Node<NodeData>[] => {
-    const id = createUniqueId();
+    const newId = id || createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
-        id,
+        id: newId,
         position: { ...position },
         data: {
             ...data,
-            id,
+            id: newId,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
         selected,
