@@ -22,7 +22,7 @@ import {
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
-import { ParsedSaveData, SaveData } from '../../common/SaveFile';
+import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { evaluate } from '../../common/types/evaluate';
 import { Expression } from '../../common/types/expression';
@@ -47,8 +47,9 @@ import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useOpenRecent } from '../hooks/useOpenRecent';
-import { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
+import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -197,6 +198,7 @@ export const GlobalProvider = memo(
         typeDefinitions,
     }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
+        const { useStartupTemplate } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges] = useChangeCounter();
         const [edgeChanges, addEdgeChanges] = useChangeCounter();
@@ -513,6 +515,31 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
+
+        const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
+        const [startupTemplate] = useStartupTemplate;
+        useAsyncEffect(async () => {
+            if (firstLoad && startupTemplate) {
+                try {
+                    const saveFile = await openSaveFile(startupTemplate);
+                    if (saveFile.kind === 'Success') {
+                        await setStateFromJSON(saveFile.saveData, '', true);
+                    } else {
+                        sendAlert({
+                            type: AlertType.ERROR,
+                            message: `Unable to open file ${startupTemplate}: ${saveFile.error}`,
+                        });
+                    }
+                } catch (error) {
+                    log.error(error);
+                    sendAlert({
+                        type: AlertType.ERROR,
+                        message: `Unable to open file ${startupTemplate}`,
+                    });
+                }
+                setFirstLoad(false);
+            }
+        }, [firstLoad]);
 
         const removeNodeById = useCallback(
             (id: string) => {

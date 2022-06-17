@@ -59,6 +59,7 @@ class NumberInput(BaseInput):
         unit: Union[str, None] = None,
         note_expression: Union[str, None] = None,
         kind: InputKind = "number",
+        hide_trailing_zeros: bool = True,
     ):
         super().__init__("number", label, kind=kind, has_handle=True)
         # Step is for the actual increment.
@@ -71,6 +72,7 @@ class NumberInput(BaseInput):
         self.maximum = maximum
         self.unit = unit
         self.note_expression = note_expression
+        self.hide_trailing_zeros = hide_trailing_zeros
 
         self.input_type = get_number_type(
             self.minimum,
@@ -89,6 +91,7 @@ class NumberInput(BaseInput):
             "step": self.step,
             "controlsStep": self.controls_step,
             "unit": self.unit,
+            "hideTrailingZeros": self.hide_trailing_zeros,
         }
 
     def make_optional(self):
@@ -113,6 +116,7 @@ class SliderInput(NumberInput):
         unit: Union[str, None] = None,
         note_expression: Union[str, None] = None,
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
+        hide_trailing_zeros: bool = False,
     ):
         super().__init__(
             label,
@@ -124,6 +128,7 @@ class SliderInput(NumberInput):
             unit=unit,
             note_expression=note_expression,
             kind="slider",
+            hide_trailing_zeros=hide_trailing_zeros,
         )
         self.ends = ends
         self.slider_step = (
