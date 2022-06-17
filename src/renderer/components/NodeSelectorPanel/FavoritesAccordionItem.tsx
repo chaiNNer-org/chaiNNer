@@ -11,7 +11,6 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { NodeSchema } from '../../../common/common-types';
 import RepresentativeNodeWrapper from './RepresentativeNodeWrapper';
 import { TextBox } from './TextBox';
@@ -32,7 +31,7 @@ const FavoritesAccordionItem = memo(
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<ReactMarkdown>**Favorites**</ReactMarkdown>}
+                    label={<b>Favorites</b>}
                     openDelay={500}
                     px={2}
                     py={1}

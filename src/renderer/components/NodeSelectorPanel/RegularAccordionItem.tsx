@@ -10,7 +10,6 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { NodeSchema } from '../../../common/common-types';
 import getNodeAccentColor from '../../helpers/getNodeAccentColors';
 import { IconFactory } from '../CustomIcons';
@@ -33,7 +32,7 @@ const RegularAccordionItem = memo(
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<ReactMarkdown>{`**${category}**`}</ReactMarkdown>}
+                    label={<b>{category}</b>}
                     openDelay={500}
                     px={2}
                     py={1}
@@ -76,7 +75,7 @@ const RegularAccordionItem = memo(
                                 borderRadius={8}
                                 fontSize="1.05rem"
                                 isDisabled={!collapsed}
-                                label={<ReactMarkdown>{`*${subcategory}*`}</ReactMarkdown>}
+                                label={<i>{subcategory}</i>}
                                 openDelay={500}
                                 px={2}
                                 py={1}

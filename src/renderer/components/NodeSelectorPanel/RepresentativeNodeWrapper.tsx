@@ -2,7 +2,6 @@ import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Tooltip } from '@chakra-ui/react';
 import { DragEvent, memo } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
-import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -65,9 +64,11 @@ const RepresentativeNodeWrapper = memo(
                     hasArrow
                     borderRadius={8}
                     label={
-                        <ReactMarkdown>{`**${collapsed ? node.name : ''}**\n\n${
-                            node.description
-                        }`}</ReactMarkdown>
+                        <Box>
+                            <b>{collapsed ? node.name : ''}</b>
+                            {collapsed && <br />}
+                            {node.description}
+                        </Box>
                     }
                     openDelay={500}
                     px={2}
