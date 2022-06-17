@@ -467,7 +467,9 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                                                 const firstValidHandle = schemata
                                                     .get(node.schemaId)!
                                                     .inputs.find(
-                                                        (input) => input.type === connectingFromType
+                                                        (input) =>
+                                                            input.type === connectingFromType &&
+                                                            input.hasHandle
                                                     )!.id;
                                                 createConnection({
                                                     source: connectingFrom.nodeId,
