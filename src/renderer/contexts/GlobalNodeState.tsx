@@ -718,8 +718,14 @@ export const GlobalProvider = memo(
                             const hBound =
                                 height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
                             newNode.extent = [
-                                [offsetLeft, offsetTop],
-                                [wBound, hBound],
+                                [
+                                    iteratorNode.position.x + offsetLeft,
+                                    iteratorNode.position.y + offsetTop,
+                                ],
+                                [
+                                    iteratorNode.position.x + wBound,
+                                    iteratorNode.position.y + hBound,
+                                ],
                             ];
                             newNode.position.x = Math.min(
                                 Math.max(newNode.position.x, offsetLeft),
@@ -731,6 +737,7 @@ export const GlobalProvider = memo(
                             );
                             return newNode;
                         });
+
                         const newIteratorNode = copyNode(iteratorNode);
 
                         newIteratorNode.data.maxWidth = maxWidth;
