@@ -1044,8 +1044,8 @@ Object {
       "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
       "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
       "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-      "target": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
-      "targetHandle": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6-0",
+      "target": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+      "targetHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1066,8 +1066,8 @@ Object {
       "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
       "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
       "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-      "target": "adc665ad-e071-5d1b-810b-b1e141c4a046",
-      "targetHandle": "adc665ad-e071-5d1b-810b-b1e141c4a046-0",
+      "target": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+      "targetHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1096,9 +1096,9 @@ Object {
     Object {
       "animated": false,
       "data": Object {},
-      "id": "424d6981-50e3-50fe-8c9c-fc4be89824ec",
-      "source": "adc665ad-e071-5d1b-810b-b1e141c4a046",
-      "sourceHandle": "adc665ad-e071-5d1b-810b-b1e141c4a046-0",
+      "id": "23ded9d1-614a-5eb9-9699-63c69a30e260",
+      "source": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+      "sourceHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
       "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
       "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
       "type": "main",
@@ -1107,9 +1107,9 @@ Object {
     Object {
       "animated": false,
       "data": Object {},
-      "id": "4e1a03f7-d93c-5eec-b62a-720b818f71a7",
-      "source": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
-      "sourceHandle": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6-0",
+      "id": "58624df5-fc25-5120-83e3-8e1433039b6b",
+      "source": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+      "sourceHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
       "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
       "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
       "type": "main",
@@ -1297,14 +1297,14 @@ Object {
     },
     Object {
       "data": Object {
-        "id": "adc665ad-e071-5d1b-810b-b1e141c4a046",
+        "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
         "inputData": Object {
           "1": 81,
         },
         "schemaId": "chainner:image:opacity",
       },
       "height": 456,
-      "id": "adc665ad-e071-5d1b-810b-b1e141c4a046",
+      "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
       "position": Object {
         "x": 193.03125,
         "y": -37,
@@ -1316,14 +1316,14 @@ Object {
     },
     Object {
       "data": Object {
-        "id": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
+        "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
         "inputData": Object {
           "1": 69,
         },
         "schemaId": "chainner:image:opacity",
       },
       "height": 456,
-      "id": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
+      "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
       "position": Object {
         "x": 193.03125,
         "y": 263,
@@ -2807,7 +2807,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "9271603932f5bba78ce5e674cd5fb41e",
+  "checksum": "6f5aa508b291c2b7fe0a7b73396f00c7",
   "content": Object {
     "edges": Array [
       Object {
@@ -2860,8 +2860,8 @@ Object {
         "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
         "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
         "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-        "target": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
-        "targetHandle": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6-0",
+        "target": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "targetHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2882,8 +2882,8 @@ Object {
         "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
         "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
         "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-        "target": "adc665ad-e071-5d1b-810b-b1e141c4a046",
-        "targetHandle": "adc665ad-e071-5d1b-810b-b1e141c4a046-0",
+        "target": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "targetHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2912,9 +2912,9 @@ Object {
       Object {
         "animated": false,
         "data": Object {},
-        "id": "424d6981-50e3-50fe-8c9c-fc4be89824ec",
-        "source": "adc665ad-e071-5d1b-810b-b1e141c4a046",
-        "sourceHandle": "adc665ad-e071-5d1b-810b-b1e141c4a046-0",
+        "id": "23ded9d1-614a-5eb9-9699-63c69a30e260",
+        "source": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "sourceHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
         "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
         "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
         "type": "main",
@@ -2923,9 +2923,9 @@ Object {
       Object {
         "animated": false,
         "data": Object {},
-        "id": "4e1a03f7-d93c-5eec-b62a-720b818f71a7",
-        "source": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
-        "sourceHandle": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6-0",
+        "id": "58624df5-fc25-5120-83e3-8e1433039b6b",
+        "source": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "sourceHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
         "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
         "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
         "type": "main",
@@ -3113,14 +3113,14 @@ Object {
       },
       Object {
         "data": Object {
-          "id": "adc665ad-e071-5d1b-810b-b1e141c4a046",
+          "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
           "inputData": Object {
             "1": 81,
           },
           "schemaId": "chainner:image:opacity",
         },
         "height": 456,
-        "id": "adc665ad-e071-5d1b-810b-b1e141c4a046",
+        "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
         "position": Object {
           "x": 193.03125,
           "y": -37,
@@ -3132,14 +3132,14 @@ Object {
       },
       Object {
         "data": Object {
-          "id": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
+          "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
           "inputData": Object {
             "1": 69,
           },
           "schemaId": "chainner:image:opacity",
         },
         "height": 456,
-        "id": "77a008c1-c9a2-55ed-bd1a-044cb49bfac6",
+        "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
         "position": Object {
           "x": 193.03125,
           "y": 263,
