@@ -64,7 +64,11 @@ const RepresentativeNodeWrapper = memo(
                     closeOnMouseDown
                     hasArrow
                     borderRadius={8}
-                    label={<ReactMarkdown>{node.description}</ReactMarkdown>}
+                    label={
+                        <ReactMarkdown>{`**${collapsed ? node.name : ''}**\n\n${
+                            node.description
+                        }`}</ReactMarkdown>
+                    }
                     openDelay={500}
                     px={2}
                     py={1}
@@ -73,7 +77,6 @@ const RepresentativeNodeWrapper = memo(
                         draggable
                         boxSizing="content-box"
                         display="block"
-                        // w="100%"
                         onDoubleClick={() => {
                             if (!reactFlowWrapper.current) return;
 
