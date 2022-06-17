@@ -283,11 +283,10 @@ class OpacityNode(NodeBase):
     def run(self, img: np.ndarray, opacity: float) -> np.ndarray:
         """Apply opacity adjustment to alpha channel"""
 
-        if opacity == 100:
-            return img
-
         # Convert inputs
         c = get_h_w_c(img)[2]
+        if opacity == 100 and c == 4:
+            return img
         imgout = convert_to_BGRA(img, c)
         opacity /= 100
 
