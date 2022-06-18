@@ -40,11 +40,11 @@ export const SettingsProvider = memo(
         const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
         const [startupTemplate, setStartupTemplate] = useLocalStorage('startup-template', '');
 
-        const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu]);
-        const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16]);
+        const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu, setIsCpu]);
+        const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16, setIsFp16]);
         const useIsSystemPython = useMemo(
             () => [isSystemPython, setIsSystemPython] as const,
-            [isSystemPython]
+            [isSystemPython, setIsSystemPython]
         );
         const useSnapToGrid = useMemo(
             () =>
@@ -54,21 +54,24 @@ export const SettingsProvider = memo(
                     snapToGridAmount || 1,
                     setSnapToGridAmount,
                 ] as const,
-            [isSnapToGrid, snapToGridAmount]
+            [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount]
         );
         const useDisHwAccel = useMemo(
             () => [isDisHwAccel, setIsDisHwAccel] as const,
-            [isDisHwAccel]
+            [isDisHwAccel, setIsDisHwAccel]
         );
         const useStartupTemplate = useMemo(
             () => [startupTemplate, setStartupTemplate] as const,
-            [startupTemplate]
+            [startupTemplate, setStartupTemplate]
         );
 
         // Node Settings
         const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
 
-        const useNodeFavorites = useMemo(() => [favorites, setFavorites] as const, [favorites]);
+        const useNodeFavorites = useMemo(
+            () => [favorites, setFavorites] as const,
+            [favorites, setFavorites]
+        );
 
         const contextValue = useMemo<Readonly<Settings>>(
             () => ({
