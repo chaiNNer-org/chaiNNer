@@ -6,8 +6,9 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
+import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
@@ -51,11 +52,15 @@ interface NodeProps {
 const Node = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
+    const effectivelyDisabledNodes = useContextSelector(
+        GlobalVolatileContext,
+        (c) => c.effectivelyDisabledNodes
+    );
     const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const { id, inputData, isLocked, parentNode, schemaId } = data;
+    const { id, inputData, isDisabled, isLocked, parentNode, schemaId } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -69,13 +74,17 @@ const Node = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState<[boolean, string]>([false, '']);
-
+    const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
         }
     }, [inputData, edgeChanges]);
+
+    const disabledStatus = useMemo(
+        () => getDisabledStatus(data, effectivelyDisabledNodes),
+        [data, effectivelyDisabledNodes]
+    );
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -131,7 +140,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const menu = useNodeMenu(id, isLocked ?? false);
+    const menu = useNodeMenu(id, isLocked ?? false, isDisabled ?? false);
 
     return (
         <Center
@@ -155,6 +164,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             <VStack minWidth="240px">
                 <NodeHeader
                     accentColor={accentColor}
+                    disabledStatus={disabledStatus}
                     icon={icon}
                     name={name}
                     parentNode={parentNode}
@@ -170,8 +180,8 @@ const Node = memo(({ data, selected }: NodeProps) => {
                     schemaId={schemaId}
                 />
                 <NodeFooter
-                    invalidReason={validity[1]}
-                    isValid={validity[0]}
+                    disabledStatus={disabledStatus}
+                    validity={validity}
                 />
             </VStack>
         </Center>

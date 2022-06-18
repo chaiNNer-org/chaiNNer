@@ -1,13 +1,16 @@
 import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 import { Center, Flex, Icon, Spacer, Tooltip, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
+import { MdPlayDisabled } from 'react-icons/md';
+import { Validity } from '../../helpers/checkNodeValidity';
+import { DisabledStatus } from '../../helpers/disabled';
 
 interface NodeFooterProps {
-    isValid?: boolean;
-    invalidReason?: string;
+    validity: Validity;
+    disabledStatus: DisabledStatus;
 }
 
-const NodeFooter = memo(({ isValid = false, invalidReason = '' }: NodeFooterProps) => {
+const NodeFooter = memo(({ validity, disabledStatus }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     // const invalidShade = useColorModeValue('red.200', 'red.900');
@@ -26,7 +29,7 @@ const NodeFooter = memo(({ isValid = false, invalidReason = '' }: NodeFooterProp
                 borderRadius={8}
                 closeOnClick={false}
                 gutter={24}
-                label={isValid ? 'Node valid' : invalidReason}
+                label={validity.isValid ? 'Node valid' : validity.reason}
                 px={2}
                 textAlign="center"
             >
@@ -35,19 +38,46 @@ const NodeFooter = memo(({ isValid = false, invalidReason = '' }: NodeFooterProp
                     my={-1}
                 >
                     <Center
-                        bgColor={isValid ? validShade : iconShade}
+                        bgColor={validity.isValid ? validShade : iconShade}
                         borderRadius={100}
                         mr={-3.5}
                         p={1.5}
                     />
                     <Icon
-                        as={isValid ? CheckCircleIcon : WarningIcon}
-                        // color={useColorModeValue('gray.400', 'gray.800')}
-                        color={isValid ? iconShade : invalidShade}
+                        as={validity.isValid ? CheckCircleIcon : WarningIcon}
+                        color={validity.isValid ? iconShade : invalidShade}
                         cursor="default"
                     />
                 </Center>
             </Tooltip>
+            {disabledStatus.isDisabled && (
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    closeOnClick={false}
+                    gutter={24}
+                    label={disabledStatus.reason}
+                    px={2}
+                    textAlign="center"
+                >
+                    <Center
+                        className="nodrag"
+                        my={-1}
+                    >
+                        <Center
+                            bgColor={iconShade}
+                            borderRadius={100}
+                            mr={-4}
+                            p={2}
+                        />
+                        <Icon
+                            as={MdPlayDisabled}
+                            color={validShade}
+                            cursor="default"
+                        />
+                    </Center>
+                </Tooltip>
+            )}
             <Spacer />
         </Flex>
     );

@@ -1,5 +1,6 @@
 import { Center, HStack, Heading, LayoutProps, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
+import { DisabledStatus } from '../../helpers/disabled';
 import { IconFactory } from '../CustomIcons';
 
 interface NodeHeaderProps {
@@ -9,10 +10,11 @@ interface NodeHeaderProps {
     selected: boolean;
     width?: LayoutProps['width'];
     parentNode?: string;
+    disabledStatus: DisabledStatus;
 }
 
 const NodeHeader = memo(
-    ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => (
+    ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => (
         <Center
             borderBottomColor={accentColor}
             borderBottomStyle={parentNode ? 'double' : undefined}
@@ -50,6 +52,7 @@ const NodeHeader = memo(
                         fontWeight={700}
                         lineHeight="auto"
                         m={0}
+                        opacity={disabledStatus.isDisabled ? 0.5 : 1}
                         p={0}
                         size="sm"
                         textAlign="center"

@@ -9,6 +9,7 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo } from 'react';
+import { DisabledStatus } from '../../helpers/disabled';
 import { IconFactory } from '../CustomIcons';
 
 interface IteratorNodeHeaderProps {
@@ -18,10 +19,19 @@ interface IteratorNodeHeaderProps {
     selected: boolean;
     percentComplete?: number;
     width?: LayoutProps['width'];
+    disabledStatus: DisabledStatus;
 }
 
 const IteratorNodeHeader = memo(
-    ({ name, width, icon, accentColor, selected, percentComplete }: IteratorNodeHeaderProps) => (
+    ({
+        name,
+        width,
+        icon,
+        accentColor,
+        selected,
+        percentComplete,
+        disabledStatus,
+    }: IteratorNodeHeaderProps) => (
         <VStack
             spacing={0}
             w={width || 'full'}
@@ -63,6 +73,7 @@ const IteratorNodeHeader = memo(
                             fontWeight={700}
                             lineHeight="auto"
                             m={0}
+                            opacity={disabledStatus.isDisabled ? 0.5 : 1}
                             p={0}
                             size="sm"
                             textAlign="center"

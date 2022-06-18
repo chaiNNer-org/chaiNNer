@@ -63,6 +63,7 @@ export interface NodeData {
     readonly id: string;
     readonly parentNode?: string;
     readonly schemaId: string;
+    readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
     readonly invalid?: boolean;
