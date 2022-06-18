@@ -287,6 +287,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.sub = "Utility"
 
     def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
+        is_fp16 = bin_a.dtype == np.float16
         try:
             amount_b = amount / 100
             amount_a = 1 - amount_b
@@ -295,7 +296,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             bin_b_mult = bin_b.astype(np.float64) * amount_b
             result = bin_a_mult + bin_b_mult
 
-            return result.astype(np.float32)
+            return result.astype(np.float16 if is_fp16 else np.float32)
         except:
             # pylint: disable=raise-missing-from
             raise ValueError(
@@ -325,7 +326,10 @@ class NcnnInterpolateModelsNode(NodeBase):
         logger.info(len(bin_data_b))
         assert len(bin_data_a) == len(
             bin_data_b
-        ), "The provided model bins are not compatible."
+        ), "The provided model bins are not compatible as they are not the same size."
+        assert (
+            bin_data_a.dtype == bin_data_b.dtype
+        ), "The provided model bins are not compatible as they are not the same datatype."
 
         logger.info(f"Interpolating NCNN models...")
         if not self.check_can_interp(bin_data_a, bin_data_b, net_tuple_a):
