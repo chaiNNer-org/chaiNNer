@@ -76,13 +76,19 @@
         {
           "name": "@electron-forge/maker-deb",
           "config": {
-            "name": "chainner"
+            "name": "chainner",
+            "options": {
+              "icon": "./src/public/icons/cross_platform/icon.png"
+            }
           }
         },
         {
           "name": "@electron-forge/maker-rpm",
           "config": {
-            "name": "chainner"
+            "name": "chainner",
+            "options": {
+              "icon": "./src/public/icons/cross_platform/icon.png"
+            }
           }
         }
       ],
