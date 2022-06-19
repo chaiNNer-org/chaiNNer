@@ -53,17 +53,27 @@ def auto_split_process(
         GB_AMT = 1024**3
         free, total = torch.cuda.mem_get_info(0)  # type: ignore
 
-        total_model_param_bytes = sum(
-            sum([q.element_size() * 1.024 * reduce(mul, q.shape, 1) for q in p])
-            for p in model.parameters()
-        )
-        total_size = reduce(mul, lr_img.shape, 1)
-        img_bytes = total_size * lr_img.element_size() * 1.024 * model.scale  # type: ignore
-        mem_required_estimation = (
-            ((total_model_param_bytes * img_bytes) / GB_AMT) / 1024
-        ) / 200
+        # total_model_param_bytes = sum(
+        #     sum([q.element_size() * 1.024 * reduce(mul, q.shape, 1) for q in p])
+        #     for p in model.parameters()
+        # )
+        img_bytes = lr_img.numel() * lr_img.element_size()
+        model_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
+        mem_required_estimation = ((model_bytes / (1024 * 52)) * img_bytes) / GB_AMT
+        # if os.environ["isFp16"] == "True":
+        #     mem_required_estimation /= 2
+        # total_size = reduce(mul, lr_img.shape, 1)
+        # img_bytes = total_size * lr_img.element_size() * 1.024 * model.scale  # type: ignore
+        # mem_required_estimation = (
+        #     ((total_model_param_bytes * img_bytes) / GB_AMT) / 1024
+        # ) / 200
+        split_estimation = 1
+        x = mem_required_estimation
+        while x > free / GB_AMT:
+            x /= 4
+            split_estimation += 1
         logger.info(
-            f"Estimating memory required: {mem_required_estimation:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total"
+            f"Estimating memory required: {mem_required_estimation:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total. Estimated Split depth: {split_estimation}"
         )
 
     # Prevent splitting from causing an infinite out-of-vram loop
@@ -81,21 +91,21 @@ def auto_split_process(
             if os.environ["isFp16"] == "True":
                 model = model.half()
                 d_img = d_img.half()
-            b, c, h, w = d_img.shape
-            total_size = b * c * h * w
-            logger.info(
-                f"Image at split depth {current_depth} is using {d_img.element_size() * total_size / 1000000000} GB of VRAM"  #
-            )
+            # b, c, h, w = d_img.shape
+            # total_size = b * c * h * w
+            # logger.info(
+            #     f"Image at split depth {current_depth} is using {d_img.element_size() * total_size / 1000000000} GB of VRAM"  #
+            # )
             result = model(d_img)
-            b, c, h, w = result.shape
-            total_size = b * c * h * w
-            logger.info(
-                f"Result at split depth {current_depth} is using {result.element_size() * total_size / 1000000000} GB of VRAM"
-            )
+            # b, c, h, w = result.shape
+            # total_size = b * c * h * w
+            # logger.info(
+            #     f"Result at split depth {current_depth} is using {result.element_size() * total_size / 1000000000} GB of VRAM"
+            # )
             result = result.detach().cpu()
-            logger.info(
-                f"After detaching, result at split depth {current_depth} is using {result.element_size() * total_size / 1000000000} GB of RAM"
-            )
+            # logger.info(
+            #     f"After detaching, result at split depth {current_depth} is using {result.element_size() * total_size / 1000000000} GB of RAM"
+            # )
             del d_img
             return result, current_depth
         except RuntimeError as e:
