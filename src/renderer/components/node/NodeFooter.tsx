@@ -62,6 +62,7 @@ const NodeFooter = memo(({ validity, disabledStatus }: NodeFooterProps) => {
                 >
                     <Center
                         className="nodrag"
+                        ml={0.5}
                         my={-1}
                     >
                         <Center
