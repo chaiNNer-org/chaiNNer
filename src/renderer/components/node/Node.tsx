@@ -149,6 +149,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabledStatus.isDisabled ? 0.5 : 1}
             py={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
