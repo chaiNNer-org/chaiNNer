@@ -149,7 +149,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
-            opacity={disabledStatus.isDisabled ? 0.5 : 1}
+            opacity={disabledStatus.isDisabled ? 0.75 : 1}
             py={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
@@ -162,7 +162,10 @@ const Node = memo(({ data, selected }: NodeProps) => {
             onDragOver={onDragOver}
             onDrop={onDrop}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabledStatus.isDisabled ? 0.75 : 1}
+            >
                 <NodeHeader
                     accentColor={accentColor}
                     disabledStatus={disabledStatus}
