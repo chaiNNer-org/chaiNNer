@@ -42,6 +42,7 @@ class NumberInput(BaseInput):
         unit: Union[str, None] = None,
         number_type: str = "any",
         note_expression: Union[str, None] = None,
+        hide_trailing_zeros: bool = True,
     ):
         super().__init__(f"number::{number_type}", label, has_handle=True)
         # Step is for the actual increment.
@@ -54,6 +55,7 @@ class NumberInput(BaseInput):
         self.maximum = maximum
         self.unit = unit
         self.note_expression = note_expression
+        self.hide_trailing_zeros = hide_trailing_zeros
 
     def toDict(self):
         return {
@@ -66,6 +68,7 @@ class NumberInput(BaseInput):
             "step": self.step,
             "controlsStep": self.controls_step,
             "unit": self.unit,
+            "hideTrailingZeros": self.hide_trailing_zeros,
         }
 
     def make_optional(self):
@@ -90,6 +93,7 @@ class SliderInput(NumberInput):
         unit: Union[str, None] = None,
         note_expression: Union[str, None] = None,
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
+        hide_trailing_zeros: bool = False,
     ):
         super().__init__(
             label,
@@ -101,6 +105,7 @@ class SliderInput(NumberInput):
             unit=unit,
             note_expression=note_expression,
             number_type="slider",
+            hide_trailing_zeros=hide_trailing_zeros,
         )
         self.ends = ends
         self.slider_step = (

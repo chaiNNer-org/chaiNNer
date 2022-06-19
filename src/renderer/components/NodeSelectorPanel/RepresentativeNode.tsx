@@ -136,7 +136,8 @@ const RepresentativeNode = memo(
                                         strokeWidth={isFavorite ? 0 : 2}
                                         transition="0.15s ease-in-out"
                                         verticalAlign="middle"
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             if (isFavorite) {
                                                 removeFavorite(schemaId);
                                             } else {

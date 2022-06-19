@@ -151,10 +151,10 @@ const IteratorNodeBody = memo(
                         borderColor={
                             hoveredNode === id
                                 ? accentColor
-                                : useColorModeValue('gray.400', 'gray.600')
+                                : useColorModeValue('gray.200', 'gray.800')
                         }
                         borderRadius="lg"
-                        borderWidth={0}
+                        borderWidth={1}
                         h="full"
                         transition="0.15s ease-in-out"
                         w="full"
