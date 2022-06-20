@@ -50,7 +50,7 @@ type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
-    createNode: (proto: NodeProto, onNodeCreate?: (newNodes: Node<NodeData>[]) => void) => void;
+    createNode: (proto: NodeProto) => void) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
     zoom: number;
