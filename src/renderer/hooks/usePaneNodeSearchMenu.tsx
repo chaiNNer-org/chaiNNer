@@ -11,22 +11,35 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { OnConnectStartParams } from 'react-flow-renderer';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeSchema } from '../../common/common-types';
+import { NodeData, NodeSchema } from '../../common/common-types';
+import { createUniqueId, parseHandle } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
-import { GlobalContext } from '../contexts/GlobalNodeState';
+import { ContextMenuContext } from '../contexts/ContextMenuContext';
+import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
-import { UseContextMenu, useContextMenu } from './useContextMenu';
+import { useContextMenu } from './useContextMenu';
+
+interface UsePaneNodeSearchMenuValue {
+    readonly onConnectStart: (event: React.MouseEvent, handle: OnConnectStartParams) => void;
+    readonly onConnectStop: (event: MouseEvent) => void;
+    readonly onPaneContextMenu: (event: React.MouseEvent) => void;
+}
 
 export const usePaneNodeSearchMenu = (
-    connectingFrom: OnConnectStartParams | null,
-    connectingFromType: string | null,
-    onPaneContextMenuNodeClick: (node: NodeSchema, position: { x: number; y: number }) => void
-): UseContextMenu => {
+    wrapperRef: React.RefObject<HTMLDivElement>
+): UsePaneNodeSearchMenuValue => {
+    const { createNode, createConnection } = useContext(GlobalVolatileContext);
+    const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata } = useContext(GlobalContext);
+
+    const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>();
+    const [connectingFromType, setConnectingFromType] = useState<string | null>();
+    const [isStoppedOnPane, setIsStoppedOnPane] = useState<boolean>(false);
+    const { getNode, project } = useReactFlow();
 
     const [searchQuery, setSearchQuery] = useState<string>('');
     const matchingNodes = useMemo(
@@ -57,7 +70,66 @@ export const usePaneNodeSearchMenu = (
         setSearchQuery('');
     }, [connectingFrom]);
 
-    return useContextMenu(
+    const onPaneContextMenuNodeClick = useCallback(
+        (node: NodeSchema, position: { x: number; y: number }) => {
+            const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
+            const { x, y } = position;
+            const projPosition = project({
+                x: x - reactFlowBounds.left,
+                y: y - reactFlowBounds.top,
+            });
+            const nodeId = createUniqueId();
+            const nodeToMake: NodeProto = {
+                id: nodeId,
+                position: projPosition,
+                data: {
+                    schemaId: node.schemaId,
+                },
+                nodeType: node.nodeType,
+            };
+            createNode(nodeToMake);
+            if (isStoppedOnPane && connectingFrom) {
+                if (connectingFrom.handleType === 'source') {
+                    const firstValidHandle = schemata
+                        .get(node.schemaId)!
+                        .inputs.find(
+                            (input) => input.type === connectingFromType && input.hasHandle
+                        )!.id;
+                    createConnection({
+                        source: connectingFrom.nodeId,
+                        sourceHandle: connectingFrom.handleId,
+                        target: nodeId,
+                        targetHandle: `${nodeId}-${firstValidHandle}`,
+                    });
+                } else if (connectingFrom.handleType === 'target') {
+                    const firstValidHandle = schemata
+                        .get(node.schemaId)!
+                        .outputs.find((output) => output.type === connectingFromType)!.id;
+                    createConnection({
+                        source: nodeId,
+                        sourceHandle: `${nodeId}-${firstValidHandle}`,
+                        target: connectingFrom.nodeId,
+                        targetHandle: connectingFrom.handleId,
+                    });
+                } else {
+                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                }
+            }
+
+            setConnectingFrom(null);
+            closeContextMenu();
+        },
+        [
+            connectingFrom,
+            createConnection,
+            createNode,
+            schemata,
+            connectingFromType,
+            isStoppedOnPane,
+        ]
+    );
+
+    const menu = useContextMenu(
         () => (
             <MenuList
                 bgColor="gray.800"
@@ -152,11 +224,70 @@ export const usePaneNodeSearchMenu = (
             connectingFrom,
             connectingFromType,
             byCategories,
-            menuRef,
             onPaneContextMenuNodeClick,
             searchQuery,
             schemata.schemata,
             matchingNodes,
         ]
     );
+
+    useEffect(() => {
+        if (connectingFrom) {
+            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId!);
+            const node: Node<NodeData> | undefined = getNode(nodeId);
+            if (node) {
+                const nodeSchema = schemata.get(node.data.schemaId);
+                if (connectingFrom.handleType === 'source') {
+                    const outputType = nodeSchema.outputs[inOutId]?.type;
+                    setConnectingFromType(outputType);
+                } else if (connectingFrom.handleType === 'target') {
+                    const inputType = nodeSchema.inputs[inOutId]?.type;
+                    setConnectingFromType(inputType);
+                } else {
+                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                }
+            }
+        }
+    }, [connectingFrom]);
+
+    const onConnectStart = useCallback(
+        (event: React.MouseEvent, handle: OnConnectStartParams) => {
+            setIsStoppedOnPane(false);
+            setConnectingFrom(handle);
+        },
+        [setConnectingFrom, setIsStoppedOnPane]
+    );
+
+    const [coordinates, setCoordinates] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+    const onConnectStop = useCallback(
+        (event: MouseEvent) => {
+            setIsStoppedOnPane(
+                (event.ctrlKey || event.altKey) &&
+                    String((event.target as Element).className).includes('pane')
+            );
+            setCoordinates({
+                x: event.pageX,
+                y: event.pageY,
+            });
+        },
+        [setCoordinates, setIsStoppedOnPane]
+    );
+
+    const onPaneContextMenu = useCallback(
+        (event: React.MouseEvent) => {
+            setConnectingFrom(null);
+            menu.onContextMenu(event);
+        },
+        [setConnectingFrom, menu]
+    );
+
+    useEffect(() => {
+        if (isStoppedOnPane && connectingFrom) {
+            const { x, y } = coordinates;
+            menu.manuallyOpenContextMenu(x, y);
+        }
+    });
+
+    return { onConnectStart, onConnectStop, onPaneContextMenu };
 };
