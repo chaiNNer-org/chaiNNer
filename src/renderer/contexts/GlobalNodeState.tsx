@@ -106,19 +106,18 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createNodeImpl = (
-    { id, position, data, nodeType }: NodeProto,
+    { id = createUniqueId(), position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
     parent?: Node<NodeData>,
     selected = false
 ): Node<NodeData>[] => {
-    const newId = id || createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
-        id: newId,
+        id,
         position: { ...position },
         data: {
             ...data,
-            id: newId,
+            id,
             inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
         },
         selected,
@@ -499,16 +498,12 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (
-                proto: NodeProto,
-                onNodeCreate: (newNodes: Node<NodeData>[]) => void = () => {}
-            ): void => {
+            (proto: NodeProto): void => {
                 changeNodes((nodes) => {
                     const parent = hoveredNode
                         ? nodes.find((n) => n.id === hoveredNode)
                         : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
-                    onNodeCreate(newNodes);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
                         ...newNodes,

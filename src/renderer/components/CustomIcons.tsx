@@ -287,11 +287,9 @@ export const IconFactory = memo(
                 alignContent="center"
                 alignItems="center"
                 as={libraryIcon}
+                boxSize={boxSize}
                 color={accentColor}
-                height={boxSize}
                 transition="0.15s ease-in-out"
-                viewBox={`0 0 ${boxSize} ${boxSize}`}
-                width={boxSize}
             />
         );
     }
