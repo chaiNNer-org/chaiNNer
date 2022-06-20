@@ -165,16 +165,14 @@ class ImageUpscaleNode(NodeBase):
                 model_bytes = sum(
                     p.numel() * p.element_size() for p in model.parameters()
                 )
-                mem_required_estimation = (
-                    (model_bytes / (1024 * 52)) * img_bytes
-                ) / GB_AMT
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
                 split_estimation = 1
                 x = mem_required_estimation
-                while x > free / GB_AMT:
+                while x > free:
                     x /= 4
                     split_estimation += 1
                 logger.info(
-                    f"Estimating memory required: {mem_required_estimation:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total. Estimated Split depth: {split_estimation}"
+                    f"Estimating memory required: {mem_required_estimation/GB_AMT:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total. Estimated Split depth: {split_estimation}"
                 )
 
             t_out, depth = auto_split_process(
