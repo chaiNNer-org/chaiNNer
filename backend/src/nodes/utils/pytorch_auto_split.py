@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import gc
 import os
+from functools import reduce
+from operator import mul
 from typing import Tuple, Union
 
 import torch
+from sanic.log import logger
 from torch import Tensor
 
 
@@ -41,6 +44,10 @@ def auto_split_process(
     #     torch.cuda.empty_cache()
     #     gc.collect()
     #     raise RuntimeError("Upscaling killed mid-processing")
+
+    logger.debug(
+        f"auto_split_process: scale={scale}, overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
+    )
 
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
