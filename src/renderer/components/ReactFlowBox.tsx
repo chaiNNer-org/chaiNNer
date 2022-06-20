@@ -1,18 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { CloseIcon, SearchIcon } from '@chakra-ui/icons';
-import {
-    Box,
-    HStack,
-    Input,
-    InputGroup,
-    InputLeftElement,
-    InputRightElement,
-    MenuList,
-    Text,
-    useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -30,18 +19,16 @@ import ReactFlow, {
     useReactFlow,
 } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { EdgeData, NodeData, NodeSchema } from '../../common/common-types';
 import { createUniqueId, parseHandle } from '../../common/util';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
-import getNodeAccentColors from '../helpers/getNodeAccentColors';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
-import { useContextMenu } from '../hooks/useContextMenu';
-import { IconFactory } from './CustomIcons';
+import { UseContextMenu } from '../hooks/useContextMenu';
+import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
 
@@ -358,170 +345,70 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         }
     }, [connectingFrom]);
 
-    const [searchQuery, setSearchQuery] = useState<string>('');
-    const matchingNodes = useMemo(
-        () =>
-            getMatchingNodes(searchQuery, schemata.schemata).filter((node) => {
-                if (!connectingFrom || !connectingFromType) {
-                    return true;
-                }
+    const onPaneContextMenuNodeClick = useCallback(
+        (node: NodeSchema, position: { x: number; y: number }) => {
+            const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
+            const { x, y } = position;
+            const projPosition = reactFlowInstance.project({
+                x: x - reactFlowBounds.left,
+                y: y - reactFlowBounds.top,
+            });
+            const nodeId = createUniqueId();
+            const nodeToMake: NodeProto = {
+                id: nodeId,
+                position: projPosition,
+                data: {
+                    schemaId: node.schemaId,
+                },
+                nodeType: node.nodeType,
+            };
+            createNode(nodeToMake);
+            if (isStoppedOnPane && connectingFrom) {
                 if (connectingFrom.handleType === 'source') {
-                    return node.inputs.some((input) => {
-                        return connectingFromType === input.type && input.hasHandle;
+                    const firstValidHandle = schemata
+                        .get(node.schemaId)!
+                        .inputs.find(
+                            (input) => input.type === connectingFromType && input.hasHandle
+                        )!.id;
+                    createConnection({
+                        source: connectingFrom.nodeId,
+                        sourceHandle: connectingFrom.handleId,
+                        target: nodeId,
+                        targetHandle: `${nodeId}-${firstValidHandle}`,
                     });
-                }
-                if (connectingFrom.handleType === 'target') {
-                    return node.outputs.some((output) => {
-                        return connectingFromType === output.type;
+                } else if (connectingFrom.handleType === 'target') {
+                    const firstValidHandle = schemata
+                        .get(node.schemaId)!
+                        .outputs.find((output) => output.type === connectingFromType)!.id;
+                    createConnection({
+                        source: nodeId,
+                        sourceHandle: `${nodeId}-${firstValidHandle}`,
+                        target: connectingFrom.nodeId,
+                        targetHandle: connectingFrom.handleId,
                     });
+                } else {
+                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
                 }
-                log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
-                return true;
-            }),
-        [connectingFrom, connectingFromType, searchQuery, schemata.schemata]
-    );
-    const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
-    const menuRef = useRef<HTMLDivElement>(null);
-    const menu = useContextMenu(() => (
-        <MenuList
-            bgColor="gray.800"
-            borderWidth={0}
-            className="nodrag"
-            ref={menuRef}
-        >
-            <InputGroup
-                borderBottomWidth={1}
-                borderRadius={0}
-            >
-                <InputLeftElement
-                    color={useColorModeValue('gray.500', 'gray.300')}
-                    pointerEvents="none"
-                >
-                    <SearchIcon />
-                </InputLeftElement>
-                <Input
-                    autoFocus
-                    borderRadius={0}
-                    placeholder="Search..."
-                    spellCheck={false}
-                    type="text"
-                    value={searchQuery}
-                    variant="filled"
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <InputRightElement
-                    _hover={{ color: useColorModeValue('black', 'white') }}
-                    style={{
-                        color: useColorModeValue('gray.500', 'gray.300'),
-                        cursor: 'pointer',
-                        display: searchQuery ? undefined : 'none',
-                        fontSize: '66%',
-                    }}
-                    onClick={() => setSearchQuery('')}
-                >
-                    <CloseIcon />
-                </InputRightElement>
-            </InputGroup>
-            <Box
-                h="auto"
-                maxH={400}
-                overflowY="scroll"
-                p={1}
-            >
-                {[...byCategories].map(([category, categoryNodes]) => {
-                    const accentColor = getNodeAccentColors(category);
-                    return (
-                        <Box key={category}>
-                            <HStack
-                                borderRadius="md"
-                                mx={1}
-                                py={0.5}
-                            >
-                                <IconFactory
-                                    accentColor={accentColor}
-                                    boxSize={3}
-                                    icon={category}
-                                />
-                                <Text fontSize="xs">{category}</Text>
-                            </HStack>
-                            {[...categoryNodes].map((node) => (
-                                <HStack
-                                    _hover={{ backgroundColor: 'gray.700' }}
-                                    borderRadius="md"
-                                    key={node.schemaId}
-                                    mx={1}
-                                    px={2}
-                                    py={0.5}
-                                    onClick={() => {
-                                        const reactFlowBounds =
-                                            wrapperRef.current!.getBoundingClientRect();
-                                        const { x, y } = menuRef.current!.getBoundingClientRect();
-                                        const position = reactFlowInstance.project({
-                                            x: x - reactFlowBounds.left,
-                                            y: y - reactFlowBounds.top,
-                                        });
-                                        const nodeId = createUniqueId();
-                                        const nodeToMake: NodeProto = {
-                                            id: nodeId,
-                                            position,
-                                            data: {
-                                                schemaId: node.schemaId,
-                                            },
-                                            nodeType: node.nodeType,
-                                        };
-                                        createNode(nodeToMake);
-                                        if (isStoppedOnPane && connectingFrom) {
-                                            if (connectingFrom.handleType === 'source') {
-                                                const firstValidHandle = schemata
-                                                    .get(node.schemaId)!
-                                                    .inputs.find(
-                                                        (input) =>
-                                                            input.type === connectingFromType &&
-                                                            input.hasHandle
-                                                    )!.id;
-                                                createConnection({
-                                                    source: connectingFrom.nodeId,
-                                                    sourceHandle: connectingFrom.handleId,
-                                                    target: nodeId,
-                                                    targetHandle: `${nodeId}-${firstValidHandle}`,
-                                                });
-                                            } else if (connectingFrom.handleType === 'target') {
-                                                const firstValidHandle = schemata
-                                                    .get(node.schemaId)!
-                                                    .outputs.find(
-                                                        (output) =>
-                                                            output.type === connectingFromType
-                                                    )!.id;
-                                                createConnection({
-                                                    source: nodeId,
-                                                    sourceHandle: `${nodeId}-${firstValidHandle}`,
-                                                    target: connectingFrom.nodeId,
-                                                    targetHandle: connectingFrom.handleId,
-                                                });
-                                            } else {
-                                                log.error(
-                                                    `Unknown handle type: ${connectingFrom.handleType!}`
-                                                );
-                                            }
-                                        }
+            }
 
-                                        setConnectingFrom(null);
-                                        closeContextMenu();
-                                    }}
-                                >
-                                    <IconFactory
-                                        accentColor="gray.500"
-                                        icon={node.icon}
-                                    />
-                                    <Text>{node.name}</Text>
-                                </HStack>
-                            ))}
-                        </Box>
-                    );
-                })}
-            </Box>
-        </MenuList>
-    ));
+            setConnectingFrom(null);
+            closeContextMenu();
+        },
+        [
+            connectingFrom,
+            createConnection,
+            createNode,
+            schemata,
+            connectingFromType,
+            isStoppedOnPane,
+        ]
+    );
+
+    const menu: UseContextMenu = usePaneNodeSearchMenu(
+        connectingFrom!,
+        connectingFromType!,
+        onPaneContextMenuNodeClick
+    );
 
     const onConnectStart = useCallback(
         (event: React.MouseEvent, handle: OnConnectStartParams) => {
@@ -596,7 +483,6 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onPaneClick={closeContextMenu}
                 onPaneContextMenu={(event) => {
                     setConnectingFrom(null);
-                    setSearchQuery('');
                     menu.onContextMenu(event);
                 }}
                 onSelectionDragStop={onSelectionDragStop}
