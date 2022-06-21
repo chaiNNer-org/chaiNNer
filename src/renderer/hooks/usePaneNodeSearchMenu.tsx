@@ -1,6 +1,7 @@
 import { CloseIcon, SearchIcon } from '@chakra-ui/icons';
 import {
     Box,
+    Center,
     HStack,
     Input,
     InputGroup,
@@ -147,6 +148,7 @@ export const usePaneNodeSearchMenu = (
                 bgColor={useColorModeValue('gray.200', 'gray.800')}
                 borderWidth={0}
                 className="nodrag"
+                overflow="hidden"
                 onContextMenu={(e) => e.stopPropagation()}
             >
                 <InputGroup
@@ -188,47 +190,51 @@ export const usePaneNodeSearchMenu = (
                     overflowY="scroll"
                     p={1}
                 >
-                    {[...byCategories].map(([category, categoryNodes]) => {
-                        const accentColor = getNodeAccentColors(category);
-                        return (
-                            <Box key={category}>
-                                <HStack
-                                    borderRadius="md"
-                                    mx={1}
-                                    py={0.5}
-                                >
-                                    <IconFactory
-                                        accentColor={accentColor}
-                                        boxSize={3}
-                                        icon={category}
-                                    />
-                                    <Text fontSize="xs">{category}</Text>
-                                </HStack>
-                                {[...categoryNodes].map((node) => (
+                    {[...byCategories].length > 0 ? (
+                        [...byCategories].map(([category, categoryNodes]) => {
+                            const accentColor = getNodeAccentColors(category);
+                            return (
+                                <Box key={category}>
                                     <HStack
-                                        _hover={{
-                                            backgroundColor: bgColor,
-                                        }}
                                         borderRadius="md"
-                                        key={node.schemaId}
                                         mx={1}
-                                        px={2}
                                         py={0.5}
-                                        onClick={() => {
-                                            setSearchQuery('');
-                                            onPaneContextMenuNodeClick(node, mousePosition);
-                                        }}
                                     >
                                         <IconFactory
-                                            accentColor="gray.500"
-                                            icon={node.icon}
+                                            accentColor={accentColor}
+                                            boxSize={3}
+                                            icon={category}
                                         />
-                                        <Text>{node.name}</Text>
+                                        <Text fontSize="xs">{category}</Text>
                                     </HStack>
-                                ))}
-                            </Box>
-                        );
-                    })}
+                                    {[...categoryNodes].map((node) => (
+                                        <HStack
+                                            _hover={{
+                                                backgroundColor: bgColor,
+                                            }}
+                                            borderRadius="md"
+                                            key={node.schemaId}
+                                            mx={1}
+                                            px={2}
+                                            py={0.5}
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                onPaneContextMenuNodeClick(node, mousePosition);
+                                            }}
+                                        >
+                                            <IconFactory
+                                                accentColor="gray.500"
+                                                icon={node.icon}
+                                            />
+                                            <Text>{node.name}</Text>
+                                        </HStack>
+                                    ))}
+                                </Box>
+                            );
+                        })
+                    ) : (
+                        <Center w="full">No compatible nodes found.</Center>
+                    )}
                 </Box>
             </MenuList>
         ),
