@@ -11,7 +11,7 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import log from 'electron-log';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { NodeData, NodeSchema } from '../../common/common-types';
@@ -46,6 +46,8 @@ export const usePaneNodeSearchMenu = (
     const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
+    const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
+
     const [searchQuery, setSearchQuery] = useState('');
     const matchingNodes = useMemo(
         () =>
@@ -69,7 +71,6 @@ export const usePaneNodeSearchMenu = (
         [connectingFrom, connectingFromType, searchQuery, schemata.schemata]
     );
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
-    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setSearchQuery('');
@@ -146,7 +147,6 @@ export const usePaneNodeSearchMenu = (
                 bgColor={useColorModeValue('gray.200', 'gray.800')}
                 borderWidth={0}
                 className="nodrag"
-                ref={menuRef}
             >
                 <InputGroup
                     borderBottomWidth={1}
@@ -214,10 +214,8 @@ export const usePaneNodeSearchMenu = (
                                         px={2}
                                         py={0.5}
                                         onClick={() => {
-                                            const position =
-                                                menuRef.current!.getBoundingClientRect();
                                             setSearchQuery('');
-                                            onPaneContextMenuNodeClick(node, position);
+                                            onPaneContextMenuNodeClick(node, mousePosition);
                                         }}
                                     >
                                         <IconFactory
@@ -241,6 +239,7 @@ export const usePaneNodeSearchMenu = (
             searchQuery,
             schemata.schemata,
             matchingNodes,
+            mousePosition,
         ]
     );
 
@@ -289,11 +288,15 @@ export const usePaneNodeSearchMenu = (
 
     const onPaneContextMenu = useCallback(
         (event: React.MouseEvent) => {
+            setMousePosition({
+                x: event.pageX,
+                y: event.pageY,
+            });
             setConnectingFrom(null);
             setSearchQuery('');
             menu.onContextMenu(event);
         },
-        [setConnectingFrom, menu]
+        [setConnectingFrom, menu, setMousePosition, setSearchQuery]
     );
 
     useEffect(() => {
@@ -301,7 +304,7 @@ export const usePaneNodeSearchMenu = (
             const { x, y } = coordinates;
             menu.manuallyOpenContextMenu(x, y);
         }
-    });
+    }, [isStoppedOnPane, connectingFrom]);
 
     return { onConnectStart, onConnectStop, onPaneContextMenu };
 };
