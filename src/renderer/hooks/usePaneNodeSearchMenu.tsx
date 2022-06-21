@@ -29,6 +29,11 @@ interface UsePaneNodeSearchMenuValue {
     readonly onPaneContextMenu: (event: React.MouseEvent) => void;
 }
 
+interface Position {
+    x: number;
+    y: number;
+}
+
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
@@ -36,12 +41,12 @@ export const usePaneNodeSearchMenu = (
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata } = useContext(GlobalContext);
 
-    const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>();
-    const [connectingFromType, setConnectingFromType] = useState<string | null>();
-    const [isStoppedOnPane, setIsStoppedOnPane] = useState<boolean>(false);
+    const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
+    const [connectingFromType, setConnectingFromType] = useState<string | null>(null);
+    const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchQuery, setSearchQuery] = useState('');
     const matchingNodes = useMemo(
         () =>
             getMatchingNodes(searchQuery, schemata.schemata).filter((node) => {
@@ -71,7 +76,7 @@ export const usePaneNodeSearchMenu = (
     }, [connectingFrom]);
 
     const onPaneContextMenuNodeClick = useCallback(
-        (node: NodeSchema, position: { x: number; y: number }) => {
+        (node: NodeSchema, position: Position) => {
             const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
             const { x, y } = position;
             const projPosition = project({
@@ -91,26 +96,30 @@ export const usePaneNodeSearchMenu = (
             if (isStoppedOnPane && connectingFrom) {
                 if (connectingFrom.handleType === 'source') {
                     const firstValidHandle = schemata
-                        .get(node.schemaId)!
+                        .get(node.schemaId)
                         .inputs.find(
                             (input) => input.type === connectingFromType && input.hasHandle
-                        )!.id;
-                    createConnection({
-                        source: connectingFrom.nodeId,
-                        sourceHandle: connectingFrom.handleId,
-                        target: nodeId,
-                        targetHandle: `${nodeId}-${firstValidHandle}`,
-                    });
+                        );
+                    if (firstValidHandle) {
+                        createConnection({
+                            source: connectingFrom.nodeId,
+                            sourceHandle: connectingFrom.handleId,
+                            target: nodeId,
+                            targetHandle: `${nodeId}-${firstValidHandle.id}`,
+                        });
+                    }
                 } else if (connectingFrom.handleType === 'target') {
                     const firstValidHandle = schemata
-                        .get(node.schemaId)!
-                        .outputs.find((output) => output.type === connectingFromType)!.id;
-                    createConnection({
-                        source: nodeId,
-                        sourceHandle: `${nodeId}-${firstValidHandle}`,
-                        target: connectingFrom.nodeId,
-                        targetHandle: connectingFrom.handleId,
-                    });
+                        .get(node.schemaId)
+                        .outputs.find((output) => output.type === connectingFromType);
+                    if (firstValidHandle) {
+                        createConnection({
+                            source: nodeId,
+                            sourceHandle: `${nodeId}-${firstValidHandle.id}`,
+                            target: connectingFrom.nodeId,
+                            targetHandle: connectingFrom.handleId,
+                        });
+                    }
                 } else {
                     log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
                 }
@@ -128,6 +137,8 @@ export const usePaneNodeSearchMenu = (
             isStoppedOnPane,
         ]
     );
+
+    const bgColor = useColorModeValue('gray.300', 'gray.700');
 
     const menu = useContextMenu(
         () => (
@@ -195,10 +206,7 @@ export const usePaneNodeSearchMenu = (
                                 {[...categoryNodes].map((node) => (
                                     <HStack
                                         _hover={{
-                                            backgroundColor: useColorModeValue(
-                                                'gray.300',
-                                                'gray.700'
-                                            ),
+                                            backgroundColor: bgColor,
                                         }}
                                         borderRadius="md"
                                         key={node.schemaId}
@@ -263,7 +271,7 @@ export const usePaneNodeSearchMenu = (
         [setConnectingFrom, setIsStoppedOnPane]
     );
 
-    const [coordinates, setCoordinates] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    const [coordinates, setCoordinates] = useState<Position>({ x: 0, y: 0 });
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
