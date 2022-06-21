@@ -15,6 +15,7 @@ for (const file of fs.readdirSync(dataDir)) {
     test(`Write save file ${file}`, async () => {
         const json = SaveFile.stringify(await SaveFile.read(filePath), '');
         const obj = JSON.parse(json) as RawSaveFile;
+        delete obj.migration;
         obj.timestamp = '';
         expect(obj).toMatchSnapshot();
     });
