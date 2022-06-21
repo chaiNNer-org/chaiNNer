@@ -63,7 +63,7 @@ class CombineRgbaNode(NodeBase):
         super().__init__()
         self.description = (
             "Merges the given channels together and returns an RGBA image."
-            " If RGB or RGBA image is given as a channel, it will be converted to grayscale first."
+            " All channel images must be a single channel image."
         )
         self.inputs = [
             ImageInput("R Channel"),
