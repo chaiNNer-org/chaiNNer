@@ -73,7 +73,7 @@ class CombineRgbaNode(NodeBase):
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_CHANNEL
-        self.name = "Combine RGB"
+        self.name = "Combine RGBA"
         self.icon = "MdCallMerge"
         self.sub = "All"
 
