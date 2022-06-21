@@ -120,3 +120,13 @@ body {
 #menu-button-global-context-menu+div {
     z-index: 100000;
 }
+
+.react-flow__handle::after {
+    content: " ";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    height: 35px;
+    width: 35px;
+    cursor: crosshair;
+  }
