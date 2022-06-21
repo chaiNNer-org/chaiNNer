@@ -75,9 +75,6 @@ export const usePaneNodeSearchMenu = (
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
     const { favorites } = useNodeFavorites();
-    const favoriteNodes = useMemo(() => {
-        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
-    }, [byCategories, favorites]);
 
     useEffect(() => {
         setSearchQuery('');
