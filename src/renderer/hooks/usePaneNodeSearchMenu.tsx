@@ -1,4 +1,4 @@
-import { CloseIcon, SearchIcon } from '@chakra-ui/icons';
+import { CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
 import {
     Box,
     Center,
@@ -23,6 +23,7 @@ import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/Glo
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
+import { useNodeFavorites } from './useNodeFavorites';
 
 interface UsePaneNodeSearchMenuValue {
     readonly onConnectStart: (event: React.MouseEvent, handle: OnConnectStartParams) => void;
@@ -72,6 +73,11 @@ export const usePaneNodeSearchMenu = (
         [connectingFrom, connectingFromType, searchQuery, schemata.schemata]
     );
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
+
+    const { favorites } = useNodeFavorites();
+    const favoriteNodes = useMemo(() => {
+        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
+    }, [byCategories, favorites]);
 
     useEffect(() => {
         setSearchQuery('');
@@ -207,33 +213,58 @@ export const usePaneNodeSearchMenu = (
                                         />
                                         <Text fontSize="xs">{category}</Text>
                                     </HStack>
-                                    {[...categoryNodes].map((node) => (
-                                        <HStack
-                                            _hover={{
-                                                backgroundColor: bgColor,
-                                            }}
-                                            borderRadius="md"
-                                            key={node.schemaId}
-                                            mx={1}
-                                            px={2}
-                                            py={0.5}
-                                            onClick={() => {
-                                                setSearchQuery('');
-                                                onPaneContextMenuNodeClick(node, mousePosition);
-                                            }}
-                                        >
-                                            <IconFactory
-                                                accentColor="gray.500"
-                                                icon={node.icon}
-                                            />
-                                            <Text>{node.name}</Text>
-                                        </HStack>
-                                    ))}
+                                    {[...categoryNodes].map((node) => {
+                                        const isFavorite = favorites.has(node.schemaId);
+                                        return (
+                                            <HStack
+                                                _hover={{
+                                                    backgroundColor: bgColor,
+                                                }}
+                                                borderRadius="md"
+                                                key={node.schemaId}
+                                                mx={1}
+                                                px={2}
+                                                py={0.5}
+                                                onClick={() => {
+                                                    setSearchQuery('');
+                                                    onPaneContextMenuNodeClick(node, mousePosition);
+                                                }}
+                                            >
+                                                <IconFactory
+                                                    accentColor="gray.500"
+                                                    icon={node.icon}
+                                                />
+                                                <Text
+                                                    h="full"
+                                                    verticalAlign="middle"
+                                                >
+                                                    {node.name}
+                                                </Text>
+                                                (
+                                                {isFavorite && (
+                                                    <StarIcon
+                                                        aria-label="Favorites"
+                                                        boxSize={2.5}
+                                                        color="gray.500"
+                                                        overflow="hidden"
+                                                        stroke="gray.500"
+                                                        verticalAlign="middle"
+                                                    />
+                                                )}
+                                                )
+                                            </HStack>
+                                        );
+                                    })}
                                 </Box>
                             );
                         })
                     ) : (
-                        <Center w="full">No compatible nodes found.</Center>
+                        <Center
+                            opacity="50%"
+                            w="full"
+                        >
+                            No compatible nodes found.
+                        </Center>
                     )}
                 </Box>
             </MenuList>
