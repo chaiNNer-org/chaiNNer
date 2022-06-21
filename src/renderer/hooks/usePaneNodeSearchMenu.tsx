@@ -264,6 +264,10 @@ export const usePaneNodeSearchMenu = (
 
     const onConnectStart = useCallback(
         (event: React.MouseEvent, handle: OnConnectStartParams) => {
+            setMousePosition({
+                x: event.pageX,
+                y: event.pageY,
+            });
             setIsStoppedOnPane(false);
             setConnectingFrom(handle);
         },
@@ -278,6 +282,10 @@ export const usePaneNodeSearchMenu = (
                 (event.ctrlKey || event.altKey) &&
                     String((event.target as Element).className).includes('pane')
             );
+            setMousePosition({
+                x: event.pageX,
+                y: event.pageY,
+            });
             setCoordinates({
                 x: event.pageX,
                 y: event.pageY,
