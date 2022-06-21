@@ -279,7 +279,7 @@ export const usePaneNodeSearchMenu = (
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
             setIsStoppedOnPane(
-                (event.ctrlKey || event.altKey) &&
+                (event.ctrlKey || event.metaKey) &&
                     String((event.target as Element).className).includes('pane')
             );
             setMousePosition({
