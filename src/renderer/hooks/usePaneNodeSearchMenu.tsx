@@ -8,6 +8,7 @@ import {
     InputLeftElement,
     InputRightElement,
     MenuList,
+    Spacer,
     Text,
     useColorModeValue,
 } from '@chakra-ui/react';
