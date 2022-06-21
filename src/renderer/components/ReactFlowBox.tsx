@@ -26,6 +26,8 @@ import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
 
+const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
+
 const STARTING_Z_INDEX = 50;
 /**
  * We want the nodes and edges to form the following layers:
@@ -160,6 +162,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         changeEdges,
         setSetNodes,
         setSetEdges,
+        updateIteratorBounds,
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -190,48 +193,53 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         setSetEdges(() => setEdges);
     }, [setNodes, setEdges]);
 
-    const selectedNodesKey = useMemo(
-        () =>
-            nodes
-                .filter((n) => n.selected)
-                .map((n) => n.id)
-                .join(''),
-        [nodes]
-    );
-    const selectedEdgesKey = useMemo(
-        () =>
-            edges
-                .filter((e) => e.selected)
-                .map((e) => e.id)
-                .join(''),
-        [edges]
-    );
+    const [displayNodes, displayEdges] = useMemo(() => {
+        const displayNodes = nodes.map<Node<NodeData>>((n) => ({ ...n })).sort(compareById);
+        const displayEdges = edges.map<Edge<EdgeData>>((e) => ({ ...e })).sort(compareById);
 
-    // We don't want this to cause a re-render, so we will commit the greatest sin
-    // known to React developers: interior mutation.
-    useMemo(() => {
-        nodes.sort((a, b) => a.id.localeCompare(b.id));
-    }, [nodes.length]);
-    useMemo(() => {
-        edges.sort((a, b) => a.id.localeCompare(b.id));
-    }, [edges.length]);
-    useMemo(
-        () => updateZIndexes(nodes, edges),
-        [nodes.length, edges.length, selectedNodesKey, selectedEdgesKey]
-    );
-    useMemo(() => {
-        if (!isSnapToGrid) return;
-        for (const n of nodes) {
-            if (!isSnappedToGrid(n.position, snapToGridAmount)) {
-                n.position = snapToGrid(n.position, snapToGridAmount);
+        updateZIndexes(displayNodes, displayEdges);
+
+        if (isSnapToGrid) {
+            for (const n of displayNodes) {
+                if (!isSnappedToGrid(n.position, snapToGridAmount)) {
+                    n.position = snapToGrid(n.position, snapToGridAmount);
+                }
             }
         }
-    }, [isSnapToGrid && snapToGridAmount, nodes]);
 
-    const onNodeDragStop = useCallback(() => {
-        addNodeChanges();
-        addEdgeChanges();
-    }, [addNodeChanges, addEdgeChanges]);
+        return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
+    }, [nodes, edges]);
+
+    const onNodeDragStop = useCallback(
+        (event: React.MouseEvent, node: Node<NodeData>, nodes: Node<NodeData>[]) => {
+            if (node.type === 'iterator') {
+                updateIteratorBounds(node.id, node.data.iteratorSize ?? null);
+            }
+            nodes.forEach((n) => {
+                if (n.type === 'iterator') {
+                    updateIteratorBounds(n.id, n.data.iteratorSize ?? null);
+                }
+            });
+
+            addNodeChanges();
+            addEdgeChanges();
+        },
+        [addNodeChanges, addEdgeChanges]
+    );
+
+    const onSelectionDragStop = useCallback(
+        (event: React.MouseEvent, nodes: Node<NodeData>[]) => {
+            nodes.forEach((n) => {
+                if (n.type === 'iterator') {
+                    updateIteratorBounds(n.id, n.data.iteratorSize ?? null);
+                }
+            });
+
+            addNodeChanges();
+            addEdgeChanges();
+        },
+        [addNodeChanges, addEdgeChanges]
+    );
 
     const onNodesDelete = useCallback(
         (toDelete: readonly Node<NodeData>[]) => {
@@ -323,11 +331,11 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 connectionLineContainerStyle={{ zIndex: 1000 }}
                 deleteKeyCode={useMemo(() => ['Backspace', 'Delete'], [])}
                 edgeTypes={edgeTypes}
-                edges={edges}
+                edges={displayEdges}
                 maxZoom={8}
                 minZoom={0.125}
                 nodeTypes={nodeTypes}
-                nodes={nodes}
+                nodes={displayNodes}
                 snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
                 snapToGrid={isSnapToGrid}
                 style={{
@@ -348,6 +356,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
                 onPaneClick={closeContextMenu}
+                onSelectionDragStop={onSelectionDragStop}
             >
                 <Background
                     gap={16}

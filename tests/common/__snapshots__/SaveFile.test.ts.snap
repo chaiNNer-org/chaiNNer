@@ -8,7 +8,7 @@ Object {
       "data": Object {
         "id": "eb71587e-3c78-4267-a64d-e0d943ccaefb",
         "inputData": Object {
-          "2": 100,
+          "2": 0,
           "3": 100,
           "4": 0,
         },
@@ -1044,8 +1044,8 @@ Object {
       "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
       "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
       "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+      "target": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+      "targetHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1066,8 +1066,8 @@ Object {
       "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
       "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
       "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+      "target": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+      "targetHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
       "type": "main",
       "zIndex": 49,
     },
@@ -1093,13 +1093,35 @@ Object {
       "type": "main",
       "zIndex": 49,
     },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "23ded9d1-614a-5eb9-9699-63c69a30e260",
+      "source": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+      "sourceHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
+      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "58624df5-fc25-5120-83e3-8e1433039b6b",
+      "source": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+      "sourceHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
+      "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+      "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+      "type": "main",
+      "zIndex": 49,
+    },
   ],
   "nodes": Array [
     Object {
       "data": Object {
         "id": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
         "inputData": Object {
-          "2": 81,
+          "2": 0,
           "3": 69,
           "4": 0,
           "5": 81,
@@ -1180,7 +1202,7 @@ Object {
       "data": Object {
         "id": "94e84d6f-5179-42c9-8d63-2f3ddfd121d9",
         "inputData": Object {
-          "2": 100,
+          "2": 10,
           "3": 100,
           "4": 10,
         },
@@ -1272,6 +1294,44 @@ Object {
       "type": "regularNode",
       "width": 242,
       "zIndex": 70,
+    },
+    Object {
+      "data": Object {
+        "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "inputData": Object {
+          "1": 81,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 456,
+      "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+      "position": Object {
+        "x": 193.03125,
+        "y": -37,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "inputData": Object {
+          "1": 69,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 456,
+      "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+      "position": Object {
+        "x": 193.03125,
+        "y": 263,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
     },
   ],
   "tamperedWith": false,
@@ -1403,6 +1463,39 @@ Object {
       "type": "regularNode",
       "width": 257,
       "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
+exports[`Read save file opacity.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+        "inputData": Object {
+          "1": 72,
+        },
+        "schemaId": "chainner:image:opacity",
+      },
+      "height": 241,
+      "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+      "position": Object {
+        "x": 480,
+        "y": 400,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
     },
   ],
   "tamperedWith": false,
@@ -1678,7 +1771,7 @@ Object {
 
 exports[`Write save file blend-images.chn 1`] = `
 Object {
-  "checksum": "59501e2ad7437bd2ae4b084a1ae4f001",
+  "checksum": "cc0b6777568df9eec21d83884267defd",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -1686,7 +1779,7 @@ Object {
         "data": Object {
           "id": "eb71587e-3c78-4267-a64d-e0d943ccaefb",
           "inputData": Object {
-            "2": 100,
+            "2": 0,
             "3": 100,
             "4": 0,
           },
@@ -1710,7 +1803,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -1780,7 +1873,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -1883,7 +1976,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2045,7 +2138,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2187,7 +2280,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2420,7 +2513,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2539,7 +2632,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2670,7 +2763,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2706,7 +2799,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2714,7 +2807,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "290882fb8d7aae023c65e4e157d4d89f",
+  "checksum": "6f5aa508b291c2b7fe0a7b73396f00c7",
   "content": Object {
     "edges": Array [
       Object {
@@ -2767,8 +2860,8 @@ Object {
         "id": "63490a2f-b598-433a-864e-4a08ec2e7cfb",
         "source": "9fe50d97-8d04-43b7-adde-f5dfad7b577f",
         "sourceHandle": "9fe50d97-8d04-43b7-adde-f5dfad7b577f-0",
-        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+        "target": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "targetHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2789,8 +2882,8 @@ Object {
         "id": "73804025-435d-4e52-bd8b-caffdd1f6799",
         "source": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93",
         "sourceHandle": "c104d1f4-02cc-4e8c-a1cc-21dec7afaa93-0",
-        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
-        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+        "target": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "targetHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
         "type": "main",
         "zIndex": 49,
       },
@@ -2816,13 +2909,35 @@ Object {
         "type": "main",
         "zIndex": 49,
       },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "23ded9d1-614a-5eb9-9699-63c69a30e260",
+        "source": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "sourceHandle": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f-0",
+        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "58624df5-fc25-5120-83e3-8e1433039b6b",
+        "source": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "sourceHandle": "760f82b1-119a-53ae-af2b-45e583af6e7b-0",
+        "target": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
+        "targetHandle": "246c1a4b-9d15-4e93-b296-9ca05a51170a-1",
+        "type": "main",
+        "zIndex": 49,
+      },
     ],
     "nodes": Array [
       Object {
         "data": Object {
           "id": "246c1a4b-9d15-4e93-b296-9ca05a51170a",
           "inputData": Object {
-            "2": 81,
+            "2": 0,
             "3": 69,
             "4": 0,
             "5": 81,
@@ -2903,7 +3018,7 @@ Object {
         "data": Object {
           "id": "94e84d6f-5179-42c9-8d63-2f3ddfd121d9",
           "inputData": Object {
-            "2": 100,
+            "2": 10,
             "3": 100,
             "4": 10,
           },
@@ -2996,6 +3111,44 @@ Object {
         "width": 242,
         "zIndex": 70,
       },
+      Object {
+        "data": Object {
+          "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+          "inputData": Object {
+            "1": 81,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 456,
+        "id": "f7249477-4af7-5e5a-bd2c-0aea42aa6d3f",
+        "position": Object {
+          "x": 193.03125,
+          "y": -37,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+          "inputData": Object {
+            "1": 69,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 456,
+        "id": "760f82b1-119a-53ae-af2b-45e583af6e7b",
+        "position": Object {
+          "x": 193.03125,
+          "y": 263,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
     ],
     "viewport": Object {
       "x": 0,
@@ -3003,7 +3156,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3139,7 +3292,45 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file opacity.chn 1`] = `
+Object {
+  "checksum": "07014c123db5bd7ebbb1d5a50421555f",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+          "inputData": Object {
+            "1": 72,
+          },
+          "schemaId": "chainner:image:opacity",
+        },
+        "height": 241,
+        "id": "6c9e3fce-fd01-492b-8abc-a175b104041e",
+        "position": Object {
+          "x": 480,
+          "y": 400,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3329,7 +3520,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3411,7 +3602,7 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 10,
+  "migration": 11,
   "timestamp": "",
   "version": "",
 }

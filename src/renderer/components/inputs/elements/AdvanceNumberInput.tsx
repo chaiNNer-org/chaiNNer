@@ -16,7 +16,7 @@ const clamp = (value: number, min?: number | null, max?: number | null): number 
     return value;
 };
 
-const getPrecision = (n: number) => {
+export const getPrecision = (n: number) => {
     // eslint-disable-next-line no-param-reassign
     n %= 1;
     if (areApproximatelyEqual(n, 0)) return 0;
@@ -30,6 +30,7 @@ interface AdvancedNumberInputProps {
     offset: number;
     step: number;
     controlsStep: number;
+    hideTrailingZeros: boolean;
 
     defaultValue: number;
     isDisabled?: boolean;
@@ -48,6 +49,7 @@ export const AdvancedNumberInput = memo(
         offset,
         step,
         controlsStep,
+        hideTrailingZeros,
 
         defaultValue,
         isDisabled,
@@ -72,7 +74,7 @@ export const AdvancedNumberInput = memo(
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                 setImmediate(() => {
                     setInput(value);
-                    setInputString(String(value));
+                    setInputString(hideTrailingZeros ? String(value) : value.toFixed(precision));
                 });
             }
         };
