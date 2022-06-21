@@ -239,14 +239,17 @@ export const usePaneNodeSearchMenu = (
                                                 </Text>
                                                 (
                                                 {isFavorite && (
-                                                    <StarIcon
-                                                        aria-label="Favorites"
-                                                        boxSize={2.5}
-                                                        color="gray.500"
-                                                        overflow="hidden"
-                                                        stroke="gray.500"
-                                                        verticalAlign="middle"
-                                                    />
+                                                    <>
+                                                        <Spacer />
+                                                        <StarIcon
+                                                            aria-label="Favorites"
+                                                            boxSize={2.5}
+                                                            color="gray.500"
+                                                            overflow="hidden"
+                                                            stroke="gray.500"
+                                                            verticalAlign="middle"
+                                                        />
+                                                    </>
                                                 )}
                                                 )
                                             </HStack>
