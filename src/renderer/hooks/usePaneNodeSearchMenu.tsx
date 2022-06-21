@@ -132,7 +132,7 @@ export const usePaneNodeSearchMenu = (
     const menu = useContextMenu(
         () => (
             <MenuList
-                bgColor="gray.800"
+                bgColor={useColorModeValue('gray.200', 'gray.800')}
                 borderWidth={0}
                 className="nodrag"
                 ref={menuRef}
@@ -194,7 +194,12 @@ export const usePaneNodeSearchMenu = (
                                 </HStack>
                                 {[...categoryNodes].map((node) => (
                                     <HStack
-                                        _hover={{ backgroundColor: 'gray.700' }}
+                                        _hover={{
+                                            backgroundColor: useColorModeValue(
+                                                'gray.300',
+                                                'gray.700'
+                                            ),
+                                        }}
                                         borderRadius="md"
                                         key={node.schemaId}
                                         mx={1}
