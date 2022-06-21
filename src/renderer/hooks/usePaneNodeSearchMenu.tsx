@@ -147,6 +147,7 @@ export const usePaneNodeSearchMenu = (
                 bgColor={useColorModeValue('gray.200', 'gray.800')}
                 borderWidth={0}
                 className="nodrag"
+                onContextMenu={(e) => e.stopPropagation()}
             >
                 <InputGroup
                     borderBottomWidth={1}
