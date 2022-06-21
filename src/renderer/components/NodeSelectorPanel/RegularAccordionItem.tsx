@@ -69,24 +69,12 @@ const RegularAccordionItem = memo(
                 >
                     {[...subcategoryMap].map(([subcategory, nodes]) => (
                         <Box key={subcategory}>
-                            <Tooltip
-                                closeOnMouseDown
-                                hasArrow
-                                borderRadius={8}
-                                fontSize="1.05rem"
-                                isDisabled={!collapsed}
-                                label={<i>{subcategory}</i>}
-                                openDelay={500}
-                                px={2}
-                                py={1}
-                            >
-                                <Center>
-                                    <SubcategoryHeading
-                                        collapsed={collapsed}
-                                        subcategory={subcategory}
-                                    />
-                                </Center>
-                            </Tooltip>
+                            <Center>
+                                <SubcategoryHeading
+                                    collapsed={collapsed}
+                                    subcategory={subcategory}
+                                />
+                            </Center>
                             <Box>
                                 {nodes.map((node) => (
                                     <RepresentativeNodeWrapper
