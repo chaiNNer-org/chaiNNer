@@ -6,8 +6,8 @@ import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
+import { shadeColor } from '../helpers/colorTools';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
-import shadeColor from '../helpers/shadeColor';
 
 const CustomEdge = memo(
     ({

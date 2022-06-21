@@ -53,6 +53,7 @@ const NodeBody = memo(
                 </Center>
             )}
             <NodeOutputs
+                accentColor={accentColor}
                 id={id}
                 outputs={outputs}
             />

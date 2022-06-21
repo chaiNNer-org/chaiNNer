@@ -5,8 +5,8 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
+import { shadeColor } from '../../helpers/colorTools';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import shadeColor from '../../helpers/shadeColor';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
@@ -151,6 +151,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     </Center>
                 )}
                 <NodeOutputs
+                    accentColor={accentColor}
                     id={id}
                     outputs={outputs}
                 />

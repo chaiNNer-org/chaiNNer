@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { interpolateColor } from '../../helpers/colorTools';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -10,10 +11,18 @@ interface InputContainerProps {
     inputId: number;
     label?: string;
     hasHandle: boolean;
+    accentColor: string;
 }
 
 const InputContainer = memo(
-    ({ children, hasHandle, id, inputId, label }: React.PropsWithChildren<InputContainerProps>) => {
+    ({
+        children,
+        hasHandle,
+        id,
+        inputId,
+        label,
+        accentColor,
+    }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
 
         let contents = children;
@@ -56,9 +65,12 @@ const InputContainer = memo(
             );
         }
 
+        const bgColor = useColorModeValue('#EDF2F7', '#4A5568');
+
         return (
             <Box
-                bg={useColorModeValue('gray.100', 'gray.600')}
+                // bg={useColorModeValue('gray.100', 'gray.600')}
+                bg={interpolateColor(accentColor, bgColor, 0.975)}
                 p={2}
                 w="full"
             >

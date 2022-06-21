@@ -6,11 +6,13 @@ interface GenericOutputProps {
     id: string;
     label: string;
     outputId: number;
+    accentColor: string;
 }
 
-const GenericOutput = memo(({ label, id, outputId }: GenericOutputProps) => (
+const GenericOutput = memo(({ label, id, outputId, accentColor }: GenericOutputProps) => (
     <OutputContainer
         hasHandle
+        accentColor={accentColor}
         id={id}
         outputId={outputId}
     >

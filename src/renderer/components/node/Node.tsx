@@ -7,9 +7,9 @@ import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
+import { interpolateColor, shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import shadeColor from '../../helpers/shadeColor';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
@@ -133,14 +133,18 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
     const menu = useNodeMenu(id, isLocked ?? false);
 
+    const bgColor = useColorModeValue('#CBD5E0', '#2D3748');
+
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.700')}
+            // bg={useColorModeValue('gray.300', 'gray.700')}
+            bg={interpolateColor(accentColor, bgColor, 0.975)}
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
-            py={2}
+            overflow="hidden"
+            pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}

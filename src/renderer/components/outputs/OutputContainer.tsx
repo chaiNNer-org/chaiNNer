@@ -3,16 +3,24 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { interpolateColor } from '../../helpers/colorTools';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface OutputContainerProps {
     hasHandle: boolean;
     outputId: number;
     id: string;
+    accentColor: string;
 }
 
 const OutputContainer = memo(
-    ({ children, hasHandle, outputId, id }: React.PropsWithChildren<OutputContainerProps>) => {
+    ({
+        children,
+        hasHandle,
+        outputId,
+        id,
+        accentColor,
+    }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
 
         let contents = children;
@@ -55,9 +63,12 @@ const OutputContainer = memo(
             );
         }
 
+        const bgColor = useColorModeValue('#EDF2F7', '#4A5568');
+
         return (
             <Box
-                bg={useColorModeValue('gray.200', 'gray.600')}
+                // bg={useColorModeValue('gray.200', 'gray.600')}
+                bg={interpolateColor(accentColor, bgColor, 0.975)}
                 p={2}
                 w="full"
             >

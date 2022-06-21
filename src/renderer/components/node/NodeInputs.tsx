@@ -56,6 +56,7 @@ const pickInput = (type: string, props: FullInputProps) => {
         default:
             return (
                 <InputContainer
+                    accentColor={props.accentColor}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
@@ -67,6 +68,7 @@ const pickInput = (type: string, props: FullInputProps) => {
     }
     return (
         <InputContainer
+            accentColor={props.accentColor}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
