@@ -15,6 +15,7 @@ interface Settings {
         setSnapToGridAmount: React.Dispatch<React.SetStateAction<number>>
     ];
     useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
+    useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Node Settings
     useNodeFavorites: readonly [
@@ -39,6 +40,7 @@ export const SettingsProvider = memo(
         const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
         const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
         const [startupTemplate, setStartupTemplate] = useLocalStorage('startup-template', '');
+        const [isDarkMode, setIsDarkMode] = useLocalStorage('use-dark-mode', true);
 
         const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu, setIsCpu]);
         const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16, setIsFp16]);
@@ -64,6 +66,10 @@ export const SettingsProvider = memo(
             () => [startupTemplate, setStartupTemplate] as const,
             [startupTemplate, setStartupTemplate]
         );
+        const useIsDarkMode = useMemo(
+            () => [isDarkMode, setIsDarkMode] as const,
+            [isDarkMode, setIsDarkMode]
+        );
 
         // Node Settings
         const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
@@ -82,6 +88,7 @@ export const SettingsProvider = memo(
                 useSnapToGrid,
                 useDisHwAccel,
                 useStartupTemplate,
+                useIsDarkMode,
 
                 // Node
                 useNodeFavorites,
@@ -96,6 +103,7 @@ export const SettingsProvider = memo(
                 useSnapToGrid,
                 useDisHwAccel,
                 useStartupTemplate,
+                useIsDarkMode,
                 useNodeFavorites,
                 port,
             ]
