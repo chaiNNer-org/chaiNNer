@@ -15,7 +15,7 @@ from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:split_channels")
-class ChannelSplitRGBANode(NodeBase):
+class SeparateRgbaNode(NodeBase):
     """NumPy Splitter node"""
 
     def __init__(self):
@@ -27,31 +27,26 @@ class ChannelSplitRGBANode(NodeBase):
         )
         self.inputs = [ImageInput()]
         self.outputs = [
-            ImageOutput("Blue Channel"),
-            ImageOutput("Green Channel"),
-            ImageOutput("Red Channel"),
-            ImageOutput("Alpha Channel"),
+            ImageOutput("R Channel").with_id(2),
+            ImageOutput("G Channel").with_id(1),
+            ImageOutput("B Channel").with_id(0),
+            ImageOutput("A Channel"),
         ]
         self.category = IMAGE_CHANNEL
-        self.name = "Split Channels"
+        self.name = "Separate RGBA"
         self.icon = "MdCallSplit"
         self.sub = "All"
 
     def run(self, img: np.ndarray) -> list[np.ndarray]:
         """Split a multi-channel image into separate channels"""
 
-        c = 1
-        dtype_max = 1
-        try:
-            dtype_max = np.iinfo(img.dtype).max
-        except:
-            logger.debug("img dtype is not int")
+        h, w, c = get_h_w_c(img)
+        safe_out = np.ones((h, w))
 
-        if img.ndim > 2:
-            c = img.shape[2]
-            safe_out = np.ones_like(img[:, :, 0]) * dtype_max
-        else:
-            safe_out = np.ones_like(img) * dtype_max
+        if img.ndim == 2:
+            return [img, safe_out, safe_out, safe_out]
+
+        c = min(c, 4)
 
         out = []
         for i in range(c):
@@ -59,7 +54,64 @@ class ChannelSplitRGBANode(NodeBase):
         for i in range(4 - c):
             out.append(safe_out)
 
-        return out
+        return [out[2], out[1], out[0], out[3]]
+
+
+@NodeFactory.register("chainner:image:combine_rgba")
+class CombineRgbaNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = (
+            "Merges the given channels together and returns an RGBA image."
+            " If RGB or RGBA image is given as a channel, it will be converted to grayscale first."
+        )
+        self.inputs = [
+            ImageInput("R Channel"),
+            ImageInput("G Channel"),
+            ImageInput("B Channel"),
+            ImageInput("A Channel").make_optional(),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_CHANNEL
+        self.name = "Combine RGB"
+        self.icon = "MdCallMerge"
+        self.sub = "All"
+
+    def run(
+        self,
+        img_r: np.ndarray,
+        img_g: np.ndarray,
+        img_b: np.ndarray,
+        img_a: Union[np.ndarray, None],
+    ) -> np.ndarray:
+        start_shape = img_r.shape[:2]
+
+        for im in img_g, img_b, img_a:
+            if im is not None:
+                assert (
+                    im.shape[:2] == start_shape
+                ), "All channel images must have the same resolution"
+
+        def get_channel(img: np.ndarray) -> np.ndarray:
+            if img.ndim == 2:
+                return img
+
+            c = get_h_w_c(img)[2]
+            assert c == 1, (
+                "All channel images must only have exactly one channel."
+                " Suggestion: Convert to grayscale first."
+            )
+
+            return img[:, :, 0]
+
+        channels = [
+            get_channel(img_b),
+            get_channel(img_g),
+            get_channel(img_r),
+            get_channel(img_a) if img_a is not None else np.ones(start_shape),
+        ]
+
+        return np.stack(channels, axis=2)
 
 
 @NodeFactory.register("chainner:image:merge_channels")
