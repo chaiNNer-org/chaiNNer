@@ -83,6 +83,11 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
                                     ? 'Image preview failed to load, probably unsupported file type.'
                                     : 'File does not exist on the system. Please select a different file.'
                             }
+                            backgroundImage={
+                                img?.channels === 4
+                                    ? 'data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQABAACMCWJaQAA3AA/u11j//aQAAA'
+                                    : ''
+                            }
                             borderRadius="md"
                             draggable={false}
                             maxH="200px"

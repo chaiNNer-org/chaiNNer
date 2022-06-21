@@ -88,7 +88,11 @@ const RepresentativeNodeWrapper = memo(
                             closeOnMouseDown
                             hasArrow
                             borderRadius={8}
-                            label={<ReactMarkdown>{node.description}</ReactMarkdown>}
+                            label={
+                                <ReactMarkdown>{`**${collapsed ? node.name : ''}**\n\n${
+                                    node.description
+                                }`}</ReactMarkdown>
+                            }
                             openDelay={500}
                             placement="bottom"
                             px={2}
