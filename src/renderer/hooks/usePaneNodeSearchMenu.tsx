@@ -277,6 +277,7 @@ export const usePaneNodeSearchMenu = (
     const onPaneContextMenu = useCallback(
         (event: React.MouseEvent) => {
             setConnectingFrom(null);
+            setSearchQuery('');
             menu.onContextMenu(event);
         },
         [setConnectingFrom, menu]
