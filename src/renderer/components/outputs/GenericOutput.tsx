@@ -7,14 +7,16 @@ interface GenericOutputProps {
     label: string;
     outputId: number;
     accentColor: string;
+    type: string;
 }
 
-const GenericOutput = memo(({ label, id, outputId, accentColor }: GenericOutputProps) => (
+const GenericOutput = memo(({ label, id, outputId, accentColor, type }: GenericOutputProps) => (
     <OutputContainer
         hasHandle
         accentColor={accentColor}
         id={id}
         outputId={outputId}
+        type={type}
     >
         <Text
             marginInlineEnd="0.5rem"

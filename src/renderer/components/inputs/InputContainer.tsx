@@ -4,6 +4,7 @@ import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { interpolateColor } from '../../helpers/colorTools';
+import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -12,6 +13,7 @@ interface InputContainerProps {
     label?: string;
     hasHandle: boolean;
     accentColor: string;
+    type: string;
 }
 
 const InputContainer = memo(
@@ -22,13 +24,14 @@ const InputContainer = memo(
         inputId,
         label,
         accentColor,
+        type,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
 
         let contents = children;
         if (hasHandle) {
-            const handleColor = useColorModeValue('#EDF2F7', '#171923');
-            const borderColor = useColorModeValue('#171923', '#F7FAFC');
+            const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
+            const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
             contents = (
                 <HStack
                     h="full"
@@ -51,10 +54,11 @@ const InputContainer = memo(
                             style={{
                                 width: '15px',
                                 height: '15px',
-                                borderWidth: '1px',
+                                borderWidth: '0px',
                                 borderColor,
                                 transition: '0.25s ease-in-out',
                                 background: handleColor,
+                                boxShadow: '2px 2px 2px #00000014',
                             }}
                             type="target"
                             onContextMenu={noContextMenu}

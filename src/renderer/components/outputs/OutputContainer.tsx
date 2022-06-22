@@ -4,6 +4,7 @@ import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { interpolateColor } from '../../helpers/colorTools';
+import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface OutputContainerProps {
@@ -11,6 +12,7 @@ interface OutputContainerProps {
     outputId: number;
     id: string;
     accentColor: string;
+    type: string;
 }
 
 const OutputContainer = memo(
@@ -20,12 +22,13 @@ const OutputContainer = memo(
         outputId,
         id,
         accentColor,
+        type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
 
         let contents = children;
         if (hasHandle) {
-            const handleColor = useColorModeValue('#EDF2F7', '#171923');
+            const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
             const borderColor = useColorModeValue('#171923', '#F7FAFC');
             contents = (
                 <HStack
@@ -50,10 +53,11 @@ const OutputContainer = memo(
                             style={{
                                 width: '15px',
                                 height: '15px',
-                                borderWidth: '1px',
+                                borderWidth: '0px',
                                 borderColor,
                                 transition: '0.25s ease-in-out',
                                 background: handleColor,
+                                boxShadow: '-2px 2px 2px #00000014',
                             }}
                             type="source"
                             onContextMenu={noContextMenu}

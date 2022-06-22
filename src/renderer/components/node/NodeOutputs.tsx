@@ -18,6 +18,7 @@ const NodeOutputs = memo(({ outputs, id, accentColor }: NodeOutputsProps) => (
                     key={`${output.label}-${output.id}`}
                     label={output.label}
                     outputId={output.id}
+                    type={output.type}
                 />
             );
         })}

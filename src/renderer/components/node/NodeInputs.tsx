@@ -61,6 +61,7 @@ const pickInput = (type: string, props: FullInputProps) => {
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
+                    type={type}
                 >
                     <GenericInput {...props} />
                 </InputContainer>
@@ -74,6 +75,7 @@ const pickInput = (type: string, props: FullInputProps) => {
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
             label={props.label}
+            type={type}
         >
             <InputType {...props} />
         </InputContainer>

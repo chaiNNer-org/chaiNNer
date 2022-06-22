@@ -5,9 +5,10 @@ import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flo
 import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { parseHandle } from '../../common/util';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { shadeColor } from '../helpers/colorTools';
-import getNodeAccentColors from '../helpers/getNodeAccentColors';
+import getTypeAccentColors from '../helpers/getTypeAccentColors';
 
 const CustomEdge = memo(
     ({
@@ -21,6 +22,8 @@ const CustomEdge = memo(
         targetPosition,
         style = {},
         selected,
+        sourceHandleId,
+        targetHandleId,
     }: EdgeProps<EdgeData>) => {
         const edgePath = useMemo(
             () =>
@@ -43,8 +46,11 @@ const CustomEdge = memo(
         const [isHovered, setIsHovered] = useState(false);
 
         // We dynamically grab this data instead since storing the types makes transitioning harder
-        const { category } = schemata.get(parentNode.data.schemaId);
-        const accentColor = getNodeAccentColors(category);
+        const { category, outputs } = schemata.get(parentNode.data.schemaId);
+        const { inOutId } = useMemo(() => parseHandle(sourceHandleId!), [sourceHandleId]);
+        const { type } = outputs[inOutId];
+
+        const accentColor = getTypeAccentColors(type); // getNodeAccentColors(category);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
