@@ -28,15 +28,6 @@ def check_env():
         "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
     )
 
-    if os.environ["isFp16"] == "True":
-        if os.environ["device"] == "cpu":
-            os.environ["isFp16"] = "False"
-            torch.set_default_tensor_type(torch.FloatTensor)
-        elif os.environ["device"] == "cuda":
-            torch.set_default_tensor_type(torch.cuda.HalfTensor)  # type: ignore
-        else:
-            logger.warning("Something isn't set right with the device env var")
-
 
 def load_state_dict(state_dict):
     logger.info(f"Loading state dict into ESRGAN model")
@@ -158,6 +149,9 @@ class ImageUpscaleNode(NodeBase):
             if os.environ["isFp16"] == "True":
                 model = model.half()
                 img_tensor = img_tensor.half()
+            else:
+                model = model.float()
+                img_tensor = img_tensor.float()
             logger.info("Upscaling image")
 
             if os.environ["device"] == "cuda":
