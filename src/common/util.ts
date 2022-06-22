@@ -67,3 +67,15 @@ export const debounce = (fn: () => void, delay: number): (() => void) => {
 };
 
 export const areApproximatelyEqual = (a: number, b: number): boolean => Math.abs(a - b) < 1e-12;
+
+type WithType<S, T extends string> = S extends { readonly type: T } ? S : never;
+export type Visitors<State extends { readonly type: string }, R> = {
+    [K in State['type']]: (state: WithType<State, K>) => R;
+};
+export const visitType = <State extends { readonly type: string }, R>(
+    state: State,
+    visitors: Visitors<State, R>
+): R => {
+    const v = (visitors as Record<string, unknown>)[state.type] as (state: State) => R;
+    return v(state);
+};

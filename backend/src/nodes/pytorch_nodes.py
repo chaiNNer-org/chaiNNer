@@ -89,6 +89,8 @@ class LoadModelNode(NodeBase):
         self.model = None  # Defined in run
 
     def get_extra_data(self) -> Dict:
+        assert self.model is not None
+
         # TODO: Figure out how to make types for this
         if "SRVGG" in self.model.model_type:  # type: ignore
             size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]  # type: ignore
