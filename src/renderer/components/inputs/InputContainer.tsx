@@ -1,7 +1,9 @@
-import { Box, HStack, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { Handle, Position } from 'react-flow-renderer';
+import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
+import { EdgeData } from '../../../common/common-types';
+import { parseHandle } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { interpolateColor } from '../../helpers/colorTools';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
@@ -16,6 +18,40 @@ interface InputContainerProps {
     type: string;
 }
 
+interface LeftHandleProps {
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
+    id: string;
+    inputId: number;
+}
+
+// Had to do this garbage to prevent chakra from clashing the position prop
+const LeftHandle = memo(
+    ({
+        children,
+        isValidConnection,
+        id,
+        inputId,
+        ...props
+    }: React.PropsWithChildren<LeftHandleProps>) => (
+        <Handle
+            isConnectable
+            className="input-handle"
+            id={`${id}-${inputId}`}
+            isValidConnection={isValidConnection}
+            position={Position.Left}
+            type="target"
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {children}
+        </Handle>
+    )
+);
+
+const Div = chakra('div', {
+    baseStyle: {},
+});
+
 const InputContainer = memo(
     ({
         children,
@@ -27,11 +63,16 @@ const InputContainer = memo(
         type,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
+        const edges = useEdges<EdgeData>();
+        const isConnected = !!edges.find(
+            (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
+        );
 
         let contents = children;
         if (hasHandle) {
             const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
             const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
+            const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (
                 <HStack
                     h="full"
@@ -45,22 +86,38 @@ const InputContainer = memo(
                     }}
                 >
                     <div style={{ position: 'absolute', left: '-4px', width: 0 }}>
-                        <Handle
-                            isConnectable
+                        <Div
+                            _before={{
+                                content: '" "',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                height: '35px',
+                                width: '35px',
+                                cursor: 'crosshair',
+                                // backgroundColor: '#FF00FF1F',
+                                transform: 'translate(-50%, -50%)',
+                                borderRadius: '100%',
+                            }}
+                            _hover={{
+                                width: '22px',
+                                height: '22px',
+                                marginLeft: '-3px',
+                            }}
+                            as={LeftHandle}
                             className="input-handle"
-                            id={`${id}-${inputId}`}
+                            id={id}
+                            inputId={inputId}
                             isValidConnection={isValidConnection}
-                            position={Position.Left}
-                            style={{
-                                width: '15px',
-                                height: '15px',
-                                borderWidth: '0px',
-                                borderColor,
-                                transition: '0.25s ease-in-out',
-                                background: handleColor,
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderWidth: '2px',
+                                borderColor: handleColor,
+                                transition: '0.15s ease-in-out',
+                                background: isConnected ? connectedColor : handleColor,
                                 boxShadow: '2px 2px 2px #00000014',
                             }}
-                            type="target"
                             onContextMenu={noContextMenu}
                         />
                     </div>

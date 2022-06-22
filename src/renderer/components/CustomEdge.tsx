@@ -117,7 +117,7 @@ const CustomEdge = memo(
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '3px',
-                        stroke: '#1A202C',
+                        stroke: useColorModeValue('#EDF2F7', '#1A202C'), // '#1A202C',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
