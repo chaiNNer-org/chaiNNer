@@ -1,9 +1,8 @@
-import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
+import { Box, Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
 import { checkFileExists } from '../../../../common/util';
-import { AlertBoxContext, AlertType } from '../../../contexts/AlertBoxContext';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
@@ -44,8 +43,6 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    const { sendAlert } = useContext(AlertBoxContext);
-
     useAsyncEffect(
         {
             supplier: async (token) => {
@@ -54,54 +51,38 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                 if (path) {
                     const fileExists = await checkFileExists(path);
                     if (fileExists) {
-                        return backend.runIndividual<ModelData | null>({
+                        const result = await backend.runIndividual<ModelData | null>({
                             schemaId,
                             id,
                             inputs: [path],
                             isCpu,
                             isFp16,
                         });
+                        console.log(result);
+                        return result;
                     }
                 }
                 return null;
             },
             successEffect: (value) => {
-                const data = value as ModelData;
-                if (data.modelType) {
-                    setModelData(data);
-                } else {
-                    sendAlert({
-                        type: AlertType.ERROR,
-                        message: 'Failed to load model. Model type is probably not supported.',
-                    });
-                }
-            },
-            catchEffect: (error) => {
-                sendAlert({
-                    type: AlertType.ERROR,
-                    title: 'Error',
-                    message: JSON.stringify(error, undefined, 2),
-                    copyToClipboard: true,
-                });
+                setModelData(value);
             },
             finallyEffect: () => setIsLoading(false),
         },
         [path]
     );
 
-    return (
-        <Center w="full">
-            {isLoading ? (
-                <Spinner />
-            ) : (
-                modelData && (
+    const createTorchPreview = () => {
+        if (modelData) {
+            if (modelData.modelType) {
+                return (
                     <Wrap
                         justify="center"
                         maxW={60}
                         spacing={2}
                     >
                         <WrapItem>
-                            <Tag>{modelData.modelType ?? '?'}</Tag>
+                            <Tag>{modelData.modelType}</Tag>
                         </WrapItem>
                         <WrapItem>
                             <Tag>{modelData.scale}x</Tag>
@@ -122,10 +103,17 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                             </WrapItem>
                         ))}
                     </Wrap>
-                )
-            )}
-        </Center>
-    );
+                );
+            }
+            return <Box w="200px">Failed to load model. Model type is unsupported.</Box>;
+        }
+        return (
+            <Box w="200px">File does not exist on the system. Please select a different file.</Box>
+        );
+    };
+    const torchPreview = createTorchPreview();
+
+    return <Center w="full">{isLoading ? <Spinner /> : torchPreview}</Center>;
 });
 
 export default TorchModelPreview;

@@ -189,10 +189,14 @@ async def run_individual(request: Request):
     node_instance = NodeFactory.create_node(full_data["schemaId"])
     # Run the node and pass in inputs as args
     run_func = functools.partial(node_instance.run, *full_data["inputs"])
-    output = await app.loop.run_in_executor(None, run_func)
+    try:
+        output = await app.loop.run_in_executor(None, run_func)
+        extra_data = node_instance.get_extra_data()
+    except RuntimeError:
+        output = None
+        extra_data = {"modelType": None, "inNC": 0, "outNc": 0, "size": 0, "scale": 0}
     # Cache the output of the node
     app.ctx.cache[full_data["id"]] = output
-    extra_data = node_instance.get_extra_data()
     del node_instance, run_func
     return json(extra_data)
 

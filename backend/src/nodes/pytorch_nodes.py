@@ -117,7 +117,15 @@ class LoadModelNode(NodeBase):
         check_env()
 
         logger.info(f"Reading state dict from path: {path}")
-        state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
+        try:
+            state_dict = torch.load(
+                path, map_location=torch.device(os.environ["device"])
+            )
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load state dict from path: {path}. "
+                "Model type may not be supported or model may be corrupted."
+            ) from e
 
         self.model = load_state_dict(state_dict)
 
