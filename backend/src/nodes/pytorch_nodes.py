@@ -89,6 +89,8 @@ class LoadModelNode(NodeBase):
         self.model = None  # Defined in run
 
     def get_extra_data(self) -> Dict:
+        assert self.model is not None
+
         # TODO: Figure out how to make types for this
         if "SRVGG" in self.model.model_type:  # type: ignore
             size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]  # type: ignore
@@ -157,11 +159,31 @@ class ImageUpscaleNode(NodeBase):
                 model = model.half()
                 img_tensor = img_tensor.half()
             logger.info("Upscaling image")
-            t_out, _ = auto_split_process(
+
+            if os.environ["device"] == "cuda":
+                GB_AMT = 1024**3
+                free, total = torch.cuda.mem_get_info(0)  # type: ignore
+                img_bytes = img_tensor.numel() * img_tensor.element_size()
+                model_bytes = sum(
+                    p.numel() * p.element_size() for p in model.parameters()
+                )
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
+                split_estimation = 1
+                x = mem_required_estimation
+                while x > free:
+                    x /= 4
+                    split_estimation += 1
+                logger.info(
+                    f"Estimating memory required: {mem_required_estimation/GB_AMT:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total. Estimated Split depth: {split_estimation}"
+                )
+
+            t_out, depth = auto_split_process(
                 img_tensor,
                 model,
                 scale,
             )
+            if os.environ["device"] == "cuda":
+                logger.info(f"Actual Split depth: {depth}")
             del img_tensor, model
             logger.info("Converting tensor to image")
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)

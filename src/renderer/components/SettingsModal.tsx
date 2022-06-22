@@ -37,7 +37,6 @@ import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } 
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
-import { useAsyncEffect } from '../hooks/useAsyncEffect';
 
 interface SettingsItemProps {
     title: ReactNode;
@@ -101,11 +100,16 @@ const Toggle = memo(({ title, description, isDisabled, value, onToggle }: Toggle
 });
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid } = useContext(SettingsContext);
+    const { useSnapToGrid, useIsDarkMode } = useContext(SettingsContext);
 
-    const { colorMode, toggleColorMode } = useColorMode();
+    const { setColorMode } = useColorMode();
+    const [isDarkMode, setIsDarkMode] = useIsDarkMode;
 
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
+
+    useEffect(() => {
+        setColorMode(isDarkMode ? 'dark' : 'light');
+    }, [setColorMode, isDarkMode]);
 
     return (
         <VStack
@@ -115,15 +119,19 @@ const AppearanceSettings = memo(() => {
             <Toggle
                 description="Use dark mode throughout chaiNNer."
                 title="Dark theme"
-                value={colorMode === 'dark'}
-                onToggle={toggleColorMode}
+                value={isDarkMode}
+                onToggle={() => {
+                    setIsDarkMode((prev) => !prev);
+                }}
             />
 
             <Toggle
                 description="Enable node grid snapping."
                 title="Snap to grid"
                 value={isSnapToGrid}
-                onToggle={() => setIsSnapToGrid((prev) => !prev)}
+                onToggle={() => {
+                    setIsSnapToGrid((prev) => !prev);
+                }}
             />
 
             <SettingsItem
@@ -155,25 +163,6 @@ const EnvironmentSettings = memo(() => {
 
     const [isCpu, setIsCpu] = useIsCpu;
     const [isFp16, setIsFp16] = useIsFp16;
-
-    const [isNvidiaAvailable, setIsNvidiaAvailable] = useState(false);
-
-    useAsyncEffect(
-        {
-            supplier: () => ipcRenderer.invoke('get-nvidia-gpu-name'),
-            successEffect: (nvidiaGpu) => {
-                if (nvidiaGpu && nvidiaGpu.toLowerCase().includes('rtx')) {
-                    setIsFp16(true);
-                }
-                setIsNvidiaAvailable(nvidiaGpu !== null);
-            },
-        },
-        []
-    );
-
-    useEffect(() => {
-        setIsCpu(!isNvidiaAvailable);
-    }, [isNvidiaAvailable]);
 
     useEffect(() => {
         if (isCpu && isFp16) {
@@ -251,18 +240,20 @@ const EnvironmentSettings = memo(() => {
             </SettingsItem>
             <Toggle
                 description="Use CPU for PyTorch instead of GPU."
-                isDisabled={!isNvidiaAvailable}
                 title="CPU mode"
                 value={isCpu}
-                onToggle={() => setIsCpu((prev) => !prev)}
+                onToggle={() => {
+                    setIsCpu((prev) => !prev);
+                }}
             />
 
             <Toggle
                 description="Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
-                isDisabled={!isNvidiaAvailable}
                 title="FP16 mode"
                 value={isFp16}
-                onToggle={() => setIsFp16((prev) => !prev)}
+                onToggle={() => {
+                    setIsFp16((prev) => !prev);
+                }}
             />
         </VStack>
     );
@@ -282,7 +273,9 @@ const PythonSettings = memo(() => {
                 description="Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
                 title="Use system Python (requires restart)"
                 value={isSystemPython}
-                onToggle={() => setIsSystemPython((prev) => !prev)}
+                onToggle={() => {
+                    setIsSystemPython((prev) => !prev);
+                }}
             />
         </VStack>
     );
@@ -301,7 +294,9 @@ const AdvancedSettings = memo(() => {
                 description="Disable GPU hardware acceleration for rendering chaiNNer's UI. Only disable this is you know hardware acceleration is causing you issues."
                 title="Disable Hardware Acceleration (requires restart)"
                 value={isDisHwAccel}
-                onToggle={() => setIsDisHwAccel((prev) => !prev)}
+                onToggle={() => {
+                    setIsDisHwAccel((prev) => !prev);
+                }}
             />
         </VStack>
     );

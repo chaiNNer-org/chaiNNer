@@ -100,6 +100,99 @@ Object {
 }
 `;
 
+exports[`Read save file combine-rgba.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "479f9f8e-94d5-401c-8d9e-303443dafb91",
+      "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+      "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-2",
+      "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+      "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "9ba07098-c46f-4af5-83c0-6a5edcd7f8e9",
+      "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+      "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-3",
+      "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+      "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-3",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c2f818b0-3e94-4856-9c41-d1f82aa98a1b",
+      "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+      "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-1",
+      "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+      "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-1",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "eeb8a79f-ba1a-4e14-bec9-a53ecc5af2eb",
+      "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+      "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-0",
+      "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+      "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-2",
+      "type": "main",
+      "zIndex": 69,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "inputData": Object {},
+        "schemaId": "chainner:image:split_channels",
+      },
+      "height": 296,
+      "id": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+      "position": Object {
+        "x": 210,
+        "y": 334,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "inputData": Object {},
+        "schemaId": "chainner:image:combine_rgba",
+      },
+      "height": 296,
+      "id": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+      "position": Object {
+        "x": 563,
+        "y": 231,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
   "edges": Array [],
@@ -1803,7 +1896,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -1873,7 +1965,103 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file combine-rgba.chn 1`] = `
+Object {
+  "checksum": "a39de727bfc6e56f17be9f67adf99fe4",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "479f9f8e-94d5-401c-8d9e-303443dafb91",
+        "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-2",
+        "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "9ba07098-c46f-4af5-83c0-6a5edcd7f8e9",
+        "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-3",
+        "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-3",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c2f818b0-3e94-4856-9c41-d1f82aa98a1b",
+        "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-1",
+        "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-1",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "eeb8a79f-ba1a-4e14-bec9-a53ecc5af2eb",
+        "source": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "sourceHandle": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc-0",
+        "target": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "targetHandle": "ef80bf34-d15b-407d-9e2b-7413af33af10-2",
+        "type": "main",
+        "zIndex": 69,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+          "inputData": Object {},
+          "schemaId": "chainner:image:split_channels",
+        },
+        "height": 296,
+        "id": "100a08d8-d0e1-4e20-ba8a-5a88393e77dc",
+        "position": Object {
+          "x": 210,
+          "y": 334,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+          "inputData": Object {},
+          "schemaId": "chainner:image:combine_rgba",
+        },
+        "height": 296,
+        "id": "ef80bf34-d15b-407d-9e2b-7413af33af10",
+        "position": Object {
+          "x": 563,
+          "y": 231,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
   "timestamp": "",
   "version": "",
 }
@@ -1976,7 +2164,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2138,7 +2325,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2280,7 +2466,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2513,7 +2698,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2632,7 +2816,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2763,7 +2946,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -2799,7 +2981,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3156,7 +3337,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3292,7 +3472,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3330,7 +3509,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3520,7 +3698,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
@@ -3602,7 +3779,6 @@ Object {
       "zoom": 1,
     },
   },
-  "migration": 11,
   "timestamp": "",
   "version": "",
 }
