@@ -64,6 +64,9 @@ def auto_split_process(
             if os.environ["isFp16"] == "True":
                 model = model.half()
                 d_img = d_img.half()
+            else:
+                model = model.float()
+                d_img = d_img.float()
             result = model(d_img)
             result = result.detach().cpu()
             del d_img
