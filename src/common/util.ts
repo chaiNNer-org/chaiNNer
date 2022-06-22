@@ -72,7 +72,7 @@ type WithType<S, T extends string> = S extends { readonly type: T } ? S : never;
 export type Visitors<State extends { readonly type: string }, R> = {
     [K in State['type']]: (state: WithType<State, K>) => R;
 };
-export const visitType = <State extends { readonly type: string }, R>(
+export const visitByType = <State extends { readonly type: string }, R>(
     state: State,
     visitors: Visitors<State, R>
 ): R => {

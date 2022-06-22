@@ -3,7 +3,7 @@ import { Center, HStack, Image, Spinner, Tag, Text, VStack } from '@chakra-ui/re
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
-import { checkFileExists, visitType } from '../../../../common/util';
+import { checkFileExists, visitByType } from '../../../../common/util';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
@@ -93,7 +93,7 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
 
     return (
         <Center w="full">
-            {visitType(state, {
+            {visitByType(state, {
                 clear: () => null,
                 loading: () => <Spinner />,
                 image: ({ image, fileType }) => (

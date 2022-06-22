@@ -3,7 +3,7 @@ import { Center, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
-import { checkFileExists, visitType } from '../../../../common/util';
+import { checkFileExists, visitByType } from '../../../../common/util';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
@@ -93,7 +93,7 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
 
     return (
         <Center w="full">
-            {visitType(state, {
+            {visitByType(state, {
                 clear: () => null,
                 loading: () => <Spinner />,
                 model: ({ model }) => (
