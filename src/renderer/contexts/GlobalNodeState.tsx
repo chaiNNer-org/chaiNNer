@@ -718,14 +718,8 @@ export const GlobalProvider = memo(
                             const hBound =
                                 height - (n.height ?? dimensions?.height ?? 0) + offsetTop;
                             newNode.extent = [
-                                [
-                                    iteratorNode.position.x + offsetLeft,
-                                    iteratorNode.position.y + offsetTop,
-                                ],
-                                [
-                                    iteratorNode.position.x + wBound,
-                                    iteratorNode.position.y + hBound,
-                                ],
+                                [offsetLeft, offsetTop],
+                                [wBound, hBound],
                             ];
                             newNode.position.x = Math.min(
                                 Math.max(newNode.position.x, offsetLeft),
