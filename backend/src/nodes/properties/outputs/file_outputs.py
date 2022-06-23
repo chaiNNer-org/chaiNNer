@@ -22,4 +22,4 @@ def DirectoryOutput() -> FileOutput:
 
 def OnnxFileOutput() -> FileOutput:
     """Output for saving a .onnx file"""
-    return FileOutput("OnnxFile", "ONNX Model")
+    return FileOutput("OnnxFile", "ONNX Model File")

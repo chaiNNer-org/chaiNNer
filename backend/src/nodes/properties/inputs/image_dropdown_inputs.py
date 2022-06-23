@@ -13,63 +13,63 @@ def ColorModeInput() -> DropDownInput:
         label="Color Mode",
         options=[
             {
-                "option": "BGR -> Gray",
+                "option": "RGB -> Gray",
                 "value": cv2.COLOR_BGR2GRAY,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 1}
                 ),
             },
             {
-                "option": "Gray -> BGR",
+                "option": "Gray -> RGB",
                 "value": cv2.COLOR_GRAY2BGR,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 1, "outputChannels": 3}
                 ),
             },
             {
-                "option": "BGR -> BGRA",
+                "option": "RGB -> RGBA",
                 "value": cv2.COLOR_BGR2BGRA,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 4}
                 ),
             },
             {
-                "option": "BGRA -> BGR",
+                "option": "RGBA -> RGB",
                 "value": cv2.COLOR_BGRA2BGR,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 4, "outputChannels": 3}
                 ),
             },
             {
-                "option": "BGRA -> Gray",
+                "option": "RGBA -> Gray",
                 "value": cv2.COLOR_BGRA2GRAY,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 4, "outputChannels": 1}
                 ),
             },
             {
-                "option": "BGR -> YUV",
+                "option": "RGB -> YUV",
                 "value": cv2.COLOR_BGR2YUV,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 3}
                 ),
             },
             {
-                "option": "YUV -> BGR",
+                "option": "YUV -> RGB",
                 "value": cv2.COLOR_YUV2BGR,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 3}
                 ),
             },
             {
-                "option": "BGR -> HSV",
+                "option": "RGB -> HSV",
                 "value": cv2.COLOR_BGR2HSV,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 3}
                 ),
             },
             {
-                "option": "HSV -> BGR",
+                "option": "HSV -> RGB",
                 "value": cv2.COLOR_HSV2BGR,
                 "type": expression.named(
                     "ColorMode", {"inputChannels": 3, "outputChannels": 3}
