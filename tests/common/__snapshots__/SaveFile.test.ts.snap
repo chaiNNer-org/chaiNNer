@@ -203,7 +203,7 @@ Object {
         "inputData": Object {
           "1": 69,
           "2": 76,
-          "3": "2",
+          "3": 2,
         },
         "schemaId": "chainner:image:threshold",
       },
@@ -503,7 +503,7 @@ Object {
         "inputData": Object {
           "1": 120,
           "2": 340,
-          "3": "4",
+          "3": 4,
         },
         "schemaId": "chainner:image:resize_resolution",
       },
@@ -560,7 +560,7 @@ Object {
         "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
         "inputData": Object {
           "1": 350,
-          "2": "3",
+          "2": 3,
         },
         "schemaId": "chainner:image:resize_factor",
       },
@@ -767,7 +767,7 @@ Object {
         "id": "ce5d04ca-a08a-4ecf-a07a-dcce789af967",
         "inputData": Object {
           "2": "L*a*b*",
-          "3": "0",
+          "3": 0,
           "4": 1,
         },
         "schemaId": "chainner:image:color_transfer",
@@ -1236,7 +1236,7 @@ Object {
       "data": Object {
         "id": "7094b9d4-3173-450f-b491-3c6936c510ab",
         "inputData": Object {
-          "1": "0",
+          "1": 0,
         },
         "schemaId": "chainner:image:flip",
       },
@@ -1255,7 +1255,7 @@ Object {
       "data": Object {
         "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
         "inputData": Object {
-          "1": "1",
+          "1": 1,
           "2": 34,
         },
         "schemaId": "chainner:image:create_border",
@@ -1335,7 +1335,7 @@ Object {
       "data": Object {
         "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
         "inputData": Object {
-          "1": "1",
+          "1": 1,
         },
         "schemaId": "chainner:image:change_colorspace",
       },
@@ -2069,7 +2069,7 @@ Object {
 
 exports[`Write save file image-adjustments.chn 1`] = `
 Object {
-  "checksum": "5e390b4028ca1e3d9849869c97336359",
+  "checksum": "aa25590a25e064bc1651e02ae72dbd83",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -2079,7 +2079,7 @@ Object {
           "inputData": Object {
             "1": 69,
             "2": 76,
-            "3": "2",
+            "3": 2,
           },
           "schemaId": "chainner:image:threshold",
         },
@@ -2332,7 +2332,7 @@ Object {
 
 exports[`Write save file image-dim.chn 1`] = `
 Object {
-  "checksum": "e4f98dfd932ac1f101d76046d59bd66c",
+  "checksum": "619592d14b086f1cc392e648b3c64478",
   "content": Object {
     "edges": Array [
       Object {
@@ -2387,7 +2387,7 @@ Object {
           "inputData": Object {
             "1": 120,
             "2": 340,
-            "3": "4",
+            "3": 4,
           },
           "schemaId": "chainner:image:resize_resolution",
         },
@@ -2444,7 +2444,7 @@ Object {
           "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
           "inputData": Object {
             "1": 350,
-            "2": "3",
+            "2": 3,
           },
           "schemaId": "chainner:image:resize_factor",
         },
@@ -2473,7 +2473,7 @@ Object {
 
 exports[`Write save file image-filters.chn 1`] = `
 Object {
-  "checksum": "69b73b0c2a788c86d3c4ae8933f5aee4",
+  "checksum": "128dfcf4705c7bedf24b7a70c277b409",
   "content": Object {
     "edges": Array [
       Object {
@@ -2655,7 +2655,7 @@ Object {
           "id": "ce5d04ca-a08a-4ecf-a07a-dcce789af967",
           "inputData": Object {
             "2": "L*a*b*",
-            "3": "0",
+            "3": 0,
             "4": 1,
           },
           "schemaId": "chainner:image:color_transfer",
@@ -2988,7 +2988,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "6f5aa508b291c2b7fe0a7b73396f00c7",
+  "checksum": "a7c4e684d6cfa3eb6a22c33238923ff2",
   "content": Object {
     "edges": Array [
       Object {
@@ -3140,7 +3140,7 @@ Object {
         "data": Object {
           "id": "7094b9d4-3173-450f-b491-3c6936c510ab",
           "inputData": Object {
-            "1": "0",
+            "1": 0,
           },
           "schemaId": "chainner:image:flip",
         },
@@ -3159,7 +3159,7 @@ Object {
         "data": Object {
           "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
           "inputData": Object {
-            "1": "1",
+            "1": 1,
             "2": 34,
           },
           "schemaId": "chainner:image:create_border",
@@ -3239,7 +3239,7 @@ Object {
         "data": Object {
           "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
           "inputData": Object {
-            "1": "1",
+            "1": 1,
           },
           "schemaId": "chainner:image:change_colorspace",
         },
