@@ -21,4 +21,4 @@ def DirectoryOutput(file_type: str = "directory") -> FileOutput:
 
 def OnnxFileOutput() -> FileOutput:
     """Output for saving a .onnx file"""
-    return FileOutput("onnx", "ONNX Model")
+    return FileOutput("onnx", "ONNX Model File")
