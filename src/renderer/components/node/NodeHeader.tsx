@@ -52,7 +52,7 @@ const NodeHeader = memo(
                         fontWeight={700}
                         lineHeight="auto"
                         m={0}
-                        opacity={disabledStatus.isDisabled ? 0.5 : 1}
+                        opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.5}
                         p={0}
                         size="sm"
                         textAlign="center"

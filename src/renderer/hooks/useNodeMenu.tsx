@@ -2,64 +2,70 @@ import { CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon } from '@chakra-u
 import { MenuItem, MenuList } from '@chakra-ui/react';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
+import { NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
+import { UseDisabled } from './useDisabled';
+
+export interface UseNodeMenuOptions {
+    canLock?: boolean;
+}
 
 export const useNodeMenu = (
-    id: string,
-    isLocked: boolean | undefined,
-    isDisabled: boolean
+    data: NodeData,
+    useDisabled: UseDisabled,
+    { canLock = true }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
-    const { removeNodeById, clearNode, duplicateNode, toggleNodeLock, setNodeDisabled } =
-        useContext(GlobalContext);
+    const { id, isLocked = false } = data;
 
-    return useContextMenu(
-        () => (
-            <MenuList className="nodrag">
+    const { removeNodeById, clearNode, duplicateNode, toggleNodeLock } = useContext(GlobalContext);
+    const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
+
+    return useContextMenu(() => (
+        <MenuList className="nodrag">
+            <MenuItem
+                icon={<CopyIcon />}
+                onClick={() => {
+                    duplicateNode(id);
+                }}
+            >
+                Duplicate
+            </MenuItem>
+            <MenuItem
+                icon={<CloseIcon />}
+                onClick={() => {
+                    clearNode(id);
+                }}
+            >
+                Clear
+            </MenuItem>
+            {canDisable && (
                 <MenuItem
-                    icon={<CopyIcon />}
+                    icon={isDirectlyDisabled ? <MdPlayArrow /> : <MdPlayDisabled />}
+                    onClick={toggleDirectlyDisabled}
+                >
+                    {isDirectlyDisabled ? 'Enable' : 'Disable'}
+                </MenuItem>
+            )}
+
+            {canLock && (
+                <MenuItem
+                    icon={isLocked ? <UnlockIcon /> : <LockIcon />}
                     onClick={() => {
-                        duplicateNode(id);
+                        toggleNodeLock(id);
                     }}
                 >
-                    Duplicate
+                    {isLocked ? 'Unlock' : 'Lock'}
                 </MenuItem>
-                <MenuItem
-                    icon={<CloseIcon />}
-                    onClick={() => {
-                        clearNode(id);
-                    }}
-                >
-                    Clear
-                </MenuItem>
-                <MenuItem
-                    icon={isDisabled ? <MdPlayArrow /> : <MdPlayDisabled />}
-                    onClick={() => {
-                        setNodeDisabled(id, !isDisabled);
-                    }}
-                >
-                    {isDisabled ? 'Enable' : 'Disable'}
-                </MenuItem>
-                {isLocked !== undefined ? (
-                    <MenuItem
-                        icon={isLocked ? <UnlockIcon /> : <LockIcon />}
-                        onClick={() => {
-                            toggleNodeLock(id);
-                        }}
-                    >
-                        {isLocked ? 'Unlock' : 'Lock'}
-                    </MenuItem>
-                ) : null}
-                <MenuItem
-                    icon={<DeleteIcon />}
-                    onClick={() => {
-                        removeNodeById(id);
-                    }}
-                >
-                    Delete
-                </MenuItem>
-            </MenuList>
-        ),
-        [id, duplicateNode, clearNode, removeNodeById, isLocked, isDisabled]
-    );
+            )}
+            <MenuItem
+                icon={<DeleteIcon />}
+                onClick={() => {
+                    removeNodeById(id);
+                }}
+            >
+                Delete
+            </MenuItem>
+        </MenuList>
+    ));
 };

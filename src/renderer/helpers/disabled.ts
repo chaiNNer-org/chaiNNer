@@ -1,36 +1,27 @@
 import { Edge, Node } from 'react-flow-renderer';
 import { EdgeData, NodeData } from '../../common/common-types';
 
-export type DisabledStatus =
-    | { readonly isDisabled: true; readonly directly: boolean; readonly reason: string }
-    | { readonly isDisabled: false };
+export enum DisabledStatus {
+    Enabled,
+    DirectlyDisabled,
+    ParentDisabled,
+    InputDisabled,
+}
 
 export const getDisabledStatus = (
     data: NodeData,
     effectivelyDisabledNodes: ReadonlySet<string>
 ): DisabledStatus => {
     if (data.isDisabled) {
-        return {
-            isDisabled: true,
-            directly: true,
-            reason: 'This node is disabled and will not be executed.',
-        };
+        return DisabledStatus.DirectlyDisabled;
     }
     if (data.parentNode && effectivelyDisabledNodes.has(data.parentNode)) {
-        return {
-            isDisabled: true,
-            directly: false,
-            reason: 'This node will not be executed because its parent iterator node is disabled.',
-        };
+        return DisabledStatus.ParentDisabled;
     }
     if (effectivelyDisabledNodes.has(data.id)) {
-        return {
-            isDisabled: true,
-            directly: false,
-            reason: 'This node is indirectly disabled because at least one of its inputs is disabled and will not be executed.',
-        };
+        return DisabledStatus.InputDisabled;
     }
-    return { isDisabled: false };
+    return DisabledStatus.Enabled;
 };
 
 export const getEffectivelyDisabledNodes = (

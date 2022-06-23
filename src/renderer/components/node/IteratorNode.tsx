@@ -5,9 +5,10 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
-import { getDisabledStatus } from '../../helpers/disabled';
+import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
+import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
@@ -30,17 +31,12 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const effectivelyDisabledNodes = useContextSelector(
-        GlobalVolatileContext,
-        (c) => c.effectivelyDisabledNodes
-    );
     const { schemata } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
         id,
         inputData,
-        isDisabled,
         isLocked,
         schemaId,
         iteratorSize,
@@ -74,14 +70,10 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         }
     }, [inputData, edgeChanges]);
 
-    const disabledStatus = useMemo(
-        () => getDisabledStatus(data, effectivelyDisabledNodes),
-        [data, effectivelyDisabledNodes]
-    );
-
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 
-    const menu = useNodeMenu(id, undefined, isDisabled ?? false);
+    const disabled = useDisabled(data);
+    const menu = useNodeMenu(data, disabled, { canLock: false });
 
     return (
         <Center
@@ -90,14 +82,18 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             py={2}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+            >
                 <IteratorNodeHeader
                     accentColor={accentColor}
-                    disabledStatus={disabledStatus}
+                    disabledStatus={disabled.status}
                     icon={icon}
                     name={name}
                     percentComplete={percentComplete}
@@ -166,7 +162,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     outputs={outputs}
                 />
                 <NodeFooter
-                    disabledStatus={disabledStatus}
+                    useDisable={disabled}
                     validity={validity}
                 />
             </VStack>
