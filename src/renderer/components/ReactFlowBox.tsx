@@ -320,7 +320,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
 
     return (
         <Box
-            bg={useColorModeValue('gray.100', 'gray.800')}
+            bg={useColorModeValue('gray.200', 'gray.800')}
             borderRadius="lg"
             borderWidth="0px"
             h="100%"

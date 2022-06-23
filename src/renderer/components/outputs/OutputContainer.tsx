@@ -1,9 +1,8 @@
-import { Box, HStack, useColorModeValue } from '@chakra-ui/react';
+import { Box, HStack, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { interpolateColor } from '../../helpers/colorTools';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
@@ -67,12 +66,16 @@ const OutputContainer = memo(
             );
         }
 
-        const bgColor = useColorModeValue('#EDF2F7', '#4A5568');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const [gray300, gray700]: string[] = useToken('colors', ['gray.300', 'gray.700']);
+
+        const bgColor = useColorModeValue(gray300, gray700);
 
         return (
             <Box
                 // bg={useColorModeValue('gray.200', 'gray.600')}
-                bg={interpolateColor(accentColor, bgColor, 0.975)}
+                // bg={interpolateColor(accentColor, bgColor, 0.95)}
+                bg={bgColor}
                 p={2}
                 w="full"
             >

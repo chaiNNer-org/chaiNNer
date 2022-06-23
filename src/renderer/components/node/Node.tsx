@@ -1,4 +1,4 @@
-import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, VStack, useColorModeValue, useToken } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
@@ -7,7 +7,7 @@ import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { interpolateColor, shadeColor } from '../../helpers/colorTools';
+import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
@@ -62,7 +62,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
+    const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
@@ -133,12 +133,16 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
     const menu = useNodeMenu(id, isLocked ?? false);
 
-    const bgColor = useColorModeValue('#CBD5E0', '#2D3748');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const [gray400, gray700]: string[] = useToken('colors', ['gray.400', 'gray.750']);
+
+    const bgColor = useColorModeValue(gray400, gray700);
 
     return (
         <Center
             // bg={useColorModeValue('gray.300', 'gray.700')}
-            bg={interpolateColor(accentColor, bgColor, 0.975)}
+            // bg={interpolateColor(accentColor, bgColor, 0.95)}
+            bg={bgColor}
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"

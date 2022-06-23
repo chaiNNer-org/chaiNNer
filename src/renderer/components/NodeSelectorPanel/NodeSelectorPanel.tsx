@@ -17,7 +17,7 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    useColorModeValue,
+    useColorModeValue
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
@@ -133,7 +133,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.100', 'gray.800')}
+                bg={useColorModeValue('gray.200', 'gray.800')}
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"

@@ -1,4 +1,11 @@
-import { Center, HStack, Heading, LayoutProps, useColorModeValue } from '@chakra-ui/react';
+import {
+    Center,
+    HStack,
+    Heading,
+    LayoutProps,
+    useColorModeValue,
+    useToken,
+} from '@chakra-ui/react';
 import { memo } from 'react';
 import { interpolateColor } from '../../helpers/colorTools';
 import { IconFactory } from '../CustomIcons';
@@ -14,10 +21,12 @@ interface NodeHeaderProps {
 
 const NodeHeader = memo(
     ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => {
-        const bgColor = useColorModeValue('#CBD5E0', '#2D3748');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const [gray300, gray700]: string[] = useToken('colors', ['gray.300', 'gray.700']);
+        const bgColor = useColorModeValue(gray300, gray700);
         const iconAltColor = useColorModeValue('gray.600', 'gray.400');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
-        const gradR = interpolateColor(accentColor, bgColor, 0.975);
+        const gradR = bgColor; // interpolateColor(accentColor, bgColor, 0.95);
         return (
             <Center
                 // bg={interpolateColor(accentColor, useColorModeValue('#CBD5E0', '#2D3748'), 0.875)}
