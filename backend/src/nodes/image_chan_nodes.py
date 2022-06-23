@@ -73,12 +73,21 @@ class CombineRgbaNode(NodeBase):
             " All channel images must be a single channel image."
         )
         self.inputs = [
-            ImageInput("R Channel"),
-            ImageInput("G Channel"),
-            ImageInput("B Channel"),
-            ImageInput("A Channel").make_optional(),
+            ImageInput("R Channel", image_type=expression.Image(channels=1)),
+            ImageInput("G Channel", image_type=expression.Image(channels=1)),
+            ImageInput("B Channel", image_type=expression.Image(channels=1)),
+            ImageInput(
+                "A Channel", image_type=expression.Image(channels=1)
+            ).make_optional(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    size_as=expression.intersect("Input0", "Input1", "Input2"),
+                    channels=4,
+                )
+            )
+        ]
         self.category = IMAGE_CHANNEL
         self.name = "Combine RGBA"
         self.icon = "MdCallMerge"
@@ -199,7 +208,7 @@ class TransparencySplitNode(NodeBase):
         )
         self.inputs = [ImageInput(image_type=expression.Image(channels=[1, 3, 4]))]
         self.outputs = [
-            ImageOutput("RGB Channels", expression.Image(size_as="Input0", channels=2)),
+            ImageOutput("RGB Channels", expression.Image(size_as="Input0", channels=3)),
             ImageOutput(
                 "Alpha Channel", expression.Image(size_as="Input0", channels=1)
             ),

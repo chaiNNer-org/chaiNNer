@@ -151,7 +151,10 @@ class ImageUpscaleNode(NodeBase):
                         expression.field("Input0", "scale"),
                         expression.field("Input1", "height"),
                     ),
-                    channels=expression.field("Input0", "outputChannels"),
+                    channels=[
+                        expression.field("Input0", "outputChannels"),
+                        expression.field("Input1", "channels"),
+                    ],
                 ),
             )
         ]
