@@ -249,7 +249,10 @@ class ColorConvertNode(NodeBase):
         ]
         self.outputs = [
             ImageOutput(
-                image_type=expression.Image(size_as="Input0", channels=[1, 3, 4])
+                image_type=expression.Image(
+                    size_as="Input0",
+                    channels=expression.field("Input1", "outputChannels"),
+                )
             )
         ]
         self.category = IMAGE_UTILITY
@@ -290,7 +293,7 @@ class BorderMakeNode(NodeBase):
                         "add",
                         expression.field("Input0", "height"),
                         expression.fn("multiply", "Input2", 2),
-                    )
+                    ),
                 )
             )
         ]

@@ -11,7 +11,7 @@ import {
     round,
     subtract,
 } from './builtin';
-import { Expression, NamedExpression } from './expression';
+import { Expression, NamedExpression, UnionExpression } from './expression';
 import {
     assertValidFunctionName,
     assertValidStructFieldName,
@@ -23,6 +23,7 @@ import {
     NeverType,
     NumberPrimitive,
     NumberType,
+    NumericLiteralType,
     StringType,
     StructType,
     Type,
@@ -204,7 +205,6 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'AdaptiveThresholdType',
         'BlendMode',
         'BorderType',
-        'ColorMode',
         'Colorspace',
         'FillMethod',
         'FlipAxis',
@@ -242,6 +242,27 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
             new StructFieldDefinition('scale', new IntIntervalType(1, Infinity)),
             new StructFieldDefinition('inputChannels', new IntIntervalType(1, Infinity)),
             new StructFieldDefinition('outputChannels', new IntIntervalType(1, Infinity)),
+        ])
+    );
+
+    definitions.add(
+        new StructDefinition('ColorMode', [
+            new StructFieldDefinition(
+                'inputChannels',
+                new UnionExpression([
+                    new NumericLiteralType(1),
+                    new NumericLiteralType(3),
+                    new NumericLiteralType(4),
+                ])
+            ),
+            new StructFieldDefinition(
+                'outputChannels',
+                new UnionExpression([
+                    new NumericLiteralType(1),
+                    new NumericLiteralType(3),
+                    new NumericLiteralType(4),
+                ])
+            ),
         ])
     );
 };

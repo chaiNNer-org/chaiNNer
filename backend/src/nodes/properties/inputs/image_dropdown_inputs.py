@@ -3,6 +3,7 @@ import cv2
 # pylint: disable=relative-beyond-top-level
 from ...utils.pil_utils import InterpolationMethod
 from .generic_inputs import DropDownInput
+from .. import expression
 
 
 def ColorModeInput() -> DropDownInput:
@@ -14,56 +15,65 @@ def ColorModeInput() -> DropDownInput:
             {
                 "option": "BGR -> Gray",
                 "value": cv2.COLOR_BGR2GRAY,
-                "inputs": "numpy::2d:3c",
-                "outputs": "numpy::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 1}
+                ),
             },
             {
                 "option": "Gray -> BGR",
                 "value": cv2.COLOR_GRAY2BGR,
-                "inputs": "numpy::2d:1c",
-                "outputs": "np::2d:3c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 1, "outputChannels": 3}
+                ),
             },
             {
                 "option": "BGR -> BGRA",
                 "value": cv2.COLOR_BGR2BGRA,
-                "inputs": "numpy::2d::3c",
-                "outputs": "np::2d:4c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 4}
+                ),
             },
             {
                 "option": "BGRA -> BGR",
                 "value": cv2.COLOR_BGRA2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:3c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 4, "outputChannels": 3}
+                ),
             },
             {
                 "option": "BGRA -> Gray",
                 "value": cv2.COLOR_BGRA2GRAY,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 4, "outputChannels": 1}
+                ),
             },
             {
                 "option": "BGR -> YUV",
                 "value": cv2.COLOR_BGR2YUV,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "YUV -> BGR",
                 "value": cv2.COLOR_YUV2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "BGR -> HSV",
                 "value": cv2.COLOR_BGR2HSV,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "HSV -> BGR",
                 "value": cv2.COLOR_HSV2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
         ],
     )
