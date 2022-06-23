@@ -45,9 +45,11 @@ class ImReadNode(NodeBase):
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
-        self.result = []
+        self.result = None
 
     def get_extra_data(self) -> Dict:
+        assert self.result is not None
+
         img, dirname, basename = self.result
         h, w, c = get_h_w_c(img)
 

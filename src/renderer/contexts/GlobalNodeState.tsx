@@ -801,6 +801,7 @@ export const GlobalProvider = memo(
                             );
                             return newNode;
                         });
+
                         const newIteratorNode = copyNode(iteratorNode);
 
                         newIteratorNode.data.maxWidth = maxWidth;

@@ -1,11 +1,11 @@
-import { Center, Spinner, Tag, Wrap, WrapItem } from '@chakra-ui/react';
+/* eslint-disable react/no-unstable-nested-components */
+import { Center, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
-import { checkFileExists } from '../../../../common/util';
-import { AlertBoxContext, AlertType } from '../../../contexts/AlertBoxContext';
+import { checkFileExists, visitByType } from '../../../../common/util';
 import { GlobalContext } from '../../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
@@ -38,9 +38,16 @@ interface TorchModelPreviewProps {
     schemaId: string;
 }
 
+type State =
+    | { readonly type: 'clear' }
+    | { readonly type: 'loading' }
+    | { readonly type: 'error'; message: string }
+    | { readonly type: 'model'; model: ModelData };
+const CLEAR_STATE: State = { type: 'clear' };
+const LOADING_STATE: State = { type: 'loading' };
+
 const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
-    const [modelData, setModelData] = useState<ModelData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [state, setState] = useState<State>(CLEAR_STATE);
 
     const { setManualOutputType } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
@@ -49,100 +56,98 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    const { sendAlert } = useContext(AlertBoxContext);
-
     useAsyncEffect(
         {
-            supplier: async (token) => {
-                token.causeEffect(() => setIsLoading(true));
+            supplier: async (token): Promise<State> => {
+                if (!path) return CLEAR_STATE;
 
-                if (path) {
-                    const fileExists = await checkFileExists(path);
-                    if (fileExists) {
-                        return backend.runIndividual<ModelData | null>({
-                            schemaId,
-                            id,
-                            inputs: [path],
-                            isCpu,
-                            isFp16,
-                        });
-                    }
+                token.causeEffect(() => setState(LOADING_STATE));
+
+                if (!(await checkFileExists(path))) {
+                    return {
+                        type: 'error',
+                        message:
+                            'File does not exist on the system. Please select a different file.',
+                    };
                 }
-                return null;
-            },
-            successEffect: (value) => {
-                const data = value as ModelData;
-                if (data.modelType) {
-                    setModelData(data);
-                } else {
-                    sendAlert({
-                        type: AlertType.ERROR,
-                        message: 'Failed to load model. Model type is probably not supported.',
-                    });
-                }
-            },
-            catchEffect: (error) => {
-                sendAlert({
-                    type: AlertType.ERROR,
-                    title: 'Error',
-                    message: JSON.stringify(error, undefined, 2),
-                    copyToClipboard: true,
+
+                const result = await backend.runIndividual<ModelData>({
+                    schemaId,
+                    id,
+                    inputs: [path],
+                    isCpu,
+                    isFp16,
                 });
+
+                if (!result.success) {
+                    return {
+                        type: 'error',
+                        message: 'Failed to load model. Model type is likely unsupported.',
+                    };
+                }
+
+                return { type: 'model', model: result.data };
             },
-            finallyEffect: () => setIsLoading(false),
+            successEffect: setState,
+            catchEffect: (error) => {
+                setState({ type: 'error', message: String(error) });
+            },
         },
         [path]
     );
 
     useEffect(() => {
         if (schemaId === 'chainner:pytorch:load_model') {
-            if (modelData) {
+            if (state.type === 'model') {
                 setManualOutputType(
                     id,
                     0,
                     new NamedExpression('PyTorchModel', [
-                        new NamedExpressionField('scale', new NumericLiteralType(modelData.scale)),
+                        new NamedExpressionField(
+                            'scale',
+                            new NumericLiteralType(state.model.scale)
+                        ),
                         new NamedExpressionField(
                             'inputChannels',
-                            new NumericLiteralType(modelData.inNc)
+                            new NumericLiteralType(state.model.inNc)
                         ),
                         new NamedExpressionField(
                             'outputChannels',
-                            new NumericLiteralType(modelData.outNc)
+                            new NumericLiteralType(state.model.outNc)
                         ),
                     ])
                 );
-                setManualOutputType(id, 1, new StringLiteralType(modelData.name));
+                setManualOutputType(id, 1, new StringLiteralType(state.model.name));
             } else {
                 setManualOutputType(id, 0, undefined);
                 setManualOutputType(id, 1, undefined);
             }
         }
-    }, [id, schemaId, modelData]);
+    }, [id, state]);
 
     return (
         <Center w="full">
-            {isLoading ? (
-                <Spinner />
-            ) : (
-                modelData && (
+            {visitByType(state, {
+                clear: () => null,
+                loading: () => <Spinner />,
+                model: ({ model }) => (
                     <Wrap
                         justify="center"
                         maxW={60}
                         spacing={2}
                     >
                         <WrapItem>
-                            <Tag>{modelData.modelType ?? '?'}</Tag>
+                            <Tag>{model.modelType ?? '?'}</Tag>
                         </WrapItem>
                         <WrapItem>
-                            <Tag>{modelData.scale}x</Tag>
+                            <Tag>{model.scale}x</Tag>
                         </WrapItem>
                         <WrapItem>
                             <Tag>
-                                {getColorMode(modelData.inNc)}→{getColorMode(modelData.outNc)}
+                                {getColorMode(model.inNc)}→{getColorMode(model.outNc)}
                             </Tag>
                         </WrapItem>
-                        {modelData.size.map((size) => (
+                        {model.size.map((size) => (
                             <WrapItem key={size}>
                                 <Tag
                                     key={size}
@@ -153,8 +158,9 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                             </WrapItem>
                         ))}
                     </Wrap>
-                )
-            )}
+                ),
+                error: ({ message }) => <Text w="200px">{message}</Text>,
+            })}
         </Center>
     );
 });

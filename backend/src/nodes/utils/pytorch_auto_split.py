@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import gc
 import os
+from functools import reduce
+from operator import mul
 from typing import Tuple, Union
 
 import torch
+from sanic.log import logger
 from torch import Tensor
 
 
@@ -42,6 +45,10 @@ def auto_split_process(
     #     gc.collect()
     #     raise RuntimeError("Upscaling killed mid-processing")
 
+    logger.debug(
+        f"auto_split_process: scale={scale}, overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
+    )
+
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
         torch.cuda.empty_cache()
@@ -53,11 +60,13 @@ def auto_split_process(
         d_img = None
         try:
             device = torch.device(os.environ["device"])
-            model = model.to(device)
             d_img = lr_img.to(device)
             if os.environ["isFp16"] == "True":
                 model = model.half()
                 d_img = d_img.half()
+            else:
+                model = model.float()
+                d_img = d_img.float()
             result = model(d_img)
             result = result.detach().cpu()
             del d_img
@@ -66,10 +75,11 @@ def auto_split_process(
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
-                torch.cuda.empty_cache()
                 gc.collect()
                 if d_img is not None:
+                    d_img.detach().cpu()
                     del d_img
+                torch.cuda.empty_cache()
             # Re-raise the exception if not an OOM error
             else:
                 raise

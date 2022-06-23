@@ -270,3 +270,43 @@ class AdaptiveThresholdNode(NodeBase):
         )
 
         return result.astype("float32") / 255
+
+
+@NodeFactory.register("chainner:image:opacity")
+class OpacityNode(NodeBase):
+    """Alpha adjustment node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = "Adjusts the opacity of an image."
+        self.inputs = [
+            ImageInput(),
+            SliderInput(
+                "Opacity",
+                maximum=100,
+                default=100,
+                step=0.1,
+                controls_step=1,
+                unit="%",
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE_ADJUSTMENT
+        self.name = "Opacity"
+        self.icon = "MdOutlineOpacity"
+        self.sub = "Adjustments"
+
+    def run(self, img: np.ndarray, opacity: float) -> np.ndarray:
+        """Apply opacity adjustment to alpha channel"""
+
+        # Convert inputs
+        c = get_h_w_c(img)[2]
+        if opacity == 100 and c == 4:
+            return img
+        imgout = convert_to_BGRA(img, c)
+        opacity /= 100
+
+        imgout[:, :, 3] *= opacity
+
+        return imgout

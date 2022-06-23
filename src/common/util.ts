@@ -118,3 +118,15 @@ export const compareNumber = (a: number, b: number): number => {
     if (Number.isNaN(b)) return -1;
     return a - b;
 };
+
+type WithType<S, T extends string> = S extends { readonly type: T } ? S : never;
+export type Visitors<State extends { readonly type: string }, R> = {
+    [K in State['type']]: (state: WithType<State, K>) => R;
+};
+export const visitByType = <State extends { readonly type: string }, R>(
+    state: State,
+    visitors: Visitors<State, R>
+): R => {
+    const v = (visitors as Record<string, unknown>)[state.type] as (state: State) => R;
+    return v(state);
+};

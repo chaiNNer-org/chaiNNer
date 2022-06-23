@@ -1,6 +1,6 @@
 import { StarIcon } from '@chakra-ui/icons';
-import { Box, Center, MenuItem, MenuList, Tooltip } from '@chakra-ui/react';
-import { DragEvent, memo } from 'react';
+import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra-ui/react';
+import { DragEvent, memo, useEffect, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -37,6 +37,18 @@ const RepresentativeNodeWrapper = memo(
         const { favorites, addFavorites, removeFavorite } = useNodeFavorites();
         const isFavorite = favorites.has(node.schemaId);
 
+        const { isOpen, onOpen, onClose } = useDisclosure();
+        const [didSingleClick, setDidSingleClick] = useState(false);
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                if (didSingleClick) {
+                    setDidSingleClick(false);
+                    onOpen();
+                }
+            }, 500);
+            return () => clearTimeout(timerId);
+        }, [didSingleClick, onOpen]);
+
         const { onContextMenu } = useContextMenu(() => (
             <MenuList>
                 <MenuItem
@@ -64,52 +76,75 @@ const RepresentativeNodeWrapper = memo(
                     closeOnMouseDown
                     hasArrow
                     borderRadius={8}
-                    label={<ReactMarkdown>{node.description}</ReactMarkdown>}
-                    openDelay={500}
+                    isOpen={isOpen}
+                    label="Either double-click or drag and drop to add nodes to the canvas."
+                    placement="top"
                     px={2}
                     py={1}
+                    onClose={onClose}
                 >
-                    <Center
-                        draggable
-                        boxSizing="content-box"
-                        display="block"
-                        // w="100%"
-                        onDoubleClick={() => {
-                            if (!reactFlowWrapper.current) return;
+                    <Box>
+                        <Tooltip
+                            closeOnMouseDown
+                            hasArrow
+                            borderRadius={8}
+                            label={
+                                <ReactMarkdown>{`**${collapsed ? node.name : ''}**\n\n${
+                                    node.description
+                                }`}</ReactMarkdown>
+                            }
+                            openDelay={500}
+                            placement="bottom"
+                            px={2}
+                            py={1}
+                        >
+                            <Center
+                                draggable
+                                boxSizing="content-box"
+                                display="block"
+                                onClick={() => {
+                                    setDidSingleClick(true);
+                                }}
+                                onDoubleClick={() => {
+                                    setDidSingleClick(false);
+                                    if (!reactFlowWrapper.current) return;
 
-                            const { height: wHeight, width } =
-                                reactFlowWrapper.current.getBoundingClientRect();
+                                    const { height: wHeight, width } =
+                                        reactFlowWrapper.current.getBoundingClientRect();
 
-                            const position = reactFlowInstance.project({
-                                x: width / 2,
-                                y: wHeight / 2,
-                            });
+                                    const position = reactFlowInstance.project({
+                                        x: width / 2,
+                                        y: wHeight / 2,
+                                    });
 
-                            createNode({
-                                nodeType: node.nodeType,
-                                position,
-                                data: {
-                                    schemaId: node.schemaId,
-                                },
-                            });
-                        }}
-                        onDragEnd={() => {
-                            setHoveredNode(null);
-                        }}
-                        onDragStart={(event) => {
-                            onDragStart(event, node);
-                            setHoveredNode(null);
-                        }}
-                    >
-                        <RepresentativeNode
-                            category={node.category}
-                            collapsed={collapsed}
-                            icon={node.icon}
-                            name={node.name}
-                            schemaId={node.schemaId}
-                            subcategory={node.subcategory}
-                        />
-                    </Center>
+                                    createNode({
+                                        nodeType: node.nodeType,
+                                        position,
+                                        data: {
+                                            schemaId: node.schemaId,
+                                        },
+                                    });
+                                }}
+                                onDragEnd={() => {
+                                    setHoveredNode(null);
+                                }}
+                                onDragStart={(event) => {
+                                    setDidSingleClick(false);
+                                    onDragStart(event, node);
+                                    setHoveredNode(null);
+                                }}
+                            >
+                                <RepresentativeNode
+                                    category={node.category}
+                                    collapsed={collapsed}
+                                    icon={node.icon}
+                                    name={node.name}
+                                    schemaId={node.schemaId}
+                                    subcategory={node.subcategory}
+                                />
+                            </Center>
+                        </Tooltip>
+                    </Box>
                 </Tooltip>
             </Box>
         );

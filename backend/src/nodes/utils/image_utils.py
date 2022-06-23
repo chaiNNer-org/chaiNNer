@@ -101,6 +101,16 @@ def convert_to_BGRA(img: np.ndarray, c: int) -> np.ndarray:
     return img.copy()
 
 
+def convert_from_BGRA(img: np.ndarray, c: int) -> np.ndarray:
+    assert c in (1, 3, 4), f"Number of channels ({c}) unexpected"
+    if c == 1:
+        img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+    elif c == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+
+    return img.copy()
+
+
 def normalize(img: np.ndarray) -> np.ndarray:
     dtype_max = 1
     try:
@@ -183,4 +193,4 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
         (mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2)
     )
 
-    return np.mean(ssim_map)
+    return float(np.mean(ssim_map))

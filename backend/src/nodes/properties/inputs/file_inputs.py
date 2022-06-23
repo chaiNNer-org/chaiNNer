@@ -64,7 +64,7 @@ def VideoFileInput() -> FileInput:
         input_type="VideoFile",
         label="Video File",
         file_kind="video",
-        filetypes=[".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi"],
+        filetypes=[".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi", ".gif"],
         has_handle=False,
     )
 
