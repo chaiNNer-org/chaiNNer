@@ -13,6 +13,7 @@ interface NodeFooterProps {
 const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
+    const switchShade = useColorModeValue('gray.500', 'gray.600');
     // const invalidShade = useColorModeValue('red.200', 'red.900');
     const invalidShade = useColorModeValue('red.400', 'red.600');
     // const iconShade = useColorModeValue('gray.400', 'gray.800');
@@ -46,15 +47,30 @@ const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
                     >
                         <Center
                             bgColor={iconShade}
-                            borderRadius={100}
-                            mr={-4}
-                            p={2}
-                        />
-                        <Icon
-                            as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
-                            color={validShade}
+                            borderRadius="2em"
                             cursor="pointer"
-                        />
+                            h="1em"
+                            p={2}
+                            w="1.8em"
+                        >
+                            <Center
+                                bgColor={switchShade}
+                                borderRadius="100%"
+                                cursor="pointer"
+                                h="0.85em"
+                                ml={isDirectlyDisabled ? '-0.8em' : 0}
+                                mr={isDirectlyDisabled ? 0 : '-0.8em'}
+                                w="0.85em"
+                            >
+                                <Icon
+                                    as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
+                                    color={iconShade}
+                                    h="0.7em"
+                                    ml={isDirectlyDisabled ? undefined : '0.02em'}
+                                    w="0.7em"
+                                />
+                            </Center>
+                        </Center>
                     </Center>
                 </Tooltip>
             ) : (
