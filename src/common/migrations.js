@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
 import { isEdge, isNode } from 'react-flow-renderer';
@@ -74,9 +75,7 @@ const toV03 = (data) => {
                             // For each of the outgoing connections, replace the source with the output of the
                             // new Load Model node
                             targetEdges.forEach((targetEdge) => {
-                                // eslint-disable-next-line no-param-reassign
                                 targetEdge.source = element.id;
-                                // eslint-disable-next-line no-param-reassign
                                 targetEdge.sourceHandle = `${element.id}-0`;
                             });
                         }
@@ -166,7 +165,6 @@ const toV052 = (data) => {
                 // Image Name node moves different amounts in different Load Image types
                 const newEdgeIndex = node.data.type === 'Load Image' ? '2' : '3';
                 if (edgeIndex === '-1') {
-                    // eslint-disable-next-line no-param-reassign
                     edge.sourceHandle = edge.source.concat('-', newEdgeIndex);
                 }
             });
@@ -175,18 +173,16 @@ const toV052 = (data) => {
         // Update any connections and inputs to Save Image Node
         if (node.data.type === 'Save Image') {
             // Shift text input values >=2 down one place and set Relative Path to empty string
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            // eslint-disable-next-line prefer-destructuring
             node.data.inputData[4] = node.data.inputData[3];
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
+            // eslint-disable-next-line prefer-destructuring
             node.data.inputData[3] = node.data.inputData[2];
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData[2] = '';
             // Move Image Name connection if it exists
             const edges = newData.edges.filter((e) => e.target === node.id);
             edges.forEach((edge) => {
                 const edgeIndex = edge.targetHandle.slice(-2);
                 if (edgeIndex === '-2') {
-                    // eslint-disable-next-line no-param-reassign, prefer-destructuring
                     edge.targetHandle = edge.target.concat('-', '3');
                 }
             });
@@ -251,12 +247,11 @@ const toV070 = (data) => {
         const oldType = `${node.data.category}:${node.data.type}`;
         const newType = v07TypeMap[oldType];
         if (newType) {
-            // eslint-disable-next-line no-param-reassign
             node.data.schemaId = newType;
-            delete node.data.category; // eslint-disable-line no-param-reassign
-            delete node.data.type; // eslint-disable-line no-param-reassign
-            delete node.data.icon; // eslint-disable-line no-param-reassign
-            delete node.data.subcategory; // eslint-disable-line no-param-reassign
+            delete node.data.category;
+            delete node.data.type;
+            delete node.data.icon;
+            delete node.data.subcategory;
         }
     });
     return data;
@@ -266,11 +261,9 @@ const toV080 = (data) => {
     data.nodes.forEach((node) => {
         // Convert Resize (Factor) and Average Color Fix to percentage
         if (node.data.schemaId === 'chainner:image:resize_factor') {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['1'] *= 100.0;
         }
         if (node.data.schemaId === 'chainner:image:average_color_fix') {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] *= 100.0;
         }
         // Invert interpolation weight
@@ -279,7 +272,6 @@ const toV080 = (data) => {
                 node.data.schemaId
             )
         ) {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = 100 - node.data.inputData['2'];
         }
     });
@@ -290,13 +282,10 @@ const updateAdjustmentScale = (data) => {
     data.nodes.forEach((node) => {
         // Convert slider scales for several Adjustment nodes
         if (node.data.schemaId === 'chainner:image:hue_and_saturation') {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
         }
         if (node.data.schemaId === 'chainner:image:brightness_and_contrast') {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['1'] = ((node.data.inputData['1'] / 255) * 100.0).toFixed(1);
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] = ((node.data.inputData['2'] / 255) * 100.0).toFixed(1);
         }
     });
@@ -307,12 +296,9 @@ const fixBlurNode = (data) => {
     data.nodes.forEach((node) => {
         // Convert Blur Nodes to Gaussian Blur nodes
         if (node.data.schemaId === 'chainner:image:blur') {
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.schemaId = 'chainner:image:gaussian_blur';
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['1'] =
                 Math.round((1.16531 * node.data.inputData['1'] - 0.153601) * 10) / 10;
-            // eslint-disable-next-line no-param-reassign, prefer-destructuring
             node.data.inputData['2'] =
                 Math.round((1.16531 * node.data.inputData['2'] - 0.153601) * 10) / 10;
         }
@@ -324,13 +310,9 @@ const addBlendNode = (data) => {
     data.nodes.forEach((node) => {
         // Convert Difference Nodes to Blend Image Nodes
         if (node.data.schemaId === 'chainner:image:difference') {
-            // eslint-disable-next-line no-param-reassign
             node.data.schemaId = 'chainner:image:blend';
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['2'] = 100;
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['3'] = 100;
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['4'] = 10;
         }
 
@@ -376,14 +358,10 @@ const addBlendNode = (data) => {
                 }
                 data.nodes.push(newBlendNode);
 
-                // eslint-disable-next-line no-param-reassign
                 data.edges[edgesToChange.input].target = newID;
-                // eslint-disable-next-line no-param-reassign
                 data.edges[edgesToChange.input].targetHandle = `${newID}-1`;
                 if (edgesToChange.output !== undefined) {
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[edgesToChange.output].source = newID;
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[edgesToChange.output].sourceHandle = `${newID}-0`;
                 }
 
@@ -401,34 +379,26 @@ const addBlendNode = (data) => {
                 data.edges.push(newOutputEdge);
             }
 
-            // eslint-disable-next-line no-param-reassign
             node.data.schemaId = 'chainner:image:blend';
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['3'] = node.data.inputData['2'];
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['2'] =
                 node.data.inputData['5'] !== undefined ? node.data.inputData['5'] : 100;
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['4'] = 0;
-            // console.log(data);
         }
     });
     return data;
 };
 
-const udpateRotateNode = (data) => {
+const updateRotateNode = (data) => {
     data.nodes.forEach((node) => {
         // Update rotation angle from dropdown to slider
         if (node.data.schemaId === 'chainner:image:rotate') {
             const RotDeg = node.data.inputData['1'];
             if (RotDeg === 0) {
-                // eslint-disable-next-line no-param-reassign
                 node.data.inputData['1'] = 90;
             } else if (RotDeg === '1') {
-                // eslint-disable-next-line no-param-reassign
                 node.data.inputData['1'] = 180;
             } else {
-                // eslint-disable-next-line no-param-reassign
                 node.data.inputData['1'] = 270;
             }
         }
@@ -514,9 +484,7 @@ const addOpacityNode = (data) => {
 
             if (newOpacityNodeIDs.baseOpacityNode !== undefined) {
                 if (edgesToChange.baseInput !== undefined) {
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[edgesToChange.baseInput].target = newOpacityNodeIDs.baseOpacityNode;
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[
                         edgesToChange.baseInput
                     ].targetHandle = `${newOpacityNodeIDs.baseOpacityNode}-0`;
@@ -527,9 +495,7 @@ const addOpacityNode = (data) => {
             }
             if (newOpacityNodeIDs.ovOpacityNode !== undefined) {
                 if (edgesToChange.ovInput !== undefined) {
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[edgesToChange.ovInput].target = newOpacityNodeIDs.ovOpacityNode;
-                    // eslint-disable-next-line no-param-reassign
                     data.edges[
                         edgesToChange.ovInput
                     ].targetHandle = `${newOpacityNodeIDs.ovOpacityNode}-0`;
@@ -539,10 +505,42 @@ const addOpacityNode = (data) => {
                 );
             }
 
-            // eslint-disable-next-line no-param-reassign
             node.data.inputData['2'] = node.data.inputData['4'];
         }
     });
+    return data;
+};
+
+const fixDropDownNumberValues = (data) => {
+    const needToConvert = new Set([
+        'chainner:image:resize_factor/2',
+        'chainner:image:resize_resolution/3',
+        'chainner:image:threshold/3',
+        'chainner:image:threshold_adaptive/2',
+        'chainner:image:threshold_adaptive/3',
+        'chainner:image:color_transfer/3',
+        'chainner:image:color_transfer/4',
+        'chainner:image:blend/2',
+        'chainner:image:change_colorspace/1',
+        'chainner:image:create_border/1',
+        'chainner:image:rotate/2',
+        'chainner:image:rotate/3',
+        'chainner:image:rotate/4',
+        'chainner:image:flip/1',
+        'chainner:image:fill_alpha/1',
+    ]);
+
+    data.nodes.forEach((node) => {
+        Object.keys(node.data.inputData).forEach((id) => {
+            if (needToConvert.has(`${node.data.schemaId}/${id}`)) {
+                const value = node.data.inputData[id];
+                if (typeof value === 'string') {
+                    node.data.inputData[id] = Number(value);
+                }
+            }
+        });
+    });
+
     return data;
 };
 
@@ -577,16 +575,15 @@ const migrations = [
     updateAdjustmentScale,
     fixBlurNode,
     addBlendNode,
-    udpateRotateNode,
+    updateRotateNode,
     addOpacityNode,
+    fixDropDownNumberValues,
 ];
 
 export const currentMigration = migrations.length;
 
 export const migrate = (version, data, migration) => {
-    // eslint-disable-next-line no-param-reassign
     version ||= '0.0.0';
-    // eslint-disable-next-line no-param-reassign
     migration ??= versionToMigration(version);
 
     try {
