@@ -134,7 +134,11 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const menu = useNodeMenu(id, isLocked ?? false);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const [gray400, gray700]: string[] = useToken('colors', ['gray.400', 'gray.750']);
+    const [gray400, gray700, gray900]: string[] = useToken('colors', [
+        'gray.400',
+        'gray.750',
+        'gray.900',
+    ]);
 
     const bgColor = useColorModeValue(gray400, gray700);
 
@@ -146,7 +150,9 @@ const Node = memo(({ data, selected }: NodeProps) => {
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
-            boxShadow="lg"
+            boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
+                selected ? 12 : 8
+            }px ${gray900}CF`}
             overflow="hidden"
             pb={2}
             ref={targetRef}

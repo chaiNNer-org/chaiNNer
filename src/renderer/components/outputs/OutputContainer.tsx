@@ -1,7 +1,9 @@
-import { Box, HStack, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { Handle, Position } from 'react-flow-renderer';
+import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
+import { EdgeData } from '../../../common/common-types';
+import { parseHandle } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
@@ -14,6 +16,31 @@ interface OutputContainerProps {
     type: string;
 }
 
+interface RightHandleProps {
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
+}
+
+// Had to do this garbage to prevent chakra from clashing the position prop
+const RightHandle = memo(
+    ({ children, isValidConnection, ...props }: React.PropsWithChildren<RightHandleProps>) => (
+        <Handle
+            isConnectable
+            className="output-handle"
+            isValidConnection={isValidConnection}
+            position={Position.Right}
+            type="source"
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {children}
+        </Handle>
+    )
+);
+
+const Div = chakra('div', {
+    baseStyle: {},
+});
+
 const OutputContainer = memo(
     ({
         children,
@@ -24,11 +51,16 @@ const OutputContainer = memo(
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection } = useContext(GlobalContext);
+        const edges = useEdges<EdgeData>();
+        const isConnected = !!edges.find(
+            (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
+        );
 
         let contents = children;
         if (hasHandle) {
             const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
             const borderColor = useColorModeValue('#171923', '#F7FAFC');
+            const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (
                 <HStack
                     h="full"
@@ -44,21 +76,37 @@ const OutputContainer = memo(
                 >
                     {children}
                     <div style={{ position: 'absolute', right: '-4px', width: 0 }}>
-                        <Handle
-                            isConnectable
+                        <Div
+                            _before={{
+                                content: '" "',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                height: '45px',
+                                width: '45px',
+                                cursor: 'crosshair',
+                                // backgroundColor: '#FF00FF1F',
+                                transform: 'translate(-50%, -50%)',
+                                borderRadius: '100%',
+                            }}
+                            _hover={{
+                                width: '22px',
+                                height: '22px',
+                                marginRight: '-3px',
+                            }}
+                            as={RightHandle}
+                            className="output-handle"
                             id={`${id}-${outputId}`}
                             isValidConnection={isValidConnection}
-                            position={Position.Right}
-                            style={{
-                                width: '15px',
-                                height: '15px',
-                                borderWidth: '0px',
-                                borderColor,
-                                transition: '0.25s ease-in-out',
-                                background: handleColor,
+                            sx={{
+                                width: '16px',
+                                height: '16px',
+                                borderWidth: '2px',
+                                borderColor: handleColor,
+                                transition: '0.15s ease-in-out',
+                                background: isConnected ? connectedColor : handleColor,
                                 boxShadow: '-2px 2px 2px #00000014',
                             }}
-                            type="source"
                             onContextMenu={noContextMenu}
                         />
                     </div>

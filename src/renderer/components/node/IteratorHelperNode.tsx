@@ -58,12 +58,13 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
 
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.700')}
+            bg={useColorModeValue('gray.300', 'gray.750')}
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
-            py={2}
+            overflow="hidden"
+            pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onClick={() => {}}

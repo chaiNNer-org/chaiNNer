@@ -19,23 +19,14 @@ interface InputContainerProps {
 
 interface LeftHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
-    id: string;
-    inputId: number;
 }
 
 // Had to do this garbage to prevent chakra from clashing the position prop
 const LeftHandle = memo(
-    ({
-        children,
-        isValidConnection,
-        id,
-        inputId,
-        ...props
-    }: React.PropsWithChildren<LeftHandleProps>) => (
+    ({ children, isValidConnection, ...props }: React.PropsWithChildren<LeftHandleProps>) => (
         <Handle
             isConnectable
             className="input-handle"
-            id={`${id}-${inputId}`}
             isValidConnection={isValidConnection}
             position={Position.Left}
             type="target"
@@ -91,8 +82,8 @@ const InputContainer = memo(
                                 position: 'absolute',
                                 top: '50%',
                                 left: '50%',
-                                height: '35px',
-                                width: '35px',
+                                height: '45px',
+                                width: '45px',
                                 cursor: 'crosshair',
                                 // backgroundColor: '#FF00FF1F',
                                 transform: 'translate(-50%, -50%)',
@@ -105,8 +96,7 @@ const InputContainer = memo(
                             }}
                             as={LeftHandle}
                             className="input-handle"
-                            id={id}
-                            inputId={inputId}
+                            id={`${id}-${inputId}`}
                             isValidConnection={isValidConnection}
                             sx={{
                                 width: '16px',

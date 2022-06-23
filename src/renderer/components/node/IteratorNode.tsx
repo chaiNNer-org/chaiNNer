@@ -75,7 +75,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
 
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.700')}
+            bg={useColorModeValue('gray.300', 'gray.750')}
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
