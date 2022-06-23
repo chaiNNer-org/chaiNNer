@@ -1,7 +1,7 @@
-import { DeleteIcon } from '@chakra-ui/icons';
-import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
+import { TbUnlink } from 'react-icons/tb';
 import { useContext } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -166,7 +166,12 @@ const CustomEdge = memo(
                             borderRadius={100}
                             borderWidth={2}
                             className="edgebutton"
-                            icon={<DeleteIcon />}
+                            icon={
+                                <Icon
+                                    as={TbUnlink}
+                                    boxSize={5}
+                                />
+                            }
                             size="sm"
                             onClick={() => removeEdgeById(id)}
                         >
