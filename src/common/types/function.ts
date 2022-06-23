@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { NodeSchema } from '../common-types';
+import { InputSchemaValue, NodeSchema } from '../common-types';
 import { EMPTY_MAP } from '../util';
 import { evaluate } from './evaluate';
 import { Expression } from './expression';
@@ -31,6 +31,37 @@ const evaluateInputOutput = (
     return result;
 };
 
+const evaluateInputOptions = (
+    schema: NodeSchema,
+    definitions: TypeDefinitions,
+    genericParameters?: ReadonlyMap<string, Type>
+): Map<number, Map<InputSchemaValue, Type>> => {
+    const result = new Map<number, Map<InputSchemaValue, Type>>();
+    for (const input of schema.inputs) {
+        if (input.kind === 'dropdown' && input.options) {
+            const options = new Map<InputSchemaValue, Type>();
+            result.set(input.id, options);
+            for (const o of input.options) {
+                if (o.type !== undefined) {
+                    let type;
+                    try {
+                        type = evaluate(fromJson(o.type), definitions, genericParameters);
+                    } catch (error) {
+                        throw new Error(
+                            `Unable to evaluate type of option ` +
+                                `${o.option}=${JSON.stringify(o.value)} ` +
+                                `in (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})` +
+                                `: ${String(error)}`
+                        );
+                    }
+                    options.set(o.value, type);
+                }
+            }
+        }
+    }
+    return result;
+};
+
 const createGenericParametersFromInputs = (
     inputs: ReadonlyMap<number, Type>
 ): Map<string, Type> => {
@@ -57,6 +88,8 @@ export class FunctionDefinition {
     readonly typeDefinitions: TypeDefinitions;
 
     readonly inputDataLiterals: Set<number>;
+
+    readonly inputOptions: ReadonlyMap<number, ReadonlyMap<string | number, Type>>;
 
     readonly defaultInstance: FunctionInstance;
 
@@ -98,6 +131,8 @@ export class FunctionDefinition {
                 })
                 .map((i) => i.id)
         );
+
+        this.inputOptions = evaluateInputOptions(schema, definitions);
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         this.defaultInstance = FunctionInstance.fromDefinition(this);

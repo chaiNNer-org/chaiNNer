@@ -65,7 +65,7 @@ export class TypeState {
             try {
                 instance = FunctionInstance.fromPartialInputs(
                     definition,
-                    (id) => {
+                    (id): Type | undefined => {
                         const edgeSource = getSourceType(n.id, id);
                         if (edgeSource) {
                             if (edgeSource.type !== 'never') {
@@ -82,6 +82,17 @@ export class TypeState {
                                     return new NumericLiteralType(inputValue);
                                 }
                                 return new StringLiteralType(inputValue);
+                            }
+                        }
+
+                        const optionTypes = definition.inputOptions.get(id);
+                        if (optionTypes) {
+                            const inputValue = n.data.inputData[id];
+                            if (inputValue !== undefined) {
+                                const currentOption = optionTypes.get(inputValue);
+                                if (currentOption) {
+                                    return currentOption;
+                                }
                             }
                         }
 

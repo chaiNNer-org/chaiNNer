@@ -21,6 +21,7 @@ export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
+    type?: ExpressionJson;
 }
 export type InputKind =
     | 'number'
