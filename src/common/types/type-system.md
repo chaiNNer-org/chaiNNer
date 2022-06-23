@@ -11,7 +11,6 @@ The empty set is a special type called `never`.
 
 The set that contains all values is a special type called `any`.
 
-
 ## Primitive types
 
 ### `number`
@@ -55,7 +54,6 @@ These are properties the type system guarantees.
 Users of the type system don't have to worry about this.
 They only become relevant when changing the type system itself.
 
-
 ## Structure types
 
 Structure types are class-like types.
@@ -95,7 +93,6 @@ Users can ignore this section.
 Internally, structure types are represented as a tuple `(name, field_1, field_2, ..., field_n)`.
 
 E.g. the set representation of the above `Image` structure is `(Image, uint, uint, uint)`.
-
 
 ## Aliases
 
@@ -162,7 +159,6 @@ Result { success: int, error: string } == Success { value: int } | Error { value
 Result { success: int, error: never } == Success { value: int }
 ```
 
-
 ## Built-in type definitions
 
 ### Aliases
@@ -178,3 +174,41 @@ alias uint = int(0..Infinity)
 struct null
 struct Image { width: uint, height: uint, channels: int(1..Infinity) }
 ```
+
+## Built-in functions
+
+Built-in functions are functions that takes types are positional arguments and return a type. These functions are not implemented with the type system (like e.g. generic aliases) and have to be implemented in the host language (in this case TypeScript).
+
+The following built-in functions are supported:
+
+-   `add(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents `a + b`.
+
+-   `subtract(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents `a - b`.
+
+-   `multiply(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents `a * b`.
+
+-   `divide(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents `a / b`.
+
+-   `negate(a: number) -> number`
+
+    Takes a number type and returns the type that represents `-a`.
+
+-   `round(a: number) -> number`
+
+    Takes a number type and returns the type that represents the nearest whole numbers to the given numbers. The behavior is consistent with JavaScript's `Math.round(a)`.
+
+-   `minimum(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents the minimum of the both types. The behavior is consistent with JavaScript's `Math.min(a, b)`.
+
+-   `maximum(a: number, b: number) -> number`
+
+    Takes 2 number types and returns the type that represents the maximum of the both types. The behavior is consistent with JavaScript's `Math.max(a, b)`.
