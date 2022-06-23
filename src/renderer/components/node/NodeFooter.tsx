@@ -105,7 +105,7 @@ const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
                 </Center>
             </Tooltip>
             <Spacer />
-            <Box width="1em" />
+            <Box width="1.8em" />
         </Flex>
     );
 });
