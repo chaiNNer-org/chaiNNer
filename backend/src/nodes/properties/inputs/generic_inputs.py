@@ -1,4 +1,5 @@
 from typing import Dict, List, Union
+from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
@@ -9,11 +10,11 @@ class DropDownInput(BaseInput):
 
     def __init__(
         self,
+        input_type: expression.ExpressionJson,
         label: str,
         options: List[Dict],
-        input_type: str = "generic",
     ):
-        super().__init__(f"dropdown::{input_type}", label, has_handle=False)
+        super().__init__(input_type, label, kind="dropdown", has_handle=False)
         self.options = options
 
     def toDict(self):
@@ -40,7 +41,7 @@ class TextInput(BaseInput):
         has_handle=True,
         max_length: Union[int, None] = None,
     ):
-        super().__init__(f"text::any", label, has_handle=has_handle)
+        super().__init__("string", label, has_handle=has_handle, kind="text-line")
         self.max_length = max_length
 
     def toDict(self):
@@ -54,7 +55,7 @@ class NoteTextAreaInput(BaseInput):
     """Input for note text"""
 
     def __init__(self, label: str = "Note Text"):
-        super().__init__(f"textarea::note", label, has_handle=False)
+        super().__init__("string", label, has_handle=False, kind="text")
         self.resizable = True
 
     def toDict(self):
@@ -67,8 +68,9 @@ class NoteTextAreaInput(BaseInput):
 def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(
-        "Math Operation",
-        [
+        input_type="MathOperation",
+        label="Math Operation",
+        options=[
             {
                 "option": "Add (+)",
                 "value": "add",
@@ -98,30 +100,24 @@ def MathOpsDropdown() -> DropDownInput:
                 "value": "min",
             },
         ],
-        input_type="math-operations",
     )
 
 
 def StackOrientationDropdown() -> DropDownInput:
     """Input for selecting stack orientation from dropdown"""
     return DropDownInput(
-        "Orientation",
-        [
-            {
-                "option": "Horizontal",
-                "value": "horizontal",
-            },
-            {
-                "option": "Vertical",
-                "value": "vertical",
-            },
+        input_type="Orientation",
+        label="Orientation",
+        options=[
+            {"option": "Horizontal", "value": "horizontal"},
+            {"option": "Vertical", "value": "vertical"},
         ],
     )
 
 
 def IteratorInput():
     """Input for showing that an iterator automatically handles the input"""
-    return BaseInput("iterator::auto", "Auto (Iterator)", has_handle=False)
+    return BaseInput("IteratorAuto", "Auto (Iterator)", has_handle=False)
 
 
 class AlphaFillMethod:
@@ -132,8 +128,9 @@ class AlphaFillMethod:
 def AlphaFillMethodInput() -> DropDownInput:
     """Alpha Fill method option dropdown"""
     return DropDownInput(
-        "Fill method",
-        [
+        input_type="FillMethod",
+        label="Fill method",
+        options=[
             {
                 "option": "Extend texture",
                 "value": AlphaFillMethod.EXTEND_TEXTURE,
@@ -149,20 +146,57 @@ def AlphaFillMethodInput() -> DropDownInput:
 def VideoTypeDropdown() -> DropDownInput:
     """Video Type option dropdown"""
     return DropDownInput(
-        "Video Type",
-        [
-            {
-                "option": "MP4",
-                "value": "mp4",
-            },
-            {
-                "option": "AVI",
-                "value": "avi",
-            },
-            {
-                "option": "None",
-                "value": "none",
-            },
+        input_type="VideoType",
+        label="Video Type",
+        options=[
+            {"option": "MP4", "value": "mp4"},
+            {"option": "AVI", "value": "avi"},
+            {"option": "None", "value": "none"},
+        ],
+    )
+
+
+def FlipAxisInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="FlipAxis",
+        label="Flip Axis",
+        options=[
+            {"option": "Horizontal", "value": 1},
+            {"option": "Vertical", "value": 0},
+            {"option": "Both", "value": -1},
+        ],
+    )
+
+
+def ColorspaceInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="Colorspace",
+        label="Colorspace",
+        options=[
+            {"option": "L*a*b*", "value": "L*a*b*"},
+            {"option": "RGB", "value": "RGB"},
+        ],
+    )
+
+
+def OverflowMethodInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="OverflowMethod",
+        label="Overflow Method",
+        options=[
+            {"option": "Clip", "value": 1},
+            {"option": "Scale", "value": 0},
+        ],
+    )
+
+
+def ReciprocalScalingFactorInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="ReciprocalScalingFactor",
+        label="Reciprocal Scaling Factor",
+        options=[
+            {"option": "Yes", "value": 1},
+            {"option": "No", "value": 0},
         ],
     )
 
@@ -170,8 +204,9 @@ def VideoTypeDropdown() -> DropDownInput:
 def BlendModeDropdown() -> DropDownInput:
     """Blending Mode option dropdown"""
     return DropDownInput(
-        "Blend Mode",
-        [
+        input_type="BlendMode",
+        label="Blend Mode",
+        options=[
             {"option": "Normal", "value": bm.NORMAL},
             {"option": "Darken", "value": bm.DARKEN},
             {"option": "Multiply", "value": bm.MULTIPLY},

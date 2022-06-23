@@ -15,6 +15,7 @@ import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { FileInputKind } from '../../../common/common-types';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { checkFileExists } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
@@ -28,11 +29,20 @@ import { InputProps } from './props';
 
 interface FileInputProps extends InputProps {
     filetypes: readonly string[];
-    type: string;
+    fileKind: FileInputKind;
 }
 
 const FileInput = memo(
-    ({ filetypes, id, inputId, useInputData, label, type, isLocked, schemaId }: FileInputProps) => {
+    ({
+        filetypes,
+        id,
+        inputId,
+        useInputData,
+        label,
+        fileKind,
+        isLocked,
+        schemaId,
+    }: FileInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
             inputId
@@ -97,8 +107,8 @@ const FileInput = memo(
         };
 
         const preview = () => {
-            switch (type) {
-                case 'file::image':
+            switch (fileKind) {
+                case 'image':
                     return (
                         <Box mt={2}>
                             <ImagePreview
@@ -108,7 +118,7 @@ const FileInput = memo(
                             />
                         </Box>
                     );
-                case 'file::pth':
+                case 'pth':
                     return (
                         <Box mt={2}>
                             <TorchModelPreview

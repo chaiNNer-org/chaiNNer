@@ -22,7 +22,7 @@ class HueAndSaturationNode(NodeBase):
         super().__init__()
         self.description = "Adjust the hue and saturation of an image."
         self.inputs = [
-            ImageInput(),
+            ImageInput(image_type=expression.Image(channels=[1, 3, 4])),
             SliderInput(
                 "Hue",
                 minimum=-180,
@@ -40,7 +40,7 @@ class HueAndSaturationNode(NodeBase):
                 controls_step=1,
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Hue & Saturation"
         self.icon = "MdOutlineColorLens"
@@ -111,7 +111,7 @@ class BrightnessAndContrastNode(NodeBase):
                 controls_step=1,
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Brightness & Contrast"
         self.icon = "ImBrightnessContrast"
@@ -184,7 +184,7 @@ class ThresholdNode(NodeBase):
             ),
             ThresholdInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Threshold"
         self.icon = "MdShowChart"
@@ -216,7 +216,7 @@ class AdaptiveThresholdNode(NodeBase):
         super().__init__()
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
-            ImageInput(),
+            ImageInput(image_type=expression.Image(channels=1)),
             SliderInput(
                 "Maximum Value",
                 maximum=100,
@@ -234,7 +234,7 @@ class AdaptiveThresholdNode(NodeBase):
             ),
             NumberInput("Mean Subtraction"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Threshold (Adaptive)"
         self.icon = "MdAutoGraph"

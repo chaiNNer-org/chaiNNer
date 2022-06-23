@@ -5,4 +5,4 @@ class OnnxModelInput(BaseInput):
     """Input for onnx model"""
 
     def __init__(self, label: str = "Model"):
-        super().__init__(f"onnx::model", label)
+        super().__init__("OnnxModel", label=label)

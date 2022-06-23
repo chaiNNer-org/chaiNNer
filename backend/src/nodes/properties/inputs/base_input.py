@@ -1,9 +1,28 @@
-from typing import Union
+from typing import Union, Literal
+from .. import expression
+
+InputKind = Union[
+    Literal["number"],
+    Literal["slider"],
+    Literal["dropdown"],
+    Literal["text"],
+    Literal["text-line"],
+    Literal["directory"],
+    Literal["file"],
+    Literal["generic"],
+]
 
 
 class BaseInput:
-    def __init__(self, input_type: str, label: str, has_handle=True):
+    def __init__(
+        self,
+        input_type: expression.ExpressionJson,
+        label: str,
+        kind: InputKind = "generic",
+        has_handle=True,
+    ):
         self.input_type = input_type
+        self.kind = kind
         self.label = label
         self.optional: bool = False
         self.has_handle = has_handle
@@ -18,15 +37,22 @@ class BaseInput:
     def enforce_(self, value):
         if self.optional and value is None:
             return None
-        assert (
-            value is not None
-        ), f"Expected value to exist, but does not exist for type {self.input_type} with label {self.label}"
+        assert value is not None, (
+            f"Expected value to exist, "
+            f"but does not exist for {self.kind} input with type {self.input_type} and label {self.label}"
+        )
         return self.enforce(value)
 
     def toDict(self):
+        actual_type = (
+            expression.union(self.input_type, "null")
+            if self.optional
+            else self.input_type
+        )
         return {
             "id": self.id,
-            "type": self.input_type,
+            "type": actual_type,
+            "kind": self.kind,
             "label": self.label,
             "optional": self.optional,
             "hasHandle": self.has_handle,

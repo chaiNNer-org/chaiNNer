@@ -1,5 +1,6 @@
 import { Box, Center, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react';
 import { useWindowHeight } from '@react-hook/window-size';
+import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -7,6 +8,8 @@ import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
+import { FunctionDefinition } from '../common/types/function';
+import { TypeDefinitions } from '../common/types/typedef';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import ChaiNNerLogo from './components/chaiNNerLogo';
 import CustomEdge from './components/CustomEdge';
@@ -25,6 +28,38 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
+interface NodesInfo {
+    schemata: SchemaMap;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
+}
+
+const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
+    const schemata = new SchemaMap(response);
+
+    const typeDefinitions = new TypeDefinitions();
+    const functionDefinitions = new Map<string, FunctionDefinition>();
+
+    const errors: string[] = [];
+
+    for (const schema of response) {
+        try {
+            functionDefinitions.set(
+                schema.schemaId,
+                FunctionDefinition.fromSchema(schema, typeDefinitions)
+            );
+        } catch (error) {
+            errors.push(String(error));
+        }
+    }
+
+    if (errors.length) {
+        throw new Error(errors.join('\n\n'));
+    }
+
+    return { schemata, functionDefinitions, typeDefinitions };
+};
+
 const nodeTypes: NodeTypes = {
     regularNode: Node,
     iterator: IteratorNode,
@@ -41,7 +76,7 @@ interface MainProps {
 const Main = memo(({ port }: MainProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
 
-    const [schemata, setSchemata] = useState<SchemaMap | null>(null);
+    const [nodesInfo, setNodesInfo] = useState<NodesInfo | null>(null);
     const height = useWindowHeight();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -58,7 +93,29 @@ const Main = memo(({ port }: MainProps) => {
 
     useEffect(() => {
         if (response.ok && data && !loading && !error && !backendReady) {
-            setSchemata(new SchemaMap(data));
+            try {
+                setNodesInfo(processBackendResponse(data));
+            } catch (e) {
+                log.error(e);
+                sendAlert({
+                    type: AlertType.CRIT_ERROR,
+                    title: 'Unable to process backend nodes',
+                    message:
+                        `A critical error occurred while processing the node data returned by the backend.` +
+                        `\n\n${String(e)}`,
+                    copyToClipboard: true,
+                });
+            }
+            setBackendReady(true);
+            ipcRenderer.send('backend-ready');
+        }
+
+        if (error) {
+            sendAlert(
+                AlertType.CRIT_ERROR,
+                null,
+                `chaiNNer has encountered a critical error: ${error.message}`
+            );
             setBackendReady(true);
             ipcRenderer.send('backend-ready');
         }
@@ -87,16 +144,9 @@ const Main = memo(({ port }: MainProps) => {
         [sendAlert]
     );
 
-    if (error) {
-        sendAlert(
-            AlertType.CRIT_ERROR,
-            null,
-            `chaiNNer has encountered a critical error: ${error.message}`
-        );
-        return null;
-    }
+    if (error) return null;
 
-    if (!schemata || !data || !height) {
+    if (!nodesInfo || !data || !height) {
         return (
             <Box
                 h="100vh"
@@ -122,8 +172,10 @@ const Main = memo(({ port }: MainProps) => {
         <ReactFlowProvider>
             <SettingsProvider port={port}>
                 <GlobalProvider
+                    functionDefinitions={nodesInfo.functionDefinitions}
                     reactFlowWrapper={reactFlowWrapper}
-                    schemata={schemata}
+                    schemata={nodesInfo.schemata}
+                    typeDefinitions={nodesInfo.typeDefinitions}
                 >
                     <ExecutionProvider>
                         <DependencyProvider>
@@ -140,7 +192,7 @@ const Main = memo(({ port }: MainProps) => {
                                     >
                                         <NodeSelector
                                             height={height}
-                                            schemata={schemata}
+                                            schemata={nodesInfo.schemata}
                                         />
                                         <ReactFlowBox
                                             edgeTypes={edgeTypes}

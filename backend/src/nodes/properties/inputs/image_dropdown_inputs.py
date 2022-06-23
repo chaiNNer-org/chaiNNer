@@ -3,66 +3,77 @@ import cv2
 # pylint: disable=relative-beyond-top-level
 from ...utils.pil_utils import InterpolationMethod
 from .generic_inputs import DropDownInput
+from .. import expression
 
 
 def ColorModeInput() -> DropDownInput:
     """Converting color mode dropdown"""
     return DropDownInput(
-        "Color Mode",
-        [
+        input_type="ColorMode",
+        label="Color Mode",
+        options=[
             {
                 "option": "RGB -> Gray",
                 "value": cv2.COLOR_BGR2GRAY,
-                "inputs": "numpy::2d:3c",
-                "outputs": "numpy::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 1}
+                ),
             },
             {
                 "option": "Gray -> RGB",
                 "value": cv2.COLOR_GRAY2BGR,
-                "inputs": "numpy::2d:1c",
-                "outputs": "np::2d:3c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 1, "outputChannels": 3}
+                ),
             },
             {
                 "option": "RGB -> RGBA",
                 "value": cv2.COLOR_BGR2BGRA,
-                "inputs": "numpy::2d::3c",
-                "outputs": "np::2d:4c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 4}
+                ),
             },
             {
                 "option": "RGBA -> RGB",
                 "value": cv2.COLOR_BGRA2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:3c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 4, "outputChannels": 3}
+                ),
             },
             {
                 "option": "RGBA -> Gray",
                 "value": cv2.COLOR_BGRA2GRAY,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 4, "outputChannels": 1}
+                ),
             },
             {
                 "option": "RGB -> YUV",
                 "value": cv2.COLOR_BGR2YUV,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "YUV -> RGB",
                 "value": cv2.COLOR_YUV2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "RGB -> HSV",
                 "value": cv2.COLOR_BGR2HSV,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
             {
                 "option": "HSV -> RGB",
                 "value": cv2.COLOR_HSV2BGR,
-                "inputs": "numpy::2d::4c",
-                "outputs": "np::2d:1c",
+                "type": expression.named(
+                    "ColorMode", {"inputChannels": 3, "outputChannels": 3}
+                ),
             },
         ],
     )
@@ -71,8 +82,9 @@ def ColorModeInput() -> DropDownInput:
 def InterpolationInput() -> DropDownInput:
     """Resize interpolation dropdown"""
     return DropDownInput(
-        "Interpolation Method",
-        [
+        input_type="InterpolationMode",
+        label="Interpolation Method",
+        options=[
             {
                 "option": "Auto",
                 "value": InterpolationMethod.AUTO,
@@ -104,8 +116,9 @@ def InterpolationInput() -> DropDownInput:
 def RotateInterpolationInput() -> DropDownInput:
     """Rotate interpolation dropdown"""
     return DropDownInput(
-        "Interpolation Method",
-        [
+        input_type="RotateInterpolationMode",
+        label="Interpolation Method",
+        options=[
             {
                 "option": "Cubic",
                 "value": InterpolationMethod.CUBIC,
@@ -125,20 +138,12 @@ def RotateInterpolationInput() -> DropDownInput:
 def BlurInput() -> DropDownInput:
     """Blur option dropdown"""
     return DropDownInput(
-        "Blur Mode",
-        [
-            {
-                "option": "Box",
-                "value": 0,
-            },
-            {
-                "option": "Blur",
-                "value": 1,
-            },
-            {
-                "option": "Gaussian",
-                "value": 2,
-            },
+        input_type="BlurMode",
+        label="Blur Mode",
+        options=[
+            {"option": "Box", "value": 0},
+            {"option": "Blur", "value": 1},
+            {"option": "Gaussian", "value": 2},
         ],
     )
 
@@ -146,8 +151,9 @@ def BlurInput() -> DropDownInput:
 def BorderInput() -> DropDownInput:
     """CopyMakeBorder option dropdown"""
     return DropDownInput(
-        "Border Type",
-        [
+        input_type="BorderType",
+        label="Border Type",
+        options=[
             {
                 "option": "Reflect (Mirror)",
                 "value": cv2.BORDER_REFLECT101,
@@ -175,8 +181,9 @@ def BorderInput() -> DropDownInput:
 def ThresholdInput() -> DropDownInput:
     """Threshold type option dropdown"""
     return DropDownInput(
-        "Threshold Type",
-        [
+        input_type="ThresholdType",
+        label="Threshold Type",
+        options=[
             {
                 "option": "Binary",
                 "value": cv2.THRESH_BINARY,
@@ -204,8 +211,9 @@ def ThresholdInput() -> DropDownInput:
 def AdaptiveThresholdInput() -> DropDownInput:
     """Adaptive Threshold type option dropdown"""
     return DropDownInput(
-        "Threshold Type",
-        [
+        input_type="AdaptiveThresholdType",
+        label="Threshold Type",
+        options=[
             {
                 "option": "Binary",
                 "value": cv2.THRESH_BINARY,
@@ -221,8 +229,9 @@ def AdaptiveThresholdInput() -> DropDownInput:
 def AdaptiveMethodInput() -> DropDownInput:
     """Adaptive method border option dropdown"""
     return DropDownInput(
-        "Adaptive Method",
-        [
+        input_type="AdaptiveMethod",
+        label="Adaptive Method",
+        options=[
             {
                 "option": "Mean - C",
                 "value": cv2.ADAPTIVE_THRESH_MEAN_C,

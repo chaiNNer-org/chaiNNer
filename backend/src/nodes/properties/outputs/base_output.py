@@ -1,7 +1,10 @@
+from .. import expression
+
+
 class BaseOutput:
     def __init__(
         self,
-        output_type: str,
+        output_type: expression.ExpressionJson,
         label: str,
     ):
         self.output_type = output_type
