@@ -6,7 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { getDisabledStatus } from '../helpers/disabled';
+import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
@@ -91,7 +91,7 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        opacity: disabledStatus.isDisabled ? 0.5 : 1,
+                        opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
                     }}
                 />
                 <path
