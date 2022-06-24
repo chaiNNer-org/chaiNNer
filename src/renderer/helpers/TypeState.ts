@@ -2,7 +2,7 @@ import { Edge, Node } from 'react-flow-renderer';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
-import { NumericLiteralType, StringLiteralType, Type } from '../../common/types/types';
+import { NumericLiteralType, StringLiteralType, StructType, Type } from '../../common/types/types';
 import { parseHandle } from '../../common/util';
 
 export class TypeState {
@@ -75,25 +75,27 @@ export class TypeState {
                             return edgeSource;
                         }
 
-                        if (definition.inputDataLiterals.has(id)) {
-                            const inputValue = n.data.inputData[id];
-                            if (inputValue !== undefined) {
+                        const inputValue = n.data.inputData[id];
+
+                        if (inputValue !== undefined) {
+                            if (definition.inputDataLiterals.has(id)) {
                                 if (typeof inputValue === 'number') {
                                     return new NumericLiteralType(inputValue);
                                 }
                                 return new StringLiteralType(inputValue);
                             }
-                        }
 
-                        const optionTypes = definition.inputOptions.get(id);
-                        if (optionTypes) {
-                            const inputValue = n.data.inputData[id];
-                            if (inputValue !== undefined) {
+                            const optionTypes = definition.inputOptions.get(id);
+                            if (optionTypes) {
                                 const currentOption = optionTypes.get(inputValue);
                                 if (currentOption) {
                                     return currentOption;
                                 }
                             }
+                        }
+
+                        if (inputValue === undefined && definition.inputNullable.has(id)) {
+                            return new StructType('null');
                         }
 
                         return undefined;
