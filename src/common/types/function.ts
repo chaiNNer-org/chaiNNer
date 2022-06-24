@@ -89,6 +89,8 @@ export class FunctionDefinition {
 
     readonly inputDataLiterals: Set<number>;
 
+    readonly inputNullable: Set<number>;
+
     readonly inputOptions: ReadonlyMap<number, ReadonlyMap<string | number, Type>>;
 
     readonly defaultInstance: FunctionInstance;
@@ -131,6 +133,7 @@ export class FunctionDefinition {
                 })
                 .map((i) => i.id)
         );
+        this.inputNullable = new Set(schema.inputs.filter((i) => i.optional).map((i) => i.id));
 
         this.inputOptions = evaluateInputOptions(schema, definitions);
 
