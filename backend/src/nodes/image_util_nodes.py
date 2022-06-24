@@ -48,7 +48,11 @@ class ImBlend(NodeBase):
                         expression.field("Input0", "height"),
                         expression.field("Input1", "height"),
                     ),
-                    channels=4,
+                    channels=expression.fn(
+                        "max",
+                        expression.field("Input0", "channels"),
+                        expression.field("Input1", "channels"),
+                    ),
                 )
             ),
         ]
