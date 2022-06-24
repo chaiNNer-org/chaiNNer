@@ -291,7 +291,9 @@ class OpacityNode(NodeBase):
                 unit="%",
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(image_type=expression.Image(size_as="Input0", channels=4))
+        ]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Opacity"
         self.icon = "MdOutlineOpacity"
