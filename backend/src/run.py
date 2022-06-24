@@ -180,21 +180,25 @@ async def run(request: Request):
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
-    full_data = dict(request.json)
-    logger.info(full_data)
-    os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-    os.environ["isFp16"] = str(full_data["isFp16"])
-    logger.info(f"Using device: {os.environ['device']}")
-    # Create node based on given category/name information
-    node_instance = NodeFactory.create_node(full_data["schemaId"])
-    # Run the node and pass in inputs as args
-    run_func = functools.partial(node_instance.run, *full_data["inputs"])
-    output = await app.loop.run_in_executor(None, run_func)
-    # Cache the output of the node
-    app.ctx.cache[full_data["id"]] = output
-    extra_data = node_instance.get_extra_data()
-    del node_instance, run_func
-    return json(extra_data)
+    try:
+        full_data = dict(request.json)
+        logger.info(full_data)
+        os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
+        os.environ["isFp16"] = str(full_data["isFp16"])
+        logger.info(f"Using device: {os.environ['device']}")
+        # Create node based on given category/name information
+        node_instance = NodeFactory.create_node(full_data["schemaId"])
+        # Run the node and pass in inputs as args
+        run_func = functools.partial(node_instance.run, *full_data["inputs"])
+        output = await app.loop.run_in_executor(None, run_func)
+        # Cache the output of the node
+        app.ctx.cache[full_data["id"]] = output
+        extra_data = node_instance.get_extra_data()
+        del node_instance, run_func
+        return json({"success": True, "data": extra_data})
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json({"success": False, "error": str(exception)})
 
 
 @app.get("/sse")

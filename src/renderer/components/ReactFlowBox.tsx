@@ -163,7 +163,6 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         changeEdges,
         setSetNodes,
         setSetEdges,
-        updateIteratorBounds,
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -211,36 +210,15 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
     }, [nodes, edges]);
 
-    const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, node: Node<NodeData>, nodes: Node<NodeData>[]) => {
-            if (node.type === 'iterator') {
-                updateIteratorBounds(node.id, node.data.iteratorSize ?? null);
-            }
-            nodes.forEach((n) => {
-                if (n.type === 'iterator') {
-                    updateIteratorBounds(n.id, n.data.iteratorSize ?? null);
-                }
-            });
+    const onNodeDragStop = useCallback(() => {
+        addNodeChanges();
+        addEdgeChanges();
+    }, [addNodeChanges, addEdgeChanges]);
 
-            addNodeChanges();
-            addEdgeChanges();
-        },
-        [addNodeChanges, addEdgeChanges]
-    );
-
-    const onSelectionDragStop = useCallback(
-        (event: React.MouseEvent, nodes: Node<NodeData>[]) => {
-            nodes.forEach((n) => {
-                if (n.type === 'iterator') {
-                    updateIteratorBounds(n.id, n.data.iteratorSize ?? null);
-                }
-            });
-
-            addNodeChanges();
-            addEdgeChanges();
-        },
-        [addNodeChanges, addEdgeChanges]
-    );
+    const onSelectionDragStop = useCallback(() => {
+        addNodeChanges();
+        addEdgeChanges();
+    }, [addNodeChanges, addEdgeChanges]);
 
     const onNodesDelete = useCallback(
         (toDelete: readonly Node<NodeData>[]) => {

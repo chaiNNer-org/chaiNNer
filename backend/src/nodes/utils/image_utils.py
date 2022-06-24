@@ -193,4 +193,4 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
         (mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2)
     )
 
-    return np.mean(ssim_map)
+    return float(np.mean(ssim_map))

@@ -23,6 +23,16 @@ export interface BackendRunIndividualRequest {
     schemaId: string;
 }
 
+export type BackendResult<T> = BackendSuccess<T> | BackendError;
+export interface BackendSuccess<T> {
+    success: true;
+    data: T;
+}
+export interface BackendError {
+    success: false;
+    error: string;
+}
+
 /**
  * A wrapper to communicate with the backend.
  *
@@ -71,7 +81,7 @@ export class Backend {
     /**
      * Runs a single node
      */
-    runIndividual<T = JsonValue>(data: BackendRunIndividualRequest): Promise<T> {
+    runIndividual<T = JsonValue>(data: BackendRunIndividualRequest): Promise<BackendResult<T>> {
         return this.fetchJson('/run/individual', 'POST', data);
     }
 
