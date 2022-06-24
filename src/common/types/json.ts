@@ -4,6 +4,11 @@ import {
     Expression,
     FieldAccessExpression,
     IntersectionExpression,
+    MatchDefaultArm,
+    MatchExpression,
+    MatchNumberArm,
+    MatchStringArm,
+    MatchStructArm,
     NamedExpression,
     NamedExpressionField,
     UnionExpression,
@@ -30,7 +35,8 @@ export type ExpressionJson =
     | IntersectionExpressionJson
     | NamedExpressionJson
     | FieldAccessExpressionJson
-    | BuiltinFunctionExpressionJson;
+    | BuiltinFunctionExpressionJson
+    | MatchExpressionJson;
 export type TypeJson = PrimitiveTypeJson | 'never' | 'any';
 export type PrimitiveTypeJson = NumberPrimitiveJson | StringPrimitiveJson;
 export type NumberPrimitiveJson =
@@ -82,6 +88,11 @@ export interface BuiltinFunctionExpressionJson {
     name: string;
     args: ExpressionJson[];
 }
+export interface MatchExpressionJson {
+    type: 'match';
+    of: ExpressionJson;
+    arms: Record<string, { binding?: string | null; to: ExpressionJson }>;
+}
 
 const toNumberJson = (number: number): NumberJson => {
     if (Number.isNaN(number)) return 'NaN';
@@ -130,6 +141,28 @@ export const toJson = (e: Expression): ExpressionJson => {
             return { type: 'field-access', of: toJson(e.of), field: e.field };
         case 'builtin-function':
             return { type: 'builtin-function', name: e.functionName, args: e.args.map(toJson) };
+        case 'match': {
+            const arms: MatchExpressionJson['arms'] = Object.fromEntries(
+                e.structArms.map((a) => [a.name, { binding: a.binding, to: toJson(a.expression) }])
+            );
+            if (e.numberArm)
+                arms.number = {
+                    binding: e.numberArm.binding,
+                    to: toJson(e.numberArm.expression),
+                };
+            if (e.stringArm)
+                arms.string = {
+                    binding: e.stringArm.binding,
+                    to: toJson(e.stringArm.expression),
+                };
+            if (e.defaultArm)
+                arms._ = {
+                    binding: e.defaultArm.binding,
+                    to: toJson(e.defaultArm.expression),
+                };
+
+            return { type: 'match', of: toJson(e.of), arms };
+        }
         default:
             return assertNever(e);
     }
@@ -183,6 +216,18 @@ export const fromJson = (e: ExpressionJson): Expression => {
             return new FieldAccessExpression(fromJson(e.of), e.field);
         case 'builtin-function':
             return new BuiltinFunctionExpression(e.name, e.args.map(fromJson));
+        case 'match':
+            return new MatchExpression(
+                fromJson(e.of),
+                Object.entries(e.arms).map(([name, { binding, to }]) => {
+                    // eslint-disable-next-line no-param-reassign
+                    binding ??= undefined;
+                    if (name === '_') return new MatchDefaultArm(fromJson(to), binding);
+                    if (name === 'number') return new MatchNumberArm(fromJson(to), binding);
+                    if (name === 'string') return new MatchStringArm(fromJson(to), binding);
+                    return new MatchStructArm(name, fromJson(to), binding);
+                })
+            );
         default:
             return assertNever(e);
     }

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TypedDict, Union, List, Dict
+from typing import Literal, Optional, Tuple, TypedDict, Union, List, Dict
 import math
 
 
@@ -39,6 +39,7 @@ ExpressionJson = Union[
     "NamedExpressionJson",
     "FieldAccessExpressionJson",
     "BuiltFunctionExpressionJson",
+    "MatchExpressionJson",
     List["ExpressionJson"],
 ]
 
@@ -93,6 +94,17 @@ class BuiltFunctionExpressionJson(TypedDict):
     args: List[ExpressionJson]
 
 
+class MatchArmJson(TypedDict):
+    binding: str | None
+    to: ExpressionJson
+
+
+class MatchExpressionJson(TypedDict):
+    type: Literal["match"]
+    of: ExpressionJson
+    arms: Dict[str, MatchArmJson]
+
+
 def literal(value: Union[str, int, float]) -> ExpressionJson:
     if isinstance(value, str):
         return {
@@ -145,6 +157,27 @@ def field(of: ExpressionJson, field: str) -> ExpressionJson:
 
 def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
     return {"type": "builtin-function", "name": name, "args": list(args)}
+
+
+def match(
+    of: ExpressionJson,
+    *args: Tuple[str, str | None, ExpressionJson],
+    number_n: ExpressionJson | None = None,
+    string_s: ExpressionJson | None = None,
+    default_d: ExpressionJson | None = None,
+) -> ExpressionJson:
+    arms: Dict[str, MatchArmJson] = {}
+    for name, binding, to in args:
+        arms[name] = {"binding": binding, "to": to}
+
+    if number_n is not None:
+        arms["number"] = {"binding": "n", "to": number_n}
+    if string_s is not None:
+        arms["string"] = {"binding": "s", "to": string_s}
+    if default_d is not None:
+        arms["_"] = {"binding": "d", "to": default_d}
+
+    return {"type": "match", "of": of, "arms": arms}
 
 
 def Image(

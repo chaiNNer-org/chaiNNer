@@ -4,10 +4,15 @@ import {
     BuiltinFunctionExpression,
     Expression,
     IntersectionExpression,
+    MatchDefaultArm,
+    MatchExpression,
+    MatchNumberArm,
+    MatchStringArm,
+    MatchStructArm,
     UnionExpression,
 } from '../../../src/common/types/expression';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
-import { NumberType } from '../../../src/common/types/types';
+import { NeverType, NumberType, StringLiteralType } from '../../../src/common/types/types';
 import {
     expressions,
     numbers,
@@ -210,4 +215,55 @@ describe('Builtin functions', () => {
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
     testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('multiply', { commutative: true, reflexive: false, associative: false });
+});
+
+describe('Match', () => {
+    // typeName(x) = match x { number => "number", string => "string", null => "null", _ => "other" }
+    const typeName = (e: Expression) =>
+        new MatchExpression(e, [
+            new MatchStringArm(new StringLiteralType('string')),
+            new MatchNumberArm(new StringLiteralType('number')),
+            new MatchStructArm('null', new StringLiteralType('null')),
+            new MatchDefaultArm(new StringLiteralType('other')),
+        ]);
+
+    test('no arms', () => {
+        for (const type of types) {
+            assertSame(new MatchExpression(type, []), NeverType.instance);
+        }
+    });
+    test('default', () => {
+        const value = new StringLiteralType('hey yo');
+        for (const type of types) {
+            const expected = type.type === 'never' ? NeverType.instance : value;
+            assertSame(new MatchExpression(type, [new MatchDefaultArm(value)]), expected);
+        }
+    });
+    test('type name mapping', () => {
+        // by the properties of match, typeName(X | Y) == typeName(X) | typeName(Y)
+        for (const a of types) {
+            for (const b of types) {
+                assertSame(
+                    typeName(new UnionExpression([a, b])),
+                    new UnionExpression([typeName(a), typeName(b)])
+                );
+            }
+        }
+    });
+
+    test('evaluate', () => {
+        const actual = types
+            .map(typeName)
+            .map((e) => {
+                let result;
+                try {
+                    result = evaluate(e, definitions).toString();
+                } catch (error) {
+                    result = String(error);
+                }
+                return `${e.toString()} => ${result}`;
+            })
+            .join('\n');
+        expect(actual).toMatchSnapshot();
+    });
 });
