@@ -60,6 +60,7 @@ const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
                                 h="0.85em"
                                 ml={isDirectlyDisabled ? '-0.8em' : 0}
                                 mr={isDirectlyDisabled ? 0 : '-0.8em'}
+                                transition="all 0.1s ease-in-out"
                                 w="0.85em"
                             >
                                 <Icon
