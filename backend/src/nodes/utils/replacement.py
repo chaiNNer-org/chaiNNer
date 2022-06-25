@@ -54,7 +54,7 @@ class ReplacementString:
                 self.names.add(interpolation)
             else:
                 lastStr += "{"
-        lastStr += pattern[lastIndex]
+        lastStr += pattern[lastIndex:]
         self.tokens.append(lastStr)
 
     def replace(self, replacements: dict[str, str]) -> str:

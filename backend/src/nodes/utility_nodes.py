@@ -132,10 +132,10 @@ class TextPatternNode(NodeBase):
         self.description = "TODO."
         self.inputs = [
             TextInput("Pattern", has_handle=False),
-            TextInput("{1}").make_optional(),
-            TextInput("{2}").make_optional(),
-            TextInput("{3}").make_optional(),
-            TextInput("{4}").make_optional(),
+            TextInput("{1}", allow_numbers=True).make_optional(),
+            TextInput("{2}", allow_numbers=True).make_optional(),
+            TextInput("{3}", allow_numbers=True).make_optional(),
+            TextInput("{4}", allow_numbers=True).make_optional(),
         ]
         self.outputs = [TextOutput("Output Text")]
 
@@ -155,6 +155,6 @@ class TextPatternNode(NodeBase):
         replacements: dict[str, str] = {}
         for i, s in enumerate([str1, str2, str3, str4]):
             if s is not None:
-                replacements[f"{{{i}}}"] = s
+                replacements[str(i + 1)] = s
 
         return ReplacementString(pattern).replace(replacements)
