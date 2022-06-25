@@ -16,7 +16,9 @@ import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeData, NodeSchema } from '../../common/common-types';
+import { Input as InputType, NodeData, NodeSchema, Output } from '../../common/common-types';
+import { intersect } from '../../common/types/intersection';
+import { Type } from '../../common/types/types';
 import { createUniqueId, parseHandle } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -40,32 +42,82 @@ interface Position {
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
-    const { createNode, createConnection } = useContext(GlobalVolatileContext);
+    const { createNode, createConnection, typeState } = useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { schemata } = useContext(GlobalContext);
+    const { schemata, functionDefinitions } = useContext(GlobalContext);
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
-    const [connectingFromType, setConnectingFromType] = useState<string | null>(null);
+    const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
     const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
+    const [targetMap, setTargetMap] = useState<Map<string, InputType | Output>>(new Map());
+
     const [searchQuery, setSearchQuery] = useState('');
     const matchingNodes = useMemo(
         () =>
             getMatchingNodes(searchQuery, schemata.schemata).filter((node) => {
-                if (!connectingFrom || !connectingFromType) {
+                if (
+                    !connectingFrom ||
+                    !connectingFromType ||
+                    !connectingFrom.nodeId ||
+                    !connectingFrom.handleId
+                ) {
                     return true;
                 }
                 if (connectingFrom.handleType === 'source') {
-                    return node.inputs.some((input) => {
-                        return connectingFromType === input.type && input.hasHandle;
+                    const sourceFn = typeState.functions.get(connectingFrom.nodeId);
+
+                    if (!sourceFn) {
+                        return false;
+                    }
+
+                    const { inOutId } = parseHandle(connectingFrom.handleId);
+                    const sourceType = sourceFn.outputs.get(inOutId);
+
+                    if (!sourceType) {
+                        return false;
+                    }
+
+                    const targetTypes = functionDefinitions.get(node.schemaId);
+
+                    if (!targetTypes) {
+                        return false;
+                    }
+
+                    return [...targetTypes.inputs].some(([number, type]) => {
+                        const overlap = intersect(type, sourceType);
+                        return (
+                            overlap.type !== 'never' &&
+                            schemata.get(node.schemaId).inputs[number].hasHandle
+                        );
                     });
                 }
                 if (connectingFrom.handleType === 'target') {
-                    return node.outputs.some((output) => {
-                        return connectingFromType === output.type;
+                    const sourceFn = typeState.functions.get(connectingFrom.nodeId);
+
+                    if (!sourceFn) {
+                        return false;
+                    }
+
+                    const { inOutId } = parseHandle(connectingFrom.handleId);
+                    const sourceType = sourceFn.inputs.get(inOutId);
+
+                    if (!sourceType) {
+                        return false;
+                    }
+
+                    const targetTypes = functionDefinitions.get(node.schemaId);
+
+                    if (!targetTypes) {
+                        return false;
+                    }
+
+                    return [...targetTypes.outputDefaults].some(([, type]) => {
+                        const overlap = intersect(type, sourceType);
+                        return overlap.type !== 'never';
                     });
                 }
                 log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
@@ -100,28 +152,34 @@ export const usePaneNodeSearchMenu = (
             };
             createNode(nodeToMake);
             if (isStoppedOnPane && connectingFrom) {
+                const targetTypes = functionDefinitions.get(node.schemaId);
                 if (connectingFrom.handleType === 'source') {
-                    const firstValidHandle = schemata
-                        .get(node.schemaId)
-                        .inputs.find(
-                            (input) => input.type === connectingFromType && input.hasHandle
+                    const firstPossibleTarget = [...targetTypes!.inputs].find(([number, type]) => {
+                        const overlap = intersect(type, connectingFromType!);
+                        return (
+                            overlap.type !== 'never' &&
+                            schemata.get(node.schemaId).inputs[number].hasHandle
                         );
-                    if (firstValidHandle) {
+                    });
+                    if (firstPossibleTarget) {
                         createConnection({
                             source: connectingFrom.nodeId,
                             sourceHandle: connectingFrom.handleId,
                             target: nodeId,
-                            targetHandle: `${nodeId}-${firstValidHandle.id}`,
+                            targetHandle: `${nodeId}-${firstPossibleTarget[0]}`,
                         });
                     }
                 } else if (connectingFrom.handleType === 'target') {
-                    const firstValidHandle = schemata
-                        .get(node.schemaId)
-                        .outputs.find((output) => output.type === connectingFromType);
-                    if (firstValidHandle) {
+                    const firstPossibleTarget = [...targetTypes!.outputDefaults].find(
+                        ([, type]) => {
+                            const overlap = intersect(type, connectingFromType!);
+                            return overlap.type !== 'never';
+                        }
+                    );
+                    if (firstPossibleTarget) {
                         createConnection({
                             source: nodeId,
-                            sourceHandle: `${nodeId}-${firstValidHandle.id}`,
+                            sourceHandle: `${nodeId}-${firstPossibleTarget[0]}`,
                             target: connectingFrom.nodeId,
                             targetHandle: connectingFrom.handleId,
                         });
@@ -287,13 +345,16 @@ export const usePaneNodeSearchMenu = (
             const { nodeId, inOutId } = parseHandle(connectingFrom.handleId!);
             const node: Node<NodeData> | undefined = getNode(nodeId);
             if (node) {
-                const nodeSchema = schemata.get(node.data.schemaId);
                 if (connectingFrom.handleType === 'source') {
-                    const outputType = nodeSchema.outputs[inOutId]?.type;
-                    setConnectingFromType(outputType);
+                    const sourceType = functionDefinitions
+                        .get(node.data.schemaId)
+                        ?.outputDefaults.get(inOutId);
+                    setConnectingFromType(sourceType!);
                 } else if (connectingFrom.handleType === 'target') {
-                    const inputType = nodeSchema.inputs[inOutId]?.type;
-                    setConnectingFromType(inputType);
+                    const targetType = functionDefinitions
+                        .get(node.data.schemaId)
+                        ?.inputs.get(inOutId);
+                    setConnectingFromType(targetType!);
                 } else {
                     log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
                 }

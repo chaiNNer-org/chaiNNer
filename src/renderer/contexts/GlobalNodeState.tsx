@@ -100,6 +100,8 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
 export interface NodeProto {
@@ -938,6 +940,8 @@ export const GlobalProvider = memo(
             setHoveredNode,
             setZoom,
             setManualOutputType,
+            functionDefinitions,
+            typeDefinitions,
         };
         globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
