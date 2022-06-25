@@ -35,6 +35,7 @@ import {
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
+import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
     copyEdges,
     copyNode,
@@ -61,6 +62,7 @@ interface GlobalVolatile {
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
+    effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -97,6 +99,7 @@ interface Global {
         dimensions?: Size
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
+    setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
@@ -187,6 +190,8 @@ interface GlobalProviderProps {
     functionDefinitions: Map<string, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
+
+const EMPTY_SET: ReadonlySet<never> = new Set();
 
 export const GlobalProvider = memo(
     ({
@@ -293,6 +298,19 @@ export const GlobalProvider = memo(
             changeEdges(cachedEdges);
             if (cachedViewport) setViewport(cachedViewport);
         }, [changeNodes, changeEdges]);
+
+        const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
+            useState<ReadonlySet<string>>(EMPTY_SET);
+        useEffect(() => {
+            const newEffectivelyDisabled = getEffectivelyDisabledNodes(getNodes(), getEdges())
+                .map((n) => n.id)
+                .sort();
+            const newKey = newEffectivelyDisabled.join(';');
+            const oldKey = [...effectivelyDisabledNodes].join(';');
+            if (oldKey !== newKey) {
+                setEffectivelyDisabledNodes(new Set(newEffectivelyDisabled));
+            }
+        }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
         const [savePath, setSavePathInternal] = useState<string | undefined>();
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
@@ -881,6 +899,17 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeDisabled = useCallback(
+            (id: string, isDisabled: boolean): void => {
+                modifyNode(id, (n) => {
+                    const newNode = copyNode(n);
+                    newNode.data.isDisabled = isDisabled;
+                    return newNode;
+                });
+            },
+            [modifyNode]
+        );
+
         const cutFn = useCallback(() => {
             cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
         }, [getNodes, getEdges, changeNodes, changeEdges]);
@@ -908,6 +937,7 @@ export const GlobalProvider = memo(
             createNode,
             createConnection,
             isNodeInputLocked,
+            effectivelyDisabledNodes,
             isValidConnection,
             zoom,
             hoveredNode,
@@ -936,6 +966,7 @@ export const GlobalProvider = memo(
             setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
+            setNodeDisabled,
             setZoom,
             setManualOutputType,
         };
@@ -944,6 +975,9 @@ export const GlobalProvider = memo(
         return (
             <GlobalVolatileContext.Provider value={globalChainValue}>
                 <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+                <div style={{ display: 'none' }}>
+                    {nodeChanges};{edgeChanges}
+                </div>
             </GlobalVolatileContext.Provider>
         );
     }

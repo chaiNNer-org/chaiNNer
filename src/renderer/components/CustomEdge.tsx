@@ -2,10 +2,11 @@ import { DeleteIcon } from '@chakra-ui/icons';
 import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
-import { GlobalContext } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import getNodeAccentColors from '../helpers/getNodeAccentColors';
 import shadeColor from '../helpers/shadeColor';
 
@@ -22,6 +23,11 @@ const CustomEdge = memo(
         style = {},
         selected,
     }: EdgeProps<EdgeData>) => {
+        const effectivelyDisabledNodes = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.effectivelyDisabledNodes
+        );
+
         const edgePath = useMemo(
             () =>
                 getBezierPath({
@@ -37,6 +43,10 @@ const CustomEdge = memo(
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const parentNode = useMemo(() => getNode(source)!, [source]);
+        const disabledStatus = useMemo(
+            () => getDisabledStatus(parentNode.data, effectivelyDisabledNodes),
+            [parentNode.data, effectivelyDisabledNodes]
+        );
 
         const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
@@ -81,6 +91,7 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
+                        opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
                     }}
                 />
                 <path
