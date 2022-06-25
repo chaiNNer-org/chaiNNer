@@ -347,7 +347,7 @@ export const usePaneNodeSearchMenu = (
                     const sourceType = functionDefinitions
                         .get(node.data.schemaId)
                         ?.outputDefaults.get(inOutId);
-                    setConnectingFromType(sourceType!);
+                    setConnectingFromType(sourceType ?? null);
                 } else if (connectingFrom.handleType === 'target') {
                     const targetType = functionDefinitions
                         .get(node.data.schemaId)
