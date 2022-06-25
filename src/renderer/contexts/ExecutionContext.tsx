@@ -8,6 +8,7 @@ import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import { ParsedHandle, parseHandle } from '../../common/util';
 import checkNodeValidity from '../helpers/checkNodeValidity';
+import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventSourceListener,
@@ -224,33 +225,44 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, [eventSourceStatus, unAnimateEdges, isBackendKilled, ownsBackend]);
 
     const run = async () => {
-        const nodes = getNodes();
-        const edges = getEdges();
+        const allNodes = getNodes();
+        const allEdges = getEdges();
+
+        const disabledNodes = new Set(
+            getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
+        );
+        const nodes = allNodes.filter((n) => !disabledNodes.has(n.id));
+        const edges = allEdges.filter(
+            (e) => !disabledNodes.has(e.source) && !disabledNodes.has(e.target)
+        );
 
         setStatus(ExecutionStatus.RUNNING);
         animateEdges();
         if (nodes.length === 0) {
-            sendAlert(AlertType.ERROR, null, 'There are no nodes to run.');
+            sendAlert(
+                AlertType.ERROR,
+                null,
+                disabledNodes.size > 0
+                    ? 'All nodes are disabled. There are no nodes to run.'
+                    : 'There are no nodes to run.'
+            );
             unAnimateEdges();
             setStatus(ExecutionStatus.READY);
         } else {
-            const nodeValidities = nodes.map((node) => {
+            const invalidNodes = nodes.flatMap((node) => {
                 const { inputs, category, name } = schemata.get(node.data.schemaId);
-                return [
-                    ...checkNodeValidity({
-                        id: node.id,
-                        inputData: node.data.inputData,
-                        edges,
-                        inputs,
-                    }),
-                    `${category}: ${name}`,
-                ] as const;
+                const validity = checkNodeValidity({
+                    id: node.id,
+                    inputData: node.data.inputData,
+                    edges,
+                    inputs,
+                });
+                if (validity.isValid) return [];
+
+                return [`• ${category}: ${name}: ${validity.reason}`];
             });
-            const invalidNodes = nodeValidities.filter(([isValid]) => !isValid);
             if (invalidNodes.length > 0) {
-                const reasons = invalidNodes
-                    .map(([, reason, type]) => `• ${type}: ${reason}`)
-                    .join('\n');
+                const reasons = invalidNodes.join('\n');
                 sendAlert(
                     AlertType.ERROR,
                     null,
