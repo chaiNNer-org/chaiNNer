@@ -10,7 +10,7 @@ import {
     MenuList,
     Spacer,
     Text,
-    useColorModeValue,
+    useColorModeValue
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -61,7 +61,8 @@ export const usePaneNodeSearchMenu = (
                     !connectingFrom ||
                     !connectingFromType ||
                     !connectingFrom.nodeId ||
-                    !connectingFrom.handleId
+                    !connectingFrom.handleId || 
+                    !connectingFrom.handleType
                 ) {
                     return true;
                 }
@@ -118,7 +119,7 @@ export const usePaneNodeSearchMenu = (
                         return overlap.type !== 'never';
                     });
                 }
-                log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                log.error(`Unknown handle type: ${connectingFrom.handleType}`);
                 return true;
             }),
         [connectingFrom, connectingFromType, searchQuery, schemata.schemata]
@@ -150,7 +151,7 @@ export const usePaneNodeSearchMenu = (
             };
             createNode(nodeToMake);
             const targetTypes = functionDefinitions.get(schema.schemaId);
-            if (isStoppedOnPane && connectingFrom && targetTypes && connectingFromType) {
+            if (isStoppedOnPane && connectingFrom && targetTypes && connectingFromType && connectingFrom.handleType) {
                 if (connectingFrom.handleType === 'source') {
                     const firstPossibleTarget = [...targetTypes.inputs].find(([inputId, type]) => {
                         const overlap = intersect(type, connectingFromType);
@@ -181,7 +182,7 @@ export const usePaneNodeSearchMenu = (
                         });
                     }
                 } else {
-                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                    log.error(`Unknown handle type: ${connectingFrom.handleType}`);
                 }
             }
 
@@ -328,7 +329,7 @@ export const usePaneNodeSearchMenu = (
         if (connectingFrom && connectingFrom.handleId) {
             const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
             const node: Node<NodeData> | undefined = getNode(nodeId);
-            if (node) {
+            if (node && connectingFrom.handleType) {
                 if (connectingFrom.handleType === 'source') {
                     const sourceType = functionDefinitions
                         .get(node.data.schemaId)
@@ -340,7 +341,7 @@ export const usePaneNodeSearchMenu = (
                         ?.inputs.get(inOutId);
                     setConnectingFromType(targetType ?? null);
                 } else {
-                    log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
+                    log.error(`Unknown handle type: ${connectingFrom.handleType}`);
                 }
             }
         }
