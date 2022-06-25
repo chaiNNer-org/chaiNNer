@@ -352,7 +352,7 @@ export const usePaneNodeSearchMenu = (
                     const targetType = functionDefinitions
                         .get(node.data.schemaId)
                         ?.inputs.get(inOutId);
-                    setConnectingFromType(targetType!);
+                    setConnectingFromType(targetType ?? null);
                 } else {
                     log.error(`Unknown handle type: ${connectingFrom.handleType!}`);
                 }
