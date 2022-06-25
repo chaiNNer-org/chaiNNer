@@ -326,16 +326,6 @@ export const usePaneNodeSearchMenu = (
                 </Box>
             </MenuList>
         ),
-        [
-            connectingFrom,
-            connectingFromType,
-            byCategories,
-            onPaneContextMenuNodeClick,
-            searchQuery,
-            schemata.schemata,
-            matchingNodes,
-            mousePosition,
-        ]
     );
 
     useEffect(() => {
