@@ -129,7 +129,7 @@ class TextAppendNode(NodeBase):
 class TextPatternNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "TODO."
+        self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
         self.inputs = [
             TextInput("Pattern", has_handle=False),
             TextInput("{1}", allow_numbers=True).make_optional(),
