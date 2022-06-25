@@ -5,7 +5,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
-import { getDisabledStatus } from '../../helpers/disabled';
+import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -72,6 +72,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             py={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
@@ -83,7 +84,10 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
                 }
             }}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
+            >
                 <NodeHeader
                     accentColor={accentColor}
                     disabledStatus={disabledStatus}
