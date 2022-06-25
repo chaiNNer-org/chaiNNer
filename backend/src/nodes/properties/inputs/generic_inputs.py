@@ -40,9 +40,18 @@ class TextInput(BaseInput):
         label: str,
         has_handle=True,
         max_length: Union[int, None] = None,
+        allow_numbers: bool = False,
     ):
-        super().__init__("string", label, has_handle=has_handle, kind="text-line")
+        super().__init__(
+            ["string", "number"] if allow_numbers else "string",
+            label,
+            has_handle=has_handle,
+            kind="text-line",
+        )
         self.max_length = max_length
+
+    def enforce(self, value) -> str:
+        return str(value)
 
     def toDict(self):
         return {

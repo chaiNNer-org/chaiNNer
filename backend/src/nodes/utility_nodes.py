@@ -67,7 +67,9 @@ class MathNode(NodeBase):
         self.icon = "MdCalculate"
         self.sub = "Math"
 
-    def run(self, in1: Union[int, float], op: str, in2: Union[int, float]) -> Union[int, float]:
+    def run(
+        self, in1: Union[int, float], op: str, in2: Union[int, float]
+    ) -> Union[int, float]:
         if op == "add":
             return in1 + in2
         elif op == "sub":
@@ -96,10 +98,10 @@ class TextAppendNode(NodeBase):
         self.description = "Append different text together using a separator string."
         self.inputs = [
             TextInput("Separator", has_handle=False, max_length=3),
-            TextInput("Text A"),
-            TextInput("Text B"),
-            TextInput("Text C").make_optional(),
-            TextInput("Text D").make_optional(),
+            TextInput("Text A", allow_numbers=True),
+            TextInput("Text B", allow_numbers=True),
+            TextInput("Text C", allow_numbers=True).make_optional(),
+            TextInput("Text D", allow_numbers=True).make_optional(),
         ]
         self.outputs = [TextOutput("Output Text")]
 

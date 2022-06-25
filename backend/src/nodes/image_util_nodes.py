@@ -222,7 +222,7 @@ class CaptionNode(NodeBase):
         self.description = "Add a caption to an image."
         self.inputs = [
             ImageInput(),
-            TextInput("Caption"),
+            TextInput("Caption", allow_numbers=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -468,16 +468,18 @@ class ImageMetricsNode(NodeBase):
             ImageInput("Comparison Image"),
         ]
         self.outputs = [
-            TextOutput("MSE"),
-            TextOutput("PSNR"),
-            TextOutput("SSIM"),
+            NumberOutput("MSE", expression.interval(0, 1)),
+            NumberOutput("PSNR", expression.interval(0, float("inf"))),
+            NumberOutput("SSIM", expression.interval(0, 1)),
         ]
         self.category = IMAGE_UTILITY
         self.name = "Image Metrics"
         self.icon = "MdOutlineAssessment"
         self.sub = "Miscellaneous"
 
-    def run(self, orig_img: np.ndarray, comp_img: np.ndarray) -> Tuple[str, str, str]:
+    def run(
+        self, orig_img: np.ndarray, comp_img: np.ndarray
+    ) -> Tuple[float, float, float]:
         """Compute MSE, PSNR, and SSIM"""
 
         assert (
@@ -491,8 +493,8 @@ class ImageMetricsNode(NodeBase):
             orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
             comp_img = cv2.cvtColor(comp_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
 
-        mse = round(np.mean((comp_img - orig_img) ** 2), 6)  # type: ignore
-        psnr = round(10 * math.log(1 / mse), 6)
+        mse = round(float(np.mean((comp_img - orig_img) ** 2)), 6)  # type: ignore
+        psnr = float("inf") if mse == 0 else round(10 * math.log(1 / mse), 6)
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 
-        return (str(mse), str(psnr), str(ssim))
+        return (mse, psnr, ssim)
