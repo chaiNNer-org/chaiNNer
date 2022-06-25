@@ -31,7 +31,7 @@ class BlurNode(NodeBase):
             NumberInput("Amount X", step=0.1, controls_step=1),
             NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Box Blur"
         self.icon = "MdBlurOn"
@@ -82,7 +82,7 @@ class GaussianBlurNode(NodeBase):
             NumberInput("Amount X", step=0.1, controls_step=1),
             NumberInput("Amount Y", step=0.1, controls_step=1),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
@@ -116,7 +116,7 @@ class MedianBlurNode(NodeBase):
             ImageInput(),
             NumberInput("Amount"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Median Blur"
         self.icon = "MdBlurOn"
@@ -153,7 +153,7 @@ class SharpenNode(NodeBase):
             ImageInput(),
             NumberInput("Amount"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Sharpen"
         self.icon = "MdBlurOff"
@@ -184,8 +184,8 @@ class AverageColorFixNode(NodeBase):
          Using significant downscaling increases generalization of averaging effect
          and can reduce artifacts in the output."""
         self.inputs = [
-            ImageInput("Image"),
-            ImageInput("Reference Image"),
+            ImageInput("Image", image_type=expression.Image(channels=[3, 4])),
+            ImageInput("Reference Image", image_type=expression.Image(channels=[3, 4])),
             NumberInput(
                 "Reference Image Scale Factor",
                 step=0.0001,
@@ -195,7 +195,7 @@ class AverageColorFixNode(NodeBase):
                 unit="%",
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Average Color Fix"
         self.icon = "MdAutoFixHigh"
@@ -282,33 +282,13 @@ class ColorTransferNode(NodeBase):
             different images. Try multiple setting combinations to find
             best results."""
         self.inputs = [
-            ImageInput("Image"),
-            ImageInput("Reference Image"),
-            DropDownInput(
-                "Colorspace",
-                [
-                    {"option": "L*a*b*", "value": "L*a*b*"},
-                    {"option": "RGB", "value": "RGB"},
-                ],
-                input_type="str",
-            ),
-            DropDownInput(
-                "Overflow Method",
-                [
-                    {"option": "Clip", "value": 1},
-                    {"option": "Scale", "value": 0},
-                ],
-                input_type="str",
-            ),
-            DropDownInput(
-                "Reciprocal Scaling Factor",
-                [
-                    {"option": "Yes", "value": 1},
-                    {"option": "No", "value": 0},
-                ],
-            ),
+            ImageInput("Image", expression.Image(channels=[3, 4])),
+            ImageInput("Reference Image", expression.Image(channels=[3, 4])),
+            ColorspaceInput(),
+            OverflowMethodInput(),
+            ReciprocalScalingFactorInput(),
         ]
-        self.outputs = [ImageOutput("Image")]
+        self.outputs = [ImageOutput("Image", image_type="Input0")]
         self.category = IMAGE_FILTER
         self.name = "Color Transfer"
         self.icon = "MdInput"
@@ -360,9 +340,11 @@ class NormalizeNode(NodeBase):
         self.description = """Normalizes the given normal map.
             Only the R and G channels of the input image will be used."""
         self.inputs = [
-            ImageInput("Normal Map"),
+            ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]
-        self.outputs = [ImageOutput("Normal Map")]
+        self.outputs = [
+            ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
+        ]
         self.category = IMAGE_FILTER
         self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
@@ -398,12 +380,19 @@ class NormalAdditionNode(NodeBase):
             channels of the input image will be used. The output normal map
             is guaranteed to be normalized."""
         self.inputs = [
-            ImageInput("Normal Map 1"),
+            ImageInput("Normal Map 1", expression.Image(channels=[3, 4])),
             SliderInput("Strength 1", maximum=100, default=100),
-            ImageInput("Normal Map 2"),
+            ImageInput("Normal Map 2", expression.Image(channels=[3, 4])),
             SliderInput("Strength 2", maximum=100, default=100),
         ]
-        self.outputs = [ImageOutput("Normal Map")]
+        self.outputs = [
+            ImageOutput(
+                "Normal Map",
+                expression.Image(
+                    size_as=expression.intersect("Input0", "Input2"), channels=3
+                ),
+            ),
+        ]
         self.category = IMAGE_FILTER
         self.name = "Add Normals"
         self.icon = "MdAddCircleOutline"

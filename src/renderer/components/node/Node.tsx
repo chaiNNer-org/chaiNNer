@@ -22,12 +22,8 @@ import NodeHeader from './NodeHeader';
  */
 const getSingleFileInput = (inputs: readonly Input[]): Input | undefined => {
     const fileInputs = inputs.filter((i) => {
-        switch (i.type) {
-            case 'file::image':
-            case 'file::video':
-            case 'file::pth':
-            case 'file::bin':
-            case 'file::param':
+        switch (i.kind) {
+            case 'file':
                 return true;
             default:
                 return false;

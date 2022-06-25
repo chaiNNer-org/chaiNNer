@@ -8,18 +8,20 @@ interface DropDownInputProps extends InputProps {
 }
 
 const DropDownInput = memo(({ options, inputId, useInputData, isLocked }: DropDownInputProps) => {
-    const [selection, setSelection] = useInputData<string | number>(inputId);
+    const [input, setInput] = useInputData<string | number>(inputId);
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const { value } = event.target;
-        setSelection(value);
+        setInput(options[Number(event.target.value)]?.value ?? options[0].value);
     };
 
     useEffect(() => {
-        if (selection === undefined) {
-            setSelection(options[0].value);
+        if (input === undefined) {
+            setInput(options[0].value);
         }
     }, []);
+
+    let selection = options.findIndex((o) => o.value === input);
+    if (selection === -1) selection = 0;
 
     return (
         <Select
@@ -29,10 +31,10 @@ const DropDownInput = memo(({ options, inputId, useInputData, isLocked }: DropDo
             value={selection}
             onChange={handleChange}
         >
-            {options.map(({ option, value }) => (
+            {options.map(({ option }, index) => (
                 <option
                     key={option}
-                    value={value}
+                    value={index}
                 >
                     {option}
                 </option>

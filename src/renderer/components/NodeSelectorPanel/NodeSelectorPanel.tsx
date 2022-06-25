@@ -36,7 +36,7 @@ const createSearchPredicate = (query: string): ((name: string) => boolean) => {
         `^${[...query]
             .map((char) => {
                 const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
-                return `(?:[^${hex}]+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
+                return `(?:.+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
             })
             .join('')}`,
         'iu'

@@ -107,6 +107,6 @@ def add_caption(img: np.ndarray, caption: str) -> np.ndarray:
         fill=font_color,
     )
 
-    img = np.array(pimg)
+    img = np.array(pimg).astype("float32") / 255
 
     return img

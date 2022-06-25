@@ -41,7 +41,43 @@ class ImResizeByFactorNode(NodeBase):
         ]
         self.category = IMAGE_DIMENSION
         self.name = "Resize (Factor)"
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "max",
+                        1,
+                        expression.intersect(
+                            "int",
+                            expression.fn(
+                                "round",
+                                expression.fn(
+                                    "multiply",
+                                    expression.field("Input0", "width"),
+                                    expression.fn("divide", "Input1", 100),
+                                ),
+                            ),
+                        ),
+                    ),
+                    height=expression.fn(
+                        "max",
+                        1,
+                        expression.intersect(
+                            "int",
+                            expression.fn(
+                                "round",
+                                expression.fn(
+                                    "multiply",
+                                    expression.field("Input0", "height"),
+                                    expression.fn("divide", "Input1", 100),
+                                ),
+                            ),
+                        ),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 
@@ -76,7 +112,15 @@ class ImResizeToResolutionNode(NodeBase):
             NumberInput("Height", minimum=1, default=1, unit="px"),
             InterpolationInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input1",
+                    height="Input2",
+                    channels=expression.field("Input0", "channels"),
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Resize (Resolution)"
         self.icon = "MdOutlinePhotoSizeSelectLarge"
@@ -104,7 +148,15 @@ class TileFillNode(NodeBase):
             NumberInput("Width", minimum=1, default=1, unit="px"),
             NumberInput("Height", minimum=1, default=1, unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input1",
+                    height="Input2",
+                    channels=expression.field("Input0", "channels"),
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Tile Fill"
         self.icon = "MdWindow"
@@ -135,7 +187,13 @@ class CropNode(NodeBase):
             NumberInput("Height", unit="px"),
             NumberInput("Width", unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input4", height="Input3", channels_as="Input0"
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Offsets)"
         self.icon = "MdCrop"
@@ -170,7 +228,29 @@ class BorderCropNode(NodeBase):
             ImageInput(),
             NumberInput("Amount", unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "width"),
+                            expression.fn("add", "Input1", "Input1"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    height=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "height"),
+                            expression.fn("add", "Input1", "Input1"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Border)"
         self.icon = "MdCrop"
@@ -204,7 +284,29 @@ class EdgeCropNode(NodeBase):
             NumberInput("Right", unit="px"),
             NumberInput("Bottom", unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "width"),
+                            expression.fn("add", "Input2", "Input3"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    height=expression.intersect(
+                        expression.fn(
+                            "subtract",
+                            expression.field("Input0", "height"),
+                            expression.fn("add", "Input1", "Input4"),
+                        ),
+                        expression.int_interval(min=0, max=None),
+                    ),
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Edges)"
         self.icon = "MdCrop"
@@ -239,9 +341,11 @@ class GetDimensionsNode(NodeBase):
             ImageInput(),
         ]
         self.outputs = [
-            NumberOutput("Width"),
-            NumberOutput("Height"),
-            NumberOutput("Channels"),
+            NumberOutput("Width", output_type=expression.field("Input0", "width")),
+            NumberOutput("Height", output_type=expression.field("Input0", "height")),
+            NumberOutput(
+                "Channels", output_type=expression.field("Input0", "channels")
+            ),
         ]
         self.category = IMAGE_DIMENSION
         self.name = "Get Dimensions"
