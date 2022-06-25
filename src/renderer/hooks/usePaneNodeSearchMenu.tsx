@@ -16,7 +16,7 @@ import log from 'electron-log';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { Input as InputType, NodeData, NodeSchema, Output } from '../../common/common-types';
+import { NodeData, NodeSchema } from '../../common/common-types';
 import { intersect } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
 import { createUniqueId, parseHandle } from '../../common/util';
@@ -52,8 +52,6 @@ export const usePaneNodeSearchMenu = (
     const { getNode, project } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
-
-    const [targetMap, setTargetMap] = useState<Map<string, InputType | Output>>(new Map());
 
     const [searchQuery, setSearchQuery] = useState('');
     const matchingNodes = useMemo(
