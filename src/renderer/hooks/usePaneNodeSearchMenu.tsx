@@ -149,8 +149,8 @@ export const usePaneNodeSearchMenu = (
                 nodeType: node.nodeType,
             };
             createNode(nodeToMake);
-            if (isStoppedOnPane && connectingFrom) {
-                const targetTypes = functionDefinitions.get(node.schemaId);
+            const targetTypes = functionDefinitions.get(node.schemaId);
+            if (isStoppedOnPane && connectingFrom && targetTypes && connectingFromType) {
                 if (connectingFrom.handleType === 'source') {
                     const firstPossibleTarget = [...targetTypes!.inputs].find(([number, type]) => {
                         const overlap = intersect(type, connectingFromType!);
