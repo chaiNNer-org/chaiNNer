@@ -132,7 +132,7 @@ export const usePaneNodeSearchMenu = (
     }, [connectingFrom]);
 
     const onPaneContextMenuNodeClick = useCallback(
-        (node: NodeSchema, position: Position) => {
+        (schema: NodeSchema, position: Position) => {
             const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
             const { x, y } = position;
             const projPosition = project({
@@ -144,19 +144,19 @@ export const usePaneNodeSearchMenu = (
                 id: nodeId,
                 position: projPosition,
                 data: {
-                    schemaId: node.schemaId,
+                    schemaId: schema.schemaId,
                 },
-                nodeType: node.nodeType,
+                nodeType: schema.nodeType,
             };
             createNode(nodeToMake);
-            const targetTypes = functionDefinitions.get(node.schemaId);
+            const targetTypes = functionDefinitions.get(schema.schemaId);
             if (isStoppedOnPane && connectingFrom && targetTypes && connectingFromType) {
                 if (connectingFrom.handleType === 'source') {
-                    const firstPossibleTarget = [...targetTypes!.inputs].find(([number, type]) => {
-                        const overlap = intersect(type, connectingFromType!);
+                    const firstPossibleTarget = [...targetTypes.inputs].find(([inputId, type]) => {
+                        const overlap = intersect(type, connectingFromType);
                         return (
                             overlap.type !== 'never' &&
-                            schemata.get(node.schemaId).inputs[number].hasHandle
+                            schemata.get(schema.schemaId).inputs[inputId].hasHandle
                         );
                     });
                     if (firstPossibleTarget) {
@@ -168,12 +168,10 @@ export const usePaneNodeSearchMenu = (
                         });
                     }
                 } else if (connectingFrom.handleType === 'target') {
-                    const firstPossibleTarget = [...targetTypes!.outputDefaults].find(
-                        ([, type]) => {
-                            const overlap = intersect(type, connectingFromType!);
-                            return overlap.type !== 'never';
-                        }
-                    );
+                    const firstPossibleTarget = [...targetTypes.outputDefaults].find(([, type]) => {
+                        const overlap = intersect(type, connectingFromType);
+                        return overlap.type !== 'never';
+                    });
                     if (firstPossibleTarget) {
                         createConnection({
                             source: nodeId,
@@ -202,131 +200,129 @@ export const usePaneNodeSearchMenu = (
 
     const bgColor = useColorModeValue('gray.300', 'gray.700');
 
-    const menu = useContextMenu(
-        () => (
-            <MenuList
-                bgColor={useColorModeValue('gray.200', 'gray.800')}
-                borderWidth={0}
-                className="nodrag"
-                overflow="hidden"
-                onContextMenu={(e) => e.stopPropagation()}
+    const menu = useContextMenu(() => (
+        <MenuList
+            bgColor={useColorModeValue('gray.200', 'gray.800')}
+            borderWidth={0}
+            className="nodrag"
+            overflow="hidden"
+            onContextMenu={(e) => e.stopPropagation()}
+        >
+            <InputGroup
+                borderBottomWidth={1}
+                borderRadius={0}
             >
-                <InputGroup
-                    borderBottomWidth={1}
+                <InputLeftElement
+                    color={useColorModeValue('gray.500', 'gray.300')}
+                    pointerEvents="none"
+                >
+                    <SearchIcon />
+                </InputLeftElement>
+                <Input
+                    autoFocus
                     borderRadius={0}
+                    placeholder="Search..."
+                    spellCheck={false}
+                    type="text"
+                    value={searchQuery}
+                    variant="filled"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <InputRightElement
+                    _hover={{ color: useColorModeValue('black', 'white') }}
+                    style={{
+                        color: useColorModeValue('gray.500', 'gray.300'),
+                        cursor: 'pointer',
+                        display: searchQuery ? undefined : 'none',
+                        fontSize: '66%',
+                    }}
+                    onClick={() => setSearchQuery('')}
                 >
-                    <InputLeftElement
-                        color={useColorModeValue('gray.500', 'gray.300')}
-                        pointerEvents="none"
-                    >
-                        <SearchIcon />
-                    </InputLeftElement>
-                    <Input
-                        autoFocus
-                        borderRadius={0}
-                        placeholder="Search..."
-                        spellCheck={false}
-                        type="text"
-                        value={searchQuery}
-                        variant="filled"
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <InputRightElement
-                        _hover={{ color: useColorModeValue('black', 'white') }}
-                        style={{
-                            color: useColorModeValue('gray.500', 'gray.300'),
-                            cursor: 'pointer',
-                            display: searchQuery ? undefined : 'none',
-                            fontSize: '66%',
-                        }}
-                        onClick={() => setSearchQuery('')}
-                    >
-                        <CloseIcon />
-                    </InputRightElement>
-                </InputGroup>
-                <Box
-                    h="auto"
-                    maxH={400}
-                    overflowY="scroll"
-                    p={1}
-                >
-                    {[...byCategories].length > 0 ? (
-                        [...byCategories].map(([category, categoryNodes]) => {
-                            const accentColor = getNodeAccentColors(category);
-                            return (
-                                <Box key={category}>
-                                    <HStack
-                                        borderRadius="md"
-                                        mx={1}
-                                        py={0.5}
-                                    >
-                                        <IconFactory
-                                            accentColor={accentColor}
-                                            boxSize={3}
-                                            icon={category}
-                                        />
-                                        <Text fontSize="xs">{category}</Text>
-                                    </HStack>
-                                    {[...categoryNodes].map((node) => {
-                                        const isFavorite = favorites.has(node.schemaId);
-                                        return (
-                                            <HStack
-                                                _hover={{
-                                                    backgroundColor: bgColor,
-                                                }}
-                                                borderRadius="md"
-                                                key={node.schemaId}
-                                                mx={1}
-                                                px={2}
-                                                py={0.5}
-                                                onClick={() => {
-                                                    setSearchQuery('');
-                                                    onPaneContextMenuNodeClick(node, mousePosition);
-                                                }}
+                    <CloseIcon />
+                </InputRightElement>
+            </InputGroup>
+            <Box
+                h="auto"
+                maxH={400}
+                overflowY="scroll"
+                p={1}
+            >
+                {[...byCategories].length > 0 ? (
+                    [...byCategories].map(([category, categoryNodes]) => {
+                        const accentColor = getNodeAccentColors(category);
+                        return (
+                            <Box key={category}>
+                                <HStack
+                                    borderRadius="md"
+                                    mx={1}
+                                    py={0.5}
+                                >
+                                    <IconFactory
+                                        accentColor={accentColor}
+                                        boxSize={3}
+                                        icon={category}
+                                    />
+                                    <Text fontSize="xs">{category}</Text>
+                                </HStack>
+                                {[...categoryNodes].map((node) => {
+                                    const isFavorite = favorites.has(node.schemaId);
+                                    return (
+                                        <HStack
+                                            _hover={{
+                                                backgroundColor: bgColor,
+                                            }}
+                                            borderRadius="md"
+                                            key={node.schemaId}
+                                            mx={1}
+                                            px={2}
+                                            py={0.5}
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                onPaneContextMenuNodeClick(node, mousePosition);
+                                            }}
+                                        >
+                                            <IconFactory
+                                                accentColor="gray.500"
+                                                icon={node.icon}
+                                            />
+                                            <Text
+                                                h="full"
+                                                verticalAlign="middle"
                                             >
-                                                <IconFactory
-                                                    accentColor="gray.500"
-                                                    icon={node.icon}
-                                                />
-                                                <Text
-                                                    h="full"
-                                                    verticalAlign="middle"
-                                                >
-                                                    {node.name}
-                                                </Text>
-                                                (
-                                                {isFavorite && (
-                                                    <>
-                                                        <Spacer />
-                                                        <StarIcon
-                                                            aria-label="Favorites"
-                                                            boxSize={2.5}
-                                                            color="gray.500"
-                                                            overflow="hidden"
-                                                            stroke="gray.500"
-                                                            verticalAlign="middle"
-                                                        />
-                                                    </>
-                                                )}
-                                                )
-                                            </HStack>
-                                        );
-                                    })}
-                                </Box>
-                            );
-                        })
-                    ) : (
-                        <Center
-                            opacity="50%"
-                            w="full"
-                        >
-                            No compatible nodes found.
-                        </Center>
-                    )}
-                </Box>
-            </MenuList>
-        ),
-    );
+                                                {node.name}
+                                            </Text>
+                                            (
+                                            {isFavorite && (
+                                                <>
+                                                    <Spacer />
+                                                    <StarIcon
+                                                        aria-label="Favorites"
+                                                        boxSize={2.5}
+                                                        color="gray.500"
+                                                        overflow="hidden"
+                                                        stroke="gray.500"
+                                                        verticalAlign="middle"
+                                                    />
+                                                </>
+                                            )}
+                                            )
+                                        </HStack>
+                                    );
+                                })}
+                            </Box>
+                        );
+                    })
+                ) : (
+                    <Center
+                        opacity="50%"
+                        w="full"
+                    >
+                        No compatible nodes found.
+                    </Center>
+                )}
+            </Box>
+        </MenuList>
+    ));
 
     useEffect(() => {
         if (connectingFrom && connectingFrom.handleId) {
