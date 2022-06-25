@@ -339,8 +339,8 @@ export const usePaneNodeSearchMenu = (
     );
 
     useEffect(() => {
-        if (connectingFrom) {
-            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId!);
+        if (connectingFrom && connectingFrom.handleId) {
+            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
             const node: Node<NodeData> | undefined = getNode(nodeId);
             if (node) {
                 if (connectingFrom.handleType === 'source') {
