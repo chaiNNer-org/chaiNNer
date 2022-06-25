@@ -493,8 +493,8 @@ class ImageMetricsNode(NodeBase):
             orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
             comp_img = cv2.cvtColor(comp_img, cv2.COLOR_BGR2YCrCb)[:, :, 0]
 
-        mse = round(float(np.mean((comp_img - orig_img) ** 2)), 6)  # type: ignore
-        psnr = float("inf") if mse == 0 else round(10 * math.log(1 / mse), 6)
+        mse = round(np.mean((comp_img - orig_img) ** 2), 6)  # type: ignore
+        psnr = round(10 * math.log(1 / mse), 6)
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 
-        return (mse, psnr, ssim)
+        return (float(mse), float(psnr), ssim)
