@@ -25,6 +25,7 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
 
@@ -296,6 +297,8 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
         [createNode, wrapperRef.current, reactFlowInstance]
     );
 
+    const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
+
     return (
         <Box
             bg={useColorModeValue('gray.100', 'gray.800')}
@@ -321,6 +324,8 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                     borderRadius: '0.5rem',
                 }}
                 onConnect={createConnection}
+                onConnectStart={onConnectStart}
+                onConnectStop={onConnectStop}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}
@@ -334,6 +339,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 onNodesChange={onNodesChange}
                 onNodesDelete={onNodesDelete}
                 onPaneClick={closeContextMenu}
+                onPaneContextMenu={onPaneContextMenu}
                 onSelectionDragStop={onSelectionDragStop}
             >
                 <Background
