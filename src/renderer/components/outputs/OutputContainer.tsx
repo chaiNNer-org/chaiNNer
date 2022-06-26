@@ -5,6 +5,7 @@ import { useContext } from 'use-context-selector';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
@@ -49,6 +50,9 @@ const OutputContainer = memo(
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges } = useContext(GlobalVolatileContext);
+        const { useIsDarkMode } = useContext(SettingsContext);
+        const [isDarkMode] = useIsDarkMode;
+
         const { getEdges } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const isConnected = !!edges.find(
@@ -58,7 +62,7 @@ const OutputContainer = memo(
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
-        const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
+        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
         const borderColor = useColorModeValue('#171923', '#F7FAFC');
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {

@@ -7,6 +7,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseHandle } from '../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import getTypeAccentColors from '../helpers/getTypeAccentColors';
@@ -30,6 +31,8 @@ const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
+        const { useIsDarkMode } = useContext(SettingsContext);
+        const [isDarkMode] = useIsDarkMode;
 
         const edgePath = useMemo(
             () =>
@@ -61,7 +64,7 @@ const CustomEdge = memo(
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
 
-        const accentColor = getTypeAccentColors(type, typeDefinitions); // getNodeAccentColors(category);
+        const [accentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // getNodeAccentColors(category);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(

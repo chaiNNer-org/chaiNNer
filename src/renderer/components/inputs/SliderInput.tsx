@@ -12,6 +12,7 @@ import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { Type } from '../../../common/types/types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
@@ -61,6 +62,9 @@ const SliderInput = memo(
         type,
     }: SliderInputProps) => {
         const { typeDefinitions } = useContext(GlobalContext);
+        const { useIsDarkMode } = useContext(SettingsContext);
+        const [isDarkMode] = useIsDarkMode;
+
         const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
@@ -96,7 +100,7 @@ const SliderInput = memo(
             : undefined;
         const filled = !expr;
 
-        const typeAccentColor = getTypeAccentColors(type, typeDefinitions);
+        const [typeAccentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
 
         return (
             <VStack w="full">

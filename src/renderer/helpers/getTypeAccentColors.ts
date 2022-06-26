@@ -1,50 +1,27 @@
 import { evaluate } from '../../common/types/evaluate';
 import { NamedExpression } from '../../common/types/expression';
-import { isSubsetOf } from '../../common/types/relation';
+import { intersect } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
 import { NumberType, StringType, Type } from '../../common/types/types';
-import { shadeColor } from './colorTools';
 
-const typeColors = {
-    file: '#C53030',
-    image: '#D69E2E',
-    number: '#3182CE',
-    pytorch: '#DD6B20',
-    onnx: '#63B3ED',
-    ncnn: '#ED64A6',
-    default: '#718096',
-};
+const defaultColor = (isDarkMode = true) => (isDarkMode ? '#E2E8F0' : '#171923');
 
-export default (type: Type, typeDefinitions: TypeDefinitions): string => {
-    if (isSubsetOf(type, evaluate(new NamedExpression('Image'), typeDefinitions))) {
-        return typeColors.image;
+const colorList = (typeDefinitions: TypeDefinitions) => [
+    { type: evaluate(new NamedExpression('Directory'), typeDefinitions), color: '#C53030' },
+    { type: evaluate(new NamedExpression('Image'), typeDefinitions), color: '#D69E2E' },
+    { type: NumberType.instance, color: '#3182CE' },
+    { type: StringType.instance, color: '#718096' },
+    { type: evaluate(new NamedExpression('PyTorchModel'), typeDefinitions), color: '#DD6B20' },
+    { type: evaluate(new NamedExpression('OnnxModel'), typeDefinitions), color: '#63B3ED' },
+    { type: evaluate(new NamedExpression('NcnnNetwork'), typeDefinitions), color: '#ED64A6' },
+];
+
+export default (inputType: Type, typeDefinitions: TypeDefinitions, isDarkMode = true): string[] => {
+    const colors: string[] = [];
+    for (const { type, color } of colorList(typeDefinitions)) {
+        if (intersect(type, inputType).type !== 'never') {
+            colors.push(color);
+        }
     }
-    if (isSubsetOf(type, NumberType.instance)) {
-        return typeColors.number;
-    }
-    if (isSubsetOf(type, StringType.instance)) {
-        return typeColors.default;
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('PyTorchModel'), typeDefinitions))) {
-        return typeColors.pytorch;
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('PthFile'), typeDefinitions))) {
-        return shadeColor(typeColors.pytorch, -50);
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('OnnxModel'), typeDefinitions))) {
-        return typeColors.onnx;
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('OnnxFile'), typeDefinitions))) {
-        return shadeColor(typeColors.onnx, -50);
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('NcnnNetwork'), typeDefinitions))) {
-        return typeColors.ncnn;
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('NcnnBinFile'), typeDefinitions))) {
-        return shadeColor(typeColors.ncnn, -50);
-    }
-    if (isSubsetOf(type, evaluate(new NamedExpression('NcnnParamFile'), typeDefinitions))) {
-        return shadeColor(typeColors.ncnn, -75);
-    }
-    return typeColors.default;
+    return colors.length > 0 ? colors : [defaultColor(isDarkMode)];
 };
