@@ -88,6 +88,7 @@ const NodeInputs = memo(
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: number) =>
+                // eslint-disable-next-line react-hooks/rules-of-hooks
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]
         );

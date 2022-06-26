@@ -88,6 +88,8 @@ const IteratorNodeBody = memo(
             }
         }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
 
+        const shade = useColorModeValue('gray.200', 'gray.800');
+
         return (
             <Resizable
                 className="nodrag"
@@ -147,12 +149,8 @@ const IteratorNodeBody = memo(
                     }}
                 >
                     <Box
-                        bg={useColorModeValue('gray.200', 'gray.800')}
-                        borderColor={
-                            hoveredNode === id
-                                ? accentColor
-                                : useColorModeValue('gray.200', 'gray.800')
-                        }
+                        bg={shade}
+                        borderColor={hoveredNode === id ? accentColor : shade}
                         borderRadius="lg"
                         borderWidth={1}
                         h="full"

@@ -216,11 +216,14 @@ export const usePaneNodeSearchMenu = (
         ]
     );
 
+    const menuBgColor = useColorModeValue('gray.200', 'gray.800');
     const bgColor = useColorModeValue('gray.300', 'gray.700');
+    const inputColor = useColorModeValue('gray.500', 'gray.300');
+    const hoverColor = useColorModeValue('black', 'white');
 
     const menu = useContextMenu(() => (
         <MenuList
-            bgColor={useColorModeValue('gray.200', 'gray.800')}
+            bgColor={menuBgColor}
             borderWidth={0}
             className="nodrag"
             overflow="hidden"
@@ -231,7 +234,7 @@ export const usePaneNodeSearchMenu = (
                 borderRadius={0}
             >
                 <InputLeftElement
-                    color={useColorModeValue('gray.500', 'gray.300')}
+                    color={inputColor}
                     pointerEvents="none"
                 >
                     <SearchIcon />
@@ -247,9 +250,9 @@ export const usePaneNodeSearchMenu = (
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <InputRightElement
-                    _hover={{ color: useColorModeValue('black', 'white') }}
+                    _hover={{ color: hoverColor }}
                     style={{
-                        color: useColorModeValue('gray.500', 'gray.300'),
+                        color: inputColor,
                         cursor: 'pointer',
                         display: searchQuery ? undefined : 'none',
                         fontSize: '66%',
