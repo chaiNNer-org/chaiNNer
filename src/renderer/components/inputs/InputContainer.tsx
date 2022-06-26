@@ -3,10 +3,10 @@ import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { EdgeData } from '../../../common/common-types';
+import { ExpressionJson } from '../../../common/types/json';
 import { parseHandle } from '../../../common/util';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
-import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -14,8 +14,7 @@ interface InputContainerProps {
     inputId: number;
     label?: string;
     hasHandle: boolean;
-    accentColor: string;
-    type: string;
+    type: ExpressionJson;
 }
 
 interface LeftHandleProps {
@@ -50,16 +49,13 @@ const InputContainer = memo(
         id,
         inputId,
         label,
-        accentColor,
         type,
     }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalContext);
+        const { isValidConnection } = useContext(GlobalVolatileContext);
         const edges = useEdges<EdgeData>();
         const isConnected = !!edges.find(
             (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
         );
-    ({ children, hasHandle, id, inputId, label }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalVolatileContext);
 
         let contents = children;
         if (hasHandle) {

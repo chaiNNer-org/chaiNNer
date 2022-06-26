@@ -2,10 +2,10 @@ import { Box, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/rea
 import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { EdgeData } from '../../../common/common-types';
+import { ExpressionJson } from '../../../common/types/json';
 import { parseHandle } from '../../../common/util';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
@@ -13,8 +13,7 @@ interface OutputContainerProps {
     hasHandle: boolean;
     outputId: number;
     id: string;
-    accentColor: string;
-    type: string;
+    type: ExpressionJson;
 }
 
 interface RightHandleProps {
@@ -48,14 +47,13 @@ const OutputContainer = memo(
         hasHandle,
         outputId,
         id,
-        accentColor,
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
+        const { isValidConnection } = useContext(GlobalVolatileContext);
         const edges = useEdges<EdgeData>();
         const isConnected = !!edges.find(
             (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
         );
-        const { isValidConnection } = useContext(GlobalVolatileContext);
 
         let contents = children;
         if (hasHandle) {

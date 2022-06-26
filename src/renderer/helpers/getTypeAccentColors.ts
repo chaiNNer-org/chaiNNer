@@ -1,24 +1,25 @@
-export default (type: string | undefined): string => {
-    switch (type?.split('::')[0]) {
-        case 'file':
-            return '#C53030';
-        case 'number':
-            return '#3182CE';
-        case 'Image (Filters)':
-            return '#38A169';
-        case 'Image (Utilities)':
-            return '#00A3C4';
-        case 'numpy':
-            return '#D69E2E';
-        // case 'NumPy':
-        //     return '#2B6CB0';
-        case 'pytorch':
-            return '#DD6B20';
-        case 'onnx':
-            return '#63B3ED';
-        case 'ncnn':
-            return '#ED64A6';
-        default:
-            return '#718096';
+import { ExpressionJson } from '../../common/types/json';
+
+const typeColors = {
+    file: '#C53030',
+    image: '#D69E2E',
+    number: '#3182CE',
+    int: '#3182CE',
+    float: '#3182CE',
+    pytorch: '#DD6B20',
+    onnx: '#63B3ED',
+    ncnn: '#ED64A6',
+    default: '#718096',
+};
+
+export default (type: ExpressionJson): string => {
+    console.log('🚀 ~ file: getTypeAccentColors.ts ~ line 2 ~ type', type);
+    const typeInfoString = JSON.stringify(type).toLowerCase();
+    const typeColor = Object.entries(typeColors).find(([typeCheck]) =>
+        typeInfoString.includes(typeCheck)
+    );
+    if (typeColor) {
+        return typeColor[1];
     }
+    return typeColors.default;
 };

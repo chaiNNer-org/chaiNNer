@@ -2,18 +2,14 @@ import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
-import { useContext } from 'use-context-selector';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseHandle } from '../../common/util';
-import { GlobalContext } from '../contexts/GlobalNodeState';
-import { shadeColor } from '../helpers/colorTools';
-import getTypeAccentColors from '../helpers/getTypeAccentColors';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { shadeColor } from '../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
-import getNodeAccentColors from '../helpers/getNodeAccentColors';
-import shadeColor from '../helpers/shadeColor';
+import getTypeAccentColors from '../helpers/getTypeAccentColors';
 
 const CustomEdge = memo(
     ({

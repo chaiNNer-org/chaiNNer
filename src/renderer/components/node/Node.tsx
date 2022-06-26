@@ -7,10 +7,10 @@ import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import shadeColor from '../../helpers/shadeColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import NodeBody from './NodeBody';
@@ -152,6 +152,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                 selected ? 12 : 8
             }px ${gray900}CF`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+            overflow="hidden"
             pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"

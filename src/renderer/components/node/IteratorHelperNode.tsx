@@ -5,8 +5,8 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
-import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import { shadeColor } from '../../helpers/colorTools';
+import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
 import NodeBody from './NodeBody';
@@ -72,9 +72,9 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             pb={2}
-            opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onClick={() => {}}

@@ -49,12 +49,11 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
         case 'generic':
             return (
                 <InputContainer
-                    accentColor={props.accentColor}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
-                    type={type}
+                    type={props.type}
                 >
                     <GenericInput {...props} />
                 </InputContainer>
@@ -64,13 +63,12 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
     }
     return (
         <InputContainer
-            accentColor={props.accentColor}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
             label={props.label}
-            type={type}
+            type={props.type}
         >
             <InputType {...props} />
         </InputContainer>
@@ -81,13 +79,13 @@ interface NodeInputsProps {
     inputs: readonly Input[];
     id: string;
     inputData: InputData;
-    accentColor: string;
     isLocked?: boolean;
     schemaId: string;
+    accentColor: string;
 }
 
 const NodeInputs = memo(
-    ({ inputs, id, inputData, accentColor, isLocked, schemaId }: NodeInputsProps) => {
+    ({ inputs, id, inputData, isLocked, schemaId, accentColor }: NodeInputsProps) => {
         const { useInputData: useInputDataContext } = useContext(GlobalContext);
 
         const useInputData = useCallback(
@@ -106,9 +104,10 @@ const NodeInputs = memo(
                         inputData,
                         useInputData,
                         kind: input.kind,
-                        accentColor,
                         isLocked: isLocked ?? false,
                         schemaId,
+                        type: input.type,
+                        accentColor,
                     };
                     return pickInput(input.kind, props);
                 })}
