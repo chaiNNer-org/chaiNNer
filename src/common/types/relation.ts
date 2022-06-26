@@ -23,14 +23,25 @@ const valueIsSubsetOf = (left: ValueType, right: ValueType): boolean => {
         // intervals
         return right.min <= left.min && left.max <= right.max;
     }
+
     if (left.underlying === 'string' && right.underlying === 'string') {
         if (right.type === 'string') return true;
         if (left.type === 'string') return false;
         return left.value === right.value;
     }
+
     if (left.underlying === 'struct' && right.underlying === 'struct') {
         if (!isSameStructType(left, right)) return false;
+
+        for (let i = 0; i < left.fields.length; i += 1) {
+            const l = left.fields[i].type;
+            const r = right.fields[i].type;
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            if (!isSubsetOf(l, r)) return false;
+        }
+        return true;
     }
+
     return false;
 };
 
