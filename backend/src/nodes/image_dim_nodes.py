@@ -327,6 +327,45 @@ class EdgeCropNode(NodeBase):
         return result
 
 
+@NodeFactory.register("chainner:image:crop_content")
+class ContentCropNode(NodeBase):
+    """NumPy crop to content node"""
+
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.description = (
+            "Crop an image to the boundaries of the visible image content, "
+            "removing fully transparent borders."
+        )
+        self.inputs = [ImageInput()]
+        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.category = IMAGE_DIMENSION
+        self.name = "Crop (Content)"
+        self.icon = "MdCrop"
+        self.sub = "Crop"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        """Crop an image"""
+
+        c = get_h_w_c(img)[2]
+        if c < 4:
+            return img
+
+        alpha = img[:, :, 3]
+        r = alpha.any(1)
+        if r.any():
+            h, w, _ = get_h_w_c(img)
+            c = alpha.any(0)
+            imgout = img[
+                r.argmax() : h - r[::-1].argmax(), c.argmax() : w - c[::-1].argmax()
+            ]
+        else:
+            raise RuntimeError("Crop results in empty image.")
+
+        return imgout
+
+
 @NodeFactory.register("chainner:image:get_dims")
 class GetDimensionsNode(NodeBase):
     """Node for getting the dimensions of an image"""
