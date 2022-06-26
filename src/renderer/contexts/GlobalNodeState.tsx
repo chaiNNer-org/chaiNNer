@@ -104,7 +104,7 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
 
