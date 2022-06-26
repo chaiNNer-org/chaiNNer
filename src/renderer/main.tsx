@@ -6,6 +6,7 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
+import { SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { FunctionDefinition } from '../common/types/function';
@@ -30,7 +31,7 @@ import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 interface NodesInfo {
     schemata: SchemaMap;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
 
@@ -38,7 +39,7 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
     const schemata = new SchemaMap(response);
 
     const typeDefinitions = new TypeDefinitions();
-    const functionDefinitions = new Map<string, FunctionDefinition>();
+    const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
 
     const errors: string[] = [];
 

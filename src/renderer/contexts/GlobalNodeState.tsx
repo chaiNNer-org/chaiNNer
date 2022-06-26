@@ -19,6 +19,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    SchemaId,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -103,7 +104,7 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
 
@@ -189,7 +190,7 @@ const defaultIteratorSize: Size = { width: 1280, height: 720 };
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
 

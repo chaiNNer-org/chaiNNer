@@ -108,6 +108,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
             if (p) {
+                // eslint-disable-next-line react-hooks/rules-of-hooks
                 const [, setInput] = useInputData<string>(id, fileInput.id, inputData);
                 setInput(p);
                 return;

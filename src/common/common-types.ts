@@ -16,6 +16,8 @@ export interface IteratorSize extends Size {
     offsetLeft: number;
 }
 
+export type SchemaId = string & { readonly __schemaId: never };
+
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
 export interface InputOption {
@@ -64,20 +66,20 @@ export interface NodeSchema {
     readonly inputs: Input[];
     readonly outputs: Output[];
     readonly defaultNodes?: DefaultNode[];
-    readonly schemaId: string;
+    readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
 }
 
 export interface DefaultNode {
     // Default nodes aren't currently used
     __SPECIAL: never;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 export interface NodeData {
     readonly id: string;
     readonly parentNode?: string;
-    readonly schemaId: string;
+    readonly schemaId: SchemaId;
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
@@ -118,7 +120,7 @@ export interface EdgeHandle {
 }
 export interface UsableData {
     id: string;
-    schemaId: string;
+    schemaId: SchemaId;
     inputs: (InputValue | EdgeHandle | null)[];
     outputs: (InputValue | EdgeHandle | null)[];
     child: boolean;

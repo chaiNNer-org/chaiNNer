@@ -58,10 +58,10 @@ const OutputContainer = memo(
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
+        const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
+        const borderColor = useColorModeValue('#171923', '#F7FAFC');
+        const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
-            const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
-            const borderColor = useColorModeValue('#171923', '#F7FAFC');
-            const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (
                 <HStack
                     h="full"

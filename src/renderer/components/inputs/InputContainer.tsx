@@ -1,4 +1,4 @@
-import { Box, chakra, HStack, Text, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, HStack, Text, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -60,10 +60,10 @@ const InputContainer = memo(
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
+        const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
+        const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
+        const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
-            const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
-            const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
-            const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (
                 <HStack
                     h="full"

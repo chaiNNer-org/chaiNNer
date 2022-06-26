@@ -1,6 +1,7 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
 import { memo, useState } from 'react';
+import { SchemaId } from '../../../common/common-types';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { IconFactory } from '../CustomIcons';
@@ -11,7 +12,7 @@ interface RepresentativeNodeProps {
     icon: string;
     name: string;
     collapsed?: boolean;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 const RepresentativeNode = memo(

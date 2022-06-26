@@ -2,7 +2,13 @@
 
 import { memo, useCallback } from 'react';
 import { useContext } from 'use-context-selector';
-import { Input, InputData, InputKind, InputSchemaValue } from '../../../common/common-types';
+import {
+    Input,
+    InputData,
+    InputKind,
+    InputSchemaValue,
+    SchemaId,
+} from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -82,7 +88,7 @@ interface NodeInputsProps {
     id: string;
     inputData: InputData;
     isLocked?: boolean;
-    schemaId: string;
+    schemaId: SchemaId;
     accentColor: string;
 }
 
@@ -93,6 +99,7 @@ const NodeInputs = memo(
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: number) =>
+                // eslint-disable-next-line react-hooks/rules-of-hooks
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]
         );

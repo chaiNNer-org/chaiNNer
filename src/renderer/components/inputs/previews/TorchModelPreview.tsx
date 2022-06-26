@@ -3,6 +3,7 @@ import { Center, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { SchemaId } from '../../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists, visitByType } from '../../../../common/util';
@@ -35,7 +36,7 @@ const getColorMode = (channels: number) => {
 interface TorchModelPreviewProps {
     path?: string;
     id: string;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 type State =
