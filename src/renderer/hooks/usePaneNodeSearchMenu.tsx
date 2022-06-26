@@ -18,7 +18,7 @@ import { useContext } from 'use-context-selector';
 import { NodeData, NodeSchema } from '../../common/common-types';
 import { intersect } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
-import { createUniqueId, parseHandle } from '../../common/util';
+import { assertNever, createUniqueId, parseHandle } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
@@ -65,59 +65,62 @@ export const usePaneNodeSearchMenu = (
                 ) {
                     return true;
                 }
-                if (connectingFrom.handleType === 'source') {
-                    const sourceFn = typeState.functions.get(connectingFrom.nodeId);
+                switch (connectingFrom.handleType) {
+                    case 'source': {
+                        const sourceFn = typeState.functions.get(connectingFrom.nodeId);
 
-                    if (!sourceFn) {
-                        return false;
+                        if (!sourceFn) {
+                            return false;
+                        }
+
+                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const sourceType = sourceFn.outputs.get(inOutId);
+
+                        if (!sourceType) {
+                            return false;
+                        }
+
+                        const targetTypes = functionDefinitions.get(node.schemaId);
+
+                        if (!targetTypes) {
+                            return false;
+                        }
+
+                        return [...targetTypes.inputs].some(([number, type]) => {
+                            const overlap = intersect(type, sourceType);
+                            return (
+                                overlap.type !== 'never' &&
+                                schemata.get(node.schemaId).inputs[number].hasHandle
+                            );
+                        });
                     }
+                    case 'target': {
+                        const sourceFn = typeState.functions.get(connectingFrom.nodeId);
 
-                    const { inOutId } = parseHandle(connectingFrom.handleId);
-                    const sourceType = sourceFn.outputs.get(inOutId);
+                        if (!sourceFn) {
+                            return false;
+                        }
 
-                    if (!sourceType) {
-                        return false;
+                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const sourceType = sourceFn.inputs.get(inOutId);
+
+                        if (!sourceType) {
+                            return false;
+                        }
+
+                        const targetTypes = functionDefinitions.get(node.schemaId);
+
+                        if (!targetTypes) {
+                            return false;
+                        }
+
+                        return [...targetTypes.outputDefaults].some(([, type]) => {
+                            const overlap = intersect(type, sourceType);
+                            return overlap.type !== 'never';
+                        });
                     }
-
-                    const targetTypes = functionDefinitions.get(node.schemaId);
-
-                    if (!targetTypes) {
-                        return false;
-                    }
-
-                    return [...targetTypes.inputs].some(([number, type]) => {
-                        const overlap = intersect(type, sourceType);
-                        return (
-                            overlap.type !== 'never' &&
-                            schemata.get(node.schemaId).inputs[number].hasHandle
-                        );
-                    });
-                }
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                if (connectingFrom.handleType === 'target') {
-                    const sourceFn = typeState.functions.get(connectingFrom.nodeId);
-
-                    if (!sourceFn) {
-                        return false;
-                    }
-
-                    const { inOutId } = parseHandle(connectingFrom.handleId);
-                    const sourceType = sourceFn.inputs.get(inOutId);
-
-                    if (!sourceType) {
-                        return false;
-                    }
-
-                    const targetTypes = functionDefinitions.get(node.schemaId);
-
-                    if (!targetTypes) {
-                        return false;
-                    }
-
-                    return [...targetTypes.outputDefaults].some(([, type]) => {
-                        const overlap = intersect(type, sourceType);
-                        return overlap.type !== 'never';
-                    });
+                    default:
+                        assertNever(connectingFrom.handleType);
                 }
                 return true;
             }),
@@ -157,36 +160,46 @@ export const usePaneNodeSearchMenu = (
                 connectingFromType &&
                 connectingFrom.handleType
             ) {
-                if (connectingFrom.handleType === 'source') {
-                    const firstPossibleTarget = [...targetTypes.inputs].find(([inputId, type]) => {
-                        const overlap = intersect(type, connectingFromType);
-                        return (
-                            overlap.type !== 'never' &&
-                            schemata.get(schema.schemaId).inputs[inputId].hasHandle
+                switch (connectingFrom.handleType) {
+                    case 'source': {
+                        const firstPossibleTarget = [...targetTypes.inputs].find(
+                            ([inputId, type]) => {
+                                const overlap = intersect(type, connectingFromType);
+                                return (
+                                    overlap.type !== 'never' &&
+                                    schemata.get(schema.schemaId).inputs[inputId].hasHandle
+                                );
+                            }
                         );
-                    });
-                    if (firstPossibleTarget) {
-                        createConnection({
-                            source: connectingFrom.nodeId,
-                            sourceHandle: connectingFrom.handleId,
-                            target: nodeId,
-                            targetHandle: `${nodeId}-${firstPossibleTarget[0]}`,
-                        });
+                        if (firstPossibleTarget) {
+                            createConnection({
+                                source: connectingFrom.nodeId,
+                                sourceHandle: connectingFrom.handleId,
+                                target: nodeId,
+                                targetHandle: `${nodeId}-${firstPossibleTarget[0]}`,
+                            });
+                        }
+                        break;
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                } else if (connectingFrom.handleType === 'target') {
-                    const firstPossibleTarget = [...targetTypes.outputDefaults].find(([, type]) => {
-                        const overlap = intersect(type, connectingFromType);
-                        return overlap.type !== 'never';
-                    });
-                    if (firstPossibleTarget) {
-                        createConnection({
-                            source: nodeId,
-                            sourceHandle: `${nodeId}-${firstPossibleTarget[0]}`,
-                            target: connectingFrom.nodeId,
-                            targetHandle: connectingFrom.handleId,
-                        });
+                    case 'target': {
+                        const firstPossibleTarget = [...targetTypes.outputDefaults].find(
+                            ([, type]) => {
+                                const overlap = intersect(type, connectingFromType);
+                                return overlap.type !== 'never';
+                            }
+                        );
+                        if (firstPossibleTarget) {
+                            createConnection({
+                                source: nodeId,
+                                sourceHandle: `${nodeId}-${firstPossibleTarget[0]}`,
+                                target: connectingFrom.nodeId,
+                                targetHandle: connectingFrom.handleId,
+                            });
+                        }
+                        break;
                     }
+                    default:
+                        assertNever(connectingFrom.handleType);
                 }
             }
 
@@ -334,17 +347,23 @@ export const usePaneNodeSearchMenu = (
             const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
             const node: Node<NodeData> | undefined = getNode(nodeId);
             if (node && connectingFrom.handleType) {
-                if (connectingFrom.handleType === 'source') {
-                    const sourceType = functionDefinitions
-                        .get(node.data.schemaId)
-                        ?.outputDefaults.get(inOutId);
-                    setConnectingFromType(sourceType ?? null);
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                } else if (connectingFrom.handleType === 'target') {
-                    const targetType = functionDefinitions
-                        .get(node.data.schemaId)
-                        ?.inputs.get(inOutId);
-                    setConnectingFromType(targetType ?? null);
+                switch (connectingFrom.handleType) {
+                    case 'source': {
+                        const sourceType = functionDefinitions
+                            .get(node.data.schemaId)
+                            ?.outputDefaults.get(inOutId);
+                        setConnectingFromType(sourceType ?? null);
+                        break;
+                    }
+                    case 'target': {
+                        const targetType = functionDefinitions
+                            .get(node.data.schemaId)
+                            ?.inputs.get(inOutId);
+                        setConnectingFromType(targetType ?? null);
+                        break;
+                    }
+                    default:
+                        assertNever(connectingFrom.handleType);
                 }
             }
         }
