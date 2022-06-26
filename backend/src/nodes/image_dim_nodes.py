@@ -357,7 +357,7 @@ class ContentCropNode(NodeBase):
         if r.any():
             h, w, _ = get_h_w_c(img)
             c = alpha.any(0)
-            imgout = img[
+            imgout = np.copy(img)[
                 r.argmax() : h - r[::-1].argmax(), c.argmax() : w - c[::-1].argmax()
             ]
         else:
