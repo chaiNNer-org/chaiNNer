@@ -3,6 +3,7 @@
 import { memo, useCallback } from 'react';
 import { useContext } from 'use-context-selector';
 import { Input, InputData, InputKind, InputSchemaValue } from '../../../common/common-types';
+import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';
@@ -16,8 +17,9 @@ import SliderInput from '../inputs/SliderInput';
 import TextAreaInput from '../inputs/TextAreaInput';
 import TextInput from '../inputs/TextInput';
 
-interface FullInputProps extends Omit<Input, 'id'>, InputProps {
+interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
     accentColor: string;
+    type: Type;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -86,13 +88,16 @@ interface NodeInputsProps {
 
 const NodeInputs = memo(
     ({ inputs, id, inputData, isLocked, schemaId, accentColor }: NodeInputsProps) => {
-        const { useInputData: useInputDataContext } = useContext(GlobalContext);
+        const { useInputData: useInputDataContext, functionDefinitions } =
+            useContext(GlobalContext);
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: number) =>
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]
         );
+
+        const functions = functionDefinitions.get(schemaId)!.inputs;
 
         return (
             <>
@@ -106,7 +111,7 @@ const NodeInputs = memo(
                         kind: input.kind,
                         isLocked: isLocked ?? false,
                         schemaId,
-                        type: input.type,
+                        type: functions.get(input.id)!,
                         accentColor,
                     };
                     return pickInput(input.kind, props);

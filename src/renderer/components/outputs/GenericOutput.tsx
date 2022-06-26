@@ -1,13 +1,13 @@
 import { Text } from '@chakra-ui/react';
 import { memo } from 'react';
-import { ExpressionJson } from '../../../common/types/json';
+import { Type } from '../../../common/types/types';
 import OutputContainer from './OutputContainer';
 
 interface GenericOutputProps {
     id: string;
     label: string;
     outputId: number;
-    type: ExpressionJson;
+    type: Type;
 }
 
 const GenericOutput = memo(({ label, id, outputId, type }: GenericOutputProps) => (

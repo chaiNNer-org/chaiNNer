@@ -56,6 +56,7 @@ const NodeBody = memo(
                 <NodeOutputs
                     id={id}
                     outputs={outputs}
+                    schemaId={schemaId}
                 />
             </>
         );

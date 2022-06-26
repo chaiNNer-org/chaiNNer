@@ -3,9 +3,9 @@ import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { EdgeData } from '../../../common/common-types';
-import { ExpressionJson } from '../../../common/types/json';
+import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
@@ -13,7 +13,7 @@ interface OutputContainerProps {
     hasHandle: boolean;
     outputId: number;
     id: string;
-    type: ExpressionJson;
+    type: Type;
 }
 
 interface RightHandleProps {
@@ -55,9 +55,11 @@ const OutputContainer = memo(
             (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
         );
 
+        const { typeDefinitions } = useContext(GlobalContext);
+
         let contents = children;
         if (hasHandle) {
-            const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
+            const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
             const borderColor = useColorModeValue('#171923', '#F7FAFC');
             const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (

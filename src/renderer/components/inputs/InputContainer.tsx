@@ -1,11 +1,11 @@
-import { Box, HStack, Text, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, chakra, HStack, Text, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { EdgeData } from '../../../common/common-types';
-import { ExpressionJson } from '../../../common/types/json';
+import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
@@ -14,7 +14,7 @@ interface InputContainerProps {
     inputId: number;
     label?: string;
     hasHandle: boolean;
-    type: ExpressionJson;
+    type: Type;
 }
 
 interface LeftHandleProps {
@@ -57,9 +57,11 @@ const InputContainer = memo(
             (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
         );
 
+        const { typeDefinitions } = useContext(GlobalContext);
+
         let contents = children;
         if (hasHandle) {
-            const handleColor = getTypeAccentColors(type); // useColorModeValue('#EDF2F7', '#171923');
+            const handleColor = getTypeAccentColors(type, typeDefinitions); // useColorModeValue('#EDF2F7', '#171923');
             const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
             const connectedColor = useColorModeValue('#EDF2F7', '#171923');
             contents = (
