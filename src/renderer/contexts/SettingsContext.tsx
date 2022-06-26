@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { createContext } from 'use-context-selector';
+import { SchemaId } from '../../common/common-types';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface Settings {
@@ -19,8 +20,8 @@ interface Settings {
 
     // Node Settings
     useNodeFavorites: readonly [
-        readonly string[],
-        React.Dispatch<React.SetStateAction<readonly string[]>>
+        readonly SchemaId[],
+        React.Dispatch<React.SetStateAction<readonly SchemaId[]>>
     ];
 
     // Port
@@ -72,7 +73,10 @@ export const SettingsProvider = memo(
         );
 
         // Node Settings
-        const [favorites, setFavorites] = useLocalStorage<readonly string[]>('node-favorites', []);
+        const [favorites, setFavorites] = useLocalStorage<readonly SchemaId[]>(
+            'node-favorites',
+            []
+        );
 
         const useNodeFavorites = useMemo(
             () => [favorites, setFavorites] as const,

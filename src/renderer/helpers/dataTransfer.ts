@@ -1,13 +1,14 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { XYPosition } from 'react-flow-renderer';
+import { SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { NodeProto } from '../contexts/GlobalNodeState';
 
 export interface ChainnerDragData {
-    schemaId: string;
+    schemaId: SchemaId;
     offsetX?: number;
     offsetY?: number;
 }
@@ -89,7 +90,7 @@ const openImageFileProcessor: DataTransferProcessor = (
     dataTransfer,
     { schemata, getNodePosition, createNode }
 ) => {
-    const LOAD_IMAGE_ID = 'chainner:image:load';
+    const LOAD_IMAGE_ID = 'chainner:image:load' as SchemaId;
     if (!schemata.has(LOAD_IMAGE_ID)) return false;
     const schema = schemata.get(LOAD_IMAGE_ID);
     const fileTypes = schema.inputs[0]?.filetypes;

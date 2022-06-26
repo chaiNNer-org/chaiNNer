@@ -1,6 +1,6 @@
 import { Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
-import { Input, InputData, Output } from '../../../common/common-types';
+import { Input, InputData, Output, SchemaId } from '../../../common/common-types';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
 
@@ -11,7 +11,7 @@ interface NodeBodyProps {
     isLocked?: boolean;
     inputs: readonly Input[];
     outputs: readonly Output[];
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 const NodeBody = memo(

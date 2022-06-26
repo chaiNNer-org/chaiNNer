@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
+import { SchemaId } from '../../common/common-types';
 import { SettingsContext } from '../contexts/SettingsContext';
 
 export interface UseNodeFavorites {
-    readonly favorites: ReadonlySet<string>;
-    readonly addFavorites: (...schemaIds: string[]) => void;
-    readonly removeFavorite: (schemaId: string) => void;
+    readonly favorites: ReadonlySet<SchemaId>;
+    readonly addFavorites: (...schemaIds: SchemaId[]) => void;
+    readonly removeFavorite: (schemaId: SchemaId) => void;
 }
 
 export const useNodeFavorites = () => {
@@ -17,13 +18,13 @@ export const useNodeFavorites = () => {
     const favorites = useMemo(() => new Set(favoritesArray), [favoritesArray]);
 
     const addFavorites = useCallback(
-        (...schemaIds: string[]) => {
+        (...schemaIds: SchemaId[]) => {
             setFavorites((prev) => [...new Set([...prev, ...schemaIds])]);
         },
         [setFavorites]
     );
     const removeFavorite = useCallback(
-        (schemaId: string) => {
+        (schemaId: SchemaId) => {
             setFavorites((prev) => prev.filter((id) => id !== schemaId));
         },
         [setFavorites]

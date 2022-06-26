@@ -1,5 +1,5 @@
 import { Edge, Node } from 'react-flow-renderer';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
 import { NumericLiteralType, StringLiteralType, StructType, Type } from '../../common/types/types';
@@ -28,7 +28,7 @@ export class TypeState {
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
         edges: readonly Edge<EdgeData>[],
         outputNarrowing: ReadonlyMap<string, ReadonlyMap<number, Type>>,
-        functionDefinitions: ReadonlyMap<string, FunctionDefinition>
+        functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
     ): TypeState {
         // eslint-disable-next-line no-param-reassign
         edges = edges.filter((e) => e.sourceHandle && e.targetHandle);

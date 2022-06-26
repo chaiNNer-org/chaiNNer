@@ -2,7 +2,13 @@
 
 import { memo, useCallback } from 'react';
 import { useContext } from 'use-context-selector';
-import { Input, InputData, InputKind, InputSchemaValue } from '../../../common/common-types';
+import {
+    Input,
+    InputData,
+    InputKind,
+    InputSchemaValue,
+    SchemaId,
+} from '../../../common/common-types';
 import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';
@@ -79,7 +85,7 @@ interface NodeInputsProps {
     inputData: InputData;
     accentColor: string;
     isLocked?: boolean;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 const NodeInputs = memo(

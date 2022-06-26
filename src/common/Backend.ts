@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { InputValue, JsonValue, NodeSchema, UsableData } from './common-types';
+import { InputValue, JsonValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
     message: string;
@@ -20,7 +20,7 @@ export interface BackendRunIndividualRequest {
     inputs: InputValue[];
     isCpu: boolean;
     isFp16: boolean;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 export type BackendResult<T> = BackendSuccess<T> | BackendError;
