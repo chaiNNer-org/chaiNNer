@@ -19,6 +19,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    SchemaId,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -187,7 +188,7 @@ const defaultIteratorSize: Size = { width: 1280, height: 720 };
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
 
