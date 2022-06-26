@@ -1,8 +1,7 @@
 import { Box, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
-import React, { memo } from 'react';
-import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
+import React, { memo, useMemo } from 'react';
+import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { EdgeData } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -49,8 +48,9 @@ const OutputContainer = memo(
         id,
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalVolatileContext);
-        const edges = useEdges<EdgeData>();
+        const { isValidConnection, edgeChanges } = useContext(GlobalVolatileContext);
+        const { getEdges } = useReactFlow();
+        const edges = useMemo(() => getEdges(), [edgeChanges]);
         const isConnected = !!edges.find(
             (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
         );

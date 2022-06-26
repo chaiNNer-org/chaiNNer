@@ -16,12 +16,6 @@ const typeColors = {
 };
 
 export default (type: Type, typeDefinitions: TypeDefinitions): string => {
-    console.log('🚀 ~ file: getTypeAccentColors.ts ~ line 19 ~ type', type);
-    console.log(evaluate(new NamedExpression('Image'), typeDefinitions));
-    console.log(
-        'isSubsetOf(type, evaluate(new NamedExpression(Image), typeDefinitions))',
-        isSubsetOf(type, evaluate(new NamedExpression('Image'), typeDefinitions))
-    );
     if (isSubsetOf(type, evaluate(new NamedExpression('Image'), typeDefinitions))) {
         return typeColors.image;
     }

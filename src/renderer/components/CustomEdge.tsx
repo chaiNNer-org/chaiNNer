@@ -51,16 +51,17 @@ const CustomEdge = memo(
             [parentNode.data, effectivelyDisabledNodes]
         );
 
-        const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { removeEdgeById, setHoveredNode, functionDefinitions, typeDefinitions } =
+            useContext(GlobalContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
-        // We dynamically grab this data instead since storing the types makes transitioning harder
-        const { category, outputs } = schemata.get(parentNode.data.schemaId);
         const { inOutId } = useMemo(() => parseHandle(sourceHandleId!), [sourceHandleId]);
-        const { type } = outputs[inOutId];
+        const type = functionDefinitions
+            .get(parentNode.data.schemaId)!
+            .outputDefaults.get(inOutId)!;
 
-        const accentColor = getTypeAccentColors(type); // getNodeAccentColors(category);
+        const accentColor = getTypeAccentColors(type, typeDefinitions); // getNodeAccentColors(category);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
