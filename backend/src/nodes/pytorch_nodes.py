@@ -77,7 +77,9 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-        self.model = None  # Defined in run
+        # Defined in run
+        self.model = None
+        self.basename = None
 
     def get_extra_data(self) -> Dict:
         assert self.model is not None
@@ -97,6 +99,7 @@ class LoadModelNode(NodeBase):
             "outNc": self.model.out_nc,  # type: ignore
             "size": size,
             "scale": self.model.scale,  # type: ignore
+            "name": self.basename,
         }
 
     def run(self, path: str) -> Any:
@@ -119,9 +122,9 @@ class LoadModelNode(NodeBase):
         self.model.eval()
         self.model = self.model.to(torch.device(os.environ["device"]))
 
-        basename = os.path.splitext(os.path.basename(path))[0]
+        self.basename = os.path.splitext(os.path.basename(path))[0]
 
-        return self.model, basename
+        return self.model, self.basename
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
@@ -134,7 +137,27 @@ class ImageUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model."
         self.inputs = [ModelInput(), ImageInput()]
-        self.outputs = [ImageOutput("Upscaled Image")]
+        self.outputs = [
+            ImageOutput(
+                "Upscaled Image",
+                expression.Image(
+                    width=expression.fn(
+                        "multiply",
+                        expression.field("Input0", "scale"),
+                        expression.field("Input1", "width"),
+                    ),
+                    height=expression.fn(
+                        "multiply",
+                        expression.field("Input0", "scale"),
+                        expression.field("Input1", "height"),
+                    ),
+                    channels=[
+                        expression.field("Input0", "outputChannels"),
+                        expression.field("Input1", "channels"),
+                    ],
+                ),
+            )
+        ]
 
         self.category = PYTORCH
         self.name = "Upscale Image"
@@ -276,7 +299,9 @@ class InterpolateNode(NodeBase):
                 ends=("A", "B"),
             ),
         ]
-        self.outputs = [ModelOutput()]
+        self.outputs = [
+            ModelOutput(model_type=expression.intersect("Input0", "Input1"))
+        ]
 
         self.category = PYTORCH
         self.name = "Interpolate Models"

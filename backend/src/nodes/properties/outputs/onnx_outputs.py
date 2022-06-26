@@ -3,4 +3,4 @@ from .base_output import BaseOutput
 
 def OnnxModelOutput(label: str = "Model"):
     """Output for onnx model"""
-    return BaseOutput("onnx::model", label)
+    return BaseOutput("OnnxModel", label)

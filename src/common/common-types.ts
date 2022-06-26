@@ -1,3 +1,5 @@
+import { ExpressionJson } from './types/json';
+
 export interface JsonObject {
     [key: string]: JsonValue;
 }
@@ -19,21 +21,34 @@ export type InputSchemaValue = string | number;
 export interface InputOption {
     option: string;
     value: InputSchemaValue;
+    type?: ExpressionJson;
 }
+export type InputKind =
+    | 'number'
+    | 'slider'
+    | 'dropdown'
+    | 'text'
+    | 'text-line'
+    | 'directory'
+    | 'file'
+    | 'generic';
+export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 export interface Input {
     readonly id: number;
-    readonly type: string;
+    readonly type: ExpressionJson;
+    readonly kind: InputKind;
     readonly label: string;
     readonly optional: boolean;
     readonly hasHandle: boolean;
     readonly def?: InputSchemaValue;
     readonly default?: InputSchemaValue;
     readonly options?: InputOption[];
+    readonly fileKind?: FileInputKind;
     readonly filetypes?: string[];
 }
 export interface Output {
     readonly id: number;
-    readonly type: string;
+    readonly type: ExpressionJson;
     readonly label: string;
 }
 
@@ -63,6 +78,7 @@ export interface NodeData {
     readonly id: string;
     readonly parentNode?: string;
     readonly schemaId: string;
+    readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
     readonly invalid?: boolean;

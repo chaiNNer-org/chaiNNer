@@ -4,9 +4,11 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { shadeColor } from '../../helpers/colorTools';
+import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
+import shadeColor from '../../helpers/shadeColor';
+import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
@@ -54,10 +56,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState<[boolean, string]>([false, '']);
-
-    const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
-
+    const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
             setValidity(
@@ -71,7 +70,10 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         }
     }, [inputData, edgeChanges]);
 
-    const menu = useNodeMenu(id, undefined);
+    const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
+
+    const disabled = useDisabled(data);
+    const menu = useNodeMenu(data, disabled, { canLock: false });
 
     return (
         <Center
@@ -80,13 +82,18 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             py={2}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+            >
                 <IteratorNodeHeader
                     accentColor={accentColor}
+                    disabledStatus={disabled.status}
                     icon={icon}
                     name={name}
                     percentComplete={percentComplete}
@@ -156,8 +163,8 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     outputs={outputs}
                 />
                 <NodeFooter
-                    invalidReason={validity[1]}
-                    isValid={validity[0]}
+                    useDisable={disabled}
+                    validity={validity}
                 />
             </VStack>
         </Center>

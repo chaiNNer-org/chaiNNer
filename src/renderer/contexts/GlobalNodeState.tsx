@@ -24,12 +24,18 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { evaluate } from '../../common/types/evaluate';
+import { Expression } from '../../common/types/expression';
+import { FunctionDefinition } from '../../common/types/function';
+import { TypeDefinitions } from '../../common/types/typedef';
+import { Type } from '../../common/types/types';
 import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
+import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
     copyEdges,
     copyNode,
@@ -37,6 +43,7 @@ import {
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
+import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -50,9 +57,12 @@ type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
+    typeState: TypeState;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
+    isValidConnection: (connection: Readonly<Connection>) => boolean;
+    effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -66,7 +76,6 @@ interface Global {
     addEdgeChanges: () => void;
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
-    isValidConnection: (connection: Readonly<Connection>) => boolean;
     useAnimateEdges: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void,
@@ -90,11 +99,16 @@ interface Global {
         dimensions?: Size
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
+    setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
+    setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
 export interface NodeProto {
+    id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
@@ -105,12 +119,11 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createNodeImpl = (
-    { position, data, nodeType }: NodeProto,
+    { id = createUniqueId(), position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
     parent?: Node<NodeData>,
     selected = false
 ): Node<NodeData>[] => {
-    const id = createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
@@ -176,10 +189,21 @@ const defaultIteratorSize: Size = { width: 1280, height: 720 };
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
+const EMPTY_SET: ReadonlySet<never> = new Set();
+
 export const GlobalProvider = memo(
-    ({ children, schemata, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
+    ({
+        children,
+        schemata,
+        reactFlowWrapper,
+        functionDefinitions,
+
+        typeDefinitions,
+    }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { useStartupTemplate } = useContext(SettingsContext);
 
@@ -207,6 +231,54 @@ export const GlobalProvider = memo(
             [setEdges, addEdgeChanges]
         );
 
+        const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
+            map: new Map<string, Map<number, Type>>(),
+        }));
+        const setManualOutputType = useCallback(
+            (nodeId: string, outputId: number, type: Expression | undefined): void => {
+                setManualOutputTypes(({ map }) => {
+                    let inner = map.get(nodeId);
+                    if (type) {
+                        if (!inner) {
+                            inner = new Map();
+                            map.set(nodeId, inner);
+                        }
+
+                        inner.set(outputId, evaluate(type, typeDefinitions));
+                    } else {
+                        inner?.delete(outputId);
+                    }
+                    return { map };
+                });
+            },
+            [setManualOutputTypes, typeDefinitions]
+        );
+
+        const [typeState, setTypeState] = useState(TypeState.empty);
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                const nodeMap = new Map(getNodes().map((n) => [n.id, n]));
+
+                // remove manual overrides of nodes that no longer exist
+                if (manualOutputTypes.map.size > 0) {
+                    const ids = [...manualOutputTypes.map.keys()];
+                    for (const id of ids.filter((key) => !nodeMap.has(key))) {
+                        // use interior mutability to not cause updates
+                        manualOutputTypes.map.delete(id);
+                    }
+                }
+
+                const types = TypeState.create(
+                    nodeMap,
+                    getEdges(),
+                    manualOutputTypes.map,
+                    functionDefinitions
+                );
+                setTypeState(types);
+            }, 100);
+            return () => clearTimeout(timerId);
+        }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
+
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
             const timerId = setTimeout(() => {
@@ -228,6 +300,19 @@ export const GlobalProvider = memo(
             changeEdges(cachedEdges);
             if (cachedViewport) setViewport(cachedViewport);
         }, [changeNodes, changeEdges]);
+
+        const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
+            useState<ReadonlySet<string>>(EMPTY_SET);
+        useEffect(() => {
+            const newEffectivelyDisabled = getEffectivelyDisabledNodes(getNodes(), getEdges())
+                .map((n) => n.id)
+                .sort();
+            const newKey = newEffectivelyDisabled.join(';');
+            const oldKey = [...effectivelyDisabledNodes].join(';');
+            if (oldKey !== newKey) {
+                setEffectivelyDisabledNodes(new Set(newEffectivelyDisabled));
+            }
+        }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
         const [savePath, setSavePathInternal] = useState<string | undefined>();
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
@@ -545,18 +630,22 @@ export const GlobalProvider = memo(
                 const sourceHandleId = parseHandle(sourceHandle).inOutId;
                 const targetHandleId = parseHandle(targetHandle).inOutId;
 
+                const sourceFn = typeState.functions.get(source);
+                const targetFn = typeState.functions.get(target);
+
+                if (!sourceFn || !targetFn) {
+                    return false;
+                }
+
+                const outputType = sourceFn.outputs.get(sourceHandleId);
+                if (outputType !== undefined && !targetFn.canAssign(targetHandleId, outputType))
+                    return false;
+
                 const sourceNode = getNode(source);
                 const targetNode = getNode(target);
                 if (!sourceNode || !targetNode) {
                     return false;
                 }
-
-                // Target inputs, source outputs
-                const { outputs } = schemata.get(sourceNode.data.schemaId);
-                const { inputs } = schemata.get(targetNode.data.schemaId);
-
-                const sourceOutput = outputs.find((o) => o.id === sourceHandleId)!;
-                const targetInput = inputs.find((i) => i.id === targetHandleId)!;
 
                 const checkTargetChildren = (parentNode: Node<NodeData>): boolean => {
                     const targetChildren = getOutgoers(parentNode, getNodes(), getEdges());
@@ -571,13 +660,14 @@ export const GlobalProvider = memo(
                     });
                 };
                 const isLoop = checkTargetChildren(targetNode);
+                if (isLoop) return false;
 
                 const iteratorLock =
                     !sourceNode.parentNode || sourceNode.parentNode === targetNode.parentNode;
 
-                return sourceOutput.type === targetInput.type && !isLoop && iteratorLock;
+                return iteratorLock;
             },
-            [schemata, getNode, getNodes, getEdges]
+            [getNode, getNodes, getEdges, typeState]
         );
 
         const useInputData = useCallback(
@@ -811,6 +901,17 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeDisabled = useCallback(
+            (id: string, isDisabled: boolean): void => {
+                modifyNode(id, (n) => {
+                    const newNode = copyNode(n);
+                    newNode.data.isDisabled = isDisabled;
+                    return newNode;
+                });
+            },
+            [modifyNode]
+        );
+
         const cutFn = useCallback(() => {
             cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
         }, [getNodes, getEdges, changeNodes, changeEdges]);
@@ -834,9 +935,12 @@ export const GlobalProvider = memo(
         let globalChainValue: GlobalVolatile = {
             nodeChanges,
             edgeChanges,
+            typeState,
             createNode,
             createConnection,
             isNodeInputLocked,
+            effectivelyDisabledNodes,
+            isValidConnection,
             zoom,
             hoveredNode,
         };
@@ -853,7 +957,6 @@ export const GlobalProvider = memo(
             addEdgeChanges,
             changeNodes,
             changeEdges,
-            isValidConnection,
             useAnimateEdges,
             useInputData,
             toggleNodeLock,
@@ -865,13 +968,20 @@ export const GlobalProvider = memo(
             setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
+            setNodeDisabled,
             setZoom,
+            setManualOutputType,
+            functionDefinitions,
+            typeDefinitions,
         };
         globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
         return (
             <GlobalVolatileContext.Provider value={globalChainValue}>
                 <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+                <div style={{ display: 'none' }}>
+                    {nodeChanges};{edgeChanges}
+                </div>
             </GlobalVolatileContext.Provider>
         );
     }

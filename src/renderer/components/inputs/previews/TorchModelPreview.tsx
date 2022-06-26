@@ -1,14 +1,18 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Center, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
+import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists, visitByType } from '../../../../common/util';
+import { GlobalContext } from '../../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../../contexts/SettingsContext';
 import { useAsyncEffect } from '../../../hooks/useAsyncEffect';
 
 interface ModelData {
     modelType?: string;
+    name: string;
     scale: number;
     inNc: number;
     outNc: number;
@@ -45,6 +49,7 @@ const LOADING_STATE: State = { type: 'loading' };
 const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
     const [state, setState] = useState<State>(CLEAR_STATE);
 
+    const { setManualOutputType } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -90,6 +95,35 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
         },
         [path]
     );
+
+    useEffect(() => {
+        if (schemaId === 'chainner:pytorch:load_model') {
+            if (state.type === 'model') {
+                setManualOutputType(
+                    id,
+                    0,
+                    new NamedExpression('PyTorchModel', [
+                        new NamedExpressionField(
+                            'scale',
+                            new NumericLiteralType(state.model.scale)
+                        ),
+                        new NamedExpressionField(
+                            'inputChannels',
+                            new NumericLiteralType(state.model.inNc)
+                        ),
+                        new NamedExpressionField(
+                            'outputChannels',
+                            new NumericLiteralType(state.model.outNc)
+                        ),
+                    ])
+                );
+                setManualOutputType(id, 1, new StringLiteralType(state.model.name));
+            } else {
+                setManualOutputType(id, 0, undefined);
+                setManualOutputType(id, 1, undefined);
+            }
+        }
+    }, [id, state]);
 
     return (
         <Center w="full">

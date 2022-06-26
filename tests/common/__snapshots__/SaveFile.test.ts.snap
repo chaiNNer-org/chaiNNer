@@ -203,7 +203,7 @@ Object {
         "inputData": Object {
           "1": 69,
           "2": 76,
-          "3": "2",
+          "3": 2,
         },
         "schemaId": "chainner:image:threshold",
       },
@@ -503,7 +503,7 @@ Object {
         "inputData": Object {
           "1": 120,
           "2": 340,
-          "3": "4",
+          "3": 4,
         },
         "schemaId": "chainner:image:resize_resolution",
       },
@@ -560,7 +560,7 @@ Object {
         "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
         "inputData": Object {
           "1": 350,
-          "2": "3",
+          "2": 3,
         },
         "schemaId": "chainner:image:resize_factor",
       },
@@ -767,7 +767,7 @@ Object {
         "id": "ce5d04ca-a08a-4ecf-a07a-dcce789af967",
         "inputData": Object {
           "2": "L*a*b*",
-          "3": "0",
+          "3": 0,
           "4": 1,
         },
         "schemaId": "chainner:image:color_transfer",
@@ -1236,7 +1236,7 @@ Object {
       "data": Object {
         "id": "7094b9d4-3173-450f-b491-3c6936c510ab",
         "inputData": Object {
-          "1": "0",
+          "1": 0,
         },
         "schemaId": "chainner:image:flip",
       },
@@ -1255,7 +1255,7 @@ Object {
       "data": Object {
         "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
         "inputData": Object {
-          "1": "1",
+          "1": 1,
           "2": 34,
         },
         "schemaId": "chainner:image:create_border",
@@ -1335,7 +1335,7 @@ Object {
       "data": Object {
         "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
         "inputData": Object {
-          "1": "1",
+          "1": 1,
         },
         "schemaId": "chainner:image:change_colorspace",
       },
@@ -1785,6 +1785,194 @@ Object {
 }
 `;
 
+exports[`Read save file text-pattern.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "2b987cd0-9b61-46d2-9bf1-312594938d0c",
+      "source": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "sourceHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-0",
+      "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "a504f9f1-3e42-4f63-a039-adea8b0562c1",
+      "source": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "sourceHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+      "target": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+      "targetHandle": "ad7a95c8-8931-470a-b40d-c39f98cdafd6-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "a5954346-4d88-4856-be37-cac38ea292d1",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-2",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-3",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "b2f91331-97aa-4456-b86c-d746c87fc2ab",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c1e08abb-afa6-42c6-bfb6-6468a846656b",
+      "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+      "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e0912d6f-cc41-4bf2-84f5-9e6344ab5a00",
+      "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+      "target": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "targetHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "f3dd2978-13da-4477-949a-6498566b7a6b",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-1",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-2",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "inputData": Object {
+          "0": "{1}px x {2}px",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": "",
+        },
+        "isDisabled": false,
+        "schemaId": "chainner:utility:text_pattern",
+      },
+      "height": 546,
+      "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "position": Object {
+        "x": 309.7555959511702,
+        "y": 771.1213194348871,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "inputData": Object {
+          "1": "",
+        },
+        "schemaId": "chainner:image:caption",
+      },
+      "height": 258,
+      "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "position": Object {
+        "x": 600.3085794285071,
+        "y": 667.4464344534028,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "inputData": Object {
+          "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\test.jpg",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 538,
+      "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "position": Object {
+        "x": -28.19569731256348,
+        "y": 346.744623600131,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 257,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "inputData": Object {},
+        "schemaId": "chainner:image:get_dims",
+      },
+      "height": 256,
+      "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "position": Object {
+        "x": -9.716035877966192,
+        "y": 935.9302075524464,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "inputData": Object {},
+        "schemaId": "chainner:image:preview",
+      },
+      "height": 118,
+      "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+      "position": Object {
+        "x": 623.3424132803425,
+        "y": 978.8257039041982,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file utilities.chn 1`] = `
 Object {
   "edges": Array [],
@@ -2069,7 +2257,7 @@ Object {
 
 exports[`Write save file image-adjustments.chn 1`] = `
 Object {
-  "checksum": "5e390b4028ca1e3d9849869c97336359",
+  "checksum": "aa25590a25e064bc1651e02ae72dbd83",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -2079,7 +2267,7 @@ Object {
           "inputData": Object {
             "1": 69,
             "2": 76,
-            "3": "2",
+            "3": 2,
           },
           "schemaId": "chainner:image:threshold",
         },
@@ -2332,7 +2520,7 @@ Object {
 
 exports[`Write save file image-dim.chn 1`] = `
 Object {
-  "checksum": "e4f98dfd932ac1f101d76046d59bd66c",
+  "checksum": "619592d14b086f1cc392e648b3c64478",
   "content": Object {
     "edges": Array [
       Object {
@@ -2387,7 +2575,7 @@ Object {
           "inputData": Object {
             "1": 120,
             "2": 340,
-            "3": "4",
+            "3": 4,
           },
           "schemaId": "chainner:image:resize_resolution",
         },
@@ -2444,7 +2632,7 @@ Object {
           "id": "e07a2c2b-700d-4422-ae9a-8b22da0aaa62",
           "inputData": Object {
             "1": 350,
-            "2": "3",
+            "2": 3,
           },
           "schemaId": "chainner:image:resize_factor",
         },
@@ -2473,7 +2661,7 @@ Object {
 
 exports[`Write save file image-filters.chn 1`] = `
 Object {
-  "checksum": "69b73b0c2a788c86d3c4ae8933f5aee4",
+  "checksum": "128dfcf4705c7bedf24b7a70c277b409",
   "content": Object {
     "edges": Array [
       Object {
@@ -2655,7 +2843,7 @@ Object {
           "id": "ce5d04ca-a08a-4ecf-a07a-dcce789af967",
           "inputData": Object {
             "2": "L*a*b*",
-            "3": "0",
+            "3": 0,
             "4": 1,
           },
           "schemaId": "chainner:image:color_transfer",
@@ -2988,7 +3176,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "6f5aa508b291c2b7fe0a7b73396f00c7",
+  "checksum": "a7c4e684d6cfa3eb6a22c33238923ff2",
   "content": Object {
     "edges": Array [
       Object {
@@ -3140,7 +3328,7 @@ Object {
         "data": Object {
           "id": "7094b9d4-3173-450f-b491-3c6936c510ab",
           "inputData": Object {
-            "1": "0",
+            "1": 0,
           },
           "schemaId": "chainner:image:flip",
         },
@@ -3159,7 +3347,7 @@ Object {
         "data": Object {
           "id": "7ae37f51-b9d9-41d8-aed7-b6f5a0cea0d6",
           "inputData": Object {
-            "1": "1",
+            "1": 1,
             "2": 34,
           },
           "schemaId": "chainner:image:create_border",
@@ -3239,7 +3427,7 @@ Object {
         "data": Object {
           "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
           "inputData": Object {
-            "1": "1",
+            "1": 1,
           },
           "schemaId": "chainner:image:change_colorspace",
         },
@@ -3689,6 +3877,198 @@ Object {
         "selected": false,
         "type": "regularNode",
         "width": 258,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file text-pattern.chn 1`] = `
+Object {
+  "checksum": "a7c78e811726c0e2473e00a89d0a48a5",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "2b987cd0-9b61-46d2-9bf1-312594938d0c",
+        "source": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "sourceHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-0",
+        "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "a504f9f1-3e42-4f63-a039-adea8b0562c1",
+        "source": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "sourceHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+        "target": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "targetHandle": "ad7a95c8-8931-470a-b40d-c39f98cdafd6-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "a5954346-4d88-4856-be37-cac38ea292d1",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-2",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-3",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "b2f91331-97aa-4456-b86c-d746c87fc2ab",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c1e08abb-afa6-42c6-bfb6-6468a846656b",
+        "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+        "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "e0912d6f-cc41-4bf2-84f5-9e6344ab5a00",
+        "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+        "target": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "targetHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "f3dd2978-13da-4477-949a-6498566b7a6b",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-1",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-2",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+          "inputData": Object {
+            "0": "{1}px x {2}px",
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+          },
+          "isDisabled": false,
+          "schemaId": "chainner:utility:text_pattern",
+        },
+        "height": 546,
+        "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "position": Object {
+          "x": 309.7555959511702,
+          "y": 771.1213194348871,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+          "inputData": Object {
+            "1": "",
+          },
+          "schemaId": "chainner:image:caption",
+        },
+        "height": 258,
+        "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "position": Object {
+          "x": 600.3085794285071,
+          "y": 667.4464344534028,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+          "inputData": Object {
+            "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\test.jpg",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 538,
+        "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "position": Object {
+          "x": -28.19569731256348,
+          "y": 346.744623600131,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 257,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+          "inputData": Object {},
+          "schemaId": "chainner:image:get_dims",
+        },
+        "height": 256,
+        "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "position": Object {
+          "x": -9.716035877966192,
+          "y": 935.9302075524464,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+          "inputData": Object {},
+          "schemaId": "chainner:image:preview",
+        },
+        "height": 118,
+        "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "position": Object {
+          "x": 623.3424132803425,
+          "y": 978.8257039041982,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
         "zIndex": 50,
       },
     ],

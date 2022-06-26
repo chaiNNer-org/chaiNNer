@@ -1,21 +1,12 @@
+from .. import expression
 from .base_output import BaseOutput
 
 
-class PyTorchOutput(BaseOutput):
-    def __init__(self, pytorch_type: str, label: str):
-        super().__init__(f"pytorch::{pytorch_type}", label)
-
-
-def StateDictOutput():
-    """Output a PyTorch state dict"""
-    return PyTorchOutput("state_dict", "State Dict")
-
-
-def ModelOutput():
+def ModelOutput(model_type: expression.ExpressionJson = "PyTorchModel"):
     """Output a loaded model"""
-    return PyTorchOutput("model", "Model")
+    return BaseOutput(model_type, "Model")
 
 
 def TorchScriptOutput():
     """Output a JIT traced model"""
-    return PyTorchOutput("torchscript", "Traced Model")
+    return BaseOutput("PyTorchScript", "Traced Model")

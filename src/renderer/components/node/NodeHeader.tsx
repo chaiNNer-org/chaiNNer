@@ -7,7 +7,11 @@ import {
     useToken,
 } from '@chakra-ui/react';
 import { memo } from 'react';
+<<<<<<<
 import { interpolateColor } from '../../helpers/colorTools';
+=======
+import { DisabledStatus } from '../../helpers/disabled';
+>>>>>>>
 import { IconFactory } from '../CustomIcons';
 
 interface NodeHeaderProps {
@@ -17,10 +21,11 @@ interface NodeHeaderProps {
     selected: boolean;
     width?: LayoutProps['width'];
     parentNode?: string;
+    disabledStatus: DisabledStatus;
 }
 
 const NodeHeader = memo(
-    ({ name, width, icon, accentColor, selected, parentNode }: NodeHeaderProps) => {
+    ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => (
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const [gray300, gray700]: string[] = useToken('colors', ['gray.300', 'gray.700']);
         const bgColor = useColorModeValue(gray300, gray700);
@@ -34,8 +39,8 @@ const NodeHeader = memo(
                 borderBottomColor={accentColor}
                 borderBottomStyle={parentNode ? 'double' : undefined}
                 borderBottomWidth={parentNode ? '4px' : '2px'}
-                h="auto"
                 pt={2}
+                h="auto"
                 verticalAlign="middle"
                 w={width || 'full'}
             >

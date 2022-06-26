@@ -2,6 +2,7 @@ import { Box, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/rea
 import React, { memo } from 'react';
 import { Connection, Handle, Position, useEdges } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { EdgeData } from '../../../common/common-types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -50,11 +51,11 @@ const OutputContainer = memo(
         accentColor,
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection } = useContext(GlobalContext);
         const edges = useEdges<EdgeData>();
         const isConnected = !!edges.find(
             (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
         );
+        const { isValidConnection } = useContext(GlobalVolatileContext);
 
         let contents = children;
         if (hasHandle) {

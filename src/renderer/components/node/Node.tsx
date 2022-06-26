@@ -6,10 +6,12 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
-import { shadeColor } from '../../helpers/colorTools';
+import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
+import shadeColor from '../../helpers/shadeColor';
+import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import NodeBody from './NodeBody';
 import NodeFooter from './NodeFooter';
@@ -20,12 +22,8 @@ import NodeHeader from './NodeHeader';
  */
 const getSingleFileInput = (inputs: readonly Input[]): Input | undefined => {
     const fileInputs = inputs.filter((i) => {
-        switch (i.type) {
-            case 'file::image':
-            case 'file::video':
-            case 'file::pth':
-            case 'file::bin':
-            case 'file::param':
+        switch (i.kind) {
+            case 'file':
                 return true;
             default:
                 return false;
@@ -69,8 +67,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState<[boolean, string]>([false, '']);
-
+    const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
@@ -131,7 +128,8 @@ const Node = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const menu = useNodeMenu(id, isLocked ?? false);
+    const disabled = useDisabled(data);
+    const menu = useNodeMenu(data, disabled);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [gray400, gray700, gray900]: string[] = useToken('colors', [
@@ -153,7 +151,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
                 selected ? 12 : 8
             }px ${gray900}CF`}
-            overflow="hidden"
+            opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
@@ -166,9 +164,13 @@ const Node = memo(({ data, selected }: NodeProps) => {
             onDragOver={onDragOver}
             onDrop={onDrop}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+            >
                 <NodeHeader
                     accentColor={accentColor}
+                    disabledStatus={disabled.status}
                     icon={icon}
                     name={name}
                     parentNode={parentNode}
@@ -184,8 +186,8 @@ const Node = memo(({ data, selected }: NodeProps) => {
                     schemaId={schemaId}
                 />
                 <NodeFooter
-                    invalidReason={validity[1]}
-                    isValid={validity[0]}
+                    useDisable={disabled}
+                    validity={validity}
                 />
             </VStack>
         </Center>

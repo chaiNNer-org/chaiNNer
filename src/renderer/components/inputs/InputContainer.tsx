@@ -6,6 +6,7 @@ import { EdgeData } from '../../../common/common-types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -57,6 +58,8 @@ const InputContainer = memo(
         const isConnected = !!edges.find(
             (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
         );
+    ({ children, hasHandle, id, inputId, label }: React.PropsWithChildren<InputContainerProps>) => {
+        const { isValidConnection } = useContext(GlobalVolatileContext);
 
         let contents = children;
         if (hasHandle) {

@@ -28,14 +28,34 @@ class ImBlend(NodeBase):
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.description = """Blends overlay image onto base image using 
+        self.description = """Blends overlay image onto base image using
             specified mode."""
         self.inputs = [
             ImageInput("Base Layer"),
             ImageInput("Overlay Layer"),
             BlendModeDropdown(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "max",
+                        expression.field("Input0", "width"),
+                        expression.field("Input1", "width"),
+                    ),
+                    height=expression.fn(
+                        "max",
+                        expression.field("Input0", "height"),
+                        expression.field("Input1", "height"),
+                    ),
+                    channels=expression.fn(
+                        "max",
+                        expression.field("Input0", "channels"),
+                        expression.field("Input1", "channels"),
+                    ),
+                )
+            ),
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Blend Images"
         self.icon = "BsLayersHalf"
@@ -60,15 +80,15 @@ class ImBlend(NodeBase):
         ov_img = convert_to_BGRA(ov, o_c)
 
         # Pad base image with transparency if necessary to match size with overlay
-        tp = bm = lt = rt = 0
+        top = bottom = left = right = 0
         if b_h < max_h:
-            tp = (max_h - b_h) // 2
-            bm = max_h - b_h - tp
+            top = (max_h - b_h) // 2
+            bottom = max_h - b_h - top
         if b_w < max_w:
-            lt = (max_w - b_w) // 2
-            rt = max_w - b_w - lt
+            left = (max_w - b_w) // 2
+            right = max_w - b_w - left
         imgout = cv2.copyMakeBorder(
-            imgout, tp, bm, lt, rt, cv2.BORDER_CONSTANT, value=0
+            imgout, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
         )
 
         # Center overlay
@@ -202,7 +222,7 @@ class CaptionNode(NodeBase):
         self.description = "Add a caption to an image."
         self.inputs = [
             ImageInput(),
-            TextInput("Caption"),
+            TextInput("Caption", allow_numbers=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -231,7 +251,14 @@ class ColorConvertNode(NodeBase):
             ImageInput(),
             ColorModeInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    size_as="Input0",
+                    channels=expression.field("Input1", "outputChannels"),
+                )
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Change Colorspace"
         self.icon = "MdColorLens"
@@ -258,7 +285,22 @@ class BorderMakeNode(NodeBase):
             BorderInput(),
             NumberInput("Amount", unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=expression.fn(
+                        "add",
+                        expression.field("Input0", "width"),
+                        expression.fn("multiply", "Input2", 2),
+                    ),
+                    height=expression.fn(
+                        "add",
+                        expression.field("Input0", "height"),
+                        expression.fn("multiply", "Input2", 2),
+                    ),
+                )
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Create Border"
         self.icon = "BsBorderOuter"
@@ -305,7 +347,7 @@ class ShiftNode(NodeBase):
             NumberInput("Amount X", minimum=None, unit="px"),
             NumberInput("Amount Y", minimum=None, unit="px"),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
         self.name = "Shift"
         self.icon = "BsGraphDown"
@@ -346,15 +388,17 @@ class RotateNode(NodeBase):
             ),
             RotateInterpolationInput(),
             DropDownInput(
-                "Image Dimensions",
-                [
+                input_type="RotateExpandCrop",
+                label="Image Dimensions",
+                options=[
                     {"option": "Expand to fit", "value": RotateExpandCrop.EXPAND},
                     {"option": "Crop to original", "value": RotateExpandCrop.CROP},
                 ],
             ),
             DropDownInput(
-                "Negative Space Fill",
-                [
+                input_type="RotateFillColor",
+                label="Negative Space Fill",
+                options=[
                     {"option": "Auto", "value": RotateFillColor.AUTO},
                     {"option": "Black Fill", "value": RotateFillColor.BLACK},
                     {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
@@ -383,16 +427,23 @@ class FlipNode(NodeBase):
         self.description = "Flip an image."
         self.inputs = [
             ImageInput("Image"),
-            DropDownInput(
-                "Flip Axis",
-                [
-                    {"option": "Horizontal", "value": 1},
-                    {"option": "Vertical", "value": 0},
-                    {"option": "Both", "value": -1},
-                ],
-            ),
+            FlipAxisInput(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width=[
+                        expression.field("Input0", "width"),
+                        expression.field("Input0", "height"),
+                    ],
+                    height=[
+                        expression.field("Input0", "width"),
+                        expression.field("Input0", "height"),
+                    ],
+                    channels_as="Input0",
+                )
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Flip"
         self.icon = "MdFlip"
@@ -417,16 +468,18 @@ class ImageMetricsNode(NodeBase):
             ImageInput("Comparison Image"),
         ]
         self.outputs = [
-            TextOutput("MSE"),
-            TextOutput("PSNR"),
-            TextOutput("SSIM"),
+            NumberOutput("MSE", expression.interval(0, 1)),
+            NumberOutput("PSNR", expression.interval(0, float("inf"))),
+            NumberOutput("SSIM", expression.interval(0, 1)),
         ]
         self.category = IMAGE_UTILITY
         self.name = "Image Metrics"
         self.icon = "MdOutlineAssessment"
         self.sub = "Miscellaneous"
 
-    def run(self, orig_img: np.ndarray, comp_img: np.ndarray) -> Tuple[str, str, str]:
+    def run(
+        self, orig_img: np.ndarray, comp_img: np.ndarray
+    ) -> Tuple[float, float, float]:
         """Compute MSE, PSNR, and SSIM"""
 
         assert (
@@ -444,4 +497,4 @@ class ImageMetricsNode(NodeBase):
         psnr = round(10 * math.log(1 / mse), 6)
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 
-        return (str(mse), str(psnr), str(ssim))
+        return (float(mse), float(psnr), ssim)

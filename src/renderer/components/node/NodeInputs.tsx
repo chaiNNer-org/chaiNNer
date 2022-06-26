@@ -2,7 +2,8 @@
 
 import { memo, useCallback } from 'react';
 import { useContext } from 'use-context-selector';
-import { Input, InputData, InputSchemaValue } from '../../../common/common-types';
+import { Input, InputData, InputKind, InputSchemaValue } from '../../../common/common-types';
+import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';
 import DropDownInput from '../inputs/DropDownInput';
@@ -20,40 +21,32 @@ interface FullInputProps extends Omit<Input, 'id'>, InputProps {
 }
 
 // TODO: perhaps make this an object instead of a switch statement
-const pickInput = (type: string, props: FullInputProps) => {
+const pickInput = (kind: InputKind, props: FullInputProps) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let InputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericInput;
-    switch (type) {
-        case 'file::image':
-        case 'file::pth':
-        case 'file::video':
-        case 'file::bin':
-        case 'file::param':
-        case 'file::onnx':
+    switch (kind) {
+        case 'file':
             InputType = FileInput;
             break;
-        case 'file::directory':
+        case 'directory':
             InputType = DirectoryInput;
             break;
-        case 'text::any':
+        case 'text-line':
             InputType = TextInput;
             break;
-        case 'textarea::note':
+        case 'text':
             InputType = TextAreaInput;
             break;
-        case 'dropdown::str':
-        case 'dropdown::image-extensions':
-        case 'dropdown::math-operations':
-        case 'dropdown::generic':
+        case 'dropdown':
             InputType = DropDownInput;
             break;
-        case 'number::any':
+        case 'number':
             InputType = NumberInput;
             break;
-        case 'number::slider':
+        case 'slider':
             InputType = SliderInput;
             break;
-        default:
+        case 'generic':
             return (
                 <InputContainer
                     accentColor={props.accentColor}
@@ -66,6 +59,8 @@ const pickInput = (type: string, props: FullInputProps) => {
                     <GenericInput {...props} />
                 </InputContainer>
             );
+        default:
+            return assertNever(kind);
     }
     return (
         <InputContainer
@@ -110,12 +105,12 @@ const NodeInputs = memo(
                         inputId: input.id,
                         inputData,
                         useInputData,
-                        type: input.type,
+                        kind: input.kind,
                         accentColor,
                         isLocked: isLocked ?? false,
                         schemaId,
                     };
-                    return pickInput(input.type, props);
+                    return pickInput(input.kind, props);
                 })}
             </>
         );

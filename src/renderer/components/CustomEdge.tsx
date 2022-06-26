@@ -3,12 +3,17 @@ import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
 import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseHandle } from '../../common/util';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { shadeColor } from '../helpers/colorTools';
 import getTypeAccentColors from '../helpers/getTypeAccentColors';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
+import getNodeAccentColors from '../helpers/getNodeAccentColors';
+import shadeColor from '../helpers/shadeColor';
 
 const CustomEdge = memo(
     ({
@@ -25,6 +30,11 @@ const CustomEdge = memo(
         sourceHandleId,
         targetHandleId,
     }: EdgeProps<EdgeData>) => {
+        const effectivelyDisabledNodes = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.effectivelyDisabledNodes
+        );
+
         const edgePath = useMemo(
             () =>
                 getBezierPath({
@@ -40,6 +50,10 @@ const CustomEdge = memo(
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const parentNode = useMemo(() => getNode(source)!, [source]);
+        const disabledStatus = useMemo(
+            () => getDisabledStatus(parentNode.data, effectivelyDisabledNodes),
+            [parentNode.data, effectivelyDisabledNodes]
+        );
 
         const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
 
@@ -88,6 +102,7 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
+                        opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
                     }}
                 />
                 <path
