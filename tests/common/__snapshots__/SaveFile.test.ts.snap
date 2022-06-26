@@ -193,6 +193,37 @@ Object {
 }
 `;
 
+exports[`Read save file crop-content.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+        "inputData": Object {},
+        "schemaId": "chainner:image:crop_content",
+      },
+      "height": 175,
+      "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+      "position": Object {
+        "x": 896,
+        "y": 528,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
   "edges": Array [],
@@ -2241,6 +2272,41 @@ Object {
         "selected": true,
         "type": "regularNode",
         "width": 242,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file crop-content.chn 1`] = `
+Object {
+  "checksum": "e4ba10ded4459c6fcf627fc35f4fa611",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+          "inputData": Object {},
+          "schemaId": "chainner:image:crop_content",
+        },
+        "height": 175,
+        "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+        "position": Object {
+          "x": 896,
+          "y": 528,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
         "zIndex": 70,
       },
     ],
