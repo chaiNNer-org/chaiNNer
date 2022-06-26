@@ -104,9 +104,12 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
+    functionDefinitions: Map<string, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
 export interface NodeProto {
+    id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
@@ -117,12 +120,11 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createNodeImpl = (
-    { position, data, nodeType }: NodeProto,
+    { id = createUniqueId(), position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
     parent?: Node<NodeData>,
     selected = false
 ): Node<NodeData>[] => {
-    const id = createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
@@ -970,6 +972,8 @@ export const GlobalProvider = memo(
             setNodeDisabled,
             setZoom,
             setManualOutputType,
+            functionDefinitions,
+            typeDefinitions,
         };
         globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
