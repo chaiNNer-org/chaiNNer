@@ -17,9 +17,9 @@ const InputContainer = memo(
         const { isValidConnection } = useContext(GlobalVolatileContext);
 
         let contents = children;
+        const handleColor = useColorModeValue('#EDF2F7', '#171923');
+        const borderColor = useColorModeValue('#171923', '#F7FAFC');
         if (hasHandle) {
-            const handleColor = useColorModeValue('#EDF2F7', '#171923');
-            const borderColor = useColorModeValue('#171923', '#F7FAFC');
             contents = (
                 <HStack
                     h="full"

@@ -55,7 +55,9 @@ const FileInput = memo(
         // Eventually, these should be combined into a single input type instead of using
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const [paramFilePath] = useInputData<string>(inputId - 1);
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             useEffect(() => {
                 (async () => {
                     if (paramFilePath) {
@@ -69,7 +71,9 @@ const FileInput = memo(
             }, [paramFilePath]);
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const [binFilePath] = useInputData<string>(inputId + 1);
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             useEffect(() => {
                 (async () => {
                     if (binFilePath) {
