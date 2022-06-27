@@ -17,7 +17,7 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    useColorModeValue
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
