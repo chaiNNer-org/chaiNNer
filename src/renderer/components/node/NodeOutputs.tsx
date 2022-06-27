@@ -1,13 +1,13 @@
 import { memo } from 'react';
 import { useContext } from 'use-context-selector';
-import { Output } from '../../../common/common-types';
+import { Output, SchemaId } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import GenericOutput from '../outputs/GenericOutput';
 
 interface NodeOutputsProps {
     id: string;
     outputs: readonly Output[];
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputsProps) => {
