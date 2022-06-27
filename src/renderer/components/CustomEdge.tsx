@@ -25,6 +25,7 @@ const CustomEdge = memo(
         style = {},
         selected,
         sourceHandleId,
+        animated,
     }: EdgeProps<EdgeData>) => {
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
@@ -80,8 +81,10 @@ const CustomEdge = memo(
 
         return (
             <g
+                className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
+                    opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
                 }}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
@@ -89,10 +92,12 @@ const CustomEdge = memo(
                 onMouseOver={() => hoverTimeout()}
             >
                 <path
-                    className="react-flow__edge-path"
+                    className="edge-chain-links"
                     d={edgePath}
-                    id={id}
+                    fill="none"
                     // strokeLinecap="round"
+                    id={id}
+                    strokeDasharray="0 !important"
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '2px',
@@ -101,41 +106,46 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
+                        opacity: animated ? 0 : 1,
+                        strokeDasharray: '0 !important',
                     }}
                 />
                 <path
-                    className="react-flow__edge-path"
+                    className="edge-chain"
                     d={edgePath}
+                    fill="none"
                     id={id}
                     strokeDasharray="1 10"
                     strokeDashoffset="2"
                     strokeLinecap="round"
                     style={{
                         ...style,
-                        strokeWidth: isHovered ? '8px' : '6px',
+                        strokeWidth: isHovered || animated ? '8px' : '6px',
                         stroke: currentColor,
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
+                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
                     }}
                 />
                 <path
-                    className="react-flow__edge-path"
+                    className="edge-chain"
                     d={edgePath}
+                    fill="none"
                     id={id}
                     strokeDasharray="1 10"
                     strokeDashoffset="2"
                     strokeLinecap="round"
                     style={{
                         ...style,
-                        strokeWidth: isHovered ? '4px' : '3px',
+                        strokeWidth: isHovered || animated ? '4px' : '3px',
                         stroke: useColorModeValue('#EDF2F7', '#1A202C'), // '#1A202C',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
+                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
                     }}
                 />
                 <path
