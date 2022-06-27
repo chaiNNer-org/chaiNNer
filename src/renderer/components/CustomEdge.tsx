@@ -79,6 +79,8 @@ const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
+        const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
+
         return (
             <g
                 className="edge-chain-group"
@@ -106,7 +108,7 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        opacity: animated ? 0 : 1,
+                        // opacity: animated ? 0 : 1,
                         strokeDasharray: '0 !important',
                     }}
                 />
@@ -120,13 +122,14 @@ const CustomEdge = memo(
                     strokeLinecap="round"
                     style={{
                         ...style,
-                        strokeWidth: isHovered || animated ? '8px' : '6px',
+                        strokeWidth: isHovered ? '8px' : '6px',
                         stroke: currentColor,
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
@@ -139,13 +142,14 @@ const CustomEdge = memo(
                     strokeLinecap="round"
                     style={{
                         ...style,
-                        strokeWidth: isHovered || animated ? '4px' : '3px',
-                        stroke: useColorModeValue('#EDF2F7', '#1A202C'), // '#1A202C',
+                        strokeWidth: isHovered ? '4px' : '3px',
+                        stroke: chainHoleColor,
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
