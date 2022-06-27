@@ -8,6 +8,12 @@ from .blend_modes import ImageBlender
 from .utils import get_h_w_c
 
 
+class FillColor:
+    AUTO = -1
+    BLACK = 0
+    TRANSPARENT = 1
+
+
 def get_opencv_formats():
     available_formats = [
         # Bitmaps
@@ -136,6 +142,39 @@ def normalize_normals(
     z = np.sqrt(1 - l_sq)
 
     return x, y, z
+
+
+def select_fill(img: np.ndarray, fill: int, for_pil: bool = False):
+    """Select how to fill negative space that results from rotation"""
+
+    c = get_h_w_c(img)[2]
+    if fill == FillColor.AUTO:
+        fill_color = (0,) * c
+    elif fill == FillColor.BLACK:
+        fill_color = (0,) * c if c < 4 else (0, 0, 0, 255 if for_pil else 1)
+    else:
+        img = convert_to_BGRA(img, c)
+        fill_color = (0, 0, 0, 0)
+
+    return fill_color
+
+
+def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: int) -> np.ndarray:
+    """Perform shift"""
+
+    fill_color = select_fill(img, fill)
+
+    h, w, _ = get_h_w_c(img)
+    translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
+    img = cv2.warpAffine(
+        img,
+        translation_matrix,
+        (w, h),
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=fill_color,
+    )
+
+    return img
 
 
 def blend_images(ov: np.ndarray, base: np.ndarray, blend_mode: int):
