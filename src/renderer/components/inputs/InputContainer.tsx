@@ -1,7 +1,8 @@
 import { Box, HStack, Text, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
-import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
+import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
+import { NodeData, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -15,6 +16,7 @@ interface InputContainerProps {
     label?: string;
     hasHandle: boolean;
     type: Type;
+    schemaId: SchemaId;
 }
 
 interface LeftHandleProps {
@@ -50,20 +52,45 @@ const InputContainer = memo(
         inputId,
         label,
         type,
+        schemaId,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges } = useContext(GlobalVolatileContext);
-        const { getEdges } = useReactFlow();
+        const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
-        const isConnected = !!edges.find(
+        const connectedEdge = edges.find(
             (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
         );
+        const isConnected = !!connectedEdge;
 
-        const { typeDefinitions } = useContext(GlobalContext);
+        const { typeDefinitions, functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
+        const handleColors = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
+
+        const parentTypeColor = useMemo(() => {
+            if (connectedEdge) {
+                const parentNode: Node<NodeData> = getNode(connectedEdge.source)! as Node<NodeData>;
+                const parentInOutId = parseHandle(connectedEdge.sourceHandle!).inOutId;
+                const parentType = functionDefinitions
+                    .get(parentNode.data.schemaId)!
+                    .outputDefaults.get(parentInOutId)!;
+                return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+            }
+            return null;
+        }, [connectedEdge, typeDefinitions, functionDefinitions, getNode, isDarkMode]);
+
+        // A conic gradient that uses all handle colors to give an even distribution of colors
+        const handleColorString = handleColors
+            .map((color, index) => {
+                const percent = index / handleColors.length;
+                const nextPercent = (index + 1) / handleColors.length;
+                return `${color} ${percent * 100}% ${nextPercent * 100}%`;
+            })
+            .join(', ');
+        const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
+
         const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
@@ -86,7 +113,7 @@ const InputContainer = memo(
                                 position: 'absolute',
                                 top: '50%',
                                 left: '50%',
-                                height: '45px',
+                                height: '35px',
                                 width: '45px',
                                 cursor: 'crosshair',
                                 // backgroundColor: '#FF00FF1F',
@@ -105,14 +132,26 @@ const InputContainer = memo(
                             sx={{
                                 width: '16px',
                                 height: '16px',
-                                borderWidth: '2px',
-                                borderColor: handleColor,
+                                borderWidth: isConnected ? '2px' : '0px',
+                                borderColor: parentTypeColor ?? 'none',
                                 transition: '0.15s ease-in-out',
-                                background: isConnected ? connectedColor : handleColor,
+                                ...(handleColors.length > 1
+                                    ? { background: isConnected ? connectedColor : handleGradient }
+                                    : {}),
+                                backgroundColor: isConnected ? connectedColor : handleColors[0],
                                 boxShadow: '2px 2px 2px #00000014',
+                                borderImageSlice: 1,
                             }}
                             onContextMenu={noContextMenu}
-                        />
+                        >
+                            {/* // TODO: This would be for icons, if the time ever comes */}
+                            {/* <Center
+                                h="full"
+                                w="full"
+                            >
+                                <CloseIcon boxSize={2} />
+                            </Center> */}
+                        </Div>
                     </div>
                     {children}
                 </HStack>
