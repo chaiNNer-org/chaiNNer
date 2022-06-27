@@ -1,8 +1,8 @@
-import { Box, HStack, Text, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeData, SchemaId } from '../../../common/common-types';
+import { NodeData } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -16,7 +16,6 @@ interface InputContainerProps {
     label?: string;
     hasHandle: boolean;
     type: Type;
-    schemaId: SchemaId;
 }
 
 interface LeftHandleProps {
@@ -52,7 +51,6 @@ const InputContainer = memo(
         inputId,
         label,
         type,
-        schemaId,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges } = useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
@@ -90,8 +88,6 @@ const InputContainer = memo(
             })
             .join(', ');
         const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
-
-        const borderColor = useColorModeValue('#171923', '#F7FAFC'); // shadeColor(handleColor, 25); // useColorModeValue('#171923', '#F7FAFC');
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (
@@ -106,14 +102,18 @@ const InputContainer = memo(
                         },
                     }}
                 >
-                    <div style={{ position: 'absolute', left: '-4px', width: 0 }}>
+                    <Center
+                        left="-4px"
+                        position="absolute"
+                        w={0}
+                    >
                         <Div
                             _before={{
                                 content: '" "',
                                 position: 'absolute',
                                 top: '50%',
                                 left: '50%',
-                                height: '35px',
+                                height: '30px',
                                 width: '45px',
                                 cursor: 'crosshair',
                                 // backgroundColor: '#FF00FF1F',
@@ -140,7 +140,6 @@ const InputContainer = memo(
                                     : {}),
                                 backgroundColor: isConnected ? connectedColor : handleColors[0],
                                 boxShadow: '2px 2px 2px #00000014',
-                                borderImageSlice: 1,
                             }}
                             onContextMenu={noContextMenu}
                         >
@@ -149,10 +148,12 @@ const InputContainer = memo(
                                 h="full"
                                 w="full"
                             >
-                                <CloseIcon boxSize={2} />
+                                <CloseIcon
+                                    boxSize={2}
+                                />
                             </Center> */}
                         </Div>
-                    </div>
+                    </Center>
                     {children}
                 </HStack>
             );

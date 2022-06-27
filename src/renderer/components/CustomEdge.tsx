@@ -25,7 +25,6 @@ const CustomEdge = memo(
         style = {},
         selected,
         sourceHandleId,
-        targetHandleId,
     }: EdgeProps<EdgeData>) => {
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
