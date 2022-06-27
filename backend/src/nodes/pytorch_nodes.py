@@ -333,8 +333,11 @@ class InterpolateNode(NodeBase):
         model = load_state_dict(interp_50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32)
         del interp_50
-        result = ImageUpscaleNode().run(model, fake_img)
-        del model
+        with torch.no_grad():
+            img_tensor = np2tensor(fake_img, change_range=True)
+            t_out = model(img_tensor)
+            result = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
+        del model, img_tensor, t_out, fake_img
         mean_color = np.mean(result)
         del result
         if torch.cuda.is_available():

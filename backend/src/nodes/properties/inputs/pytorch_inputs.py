@@ -17,10 +17,6 @@ class ModelInput(BaseInput):
     def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model"
-        if os.environ["isFp16"] == "True":
-            value = value.half()
-        else:
-            value = value.float()
         return value
 
 
