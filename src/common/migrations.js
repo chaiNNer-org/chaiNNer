@@ -544,16 +544,6 @@ const fixDropDownNumberValues = (data) => {
     return data;
 };
 
-const updateShiftNode = (data) => {
-    data.nodes.forEach((node) => {
-        if (node.data.schemaId === 'chainner:image:shift') {
-            node.data.inputData['3'] = 1;
-        }
-    });
-
-    return data;
-};
-
 // ==============
 
 const versionToMigration = (version) => {
@@ -588,7 +578,6 @@ const migrations = [
     updateRotateNode,
     addOpacityNode,
     fixDropDownNumberValues,
-    updateShiftNode,
 ];
 
 export const currentMigration = migrations.length;

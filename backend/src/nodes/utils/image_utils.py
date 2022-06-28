@@ -144,25 +144,24 @@ def normalize_normals(
     return x, y, z
 
 
-def select_fill(img: np.ndarray, fill: int, for_pil: bool = False):
+def get_fill_color(channels: int, fill: int):
     """Select how to fill negative space that results from rotation"""
 
-    c = get_h_w_c(img)[2]
     if fill == FillColor.AUTO:
-        fill_color = (0,) * c
+        fill_color = (0,) * channels
     elif fill == FillColor.BLACK:
-        fill_color = (0,) * c if c < 4 else (0, 0, 0, 255 if for_pil else 1)
+        fill_color = (0,) * channels if channels < 4 else (0, 0, 0, 1)
     else:
-        img = convert_to_BGRA(img, c)
         fill_color = (0, 0, 0, 0)
 
     return fill_color
 
 
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: int) -> np.ndarray:
-    """Perform shift"""
-
-    fill_color = select_fill(img, fill)
+    c = get_h_w_c(img)[2]
+    if fill == 1:
+        img = convert_to_BGRA(img, c)
+    fill_color = get_fill_color(c, fill)
 
     h, w, _ = get_h_w_c(img)
     translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore

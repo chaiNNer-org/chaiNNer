@@ -12,7 +12,6 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import (
-    FillColor,
     blend_images,
     calculate_ssim,
     convert_from_BGRA,
@@ -348,15 +347,7 @@ class ShiftNode(NodeBase):
             ImageInput(),
             NumberInput("Amount X", minimum=None, unit="px"),
             NumberInput("Amount Y", minimum=None, unit="px"),
-            DropDownInput(
-                input_type="FillColor",
-                label="Negative Space Fill",
-                options=[
-                    {"option": "Auto", "value": FillColor.AUTO},
-                    {"option": "Black Fill", "value": FillColor.BLACK},
-                    {"option": "Transparency", "value": FillColor.TRANSPARENT},
-                ],
-            ),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
@@ -371,8 +362,6 @@ class ShiftNode(NodeBase):
         amount_y: int,
         fill: int,
     ) -> np.ndarray:
-        """Adjusts the position of an image"""
-
         return shift(img, amount_x, amount_y, fill)
 
 
@@ -404,15 +393,7 @@ class RotateNode(NodeBase):
                     {"option": "Crop to original", "value": RotateExpandCrop.CROP},
                 ],
             ),
-            DropDownInput(
-                input_type="FillColor",
-                label="Negative Space Fill",
-                options=[
-                    {"option": "Auto", "value": FillColor.AUTO},
-                    {"option": "Black Fill", "value": FillColor.BLACK},
-                    {"option": "Transparency", "value": FillColor.TRANSPARENT},
-                ],
-            ),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -423,8 +404,6 @@ class RotateNode(NodeBase):
     def run(
         self, img: np.ndarray, angle: float, interpolation: int, expand: int, fill: int
     ) -> np.ndarray:
-        """Rotates an image by the desired angle."""
-
         return rotate(img, angle, interpolation, expand, fill)
 
 

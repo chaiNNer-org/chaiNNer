@@ -1308,7 +1308,6 @@ Object {
         "inputData": Object {
           "1": 243,
           "2": 3,
-          "3": 1,
         },
         "schemaId": "chainner:image:shift",
       },
@@ -3243,7 +3242,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "20d79c9d344a71f3cd707ec35d1dc71b",
+  "checksum": "a7c4e684d6cfa3eb6a22c33238923ff2",
   "content": Object {
     "edges": Array [
       Object {
@@ -3436,7 +3435,6 @@ Object {
           "inputData": Object {
             "1": 243,
             "2": 3,
-            "3": 1,
           },
           "schemaId": "chainner:image:shift",
         },

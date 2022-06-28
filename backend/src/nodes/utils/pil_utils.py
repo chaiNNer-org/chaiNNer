@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from .image_utils import select_fill
+from .image_utils import convert_to_BGRA, get_fill_color
 from .utils import get_h_w_c
 
 
@@ -59,7 +59,10 @@ def rotate(
 ) -> np.ndarray:
     """Perform PIL rotate"""
 
-    fill_color = select_fill(img, fill, True)
+    c = get_h_w_c(img)[2]
+    if fill == 1:
+        img = convert_to_BGRA(img, c)
+    fill_color = get_fill_color(c, fill) * 255
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 
