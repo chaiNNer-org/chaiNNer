@@ -209,7 +209,7 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'FillMethod',
         'FlipAxis',
         'RotateExpandCrop',
-        'RotateFillColor',
+        'FillColor',
         'ImageExtension',
         'RotateInterpolationMode',
         'InterpolationMode',

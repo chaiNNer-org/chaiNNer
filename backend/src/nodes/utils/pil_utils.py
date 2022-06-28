@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from .image_utils import convert_to_BGRA
+from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from .utils import get_h_w_c
 
 
@@ -31,12 +31,6 @@ INTERPOLATION_METHODS_MAP = {
 class RotateExpandCrop:
     EXPAND = 1
     CROP = 0
-
-
-class RotateFillColor:
-    AUTO = -1
-    BLACK = 0
-    TRANSPARENT = 1
 
 
 def resize(
@@ -65,15 +59,10 @@ def rotate(
 ) -> np.ndarray:
     """Perform PIL rotate"""
 
-    # Select how to fill negative space that results from rotation
     c = get_h_w_c(img)[2]
-    if fill == RotateFillColor.AUTO:
-        fill_color = (0,) * c
-    elif fill == RotateFillColor.BLACK:
-        fill_color = (0,) * c if c < 4 else (0, 0, 0, 255)
-    else:
+    if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)
-        fill_color = (0, 0, 0, 0)
+    fill_color = tuple([x * 255 for x in get_fill_color(c, fill)])
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 

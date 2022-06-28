@@ -16,6 +16,7 @@ from .utils.image_utils import (
     calculate_ssim,
     convert_from_BGRA,
     convert_to_BGRA,
+    shift,
 )
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
@@ -346,6 +347,7 @@ class ShiftNode(NodeBase):
             ImageInput(),
             NumberInput("Amount X", minimum=None, unit="px"),
             NumberInput("Amount Y", minimum=None, unit="px"),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
@@ -358,13 +360,9 @@ class ShiftNode(NodeBase):
         img: np.ndarray,
         amount_x: int,
         amount_y: int,
+        fill: int,
     ) -> np.ndarray:
-        """Adjusts the position of an image"""
-
-        h, w, _ = get_h_w_c(img)
-        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
-        img = cv2.warpAffine(img, translation_matrix, (w, h))
-        return img
+        return shift(img, amount_x, amount_y, fill)
 
 
 @NodeFactory.register("chainner:image:rotate")
@@ -395,15 +393,7 @@ class RotateNode(NodeBase):
                     {"option": "Crop to original", "value": RotateExpandCrop.CROP},
                 ],
             ),
-            DropDownInput(
-                input_type="RotateFillColor",
-                label="Negative Space Fill",
-                options=[
-                    {"option": "Auto", "value": RotateFillColor.AUTO},
-                    {"option": "Black Fill", "value": RotateFillColor.BLACK},
-                    {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
-                ],
-            ),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
