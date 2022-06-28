@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from .image_utils import convert_to_BGRA, get_fill_color
+from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from .utils import get_h_w_c
 
 
@@ -60,9 +60,9 @@ def rotate(
     """Perform PIL rotate"""
 
     c = get_h_w_c(img)[2]
-    if fill == 1:
+    if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)
-    fill_color = get_fill_color(c, fill) * 255
+    fill_color = tuple([x * 255 for x in get_fill_color(c, fill)])
 
     interpolation = INTERPOLATION_METHODS_MAP[interpolation]
 

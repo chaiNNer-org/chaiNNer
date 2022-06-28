@@ -159,7 +159,7 @@ def get_fill_color(channels: int, fill: int):
 
 def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: int) -> np.ndarray:
     c = get_h_w_c(img)[2]
-    if fill == 1:
+    if fill == FillColor.TRANSPARENT:
         img = convert_to_BGRA(img, c)
     fill_color = get_fill_color(c, fill)
 
