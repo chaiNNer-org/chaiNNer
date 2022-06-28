@@ -331,7 +331,7 @@ class InterpolateNode(NodeBase):
             return False
         interp_50 = self.perform_interp(model_a, model_b, 50)
         model = load_state_dict(interp_50)
-        fake_img = np.ones((3, 3, 3), dtype=np.float32)
+        fake_img = np.ones((3, 3, model.in_nc), dtype=np.float32)
         del interp_50
         with torch.no_grad():
             img_tensor = np2tensor(fake_img, change_range=True)
