@@ -3,6 +3,8 @@ try:
 except:
     torch = None
 
+import os
+
 from .base_input import BaseInput
 
 

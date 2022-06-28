@@ -94,7 +94,7 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
                 setState({ type: 'error', message: String(error) });
             },
         },
-        [path]
+        [path, isFp16, isCpu]
     );
 
     useEffect(() => {
