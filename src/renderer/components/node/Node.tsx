@@ -133,13 +133,15 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const menu = useNodeMenu(data, disabled);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const [gray400, gray700, gray900]: string[] = useToken('colors', [
+    const [gray400, gray700, gray900, gray600]: string[] = useToken('colors', [
         'gray.400',
         'gray.750',
         'gray.900',
+        'gray.600',
     ]);
 
     const bgColor = useColorModeValue(gray400, gray700);
+    const shadowColor = useColorModeValue(gray600, gray900);
 
     return (
         <Center
@@ -151,7 +153,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
             borderWidth="0.5px"
             boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
                 selected ? 12 : 8
-            }px ${gray900}CF`}
+            }px ${shadowColor}8F`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             pb={2}
