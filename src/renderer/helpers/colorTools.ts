@@ -26,7 +26,10 @@ export const shadeColor = (color: string, percent: number): `#${string}` => {
 // Converts a #ffffff hex string into an [r,g,b] array
 const hexToRgb = (hex: string): [number, number, number] => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return [parseInt(result![1], 16), parseInt(result![2], 16), parseInt(result![3], 16)];
+    if (!result) {
+        throw new Error(`Invalid hex color: ${hex}`);
+    }
+    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
 };
 
 // Inverse of the above
