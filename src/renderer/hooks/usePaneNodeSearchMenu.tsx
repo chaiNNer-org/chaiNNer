@@ -41,12 +41,15 @@ interface Position {
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
-    const { createNode, createConnection, typeState } = useContext(GlobalVolatileContext);
+    const { createNode, createConnection, typeState, useConnectingFromType } =
+        useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions } = useContext(GlobalContext);
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
+    const [globalConnectingFromType, setGlobalConnectingFromType] = useConnectingFromType;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+
     const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
@@ -356,6 +359,7 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.outputDefaults.get(inOutId);
                         setConnectingFromType(sourceType ?? null);
+                        setGlobalConnectingFromType(sourceType ?? null);
                         break;
                     }
                     case 'target': {
@@ -363,6 +367,7 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.inputs.get(inOutId);
                         setConnectingFromType(targetType ?? null);
+                        setGlobalConnectingFromType(targetType ?? null);
                         break;
                     }
                     default:
@@ -401,6 +406,7 @@ export const usePaneNodeSearchMenu = (
                 x: event.pageX,
                 y: event.pageY,
             });
+            setGlobalConnectingFromType(null);
         },
         [setCoordinates, setIsStoppedOnPane]
     );

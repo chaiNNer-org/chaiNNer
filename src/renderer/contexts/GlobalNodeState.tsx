@@ -66,6 +66,7 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
+    useConnectingFromType: [Type | null, SetState<Type | null>];
 }
 interface Global {
     schemata: SchemaMap;
@@ -932,6 +933,8 @@ export const GlobalProvider = memo(
 
         const [zoom, setZoom] = useState(1);
 
+        const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+
         // eslint-disable-next-line react/jsx-no-constructed-context-values
         let globalChainValue: GlobalVolatile = {
             nodeChanges,
@@ -944,6 +947,10 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            useConnectingFromType: useMemo(
+                () => [connectingFromType, setConnectingFromType],
+                [connectingFromType, setConnectingFromType]
+            ),
         };
         globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 

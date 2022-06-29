@@ -3,6 +3,7 @@ import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
+import { intersect } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -52,13 +53,25 @@ const InputContainer = memo(
         label,
         type,
     }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection, edgeChanges } = useContext(GlobalVolatileContext);
+        const { isValidConnection, edgeChanges, useConnectingFromType } =
+            useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const connectedEdge = edges.find(
             (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
         );
         const isConnected = !!connectedEdge;
+        const [connectingFromType] = useConnectingFromType;
+
+        const showHandle = useMemo(() => {
+            if (!connectingFromType) {
+                return true;
+            }
+            if (intersect(connectingFromType, type).type !== 'never') {
+                return true;
+            }
+            return false;
+        }, [connectingFromType, type]);
 
         const { typeDefinitions, functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
@@ -95,10 +108,11 @@ const InputContainer = memo(
                     h="full"
                     sx={{
                         '.react-flow__handle-connecting': {
-                            background: '#E53E3E !important',
+                            // background: '#E53E3E !important',
+                            opacity: showHandle ? 1 : 0,
                         },
                         '.react-flow__handle-valid': {
-                            background: '#38A169 !important',
+                            // background: '#38A169 !important',
                         },
                     }}
                 >
@@ -140,6 +154,7 @@ const InputContainer = memo(
                                     : {}),
                                 backgroundColor: isConnected ? connectedColor : handleColors[0],
                                 boxShadow: '2px 2px 2px #00000014',
+                                opacity: showHandle ? 1 : 0.5,
                             }}
                             onContextMenu={noContextMenu}
                         >
