@@ -336,27 +336,37 @@ class ContentCropNode(NodeBase):
         super().__init__()
         self.description = (
             "Crop an image to the boundaries of the visible image content, "
-            "removing fully transparent borders."
+            "removing borders at or below the given opacity threshold."
         )
-        self.inputs = [ImageInput()]
+        self.inputs = [
+            ImageInput(),
+            SliderInput(
+                "Threshold", step=0.1, controls_step=1, slider_step=1, default=0
+            ),
+        ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
         self.category = IMAGE_DIMENSION
         self.name = "Crop (Content)"
         self.icon = "MdCrop"
         self.sub = "Crop"
 
-    def run(self, img: np.ndarray) -> np.ndarray:
+    def run(self, img: np.ndarray, thresh_val: float) -> np.ndarray:
         """Crop an image"""
 
         c = get_h_w_c(img)[2]
         if c < 4:
             return img
 
+        # Threshold value 100 guarantees an empty image, so make sure the max
+        # is just below that.
+        thresh_val = min(thresh_val / 100, 0.99999)
+
+        # Valid alpha is greater than threshold, else impossible to crop 0 alpha only
         alpha = img[:, :, 3]
-        r = alpha.any(1)
+        r = np.any(alpha > thresh_val, 1)
         if r.any():
             h, w, _ = get_h_w_c(img)
-            c = alpha.any(0)
+            c = np.any(alpha > thresh_val, 0)
             imgout = np.copy(img)[
                 r.argmax() : h - r[::-1].argmax(), c.argmax() : w - c[::-1].argmax()
             ]
