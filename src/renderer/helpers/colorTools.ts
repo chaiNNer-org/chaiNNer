@@ -40,7 +40,10 @@ const r2h = (rgb: number[]): string =>
 const interpolateColorImpl = (color1: number[], color2: number[], factor = 0.5): number[] => {
     const result = color1.slice();
     for (let i = 0; i < 3; i += 1) {
-        result[i] = Math.round(result[i] + factor * (color2[i] - color1[i]));
+        const c1 = color1[i] ** 2.2;
+        const c2 = color2[i] ** 2.2;
+        const blend = c1 + factor * (c2 - c1);
+        result[i] = Math.round(blend ** (1 / 2.2));
     }
     return result;
 };
