@@ -21,24 +21,28 @@ export const shadeColor = (color: string, percent: number): `#${string}` => {
     return `#${RR}${GG}${BB}`;
 };
 
-// Below from https://codepen.io/njmcode/pen/NWdYBy
+// Modified from https://codepen.io/njmcode/pen/NWdYBy
 
 // Converts a #ffffff hex string into an [r,g,b] array
-const h2r = (hex: string): [number, number, number] => {
+const hexToRgb = (hex: string): [number, number, number] => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return [parseInt(result![1], 16), parseInt(result![2], 16), parseInt(result![3], 16)];
 };
 
 // Inverse of the above
-const r2h = (rgb: number[]): string =>
+const rgbToHex = (rgb: [number, number, number]): string =>
     // eslint-disable-next-line no-bitwise
     `#${((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1)}`;
 
 // Interpolates two [r,g,b] colors and returns an [r,g,b] of the result
 // Taken from the awesome ROT.js roguelike dev library at
 // https://github.com/ondras/rot.js
-const interpolateColorImpl = (color1: number[], color2: number[], factor = 0.5): number[] => {
-    const result = color1.slice();
+const interpolateColorImpl = (
+    color1: [number, number, number],
+    color2: [number, number, number],
+    factor = 0.5
+): [number, number, number] => {
+    const result = color1.slice() as [number, number, number];
     for (let i = 0; i < 3; i += 1) {
         const c1 = color1[i] ** 2.2;
         const c2 = color2[i] ** 2.2;
@@ -49,4 +53,4 @@ const interpolateColorImpl = (color1: number[], color2: number[], factor = 0.5):
 };
 
 export const interpolateColor = (color1: string, color2: string, factor = 0.5): string =>
-    r2h(interpolateColorImpl(h2r(color1), h2r(color2), factor));
+    rgbToHex(interpolateColorImpl(hexToRgb(color1), hexToRgb(color2), factor));
