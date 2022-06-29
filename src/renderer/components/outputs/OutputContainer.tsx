@@ -1,4 +1,4 @@
-import { Box, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, Center, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -92,7 +92,10 @@ const OutputContainer = memo(
                     }}
                 >
                     {children}
-                    <div style={{ position: 'absolute', right: '-4px', width: 0 }}>
+                    <Center
+                        position="absolute"
+                        right="-6px"
+                    >
                         <Div
                             _before={{
                                 content: '" "',
@@ -125,10 +128,11 @@ const OutputContainer = memo(
                                 boxShadow: '-2px 2px 2px #00000014',
                                 filter: showHandle ? undefined : 'grayscale(100%)',
                                 opacity: showHandle ? 1 : 0.3,
+                                position: 'relative',
                             }}
                             onContextMenu={noContextMenu}
                         />
-                    </div>
+                    </Center>
                 </HStack>
             );
         }

@@ -42,6 +42,22 @@ body {
     animation: dashdraw-chain 0.5s linear infinite !important;
 }
 
+.react-flow__handle-left {
+    left: 0px !important; 
+    top: 0% !important; 
+    transform: translateY(0%) !important;
+}
+
+.react-flow__handle-right {
+    right: 0px !important; 
+    top: 0% !important; 
+    transform: translateY(0%) !important;
+}
+
+.react-flow__handle {
+    position: relative;
+}
+
 [data-theme=light] .react-flow__controls {
     border-radius: 8px 8px 8px 8px;
     transition: 0.15s background ease-in-out;

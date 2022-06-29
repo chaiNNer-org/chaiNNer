@@ -117,9 +117,8 @@ const InputContainer = memo(
                     }}
                 >
                     <Center
-                        left="-4px"
+                        left="-6px"
                         position="absolute"
-                        w={0}
                     >
                         <Div
                             _before={{
@@ -130,7 +129,7 @@ const InputContainer = memo(
                                 height: '30px',
                                 width: '45px',
                                 cursor: 'crosshair',
-                                // backgroundColor: '#FF00FF1F',
+                                // backgroundColor: '#FF00FF1F', // Debug highlighting
                                 transform: 'translate(-50%, -50%)',
                                 borderRadius: '100%',
                             }}
@@ -156,6 +155,7 @@ const InputContainer = memo(
                                 boxShadow: '2px 2px 2px #00000014',
                                 filter: showHandle ? undefined : 'grayscale(100%)',
                                 opacity: showHandle ? 1 : 0.3,
+                                position: 'relative',
                             }}
                             onContextMenu={noContextMenu}
                         >
