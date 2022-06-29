@@ -47,7 +47,7 @@ export const usePaneNodeSearchMenu = (
     const { schemata, functionDefinitions } = useContext(GlobalContext);
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
-    const [globalConnectingFromType, setGlobalConnectingFromType] = useConnectingFromType;
+    const [, setGlobalConnectingFromType] = useConnectingFromType;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
 
     const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
