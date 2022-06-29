@@ -154,7 +154,8 @@ const InputContainer = memo(
                                     : {}),
                                 backgroundColor: isConnected ? connectedColor : handleColors[0],
                                 boxShadow: '2px 2px 2px #00000014',
-                                opacity: showHandle ? 1 : 0.5,
+                                filter: showHandle ? undefined : 'grayscale(100%)',
+                                opacity: showHandle ? 1 : 0.3,
                             }}
                             onContextMenu={noContextMenu}
                         >
