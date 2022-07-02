@@ -19,10 +19,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:resize_factor")
 class ImResizeByFactorNode(NodeBase):
-    """OpenCV resize node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Resize an image by a percent scale factor. "
@@ -97,10 +94,7 @@ class ImResizeByFactorNode(NodeBase):
 
 @NodeFactory.register("chainner:image:resize_resolution")
 class ImResizeToResolutionNode(NodeBase):
-    """OpenCV resize node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Resize an image to an exact resolution. "
@@ -174,10 +168,7 @@ class TileFillNode(NodeBase):
 
 @NodeFactory.register("chainner:image:crop_offsets")
 class CropNode(NodeBase):
-    """NumPy Crop node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Crop an image based on offset from the top-left corner, and the wanted resolution."
         self.inputs = [
@@ -216,10 +207,7 @@ class CropNode(NodeBase):
 
 @NodeFactory.register("chainner:image:crop_border")
 class BorderCropNode(NodeBase):
-    """NumPy Border Crop node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Crop an image based on a constant border margin around the entire image."
@@ -271,10 +259,7 @@ class BorderCropNode(NodeBase):
 
 @NodeFactory.register("chainner:image:crop_edges")
 class EdgeCropNode(NodeBase):
-    """NumPy Edge Crop node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
@@ -329,10 +314,7 @@ class EdgeCropNode(NodeBase):
 
 @NodeFactory.register("chainner:image:crop_content")
 class ContentCropNode(NodeBase):
-    """NumPy crop to content node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Crop an image to the boundaries of the visible image content, "
@@ -378,10 +360,7 @@ class ContentCropNode(NodeBase):
 
 @NodeFactory.register("chainner:image:get_dims")
 class GetDimensionsNode(NodeBase):
-    """Node for getting the dimensions of an image"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Get the Height, Width, and number of Channels from an image."

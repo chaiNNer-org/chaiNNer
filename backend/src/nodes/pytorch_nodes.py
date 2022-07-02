@@ -60,10 +60,7 @@ def load_state_dict(state_dict):
 
 @NodeFactory.register("chainner:pytorch:load_model")
 class LoadModelNode(NodeBase):
-    """Load Model node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
@@ -130,10 +127,7 @@ class LoadModelNode(NodeBase):
 @NodeFactory.register("chainner:pytorch:upscale_image")
 @torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
-    """Image Upscale node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model."
         self.inputs = [ModelInput(), ImageInput()]
@@ -277,10 +271,7 @@ class ImageUpscaleNode(NodeBase):
 
 @NodeFactory.register("chainner:pytorch:interpolate_models")
 class InterpolateNode(NodeBase):
-    """Interpolate node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Interpolate two of the same kind of model state-dict
              together. Note: models must share a common 'pretrained model' ancestor
@@ -365,10 +356,7 @@ class InterpolateNode(NodeBase):
 
 @NodeFactory.register("chainner:pytorch:save_model")
 class PthSaveNode(NodeBase):
-    """Model Save node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Save a PyTorch model to specified directory."
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
@@ -390,8 +378,6 @@ class PthSaveNode(NodeBase):
 
 # @NodeFactory.register("PyTorch", "JIT Trace")
 # class JitTraceNode(NodeBase):
-#     """JIT trace node"""
-
 #     def __init__(self):
 #         super().__init__()
 #         self.description = "JIT trace a pytorch model"
@@ -413,11 +399,8 @@ class PthSaveNode(NodeBase):
 
 # @NodeFactory.register("PyTorch", "JIT::Optimize")
 # class JitOptimizeNode(NodeBase):
-#     """JIT optimize node"""
-
 #     def __init__(self):
-#         """Constructor"""
-#         self.description = "Optimize a JIT traced pytorch model for inference"
+##         self.description = "Optimize a JIT traced pytorch model for inference"
 #         self.inputs = [TorchScriptInput()]
 #         self.outputs = [TorchScriptOutput()]
 
@@ -429,8 +412,6 @@ class PthSaveNode(NodeBase):
 
 # @NodeFactory.register("PyTorch", "JIT Save")
 # class JitSaveNode(NodeBase):
-#     """JIT save node"""
-
 #     def __init__(self):
 #         super().__init__()
 #         self.description = "Save a JIT traced pytorch model to a file"
@@ -449,8 +430,6 @@ class PthSaveNode(NodeBase):
 
 # @NodeFactory.register("PyTorch", "JIT Load")
 # class JitLoadNode(NodeBase):
-#     """JIT load node"""
-
 #     def __init__(self):
 #         super().__init__()
 #         self.description = "Load a JIT traced pytorch model from a file"
@@ -468,8 +447,6 @@ class PthSaveNode(NodeBase):
 
 # @NodeFactory.register("PyTorch", "JIT Run")
 # class JitRunNode(NodeBase):
-#     """JIT run node"""
-
 #     def __init__(self):
 #         super().__init__()
 #         self.description = "Run a JIT traced pytorch model"
@@ -491,10 +468,7 @@ class PthSaveNode(NodeBase):
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
 class ConvertTorchToONNXNode(NodeBase):
-    """ONNX node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX.
             Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
