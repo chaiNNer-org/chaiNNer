@@ -288,7 +288,6 @@ export const GlobalProvider = memo(
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedNodes', JSON.stringify(getNodes()));
                 sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
-                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges]);
