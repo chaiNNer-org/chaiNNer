@@ -9,11 +9,11 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { shell } from 'electron';
+import { clipboard, shell } from 'electron';
 import path from 'path';
 import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { MdFolder } from 'react-icons/md';
+import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { FileInputKind } from '../../../common/common-types';
 import { ipcRenderer } from '../../../common/safeIpc';
@@ -168,6 +168,29 @@ const FileInput = memo(
                     }}
                 >
                     Open in File Explorer
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!filePath}
+                    onClick={() => {
+                        if (filePath) {
+                            clipboard.writeText(path.parse(filePath).name);
+                        }
+                    }}
+                >
+                    Copy File Name
+                </MenuItem>
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!filePath}
+                    onClick={() => {
+                        if (filePath) {
+                            clipboard.writeText(filePath);
+                        }
+                    }}
+                >
+                    Copy Full File Path
                 </MenuItem>
             </MenuList>
         ));
