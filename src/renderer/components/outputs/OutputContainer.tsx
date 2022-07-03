@@ -67,7 +67,9 @@ const OutputContainer = memo(
             if (
                 !connectingFrom ||
                 !connectingFromType ||
-                connectingFrom.handleId === `${id}-${outputId}`
+                // We want to display the connectingFrom handle
+                (connectingFrom.handleId === `${id}-${outputId}` &&
+                    connectingFrom.handleType === 'source')
             ) {
                 return true;
             }
@@ -77,7 +79,13 @@ const OutputContainer = memo(
             if (connectingFrom.handleType === 'source') {
                 return false;
             }
-            if (intersect(connectingFromType, type).type !== 'never') {
+            const connectionIsValid = isValidConnection({
+                source: connectingFrom.nodeId,
+                sourceHandle: connectingFrom.handleId,
+                target: id,
+                targetHandle: `${id}-${outputId}`,
+            });
+            if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
                 return true;
             }
             return false;

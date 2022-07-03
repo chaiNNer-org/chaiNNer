@@ -68,11 +68,14 @@ const InputContainer = memo(
             if (
                 !connectingFrom ||
                 !connectingFromType ||
-                connectingFrom.handleId === `${id}-${inputId}`
+                // We want to display the connectingFrom handle
+                (connectingFrom.handleId === `${id}-${inputId}` &&
+                    connectingFrom.handleType === 'target')
             ) {
                 return true;
             }
-            // If the connecting from node is the same as the node we're connecting to,
+            // If the connecting from node is the same as the node we're connecting to
+            console.log(connectingFrom.nodeId, id);
             if (connectingFrom.nodeId === id) {
                 return false;
             }
@@ -81,7 +84,13 @@ const InputContainer = memo(
                 return false;
             }
             // Show same types
-            if (intersect(connectingFromType, type).type !== 'never') {
+            const connectionIsValid = isValidConnection({
+                source: connectingFrom.nodeId,
+                sourceHandle: connectingFrom.handleId,
+                target: id,
+                targetHandle: `${id}-${inputId}`,
+            });
+            if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
                 return true;
             }
             return false;
