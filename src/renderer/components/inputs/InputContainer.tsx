@@ -53,7 +53,7 @@ const InputContainer = memo(
         label,
         type,
     }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFromType } =
+        const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
@@ -62,16 +62,30 @@ const InputContainer = memo(
         );
         const isConnected = !!connectedEdge;
         const [connectingFromType] = useConnectingFromType;
+        const [connectingFrom] = useConnectingFrom;
 
         const showHandle = useMemo(() => {
-            if (!connectingFromType) {
+            if (
+                !connectingFrom ||
+                !connectingFromType ||
+                connectingFrom.handleId === `${id}-${inputId}`
+            ) {
                 return true;
             }
+            // If the connecting from node is the same as the node we're connecting to,
+            if (connectingFrom.nodeId === id) {
+                return false;
+            }
+            // Any other inputs should be invalid
+            if (connectingFrom.handleType === 'target') {
+                return false;
+            }
+            // Show same types
             if (intersect(connectingFromType, type).type !== 'never') {
                 return true;
             }
             return false;
-        }, [connectingFromType, type]);
+        }, [connectingFrom, connectingFromType, type, id, inputId]);
 
         const { typeDefinitions, functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
@@ -137,6 +151,7 @@ const InputContainer = memo(
                                 width: '22px',
                                 height: '22px',
                                 marginLeft: '-3px',
+                                opacity: showHandle ? 1 : 0,
                             }}
                             as={LeftHandle}
                             className="input-handle"

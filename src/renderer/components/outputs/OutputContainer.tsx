@@ -50,7 +50,7 @@ const OutputContainer = memo(
         id,
         type,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFromType } =
+        const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
@@ -61,16 +61,27 @@ const OutputContainer = memo(
             (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
         );
         const [connectingFromType] = useConnectingFromType;
+        const [connectingFrom] = useConnectingFrom;
 
         const showHandle = useMemo(() => {
-            if (!connectingFromType) {
+            if (
+                !connectingFrom ||
+                !connectingFromType ||
+                connectingFrom.handleId === `${id}-${outputId}`
+            ) {
                 return true;
+            }
+            if (connectingFrom.nodeId === id) {
+                return false;
+            }
+            if (connectingFrom.handleType === 'source') {
+                return false;
             }
             if (intersect(connectingFromType, type).type !== 'never') {
                 return true;
             }
             return false;
-        }, [connectingFromType, type]);
+        }, [connectingFromType, connectingFrom, type, id, outputId]);
 
         const { typeDefinitions } = useContext(GlobalContext);
 
@@ -113,6 +124,7 @@ const OutputContainer = memo(
                                 width: '22px',
                                 height: '22px',
                                 marginRight: '-3px',
+                                opacity: showHandle ? 1 : 0,
                             }}
                             as={RightHandle}
                             className="output-handle"

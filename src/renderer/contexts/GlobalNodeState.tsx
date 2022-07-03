@@ -5,6 +5,7 @@ import {
     Connection,
     Edge,
     Node,
+    OnConnectStartParams,
     Viewport,
     XYPosition,
     getOutgoers,
@@ -67,6 +68,7 @@ interface GlobalVolatile {
     zoom: number;
     hoveredNode: string | null | undefined;
     useConnectingFromType: [Type | null, SetState<Type | null>];
+    useConnectingFrom: [OnConnectStartParams | null, SetState<OnConnectStartParams | null>];
 }
 interface Global {
     schemata: SchemaMap;
@@ -934,6 +936,7 @@ export const GlobalProvider = memo(
         const [zoom, setZoom] = useState(1);
 
         const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+        const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
         // eslint-disable-next-line react/jsx-no-constructed-context-values
         let globalChainValue: GlobalVolatile = {
@@ -950,6 +953,10 @@ export const GlobalProvider = memo(
             useConnectingFromType: useMemo(
                 () => [connectingFromType, setConnectingFromType],
                 [connectingFromType, setConnectingFromType]
+            ),
+            useConnectingFrom: useMemo(
+                () => [connectingFrom, setConnectingFrom],
+                [connectingFrom, setConnectingFrom]
             ),
         };
         globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
