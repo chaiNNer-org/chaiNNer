@@ -9,6 +9,7 @@ import {
     XYPosition,
     getOutgoers,
     useReactFlow,
+    useViewport,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
@@ -220,6 +221,8 @@ export const GlobalProvider = memo(
             setEdges: rfSetEdges,
         } = useReactFlow<NodeData, EdgeData>();
 
+        const currentViewport = useViewport();
+
         const [setNodes, setSetNodes] = useState(() => rfSetNodes);
         const [setEdges, setSetEdges] = useState(() => rfSetEdges);
 
@@ -285,10 +288,15 @@ export const GlobalProvider = memo(
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedNodes', JSON.stringify(getNodes()));
                 sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
-                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges]);
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+            }, 100);
+            return () => clearTimeout(timerId);
+        }, Object.values(currentViewport));
         useEffect(() => {
             const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
             const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
@@ -385,7 +393,7 @@ export const GlobalProvider = memo(
                 edges: getEdges(),
                 viewport: getViewport(),
             };
-        }, [getNodes, getEdges]);
+        }, [getNodes, getEdges, getViewport]);
 
         const setStateFromJSON = useCallback(
             async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
