@@ -547,7 +547,7 @@ class GetModelDimensions(NodeBase):
         ]
 
         self.category = PYTORCH
-        self.name = "Model Scale"
+        self.name = "Get Model Scale"
         self.icon = "BsRulers"
         self.sub = "Utility"
 
