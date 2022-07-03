@@ -25,10 +25,7 @@ VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save
 
 @NodeFactory.register(IMAGE_ITERATOR_NODE_ID)
 class ImageFileIteratorLoadImageNode(NodeBase):
-    """Image File Iterator Load Image node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
@@ -59,10 +56,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
 @NodeFactory.register("chainner:image:file_iterator")
 class ImageFileIteratorNode(IteratorNodeBase):
-    """Image File Iterator node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Iterate over all files in a directory and run the provided nodes on just the image files."
         self.inputs = [
@@ -166,10 +160,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
 class VideoFrameIteratorFrameLoaderNode(NodeBase):
-    """Video Frame Iterator Frame Loader node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
@@ -188,10 +179,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
 
 @NodeFactory.register(VIDEO_ITERATOR_OUTPUT_NODE_ID)
 class VideoFrameIteratorFrameWriterNode(NodeBase):
-    """Video Frame Iterator Frame Writer node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = ""
         self.inputs = [
@@ -247,10 +235,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
 
 @NodeFactory.register("chainner:image:video_frame_iterator")
 class SimpleVideoFrameIteratorNode(IteratorNodeBase):
-    """Video Frame Iterator node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Iterate over all frames in a video, and write to a video buffer."

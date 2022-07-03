@@ -24,7 +24,6 @@ class Executor:
         existing_cache: Dict,
         parent_executor=None,
     ):
-        """Constructor"""
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
         self.output_cache = existing_cache

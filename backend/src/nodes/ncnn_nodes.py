@@ -24,10 +24,7 @@ from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_fro
 
 @NodeFactory.register("chainner:ncnn:load_model")
 class NcnnLoadModelNode(NodeBase):
-    """NCNN load model node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
@@ -102,10 +99,7 @@ class NcnnLoadModelNode(NodeBase):
 
 @NodeFactory.register("chainner:ncnn:save_model")
 class NcnnSaveNode(NodeBase):
-    """Model Save node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Save an NCNN model to specified directory."
         self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
@@ -141,10 +135,7 @@ class NcnnSaveNode(NodeBase):
 
 @NodeFactory.register("chainner:ncnn:upscale_image")
 class NcnnUpscaleImageNode(NodeBase):
-    """NCNN node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
         self.inputs = [NcnnNetInput(), ImageInput()]
@@ -259,10 +250,7 @@ class NcnnUpscaleImageNode(NodeBase):
 
 @NodeFactory.register("chainner:ncnn:interpolate_models")
 class NcnnInterpolateModelsNode(NodeBase):
-    """NCNN interpolate models node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Interpolate two NCNN models of the same type together."
         self.inputs = [

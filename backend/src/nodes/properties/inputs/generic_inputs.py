@@ -1,8 +1,10 @@
 from typing import Dict, List, Union
+
 from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
+from ...utils.image_utils import FillColor
 
 
 class DropDownInput(BaseInput):
@@ -233,5 +235,17 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Subtract", "value": bm.SUBTRACT},
             {"option": "Divide", "value": bm.DIVIDE},
             {"option": "Xor", "value": bm.XOR},
+        ],
+    )
+
+
+def FillColorDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="FillColor",
+        label="Negative Space Fill",
+        options=[
+            {"option": "Auto", "value": FillColor.AUTO},
+            {"option": "Black Fill", "value": FillColor.BLACK},
+            {"option": "Transparency", "value": FillColor.TRANSPARENT},
         ],
     )
