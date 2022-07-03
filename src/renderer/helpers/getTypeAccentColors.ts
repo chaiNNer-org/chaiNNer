@@ -11,7 +11,7 @@ const colorList = (typeDefinitions: TypeDefinitions, isDarkMode = true) => [
     { type: evaluate(new NamedExpression('Directory'), typeDefinitions), color: '#805AD5' },
     { type: evaluate(new NamedExpression('Image'), typeDefinitions), color: '#D69E2E' },
     { type: NumberType.instance, color: '#3182CE' },
-    { type: StringType.instance, color: '#00B5D8' },
+    { type: StringType.instance, color: '#10b52c' },
     { type: evaluate(new NamedExpression('PyTorchModel'), typeDefinitions), color: '#DD6B20' },
     { type: evaluate(new NamedExpression('OnnxModel'), typeDefinitions), color: '#63B3ED' },
     { type: evaluate(new NamedExpression('NcnnNetwork'), typeDefinitions), color: '#ED64A6' },
