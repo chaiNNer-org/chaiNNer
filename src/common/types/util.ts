@@ -1,6 +1,13 @@
 import { assertNever } from '../util';
 import { Expression } from './expression';
-import { StructType, Type, WithUnderlying } from './types';
+import {
+    IntIntervalType,
+    IntervalType,
+    NumericLiteralType,
+    StructType,
+    Type,
+    WithUnderlying,
+} from './types';
 
 export type UnderlyingGroup<T extends Type> = {
     [key in Type['underlying']]: WithUnderlying<key, T>[];
@@ -84,3 +91,15 @@ export function* getReferences(expression: Expression): Iterable<string> {
         }
     }
 }
+
+export const literal = (n: number) => {
+    return new NumericLiteralType(n);
+};
+export const interval = (min: number, max: number) => {
+    if (min === max) return new NumericLiteralType(min);
+    return new IntervalType(min, max);
+};
+export const intInterval = (min: number, max: number) => {
+    if (min === max) return new NumericLiteralType(min);
+    return new IntIntervalType(min, max);
+};

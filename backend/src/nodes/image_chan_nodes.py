@@ -17,10 +17,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:split_channels")
 class SeparateRgbaNode(NodeBase):
-    """NumPy Splitter node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Split image channels into separate channels. "
@@ -142,7 +139,6 @@ class ChannelMergeRGBANode(NodeBase):
     """NumPy Merger node"""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Merge image channels together into a ≤4 channel image. "
@@ -205,10 +201,7 @@ class ChannelMergeRGBANode(NodeBase):
 
 @NodeFactory.register("chainner:image:split_transparency")
 class TransparencySplitNode(NodeBase):
-    """Transparency-specific Splitter node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Split image channels into RGB and Alpha (transparency) channels."
@@ -244,10 +237,7 @@ class TransparencySplitNode(NodeBase):
 
 @NodeFactory.register("chainner:image:merge_transparency")
 class TransparencyMergeNode(NodeBase):
-    """Transparency-specific Merge node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
         self.inputs = [
@@ -302,10 +292,7 @@ class TransparencyMergeNode(NodeBase):
 
 @NodeFactory.register("chainner:image:fill_alpha")
 class FillAlphaNode(NodeBase):
-    """Fills the transparent pixels of an image with nearby colors"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Fills the transparent pixels of an image with nearby colors."

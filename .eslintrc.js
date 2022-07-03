@@ -84,6 +84,7 @@ module.exports = {
                 'prefer-arrow-functions',
                 'eslint-comments',
                 'eslint-plugin-react-memo',
+                'react-hooks',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -122,6 +123,7 @@ module.exports = {
                 ],
                 'react/function-component-definition': 'off',
                 'react-memo/require-memo': ['error', { strict: true }],
+                'react-hooks/rules-of-hooks': 'error',
             },
         },
     ],

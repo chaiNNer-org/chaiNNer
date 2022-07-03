@@ -4,7 +4,8 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity from '../../helpers/checkNodeValidity';
+import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
 import shadeColor from '../../helpers/shadeColor';
 import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
@@ -18,6 +19,10 @@ interface IteratorHelperNodeProps {
 
 const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
+    const effectivelyDisabledNodes = useContextSelector(
+        GlobalVolatileContext,
+        (c) => c.effectivelyDisabledNodes
+    );
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -35,13 +40,17 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState<[boolean, string]>([false, '']);
-
+    const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
             setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
         }
     }, [inputData, edgeChanges, getEdges]);
+
+    const disabledStatus = useMemo(
+        () => getDisabledStatus(data, effectivelyDisabledNodes),
+        [data, effectivelyDisabledNodes]
+    );
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -63,6 +72,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             borderRadius="lg"
             borderWidth="0.5px"
             boxShadow="lg"
+            opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             py={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
@@ -74,9 +84,13 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
                 }
             }}
         >
-            <VStack minWidth="240px">
+            <VStack
+                minWidth="240px"
+                opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
+            >
                 <NodeHeader
                     accentColor={accentColor}
+                    disabledStatus={disabledStatus}
                     icon={icon}
                     name={name}
                     parentNode={parentNode}
@@ -91,10 +105,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
                     outputs={outputs}
                     schemaId={schemaId}
                 />
-                <IteratorHelperNodeFooter
-                    invalidReason={validity[1]}
-                    isValid={validity[0]}
-                />
+                <IteratorHelperNodeFooter validity={validity} />
             </VStack>
         </Center>
     );

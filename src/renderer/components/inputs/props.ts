@@ -1,4 +1,4 @@
-import { InputData, InputSchemaValue } from '../../../common/common-types';
+import { InputData, InputSchemaValue, SchemaId } from '../../../common/common-types';
 
 export interface InputProps {
     readonly id: string;
@@ -6,7 +6,7 @@ export interface InputProps {
     readonly inputData: InputData;
     readonly isLocked: boolean;
     readonly label: string;
-    readonly schemaId: string;
+    readonly schemaId: SchemaId;
     readonly useInputData: <T extends InputSchemaValue>(
         inputId: number
     ) => readonly [T | undefined, (value: T) => void];

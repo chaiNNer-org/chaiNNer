@@ -3,6 +3,7 @@ import { Center, HStack, Image, Spinner, Tag, Text, VStack } from '@chakra-ui/re
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
+import { SchemaId } from '../../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists, visitByType } from '../../../../common/util';
@@ -35,7 +36,7 @@ const getColorMode = (img: ImageObject) => {
 interface ImagePreviewProps {
     path?: string;
     id: string;
-    schemaId: string;
+    schemaId: SchemaId;
 }
 
 type State =

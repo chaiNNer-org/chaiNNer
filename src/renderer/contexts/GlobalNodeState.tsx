@@ -9,6 +9,7 @@ import {
     XYPosition,
     getOutgoers,
     useReactFlow,
+    useViewport,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
@@ -19,6 +20,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    SchemaId,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -35,6 +37,7 @@ import {
     cutAndCopyToClipboard,
     pasteFromClipboard,
 } from '../helpers/copyAndPaste';
+import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
     copyEdges,
     copyNode,
@@ -61,6 +64,7 @@ interface GlobalVolatile {
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: number) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
+    effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
 }
@@ -97,12 +101,16 @@ interface Global {
         dimensions?: Size
     ) => void;
     setIteratorPercent: (id: string, percent: number) => void;
+    setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    typeDefinitions: TypeDefinitions;
 }
 
 export interface NodeProto {
+    id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
     nodeType: string;
@@ -113,12 +121,11 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 const createNodeImpl = (
-    { position, data, nodeType }: NodeProto,
+    { id = createUniqueId(), position, data, nodeType }: NodeProto,
     schemata: SchemaMap,
     parent?: Node<NodeData>,
     selected = false
 ): Node<NodeData>[] => {
-    const id = createUniqueId();
     const newNode: Node<Mutable<NodeData>> = {
         type: nodeType,
         id,
@@ -184,9 +191,11 @@ const defaultIteratorSize: Size = { width: 1280, height: 720 };
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    functionDefinitions: Map<string, FunctionDefinition>;
+    functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
 }
+
+const EMPTY_SET: ReadonlySet<never> = new Set();
 
 export const GlobalProvider = memo(
     ({
@@ -211,6 +220,8 @@ export const GlobalProvider = memo(
             setNodes: rfSetNodes,
             setEdges: rfSetEdges,
         } = useReactFlow<NodeData, EdgeData>();
+
+        const currentViewport = useViewport();
 
         const [setNodes, setSetNodes] = useState(() => rfSetNodes);
         const [setEdges, setSetEdges] = useState(() => rfSetEdges);
@@ -277,10 +288,15 @@ export const GlobalProvider = memo(
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedNodes', JSON.stringify(getNodes()));
                 sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
-                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges]);
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+            }, 100);
+            return () => clearTimeout(timerId);
+        }, Object.values(currentViewport));
         useEffect(() => {
             const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
             const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
@@ -293,6 +309,19 @@ export const GlobalProvider = memo(
             changeEdges(cachedEdges);
             if (cachedViewport) setViewport(cachedViewport);
         }, [changeNodes, changeEdges]);
+
+        const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
+            useState<ReadonlySet<string>>(EMPTY_SET);
+        useEffect(() => {
+            const newEffectivelyDisabled = getEffectivelyDisabledNodes(getNodes(), getEdges())
+                .map((n) => n.id)
+                .sort();
+            const newKey = newEffectivelyDisabled.join(';');
+            const oldKey = [...effectivelyDisabledNodes].join(';');
+            if (oldKey !== newKey) {
+                setEffectivelyDisabledNodes(new Set(newEffectivelyDisabled));
+            }
+        }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
         const [savePath, setSavePathInternal] = useState<string | undefined>();
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
@@ -364,7 +393,7 @@ export const GlobalProvider = memo(
                 edges: getEdges(),
                 viewport: getViewport(),
             };
-        }, [getNodes, getEdges]);
+        }, [getNodes, getEdges, getViewport]);
 
         const setStateFromJSON = useCallback(
             async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
@@ -881,6 +910,17 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeDisabled = useCallback(
+            (id: string, isDisabled: boolean): void => {
+                modifyNode(id, (n) => {
+                    const newNode = copyNode(n);
+                    newNode.data.isDisabled = isDisabled;
+                    return newNode;
+                });
+            },
+            [modifyNode]
+        );
+
         const cutFn = useCallback(() => {
             cutAndCopyToClipboard(getNodes(), getEdges(), changeNodes, changeEdges);
         }, [getNodes, getEdges, changeNodes, changeEdges]);
@@ -908,6 +948,7 @@ export const GlobalProvider = memo(
             createNode,
             createConnection,
             isNodeInputLocked,
+            effectivelyDisabledNodes,
             isValidConnection,
             zoom,
             hoveredNode,
@@ -936,14 +977,20 @@ export const GlobalProvider = memo(
             setIteratorPercent,
             setIteratorSize,
             setHoveredNode,
+            setNodeDisabled,
             setZoom,
             setManualOutputType,
+            functionDefinitions,
+            typeDefinitions,
         };
         globalValue = useMemo(() => globalValue, Object.values(globalValue));
 
         return (
             <GlobalVolatileContext.Provider value={globalChainValue}>
                 <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
+                <div style={{ display: 'none' }}>
+                    {nodeChanges};{edgeChanges}
+                </div>
             </GlobalVolatileContext.Provider>
         );
     }

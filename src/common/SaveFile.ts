@@ -69,12 +69,13 @@ export class SaveFile {
 
     static stringify(content: SaveData, version: string): string {
         const { nodes, edges, viewport } = content;
-        const sanitizedNodes = nodes.map((n) => ({
+        const sanitizedNodes = nodes.map<Node<NodeData>>((n) => ({
             data: {
                 schemaId: n.data.schemaId,
                 inputData: n.data.inputData,
                 id: n.data.id,
                 iteratorSize: n.data.iteratorSize,
+                isDisabled: n.data.isDisabled,
                 isLocked: n.data.isLocked,
                 parentNode: n.data.parentNode,
             },

@@ -28,10 +28,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:load")
 class ImReadNode(NodeBase):
-    """OpenCV Imread node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Load image from file."
         self.inputs = [ImageFileInput()]
@@ -123,10 +120,7 @@ class ImReadNode(NodeBase):
 
 @NodeFactory.register("chainner:image:save")
 class ImWriteNode(NodeBase):
-    """OpenCV Imwrite node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Save image to file at a specified directory."
         self.inputs = [
@@ -176,10 +170,7 @@ class ImWriteNode(NodeBase):
 
 @NodeFactory.register("chainner:image:preview")
 class ImOpenNode(NodeBase):
-    """Image Open Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]

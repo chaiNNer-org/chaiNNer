@@ -15,10 +15,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:hue_and_saturation")
 class HueAndSaturationNode(NodeBase):
-    """OpenCV Hue and Saturation Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Adjust the hue and saturation of an image."
         self.inputs = [
@@ -86,10 +83,7 @@ class HueAndSaturationNode(NodeBase):
 
 @NodeFactory.register("chainner:image:brightness_and_contrast")
 class BrightnessAndContrastNode(NodeBase):
-    """OpenCV Brightness and Contrast Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Adjust the brightness and contrast of an image."
         self.inputs = [
@@ -160,10 +154,7 @@ class BrightnessAndContrastNode(NodeBase):
 
 @NodeFactory.register("chainner:image:threshold")
 class ThresholdNode(NodeBase):
-    """OpenCV Threshold node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Perform a threshold on an image."
         self.inputs = [
@@ -209,10 +200,7 @@ class ThresholdNode(NodeBase):
 
 @NodeFactory.register("chainner:image:threshold_adaptive")
 class AdaptiveThresholdNode(NodeBase):
-    """OpenCV Adaptive Threshold node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Perform an adaptive threshold on an image."
         self.inputs = [
@@ -274,10 +262,7 @@ class AdaptiveThresholdNode(NodeBase):
 
 @NodeFactory.register("chainner:image:opacity")
 class OpacityNode(NodeBase):
-    """Alpha adjustment node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Adjusts the opacity of an image."
         self.inputs = [
@@ -291,7 +276,9 @@ class OpacityNode(NodeBase):
                 unit="%",
             ),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(image_type=expression.Image(size_as="Input0", channels=4))
+        ]
         self.category = IMAGE_ADJUSTMENT
         self.name = "Opacity"
         self.icon = "MdOutlineOpacity"

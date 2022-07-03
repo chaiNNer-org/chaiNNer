@@ -1,8 +1,10 @@
 from typing import Dict, List, Union
+
 from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
+from ...utils.image_utils import FillColor
 
 
 class DropDownInput(BaseInput):
@@ -40,9 +42,18 @@ class TextInput(BaseInput):
         label: str,
         has_handle=True,
         max_length: Union[int, None] = None,
+        allow_numbers: bool = False,
     ):
-        super().__init__("string", label, has_handle=has_handle, kind="text-line")
+        super().__init__(
+            ["string", "number"] if allow_numbers else "string",
+            label,
+            has_handle=has_handle,
+            kind="text-line",
+        )
         self.max_length = max_length
+
+    def enforce(self, value) -> str:
+        return str(value)
 
     def toDict(self):
         return {
@@ -224,5 +235,17 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Subtract", "value": bm.SUBTRACT},
             {"option": "Divide", "value": bm.DIVIDE},
             {"option": "Xor", "value": bm.XOR},
+        ],
+    )
+
+
+def FillColorDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="FillColor",
+        label="Negative Space Fill",
+        options=[
+            {"option": "Auto", "value": FillColor.AUTO},
+            {"option": "Black Fill", "value": FillColor.BLACK},
+            {"option": "Transparency", "value": FillColor.TRANSPARENT},
         ],
     )

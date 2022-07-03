@@ -193,6 +193,37 @@ Object {
 }
 `;
 
+exports[`Read save file crop-content.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+        "inputData": Object {},
+        "schemaId": "chainner:image:crop_content",
+      },
+      "height": 175,
+      "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+      "position": Object {
+        "x": 896,
+        "y": 528,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
   "edges": Array [],
@@ -1436,6 +1467,68 @@ Object {
 }
 `;
 
+exports[`Read save file model-scale.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "ef31ea17-2e21-402b-8366-7ebacc4fc084",
+      "source": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+      "sourceHandle": "336d5195-2137-49c4-8efc-6aa1bd99c4c1-0",
+      "target": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+      "targetHandle": "66afd92a-138e-42b7-a5d3-a45737f31ed4-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "inputData": Object {
+          "0": "C:\\\\DS3TexUp\\\\Cupscale 1.39.0f1\\\\CupscaleData\\\\models\\\\ESRGAN\\\\4x-AnimeSharp.pth",
+        },
+        "schemaId": "chainner:pytorch:load_model",
+      },
+      "height": 418,
+      "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+      "position": Object {
+        "x": -1,
+        "y": 219,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 517,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "inputData": Object {},
+        "schemaId": "chainner:pytorch:model_dim",
+      },
+      "height": 240,
+      "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+      "position": Object {
+        "x": 239.78031643091583,
+        "y": 713.9047452339597,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 503,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file ncnn.chn 1`] = `
 Object {
   "edges": Array [
@@ -1785,6 +1878,194 @@ Object {
 }
 `;
 
+exports[`Read save file text-pattern.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "2b987cd0-9b61-46d2-9bf1-312594938d0c",
+      "source": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "sourceHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-0",
+      "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "a504f9f1-3e42-4f63-a039-adea8b0562c1",
+      "source": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "sourceHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+      "target": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+      "targetHandle": "ad7a95c8-8931-470a-b40d-c39f98cdafd6-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "a5954346-4d88-4856-be37-cac38ea292d1",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-2",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-3",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "b2f91331-97aa-4456-b86c-d746c87fc2ab",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c1e08abb-afa6-42c6-bfb6-6468a846656b",
+      "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+      "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e0912d6f-cc41-4bf2-84f5-9e6344ab5a00",
+      "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+      "target": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "targetHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "f3dd2978-13da-4477-949a-6498566b7a6b",
+      "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-1",
+      "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-2",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "inputData": Object {
+          "0": "{1}px x {2}px",
+          "1": "",
+          "2": "",
+          "3": "",
+          "4": "",
+        },
+        "isDisabled": false,
+        "schemaId": "chainner:utility:text_pattern",
+      },
+      "height": 546,
+      "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+      "position": Object {
+        "x": 309.7555959511702,
+        "y": 771.1213194348871,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "inputData": Object {
+          "1": "",
+        },
+        "schemaId": "chainner:image:caption",
+      },
+      "height": 258,
+      "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+      "position": Object {
+        "x": 600.3085794285071,
+        "y": 667.4464344534028,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "inputData": Object {
+          "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\test.jpg",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 538,
+      "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+      "position": Object {
+        "x": -28.19569731256348,
+        "y": 346.744623600131,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 257,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "inputData": Object {},
+        "schemaId": "chainner:image:get_dims",
+      },
+      "height": 256,
+      "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+      "position": Object {
+        "x": -9.716035877966192,
+        "y": 935.9302075524464,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "inputData": Object {},
+        "schemaId": "chainner:image:preview",
+      },
+      "height": 118,
+      "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+      "position": Object {
+        "x": 623.3424132803425,
+        "y": 978.8257039041982,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file utilities.chn 1`] = `
 Object {
   "edges": Array [],
@@ -2053,6 +2334,41 @@ Object {
         "selected": true,
         "type": "regularNode",
         "width": 242,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file crop-content.chn 1`] = `
+Object {
+  "checksum": "e4ba10ded4459c6fcf627fc35f4fa611",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+          "inputData": Object {},
+          "schemaId": "chainner:image:crop_content",
+        },
+        "height": 175,
+        "id": "561b20d5-ff13-4424-930e-352caeb48aff",
+        "position": Object {
+          "x": 896,
+          "y": 528,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 241,
         "zIndex": 70,
       },
     ],
@@ -3342,6 +3658,72 @@ Object {
 }
 `;
 
+exports[`Write save file model-scale.chn 1`] = `
+Object {
+  "checksum": "94dcaecb771e45bf85981d3b74643183",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "ef31ea17-2e21-402b-8366-7ebacc4fc084",
+        "source": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "sourceHandle": "336d5195-2137-49c4-8efc-6aa1bd99c4c1-0",
+        "target": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "targetHandle": "66afd92a-138e-42b7-a5d3-a45737f31ed4-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+          "inputData": Object {
+            "0": "C:\\\\DS3TexUp\\\\Cupscale 1.39.0f1\\\\CupscaleData\\\\models\\\\ESRGAN\\\\4x-AnimeSharp.pth",
+          },
+          "schemaId": "chainner:pytorch:load_model",
+        },
+        "height": 418,
+        "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "position": Object {
+          "x": -1,
+          "y": 219,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 517,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+          "inputData": Object {},
+          "schemaId": "chainner:pytorch:model_dim",
+        },
+        "height": 240,
+        "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "position": Object {
+          "x": 239.78031643091583,
+          "y": 713.9047452339597,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 503,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
 exports[`Write save file ncnn.chn 1`] = `
 Object {
   "checksum": "8a4a21b2193b4f86703d7b8239ada5d3",
@@ -3689,6 +4071,198 @@ Object {
         "selected": false,
         "type": "regularNode",
         "width": 258,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file text-pattern.chn 1`] = `
+Object {
+  "checksum": "a7c78e811726c0e2473e00a89d0a48a5",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "2b987cd0-9b61-46d2-9bf1-312594938d0c",
+        "source": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "sourceHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-0",
+        "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "a504f9f1-3e42-4f63-a039-adea8b0562c1",
+        "source": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "sourceHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+        "target": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "targetHandle": "ad7a95c8-8931-470a-b40d-c39f98cdafd6-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "a5954346-4d88-4856-be37-cac38ea292d1",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-2",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-3",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "b2f91331-97aa-4456-b86c-d746c87fc2ab",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c1e08abb-afa6-42c6-bfb6-6468a846656b",
+        "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+        "target": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "targetHandle": "3839b3f2-9d2a-43af-857c-71e4f8c17f29-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "e0912d6f-cc41-4bf2-84f5-9e6344ab5a00",
+        "source": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "sourceHandle": "3b1f700e-fbdb-4c36-a152-d5293918649e-0",
+        "target": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "targetHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "f3dd2978-13da-4477-949a-6498566b7a6b",
+        "source": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "sourceHandle": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d-1",
+        "target": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "targetHandle": "37e5d099-9199-4c51-bffb-c7ea060e6aec-2",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+          "inputData": Object {
+            "0": "{1}px x {2}px",
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+          },
+          "isDisabled": false,
+          "schemaId": "chainner:utility:text_pattern",
+        },
+        "height": 546,
+        "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
+        "position": Object {
+          "x": 309.7555959511702,
+          "y": 771.1213194348871,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+          "inputData": Object {
+            "1": "",
+          },
+          "schemaId": "chainner:image:caption",
+        },
+        "height": 258,
+        "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
+        "position": Object {
+          "x": 600.3085794285071,
+          "y": 667.4464344534028,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+          "inputData": Object {
+            "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\test.jpg",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 538,
+        "id": "3b1f700e-fbdb-4c36-a152-d5293918649e",
+        "position": Object {
+          "x": -28.19569731256348,
+          "y": 346.744623600131,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 257,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+          "inputData": Object {},
+          "schemaId": "chainner:image:get_dims",
+        },
+        "height": 256,
+        "id": "66dc9cea-5e2c-4358-9dc8-3ae5c17d9e4d",
+        "position": Object {
+          "x": -9.716035877966192,
+          "y": 935.9302075524464,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+          "inputData": Object {},
+          "schemaId": "chainner:image:preview",
+        },
+        "height": 118,
+        "id": "ad7a95c8-8931-470a-b40d-c39f98cdafd6",
+        "position": Object {
+          "x": 623.3424132803425,
+          "y": 978.8257039041982,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
         "zIndex": 50,
       },
     ],

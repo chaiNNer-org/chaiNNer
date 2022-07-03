@@ -9,9 +9,9 @@
     <img src="src/public/chaiNNer screenshot.png" width="720" />
 </p>
 
-A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially those done by neural networks) easy, intuitive, and customizable.
+A flowchart/node-based image processing GUI aimed at making chaining image processing tasks (especially upscaling done by neural networks) easy, intuitive, and customizable.
 
-No existing GUI gives you the level of customization of your image processing workflow that chaiNNer does. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
+No existing upscaling GUI gives you the level of customization of your image processing workflow that chaiNNer does. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
 
 chaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
 
@@ -34,6 +34,12 @@ To select multiple nodes, hold down shift and drag around all the nodes you want
 Once you have a working chain set up in the editor, you can press the green "run" button in the top bar to run the chain you have made. You will see the connections between nodes become animated, and start to un-animate as they finish processing. You can stop or pause processing with the red "stop" and yellow "pause" buttons respectively.
 
 To batch upscale, create an Image Iterator node and drag the nodes you want to use into the iterator's editor area. You can expand the iterator by clicking and dragging the bottom right corner outwards (like you would a UI window). Simply wire up a chain in an iterator the same as you would normally, and when you click run it will run on every image in the folder you chose.
+
+## Compatibility Notes
+
+- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated python will correctly start up.
+
+- Apple M1 laptops are mostly untested, though they are theoretically supported.
 
 ## Building chaiNNer Yourself
 
@@ -68,21 +74,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ## Planned Features
 
-**Copy & Paste**
-
-- Coming soon
-
-**Presets**
-
-- Some things that are common tasks should have presets you can drag in, that are basically just multiple nodes packaged together
-
-**More SR Networks**
-
-- I want to support anything that has the ability for me to parse the .pth file to get the required parameter information so no info needs to be entered by the user.
-
-**Live Updating**
-
-- This is something that will be a bit complex to do, but basically I'd like to have a mode where it constantly is running and refreshing on any node change, and displays previews of each node
+- Check the Discord server for a list of planned features.
 
 ## FAQ
 
@@ -98,7 +90,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 **Wouldn't this make it more difficult to do things?**
 
-- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 

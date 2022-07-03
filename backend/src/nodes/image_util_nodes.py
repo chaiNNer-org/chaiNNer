@@ -16,6 +16,7 @@ from .utils.image_utils import (
     calculate_ssim,
     convert_from_BGRA,
     convert_to_BGRA,
+    shift,
 )
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
@@ -23,10 +24,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:blend")
 class ImBlend(NodeBase):
-    """Blending mode node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Blends overlay image onto base image using
             specified mode."""
@@ -48,7 +46,11 @@ class ImBlend(NodeBase):
                         expression.field("Input0", "height"),
                         expression.field("Input1", "height"),
                     ),
-                    channels=4,
+                    channels=expression.fn(
+                        "max",
+                        expression.field("Input0", "channels"),
+                        expression.field("Input1", "channels"),
+                    ),
                 )
             ),
         ]
@@ -113,7 +115,6 @@ class StackNode(NodeBase):
     """OpenCV concatenate (h/v) Node"""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Concatenate multiple images horizontally."
         self.inputs = [
@@ -210,15 +211,12 @@ class StackNode(NodeBase):
 
 @NodeFactory.register("chainner:image:caption")
 class CaptionNode(NodeBase):
-    """Caption node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Add a caption to an image."
         self.inputs = [
             ImageInput(),
-            TextInput("Caption"),
+            TextInput("Caption", allow_numbers=True),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -234,10 +232,7 @@ class CaptionNode(NodeBase):
 
 @NodeFactory.register("chainner:image:change_colorspace")
 class ColorConvertNode(NodeBase):
-    """OpenCV color conversion node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Convert the colorspace of an image to a different one. "
@@ -270,10 +265,7 @@ class ColorConvertNode(NodeBase):
 
 @NodeFactory.register("chainner:image:create_border")
 class BorderMakeNode(NodeBase):
-    """OpenCV CopyMakeBorder node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Creates a border around the image."
         self.inputs = [
@@ -332,16 +324,14 @@ class BorderMakeNode(NodeBase):
 
 @NodeFactory.register("chainner:image:shift")
 class ShiftNode(NodeBase):
-    """OpenCV Shift Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount X", minimum=None, unit="px"),
             NumberInput("Amount Y", minimum=None, unit="px"),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
@@ -354,21 +344,14 @@ class ShiftNode(NodeBase):
         img: np.ndarray,
         amount_x: int,
         amount_y: int,
+        fill: int,
     ) -> np.ndarray:
-        """Adjusts the position of an image"""
-
-        h, w, _ = get_h_w_c(img)
-        translation_matrix = np.float32([[1, 0, amount_x], [0, 1, amount_y]])  # type: ignore
-        img = cv2.warpAffine(img, translation_matrix, (w, h))
-        return img
+        return shift(img, amount_x, amount_y, fill)
 
 
 @NodeFactory.register("chainner:image:rotate")
 class RotateNode(NodeBase):
-    """Rotate node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Rotate an image."
         self.inputs = [
@@ -391,15 +374,7 @@ class RotateNode(NodeBase):
                     {"option": "Crop to original", "value": RotateExpandCrop.CROP},
                 ],
             ),
-            DropDownInput(
-                input_type="RotateFillColor",
-                label="Negative Space Fill",
-                options=[
-                    {"option": "Auto", "value": RotateFillColor.AUTO},
-                    {"option": "Black Fill", "value": RotateFillColor.BLACK},
-                    {"option": "Transparency", "value": RotateFillColor.TRANSPARENT},
-                ],
-            ),
+            FillColorDropdown(),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE_UTILITY
@@ -415,10 +390,7 @@ class RotateNode(NodeBase):
 
 @NodeFactory.register("chainner:image:flip")
 class FlipNode(NodeBase):
-    """Flip node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Flip an image."
         self.inputs = [
@@ -454,7 +426,6 @@ class ImageMetricsNode(NodeBase):
     """Calculate image quality metrics of modified image."""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             """Calculate image quality metrics (MSE, PSNR, SSIM) between two images."""
@@ -464,16 +435,18 @@ class ImageMetricsNode(NodeBase):
             ImageInput("Comparison Image"),
         ]
         self.outputs = [
-            TextOutput("MSE"),
-            TextOutput("PSNR"),
-            TextOutput("SSIM"),
+            NumberOutput("MSE", expression.interval(0, 1)),
+            NumberOutput("PSNR", expression.interval(0, float("inf"))),
+            NumberOutput("SSIM", expression.interval(0, 1)),
         ]
         self.category = IMAGE_UTILITY
         self.name = "Image Metrics"
         self.icon = "MdOutlineAssessment"
         self.sub = "Miscellaneous"
 
-    def run(self, orig_img: np.ndarray, comp_img: np.ndarray) -> Tuple[str, str, str]:
+    def run(
+        self, orig_img: np.ndarray, comp_img: np.ndarray
+    ) -> Tuple[float, float, float]:
         """Compute MSE, PSNR, and SSIM"""
 
         assert (
@@ -491,4 +464,4 @@ class ImageMetricsNode(NodeBase):
         psnr = round(10 * math.log(1 / mse), 6)
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 
-        return (str(mse), str(psnr), str(ssim))
+        return (float(mse), float(psnr), ssim)
