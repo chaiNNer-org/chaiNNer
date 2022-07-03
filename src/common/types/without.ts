@@ -1,4 +1,4 @@
-import { assertNever } from '../util';
+import { assertNever, sameNumber } from '../util';
 import {
     AnyType,
     IntIntervalType,
@@ -28,7 +28,7 @@ const hasLiteral = (primitive: NumberPrimitive, n: number): boolean => {
         case 'interval':
             return primitive.has(n);
         case 'literal':
-            return primitive.value === n || (Number.isNaN(primitive.value) && Number.isNaN(n));
+            return sameNumber(primitive.value, n);
         default:
             return assertNever(primitive);
     }
