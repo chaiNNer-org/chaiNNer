@@ -95,11 +95,11 @@ export const compareSequences = <T>(
 
 /**
  * Sorts numbers in the order:
- * 1. Negative real numbers. E.g. -2
- * 2. -0.0
- * 3. 0.0
- * 4. Positive real numbers. E.g. 2
- * 5. -Infinity
+ * 1. -Infinity
+ * 2. Negative real numbers. E.g. -2
+ * 3. -0.0
+ * 4. 0.0
+ * 5. Positive real numbers. E.g. 2
  * 6. Infinity
  * 7. NaN
  */
@@ -112,8 +112,6 @@ export const compareNumber = (a: number, b: number): number => {
         return a - b;
     }
     if (sameNumber(a, b)) return 0;
-    if (Number.isFinite(a)) return -1;
-    if (Number.isFinite(b)) return +1;
     if (Number.isNaN(a)) return +1;
     if (Number.isNaN(b)) return -1;
     return a - b;
