@@ -15,7 +15,6 @@ class NodeBase(metaclass=ABCMeta):
     """Base class for a node"""
 
     def __init__(self):
-        """Constructor"""
         self.inputs: List[BaseInput] = []
         self.outputs: List[BaseOutput] = []
         self.description = ""
@@ -74,7 +73,6 @@ class IteratorNodeBase(NodeBase):
     """Base class for an iterator node"""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.icon = "MdLoop"
         self.sub = "Iteration"

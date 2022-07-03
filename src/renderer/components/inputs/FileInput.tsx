@@ -110,33 +110,6 @@ const FileInput = memo(
             }
         };
 
-        const preview = () => {
-            switch (fileKind) {
-                case 'image':
-                    return (
-                        <Box mt={2}>
-                            <ImagePreview
-                                id={id}
-                                path={filePath}
-                                schemaId={schemaId}
-                            />
-                        </Box>
-                    );
-                case 'pth':
-                    return (
-                        <Box mt={2}>
-                            <TorchModelPreview
-                                id={id}
-                                path={filePath}
-                                schemaId={schemaId}
-                            />
-                        </Box>
-                    );
-                default:
-                    return null;
-            }
-        };
-
         const onDragOver = (event: DragEvent<HTMLDivElement>) => {
             event.preventDefault();
 
@@ -234,7 +207,26 @@ const FileInput = memo(
                         />
                     </InputGroup>
                 </Tooltip>
-                {filePath && <Box>{preview()}</Box>}
+                <Box>
+                    {fileKind === 'image' && (
+                        <Box mt={2}>
+                            <ImagePreview
+                                id={id}
+                                path={filePath}
+                                schemaId={schemaId}
+                            />
+                        </Box>
+                    )}
+                    {fileKind === 'pth' && (
+                        <Box mt={2}>
+                            <TorchModelPreview
+                                id={id}
+                                path={filePath}
+                                schemaId={schemaId}
+                            />
+                        </Box>
+                    )}
+                </Box>
             </VStack>
         );
     }

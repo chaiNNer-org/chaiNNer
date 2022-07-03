@@ -10,6 +10,7 @@ import {
     ValueType,
 } from './types';
 import { union } from './union';
+import { intInterval, interval, literal } from './util';
 
 const fixRoundingError = (n: number): number => {
     if (!Number.isFinite(n) || Number.isInteger(n)) return n; // no fixing necessary
@@ -18,18 +19,6 @@ const fixRoundingError = (n: number): number => {
         return Number(n.toPrecision(12));
     }
     return n;
-};
-
-const literal = (n: number) => {
-    return new NumericLiteralType(n);
-};
-const interval = (min: number, max: number) => {
-    if (min === max) return new NumericLiteralType(min);
-    return new IntervalType(min, max);
-};
-const intInterval = (min: number, max: number) => {
-    if (min === max) return new NumericLiteralType(min);
-    return new IntIntervalType(min, max);
 };
 
 type Arg<T extends ValueType> = T | UnionType<T> | NeverType;
