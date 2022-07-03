@@ -221,7 +221,7 @@ export const GlobalProvider = memo(
             setEdges: rfSetEdges,
         } = useReactFlow<NodeData, EdgeData>();
 
-        const { x: vpx, y: vpy, zoom: vpZoom } = useViewport();
+        const currentViewport = useViewport();
 
         const [setNodes, setSetNodes] = useState(() => rfSetNodes);
         const [setEdges, setSetEdges] = useState(() => rfSetEdges);
@@ -296,7 +296,7 @@ export const GlobalProvider = memo(
                 sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
-        }, [vpx, vpy, vpZoom]);
+        }, Object.values(currentViewport));
         useEffect(() => {
             const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
             const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
