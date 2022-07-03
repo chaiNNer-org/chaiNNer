@@ -35,9 +35,9 @@ Once you have a working chain set up in the editor, you can press the green "run
 
 To batch upscale, create an Image Iterator node and drag the nodes you want to use into the iterator's editor area. You can expand the iterator by clicking and dragging the bottom right corner outwards (like you would a UI window). Simply wire up a chain in an iterator the same as you would normally, and when you click run it will run on every image in the folder you chose.
 
-## Compatibility Notes 
+## Compatibility Notes
 
-- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated python will correctly start up. 
+- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated python will correctly start up.
 
 - Apple M1 laptops are mostly untested, though they are theoretically supported.
 
@@ -90,7 +90,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 **Wouldn't this make it more difficult to do things?**
 
-- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping and image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
