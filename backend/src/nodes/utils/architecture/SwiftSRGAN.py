@@ -107,13 +107,13 @@ class Generator(nn.Module):
         if "model" in self.state:
             self.state = self.state["model"]
 
-        self.in_nc = self.state["initial.cnn.depthwise.weight"].shape[0]
-        self.out_nc = self.state["final_conv.pointwise.weight"].shape[0]
-        self.num_filters = self.state["initial.cnn.pointwise.weight"].shape[0]
+        self.in_nc: int = self.state["initial.cnn.depthwise.weight"].shape[0]
+        self.out_nc: int = self.state["final_conv.pointwise.weight"].shape[0]
+        self.num_filters: int = self.state["initial.cnn.pointwise.weight"].shape[0]
         self.num_blocks = len(
             set([x.split(".")[1] for x in self.state.keys() if "residual" in x])
         )
-        self.scale = 2 ** len(
+        self.scale: int = 2 ** len(
             set([x.split(".")[1] for x in self.state.keys() if "upsampler" in x])
         )
 

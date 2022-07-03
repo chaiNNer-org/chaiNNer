@@ -1467,6 +1467,68 @@ Object {
 }
 `;
 
+exports[`Read save file model-scale.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "ef31ea17-2e21-402b-8366-7ebacc4fc084",
+      "source": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+      "sourceHandle": "336d5195-2137-49c4-8efc-6aa1bd99c4c1-0",
+      "target": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+      "targetHandle": "66afd92a-138e-42b7-a5d3-a45737f31ed4-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "inputData": Object {
+          "0": "C:\\\\DS3TexUp\\\\Cupscale 1.39.0f1\\\\CupscaleData\\\\models\\\\ESRGAN\\\\4x-AnimeSharp.pth",
+        },
+        "schemaId": "chainner:pytorch:load_model",
+      },
+      "height": 418,
+      "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+      "position": Object {
+        "x": -1,
+        "y": 219,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 517,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "inputData": Object {},
+        "schemaId": "chainner:pytorch:model_dim",
+      },
+      "height": 240,
+      "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+      "position": Object {
+        "x": 239.78031643091583,
+        "y": 713.9047452339597,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 503,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file ncnn.chn 1`] = `
 Object {
   "edges": Array [
@@ -3583,6 +3645,72 @@ Object {
         "type": "regularNode",
         "width": 242,
         "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file model-scale.chn 1`] = `
+Object {
+  "checksum": "94dcaecb771e45bf85981d3b74643183",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "ef31ea17-2e21-402b-8366-7ebacc4fc084",
+        "source": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "sourceHandle": "336d5195-2137-49c4-8efc-6aa1bd99c4c1-0",
+        "target": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "targetHandle": "66afd92a-138e-42b7-a5d3-a45737f31ed4-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+          "inputData": Object {
+            "0": "C:\\\\DS3TexUp\\\\Cupscale 1.39.0f1\\\\CupscaleData\\\\models\\\\ESRGAN\\\\4x-AnimeSharp.pth",
+          },
+          "schemaId": "chainner:pytorch:load_model",
+        },
+        "height": 418,
+        "id": "336d5195-2137-49c4-8efc-6aa1bd99c4c1",
+        "position": Object {
+          "x": -1,
+          "y": 219,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 517,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+          "inputData": Object {},
+          "schemaId": "chainner:pytorch:model_dim",
+        },
+        "height": 240,
+        "id": "66afd92a-138e-42b7-a5d3-a45737f31ed4",
+        "position": Object {
+          "x": 239.78031643091583,
+          "y": 713.9047452339597,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 503,
+        "zIndex": 70,
       },
     ],
     "viewport": Object {

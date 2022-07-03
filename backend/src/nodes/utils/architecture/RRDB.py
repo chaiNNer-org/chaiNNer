@@ -79,11 +79,11 @@ class RRDBNet(nn.Module):
 
         self.key_arr = list(self.state.keys())
 
-        self.in_nc = self.state[self.key_arr[0]].shape[1]
-        self.out_nc = self.state[self.key_arr[-1]].shape[0]
+        self.in_nc: int = self.state[self.key_arr[0]].shape[1]
+        self.out_nc: int = self.state[self.key_arr[-1]].shape[0]
 
-        self.scale = self.get_scale()
-        self.num_filters = self.state[self.key_arr[0]].shape[0]
+        self.scale: int = self.get_scale()
+        self.num_filters: int = self.state[self.key_arr[0]].shape[0]
 
         # Detect if pixelunshuffle was used (Real-ESRGAN)
         if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (

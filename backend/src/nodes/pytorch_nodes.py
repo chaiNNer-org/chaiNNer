@@ -2,9 +2,10 @@
 Nodes that provide functionality for pytorch inference
 """
 
+from __future__ import annotations
 
 import os
-from typing import Any, OrderedDict
+from typing import Any, OrderedDict, Union
 
 import numpy as np
 import torch
@@ -23,13 +24,16 @@ from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np
 
 
+PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN]
+
+
 def check_env():
     os.environ["device"] = (
         "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
     )
 
 
-def load_state_dict(state_dict):
+def load_state_dict(state_dict) -> PyTorchModel:
     logger.info(f"Loading state dict into ESRGAN model")
 
     # SRVGGNet Real-ESRGAN (v2)
@@ -81,25 +85,24 @@ class LoadModelNode(NodeBase):
     def get_extra_data(self) -> Dict:
         assert self.model is not None
 
-        # TODO: Figure out how to make types for this
-        if "SRVGG" in self.model.model_type:  # type: ignore
-            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]  # type: ignore
+        if "SRVGG" in self.model.model_type:
+            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]
         else:
             size = [
-                f"{self.model.num_filters}nf",  # type: ignore
-                f"{self.model.num_blocks}nb",  # type: ignore
+                f"{self.model.num_filters}nf",
+                f"{self.model.num_blocks}nb",
             ]
 
         return {
-            "modelType": self.model.model_type,  # type: ignore
-            "inNc": self.model.in_nc,  # type: ignore
-            "outNc": self.model.out_nc,  # type: ignore
+            "modelType": self.model.model_type,
+            "inNc": self.model.in_nc,
+            "outNc": self.model.out_nc,
             "size": size,
-            "scale": self.model.scale,  # type: ignore
+            "scale": self.model.scale,
             "name": self.basename,
         }
 
-    def run(self, path: str) -> Any:
+    def run(self, path: str) -> Tuple[PyTorchModel, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -204,7 +207,7 @@ class ImageUpscaleNode(NodeBase):
             del t_out
             return img_out
 
-    def run(self, model: torch.nn.Module, img: np.ndarray) -> np.ndarray:
+    def run(self, model: PyTorchModel, img: np.ndarray) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         check_env()
@@ -230,7 +233,7 @@ class ImageUpscaleNode(NodeBase):
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(img[:, :, :3], model, model.scale)  # type: ignore
+                output = self.upscale(img[:, :, :3], model, model.scale)
                 output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
             else:
                 img1 = np.copy(img[:, :, :3])
@@ -239,8 +242,8 @@ class ImageUpscaleNode(NodeBase):
                     img1[:, :, c] *= img[:, :, 3]
                     img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
-                output1 = self.upscale(img1, model, model.scale)  # type: ignore
-                output2 = self.upscale(img2, model, model.scale)  # type: ignore
+                output1 = self.upscale(img1, model, model.scale)
+                output2 = self.upscale(img2, model, model.scale)
                 alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
@@ -249,9 +252,9 @@ class ImageUpscaleNode(NodeBase):
             if img.ndim == 2:
                 gray = True
                 logger.debug("Expanding image channels")
-                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))  # type: ignore
+                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
             # Remove extra channels if too many (i.e three channel image, single channel model)
-            elif img.shape[2] > in_nc:  # type: ignore
+            elif img.shape[2] > in_nc:
                 logger.warning("Truncating image channels")
                 img = img[:, :, :in_nc]
             # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
@@ -259,7 +262,7 @@ class ImageUpscaleNode(NodeBase):
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
 
-            output = self.upscale(img, model, model.scale)  # type: ignore
+            output = self.upscale(img, model, model.scale)
 
             if gray:
                 output = np.average(output, axis=2).astype("float32")
@@ -335,20 +338,18 @@ class InterpolateNode(NodeBase):
             torch.cuda.empty_cache()
         return mean_color > 0.5
 
-    def run(
-        self, model_a: torch.nn.Module, model_b: torch.nn.Module, amount: int
-    ) -> Any:
+    def run(self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int) -> Any:
 
         state_a = model_a.state
         state_b = model_b.state
 
         logger.info(f"Interpolating models...")
-        if not self.check_can_interp(state_a, state_b):  # type: ignore
+        if not self.check_can_interp(state_a, state_b):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        state_dict = self.perform_interp(state_a, state_b, amount)  # type: ignore
+        state_dict = self.perform_interp(state_a, state_b, amount)
         model = load_state_dict(state_dict)
 
         return model
@@ -369,7 +370,7 @@ class PthSaveNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, model: torch.nn.Module, directory: str, name: str) -> None:
+    def run(self, model: PyTorchModel, directory: str, name: str) -> None:
         full_file = f"{name}.pth"
         full_path = os.path.join(directory, full_file)
         logger.info(f"Writing model to path: {full_path}")
@@ -507,3 +508,22 @@ class ConvertTorchToONNXNode(NodeBase):
         )
 
         return out_filepath
+
+
+@NodeFactory.register("chainner:pytorch:model_dim")
+class GetModelDimensions(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = """Returns the scale of a PyTorch model."""
+        self.inputs = [ModelInput()]
+        self.outputs = [
+            NumberOutput("Scale", output_type=expression.field("Input0", "scale"))
+        ]
+
+        self.category = PYTORCH
+        self.name = "Get Model Scale"
+        self.icon = "BsRulers"
+        self.sub = "Utility"
+
+    def run(self, model: PyTorchModel) -> int:
+        return model.scale
