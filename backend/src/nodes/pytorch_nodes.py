@@ -9,7 +9,6 @@ import os
 from typing import Any, OrderedDict, Union
 
 import numpy as np
-import onnx
 import torch
 from sanic.log import logger
 

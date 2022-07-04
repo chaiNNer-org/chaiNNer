@@ -1,5 +1,4 @@
 from __future__ import annotations
-from io import BytesIO
 
 import os
 from typing import Tuple
@@ -35,7 +34,7 @@ class OnnxLoadModelNode(NodeBase):
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Tuple[ort.InferenceSession, str]:
+    def run(self, path: str) -> Tuple[bytes, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -71,9 +70,8 @@ class OnnxSaveModelNode(NodeBase):
 
     def run(self, onnx_model: bytes, directory: str, model_name: str) -> None:
         full_path = f"{os.path.join(directory, model_name)}.onnx"
-        with BytesIO() as f:
-            logger.info(f"Writing file to path: {full_path}")
-            onnx.save_model(onnx_model, full_path)
+        logger.info(f"Writing file to path: {full_path}")
+        onnx.save_model(onnx_model, full_path)
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
