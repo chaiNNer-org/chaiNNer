@@ -1,14 +1,16 @@
-import { DeleteIcon } from '@chakra-ui/icons';
-import { Center, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
+import { TbUnlink } from 'react-icons/tb';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { parseHandle } from '../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { SettingsContext } from '../contexts/SettingsContext';
+import { shadeColor } from '../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
-import getNodeAccentColors from '../helpers/getNodeAccentColors';
-import shadeColor from '../helpers/shadeColor';
+import getTypeAccentColors from '../helpers/getTypeAccentColors';
 
 const CustomEdge = memo(
     ({
@@ -22,11 +24,15 @@ const CustomEdge = memo(
         targetPosition,
         style = {},
         selected,
+        sourceHandleId,
+        animated,
     }: EdgeProps<EdgeData>) => {
         const effectivelyDisabledNodes = useContextSelector(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
+        const { useIsDarkMode } = useContext(SettingsContext);
+        const [isDarkMode] = useIsDarkMode;
 
         const edgePath = useMemo(
             () =>
@@ -48,13 +54,17 @@ const CustomEdge = memo(
             [parentNode.data, effectivelyDisabledNodes]
         );
 
-        const { schemata, removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { removeEdgeById, setHoveredNode, functionDefinitions, typeDefinitions } =
+            useContext(GlobalContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
-        // We dynamically grab this data instead since storing the types makes transitioning harder
-        const { category } = schemata.get(parentNode.data.schemaId);
-        const accentColor = getNodeAccentColors(category);
+        const { inOutId } = useMemo(() => parseHandle(sourceHandleId!), [sourceHandleId]);
+        const type = functionDefinitions
+            .get(parentNode.data.schemaId)!
+            .outputDefaults.get(inOutId)!;
+
+        const [accentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
@@ -69,10 +79,14 @@ const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
+        const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
+
         return (
             <g
+                className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
+                    opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
                 }}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
@@ -80,9 +94,11 @@ const CustomEdge = memo(
                 onMouseOver={() => hoverTimeout()}
             >
                 <path
-                    className="react-flow__edge-path"
+                    className="edge-chain-links"
                     d={edgePath}
+                    fill="none"
                     id={id}
+                    strokeDasharray="0 !important"
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '2px',
@@ -91,7 +107,47 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
+                        strokeDasharray: '0 !important',
+                    }}
+                />
+                <path
+                    className="edge-chain"
+                    d={edgePath}
+                    fill="none"
+                    id={id}
+                    strokeDasharray="1 10"
+                    strokeDashoffset="2"
+                    strokeLinecap="round"
+                    style={{
+                        ...style,
+                        strokeWidth: isHovered ? '8px' : '6px',
+                        stroke: currentColor,
+                        transitionDuration: '0.15s',
+                        transitionProperty: 'stroke-width, stroke',
+                        transitionTimingFunction: 'ease-in-out',
+                        cursor: 'pointer',
+                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        opacity: animated ? 1 : 0,
+                    }}
+                />
+                <path
+                    className="edge-chain"
+                    d={edgePath}
+                    fill="none"
+                    id={id}
+                    strokeDasharray="1 10"
+                    strokeDashoffset="2"
+                    strokeLinecap="round"
+                    style={{
+                        ...style,
+                        strokeWidth: isHovered ? '4px' : '3px',
+                        stroke: chainHoleColor,
+                        transitionDuration: '0.15s',
+                        transitionProperty: 'stroke-width, stroke',
+                        transitionTimingFunction: 'ease-in-out',
+                        cursor: 'pointer',
+                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
@@ -136,7 +192,12 @@ const CustomEdge = memo(
                             borderRadius={100}
                             borderWidth={2}
                             className="edgebutton"
-                            icon={<DeleteIcon />}
+                            icon={
+                                <Icon
+                                    as={TbUnlink}
+                                    boxSize={5}
+                                />
+                            }
                             size="sm"
                             onClick={() => removeEdgeById(id)}
                         >
