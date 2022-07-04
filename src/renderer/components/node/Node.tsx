@@ -1,4 +1,4 @@
-import { Center, VStack, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
