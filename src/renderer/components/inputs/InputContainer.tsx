@@ -126,15 +126,7 @@ const InputContainer = memo(
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (
-                <HStack
-                    h="full"
-                    sx={{
-                        '.react-flow__handle-connecting': {
-                            opacity: showHandle ? 1 : 0,
-                        },
-                        '.react-flow__handle-valid': {},
-                    }}
-                >
+                <HStack h="full">
                     <Center
                         left="-6px"
                         position="absolute"

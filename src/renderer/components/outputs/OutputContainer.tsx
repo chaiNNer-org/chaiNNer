@@ -100,12 +100,6 @@ const OutputContainer = memo(
             contents = (
                 <HStack
                     h="full"
-                    sx={{
-                        '.react-flow__handle-connecting': {
-                            opacity: showHandle ? 1 : 0,
-                        },
-                        '.react-flow__handle-valid': {},
-                    }}
                 >
                     {children}
                     <Center
