@@ -150,9 +150,14 @@ class NcnnUpscaleImageNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Processing"
 
-        self.split_factor = None
-
-    def upscale(self, img: np.ndarray, net: tuple, input_name: str, output_name: str):
+    def upscale(
+        self,
+        img: np.ndarray,
+        net: tuple,
+        input_name: str,
+        output_name: str,
+        split_factor: Union[int, None],
+    ):
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(ncnn.get_default_gpu_index())
@@ -165,7 +170,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 output_name=output_name,
                 blob_vkallocator=blob_vkallocator,
                 staging_vkallocator=staging_vkallocator,
-                max_depth=self.split_factor,
+                max_depth=split_factor,
             )
             # blob_vkallocator.clear() # this slows stuff down
             # staging_vkallocator.clear() # as does this
@@ -188,7 +193,9 @@ class NcnnUpscaleImageNode(NodeBase):
             # This effectively makes the tile size for the image 426
             w_split_factor = int(np.ceil(w / tile_size_target))
             h_split_factor = int(np.ceil(h / tile_size_target))
-            self.split_factor = max(w_split_factor, h_split_factor, 1)
+            split_factor = max(w_split_factor, h_split_factor, 1)
+        else:
+            split_factor = None
 
         param_path, bin_data, input_name, output_name = net_tuple
 
@@ -223,7 +230,9 @@ class NcnnUpscaleImageNode(NodeBase):
             unique = np.unique(img[:, :, 3])
             if len(unique) == 1:
                 logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(img[:, :, :3], net, input_name, output_name)
+                output = self.upscale(
+                    img[:, :, :3], net, input_name, output_name, split_factor
+                )
                 output = np.dstack((output, np.full(output.shape[:-1], (unique[0]))))
             else:
                 img1 = np.copy(img[:, :, :3])
@@ -232,8 +241,8 @@ class NcnnUpscaleImageNode(NodeBase):
                     img1[:, :, c] *= img[:, :, 3]  # type: ignore
                     img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1  # type: ignore
 
-                output1 = self.upscale(img1, net, input_name, output_name)
-                output2 = self.upscale(img2, net, input_name, output_name)
+                output1 = self.upscale(img1, net, input_name, output_name, split_factor)
+                output2 = self.upscale(img2, net, input_name, output_name, split_factor)
                 alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
                 output = np.dstack((output1, alpha))
         else:
@@ -251,7 +260,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 logger.debug("Expanding image channels")
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            output = self.upscale(img, net, input_name, output_name)
+            output = self.upscale(img, net, input_name, output_name, split_factor)
 
             if gray:
                 output = np.average(output, axis=2)
