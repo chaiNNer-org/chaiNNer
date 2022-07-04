@@ -1,4 +1,4 @@
-import { Box, Center, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, Center, HStack, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -80,10 +80,10 @@ const OutputContainer = memo(
                 return false;
             }
             const connectionIsValid = isValidConnection({
-                source: connectingFrom.nodeId,
-                sourceHandle: connectingFrom.handleId,
-                target: id,
-                targetHandle: `${id}-${outputId}`,
+                source: id,
+                sourceHandle: `${id}-${outputId}`,
+                target: connectingFrom.nodeId,
+                targetHandle: connectingFrom.handleId,
             });
             if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
                 return true;
@@ -94,19 +94,11 @@ const OutputContainer = memo(
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
+        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (
-                <HStack
-                    h="full"
-                    sx={{
-                        '.react-flow__handle-connecting': {
-                            opacity: showHandle ? 1 : 0,
-                        },
-                        '.react-flow__handle-valid': {},
-                    }}
-                >
+                <HStack h="full">
                     {children}
                     <Center
                         position="absolute"
@@ -153,14 +145,10 @@ const OutputContainer = memo(
             );
         }
 
-        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
-
-        const bgColor = useColorModeValue(gray300, gray700);
+        const bgColor = useColorModeValue('gray.300', 'gray.700');
 
         return (
             <Box
-                // bg={useColorModeValue('gray.200', 'gray.600')}
-                // bg={interpolateColor(accentColor, bgColor, 0.95)}
                 bg={bgColor}
                 p={2}
                 w="full"

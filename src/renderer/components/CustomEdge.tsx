@@ -64,7 +64,7 @@ const CustomEdge = memo(
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
 
-        const [accentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // getNodeAccentColors(category);
+        const [accentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
@@ -97,7 +97,6 @@ const CustomEdge = memo(
                     className="edge-chain-links"
                     d={edgePath}
                     fill="none"
-                    // strokeLinecap="round"
                     id={id}
                     strokeDasharray="0 !important"
                     style={{
@@ -108,7 +107,6 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        // opacity: animated ? 0 : 1,
                         strokeDasharray: '0 !important',
                     }}
                 />

@@ -9,11 +9,11 @@ import {
     Tooltip,
     VStack,
 } from '@chakra-ui/react';
-import { shell } from 'electron';
+import { clipboard, shell } from 'electron';
 import path from 'path';
 import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
-import { MdFolder } from 'react-icons/md';
+import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { FileInputKind } from '../../../common/common-types';
 import { ipcRenderer } from '../../../common/safeIpc';
@@ -110,33 +110,6 @@ const FileInput = memo(
             }
         };
 
-        const preview = () => {
-            switch (fileKind) {
-                case 'image':
-                    return (
-                        <Box mt={2}>
-                            <ImagePreview
-                                id={id}
-                                path={filePath}
-                                schemaId={schemaId}
-                            />
-                        </Box>
-                    );
-                case 'pth':
-                    return (
-                        <Box mt={2}>
-                            <TorchModelPreview
-                                id={id}
-                                path={filePath}
-                                schemaId={schemaId}
-                            />
-                        </Box>
-                    );
-                default:
-                    return null;
-            }
-        };
-
         const onDragOver = (event: DragEvent<HTMLDivElement>) => {
             event.preventDefault();
 
@@ -196,6 +169,29 @@ const FileInput = memo(
                 >
                     Open in File Explorer
                 </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!filePath}
+                    onClick={() => {
+                        if (filePath) {
+                            clipboard.writeText(path.parse(filePath).name);
+                        }
+                    }}
+                >
+                    Copy File Name
+                </MenuItem>
+                <MenuItem
+                    icon={<MdContentCopy />}
+                    isDisabled={!filePath}
+                    onClick={() => {
+                        if (filePath) {
+                            clipboard.writeText(filePath);
+                        }
+                    }}
+                >
+                    Copy Full File Path
+                </MenuItem>
             </MenuList>
         ));
 
@@ -234,7 +230,26 @@ const FileInput = memo(
                         />
                     </InputGroup>
                 </Tooltip>
-                {filePath && <Box>{preview()}</Box>}
+                <Box>
+                    {fileKind === 'image' && (
+                        <Box mt={2}>
+                            <ImagePreview
+                                id={id}
+                                path={filePath}
+                                schemaId={schemaId}
+                            />
+                        </Box>
+                    )}
+                    {fileKind === 'pth' && (
+                        <Box mt={2}>
+                            <TorchModelPreview
+                                id={id}
+                                path={filePath}
+                                schemaId={schemaId}
+                            />
+                        </Box>
+                    )}
+                </Box>
             </VStack>
         );
     }

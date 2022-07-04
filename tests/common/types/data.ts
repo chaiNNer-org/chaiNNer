@@ -17,6 +17,7 @@ import {
     StructTypeField,
     Type,
 } from '../../../src/common/types/types';
+import { union } from '../../../src/common/types/union';
 
 export const orderedPairs = <T>(array: readonly T[]): [T, T][] => {
     return array.flatMap((a) => array.map<[T, T]>((b) => [a, b]));
@@ -88,6 +89,8 @@ export const strings: readonly Type[] = [
     new StringLiteralType(''),
     new StringLiteralType('foo'),
     new StringLiteralType('bar'),
+    union(new StringLiteralType('foo'), new StringLiteralType('bar')),
+    union(new StringLiteralType('foo'), new StringLiteralType('baz')),
 ];
 export const structs: readonly Type[] = [
     new StructType('null'),

@@ -28,6 +28,16 @@ export type WithType<U extends Type['type'], T extends Type = Type> = T extends 
 
 export type NonTrivialType = WithType<Exclude<Type['type'], 'any' | 'never'>>;
 
+const formatNumber = (n: number): string => {
+    if (Number.isNaN(n)) return 'nan';
+    if (n === Infinity) return 'inf';
+    if (n === -Infinity) return '-inf';
+    return String(n);
+};
+const formatInterval = (min: number, max: number) => {
+    return `${formatNumber(min)}..${formatNumber(max)}`;
+};
+
 interface TypeBase {
     readonly type: Type['type'];
     readonly underlying: Type['underlying'];
@@ -70,7 +80,7 @@ export class NumericLiteralType implements TypeBase {
     }
 
     getTypeId(): string {
-        return String(this.value);
+        return formatNumber(this.value);
     }
 
     toString(): string {
@@ -107,7 +117,7 @@ export class IntervalType implements TypeBase {
     }
 
     getTypeId(): string {
-        return `${this.min}..${this.max}`;
+        return formatInterval(this.min, this.max);
     }
 
     toString(): string {
@@ -146,7 +156,7 @@ export class IntIntervalType implements TypeBase {
     }
 
     getTypeId(): string {
-        return `int(${this.min}..${this.max})`;
+        return `int(${formatInterval(this.min, this.max)})`;
     }
 
     toString(): string {

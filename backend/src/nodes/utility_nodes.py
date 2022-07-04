@@ -122,7 +122,7 @@ class TextPatternNode(NodeBase):
         super().__init__()
         self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
         self.inputs = [
-            TextInput("Pattern", has_handle=False),
+            TextInput("Pattern", has_handle=False, placeholder="E.g. \"{1} and {2}\""),
             TextInput("{1}", allow_numbers=True).make_optional(),
             TextInput("{2}", allow_numbers=True).make_optional(),
             TextInput("{3}", allow_numbers=True).make_optional(),
