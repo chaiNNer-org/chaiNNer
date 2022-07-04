@@ -1,5 +1,5 @@
 from __future__ import annotations
-import io
+from io import BytesIO
 
 import os
 from typing import Tuple
@@ -71,7 +71,7 @@ class OnnxSaveModelNode(NodeBase):
 
     def run(self, onnx_model: bytes, directory: str, model_name: str) -> None:
         full_path = f"{os.path.join(directory, model_name)}.onnx"
-        with io.BytesIO() as f:
+        with BytesIO() as f:
             logger.info(f"Writing file to path: {full_path}")
             onnx.save_model(onnx_model, full_path)
 

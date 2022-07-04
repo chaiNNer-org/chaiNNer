@@ -4,7 +4,7 @@ Nodes that provide functionality for pytorch inference
 
 from __future__ import annotations
 
-import io
+from io import BytesIO
 import os
 from typing import Any, OrderedDict, Union
 
@@ -496,7 +496,7 @@ class ConvertTorchToONNXNode(NodeBase):
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
 
-        with io.BytesIO() as f:
+        with BytesIO() as f:
             torch.onnx.export(
                 model,
                 dummy_input,
