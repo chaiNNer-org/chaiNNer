@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
-import { isEdge, isNode } from 'react-flow-renderer';
+import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'react-flow-renderer';
 import semver from 'semver';
 import { deriveUniqueId } from './util';
 
@@ -544,6 +544,118 @@ const fixDropDownNumberValues = (data) => {
     return data;
 };
 
+const onnxConvertUpdate = (data) => {
+    const createOnnxSaveNode = (node, directory, modelName) => {
+        const newID = deriveUniqueId(node.id + directory + modelName);
+        const newNode = {
+            data: {
+                schemaId: 'chainner:onnx:save_model',
+                inputData: { 1: directory, 2: modelName },
+                id: newID,
+            },
+            id: newID,
+            position: {
+                x: node.position.x + 300,
+                y: node.position.y + 200,
+            },
+            type: 'regularNode',
+            selected: false,
+            height: node.height,
+            width: node.width,
+            zIndex: node.zIndex,
+        };
+        if (node.parentNode !== undefined) {
+            newNode.parentNode = node.parentNode;
+            newNode.data.parentNode = node.parentNode;
+        }
+
+        const newEdge = {
+            id: deriveUniqueId(node.id + newID),
+            sourceHandle: `${node.id}-0`,
+            targetHandle: `${newID}-0`,
+            source: node.id,
+            target: newID,
+            type: 'main',
+            animated: false,
+            data: {},
+            zIndex: node.zIndex - 1,
+        };
+        return [newID, newNode, newEdge];
+    };
+
+    const edgesToRemove = [];
+    const nodesToRemove = [];
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:pytorch:convert_to_onnx') {
+            const connectedEdges = getConnectedEdges([node], data.edges);
+            const nameInputEdge = connectedEdges.find((edge) => {
+                return edge.targetHandle === `${node.id}-2`;
+            });
+
+            const downstreamNodes = getOutgoers(node, data.nodes, data.edges);
+            downstreamNodes.forEach((downstreamNode) => {
+                if (downstreamNode.data.schemaId === 'chainner:onnx:load_model') {
+                    const edgesConnectedToLoad = getConnectedEdges([downstreamNode], data.edges);
+                    edgesConnectedToLoad.forEach((loadEdge) => {
+                        if (loadEdge.target === downstreamNode.id) {
+                            edgesToRemove.push(loadEdge);
+                        } else if (loadEdge.sourceHandle === `${downstreamNode.id}-0`) {
+                            loadEdge.source = node.id;
+                            loadEdge.sourceHandle = `${node.id}-0`;
+                        } else if (loadEdge.sourceHandle === `${downstreamNode.id}-1`) {
+                            data.nodes.forEach((modelNameAsInputNode) => {
+                                if (loadEdge.target === modelNameAsInputNode.id) {
+                                    const inputDataIndex = loadEdge.targetHandle
+                                        .split('-')
+                                        .slice(-1)[0];
+                                    // eslint-disable-next-line prefer-destructuring
+                                    modelNameAsInputNode.data.inputData[inputDataIndex] =
+                                        node.data.inputData[2];
+
+                                    if (nameInputEdge !== undefined) {
+                                        const newNameInputEdge = { ...nameInputEdge };
+                                        newNameInputEdge.target = modelNameAsInputNode.id;
+                                        newNameInputEdge.targetHandle = `${modelNameAsInputNode.id}-${inputDataIndex}`;
+                                        newNameInputEdge.id = deriveUniqueId(
+                                            newNameInputEdge.targetHandle
+                                        );
+                                        data.edges.push(newNameInputEdge);
+                                    }
+                                }
+                            });
+                            edgesToRemove.push(loadEdge);
+                        }
+                    });
+
+                    nodesToRemove.push(downstreamNode);
+                }
+            });
+
+            // Create new save model node for convert node to connect to
+            const directory = node.data.inputData[1];
+            const modelName = node.data.inputData[2];
+            const [saveID, saveNode, saveEdge] = createOnnxSaveNode(node, directory, modelName);
+            data.nodes.push(saveNode);
+            data.edges.push(saveEdge);
+            if (nameInputEdge !== undefined) {
+                nameInputEdge.target = saveID;
+                nameInputEdge.targetHandle = `${saveID}-2`;
+            }
+        }
+    });
+
+    // Delete edges connecting convert to load model
+    edgesToRemove.forEach((edgeToRemove) => {
+        data.edges.splice(data.edges.indexOf(edgeToRemove), 1);
+    });
+    // Delete load model nodes
+    nodesToRemove.forEach((nodeToRemove) => {
+        data.nodes.splice(data.nodes.indexOf(nodeToRemove), 1);
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -578,6 +690,7 @@ const migrations = [
     updateRotateNode,
     addOpacityNode,
     fixDropDownNumberValues,
+    onnxConvertUpdate,
 ];
 
 export const currentMigration = migrations.length;

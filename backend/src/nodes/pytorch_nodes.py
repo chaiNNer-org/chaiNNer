@@ -520,9 +520,7 @@ class ConvertTorchToONNXNode(NodeBase):
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
-        import time
 
-        start = time.time()
         with io.BytesIO() as f:
             torch.onnx.export(
                 model,
@@ -534,7 +532,6 @@ class ConvertTorchToONNXNode(NodeBase):
                 output_names=["output"],
                 dynamic_axes=dynamic_axes,
             )
-            logger.info(time.time() - start)
             f.seek(0)
             onnx_model_bytes = f.read()
 
