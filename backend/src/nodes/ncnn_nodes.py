@@ -20,6 +20,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
+from .utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:ncnn:load_model")
@@ -138,12 +139,18 @@ class NcnnUpscaleImageNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
-        self.inputs = [NcnnNetInput(), ImageInput()]
+        self.inputs = [
+            NcnnNetInput(),
+            ImageInput(),
+            NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
+        ]
         self.outputs = [ImageOutput()]
         self.category = NCNN
         self.name = "Upscale Image"
         self.icon = "NCNN"
         self.sub = "Processing"
+
+        self.split_factor = None
 
     def upscale(self, img: np.ndarray, net: tuple, input_name: str, output_name: str):
         # Try/except block to catch errors
@@ -158,6 +165,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 output_name=output_name,
                 blob_vkallocator=blob_vkallocator,
                 staging_vkallocator=staging_vkallocator,
+                max_depth=self.split_factor,
             )
             # blob_vkallocator.clear() # this slows stuff down
             # staging_vkallocator.clear() # as does this
@@ -168,8 +176,19 @@ class NcnnUpscaleImageNode(NodeBase):
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(self, net_tuple: tuple, img: np.ndarray) -> np.ndarray:
-        c = img.shape[2] if len(img.shape) > 2 else 1
+    def run(
+        self, net_tuple: tuple, img: np.ndarray, tile_size_target: int
+    ) -> np.ndarray:
+        h, w, c = get_h_w_c(img)
+
+        if tile_size_target > 0:
+            # Calculate split factor using a tile size target
+            # Example: w == 1280, tile_size_target == 512
+            # 1280 / 512 = 2.5, ceil makes that 3, so split_factor == 3
+            # This effectively makes the tile size for the image 426
+            w_split_factor = int(np.ceil(w / tile_size_target))
+            h_split_factor = int(np.ceil(h / tile_size_target))
+            self.split_factor = max(w_split_factor, h_split_factor, 1)
 
         param_path, bin_data, input_name, output_name = net_tuple
 
@@ -296,7 +315,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         interp_50 = self.perform_interp(bin_a, bin_b, 50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
         new_net_tuple = (param_path_a, interp_50, input_name_a, output_name_a)
-        result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img)
+        result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img, 0)
         del interp_50, new_net_tuple
 
         mean_color = np.mean(result)
