@@ -61,7 +61,6 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
-                    kind={props.kind}
                     optional={props.optional}
                     type={props.type}
                 >
@@ -77,7 +76,6 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
             id={props.id}
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
-            kind={props.kind}
             label={props.label}
             optional={props.optional}
             type={props.type}
