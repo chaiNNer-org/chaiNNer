@@ -100,7 +100,7 @@ const InputContainer = memo(
         const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const handleColors = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
+        const handleColors = getTypeAccentColors(type, typeDefinitions, isDarkMode);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {

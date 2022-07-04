@@ -94,7 +94,7 @@ const OutputContainer = memo(
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode); // useColorModeValue('#EDF2F7', '#171923');
+        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (
