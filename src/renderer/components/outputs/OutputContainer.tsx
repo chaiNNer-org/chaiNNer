@@ -80,10 +80,10 @@ const OutputContainer = memo(
                 return false;
             }
             const connectionIsValid = isValidConnection({
-                source: connectingFrom.nodeId,
-                sourceHandle: connectingFrom.handleId,
-                target: id,
-                targetHandle: `${id}-${outputId}`,
+                source: id,
+                sourceHandle: `${id}-${outputId}`,
+                target: connectingFrom.nodeId,
+                targetHandle: connectingFrom.handleId,
             });
             if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
                 return true;
@@ -98,9 +98,7 @@ const OutputContainer = memo(
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (
-                <HStack
-                    h="full"
-                >
+                <HStack h="full">
                     {children}
                     <Center
                         position="absolute"
