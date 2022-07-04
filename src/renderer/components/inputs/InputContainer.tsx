@@ -75,7 +75,6 @@ const InputContainer = memo(
                 return true;
             }
             // If the connecting from node is the same as the node we're connecting to
-            console.log(connectingFrom.nodeId, id);
             if (connectingFrom.nodeId === id) {
                 return false;
             }
