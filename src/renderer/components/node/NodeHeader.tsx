@@ -25,7 +25,7 @@ const NodeHeader = memo(
     ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => {
         const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
         const bgColor = useColorModeValue(gray300, gray700);
-        const iconAltColor = useColorModeValue('gray.600', 'gray.400');
+        const iconAltColor = useColorModeValue('gray.800', 'gray.200');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor; // interpolateColor(accentColor, bgColor, 0.95);
         return (
