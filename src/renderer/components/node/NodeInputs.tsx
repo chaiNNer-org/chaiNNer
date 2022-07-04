@@ -57,10 +57,13 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
         case 'generic':
             return (
                 <InputContainer
+                    def={props.def}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
+                    kind={props.kind}
+                    optional={props.optional}
                     type={props.type}
                 >
                     <GenericInput {...props} />
@@ -71,11 +74,14 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
     }
     return (
         <InputContainer
+            def={props.def}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
+            kind={props.kind}
             label={props.label}
+            optional={props.optional}
             type={props.type}
         >
             <InputType {...props} />
@@ -120,6 +126,7 @@ const NodeInputs = memo(
                         schemaId,
                         type: functions.get(input.id)!,
                         accentColor,
+                        optional: input.optional,
                     };
                     return pickInput(input.kind, props);
                 })}

@@ -2,7 +2,7 @@ import { Box, Center, HStack, Text, chakra, useColorModeValue, useToken } from '
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeData } from '../../../common/common-types';
+import { InputKind, InputSchemaValue, NodeData } from '../../../common/common-types';
 import { intersect } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
@@ -17,6 +17,9 @@ interface InputContainerProps {
     label?: string;
     hasHandle: boolean;
     type: Type;
+    optional: boolean;
+    def?: InputSchemaValue;
+    kind: InputKind;
 }
 
 interface LeftHandleProps {
@@ -52,6 +55,9 @@ const InputContainer = memo(
         inputId,
         label,
         type,
+        optional,
+        def,
+        kind,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -206,16 +212,38 @@ const InputContainer = memo(
                 p={2}
                 w="full"
             >
-                <Text
-                    display={label ? 'block' : 'none'}
-                    fontSize="xs"
+                <Center
                     mt={-1}
                     p={1}
-                    pt={-1}
-                    textAlign="center"
+                    pt={-2}
+                    w="full"
                 >
-                    {label}
-                </Text>
+                    <Text
+                        display={label ? 'block' : 'none'}
+                        fontSize="xs"
+                        textAlign="center"
+                    >
+                        {label}
+                    </Text>
+                    <Text
+                        color="red.500"
+                        display={
+                            label &&
+                            !optional &&
+                            !(def && def !== 0 && def !== '') &&
+                            kind !== 'dropdown' &&
+                            kind !== 'number' &&
+                            kind !== 'slider'
+                                ? 'block'
+                                : 'none'
+                        }
+                        fontSize="xs"
+                        ml={1}
+                        textAlign="left"
+                    >
+                        *
+                    </Text>
+                </Center>
                 {contents}
             </Box>
         );
