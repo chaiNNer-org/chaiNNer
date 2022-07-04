@@ -45,9 +45,15 @@ def ncnn_auto_split_process(
     #     gc.collect()
     #     raise RuntimeError("Upscaling killed mid-processing")
 
+    logger.debug(
+        f"auto_split_process: overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
+    )
+
+    logger.info(f"{max_depth=} {current_depth=}")
+
     # Prevent splitting from causing an infinite out-of-vram loop
     if current_depth > 15:
-        ncnn.destroy_gpu_instance()
+        # ncnn.destroy_gpu_instance()
         gc.collect()
         raise RuntimeError("Splitting stopped to prevent infinite loop")
 
@@ -72,15 +78,19 @@ def ncnn_auto_split_process(
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
             result = np.array(mat_out).transpose(1, 2, 0).astype(np.float32)
+            if blob_vkallocator is not None and staging_vkallocator is not None:
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
             del ex, mat_in, mat_out
             # # Clear VRAM
-            # blob_vkallocator.clear()
-            # staging_vkallocator.clear()
             return result.copy(), current_depth
         except Exception as e:
             # Check to see if its actually the NCNN out of memory error
             if "failed" in str(e):
                 # clear VRAM
+                logger.info(
+                    f"NCNN out of VRAM, clearing VRAM and splitting. Current depth: {current_depth}"
+                )
                 if blob_vkallocator is not None and staging_vkallocator is not None:
                     blob_vkallocator.clear()
                     staging_vkallocator.clear()
