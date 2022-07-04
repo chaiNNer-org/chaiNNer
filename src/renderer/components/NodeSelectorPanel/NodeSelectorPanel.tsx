@@ -79,7 +79,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.100', 'gray.800')}
+                bg={useColorModeValue('gray.200', 'gray.800')}
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"

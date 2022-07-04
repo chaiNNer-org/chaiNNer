@@ -20,10 +20,7 @@ from .utils.utils import get_h_w_c, np2nptensor, nptensor2np
 
 @NodeFactory.register("chainner:onnx:load_model")
 class OnnxLoadModelNode(NodeBase):
-    """ONNX Load Model node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             """Load ONNX model file (.onnx). Theoretically supports any ONNX model."""
@@ -81,10 +78,7 @@ class OnnxSaveModelNode(NodeBase):
 
 @NodeFactory.register("chainner:onnx:upscale_image")
 class OnnxImageUpscaleNode(NodeBase):
-    """Image Upscale node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Upscales an image using an ONNX Super-Resolution model. \
             ONNX does not support automatic out-of-memory handling via automatic tiling. \
@@ -200,10 +194,7 @@ class OnnxImageUpscaleNode(NodeBase):
 # TODO: No point of this node for now
 # @NodeFactory.register("chainner:onnx:save_model")
 class OnnxSaveNode(NodeBase):
-    """Model Save node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Save an ONNX model to specified directory."
         self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]

@@ -55,12 +55,12 @@ class SPSRNet(nn.Module):
 
         self.num_blocks = self.get_num_blocks()
 
-        self.in_nc = self.state["model.0.weight"].shape[1]
-        self.out_nc = self.state["f_HR_conv1.0.bias"].shape[0]
+        self.in_nc: int = self.state["model.0.weight"].shape[1]
+        self.out_nc: int = self.state["f_HR_conv1.0.bias"].shape[0]
 
         self.scale = self.get_scale(4)
         print(self.scale)
-        self.num_filters = self.state["model.0.weight"].shape[0]
+        self.num_filters: int = self.state["model.0.weight"].shape[0]
 
         n_upscale = int(math.log(self.scale, 2))
         if self.scale == 3:

@@ -16,10 +16,7 @@ from .properties.outputs import *
 
 @NodeFactory.register("chainner:utility:note")
 class NoteNode(NodeBase):
-    """Sticky note node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Make a sticky note for whatever notes or comments you want to leave in the chain."
         self.inputs = [
@@ -38,10 +35,7 @@ class NoteNode(NodeBase):
 
 @NodeFactory.register("chainner:utility:math")
 class MathNode(NodeBase):
-    """Math node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
         self.inputs = [
@@ -91,10 +85,7 @@ class MathNode(NodeBase):
 
 @NodeFactory.register("chainner:utility:text_append")
 class TextAppendNode(NodeBase):
-    """Text Append node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Append different text together using a separator string."
         self.inputs = [
@@ -131,7 +122,7 @@ class TextPatternNode(NodeBase):
         super().__init__()
         self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
         self.inputs = [
-            TextInput("Pattern", has_handle=False),
+            TextInput("Pattern", has_handle=False, placeholder="E.g. \"{1} and {2}\""),
             TextInput("{1}", allow_numbers=True).make_optional(),
             TextInput("{2}", allow_numbers=True).make_optional(),
             TextInput("{3}", allow_numbers=True).make_optional(),

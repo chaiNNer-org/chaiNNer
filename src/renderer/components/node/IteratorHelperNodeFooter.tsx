@@ -10,9 +10,7 @@ interface NodeFooterProps {
 const NodeFooter = memo(({ validity }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
-    // const invalidShade = useColorModeValue('red.200', 'red.900');
     const invalidShade = useColorModeValue('red.400', 'red.600');
-    // const iconShade = useColorModeValue('gray.400', 'gray.800');
 
     return (
         <Flex
@@ -43,7 +41,6 @@ const NodeFooter = memo(({ validity }: NodeFooterProps) => {
                     />
                     <Icon
                         as={validity.isValid ? CheckCircleIcon : WarningIcon}
-                        // color={useColorModeValue('gray.400', 'gray.800')}
                         color={validity.isValid ? iconShade : invalidShade}
                         cursor="default"
                     />

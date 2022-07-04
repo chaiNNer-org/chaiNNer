@@ -259,6 +259,9 @@ export function union(
 export function union(
     ...types: (StringPrimitive | UnionType<StringPrimitive> | NeverType)[]
 ): StringPrimitive | UnionType<StringPrimitive> | NeverType;
+export function union(
+    ...types: (ValueType | UnionType<ValueType> | NeverType)[]
+): ValueType | UnionType<ValueType> | NeverType;
 export function union(...types: Type[]): Type;
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
 export function union(...types: Type[]): Type {

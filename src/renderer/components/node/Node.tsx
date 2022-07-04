@@ -7,10 +7,10 @@ import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import shadeColor from '../../helpers/shadeColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import NodeBody from './NodeBody';
@@ -60,7 +60,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
+    const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
@@ -132,15 +132,21 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
+    const bgColor = useColorModeValue('gray.400', 'gray.750');
+    const shadowColor = useColorModeValue('gray.600', 'gray.900');
+
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.700')}
+            bg={bgColor}
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
-            boxShadow="lg"
+            boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
+                selected ? 12 : 8
+            }px ${shadowColor}8F`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
-            py={2}
+            overflow="hidden"
+            pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}

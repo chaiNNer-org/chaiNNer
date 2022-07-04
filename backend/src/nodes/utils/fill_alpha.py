@@ -10,7 +10,6 @@ from .utils import get_h_w_c
 
 class ImageAverage:
     def __init__(self):
-        """Constructor"""
         self.total = None
         self.count = 0
 

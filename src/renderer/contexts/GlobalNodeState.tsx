@@ -5,10 +5,12 @@ import {
     Connection,
     Edge,
     Node,
+    OnConnectStartParams,
     Viewport,
     XYPosition,
     getOutgoers,
     useReactFlow,
+    useViewport,
 } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
@@ -66,6 +68,8 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
+    useConnectingFromType: [Type | null, SetState<Type | null>];
+    useConnectingFrom: [OnConnectStartParams | null, SetState<OnConnectStartParams | null>];
 }
 interface Global {
     schemata: SchemaMap;
@@ -220,6 +224,8 @@ export const GlobalProvider = memo(
             setEdges: rfSetEdges,
         } = useReactFlow<NodeData, EdgeData>();
 
+        const currentViewport = useViewport();
+
         const [setNodes, setSetNodes] = useState(() => rfSetNodes);
         const [setEdges, setSetEdges] = useState(() => rfSetEdges);
 
@@ -285,10 +291,15 @@ export const GlobalProvider = memo(
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedNodes', JSON.stringify(getNodes()));
                 sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
-                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges]);
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
+            }, 100);
+            return () => clearTimeout(timerId);
+        }, Object.values(currentViewport));
         useEffect(() => {
             const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
             const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
@@ -385,7 +396,7 @@ export const GlobalProvider = memo(
                 edges: getEdges(),
                 viewport: getViewport(),
             };
-        }, [getNodes, getEdges]);
+        }, [getNodes, getEdges, getViewport]);
 
         const setStateFromJSON = useCallback(
             async (savedData: ParsedSaveData, path: string, loadPosition = false) => {
@@ -932,6 +943,9 @@ export const GlobalProvider = memo(
 
         const [zoom, setZoom] = useState(1);
 
+        const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+        const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
+
         // eslint-disable-next-line react/jsx-no-constructed-context-values
         let globalChainValue: GlobalVolatile = {
             nodeChanges,
@@ -944,6 +958,14 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            useConnectingFromType: useMemo(
+                () => [connectingFromType, setConnectingFromType],
+                [connectingFromType, setConnectingFromType]
+            ),
+            useConnectingFrom: useMemo(
+                () => [connectingFrom, setConnectingFrom],
+                [connectingFrom, setConnectingFrom]
+            ),
         };
         globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
 

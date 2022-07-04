@@ -24,10 +24,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:blend")
 class ImBlend(NodeBase):
-    """Blending mode node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Blends overlay image onto base image using
             specified mode."""
@@ -118,7 +115,6 @@ class StackNode(NodeBase):
     """OpenCV concatenate (h/v) Node"""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Concatenate multiple images horizontally."
         self.inputs = [
@@ -215,10 +211,7 @@ class StackNode(NodeBase):
 
 @NodeFactory.register("chainner:image:caption")
 class CaptionNode(NodeBase):
-    """Caption node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Add a caption to an image."
         self.inputs = [
@@ -239,10 +232,7 @@ class CaptionNode(NodeBase):
 
 @NodeFactory.register("chainner:image:change_colorspace")
 class ColorConvertNode(NodeBase):
-    """OpenCV color conversion node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             "Convert the colorspace of an image to a different one. "
@@ -275,10 +265,7 @@ class ColorConvertNode(NodeBase):
 
 @NodeFactory.register("chainner:image:create_border")
 class BorderMakeNode(NodeBase):
-    """OpenCV CopyMakeBorder node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Creates a border around the image."
         self.inputs = [
@@ -337,10 +324,7 @@ class BorderMakeNode(NodeBase):
 
 @NodeFactory.register("chainner:image:shift")
 class ShiftNode(NodeBase):
-    """OpenCV Shift Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Shift an image by an x, y amount."
         self.inputs = [
@@ -367,10 +351,7 @@ class ShiftNode(NodeBase):
 
 @NodeFactory.register("chainner:image:rotate")
 class RotateNode(NodeBase):
-    """Rotate node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Rotate an image."
         self.inputs = [
@@ -409,10 +390,7 @@ class RotateNode(NodeBase):
 
 @NodeFactory.register("chainner:image:flip")
 class FlipNode(NodeBase):
-    """Flip node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Flip an image."
         self.inputs = [
@@ -448,7 +426,6 @@ class ImageMetricsNode(NodeBase):
     """Calculate image quality metrics of modified image."""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = (
             """Calculate image quality metrics (MSE, PSNR, SSIM) between two images."""

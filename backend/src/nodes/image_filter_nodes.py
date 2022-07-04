@@ -20,10 +20,7 @@ from .utils.utils import get_h_w_c
 
 @NodeFactory.register("chainner:image:blur")
 class BlurNode(NodeBase):
-    """OpenCV Blur Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Apply box/average blur to an image"
         self.inputs = [
@@ -71,10 +68,7 @@ class BlurNode(NodeBase):
 
 @NodeFactory.register("chainner:image:gaussian_blur")
 class GaussianBlurNode(NodeBase):
-    """OpenCV Gaussian Blur Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
@@ -106,10 +100,7 @@ class GaussianBlurNode(NodeBase):
 
 @NodeFactory.register("chainner:image:median_blur")
 class MedianBlurNode(NodeBase):
-    """Median Blur Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Apply median blur to an image"
         self.inputs = [
@@ -143,10 +134,7 @@ class MedianBlurNode(NodeBase):
 
 @NodeFactory.register("chainner:image:sharpen")
 class SharpenNode(NodeBase):
-    """OpenCV Sharpen Node"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = "Apply sharpening to an image"
         self.inputs = [
@@ -177,7 +165,6 @@ class AverageColorFixNode(NodeBase):
     """Fixes the average color of an upscaled image"""
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Correct for upscaling model color shift by matching
          average color of Input Image to that of a smaller Reference Image.
@@ -275,7 +262,6 @@ class ColorTransferNode(NodeBase):
     """
 
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Transfers colors from reference image.
             Different combinations of settings may perform better for
@@ -332,10 +318,7 @@ class ColorTransferNode(NodeBase):
 
 @NodeFactory.register("chainner:image:normalize_normal_map")
 class NormalizeNode(NodeBase):
-    """Normalize normal map"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Normalizes the given normal map.
             Only the R and G channels of the input image will be used."""
@@ -371,10 +354,7 @@ class NormalizeNode(NodeBase):
 
 @NodeFactory.register("chainner:image:add_normals")
 class NormalAdditionNode(NodeBase):
-    """Add two normal maps together"""
-
     def __init__(self):
-        """Constructor"""
         super().__init__()
         self.description = """Add 2 normal maps together. Only the R and G
             channels of the input image will be used. The output normal map

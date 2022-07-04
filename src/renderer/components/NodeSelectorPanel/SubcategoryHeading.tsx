@@ -22,7 +22,6 @@ const SubcategoryHeading = memo(({ subcategory, collapsed = false }: Subcategory
                         color="#71809699"
                         fontSize="sm"
                         py={0.5}
-                        // w="auto"
                         whiteSpace="nowrap"
                     >
                         {subcategory}
