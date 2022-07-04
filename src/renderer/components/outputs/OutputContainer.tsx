@@ -102,12 +102,9 @@ const OutputContainer = memo(
                     h="full"
                     sx={{
                         '.react-flow__handle-connecting': {
-                            // background: '#E53E3E !important',
                             opacity: showHandle ? 1 : 0,
                         },
-                        '.react-flow__handle-valid': {
-                            // background: '#38A169 !important',
-                        },
+                        '.react-flow__handle-valid': {},
                     }}
                 >
                     {children}
@@ -124,7 +121,6 @@ const OutputContainer = memo(
                                 height: '45px',
                                 width: '45px',
                                 cursor: 'crosshair',
-                                // backgroundColor: '#FF00FF1F',
                                 transform: 'translate(-50%, -50%)',
                                 borderRadius: '100%',
                             }}
@@ -157,8 +153,7 @@ const OutputContainer = memo(
             );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const [gray300, gray700]: string[] = useToken('colors', ['gray.300', 'gray.700']);
+        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
 
         const bgColor = useColorModeValue(gray300, gray700);
 

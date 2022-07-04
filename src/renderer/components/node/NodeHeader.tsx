@@ -23,8 +23,7 @@ interface NodeHeaderProps {
 
 const NodeHeader = memo(
     ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const [gray300, gray700]: string[] = useToken('colors', ['gray.300', 'gray.700']);
+        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
         const bgColor = useColorModeValue(gray300, gray700);
         const iconAltColor = useColorModeValue('gray.600', 'gray.400');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);

@@ -132,15 +132,14 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const [gray400, gray700, gray900, gray600]: string[] = useToken('colors', [
+    const [gray400, gray750, gray900, gray600] = useToken('colors', [
         'gray.400',
         'gray.750',
         'gray.900',
         'gray.600',
-    ]);
+    ]) as string[];
 
-    const bgColor = useColorModeValue(gray400, gray700);
+    const bgColor = useColorModeValue(gray400, gray750);
     const shadowColor = useColorModeValue(gray600, gray900);
 
     return (
