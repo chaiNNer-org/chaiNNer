@@ -57,7 +57,6 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
         case 'generic':
             return (
                 <InputContainer
-                    def={props.def}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
@@ -74,7 +73,6 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
     }
     return (
         <InputContainer
-            def={props.def}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
