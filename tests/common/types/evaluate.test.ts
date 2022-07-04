@@ -6,8 +6,19 @@ import {
     IntersectionExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
+import { isSubsetOf } from '../../../src/common/types/relation';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
-import { NumberType } from '../../../src/common/types/types';
+import {
+    AnyType,
+    NeverType,
+    NumberType,
+    PrimitiveType,
+    StringType,
+    Type,
+    UnionType,
+} from '../../../src/common/types/types';
+import { union } from '../../../src/common/types/union';
+import { without } from '../../../src/common/types/without';
 import {
     expressions,
     numbers,
@@ -104,6 +115,70 @@ describe('intersection', () => {
                             c,
                         ])
                     );
+                }
+            }
+        }
+    });
+});
+
+describe('without', () => {
+    const primitives: (PrimitiveType | NeverType | AnyType | UnionType<PrimitiveType>)[] = [];
+    for (const t of types) {
+        if (
+            t.underlying === 'any' ||
+            t.underlying === 'never' ||
+            t.underlying === 'number' ||
+            t.underlying === 'string'
+        ) {
+            primitives.push(t);
+        } else if (
+            t.underlying === 'union' &&
+            t.items.every((i) => i.underlying === 'string' || i.underlying === 'number')
+        ) {
+            primitives.push(t as UnionType<PrimitiveType>);
+        }
+    }
+
+    test('evaluation', () => {
+        const isNumberType = (t: Type) => t.type !== 'never' && isSubsetOf(t, NumberType.instance);
+        const isStringType = (t: Type) => t.type !== 'never' && isSubsetOf(t, StringType.instance);
+        const actual = orderedPairs(primitives)
+            .filter(
+                ([a, b]) =>
+                    !((isNumberType(a) && isStringType(b)) || (isStringType(a) && isNumberType(b)))
+            )
+            .map(([a, b]) => {
+                let result;
+                try {
+                    result = without(a, b).toString();
+                } catch (error) {
+                    result = String(error);
+                }
+                return `${a.toString()} \\ ${b.toString()} => ${result}`;
+            })
+            .join('\n');
+        expect(actual).toMatchSnapshot();
+    });
+
+    test('A \\ A = never', () => {
+        for (const a of primitives) {
+            for (const b of primitives) {
+                const u = union(a, b);
+                const actual = without(u, u as never);
+                if (actual.type !== 'never') {
+                    const prefix = `A = ${u.toString()}\nA \\ A = `;
+                    expect(prefix + actual.toString()).toBe(`${prefix}never`);
+                }
+            }
+        }
+    });
+    test('((a | b) \\ a) \\ b = never', () => {
+        for (const a of primitives) {
+            for (const b of primitives) {
+                const actual = without(without(union(a, b), a), b);
+                if (actual.type !== 'never') {
+                    const prefix = `a = ${a.toString()}\nb = ${b.toString()}\n((a | b) \\ a) \\ b = `;
+                    expect(prefix + actual.toString()).toBe(`${prefix}never`);
                 }
             }
         }
