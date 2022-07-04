@@ -1,4 +1,4 @@
-import { Box, Center, HStack, chakra, useColorModeValue, useToken } from '@chakra-ui/react';
+import { Box, Center, HStack, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -153,14 +153,10 @@ const OutputContainer = memo(
             );
         }
 
-        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
-
-        const bgColor = useColorModeValue(gray300, gray700);
+        const bgColor = useColorModeValue('gray.300', 'gray.700');
 
         return (
             <Box
-                // bg={useColorModeValue('gray.200', 'gray.600')}
-                // bg={interpolateColor(accentColor, bgColor, 0.95)}
                 bg={bgColor}
                 p={2}
                 w="full"
