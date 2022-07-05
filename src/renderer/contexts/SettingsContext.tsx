@@ -25,6 +25,7 @@ interface Settings {
         readonly SchemaId[],
         React.Dispatch<React.SetStateAction<readonly SchemaId[]>>
     ];
+    useNodeSelectorCollapsed: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Port
     port: number;
@@ -58,6 +59,9 @@ export const SettingsProvider = memo(
         const useNodeFavorites = useMemoArray(
             useLocalStorage<readonly SchemaId[]>('node-favorites', [])
         );
+        const useNodeSelectorCollapsed = useMemoArray(
+            useLocalStorage('node-selector-collapsed', false)
+        );
 
         const contextValue = useMemoObject<Settings>({
             // Globals
@@ -72,6 +76,7 @@ export const SettingsProvider = memo(
 
             // Node
             useNodeFavorites,
+            useNodeSelectorCollapsed,
 
             // Port
             port,
