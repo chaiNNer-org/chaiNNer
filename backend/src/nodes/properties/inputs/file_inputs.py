@@ -64,7 +64,17 @@ def VideoFileInput() -> FileInput:
         input_type="VideoFile",
         label="Video File",
         file_kind="video",
-        filetypes=[".mp1", ".mp2", ".mp4", ".h264", ".hevc", ".webm", ".av1", "avi", ".gif"],
+        filetypes=[
+            ".mp1",
+            ".mp2",
+            ".mp4",
+            ".h264",
+            ".hevc",
+            ".webm",
+            ".av1",
+            "avi",
+            ".gif",
+        ],
         has_handle=False,
     )
 
@@ -157,5 +167,4 @@ def OnnxFileInput() -> FileInput:
         label="ONNX Model File",
         file_kind="onnx",
         filetypes=[".onnx"],
-        has_handle=True,
     )
