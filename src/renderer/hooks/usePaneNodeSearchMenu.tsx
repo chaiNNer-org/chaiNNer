@@ -41,12 +41,16 @@ interface Position {
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
-    const { createNode, createConnection, typeState } = useContext(GlobalVolatileContext);
+    const { createNode, createConnection, typeState, useConnectingFromType, useConnectingFrom } =
+        useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions } = useContext(GlobalContext);
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
+    const [, setGlobalConnectingFromType] = useConnectingFromType;
+    const [, setGlobalConnectingFrom] = useConnectingFrom;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+
     const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
@@ -95,7 +99,8 @@ export const usePaneNodeSearchMenu = (
                         });
                     }
                     case 'target': {
-                        const sourceFn = typeState.functions.get(connectingFrom.nodeId);
+                        const sourceNode = getNode(connectingFrom.nodeId) as Node<NodeData>;
+                        const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
 
                         if (!sourceFn) {
                             return false;
@@ -356,6 +361,7 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.outputDefaults.get(inOutId);
                         setConnectingFromType(sourceType ?? null);
+                        setGlobalConnectingFromType(sourceType ?? null);
                         break;
                     }
                     case 'target': {
@@ -363,6 +369,7 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.inputs.get(inOutId);
                         setConnectingFromType(targetType ?? null);
+                        setGlobalConnectingFromType(targetType ?? null);
                         break;
                     }
                     default:
@@ -380,6 +387,7 @@ export const usePaneNodeSearchMenu = (
             });
             setIsStoppedOnPane(false);
             setConnectingFrom(handle);
+            setGlobalConnectingFrom(handle);
         },
         [setConnectingFrom, setIsStoppedOnPane]
     );
@@ -401,6 +409,8 @@ export const usePaneNodeSearchMenu = (
                 x: event.pageX,
                 y: event.pageY,
             });
+            setGlobalConnectingFromType(null);
+            setGlobalConnectingFrom(null);
         },
         [setCoordinates, setIsStoppedOnPane]
     );

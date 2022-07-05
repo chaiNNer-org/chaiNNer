@@ -7,6 +7,7 @@ module.exports = {
         '@typescript-eslint',
         'prefer-arrow-functions',
         'eslint-plugin-react-memo',
+        'unused-imports',
     ],
     globals: {
         MAIN_WINDOW_WEBPACK_ENTRY: true,
@@ -59,6 +60,7 @@ module.exports = {
         ],
         'react/function-component-definition': 'off',
         'react-memo/require-memo': ['error', { strict: true }],
+        'unused-imports/no-unused-imports': 'error',
     },
     settings: {
         'import/core-modules': ['electron'],
@@ -85,6 +87,7 @@ module.exports = {
                 'eslint-comments',
                 'eslint-plugin-react-memo',
                 'react-hooks',
+                'unused-imports',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -124,6 +127,7 @@ module.exports = {
                 'react/function-component-definition': 'off',
                 'react-memo/require-memo': ['error', { strict: true }],
                 'react-hooks/rules-of-hooks': 'error',
+                'unused-imports/no-unused-imports': 'error',
             },
         },
     ],

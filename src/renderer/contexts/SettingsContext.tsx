@@ -1,7 +1,8 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
 interface Settings {
     // Global settings
@@ -17,12 +18,14 @@ interface Settings {
     ];
     useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useAnimateChain: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Node Settings
     useNodeFavorites: readonly [
         readonly SchemaId[],
         React.Dispatch<React.SetStateAction<readonly SchemaId[]>>
     ];
+    useNodeSelectorCollapsed: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Port
     port: number;
@@ -34,84 +37,50 @@ export const SettingsContext = createContext<Readonly<Settings>>({} as Settings)
 export const SettingsProvider = memo(
     ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
         // Global Settings
-        const [isCpu, setIsCpu] = useLocalStorage('is-cpu', false);
-        const [isFp16, setIsFp16] = useLocalStorage('is-fp16', false);
-        const [isSystemPython, setIsSystemPython] = useLocalStorage('use-system-python', false);
+        const useIsCpu = useMemoArray(useLocalStorage('is-cpu', false));
+        const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
+        const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
+        const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
+        const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
+        const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
+        const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
+
+        // Snap to grid
         const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
         const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
-        const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
-        const [startupTemplate, setStartupTemplate] = useLocalStorage('startup-template', '');
-        const [isDarkMode, setIsDarkMode] = useLocalStorage('use-dark-mode', true);
-
-        const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu, setIsCpu]);
-        const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16, setIsFp16]);
-        const useIsSystemPython = useMemo(
-            () => [isSystemPython, setIsSystemPython] as const,
-            [isSystemPython, setIsSystemPython]
-        );
-        const useSnapToGrid = useMemo(
-            () =>
-                [
-                    isSnapToGrid,
-                    setIsSnapToGrid,
-                    snapToGridAmount || 1,
-                    setSnapToGridAmount,
-                ] as const,
-            [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount]
-        );
-        const useDisHwAccel = useMemo(
-            () => [isDisHwAccel, setIsDisHwAccel] as const,
-            [isDisHwAccel, setIsDisHwAccel]
-        );
-        const useStartupTemplate = useMemo(
-            () => [startupTemplate, setStartupTemplate] as const,
-            [startupTemplate, setStartupTemplate]
-        );
-        const useIsDarkMode = useMemo(
-            () => [isDarkMode, setIsDarkMode] as const,
-            [isDarkMode, setIsDarkMode]
-        );
+        const useSnapToGrid = useMemoArray([
+            isSnapToGrid,
+            setIsSnapToGrid,
+            snapToGridAmount || 1,
+            setSnapToGridAmount,
+        ] as const);
 
         // Node Settings
-        const [favorites, setFavorites] = useLocalStorage<readonly SchemaId[]>(
-            'node-favorites',
-            []
+        const useNodeFavorites = useMemoArray(
+            useLocalStorage<readonly SchemaId[]>('node-favorites', [])
+        );
+        const useNodeSelectorCollapsed = useMemoArray(
+            useLocalStorage('node-selector-collapsed', false)
         );
 
-        const useNodeFavorites = useMemo(
-            () => [favorites, setFavorites] as const,
-            [favorites, setFavorites]
-        );
+        const contextValue = useMemoObject<Settings>({
+            // Globals
+            useIsCpu,
+            useIsFp16,
+            useIsSystemPython,
+            useSnapToGrid,
+            useDisHwAccel,
+            useStartupTemplate,
+            useIsDarkMode,
+            useAnimateChain,
 
-        const contextValue = useMemo<Readonly<Settings>>(
-            () => ({
-                // Globals
-                useIsCpu,
-                useIsFp16,
-                useIsSystemPython,
-                useSnapToGrid,
-                useDisHwAccel,
-                useStartupTemplate,
-                useIsDarkMode,
+            // Node
+            useNodeFavorites,
+            useNodeSelectorCollapsed,
 
-                // Node
-                useNodeFavorites,
-
-                // Port
-                port,
-            }),
-            [
-                useIsCpu,
-                useIsFp16,
-                useIsSystemPython,
-                useSnapToGrid,
-                useDisHwAccel,
-                useStartupTemplate,
-                useIsDarkMode,
-                useNodeFavorites,
-                port,
-            ]
-        );
+            // Port
+            port,
+        });
 
         return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
     }

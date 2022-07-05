@@ -25,6 +25,7 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { useMemoArray } from '../hooks/useMemo';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
@@ -166,6 +167,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
     const reactFlowInstance = useReactFlow();
@@ -301,9 +303,10 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
 
     return (
         <Box
-            bg={useColorModeValue('gray.100', 'gray.800')}
+            bg={useColorModeValue('gray.200', 'gray.800')}
             borderRadius="lg"
             borderWidth="0px"
+            className={animateChain ? '' : 'no-chain-animation'}
             h="100%"
             ref={wrapperRef}
             w="100%"
@@ -317,7 +320,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 minZoom={0.125}
                 nodeTypes={nodeTypes}
                 nodes={displayNodes}
-                snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+                snapGrid={useMemoArray<[number, number]>([snapToGridAmount, snapToGridAmount])}
                 snapToGrid={isSnapToGrid}
                 style={{
                     zIndex: 0,

@@ -2,6 +2,7 @@ import cv2
 
 # pylint: disable=relative-beyond-top-level
 from ...utils.pil_utils import InterpolationMethod
+from ...utils.tile_util import TileMode
 from .generic_inputs import DropDownInput
 from .. import expression
 
@@ -239,6 +240,23 @@ def AdaptiveMethodInput() -> DropDownInput:
             {
                 "option": "Gaussian - C",
                 "value": cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            },
+        ],
+    )
+
+
+def TileModeInput():
+    return DropDownInput(
+        input_type="TileMode",
+        label="Tile Mode",
+        options=[
+            {
+                "option": "Tile",
+                "value": TileMode.TILE,
+            },
+            {
+                "option": "Mirror",
+                "value": TileMode.MIRROR,
             },
         ],
     )

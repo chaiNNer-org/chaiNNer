@@ -9,6 +9,7 @@ import {
     InputSchemaValue,
     SchemaId,
 } from '../../../common/common-types';
+import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import DirectoryInput from '../inputs/DirectoryInput';
@@ -22,8 +23,9 @@ import SliderInput from '../inputs/SliderInput';
 import TextAreaInput from '../inputs/TextAreaInput';
 import TextInput from '../inputs/TextInput';
 
-interface FullInputProps extends Omit<Input, 'id'>, InputProps {
+interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
     accentColor: string;
+    definitionType: Type;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -55,10 +57,12 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
         case 'generic':
             return (
                 <InputContainer
+                    definitionType={props.definitionType}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
+                    optional={props.optional}
                 >
                     <GenericInput {...props} />
                 </InputContainer>
@@ -68,11 +72,13 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
     }
     return (
         <InputContainer
+            definitionType={props.definitionType}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
             label={props.label}
+            optional={props.optional}
         >
             <InputType {...props} />
         </InputContainer>
@@ -83,14 +89,15 @@ interface NodeInputsProps {
     inputs: readonly Input[];
     id: string;
     inputData: InputData;
-    accentColor: string;
     isLocked?: boolean;
     schemaId: SchemaId;
+    accentColor: string;
 }
 
 const NodeInputs = memo(
-    ({ inputs, id, inputData, accentColor, isLocked, schemaId }: NodeInputsProps) => {
-        const { useInputData: useInputDataContext } = useContext(GlobalContext);
+    ({ inputs, id, inputData, isLocked, schemaId, accentColor }: NodeInputsProps) => {
+        const { useInputData: useInputDataContext, functionDefinitions } =
+            useContext(GlobalContext);
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: number) =>
@@ -98,6 +105,8 @@ const NodeInputs = memo(
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]
         );
+
+        const functions = functionDefinitions.get(schemaId)!.inputs;
 
         return (
             <>
@@ -109,9 +118,11 @@ const NodeInputs = memo(
                         inputData,
                         useInputData,
                         kind: input.kind,
-                        accentColor,
                         isLocked: isLocked ?? false,
                         schemaId,
+                        definitionType: functions.get(input.id)!,
+                        accentColor,
+                        optional: input.optional,
                     };
                     return pickInput(input.kind, props);
                 })}

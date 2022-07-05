@@ -9,6 +9,10 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
+import { useContext } from 'use-context-selector';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { SettingsContext } from '../../contexts/SettingsContext';
+import getTypeAccentColors from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
@@ -21,7 +25,6 @@ interface SliderInputProps extends InputProps {
     sliderStep: number;
     def: number;
     unit?: string | null;
-    accentColor: string;
     ends: [string | null, string | null];
     noteExpression?: string;
     hideTrailingZeros: boolean;
@@ -52,10 +55,14 @@ const SliderInput = memo(
         unit,
         ends,
         noteExpression,
-        accentColor,
         hideTrailingZeros,
         isLocked,
+        definitionType,
     }: SliderInputProps) => {
+        const { typeDefinitions } = useContext(GlobalContext);
+        const { useIsDarkMode } = useContext(SettingsContext);
+        const [isDarkMode] = useIsDarkMode;
+
         const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
@@ -91,6 +98,8 @@ const SliderInput = memo(
             : undefined;
         const filled = !expr;
 
+        const [typeAccentColor] = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
+
         return (
             <VStack w="full">
                 <HStack w="full">
@@ -109,11 +118,11 @@ const SliderInput = memo(
                         onMouseLeave={() => setShowTooltip(false)}
                     >
                         <SliderTrack>
-                            {filled ? <SliderFilledTrack bg={accentColor} /> : <SliderTrack />}
+                            {filled ? <SliderFilledTrack bg={typeAccentColor} /> : <SliderTrack />}
                         </SliderTrack>
                         <Tooltip
                             hasArrow
-                            bg={accentColor}
+                            bg={typeAccentColor}
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}

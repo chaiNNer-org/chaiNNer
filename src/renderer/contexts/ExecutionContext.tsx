@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -15,6 +15,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
@@ -319,9 +320,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setStatus(ExecutionStatus.READY);
     };
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    let value = { run, pause, kill, status, isBackendKilled, setIsBackendKilled };
-    value = useMemo(() => value, Object.values(value));
+    const value = useMemoObject<ExecutionContextValue>({
+        run,
+        pause,
+        kill,
+        status,
+        isBackendKilled,
+        setIsBackendKilled,
+    });
 
     return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
 });

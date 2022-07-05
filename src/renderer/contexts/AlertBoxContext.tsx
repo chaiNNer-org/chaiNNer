@@ -16,6 +16,7 @@ import { app, clipboard } from 'electron';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext } from 'use-context-selector';
 import { assertNever, noop } from '../../common/util';
+import { useMemoObject } from '../hooks/useMemo';
 import { ContextMenuContext } from './ContextMenuContext';
 
 interface AlertBox {
@@ -209,9 +210,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         [toast]
     );
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    let value: AlertBox = { sendAlert, showAlert, sendToast };
-    value = useMemo(() => value, Object.values(value));
+    const value = useMemoObject<AlertBox>({ sendAlert, showAlert, sendToast });
 
     return (
         <AlertBoxContext.Provider value={value}>

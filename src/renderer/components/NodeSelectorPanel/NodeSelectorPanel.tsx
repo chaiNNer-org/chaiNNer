@@ -22,9 +22,10 @@ import {
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { SchemaMap } from '../../../common/SchemaMap';
 import { DependencyContext } from '../../contexts/DependencyContext';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import {
     getMatchingNodes,
     getNodesByCategory,
@@ -48,7 +49,10 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
     const matchingNodes = getMatchingNodes(searchQuery, schemata.schemata);
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
-    const [collapsed, setCollapsed] = useState<boolean>(false);
+    const [collapsed, setCollapsed] = useContextSelector(
+        SettingsContext,
+        (c) => c.useNodeSelectorCollapsed
+    );
 
     const { favorites } = useNodeFavorites();
     const favoriteNodes = useMemo(() => {
@@ -79,7 +83,7 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.100', 'gray.800')}
+                bg={useColorModeValue('gray.200', 'gray.800')}
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"

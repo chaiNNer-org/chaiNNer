@@ -7,10 +7,11 @@ import { InputProps } from './props';
 
 interface TextInputProps extends InputProps {
     maxLength?: number;
+    placeholder?: string;
 }
 
 const TextInput = memo(
-    ({ label, id, inputId, useInputData, isLocked, maxLength }: TextInputProps) => {
+    ({ label, id, inputId, useInputData, isLocked, maxLength, placeholder }: TextInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
             inputId
@@ -39,7 +40,7 @@ const TextInput = memo(
                 disabled={isLocked || isInputLocked}
                 draggable={false}
                 maxLength={maxLength}
-                placeholder={label}
+                placeholder={placeholder ?? label}
                 value={tempText}
                 onChange={(event) => {
                     setTempText(event.target.value);

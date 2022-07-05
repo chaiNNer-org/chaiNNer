@@ -4,6 +4,7 @@ Nodes that provide functionality for pytorch inference
 
 from __future__ import annotations
 
+from io import BytesIO
 import os
 from typing import Any, OrderedDict, Union
 
@@ -473,15 +474,15 @@ class ConvertTorchToONNXNode(NodeBase):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX.
             Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
-        self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
-        self.outputs = [OnnxFileOutput()]
+        self.inputs = [ModelInput("PyTorch Model")]
+        self.outputs = [OnnxModelOutput("ONNX Model")]
 
         self.category = PYTORCH
         self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: torch.nn.Module, directory: str, model_name: str) -> str:
+    def run(self, model: torch.nn.Module) -> bytes:
         model = model.eval()
         if os.environ["device"] == "cuda":
             model = model.cuda()
@@ -494,20 +495,21 @@ class ConvertTorchToONNXNode(NodeBase):
         if os.environ["device"] == "cuda":
             dummy_input = dummy_input.cuda()
 
-        out_filepath = os.path.join(directory, f"{model_name}.onnx")
+        with BytesIO() as f:
+            torch.onnx.export(
+                model,
+                dummy_input,
+                f,
+                opset_version=14,
+                verbose=False,
+                input_names=["data"],
+                output_names=["output"],
+                dynamic_axes=dynamic_axes,
+            )
+            f.seek(0)
+            onnx_model_bytes = f.read()
 
-        torch.onnx.export(
-            model,
-            dummy_input,
-            out_filepath,
-            opset_version=14,
-            verbose=False,
-            input_names=["data"],
-            output_names=["output"],
-            dynamic_axes=dynamic_axes,
-        )
-
-        return out_filepath
+        return onnx_model_bytes
 
 
 @NodeFactory.register("chainner:pytorch:model_dim")

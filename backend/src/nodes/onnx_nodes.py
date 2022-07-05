@@ -34,7 +34,7 @@ class OnnxLoadModelNode(NodeBase):
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Tuple[ort.InferenceSession, str]:
+    def run(self, path: str) -> Tuple[bytes, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -47,18 +47,31 @@ class OnnxLoadModelNode(NodeBase):
 
         model_as_string = model.SerializeToString()  # type: ignore
 
-        session = ort.InferenceSession(
-            model_as_string,
-            providers=[
-                "CPUExecutionProvider"
-                if os.environ["device"] == "cpu"
-                else "CUDAExecutionProvider"
-            ],
-        )
-
         basename = os.path.splitext(os.path.basename(path))[0]
 
-        return session, basename
+        return model_as_string, basename
+
+
+@NodeFactory.register("chainner:onnx:save_model")
+class OnnxSaveModelNode(NodeBase):
+    """ONNX Save Model node"""
+
+    def __init__(self):
+        super().__init__()
+        self.description = """Save ONNX model to file (.onnx)."""
+        self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.outputs = []
+        self.category = ONNX
+        self.name = "Save Model"
+        self.icon = "ONNX"
+        self.sub = "Input & Output"
+
+        self.side_effects = True
+
+    def run(self, onnx_model: bytes, directory: str, model_name: str) -> None:
+        full_path = f"{os.path.join(directory, model_name)}.onnx"
+        logger.info(f"Writing file to path: {full_path}")
+        onnx.save_model(onnx_model, full_path)
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
@@ -98,11 +111,20 @@ class OnnxImageUpscaleNode(NodeBase):
         return out
 
     def run(
-        self, session: ort.InferenceSession, img: np.ndarray, tile_size_target: int
+        self, onnx_model: bytes, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
+
+        session = ort.InferenceSession(
+            onnx_model,
+            providers=[
+                "CPUExecutionProvider"
+                if os.environ["device"] == "cpu"
+                else "CUDAExecutionProvider"
+            ],
+        )
 
         in_nc = session.get_inputs()[0].shape[1]
 

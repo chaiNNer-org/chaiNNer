@@ -42,6 +42,7 @@ class TextInput(BaseInput):
         label: str,
         has_handle=True,
         max_length: Union[int, None] = None,
+        placeholder: Union[str, None] = None,
         allow_numbers: bool = False,
     ):
         super().__init__(
@@ -51,6 +52,7 @@ class TextInput(BaseInput):
             kind="text-line",
         )
         self.max_length = max_length
+        self.placeholder = placeholder
 
     def enforce(self, value) -> str:
         return str(value)
@@ -59,6 +61,7 @@ class TextInput(BaseInput):
         return {
             **super().toDict(),
             "maxLength": self.max_length,
+            "placeholder": self.placeholder,
         }
 
 

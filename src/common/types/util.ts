@@ -4,6 +4,7 @@ import {
     IntIntervalType,
     IntervalType,
     NumericLiteralType,
+    StringLiteralType,
     StructType,
     Type,
     WithUnderlying,
@@ -102,4 +103,11 @@ export const interval = (min: number, max: number) => {
 export const intInterval = (min: number, max: number) => {
     if (min === max) return new NumericLiteralType(min);
     return new IntIntervalType(min, max);
+};
+
+export const isNumericLiteral = (type: Type): type is NumericLiteralType => {
+    return type.type === 'literal' && type.underlying === 'number';
+};
+export const isStringLiteral = (type: Type): type is StringLiteralType => {
+    return type.type === 'literal' && type.underlying === 'string';
 };
