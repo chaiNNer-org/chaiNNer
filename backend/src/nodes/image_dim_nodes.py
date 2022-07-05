@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Tuple
 
-import math
-
 import numpy as np
 from sanic.log import logger
 
@@ -13,6 +11,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.fill_alpha import *
+from .utils.tile_util import tile_image
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -141,6 +140,7 @@ class TileFillNode(NodeBase):
             ImageInput(),
             NumberInput("Width", minimum=1, default=1, unit="px"),
             NumberInput("Height", minimum=1, default=1, unit="px"),
+            TileModeInput(),
         ]
         self.outputs = [
             ImageOutput(
@@ -156,14 +156,10 @@ class TileFillNode(NodeBase):
         self.icon = "MdWindow"
         self.sub = "Resize"
 
-    def run(self, img: np.ndarray, width: int, height: int) -> np.ndarray:
-        h, w, _ = get_h_w_c(img)
-
-        # tile
-        img = np.tile(img, (math.ceil(height / h), math.ceil(width / w), 1))
-
-        # crop to make sure the dimensions are correct
-        return img[:height, :width]
+    def run(
+        self, img: np.ndarray, width: int, height: int, tile_mode: int
+    ) -> np.ndarray:
+        return tile_image(img, width, height, tile_mode)
 
 
 @NodeFactory.register("chainner:image:crop_offsets")
