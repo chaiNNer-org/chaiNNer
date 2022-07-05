@@ -14,7 +14,7 @@ interface OutputContainerProps {
     hasHandle: boolean;
     outputId: number;
     id: string;
-    type: Type;
+    definitionType: Type;
 }
 
 interface RightHandleProps {
@@ -48,7 +48,7 @@ const OutputContainer = memo(
         hasHandle,
         outputId,
         id,
-        type,
+        definitionType,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -85,16 +85,19 @@ const OutputContainer = memo(
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-            if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
+            if (
+                connectionIsValid &&
+                intersect(connectingFromType, definitionType).type !== 'never'
+            ) {
                 return true;
             }
             return false;
-        }, [connectingFromType, connectingFrom, type, id, outputId]);
+        }, [connectingFromType, connectingFrom, definitionType, id, outputId]);
 
         const { typeDefinitions } = useContext(GlobalContext);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
+        const [handleColor] = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (

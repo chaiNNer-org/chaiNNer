@@ -7,26 +7,28 @@ interface GenericOutputProps {
     id: string;
     label: string;
     outputId: number;
-    type: Type;
+    definitionType: Type;
 }
 
-const GenericOutput = memo(({ label, id, outputId, type }: GenericOutputProps) => (
-    <OutputContainer
-        hasHandle
-        id={id}
-        outputId={outputId}
-        type={type}
-    >
-        <Text
-            marginInlineEnd="0.5rem"
-            mb={-1}
-            mt={-1}
-            textAlign="right"
-            w="full"
+const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutputProps) => {
+    return (
+        <OutputContainer
+            hasHandle
+            definitionType={definitionType}
+            id={id}
+            outputId={outputId}
         >
-            {label}
-        </Text>
-    </OutputContainer>
-));
+            <Text
+                marginInlineEnd="0.5rem"
+                mb={-1}
+                mt={-1}
+                textAlign="right"
+                w="full"
+            >
+                {label}
+            </Text>
+        </OutputContainer>
+    );
+});
 
 export default GenericOutput;

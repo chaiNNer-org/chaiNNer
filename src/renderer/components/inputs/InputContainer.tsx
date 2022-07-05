@@ -16,7 +16,7 @@ interface InputContainerProps {
     inputId: number;
     label?: string;
     hasHandle: boolean;
-    type: Type;
+    definitionType: Type;
     optional: boolean;
 }
 
@@ -52,7 +52,7 @@ const InputContainer = memo(
         id,
         inputId,
         label,
-        type,
+        definitionType,
         optional,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
@@ -91,18 +91,21 @@ const InputContainer = memo(
                 target: id,
                 targetHandle: `${id}-${inputId}`,
             });
-            if (connectionIsValid && intersect(connectingFromType, type).type !== 'never') {
+            if (
+                connectionIsValid &&
+                intersect(connectingFromType, definitionType).type !== 'never'
+            ) {
                 return true;
             }
             return false;
-        }, [connectingFrom, connectingFromType, type, id, inputId]);
+        }, [connectingFrom, connectingFromType, definitionType, id, inputId]);
 
         const { typeDefinitions, functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const handleColors = getTypeAccentColors(type, typeDefinitions, isDarkMode);
+        const handleColors = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
