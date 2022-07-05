@@ -25,7 +25,7 @@ import TextInput from '../inputs/TextInput';
 
 interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
     accentColor: string;
-    type: Type;
+    definitionType: Type;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -57,12 +57,12 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
         case 'generic':
             return (
                 <InputContainer
+                    definitionType={props.definitionType}
                     hasHandle={props.hasHandle}
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
                     optional={props.optional}
-                    type={props.type}
                 >
                     <GenericInput {...props} />
                 </InputContainer>
@@ -72,13 +72,13 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
     }
     return (
         <InputContainer
+            definitionType={props.definitionType}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
             label={props.label}
             optional={props.optional}
-            type={props.type}
         >
             <InputType {...props} />
         </InputContainer>
@@ -120,7 +120,7 @@ const NodeInputs = memo(
                         kind: input.kind,
                         isLocked: isLocked ?? false,
                         schemaId,
-                        type: functions.get(input.id)!,
+                        definitionType: functions.get(input.id)!,
                         accentColor,
                         optional: input.optional,
                     };

@@ -10,7 +10,6 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { Type } from '../../../common/types/types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import getTypeAccentColors from '../../helpers/getTypeAccentColors';
@@ -29,7 +28,6 @@ interface SliderInputProps extends InputProps {
     ends: [string | null, string | null];
     noteExpression?: string;
     hideTrailingZeros: boolean;
-    type: Type;
 }
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
@@ -59,7 +57,7 @@ const SliderInput = memo(
         noteExpression,
         hideTrailingZeros,
         isLocked,
-        type,
+        definitionType,
     }: SliderInputProps) => {
         const { typeDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
@@ -100,7 +98,7 @@ const SliderInput = memo(
             : undefined;
         const filled = !expr;
 
-        const [typeAccentColor] = getTypeAccentColors(type, typeDefinitions, isDarkMode);
+        const [typeAccentColor] = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
 
         return (
             <VStack w="full">

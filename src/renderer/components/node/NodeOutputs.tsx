@@ -18,11 +18,11 @@ const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputsProps) => {
             {outputs.map((output) => {
                 return (
                     <GenericOutput
+                        definitionType={functions.get(output.id)!}
                         id={id}
                         key={`${output.label}-${output.id}`}
                         label={output.label}
                         outputId={output.id}
-                        type={functions.get(output.id)!}
                     />
                 );
             })}
