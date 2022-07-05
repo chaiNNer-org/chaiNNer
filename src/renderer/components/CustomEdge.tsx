@@ -31,8 +31,9 @@ const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
-        const { useIsDarkMode } = useContext(SettingsContext);
+        const { useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
+        const [animateChain] = useAnimateChain;
 
         const edgePath = useMemo(
             () =>
@@ -126,7 +127,10 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        animation:
+                            animated && animateChain
+                                ? 'dashdraw-chain 0.5s linear infinite'
+                                : 'none',
                         opacity: animated ? 1 : 0,
                     }}
                 />
@@ -146,7 +150,10 @@ const CustomEdge = memo(
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
-                        animation: animated ? 'dashdraw-chain 0.5s linear infinite' : 'none',
+                        animation:
+                            animated && animateChain
+                                ? 'dashdraw-chain 0.5s linear infinite'
+                                : 'none',
                         opacity: animated ? 1 : 0,
                     }}
                 />

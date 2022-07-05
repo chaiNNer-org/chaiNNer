@@ -17,6 +17,7 @@ interface Settings {
     ];
     useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useAnimateChain: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Node Settings
     useNodeFavorites: readonly [
@@ -42,6 +43,7 @@ export const SettingsProvider = memo(
         const [isDisHwAccel, setIsDisHwAccel] = useLocalStorage('disable-hw-accel', false);
         const [startupTemplate, setStartupTemplate] = useLocalStorage('startup-template', '');
         const [isDarkMode, setIsDarkMode] = useLocalStorage('use-dark-mode', true);
+        const [animateChain, setAnimateChain] = useLocalStorage('animate-chain', true);
 
         const useIsCpu = useMemo(() => [isCpu, setIsCpu] as const, [isCpu, setIsCpu]);
         const useIsFp16 = useMemo(() => [isFp16, setIsFp16] as const, [isFp16, setIsFp16]);
@@ -71,6 +73,10 @@ export const SettingsProvider = memo(
             () => [isDarkMode, setIsDarkMode] as const,
             [isDarkMode, setIsDarkMode]
         );
+        const useAnimateChain = useMemo(
+            () => [animateChain, setAnimateChain] as const,
+            [animateChain, setAnimateChain]
+        );
 
         // Node Settings
         const [favorites, setFavorites] = useLocalStorage<readonly SchemaId[]>(
@@ -83,35 +89,25 @@ export const SettingsProvider = memo(
             [favorites, setFavorites]
         );
 
-        const contextValue = useMemo<Readonly<Settings>>(
-            () => ({
-                // Globals
-                useIsCpu,
-                useIsFp16,
-                useIsSystemPython,
-                useSnapToGrid,
-                useDisHwAccel,
-                useStartupTemplate,
-                useIsDarkMode,
+        // eslint-disable-next-line react/jsx-no-constructed-context-values
+        let contextValue: Readonly<Settings> = {
+            // Globals
+            useIsCpu,
+            useIsFp16,
+            useIsSystemPython,
+            useSnapToGrid,
+            useDisHwAccel,
+            useStartupTemplate,
+            useIsDarkMode,
+            useAnimateChain,
 
-                // Node
-                useNodeFavorites,
+            // Node
+            useNodeFavorites,
 
-                // Port
-                port,
-            }),
-            [
-                useIsCpu,
-                useIsFp16,
-                useIsSystemPython,
-                useSnapToGrid,
-                useDisHwAccel,
-                useStartupTemplate,
-                useIsDarkMode,
-                useNodeFavorites,
-                port,
-            ]
-        );
+            // Port
+            port,
+        };
+        contextValue = useMemo(() => contextValue, Object.values(contextValue));
 
         return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
     }

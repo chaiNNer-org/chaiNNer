@@ -38,19 +38,22 @@ body {
     stroke-dasharray: 1 10 !important;
 }
 
-.edge-chain.animated {
+:not(.no-chain-animation) .edge-chain.animated {
     animation: dashdraw-chain 0.5s linear infinite !important;
+}
+.no-chain-animation .react-flow__edge.animated path {
+    animation: none !important;
 }
 
 .react-flow__handle-left {
-    left: 0px !important; 
-    top: 0% !important; 
+    left: 0px !important;
+    top: 0% !important;
     transform: translateY(0%) !important;
 }
 
 .react-flow__handle-right {
-    right: 0px !important; 
-    top: 0% !important; 
+    right: 0px !important;
+    top: 0% !important;
     transform: translateY(0%) !important;
 }
 

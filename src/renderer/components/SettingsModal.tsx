@@ -100,10 +100,11 @@ const Toggle = memo(({ title, description, isDisabled, value, onToggle }: Toggle
 });
 
 const AppearanceSettings = memo(() => {
-    const { useSnapToGrid, useIsDarkMode } = useContext(SettingsContext);
+    const { useSnapToGrid, useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
 
     const { setColorMode } = useColorMode();
     const [isDarkMode, setIsDarkMode] = useIsDarkMode;
+    const [animateChain, setAnimateChain] = useAnimateChain;
 
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
 
@@ -122,6 +123,15 @@ const AppearanceSettings = memo(() => {
                 value={isDarkMode}
                 onToggle={() => {
                     setIsDarkMode((prev) => !prev);
+                }}
+            />
+
+            <Toggle
+                description="Enable animations that show the processing state of the chain."
+                title="Chain animation"
+                value={animateChain}
+                onToggle={() => {
+                    setAnimateChain((prev) => !prev);
                 }}
             />
 

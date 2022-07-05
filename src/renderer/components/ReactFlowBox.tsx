@@ -166,6 +166,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
+    const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
     const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
     const reactFlowInstance = useReactFlow();
@@ -304,6 +305,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
             bg={useColorModeValue('gray.200', 'gray.800')}
             borderRadius="lg"
             borderWidth="0px"
+            className={animateChain ? '' : 'no-chain-animation'}
             h="100%"
             ref={wrapperRef}
             w="100%"
