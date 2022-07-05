@@ -207,8 +207,6 @@ class OnnxImageUpscaleNode(NodeBase):
 
         output = np.clip(output, 0, 1)
 
-        logger.info(output.shape)
-
         return output
 
 
