@@ -99,7 +99,8 @@ export const usePaneNodeSearchMenu = (
                         });
                     }
                     case 'target': {
-                        const sourceFn = typeState.functions.get(connectingFrom.nodeId);
+                        const sourceNode = getNode(connectingFrom.nodeId) as Node<NodeData>;
+                        const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
 
                         if (!sourceFn) {
                             return false;
