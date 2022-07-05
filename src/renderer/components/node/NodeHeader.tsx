@@ -27,7 +27,7 @@ const NodeHeader = memo(
         const bgColor = useColorModeValue(gray300, gray700);
         const iconAltColor = useColorModeValue('gray.800', 'gray.200');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
-        const gradR = bgColor; // interpolateColor(accentColor, bgColor, 0.95);
+        const gradR = bgColor;
         return (
             <Center
                 // bg={interpolateColor(accentColor, useColorModeValue('#CBD5E0', '#2D3748'), 0.875)}

@@ -61,6 +61,7 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
                     id={props.id}
                     inputId={props.inputId}
                     key={`${props.id}-${props.inputId}`}
+                    optional={props.optional}
                     type={props.type}
                 >
                     <GenericInput {...props} />
@@ -76,6 +77,7 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
             inputId={props.inputId}
             key={`${props.id}-${props.inputId}`}
             label={props.label}
+            optional={props.optional}
             type={props.type}
         >
             <InputType {...props} />
@@ -120,6 +122,7 @@ const NodeInputs = memo(
                         schemaId,
                         type: functions.get(input.id)!,
                         accentColor,
+                        optional: input.optional,
                     };
                     return pickInput(input.kind, props);
                 })}

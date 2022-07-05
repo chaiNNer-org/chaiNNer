@@ -1,4 +1,4 @@
-import { Box, Center, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Tag, Text, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -17,6 +17,7 @@ interface InputContainerProps {
     label?: string;
     hasHandle: boolean;
     type: Type;
+    optional: boolean;
 }
 
 interface LeftHandleProps {
@@ -52,6 +53,7 @@ const InputContainer = memo(
         inputId,
         label,
         type,
+        optional,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -187,6 +189,8 @@ const InputContainer = memo(
         }
 
         const bgColor = useColorModeValue('gray.300', 'gray.700');
+        const tagColor = useColorModeValue('gray.400', 'gray.750');
+        const tagFontColor = useColorModeValue('gray.700', 'gray.400');
 
         return (
             <Box
@@ -194,16 +198,37 @@ const InputContainer = memo(
                 p={2}
                 w="full"
             >
-                <Text
-                    display={label ? 'block' : 'none'}
-                    fontSize="xs"
+                <Center
                     mt={-1}
                     p={1}
                     pt={-1}
-                    textAlign="center"
                 >
-                    {label}
-                </Text>
+                    <Text
+                        display={label ? 'block' : 'none'}
+                        fontSize="xs"
+                        lineHeight="0.9rem"
+                        textAlign="center"
+                    >
+                        {label}
+                    </Text>
+                    <Tag
+                        bgColor={tagColor}
+                        color={tagFontColor}
+                        display={label && optional ? 'block' : 'none'}
+                        fontSize="xx-small"
+                        fontStyle="italic"
+                        height="15px"
+                        lineHeight="auto"
+                        minHeight="auto"
+                        ml={1}
+                        px={1}
+                        py={0}
+                        size="sm"
+                        variant="subtle"
+                    >
+                        optional
+                    </Tag>
+                </Center>
                 {contents}
             </Box>
         );
