@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
+import { useMemoObject } from './useMemo';
 
 export interface UseDisabled {
     readonly canDisable: boolean;
@@ -22,7 +23,7 @@ export const useDisabled = (data: NodeData): UseDisabled => {
 
     const schema = schemata.get(schemaId);
 
-    const value: UseDisabled = {
+    return useMemoObject<UseDisabled>({
         canDisable: schema.hasSideEffects || schema.outputs.length > 0,
         isDirectlyDisabled: isDisabled ?? false,
         status: getDisabledStatus(data, effectivelyDisabledNodes),
@@ -30,7 +31,5 @@ export const useDisabled = (data: NodeData): UseDisabled => {
             () => setNodeDisabled(id, !isDisabled),
             [setNodeDisabled, id, isDisabled]
         ),
-    };
-
-    return useMemo(() => value, Object.values(value));
+    });
 };

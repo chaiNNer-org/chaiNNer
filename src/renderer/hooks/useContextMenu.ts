@@ -1,7 +1,8 @@
-import { MouseEvent, MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react';
+import { MouseEvent, MouseEventHandler, useCallback, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { createUniqueId } from '../../common/util';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
+import { useMemoObject } from './useMemo';
 
 export interface UseContextMenu {
     readonly id: string;
@@ -58,10 +59,12 @@ export const useContextMenu = (
         [openContextMenu]
     );
 
-    let value: UseContextMenu = { id, onContextMenu, onClick, manuallyOpenContextMenu };
-    value = useMemo(() => value, Object.values(value));
-
-    return value;
+    return useMemoObject<UseContextMenu>({
+        id,
+        onContextMenu,
+        onClick,
+        manuallyOpenContextMenu,
+    });
 };
 
 export const noContextMenu = (e: MouseEvent): void => {
