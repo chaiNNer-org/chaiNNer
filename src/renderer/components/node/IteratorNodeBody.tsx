@@ -1,11 +1,12 @@
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
-import { memo, useLayoutEffect, useMemo, useState } from 'react';
+import { memo, useLayoutEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { IteratorSize } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { noContextMenu } from '../../hooks/useContextMenu';
+import { useMemoArray } from '../../hooks/useMemo';
 
 const createGridDotsPath = (size: number, fill: string) => (
     <circle
@@ -104,9 +105,8 @@ const IteratorNodeBody = memo(
                     bottomLeft: false,
                     topLeft: false,
                 }}
-                grid={useMemo(
-                    () => (isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]),
-                    [isSnapToGrid, snapToGridAmount]
+                grid={useMemoArray<[number, number]>(
+                    isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
                 )}
                 minHeight={maxHeight}
                 minWidth={maxWidth}

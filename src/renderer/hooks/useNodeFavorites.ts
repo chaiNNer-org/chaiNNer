@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { useMemoObject } from './useMemo';
 
 export interface UseNodeFavorites {
     readonly favorites: ReadonlySet<SchemaId>;
@@ -30,8 +31,5 @@ export const useNodeFavorites = () => {
         [setFavorites]
     );
 
-    let value: UseNodeFavorites = { favorites, addFavorites, removeFavorite };
-    value = useMemo(() => value, Object.values(value));
-
-    return value;
+    return useMemoObject<UseNodeFavorites>({ favorites, addFavorites, removeFavorite });
 };

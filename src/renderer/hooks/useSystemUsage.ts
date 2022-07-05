@@ -1,9 +1,10 @@
 import { exec as _exec } from 'child_process';
 import os from 'os-utils';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import util from 'util';
 import { ipcRenderer } from '../../common/safeIpc';
 import { useAsyncInterval } from './useInterval';
+import { useMemoObject } from './useMemo';
 
 const exec = util.promisify(_exec);
 
@@ -50,7 +51,7 @@ const useSystemUsage = (delay: number): SystemUsage => {
 
     useAsyncInterval({ supplier: getSystemUsage, successEffect: setUsage }, delay);
 
-    return useMemo(() => usage, [usage.cpu, usage.ram, usage.vram]);
+    return useMemoObject(usage);
 };
 
 export default useSystemUsage;

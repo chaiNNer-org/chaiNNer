@@ -1,8 +1,9 @@
 import { Menu, MenuButton, Portal } from '@chakra-ui/react';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import { createContext } from 'use-context-selector';
 import { noop } from '../../common/util';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { useMemoObject } from '../hooks/useMemo';
 
 type RenderFn = () => JSX.Element;
 
@@ -124,14 +125,12 @@ export const ContextMenuProvider = memo(({ children }: React.PropsWithChildren<u
 
     useIpcRendererListener('window-blur', closeContextMenu, [closeContextMenu]);
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    let value: ContentMenu = {
+    const value = useMemoObject<ContentMenu>({
         registerContextMenu,
         unregisterContextMenu,
         openContextMenu,
         closeContextMenu,
-    };
-    value = useMemo(() => value, Object.values(value));
+    });
 
     const currentRender = current !== undefined ? menus.map.get(current) : undefined;
 

@@ -25,6 +25,7 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { DataTransferProcessorOptions, dataTransferProcessors } from '../helpers/dataTransfer';
 import { expandSelection, isSnappedToGrid, snapToGrid } from '../helpers/reactFlowUtil';
+import { useMemoArray } from '../hooks/useMemo';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
@@ -319,7 +320,7 @@ const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlowBoxPro
                 minZoom={0.125}
                 nodeTypes={nodeTypes}
                 nodes={displayNodes}
-                snapGrid={useMemo(() => [snapToGridAmount, snapToGridAmount], [snapToGridAmount])}
+                snapGrid={useMemoArray<[number, number]>([snapToGridAmount, snapToGridAmount])}
                 snapToGrid={isSnapToGrid}
                 style={{
                     zIndex: 0,

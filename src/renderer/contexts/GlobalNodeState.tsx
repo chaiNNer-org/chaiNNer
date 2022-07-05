@@ -50,6 +50,7 @@ import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 import { useOpenRecent } from '../hooks/useOpenRecent';
 import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
@@ -68,8 +69,11 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
-    useConnectingFromType: [Type | null, SetState<Type | null>];
-    useConnectingFrom: [OnConnectStartParams | null, SetState<OnConnectStartParams | null>];
+    useConnectingFromType: readonly [Type | null, SetState<Type | null>];
+    useConnectingFrom: readonly [
+        OnConnectStartParams | null,
+        SetState<OnConnectStartParams | null>
+    ];
 }
 interface Global {
     schemata: SchemaMap;
@@ -946,8 +950,7 @@ export const GlobalProvider = memo(
         const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
-        let globalChainValue: GlobalVolatile = {
+        const globalChainValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
             edgeChanges,
             typeState,
@@ -958,19 +961,14 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
-            useConnectingFromType: useMemo(
-                () => [connectingFromType, setConnectingFromType],
-                [connectingFromType, setConnectingFromType]
-            ),
-            useConnectingFrom: useMemo(
-                () => [connectingFrom, setConnectingFrom],
-                [connectingFrom, setConnectingFrom]
-            ),
-        };
-        globalChainValue = useMemo(() => globalChainValue, Object.values(globalChainValue));
+            useConnectingFromType: useMemoArray([
+                connectingFromType,
+                setConnectingFromType,
+            ] as const),
+            useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
+        });
 
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
-        let globalValue: Global = {
+        const globalValue = useMemoObject<Global>({
             schemata,
             reactFlowWrapper,
             defaultIteratorSize,
@@ -996,8 +994,7 @@ export const GlobalProvider = memo(
             setManualOutputType,
             functionDefinitions,
             typeDefinitions,
-        };
-        globalValue = useMemo(() => globalValue, Object.values(globalValue));
+        });
 
         return (
             <GlobalVolatileContext.Provider value={globalChainValue}>

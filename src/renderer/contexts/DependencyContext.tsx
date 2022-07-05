@@ -37,6 +37,7 @@ import { getPythonInfo } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { ExecutionContext } from './ExecutionContext';
 import { SettingsContext } from './SettingsContext';
@@ -201,12 +202,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         ).length;
     }, [pipList, availableDeps]);
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    let value: DependencyContextValue = {
+    const value = useMemoObject<DependencyContextValue>({
         openDependencyManager: onOpen,
         availableUpdates,
-    };
-    value = useMemo(() => value, Object.values(value));
+    });
 
     return (
         <DependencyContext.Provider value={value}>
