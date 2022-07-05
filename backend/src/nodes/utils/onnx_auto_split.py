@@ -32,10 +32,11 @@ def onnx_auto_split_process(
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         try:
+            lr_copy = lr_img
             if change_shape:
                 # Transpose from BCHW to BHWC
-                lr_img = np.transpose(lr_img, (0, 2, 3, 1))
-            output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
+                lr_copy = np.transpose(lr_img, (0, 2, 3, 1))
+            output: np.ndarray = session.run([output_name], {input_name: lr_copy})[0]
             if change_shape:
                 # Transpose back to BCHW
                 output = np.transpose(output, (0, 3, 1, 2))
