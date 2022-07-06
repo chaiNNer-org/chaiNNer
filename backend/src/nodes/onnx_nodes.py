@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from typing import Tuple
-from enum import Enum
 
 import numpy as np
 import onnx
@@ -18,7 +17,7 @@ from .utils.onnx_auto_split import onnx_auto_split_process
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np
 
 
-class TensorOrders(Enum):
+class TensorOrders:
     bchw = 1
     bhwc = 3
 
@@ -145,7 +144,7 @@ class OnnxImageUpscaleNode(NodeBase):
             if isinstance(x, int)
         ][0]
 
-        change_shape = index == TensorOrders.bhwc.value
+        change_shape = index == TensorOrders.bhwc
 
         h, w, c = get_h_w_c(img)
         logger.debug(f"Image is {h}x{w}x{c}")
