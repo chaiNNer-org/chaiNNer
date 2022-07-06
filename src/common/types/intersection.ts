@@ -7,7 +7,6 @@ import {
     NeverType,
     NumberPrimitive,
     NumericLiteralType,
-    StaticType,
     StringPrimitive,
     StructType,
     StructTypeField,
@@ -189,10 +188,7 @@ const performIntersection = (items: readonly InternalIntersectionItem[]): Type =
     return intersectionOfUnionsToUnionOfIntersections(values[0] ?? AnyType.instance, groups.union);
 };
 
-export function intersect(...types: StaticType[]): StaticType;
-export function intersect(...types: Type[]): Type;
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
-export function intersect(...types: Type[]): Type {
+export const intersect = (...types: Type[]): Type => {
     const items: InternalIntersectionItem[] = [];
     for (const t of types) {
         if (t.type === 'never') return NeverType.instance;
@@ -205,4 +201,4 @@ export function intersect(...types: Type[]): Type {
     if (items.length === 1) return items[0];
 
     return performIntersection(items);
-}
+};
