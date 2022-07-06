@@ -84,9 +84,7 @@ class CombineRgbaNode(NodeBase):
                         "Input0",
                         "Input1",
                         "Input2",
-                        expression.match(
-                            "Input3", ("Image", "i", "i"), default_d="any"
-                        ),
+                        expression.match("Input3", ("Image", "i", "i"), default="any"),
                     ),
                     channels=4,
                 )

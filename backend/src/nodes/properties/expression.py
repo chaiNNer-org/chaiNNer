@@ -95,6 +95,7 @@ class BuiltFunctionExpressionJson(TypedDict):
 
 
 class MatchArmJson(TypedDict):
+    pattern: ExpressionJson
     binding: str | None
     to: ExpressionJson
 
@@ -102,7 +103,7 @@ class MatchArmJson(TypedDict):
 class MatchExpressionJson(TypedDict):
     type: Literal["match"]
     of: ExpressionJson
-    arms: Dict[str, MatchArmJson]
+    arms: List[MatchArmJson]
 
 
 def literal(value: Union[str, int, float]) -> ExpressionJson:
@@ -161,22 +162,14 @@ def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
 
 def match(
     of: ExpressionJson,
-    *args: Tuple[str, str | None, ExpressionJson],
-    number_n: ExpressionJson | None = None,
-    string_s: ExpressionJson | None = None,
-    default_d: ExpressionJson | None = None,
+    *args: Tuple[ExpressionJson, str | None, ExpressionJson],
+    default: ExpressionJson | None = None,
 ) -> ExpressionJson:
-    arms: Dict[str, MatchArmJson] = {}
-    for name, binding, to in args:
-        arms[name] = {"binding": binding, "to": to}
-
-    if number_n is not None:
-        arms["number"] = {"binding": "n", "to": number_n}
-    if string_s is not None:
-        arms["string"] = {"binding": "s", "to": string_s}
-    if default_d is not None:
-        arms["_"] = {"binding": "d", "to": default_d}
-
+    arms: List[MatchArmJson] = []
+    for pattern, binding, to in args:
+        arms.append({"pattern": pattern, "binding": binding, "to": to})
+    if default is not None:
+        arms.append({"pattern": "any", "binding": None, "to": default})
     return {"type": "match", "of": of, "arms": arms}
 
 
