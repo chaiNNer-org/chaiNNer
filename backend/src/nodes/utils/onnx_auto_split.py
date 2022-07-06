@@ -14,6 +14,7 @@ def onnx_auto_split_process(
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
+    change_shape: bool = True,
 ) -> Tuple[np.ndarray, int]:
     """
     Run ONNX upscaling with automatic recursive tile splitting based on ability to process with current size
@@ -31,7 +32,14 @@ def onnx_auto_split_process(
     # Attempt to upscale if unknown depth or if reached known max depth
     if max_depth is None or max_depth == current_depth:
         try:
-            output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
+            lr_copy = lr_img
+            if change_shape:
+                # Transpose from BCHW to BHWC
+                lr_copy = np.transpose(lr_img, (0, 2, 3, 1))
+            output: np.ndarray = session.run([output_name], {input_name: lr_copy})[0]
+            if change_shape:
+                # Transpose back to BCHW
+                output = np.transpose(output, (0, 3, 1, 2))
             return output.copy(), current_depth
         except Exception as e:
             if "ONNXRuntimeError" in str(e) and (
