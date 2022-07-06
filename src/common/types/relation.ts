@@ -1,6 +1,6 @@
 import { assertType, sameNumber } from '../util';
+import { isSameStructType } from './type-util';
 import { Type, ValueType } from './types';
-import { isSameStructType } from './util';
 
 const valueIsSubsetOf = (left: ValueType, right: ValueType): boolean => {
     if (left.underlying === 'number' && right.underlying === 'number') {

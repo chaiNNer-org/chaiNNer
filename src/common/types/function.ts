@@ -3,11 +3,11 @@ import { InputSchemaValue, NodeSchema } from '../common-types';
 import { EMPTY_MAP } from '../util';
 import { evaluate } from './evaluate';
 import { Expression } from './expression';
+import { getReferences } from './expression-util';
 import { intersect } from './intersection';
 import { fromJson } from './json';
 import { TypeDefinitions } from './typedef';
 import { Type } from './types';
-import { getReferences } from './util';
 
 const getParamName = (inputId: number) => `Input${inputId}`;
 
