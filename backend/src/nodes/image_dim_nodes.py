@@ -49,7 +49,7 @@ class ImResizeByFactorNode(NodeBase):
                                 "round",
                                 expression.fn(
                                     "multiply",
-                                    expression.field("Input0", "width"),
+                                    "Input0.width",
                                     expression.fn("divide", "Input1", 100),
                                 ),
                             ),
@@ -64,7 +64,7 @@ class ImResizeByFactorNode(NodeBase):
                                 "round",
                                 expression.fn(
                                     "multiply",
-                                    expression.field("Input0", "height"),
+                                    "Input0.height",
                                     expression.fn("divide", "Input1", 100),
                                 ),
                             ),
@@ -110,7 +110,7 @@ class ImResizeToResolutionNode(NodeBase):
                 image_type=expression.Image(
                     width="Input1",
                     height="Input2",
-                    channels=expression.field("Input0", "channels"),
+                    channels="Input0.channels",
                 )
             )
         ]
@@ -147,7 +147,7 @@ class TileFillNode(NodeBase):
                 image_type=expression.Image(
                     width="Input1",
                     height="Input2",
-                    channels=expression.field("Input0", "channels"),
+                    channels="Input0.channels",
                 )
             )
         ]
@@ -218,7 +218,7 @@ class BorderCropNode(NodeBase):
                     width=expression.intersect(
                         expression.fn(
                             "subtract",
-                            expression.field("Input0", "width"),
+                            "Input0.width",
                             expression.fn("add", "Input1", "Input1"),
                         ),
                         expression.int_interval(min=0, max=None),
@@ -226,7 +226,7 @@ class BorderCropNode(NodeBase):
                     height=expression.intersect(
                         expression.fn(
                             "subtract",
-                            expression.field("Input0", "height"),
+                            "Input0.height",
                             expression.fn("add", "Input1", "Input1"),
                         ),
                         expression.int_interval(min=0, max=None),
@@ -271,7 +271,7 @@ class EdgeCropNode(NodeBase):
                     width=expression.intersect(
                         expression.fn(
                             "subtract",
-                            expression.field("Input0", "width"),
+                            "Input0.width",
                             expression.fn("add", "Input2", "Input3"),
                         ),
                         expression.int_interval(min=0, max=None),
@@ -279,7 +279,7 @@ class EdgeCropNode(NodeBase):
                     height=expression.intersect(
                         expression.fn(
                             "subtract",
-                            expression.field("Input0", "height"),
+                            "Input0.height",
                             expression.fn("add", "Input1", "Input4"),
                         ),
                         expression.int_interval(min=0, max=None),
@@ -365,11 +365,9 @@ class GetDimensionsNode(NodeBase):
             ImageInput(),
         ]
         self.outputs = [
-            NumberOutput("Width", output_type=expression.field("Input0", "width")),
-            NumberOutput("Height", output_type=expression.field("Input0", "height")),
-            NumberOutput(
-                "Channels", output_type=expression.field("Input0", "channels")
-            ),
+            NumberOutput("Width", output_type="Input0.width"),
+            NumberOutput("Height", output_type="Input0.height"),
+            NumberOutput("Channels", output_type="Input0.channels"),
         ]
         self.category = IMAGE_DIMENSION
         self.name = "Get Dimensions"

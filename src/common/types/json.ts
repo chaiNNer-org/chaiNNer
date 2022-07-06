@@ -175,8 +175,14 @@ export const fromJson = (e: ExpressionJson): Expression => {
             case 'string':
                 return StringType.instance;
             default:
-                return new NamedExpression(e);
+                break;
         }
+
+        const field = /^(\w+)\.(\w+)$/.exec(e);
+        if (field) {
+            return new FieldAccessExpression(new NamedExpression(field[1]), field[2]);
+        }
+        return new NamedExpression(e);
     }
 
     if (Array.isArray(e)) {
