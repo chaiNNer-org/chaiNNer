@@ -29,6 +29,7 @@ export function* getReferences(expression: Expression): Iterable<string> {
                 break;
             case 'match':
                 for (const arm of expression.arms) {
+                    yield* getReferences(arm.pattern);
                     yield* getReferences(arm.to);
                 }
                 break;

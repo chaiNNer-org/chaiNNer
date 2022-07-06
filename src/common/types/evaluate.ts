@@ -119,12 +119,6 @@ export type ErrorDetails =
               definition: Type;
           };
           message: string;
-      }
-    | {
-          type: 'Invalid struct match arm';
-          expression: MatchExpression;
-          arm: MatchArm;
-          message: string;
       };
 
 export class EvaluationError extends Error {
@@ -470,31 +464,6 @@ const evaluateMatch = (
     definitions: TypeDefinitions,
     genericParameters: ReadonlyMap<string, Type>
 ): Type => {
-    const structs = new Map<MatchArm, Type>();
-    for (const arm of expression.arms) {
-        if (typeof arm.pattern === 'string') {
-            const entry = definitions.get(arm.pattern);
-            if (entry === undefined) {
-                throw new EvaluationError({
-                    type: 'Invalid struct match arm',
-                    expression,
-                    arm,
-                    message: `There is no struct definition with the name ${arm.pattern}.`,
-                });
-            }
-            if (entry.kind !== 'struct') {
-                throw new EvaluationError({
-                    type: 'Invalid struct match arm',
-                    expression,
-                    arm,
-                    message: `The type definition with the name ${arm.pattern} is not a struct.`,
-                });
-            }
-            entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
-            structs.set(arm, entry.evaluated);
-        }
-    }
-
     let type = evaluate(expression.of, definitions, genericParameters);
     if (type.type === 'never') return NeverType.instance;
 
@@ -507,7 +476,7 @@ const evaluateMatch = (
 
     const matchTypes: Type[] = [];
     for (const arm of expression.arms) {
-        const armType = typeof arm.pattern === 'string' ? structs.get(arm)! : arm.pattern;
+        const armType = evaluate(arm.pattern, definitions, genericParameters);
         const t = intersect(armType, type);
         if (t.type !== 'never') {
             matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));

@@ -10,7 +10,6 @@ import {
     NamedExpressionField,
     UnionExpression,
 } from './expression';
-import { staticEvaluate } from './static-evaluate';
 import {
     AnyType,
     IntIntervalType,
@@ -149,7 +148,7 @@ export const toJson = (e: Expression): ExpressionJson => {
                 type: 'match',
                 of: toJson(e.of),
                 arms: e.arms.map((a) => ({
-                    pattern: typeof a.pattern === 'string' ? a.pattern : toJson(a.pattern),
+                    pattern: toJson(a.pattern),
                     binding: a.binding,
                     to: toJson(a.to),
                 })),
@@ -211,29 +210,8 @@ export const fromJson = (e: ExpressionJson): Expression => {
         case 'match':
             return new MatchExpression(
                 fromJson(e.of),
-                e.arms.map((a) => {
-                    const patternExpression = fromJson(a.pattern);
-
-                    let pattern;
-                    if (patternExpression.type === 'named') {
-                        if (patternExpression.fields.length > 0) {
-                            throw new Error(
-                                `Match patterns must be static expressions.` +
-                                    ` The pattern ${patternExpression.toString()} is not valid because it has fields.`
-                            );
-                        }
-                        pattern = patternExpression.name;
-                    } else {
-                        pattern = staticEvaluate(patternExpression);
-                        if (pattern.type === 'never') {
-                            throw new Error(
-                                `Match patterns must not be or evaluate to never.` +
-                                    ` ${patternExpression.toString()}`
-                            );
-                        }
-                    }
-
-                    return new MatchArm(pattern, a.binding ?? undefined, fromJson(a.to));
+                e.arms.map(({ pattern, binding, to }) => {
+                    return new MatchArm(fromJson(pattern), binding ?? undefined, fromJson(to));
                 })
             );
         default:

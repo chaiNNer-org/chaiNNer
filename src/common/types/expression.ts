@@ -4,9 +4,7 @@ import {
     assertValidStructFieldName,
     assertValidStructName,
 } from './names';
-import { isSubsetOf } from './relation';
-import { AnyType, NeverType, PrimitiveType, Type, UnionType } from './types';
-import { union } from './union';
+import { Type } from './types';
 
 type PureExpression =
     | UnionExpression
@@ -137,28 +135,21 @@ export class BuiltinFunctionExpression implements ExpressionBase {
 }
 
 export class MatchArm {
-    readonly pattern: string | PrimitiveType | UnionType<PrimitiveType> | AnyType;
+    readonly pattern: Expression;
 
     readonly binding: string | undefined;
 
     readonly to: Expression;
 
-    constructor(pattern: MatchArm['pattern'], binding: string | undefined, to: Expression) {
+    constructor(pattern: Expression, binding: string | undefined, to: Expression) {
         if (binding !== undefined) assertValidStructFieldName(binding);
-        if (typeof pattern === 'string') assertValidStructName(pattern);
         this.pattern = pattern;
         this.binding = binding;
         this.to = to;
     }
 
     toString(): string {
-        const pattern =
-            // eslint-disable-next-line no-nested-ternary
-            typeof this.pattern === 'string'
-                ? this.pattern
-                : this.pattern.type === 'any'
-                ? '_'
-                : this.pattern.toString();
+        const pattern = this.pattern.type === 'any' ? '_' : this.pattern.toString();
         const binding = this.binding === undefined ? '' : `as ${this.binding} `;
         return `${pattern} ${binding}=> ${this.to.toString()}`;
     }
@@ -175,30 +166,6 @@ export class MatchExpression implements ExpressionBase {
     constructor(of: Expression, arms: readonly MatchArm[]) {
         this.of = of;
         this.arms = arms;
-
-        let total: Type = NeverType.instance;
-        const totalStructs = new Set<string>();
-        for (const arm of arms) {
-            if (typeof arm.pattern === 'string') {
-                if (totalStructs.has(arm.pattern)) {
-                    throw new Error(
-                        `Invalid match expression:` +
-                            ` The pattern of the arm \`${arm.toString()}\` is already fully handled by previous arms.` +
-                            ` ${this.toString()}`
-                    );
-                }
-                totalStructs.add(arm.pattern);
-            } else {
-                if (isSubsetOf(arm.pattern, total)) {
-                    throw new Error(
-                        `Invalid match expression:` +
-                            ` The pattern of the arm \`${arm.toString()}\` is already fully handled by previous arms.` +
-                            ` ${this.toString()}`
-                    );
-                }
-                total = union(total, arm.pattern);
-            }
-        }
     }
 
     toString(): string {
