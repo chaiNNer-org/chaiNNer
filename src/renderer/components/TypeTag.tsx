@@ -1,7 +1,7 @@
 import { Tag, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
-import { isNumericLiteral } from '../../common/types/type-util';
 import { Type } from '../../common/types/types';
+import { isNumericLiteral } from '../../common/types/util';
 
 const getTypeText = (type: Type): string | undefined => {
     if (isNumericLiteral(type)) return type.toString();

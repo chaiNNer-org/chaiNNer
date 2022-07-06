@@ -1,4 +1,4 @@
-import { intInterval, interval, literal } from './type-util';
+import { intInterval, interval, literal } from './util';
 import {
     IntIntervalType,
     IntervalType,

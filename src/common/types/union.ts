@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 import { assertNever, sameNumber } from '../util';
 import { canonicalize } from './canonical';
-import { isSameStructType } from './type-util';
 import {
     AnyType,
     CanonicalTypes,
@@ -21,6 +20,7 @@ import {
     UnionType,
     ValueType,
 } from './types';
+import { isSameStructType } from './util';
 
 type NonEmptyArray<T> = [T, ...T[]];
 

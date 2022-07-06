@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 import { assertNever, sameNumber } from '../util';
-import { groupByUnderlying, isSameStructType } from './type-util';
+import { groupByUnderlying, isSameStructType } from './util';
 import {
     AnyType,
     IntIntervalType,

@@ -1,6 +1,6 @@
 import { assertNever, sameNumber } from '../util';
 import { isSupersetOf } from './relation';
-import { groupByUnderlying, intInterval, interval, isSameStructType, literal } from './type-util';
+import { groupByUnderlying, intInterval, interval, isSameStructType, literal } from './util';
 import {
     AnyType,
     IntIntervalType,

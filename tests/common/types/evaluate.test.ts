@@ -9,7 +9,6 @@ import {
     NamedExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { literal } from '../../../src/common/types/type-util';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
 import {
     AnyType,
@@ -22,6 +21,7 @@ import {
     UnionType,
 } from '../../../src/common/types/types';
 import { union } from '../../../src/common/types/union';
+import { literal } from '../../../src/common/types/util';
 import { without } from '../../../src/common/types/without';
 import {
     expressions,

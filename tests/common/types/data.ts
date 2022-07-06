@@ -4,7 +4,6 @@ import {
     IntersectionExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { literal } from '../../../src/common/types/type-util';
 import {
     AnyType,
     IntIntervalType,
@@ -19,6 +18,7 @@ import {
     ValueType,
 } from '../../../src/common/types/types';
 import { union } from '../../../src/common/types/union';
+import { literal } from '../../../src/common/types/util';
 
 export const orderedPairs = <T>(array: readonly T[]): [T, T][] => {
     return array.flatMap((a) => array.map<[T, T]>((b) => [a, b]));
