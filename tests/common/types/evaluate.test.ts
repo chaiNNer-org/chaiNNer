@@ -6,6 +6,7 @@ import {
     IntersectionExpression,
     MatchArm,
     MatchExpression,
+    NamedExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
 import { literal } from '../../../src/common/types/type-util';
@@ -306,7 +307,7 @@ describe('Match', () => {
             new MatchArm(literal(2), undefined, new StringLiteralType('2')),
             new MatchArm(NumberType.instance, undefined, new StringLiteralType('number')),
             new MatchArm(StringType.instance, undefined, new StringLiteralType('string')),
-            new MatchArm('null', undefined, new StringLiteralType('null')),
+            new MatchArm(new NamedExpression('null'), undefined, new StringLiteralType('null')),
             new MatchArm(AnyType.instance, undefined, new StringLiteralType('other')),
         ]);
 
