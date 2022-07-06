@@ -11,7 +11,8 @@ type PureExpression =
     | IntersectionExpression
     | NamedExpression
     | FieldAccessExpression
-    | BuiltinFunctionExpression;
+    | BuiltinFunctionExpression
+    | MatchExpression;
 
 export type Expression = Type | PureExpression;
 
@@ -130,5 +131,45 @@ export class BuiltinFunctionExpression implements ExpressionBase {
 
     toString(): string {
         return `${this.functionName}(${this.args.map((e) => e.toString()).join(', ')})`;
+    }
+}
+
+export class MatchArm {
+    readonly pattern: Expression;
+
+    readonly binding: string | undefined;
+
+    readonly to: Expression;
+
+    constructor(pattern: Expression, binding: string | undefined, to: Expression) {
+        if (binding !== undefined) assertValidStructFieldName(binding);
+        this.pattern = pattern;
+        this.binding = binding;
+        this.to = to;
+    }
+
+    toString(): string {
+        const pattern = this.pattern.type === 'any' ? '_' : this.pattern.toString();
+        const binding = this.binding === undefined ? '' : `as ${this.binding} `;
+        return `${pattern} ${binding}=> ${this.to.toString()}`;
+    }
+}
+export class MatchExpression implements ExpressionBase {
+    readonly type = 'match';
+
+    readonly underlying = 'expression';
+
+    readonly of: Expression;
+
+    readonly arms: readonly MatchArm[];
+
+    constructor(of: Expression, arms: readonly MatchArm[]) {
+        this.of = of;
+        this.arms = arms;
+    }
+
+    toString(): string {
+        const arms = this.arms.map((a) => a.toString()).join(', ');
+        return `match ${this.of.toString()} { ${arms} }`;
     }
 }

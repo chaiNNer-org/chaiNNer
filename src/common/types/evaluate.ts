@@ -5,6 +5,8 @@ import {
     BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
+    MatchArm,
+    MatchExpression,
     NamedExpression,
     NamedExpressionField,
 } from './expression';
@@ -21,6 +23,7 @@ import {
 } from './typedef';
 import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
+import { without } from './without';
 
 export type ErrorDetails =
     | {
@@ -249,7 +252,20 @@ const evaluateStructDefinition = (
 ): StructType | NeverType => {
     const fields: StructTypeField[] = [];
     for (const f of def.fields) {
-        const type = evaluate(f.type, definitions);
+        let type;
+        try {
+            type = evaluate(f.type, definitions);
+        } catch (error: unknown) {
+            if (error instanceof EvaluationError) {
+                throw new EvaluationError({
+                    type: 'Invalid structure definition',
+                    definition: def,
+                    details: error.details,
+                    message: `The structure definition for ${def.name} is invalid.`,
+                });
+            }
+            throw error;
+        }
         if (type.type === 'never') return NeverType.instance;
         fields.push(new StructTypeField(f.name, type));
     }
@@ -272,21 +288,7 @@ const evaluateStruct = (
         });
     }
 
-    if (entry.evaluated === undefined) {
-        try {
-            entry.evaluated = evaluateStructDefinition(entry.definition, definitions);
-        } catch (error: unknown) {
-            if (error instanceof EvaluationError) {
-                throw new EvaluationError({
-                    type: 'Invalid structure definition',
-                    definition: entry.definition,
-                    details: error.details,
-                    message: `The structure definition for ${entry.definition.name} is invalid.`,
-                });
-            }
-            throw error;
-        }
-    }
+    entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
     if (entry.evaluated.type === 'never') return NeverType.instance;
 
     const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
@@ -457,6 +459,34 @@ const evaluateBuiltinFunction = (
     return entry.definition.fn(...args);
 };
 
+const evaluateMatch = (
+    expression: MatchExpression,
+    definitions: TypeDefinitions,
+    genericParameters: ReadonlyMap<string, Type>
+): Type => {
+    let type = evaluate(expression.of, definitions, genericParameters);
+    if (type.type === 'never') return NeverType.instance;
+
+    const withBinding = (arm: MatchArm, armType: Type): ReadonlyMap<string, Type> => {
+        if (arm.binding === undefined) return genericParameters;
+        const copy = new Map(genericParameters);
+        copy.set(arm.binding, armType);
+        return copy;
+    };
+
+    const matchTypes: Type[] = [];
+    for (const arm of expression.arms) {
+        const armType = evaluate(arm.pattern, definitions, genericParameters);
+        const t = intersect(armType, type);
+        if (t.type !== 'never') {
+            matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
+            type = without(type, armType);
+        }
+    }
+
+    return union(...matchTypes);
+};
+
 /**
  * Evaluates the given expression. If a type is given, then the type will be returned as is.
  *
@@ -491,6 +521,8 @@ export const evaluate = (
             return evaluateFieldAccess(expression, definitions, genericParameters);
         case 'builtin-function':
             return evaluateBuiltinFunction(expression, definitions, genericParameters);
+        case 'match':
+            return evaluateMatch(expression, definitions, genericParameters);
         default:
             return assertNever(expression);
     }

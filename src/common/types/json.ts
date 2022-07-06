@@ -4,6 +4,8 @@ import {
     Expression,
     FieldAccessExpression,
     IntersectionExpression,
+    MatchArm,
+    MatchExpression,
     NamedExpression,
     NamedExpressionField,
     UnionExpression,
@@ -30,7 +32,8 @@ export type ExpressionJson =
     | IntersectionExpressionJson
     | NamedExpressionJson
     | FieldAccessExpressionJson
-    | BuiltinFunctionExpressionJson;
+    | BuiltinFunctionExpressionJson
+    | MatchExpressionJson;
 export type TypeJson = PrimitiveTypeJson | 'never' | 'any';
 export type PrimitiveTypeJson = NumberPrimitiveJson | StringPrimitiveJson;
 export type NumberPrimitiveJson =
@@ -82,6 +85,16 @@ export interface BuiltinFunctionExpressionJson {
     name: string;
     args: ExpressionJson[];
 }
+export interface MatchArmJson {
+    pattern: ExpressionJson;
+    binding?: string | null;
+    to: ExpressionJson;
+}
+export interface MatchExpressionJson {
+    type: 'match';
+    of: ExpressionJson;
+    arms: MatchArmJson[];
+}
 
 const toNumberJson = (number: number): NumberJson => {
     if (Number.isNaN(number)) return 'NaN';
@@ -130,6 +143,17 @@ export const toJson = (e: Expression): ExpressionJson => {
             return { type: 'field-access', of: toJson(e.of), field: e.field };
         case 'builtin-function':
             return { type: 'builtin-function', name: e.functionName, args: e.args.map(toJson) };
+        case 'match': {
+            return {
+                type: 'match',
+                of: toJson(e.of),
+                arms: e.arms.map((a) => ({
+                    pattern: toJson(a.pattern),
+                    binding: a.binding,
+                    to: toJson(a.to),
+                })),
+            };
+        }
         default:
             return assertNever(e);
     }
@@ -183,6 +207,13 @@ export const fromJson = (e: ExpressionJson): Expression => {
             return new FieldAccessExpression(fromJson(e.of), e.field);
         case 'builtin-function':
             return new BuiltinFunctionExpression(e.name, e.args.map(fromJson));
+        case 'match':
+            return new MatchExpression(
+                fromJson(e.of),
+                e.arms.map(({ pattern, binding, to }) => {
+                    return new MatchArm(fromJson(pattern), binding ?? undefined, fromJson(to));
+                })
+            );
         default:
             return assertNever(e);
     }

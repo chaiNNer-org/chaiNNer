@@ -78,6 +78,12 @@ export function* getReferences(expression: Expression): Iterable<string> {
                     yield* getReferences(f);
                 }
                 break;
+            case 'match':
+                for (const arm of expression.arms) {
+                    yield* getReferences(arm.pattern);
+                    yield* getReferences(arm.to);
+                }
+                break;
             default:
                 yield assertNever(expression);
         }

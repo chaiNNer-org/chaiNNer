@@ -4,20 +4,24 @@ import {
     BuiltinFunctionExpression,
     Expression,
     IntersectionExpression,
+    MatchArm,
+    MatchExpression,
+    NamedExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { isSubsetOf } from '../../../src/common/types/relation';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
 import {
     AnyType,
     NeverType,
     NumberType,
     PrimitiveType,
+    StringLiteralType,
     StringType,
     Type,
     UnionType,
 } from '../../../src/common/types/types';
 import { union } from '../../../src/common/types/union';
+import { literal } from '../../../src/common/types/util';
 import { without } from '../../../src/common/types/without';
 import {
     expressions,
@@ -41,6 +45,20 @@ const assertSame = (a: Expression, b: Expression): void => {
         const prefix = `a = ${a.toString()}\nb = ${b.toString()}\n`;
         expect(prefix + actual).toBe(prefix + expected);
     }
+};
+
+const isIncompatibleUnderlyingType = (a: Type, b: Type): boolean => {
+    if (a.underlying === 'any' || a.underlying === 'never') return false;
+    if (b.underlying === 'any' || b.underlying === 'never') return false;
+
+    const getApproximateUnderlying = (t: Type): Type['underlying'] => {
+        if (t.underlying !== 'union') return t.underlying;
+        const u = [...new Set(t.items.map((i) => i.underlying))];
+        if (u.length === 1) return u[0];
+        return 'any';
+    };
+
+    return getApproximateUnderlying(a) !== getApproximateUnderlying(b);
 };
 
 test('Expression evaluation', () => {
@@ -140,13 +158,8 @@ describe('without', () => {
     }
 
     test('evaluation', () => {
-        const isNumberType = (t: Type) => t.type !== 'never' && isSubsetOf(t, NumberType.instance);
-        const isStringType = (t: Type) => t.type !== 'never' && isSubsetOf(t, StringType.instance);
-        const actual = orderedPairs(primitives)
-            .filter(
-                ([a, b]) =>
-                    !((isNumberType(a) && isStringType(b)) || (isStringType(a) && isNumberType(b)))
-            )
+        const actual = orderedPairs(types.filter((t) => t.type !== 'any' && t.type !== 'never'))
+            .filter(([a, b]) => !isIncompatibleUnderlyingType(a, b))
             .map(([a, b]) => {
                 let result;
                 try {
@@ -161,8 +174,8 @@ describe('without', () => {
     });
 
     test('A \\ A = never', () => {
-        for (const a of primitives) {
-            for (const b of primitives) {
+        for (const a of types) {
+            for (const b of types) {
                 const u = union(a, b);
                 const actual = without(u, u as never);
                 if (actual.type !== 'never') {
@@ -285,4 +298,59 @@ describe('Builtin functions', () => {
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
     testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('multiply', { commutative: true, reflexive: false, associative: false });
+});
+
+describe('Match', () => {
+    // typeName(x) = match x { number => "number", string => "string", null => "null", any => "other" }
+    const typeName = (e: Expression) =>
+        new MatchExpression(e, [
+            new MatchArm(literal(2), undefined, new StringLiteralType('2')),
+            new MatchArm(NumberType.instance, undefined, new StringLiteralType('number')),
+            new MatchArm(StringType.instance, undefined, new StringLiteralType('string')),
+            new MatchArm(new NamedExpression('null'), undefined, new StringLiteralType('null')),
+            new MatchArm(AnyType.instance, undefined, new StringLiteralType('other')),
+        ]);
+
+    test('no arms', () => {
+        for (const type of types) {
+            assertSame(new MatchExpression(type, []), NeverType.instance);
+        }
+    });
+    test('default', () => {
+        const value = new StringLiteralType('hey yo');
+        for (const type of types) {
+            const expected = type.type === 'never' ? NeverType.instance : value;
+            assertSame(
+                new MatchExpression(type, [new MatchArm(AnyType.instance, undefined, value)]),
+                expected
+            );
+        }
+    });
+    test('type name mapping', () => {
+        // by the properties of match, typeName(X | Y) == typeName(X) | typeName(Y)
+        for (const a of types) {
+            for (const b of types) {
+                assertSame(
+                    typeName(new UnionExpression([a, b])),
+                    new UnionExpression([typeName(a), typeName(b)])
+                );
+            }
+        }
+    });
+
+    test('evaluate', () => {
+        const actual = types
+            .map(typeName)
+            .map((e) => {
+                let result;
+                try {
+                    result = evaluate(e, definitions).toString();
+                } catch (error) {
+                    result = String(error);
+                }
+                return `${e.toString()} => ${result}`;
+            })
+            .join('\n');
+        expect(actual).toMatchSnapshot();
+    });
 });

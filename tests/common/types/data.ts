@@ -10,14 +10,15 @@ import {
     IntervalType,
     NeverType,
     NumberType,
-    NumericLiteralType,
     StringLiteralType,
     StringType,
     StructType,
     StructTypeField,
     Type,
+    ValueType,
 } from '../../../src/common/types/types';
 import { union } from '../../../src/common/types/union';
+import { literal } from '../../../src/common/types/util';
 
 export const orderedPairs = <T>(array: readonly T[]): [T, T][] => {
     return array.flatMap((a) => array.map<[T, T]>((b) => [a, b]));
@@ -48,20 +49,20 @@ const fieldAccess = (expressions: readonly Expression[]): Expression[] => {
 export const sets: readonly Type[] = [NeverType.instance, AnyType.instance];
 export const numbers: readonly Type[] = [
     NumberType.instance,
-    new NumericLiteralType(-3.14),
-    new NumericLiteralType(-2),
-    new NumericLiteralType(-1),
-    new NumericLiteralType(0),
-    new NumericLiteralType(0.5),
-    new NumericLiteralType(1),
-    new NumericLiteralType(2),
-    new NumericLiteralType(2.78),
-    new NumericLiteralType(3.14),
-    new NumericLiteralType(10),
-    new NumericLiteralType(100),
-    new NumericLiteralType(-Infinity),
-    new NumericLiteralType(Infinity),
-    new NumericLiteralType(NaN),
+    literal(-3.14),
+    literal(-2),
+    literal(-1),
+    literal(0),
+    literal(0.5),
+    literal(1),
+    literal(2),
+    literal(2.78),
+    literal(3.14),
+    literal(10),
+    literal(100),
+    literal(-Infinity),
+    literal(Infinity),
+    literal(NaN),
     new IntervalType(0, 1),
     new IntervalType(0, 2),
     new IntervalType(0.5, 1.5),
@@ -96,19 +97,23 @@ export const structs: readonly Type[] = [
     new StructType('null'),
 
     new StructType('Foo', [
-        new StructTypeField('a', new NumericLiteralType(1)),
-        new StructTypeField('b', new NumericLiteralType(2)),
+        new StructTypeField('a', literal(1)),
+        new StructTypeField('b', literal(2)),
     ]),
     new StructType('Foo', [
-        new StructTypeField('a', new NumericLiteralType(3)),
-        new StructTypeField('b', new NumericLiteralType(2)),
+        new StructTypeField('a', literal(3)),
+        new StructTypeField('b', literal(2)),
     ]),
     new StructType('Foo', [
-        new StructTypeField('a', new NumericLiteralType(3)),
-        new StructTypeField('b', new NumericLiteralType(4)),
+        new StructTypeField('a', literal(3)),
+        new StructTypeField('b', literal(4)),
     ]),
     new StructType('Foo', [
-        new StructTypeField('a', new NumericLiteralType(3)),
+        new StructTypeField('a', union(literal(1), literal(3)) as ValueType),
+        new StructTypeField('b', literal(2)),
+    ]),
+    new StructType('Foo', [
+        new StructTypeField('a', literal(3)),
         new StructTypeField('b', NumberType.instance),
     ]),
 ];

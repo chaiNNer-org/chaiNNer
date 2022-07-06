@@ -80,7 +80,12 @@ class CombineRgbaNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    size_as=expression.intersect("Input0", "Input1", "Input2"),
+                    size_as=expression.intersect(
+                        "Input0",
+                        "Input1",
+                        "Input2",
+                        expression.match("Input3", ("Image", "i", "i"), default="any"),
+                    ),
                     channels=4,
                 )
             )

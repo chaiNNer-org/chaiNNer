@@ -177,7 +177,8 @@ struct Image { width: uint, height: uint, channels: int(1..Infinity) }
 
 ## Built-in functions
 
-Built-in functions are functions that takes types are positional arguments and return a type. These functions are not implemented with the type system (like e.g. generic aliases) and have to be implemented in the host language (in this case TypeScript).
+Built-in functions are functions that takes types are positional arguments and return a type.
+These functions are not implemented with the type system (like e.g. generic aliases) and have to be implemented in the host language (in this case TypeScript).
 
 The following built-in functions are supported:
 
@@ -212,3 +213,41 @@ The following built-in functions are supported:
 -   `maximum(a: number, b: number) -> number`
 
     Takes 2 number types and returns the type that represents the maximum of the both types. The behavior is consistent with JavaScript's `Math.max(a, b)`.
+
+## `match`
+
+`match` expressions enable conditional types.
+A `match` expressions consists of an input type and any number of arms.
+A match arm consists of a pattern, an optional binding, and an expression the matching type will be mapped to.
+
+Example:
+
+```
+match 1 | 3 {
+    1 => 1,
+    _ as x => add(x, 1)
+}
+```
+
+This match expression evaluates to `1 | 4`.
+It behaves as "if the given number is 1, return 1, else return the given number plus 1."
+
+`1` and `_` are both match patterns.
+`1` matches the numeric literal 1.
+`_` matches any type.
+`as x` is a binding and means that the part of the type that matches the pattern of the arm will be assigned to this variable.
+The variable is only available in the arm's expression.
+
+Arms are matched in order and parts of the input type matched by previous arms will not be matched again.
+I.e. the `_ as x => add(x, 1)` arm did not match the `1` in `1 | 3` because it was already matched by `1 => 1`.
+
+### Patterns
+
+Every match arm has a pattern that describes which parts of the input type the arm handles.
+A pattern is just a type, so `1`, `1 | 4`, `-inf..0 | int(1..10) | inf`, `number`, `"foo"`, `string`, `Image { width: 128 }` are all valid patterns.
+
+Note that an arm with a `never` pattern will never be evaluated.
+
+### Binding
+
+Like in the example above (`as x`), the currently matched value can be assigned to a variable that is available to the expression of the arm.

@@ -11,6 +11,7 @@ import {
     NumberPrimitive,
     NumberType,
     NumericLiteralType,
+    StringLiteralType,
     StringPrimitive,
     StringType,
     StructType,
@@ -128,11 +129,6 @@ const unionString = (a: StringPrimitive, b: StringPrimitive): StringPrimitive | 
 const unionStructField = (a: StructTypeField, b: StructTypeField): StructTypeField => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const type = union(a.type, b.type);
-
-    if (type.type === 'never') {
-        throw new Error('Invalid union. The union of 2 non-never cannot be be never.');
-    }
-
     return new StructTypeField(a.name, type);
 };
 const unionStruct = (a: StructType, b: StructType): StructType | undefined => {
@@ -253,16 +249,46 @@ export const unionValueTypes = (...types: ValueType[]): ValueType | UnionType | 
     return u.getResult();
 };
 
-export function union(
-    ...types: (NumberPrimitive | UnionType<NumberPrimitive> | NeverType)[]
-): NumberPrimitive | UnionType<NumberPrimitive> | NeverType;
-export function union(
-    ...types: (StringPrimitive | UnionType<StringPrimitive> | NeverType)[]
-): StringPrimitive | UnionType<StringPrimitive> | NeverType;
-export function union(
-    ...types: (ValueType | UnionType<ValueType> | NeverType)[]
-): ValueType | UnionType<ValueType> | NeverType;
-export function union(...types: Type[]): Type;
+type NonNever<T extends Type> = Exclude<T, NeverType>;
+type ClosedValueType<T extends ValueType> =
+    | (T extends NumericLiteralType ? NumberPrimitive : never)
+    | (T extends IntervalType ? NumberPrimitive : never)
+    | (T extends IntIntervalType ? NumberPrimitive : never)
+    | (T extends StringLiteralType ? StringPrimitive : never)
+    | T;
+type Closed<T extends Type> =
+    | (T extends NumericLiteralType ? NumberPrimitive | UnionType<NumberPrimitive> : never)
+    | (T extends IntervalType ? NumberPrimitive | UnionType<NumberPrimitive> : never)
+    | (T extends IntIntervalType ? NumberPrimitive | UnionType<NumberPrimitive> : never)
+    | (T extends StringLiteralType ? StringPrimitive | UnionType<StringPrimitive> : never)
+    | (T extends UnionType<infer U> ? UnionType<ClosedValueType<U>> : never)
+    | T;
+
+type Union2<A extends Type, B extends Type> =
+    | Closed<NonNever<A>>
+    | Closed<NonNever<B>>
+    | (A extends NeverType ? (B extends NeverType ? NeverType : never) : never);
+type Union3<A extends Type, B extends Type, C extends Type> = Union2<A, Union2<B, C>>;
+type Union4<A extends Type, B extends Type, C extends Type, D extends Type> = Union2<
+    A,
+    Union2<B, Union2<C, D>>
+>;
+
+export function union(): NeverType;
+export function union<A extends Type>(a: A): A;
+export function union<A extends Type, B extends Type>(a: A, b: B): Union2<A, B>;
+export function union<A extends Type, B extends Type, C extends Type>(
+    a: A,
+    b: B,
+    c: C
+): Union3<A, B, C>;
+export function union<A extends Type, B extends Type, C extends Type, D extends Type>(
+    a: A,
+    b: B,
+    c: C,
+    d: D
+): Union4<A, B, C, D>;
+export function union<T extends Type>(...types: T[]): Closed<T> | NeverType;
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
 export function union(...types: Type[]): Type {
     if (types.length === 0) return NeverType.instance;

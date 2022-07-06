@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TypedDict, Union, List, Dict
+from typing import Literal, Optional, Tuple, TypedDict, Union, List, Dict
 import math
 
 
@@ -39,6 +39,7 @@ ExpressionJson = Union[
     "NamedExpressionJson",
     "FieldAccessExpressionJson",
     "BuiltFunctionExpressionJson",
+    "MatchExpressionJson",
     List["ExpressionJson"],
 ]
 
@@ -93,6 +94,18 @@ class BuiltFunctionExpressionJson(TypedDict):
     args: List[ExpressionJson]
 
 
+class MatchArmJson(TypedDict):
+    pattern: ExpressionJson
+    binding: str | None
+    to: ExpressionJson
+
+
+class MatchExpressionJson(TypedDict):
+    type: Literal["match"]
+    of: ExpressionJson
+    arms: List[MatchArmJson]
+
+
 def literal(value: Union[str, int, float]) -> ExpressionJson:
     if isinstance(value, str):
         return {
@@ -145,6 +158,19 @@ def field(of: ExpressionJson, field: str) -> ExpressionJson:
 
 def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
     return {"type": "builtin-function", "name": name, "args": list(args)}
+
+
+def match(
+    of: ExpressionJson,
+    *args: Tuple[ExpressionJson, str | None, ExpressionJson],
+    default: ExpressionJson | None = None,
+) -> ExpressionJson:
+    arms: List[MatchArmJson] = []
+    for pattern, binding, to in args:
+        arms.append({"pattern": pattern, "binding": binding, "to": to})
+    if default is not None:
+        arms.append({"pattern": "any", "binding": None, "to": default})
+    return {"type": "match", "of": of, "arms": arms}
 
 
 def Image(
