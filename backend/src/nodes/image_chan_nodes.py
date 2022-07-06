@@ -80,11 +80,25 @@ class CombineRgbaNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    size_as=expression.intersect(
-                        "Input0",
-                        "Input1",
-                        "Input2",
-                        expression.match("Input3", ("Image", "i", "i"), default="any"),
+                    width=expression.intersect(
+                        "Input0.width",
+                        "Input1.width",
+                        "Input2.width",
+                        expression.match(
+                            "Input3",
+                            ("Image", "i", "i.width"),
+                            default="any",
+                        ),
+                    ),
+                    height=expression.intersect(
+                        "Input0.height",
+                        "Input1.height",
+                        "Input2.height",
+                        expression.match(
+                            "Input3",
+                            ("Image", "i", "i.height"),
+                            default="any",
+                        ),
                     ),
                     channels=4,
                 )
@@ -245,7 +259,9 @@ class TransparencyMergeNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    size_as=expression.intersect("Input0", "Input1"), channels=4
+                    width=expression.intersect("Input0.width", "Input1.width"),
+                    height=expression.intersect("Input0.height", "Input1.height"),
+                    channels=4,
                 )
             )
         ]

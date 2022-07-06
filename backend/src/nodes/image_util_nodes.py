@@ -36,21 +36,9 @@ class ImBlend(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.fn(
-                        "max",
-                        expression.field("Input0", "width"),
-                        expression.field("Input1", "width"),
-                    ),
-                    height=expression.fn(
-                        "max",
-                        expression.field("Input0", "height"),
-                        expression.field("Input1", "height"),
-                    ),
-                    channels=expression.fn(
-                        "max",
-                        expression.field("Input0", "channels"),
-                        expression.field("Input1", "channels"),
-                    ),
+                    width=expression.fn("max", "Input0.width", "Input1.width"),
+                    height=expression.fn("max", "Input0.height", "Input1.height"),
+                    channels=expression.fn("max", "Input0.channels", "Input1.channels"),
                 )
             ),
         ]
@@ -246,7 +234,7 @@ class ColorConvertNode(NodeBase):
             ImageOutput(
                 image_type=expression.Image(
                     size_as="Input0",
-                    channels=expression.field("Input1", "outputChannels"),
+                    channels="Input1.outputChannels",
                 )
             )
         ]
@@ -278,12 +266,12 @@ class BorderMakeNode(NodeBase):
                 image_type=expression.Image(
                     width=expression.fn(
                         "add",
-                        expression.field("Input0", "width"),
+                        "Input0.width",
                         expression.fn("multiply", "Input2", 2),
                     ),
                     height=expression.fn(
                         "add",
-                        expression.field("Input0", "height"),
+                        "Input0.height",
                         expression.fn("multiply", "Input2", 2),
                     ),
                 )
@@ -400,14 +388,8 @@ class FlipNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=[
-                        expression.field("Input0", "width"),
-                        expression.field("Input0", "height"),
-                    ],
-                    height=[
-                        expression.field("Input0", "width"),
-                        expression.field("Input0", "height"),
-                    ],
+                    width=["Input0.width", "Input0.height"],
+                    height=["Input0.width", "Input0.height"],
                     channels_as="Input0",
                 )
             )

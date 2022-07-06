@@ -139,20 +139,9 @@ class ImageUpscaleNode(NodeBase):
             ImageOutput(
                 "Upscaled Image",
                 expression.Image(
-                    width=expression.fn(
-                        "multiply",
-                        expression.field("Input0", "scale"),
-                        expression.field("Input1", "width"),
-                    ),
-                    height=expression.fn(
-                        "multiply",
-                        expression.field("Input0", "scale"),
-                        expression.field("Input1", "height"),
-                    ),
-                    channels=[
-                        expression.field("Input0", "outputChannels"),
-                        expression.field("Input1", "channels"),
-                    ],
+                    width=expression.fn("multiply", "Input0.scale", "Input1.width"),
+                    height=expression.fn("multiply", "Input0.scale", "Input1.height"),
+                    channels=["Input0.outputChannels", "Input1.channels"],
                 ),
             )
         ]
@@ -518,9 +507,7 @@ class GetModelDimensions(NodeBase):
         super().__init__()
         self.description = """Returns the scale of a PyTorch model."""
         self.inputs = [ModelInput()]
-        self.outputs = [
-            NumberOutput("Scale", output_type=expression.field("Input0", "scale"))
-        ]
+        self.outputs = [NumberOutput("Scale", output_type="Input0.scale")]
 
         self.category = PYTORCH
         self.name = "Get Model Scale"
