@@ -1,11 +1,12 @@
 /* eslint-disable max-classes-per-file */
-import { assertNever } from '../util';
 import {
     assertValidFunctionName,
     assertValidStructFieldName,
     assertValidStructName,
 } from './names';
-import { Type } from './types';
+import { isSubsetOf } from './relation';
+import { AnyType, NeverType, PrimitiveType, Type, UnionType } from './types';
+import { union } from './union';
 
 type PureExpression =
     | UnionExpression
@@ -135,83 +136,26 @@ export class BuiltinFunctionExpression implements ExpressionBase {
     }
 }
 
-export class MatchStructArm {
-    readonly type = 'struct';
-
-    readonly name: string;
-
-    readonly expression: Expression;
+export class MatchArm {
+    readonly pattern: string | PrimitiveType | UnionType<PrimitiveType> | AnyType;
 
     readonly binding: string | undefined;
 
-    constructor(name: string, expression: Expression, binding?: string) {
-        assertValidStructName(name);
+    readonly to: Expression;
+
+    constructor(pattern: MatchArm['pattern'], binding: string | undefined, to: Expression) {
         if (binding !== undefined) assertValidStructFieldName(binding);
-        this.name = name;
-        this.expression = expression;
+        if (typeof pattern === 'string') assertValidStructName(pattern);
+        this.pattern = pattern;
         this.binding = binding;
+        this.to = to;
     }
 
     toString(): string {
         const binding = this.binding === undefined ? '' : `as ${this.binding} `;
-        return `${this.name} ${binding}=> ${this.expression.toString()}`;
+        return `${this.pattern.toString()} ${binding}=> ${this.to.toString()}`;
     }
 }
-export class MatchNumberArm {
-    readonly type = 'number';
-
-    readonly expression: Expression;
-
-    readonly binding: string | undefined;
-
-    constructor(expression: Expression, binding?: string) {
-        if (binding !== undefined) assertValidStructFieldName(binding);
-        this.expression = expression;
-        this.binding = binding;
-    }
-
-    toString(): string {
-        const binding = this.binding === undefined ? '' : `as ${this.binding} `;
-        return `number ${binding}=> ${this.expression.toString()}`;
-    }
-}
-export class MatchStringArm {
-    readonly type = 'string';
-
-    readonly expression: Expression;
-
-    readonly binding: string | undefined;
-
-    constructor(expression: Expression, binding?: string) {
-        if (binding !== undefined) assertValidStructFieldName(binding);
-        this.expression = expression;
-        this.binding = binding;
-    }
-
-    toString(): string {
-        const binding = this.binding === undefined ? '' : `as ${this.binding} `;
-        return `string ${binding}=> ${this.expression.toString()}`;
-    }
-}
-export class MatchDefaultArm {
-    readonly type = 'default';
-
-    readonly expression: Expression;
-
-    readonly binding: string | undefined;
-
-    constructor(expression: Expression, binding?: string) {
-        if (binding !== undefined) assertValidStructFieldName(binding);
-        this.expression = expression;
-        this.binding = binding;
-    }
-
-    toString(): string {
-        const binding = this.binding === undefined ? '' : `as ${this.binding} `;
-        return `_ ${binding}=> ${this.expression.toString()}`;
-    }
-}
-export type MatchArm = MatchStructArm | MatchStringArm | MatchNumberArm | MatchDefaultArm;
 export class MatchExpression implements ExpressionBase {
     readonly type = 'match';
 
@@ -219,65 +163,39 @@ export class MatchExpression implements ExpressionBase {
 
     readonly of: Expression;
 
-    readonly structArms: readonly MatchStructArm[];
-
-    readonly numberArm: MatchNumberArm | undefined;
-
-    readonly stringArm: MatchStringArm | undefined;
-
-    readonly defaultArm: MatchDefaultArm | undefined;
+    readonly arms: readonly MatchArm[];
 
     constructor(of: Expression, arms: readonly MatchArm[]) {
         this.of = of;
+        this.arms = arms;
 
-        const structs = new Set<string>();
-        const structArms: MatchStructArm[] = [];
+        let total: Type = NeverType.instance;
+        const totalStructs = new Set<string>();
         for (const arm of arms) {
-            switch (arm.type) {
-                case 'struct':
-                    if (structs.has(arm.name))
-                        throw new Error(
-                            `Invalid match arms. The struct ${arm.name} is matched twice.`
-                        );
-                    structs.add(arm.name);
-                    structArms.push(arm);
-                    break;
-                case 'number':
-                    if (this.numberArm)
-                        throw new Error(
-                            `Invalid match arms. There must at most be one number arm.`
-                        );
-                    this.numberArm = arm;
-                    break;
-                case 'string':
-                    if (this.stringArm)
-                        throw new Error(
-                            `Invalid match arms. There must at most be one string arm.`
-                        );
-                    this.stringArm = arm;
-                    break;
-                case 'default':
-                    if (this.defaultArm)
-                        throw new Error(
-                            `Invalid match arms. There must at most be one default arm.`
-                        );
-                    this.defaultArm = arm;
-                    break;
-                default:
-                    assertNever(arm);
+            if (typeof arm.pattern === 'string') {
+                if (totalStructs.has(arm.pattern)) {
+                    throw new Error(
+                        `Invalid match expression:` +
+                            ` The pattern of the arm \`${arm.toString()}\` is already fully handled by previous arms.` +
+                            ` ${this.toString()}`
+                    );
+                }
+                totalStructs.add(arm.pattern);
+            } else {
+                if (isSubsetOf(arm.pattern, total)) {
+                    throw new Error(
+                        `Invalid match expression:` +
+                            ` The pattern of the arm \`${arm.toString()}\` is already fully handled by previous arms.` +
+                            ` ${this.toString()}`
+                    );
+                }
+                total = union(total, arm.pattern);
             }
         }
-        this.structArms = structArms;
     }
 
     toString(): string {
-        const all: MatchArm[] = [];
-        if (this.numberArm) all.push(this.numberArm);
-        if (this.stringArm) all.push(this.stringArm);
-        all.push(...this.structArms);
-        if (this.defaultArm) all.push(this.defaultArm);
-
-        const arms = all.map((a) => a.toString()).join(', ');
+        const arms = this.arms.map((a) => a.toString()).join(', ');
         return `match ${this.of.toString()} { ${arms} }`;
     }
 }

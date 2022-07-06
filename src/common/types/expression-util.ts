@@ -1,3 +1,4 @@
+import { assertNever } from '../util';
 import { Expression } from './expression';
 
 export function* getReferences(expression: Expression): Iterable<string> {
@@ -27,12 +28,8 @@ export function* getReferences(expression: Expression): Iterable<string> {
                 }
                 break;
             case 'match':
-                yield* getReferences(expression.of);
-                if (expression.defaultArm) yield* getReferences(expression.defaultArm.expression);
-                if (expression.numberArm) yield* getReferences(expression.numberArm.expression);
-                if (expression.stringArm) yield* getReferences(expression.stringArm.expression);
-                for (const arm of expression.structArms) {
-                    yield* getReferences(arm.expression);
+                for (const arm of expression.arms) {
+                    yield* getReferences(arm.to);
                 }
                 break;
             default:

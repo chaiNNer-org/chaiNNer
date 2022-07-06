@@ -4,14 +4,12 @@ import {
     BuiltinFunctionExpression,
     Expression,
     IntersectionExpression,
-    MatchDefaultArm,
+    MatchArm,
     MatchExpression,
-    MatchNumberArm,
-    MatchStringArm,
-    MatchStructArm,
     UnionExpression,
 } from '../../../src/common/types/expression';
 import { isSubsetOf } from '../../../src/common/types/relation';
+import { literal } from '../../../src/common/types/type-util';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
 import {
     AnyType,
@@ -294,13 +292,14 @@ describe('Builtin functions', () => {
 });
 
 describe('Match', () => {
-    // typeName(x) = match x { number => "number", string => "string", null => "null", _ => "other" }
+    // typeName(x) = match x { number => "number", string => "string", null => "null", any => "other" }
     const typeName = (e: Expression) =>
         new MatchExpression(e, [
-            new MatchStringArm(new StringLiteralType('string')),
-            new MatchNumberArm(new StringLiteralType('number')),
-            new MatchStructArm('null', new StringLiteralType('null')),
-            new MatchDefaultArm(new StringLiteralType('other')),
+            new MatchArm(literal(2), undefined, new StringLiteralType('2')),
+            new MatchArm(NumberType.instance, undefined, new StringLiteralType('number')),
+            new MatchArm(StringType.instance, undefined, new StringLiteralType('string')),
+            new MatchArm('null', undefined, new StringLiteralType('null')),
+            new MatchArm(AnyType.instance, undefined, new StringLiteralType('other')),
         ]);
 
     test('no arms', () => {
@@ -312,7 +311,10 @@ describe('Match', () => {
         const value = new StringLiteralType('hey yo');
         for (const type of types) {
             const expected = type.type === 'never' ? NeverType.instance : value;
-            assertSame(new MatchExpression(type, [new MatchDefaultArm(value)]), expected);
+            assertSame(
+                new MatchExpression(type, [new MatchArm(AnyType.instance, undefined, value)]),
+                expected
+            );
         }
     });
     test('type name mapping', () => {

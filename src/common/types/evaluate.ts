@@ -1,4 +1,3 @@
-/* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-param-reassign */
 import { EMPTY_MAP, assertNever } from '../util';
@@ -8,7 +7,6 @@ import {
     FieldAccessExpression,
     MatchArm,
     MatchExpression,
-    MatchStructArm,
     NamedExpression,
     NamedExpressionField,
 } from './expression';
@@ -23,16 +21,9 @@ import {
     StructDefinitionEntry,
     TypeDefinitions,
 } from './typedef';
-import {
-    AnyType,
-    NeverType,
-    NumberType,
-    StringType,
-    StructType,
-    StructTypeField,
-    Type,
-} from './types';
+import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
+import { without } from './without';
 
 export type ErrorDetails =
     | {
@@ -132,8 +123,7 @@ export type ErrorDetails =
     | {
           type: 'Invalid struct match arm';
           expression: MatchExpression;
-          arm: MatchStructArm;
-
+          arm: MatchArm;
           message: string;
       };
 
@@ -475,34 +465,56 @@ const evaluateBuiltinFunction = (
     return entry.definition.fn(...args);
 };
 
+const withoutStruct = (left: Type, name: string): Type => {
+    switch (left.underlying) {
+        case 'any':
+        case 'never':
+        case 'number':
+        case 'string':
+            return left;
+        case 'struct':
+            if (left.name === name) return NeverType.instance;
+            return left;
+        case 'union':
+            if (left.items.some((i) => i.type === 'struct' && i.name === name)) {
+                return union(...left.items.filter((i) => i.type !== 'struct' || i.name !== name));
+            }
+            return left;
+        default:
+            return assertNever(left);
+    }
+};
 const evaluateMatch = (
     expression: MatchExpression,
     definitions: TypeDefinitions,
     genericParameters: ReadonlyMap<string, Type>
 ): Type => {
-    const structArms = new Map<string, { arm: MatchStructArm; entry: StructDefinitionEntry }>();
-    for (const arm of expression.structArms) {
-        const entry = definitions.get(arm.name);
-        if (entry === undefined) {
-            throw new EvaluationError({
-                type: 'Invalid struct match arm',
-                expression,
-                arm,
-                message: `There is no struct definition with the name ${arm.name}.`,
-            });
+    const structs = new Map<MatchArm, Type>();
+    for (const arm of expression.arms) {
+        if (typeof arm.pattern === 'string') {
+            const entry = definitions.get(arm.pattern);
+            if (entry === undefined) {
+                throw new EvaluationError({
+                    type: 'Invalid struct match arm',
+                    expression,
+                    arm,
+                    message: `There is no struct definition with the name ${arm.pattern}.`,
+                });
+            }
+            if (entry.kind !== 'struct') {
+                throw new EvaluationError({
+                    type: 'Invalid struct match arm',
+                    expression,
+                    arm,
+                    message: `The type definition with the name ${arm.pattern} is not a struct.`,
+                });
+            }
+            entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
+            structs.set(arm, entry.evaluated);
         }
-        if (entry.kind !== 'struct') {
-            throw new EvaluationError({
-                type: 'Invalid struct match arm',
-                expression,
-                arm,
-                message: `The type definition with the name ${arm.name} is not a struct.`,
-            });
-        }
-        structArms.set(arm.name, { arm, entry });
     }
 
-    const type = evaluate(expression.of, definitions, genericParameters);
+    let type = evaluate(expression.of, definitions, genericParameters);
     if (type.type === 'never') return NeverType.instance;
 
     const withBinding = (arm: MatchArm, armType: Type): ReadonlyMap<string, Type> => {
@@ -513,62 +525,19 @@ const evaluateMatch = (
     };
 
     const matchTypes: Type[] = [];
-    const { numberArm, stringArm, defaultArm } = expression;
-    if (type.type === 'any') {
-        // execute all match arms
-
-        if (numberArm) {
-            const generic = withBinding(numberArm, NumberType.instance);
-            matchTypes.push(evaluate(numberArm.expression, definitions, generic));
-        }
-        if (stringArm) {
-            const generic = withBinding(stringArm, StringType.instance);
-            matchTypes.push(evaluate(stringArm.expression, definitions, generic));
-        }
-        if (defaultArm) {
-            const generic = withBinding(defaultArm, AnyType.instance);
-            matchTypes.push(evaluate(defaultArm.expression, definitions, generic));
-        }
-        for (const { arm, entry } of structArms.values()) {
-            entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
-            if (entry.evaluated.type !== 'never') {
-                const generic = withBinding(arm, entry.evaluated);
-                matchTypes.push(evaluate(arm.expression, definitions, generic));
+    for (const arm of expression.arms) {
+        if (typeof arm.pattern === 'string') {
+            const armType = structs.get(arm)!;
+            const t = intersect(armType, type);
+            if (t.type !== 'never') {
+                matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
+                type = withoutStruct(type, arm.pattern);
             }
-        }
-    } else {
-        for (const t of type.type === 'union' ? type.items : [type]) {
-            switch (t.underlying) {
-                case 'number':
-                    if (numberArm) {
-                        const generic = withBinding(numberArm, t);
-                        matchTypes.push(evaluate(numberArm.expression, definitions, generic));
-                        continue;
-                    }
-                    break;
-                case 'string':
-                    if (stringArm) {
-                        const generic = withBinding(stringArm, t);
-                        matchTypes.push(evaluate(stringArm.expression, definitions, generic));
-                        continue;
-                    }
-                    break;
-                case 'struct': {
-                    const arm = structArms.get(t.name);
-                    if (arm) {
-                        const generic = withBinding(arm.arm, t);
-                        matchTypes.push(evaluate(arm.arm.expression, definitions, generic));
-                        continue;
-                    }
-                    break;
-                }
-                default:
-                    return assertNever(t);
-            }
-
-            if (defaultArm) {
-                const generic = withBinding(defaultArm, t);
-                matchTypes.push(evaluate(defaultArm.expression, definitions, generic));
+        } else {
+            const t = intersect(arm.pattern, type);
+            if (t.type !== 'never') {
+                matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
+                type = without(type, arm.pattern);
             }
         }
     }
