@@ -12,6 +12,7 @@ import {
     NumberPrimitive,
     NumberType,
     NumericLiteralType,
+    StaticType,
     StringPrimitive,
     StringType,
     StructType,
@@ -262,6 +263,7 @@ export function union(
 export function union(
     ...types: (ValueType | UnionType<ValueType> | NeverType)[]
 ): ValueType | UnionType<ValueType> | NeverType;
+export function union(...types: StaticType[]): StaticType;
 export function union(...types: Type[]): Type;
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
 export function union(...types: Type[]): Type {

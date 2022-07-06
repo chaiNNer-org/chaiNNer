@@ -1,10 +1,8 @@
 import { assertNever } from '../util';
 import { Expression } from './expression';
 import { intersect } from './intersection';
-import { AnyType, NeverType, PrimitiveType, UnionType } from './types';
+import { PrimitiveType, StaticType, UnionType } from './types';
 import { union } from './union';
-
-export type StaticType = AnyType | NeverType | PrimitiveType | UnionType<PrimitiveType>;
 
 export class StaticEvaluationError extends Error {}
 
@@ -47,9 +45,9 @@ export const staticEvaluate = (expression: Expression): StaticType => {
                     ` The expression ${expression.toString()} cannot be evaluated`
             );
         case 'union':
-            return union(...expression.items.map(staticEvaluate)) as StaticType;
+            return union(...expression.items.map(staticEvaluate));
         case 'intersection':
-            return intersect(...expression.items.map(staticEvaluate)) as StaticType;
+            return intersect(...expression.items.map(staticEvaluate));
         case 'field-access':
             throw new StaticEvaluationError(
                 `Field access is not supported during static evaluation.`

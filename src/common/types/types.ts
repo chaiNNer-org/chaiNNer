@@ -27,6 +27,7 @@ export type WithType<U extends Type['type'], T extends Type = Type> = T extends 
     : never;
 
 export type NonTrivialType = WithType<Exclude<Type['type'], 'any' | 'never'>>;
+export type StaticType = AnyType | NeverType | PrimitiveType | UnionType<PrimitiveType>;
 
 const formatNumber = (n: number): string => {
     if (Number.isNaN(n)) return 'nan';
