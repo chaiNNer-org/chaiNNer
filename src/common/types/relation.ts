@@ -59,3 +59,5 @@ export const isSubsetOf = (left: Type, right: Type): boolean => {
 
     return valueIsSubsetOf(left, right);
 };
+
+export const isSupersetOf = (left: Type, right: Type): boolean => isSubsetOf(right, left);

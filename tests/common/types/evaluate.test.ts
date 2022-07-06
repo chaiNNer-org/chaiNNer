@@ -8,7 +8,6 @@ import {
     MatchExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { isSubsetOf } from '../../../src/common/types/relation';
 import { literal } from '../../../src/common/types/type-util';
 import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
 import {
@@ -45,6 +44,20 @@ const assertSame = (a: Expression, b: Expression): void => {
         const prefix = `a = ${a.toString()}\nb = ${b.toString()}\n`;
         expect(prefix + actual).toBe(prefix + expected);
     }
+};
+
+const isIncompatibleUnderlyingType = (a: Type, b: Type): boolean => {
+    if (a.underlying === 'any' || a.underlying === 'never') return false;
+    if (b.underlying === 'any' || b.underlying === 'never') return false;
+
+    const getApproximateUnderlying = (t: Type): Type['underlying'] => {
+        if (t.underlying !== 'union') return t.underlying;
+        const u = [...new Set(t.items.map((i) => i.underlying))];
+        if (u.length === 1) return u[0];
+        return 'any';
+    };
+
+    return getApproximateUnderlying(a) !== getApproximateUnderlying(b);
 };
 
 test('Expression evaluation', () => {
@@ -144,13 +157,8 @@ describe('without', () => {
     }
 
     test('evaluation', () => {
-        const isNumberType = (t: Type) => t.type !== 'never' && isSubsetOf(t, NumberType.instance);
-        const isStringType = (t: Type) => t.type !== 'never' && isSubsetOf(t, StringType.instance);
-        const actual = orderedPairs(primitives)
-            .filter(
-                ([a, b]) =>
-                    !((isNumberType(a) && isStringType(b)) || (isStringType(a) && isNumberType(b)))
-            )
+        const actual = orderedPairs(types.filter((t) => t.type !== 'any' && t.type !== 'never'))
+            .filter(([a, b]) => !isIncompatibleUnderlyingType(a, b))
             .map(([a, b]) => {
                 let result;
                 try {
@@ -165,8 +173,8 @@ describe('without', () => {
     });
 
     test('A \\ A = never', () => {
-        for (const a of primitives) {
-            for (const b of primitives) {
+        for (const a of types) {
+            for (const b of types) {
                 const u = union(a, b);
                 const actual = without(u, u as never);
                 if (actual.type !== 'never') {

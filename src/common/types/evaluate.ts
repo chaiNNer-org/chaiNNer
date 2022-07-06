@@ -465,25 +465,6 @@ const evaluateBuiltinFunction = (
     return entry.definition.fn(...args);
 };
 
-const withoutStruct = (left: Type, name: string): Type => {
-    switch (left.underlying) {
-        case 'any':
-        case 'never':
-        case 'number':
-        case 'string':
-            return left;
-        case 'struct':
-            if (left.name === name) return NeverType.instance;
-            return left;
-        case 'union':
-            if (left.items.some((i) => i.type === 'struct' && i.name === name)) {
-                return union(...left.items.filter((i) => i.type !== 'struct' || i.name !== name));
-            }
-            return left;
-        default:
-            return assertNever(left);
-    }
-};
 const evaluateMatch = (
     expression: MatchExpression,
     definitions: TypeDefinitions,
@@ -526,19 +507,11 @@ const evaluateMatch = (
 
     const matchTypes: Type[] = [];
     for (const arm of expression.arms) {
-        if (typeof arm.pattern === 'string') {
-            const armType = structs.get(arm)!;
-            const t = intersect(armType, type);
-            if (t.type !== 'never') {
-                matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
-                type = withoutStruct(type, arm.pattern);
-            }
-        } else {
-            const t = intersect(arm.pattern, type);
-            if (t.type !== 'never') {
-                matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
-                type = without(type, arm.pattern);
-            }
+        const armType = typeof arm.pattern === 'string' ? structs.get(arm)! : arm.pattern;
+        const t = intersect(armType, type);
+        if (t.type !== 'never') {
+            matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
+            type = without(type, armType);
         }
     }
 

@@ -1,5 +1,6 @@
 import { assertNever, sameNumber } from '../util';
-import { groupByUnderlying, intInterval, interval, literal } from './type-util';
+import { isSupersetOf } from './relation';
+import { groupByUnderlying, intInterval, interval, isSameStructType, literal } from './type-util';
 import {
     AnyType,
     IntIntervalType,
@@ -8,9 +9,10 @@ import {
     NumberPrimitive,
     NumberType,
     NumericLiteralType,
-    PrimitiveType,
     StringPrimitive,
     StringType,
+    StructType,
+    StructTypeField,
     Type,
     UnionType,
     ValueType,
@@ -141,13 +143,72 @@ const withoutStringPrimitive = (
     return left;
 };
 
-const withoutPrimitive = (
-    left: WithoutLhs<ValueType>,
-    right: PrimitiveType
-): WithoutResult<ValueType> => {
+const withoutStruct = (left: StructType, right: StructType): StructType | NeverType => {
+    if (isSameStructType(left, right)) {
+        if (left.fields.length === 0) {
+            // there are no fields, so e.g. `null \ null == never`
+            return NeverType.instance;
+        }
+        if (left.fields.length === 1) {
+            // if there is only field, we only have to find the difference of that field
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            const field = without(left.fields[0].type, right.fields[0].type);
+            if (field.type === 'never') return NeverType.instance;
+            return new StructType(left.name, [new StructTypeField(left.fields[0].name, field)]);
+        }
+
+        // the condition for multiple fields is as follows:
+        // 1. If all right fields are a superset of their corresponding left fields, return never.
+        // 2. If there is exactly one right field that is a subset of its corresponding left field
+        //    (all other right fields being supersets of their corresponding left fields), then
+        //    find the difference for that one field and use the left field for all others.
+        // 3. If neither 1) not 2) applies, return left.
+
+        let subset: number | undefined;
+        for (let i = 0; i < left.fields.length; i += 1) {
+            const leftField = left.fields[i];
+            const rightField = right.fields[i];
+            if (!isSupersetOf(rightField.type, leftField.type)) {
+                if (subset === undefined) {
+                    subset = i;
+                } else {
+                    // there is more than one subset, so condition 3)
+                    return left;
+                }
+            }
+        }
+
+        // condition 1)
+        if (subset === undefined) return NeverType.instance;
+
+        // condition 2)
+        return new StructType(
+            left.name,
+            left.fields.map((leftField, i) => {
+                if (i !== subset) return leftField;
+
+                const rightField = right.fields[i];
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                const diff = without(leftField.type, rightField.type);
+                if (diff.type === 'never') {
+                    throw new Error(
+                        'This should not be possible because the left field is guaranteed to be a strict subset of the right field.' +
+                            ' This means that there is a bug with implementation of `without` or `isSubsetOf`.' +
+                            ' Please report this as a bug.'
+                    );
+                }
+
+                return new StructTypeField(leftField.name, diff);
+            })
+        );
+    }
+    return left;
+};
+
+const withoutValue = (left: WithoutLhs<ValueType>, right: ValueType): WithoutResult<ValueType> => {
     const groups = groupByUnderlying(left.type === 'union' ? left.items : [left]);
 
-    const other: WithoutResult<PrimitiveType>[] = [];
+    const other: WithoutResult<ValueType>[] = [];
     switch (right.underlying) {
         case 'number': {
             const l = groups.number;
@@ -160,6 +221,13 @@ const withoutPrimitive = (
             const l = groups.string;
             if (l.length === 0) return left;
             other.push(...l.map((s) => withoutStringPrimitive(s, right)));
+            l.length = 0;
+            break;
+        }
+        case 'struct': {
+            const l = groups.struct;
+            if (l.length === 0) return left;
+            other.push(...l.map((s) => withoutStruct(s, right)));
             l.length = 0;
             break;
         }
@@ -178,23 +246,20 @@ const withoutPrimitive = (
  * superset of the actual result that is representable using the type system will be returned.
  * E.g. `0..1 \ 0.5` will return `0..1`.
  */
-export const without = (
-    left: Type,
-    right: AnyType | NeverType | PrimitiveType | UnionType<PrimitiveType>
-): Type => {
+export const without = (left: Type, right: Type): Type => {
     if (right.type === 'never') return left;
     if (right.type === 'any') return NeverType.instance;
     if (left.type === 'never') return NeverType.instance;
     if (left.type === 'any') return AnyType.instance;
 
-    if (right.underlying === 'number' || right.underlying === 'string') {
-        return withoutPrimitive(left, right);
+    if (right.underlying !== 'union') {
+        return withoutValue(left, right);
     }
 
     let result: WithoutResult<ValueType> = left;
     for (const r of right.items) {
         if (result.type === 'never') return NeverType.instance;
-        result = withoutPrimitive(result, r);
+        result = withoutValue(result, r);
     }
     return result;
 };
