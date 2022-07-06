@@ -1,4 +1,3 @@
-import { intInterval, interval, literal } from './util';
 import {
     IntIntervalType,
     IntervalType,
@@ -11,6 +10,7 @@ import {
     ValueType,
 } from './types';
 import { union } from './union';
+import { intInterval, interval, literal } from './util';
 
 const fixRoundingError = (n: number): number => {
     if (!Number.isFinite(n) || Number.isInteger(n)) return n; // no fixing necessary

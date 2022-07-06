@@ -1,6 +1,5 @@
 /* eslint-disable no-continue */
 import { assertNever, sameNumber } from '../util';
-import { groupByUnderlying, isSameStructType } from './util';
 import {
     AnyType,
     IntIntervalType,
@@ -17,6 +16,7 @@ import {
     ValueType,
 } from './types';
 import { unionValueTypes } from './union';
+import { groupByUnderlying, isSameStructType } from './util';
 
 const intersectInterval = (
     a: IntervalType | IntIntervalType,

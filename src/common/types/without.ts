@@ -1,6 +1,5 @@
 import { assertNever, sameNumber } from '../util';
 import { isSupersetOf } from './relation';
-import { groupByUnderlying, intInterval, interval, isSameStructType, literal } from './util';
 import {
     AnyType,
     IntIntervalType,
@@ -18,6 +17,7 @@ import {
     ValueType,
 } from './types';
 import { union } from './union';
+import { groupByUnderlying, intInterval, interval, isSameStructType, literal } from './util';
 
 type WithoutLhs<T extends ValueType> = T | UnionType<T>;
 type WithoutResult<T extends ValueType> = T | UnionType<T> | NeverType;
