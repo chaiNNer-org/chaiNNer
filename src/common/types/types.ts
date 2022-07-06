@@ -26,7 +26,8 @@ export type WithType<U extends Type['type'], T extends Type = Type> = T extends 
     ? T
     : never;
 
-export type NonTrivialType = WithType<Exclude<Type['type'], 'any' | 'never'>>;
+export type NonTrivialType = ValueType | UnionType;
+export type NonNeverType = ValueType | AnyType | UnionType;
 export type StaticType = AnyType | NeverType | PrimitiveType | UnionType<PrimitiveType>;
 
 const formatNumber = (n: number): string => {
@@ -267,9 +268,9 @@ export class NeverType implements TypeBase {
 export class StructTypeField {
     readonly name: string;
 
-    readonly type: ValueType | AnyType | UnionType;
+    readonly type: NonNeverType;
 
-    constructor(name: string, type: StructTypeField['type']) {
+    constructor(name: string, type: NonNeverType) {
         assertValidStructFieldName(name);
         this.name = name;
         this.type = type;
