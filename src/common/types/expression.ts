@@ -152,8 +152,15 @@ export class MatchArm {
     }
 
     toString(): string {
+        const pattern =
+            // eslint-disable-next-line no-nested-ternary
+            typeof this.pattern === 'string'
+                ? this.pattern
+                : this.pattern.type === 'any'
+                ? '_'
+                : this.pattern.toString();
         const binding = this.binding === undefined ? '' : `as ${this.binding} `;
-        return `${this.pattern.toString()} ${binding}=> ${this.to.toString()}`;
+        return `${pattern} ${binding}=> ${this.to.toString()}`;
     }
 }
 export class MatchExpression implements ExpressionBase {
