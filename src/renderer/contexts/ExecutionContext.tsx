@@ -309,7 +309,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = async () => {
         try {
             const response = await backend.kill();
-            clearCompleteEdges();
+            unAnimate();
             if (response.exception) {
                 sendAlert(AlertType.ERROR, null, response.exception);
             }
