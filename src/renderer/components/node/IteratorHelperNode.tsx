@@ -8,8 +8,9 @@ import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
-import IteratorHelperNodeFooter from './IteratorHelperNodeFooter';
+import { useDisabled } from '../../hooks/useDisabled';
 import NodeBody from './NodeBody';
+import NodeFooter from './NodeFooter';
 import NodeHeader from './NodeHeader';
 
 interface IteratorHelperNodeProps {
@@ -26,7 +27,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const { id, inputData, isLocked, parentNode, schemaId, animated } = data;
+    const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -64,6 +65,8 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             setCheckedSize(true);
         }
     }, [checkedSize, updateIteratorBounds]);
+
+    const disabled = useDisabled(data);
 
     return (
         <Center
@@ -106,8 +109,9 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
                     outputs={outputs}
                     schemaId={schemaId}
                 />
-                <IteratorHelperNodeFooter
-                    animated={animated || false}
+                <NodeFooter
+                    animated={animated}
+                    useDisable={disabled}
                     validity={validity}
                 />
             </VStack>

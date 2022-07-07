@@ -43,7 +43,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         maxWidth,
         maxHeight,
         percentComplete,
-        animated,
+        animated = false,
     } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -164,7 +164,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     schemaId={schemaId}
                 />
                 <NodeFooter
-                    animated={animated || false}
+                    animated={animated}
                     useDisable={disabled}
                     validity={validity}
                 />
