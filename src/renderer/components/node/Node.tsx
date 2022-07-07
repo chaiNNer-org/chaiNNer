@@ -6,7 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
@@ -49,7 +49,7 @@ interface NodeProps {
 const Node = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
+    const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -59,6 +59,10 @@ const Node = memo(({ data, selected }: NodeProps) => {
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
+
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
 
     const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
     const accentColor = getAccentColor(category);
@@ -70,9 +74,18 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
+            setValidity(
+                checkNodeValidity({
+                    id,
+                    schema,
+                    inputData,
+                    edges: getEdges(),
+                    functionInstance,
+                    typeDefinitions,
+                })
+            );
         }
-    }, [inputData, edgeChanges]);
+    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);

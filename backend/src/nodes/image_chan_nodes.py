@@ -102,6 +102,8 @@ class CombineRgbaNode(NodeBase):
                     ),
                     channels=4,
                 )
+            ).with_never_reason(
+                "The input channels have different sizes but must all be the same size."
             )
         ]
         self.category = IMAGE_CHANNEL
@@ -263,6 +265,8 @@ class TransparencyMergeNode(NodeBase):
                     height=expression.intersect("Input0.height", "Input1.height"),
                     channels=4,
                 )
+            ).with_never_reason(
+                "The RGB and alpha channels have different sizes but must have the same size."
             )
         ]
         self.category = IMAGE_CHANNEL

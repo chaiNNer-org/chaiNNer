@@ -4,7 +4,7 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -24,7 +24,8 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { schemata, updateIteratorBounds, setHoveredNode, typeDefinitions } =
+        useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
@@ -33,6 +34,10 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
+
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
 
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
@@ -44,9 +49,18 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
+            setValidity(
+                checkNodeValidity({
+                    id,
+                    schema,
+                    inputData,
+                    edges: getEdges(),
+                    functionInstance,
+                    typeDefinitions,
+                })
+            );
         }
-    }, [inputData, edgeChanges, getEdges]);
+    }, [inputData, edgeChanges, getEdges, functionInstance, typeDefinitions]);
 
     const disabledStatus = useMemo(
         () => getDisabledStatus(data, effectivelyDisabledNodes),

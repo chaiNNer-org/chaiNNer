@@ -4,7 +4,7 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import checkNodeValidity, { VALID } from '../../helpers/checkNodeValidity';
+import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
 import getAccentColor from '../../helpers/getNodeAccentColors';
@@ -31,7 +31,7 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata } = useContext(GlobalContext);
+    const { schemata, typeDefinitions } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
@@ -48,7 +48,12 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const { inputs, outputs, icon, category, name } = schemata.get(schemaId);
+    const schema = schemata.get(schemaId);
+    const { inputs, outputs, icon, category, name } = schema;
+
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
 
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
@@ -63,13 +68,15 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             setValidity(
                 checkNodeValidity({
                     id,
-                    inputs,
+                    schema,
                     inputData,
                     edges: getEdges(),
+                    functionInstance,
+                    typeDefinitions,
                 })
             );
         }
-    }, [inputData, edgeChanges]);
+    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
 
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 

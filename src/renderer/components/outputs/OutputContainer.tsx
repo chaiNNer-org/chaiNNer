@@ -2,7 +2,7 @@ import { Box, Center, HStack, chakra, useColorModeValue } from '@chakra-ui/react
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { intersect } from '../../../common/types/intersection';
+import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -85,10 +85,7 @@ const OutputContainer = memo(
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-            if (
-                connectionIsValid &&
-                intersect(connectingFromType, definitionType).type !== 'never'
-            ) {
+            if (connectionIsValid && !isDisjointWith(connectingFromType, definitionType)) {
                 return true;
             }
             return false;

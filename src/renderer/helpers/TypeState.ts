@@ -2,27 +2,29 @@ import { Edge, Node } from 'react-flow-renderer';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
-import { NumericLiteralType, StringLiteralType, StructType, Type } from '../../common/types/types';
-import { parseHandle } from '../../common/util';
+import {
+    NonNeverType,
+    NumericLiteralType,
+    StringLiteralType,
+    StructType,
+    Type,
+} from '../../common/types/types';
+import { EMPTY_MAP, parseHandle } from '../../common/util';
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
-
-    readonly invalidEdges: ReadonlySet<string>;
 
     readonly evaluationErrors: ReadonlyMap<string, EvaluationError>;
 
     private constructor(
         functions: TypeState['functions'],
-        invalidEdges: TypeState['invalidEdges'],
         evaluationErrors: TypeState['evaluationErrors']
     ) {
         this.functions = functions;
-        this.invalidEdges = invalidEdges;
         this.evaluationErrors = evaluationErrors;
     }
 
-    static readonly empty = new TypeState(new Map(), new Set(), new Map());
+    static readonly empty = new TypeState(EMPTY_MAP, EMPTY_MAP);
 
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
@@ -37,9 +39,8 @@ export class TypeState {
 
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
-        const edgesToCheck: [nodeId: string, inputId: number][] = [];
 
-        const getSourceType = (id: string, inputId: number): Type | undefined => {
+        const getSourceType = (id: string, inputId: number): NonNeverType | undefined => {
             const edge = byTargetHandle.get(`${id}-${inputId}`);
             if (edge && edge.sourceHandle) {
                 const sourceHandle = parseHandle(edge.sourceHandle);
@@ -65,13 +66,9 @@ export class TypeState {
             try {
                 instance = FunctionInstance.fromPartialInputs(
                     definition,
-                    (id): Type | undefined => {
+                    (id): NonNeverType | undefined => {
                         const edgeSource = getSourceType(n.id, id);
                         if (edgeSource) {
-                            if (edgeSource.type !== 'never') {
-                                // we want to check non-trivial edges
-                                edgesToCheck.push([n.id, id]);
-                            }
                             return edgeSource;
                         }
 
@@ -100,7 +97,6 @@ export class TypeState {
 
                         return undefined;
                     },
-                    true,
                     outputNarrowing.get(n.id)
                 );
             } catch (error) {
@@ -120,16 +116,6 @@ export class TypeState {
             addNode(n);
         }
 
-        const invalidEdges = new Set<string>();
-        for (const [nodeId, inputId] of edgesToCheck) {
-            const fn = functions.get(nodeId)!;
-
-            if (fn.inputs.get(inputId)!.type === 'never') {
-                const edge = byTargetHandle.get(`${nodeId}-${inputId}`)!;
-                invalidEdges.add(edge.id);
-            }
-        }
-
-        return new TypeState(functions, invalidEdges, evaluationErrors);
+        return new TypeState(functions, evaluationErrors);
     }
 }

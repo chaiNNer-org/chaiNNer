@@ -1,6 +1,6 @@
 import log from 'electron-log';
 import { dirname } from 'path';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
     Edge,
@@ -112,6 +112,7 @@ interface Global {
     setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
+    typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
 }
 
 export interface NodeProto {
@@ -264,6 +265,7 @@ export const GlobalProvider = memo(
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
+        const typeStateRef = useRef(typeState);
         useEffect(() => {
             const timerId = setTimeout(() => {
                 const nodeMap = new Map(getNodes().map((n) => [n.id, n]));
@@ -284,6 +286,7 @@ export const GlobalProvider = memo(
                     functionDefinitions
                 );
                 setTypeState(types);
+                typeStateRef.current = types;
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
@@ -981,6 +984,7 @@ export const GlobalProvider = memo(
             setManualOutputType,
             functionDefinitions,
             typeDefinitions,
+            typeStateRef,
         });
 
         return (

@@ -1,6 +1,6 @@
 import { evaluate } from '../../common/types/evaluate';
 import { NamedExpression } from '../../common/types/expression';
-import { intersect } from '../../common/types/intersection';
+import { isDisjointWith } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
 import { NumberType, StringType, Type } from '../../common/types/types';
 
@@ -20,7 +20,7 @@ const colorList = (typeDefinitions: TypeDefinitions) => [
 export default (inputType: Type, typeDefinitions: TypeDefinitions, isDarkMode = true): string[] => {
     const colors: string[] = [];
     for (const { type, color } of colorList(typeDefinitions)) {
-        if (intersect(type, inputType).type !== 'never') {
+        if (!isDisjointWith(type, inputType)) {
             colors.push(color);
         }
     }

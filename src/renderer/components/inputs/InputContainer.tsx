@@ -3,7 +3,7 @@ import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
-import { intersect } from '../../../common/types/intersection';
+import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -93,10 +93,7 @@ const InputContainer = memo(
                 target: id,
                 targetHandle: `${id}-${inputId}`,
             });
-            if (
-                connectionIsValid &&
-                intersect(connectingFromType, definitionType).type !== 'never'
-            ) {
+            if (connectionIsValid && !isDisjointWith(connectingFromType, definitionType)) {
                 return true;
             }
             return false;

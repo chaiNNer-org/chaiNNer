@@ -51,6 +51,10 @@ export interface Input {
 export interface Output {
     readonly id: number;
     readonly type: ExpressionJson;
+    /**
+     * A likely reason as to why the (generic) type expression might evaluate to `never`.
+     */
+    readonly neverReason?: string | null;
     readonly label: string;
 }
 

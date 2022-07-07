@@ -221,7 +221,7 @@ class BorderCropNode(NodeBase):
                             "Input0.width",
                             expression.fn("add", "Input1", "Input1"),
                         ),
-                        expression.int_interval(min=0, max=None),
+                        expression.int_interval(min=1, max=None),
                     ),
                     height=expression.intersect(
                         expression.fn(
@@ -229,10 +229,12 @@ class BorderCropNode(NodeBase):
                             "Input0.height",
                             expression.fn("add", "Input1", "Input1"),
                         ),
-                        expression.int_interval(min=0, max=None),
+                        expression.int_interval(min=1, max=None),
                     ),
                     channels_as="Input0",
                 )
+            ).with_never_reason(
+                "The cropped area would result in image with no width or no height."
             )
         ]
         self.category = IMAGE_DIMENSION
@@ -274,7 +276,7 @@ class EdgeCropNode(NodeBase):
                             "Input0.width",
                             expression.fn("add", "Input2", "Input3"),
                         ),
-                        expression.int_interval(min=0, max=None),
+                        expression.int_interval(min=1, max=None),
                     ),
                     height=expression.intersect(
                         expression.fn(
@@ -282,10 +284,12 @@ class EdgeCropNode(NodeBase):
                             "Input0.height",
                             expression.fn("add", "Input1", "Input4"),
                         ),
-                        expression.int_interval(min=0, max=None),
+                        expression.int_interval(min=1, max=None),
                     ),
                     channels_as="Input0",
                 )
+            ).with_never_reason(
+                "The cropped area would result in image with no width or no height."
             )
         ]
         self.category = IMAGE_DIMENSION

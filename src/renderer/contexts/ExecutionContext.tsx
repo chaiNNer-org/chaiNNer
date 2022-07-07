@@ -7,7 +7,7 @@ import { EdgeData, EdgeHandle, NodeData, UsableData } from '../../common/common-
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import { ParsedHandle, parseHandle } from '../../common/util';
-import checkNodeValidity from '../helpers/checkNodeValidity';
+import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
@@ -114,7 +114,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimate, setIteratorPercent } = useContext(GlobalContext);
+    const { schemata, useAnimate, setIteratorPercent, typeStateRef, typeDefinitions } =
+        useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -251,12 +252,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setStatus(ExecutionStatus.READY);
         } else {
             const invalidNodes = nodes.flatMap((node) => {
-                const { inputs, category, name } = schemata.get(node.data.schemaId);
+                const functionInstance = typeStateRef.current.functions.get(node.data.id);
+                const schema = schemata.get(node.data.schemaId);
+                const { category, name } = schema;
                 const validity = checkNodeValidity({
                     id: node.id,
                     inputData: node.data.inputData,
                     edges,
-                    inputs,
+                    schema,
+                    functionInstance,
+                    typeDefinitions,
                 });
                 if (validity.isValid) return [];
 

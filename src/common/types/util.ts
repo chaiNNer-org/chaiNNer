@@ -7,6 +7,7 @@ import {
     StringLiteralType,
     StructType,
     Type,
+    UnionType,
     WithUnderlying,
 } from './types';
 
@@ -107,4 +108,21 @@ export const isNumericLiteral = (type: Type): type is NumericLiteralType => {
 };
 export const isStringLiteral = (type: Type): type is StringLiteralType => {
     return type.type === 'literal' && type.underlying === 'string';
+};
+
+export type IntNumberType =
+    | NumericLiteralType
+    | IntIntervalType
+    | UnionType<NumericLiteralType | IntIntervalType>;
+export const isImage = (
+    type: Type
+): type is StructType & {
+    readonly name: 'Image';
+    readonly fields: readonly [
+        { readonly name: 'width'; readonly type: IntNumberType },
+        { readonly name: 'height'; readonly type: IntNumberType },
+        { readonly name: 'channels'; readonly type: IntNumberType }
+    ];
+} => {
+    return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
 };

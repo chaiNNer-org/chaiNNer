@@ -202,3 +202,5 @@ export const intersect = (...types: Type[]): Type => {
 
     return performIntersection(items);
 };
+
+export const isDisjointWith = (a: Type, b: Type): boolean => intersect(a, b).type === 'never';

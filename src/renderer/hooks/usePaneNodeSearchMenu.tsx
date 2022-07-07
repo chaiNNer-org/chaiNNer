@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { NodeData, NodeSchema } from '../../common/common-types';
-import { intersect } from '../../common/types/intersection';
+import { isDisjointWith } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
 import { assertNever, createUniqueId, parseHandle } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
@@ -91,9 +91,8 @@ export const usePaneNodeSearchMenu = (
                         }
 
                         return [...targetTypes.inputDefaults].some(([number, type]) => {
-                            const overlap = intersect(type, sourceType);
                             return (
-                                overlap.type !== 'never' &&
+                                !isDisjointWith(type, sourceType) &&
                                 schemata.get(node.schemaId).inputs[number].hasHandle
                             );
                         });
@@ -120,8 +119,7 @@ export const usePaneNodeSearchMenu = (
                         }
 
                         return [...targetTypes.outputDefaults].some(([, type]) => {
-                            const overlap = intersect(type, sourceType);
-                            return overlap.type !== 'never';
+                            return !isDisjointWith(type, sourceType);
                         });
                     }
                     default:
@@ -169,9 +167,8 @@ export const usePaneNodeSearchMenu = (
                     case 'source': {
                         const firstPossibleTarget = [...targetTypes.inputDefaults].find(
                             ([inputId, type]) => {
-                                const overlap = intersect(type, connectingFromType);
                                 return (
-                                    overlap.type !== 'never' &&
+                                    !isDisjointWith(type, connectingFromType) &&
                                     schemata.get(schema.schemaId).inputs[inputId].hasHandle
                                 );
                             }
@@ -189,8 +186,7 @@ export const usePaneNodeSearchMenu = (
                     case 'target': {
                         const firstPossibleTarget = [...targetTypes.outputDefaults].find(
                             ([, type]) => {
-                                const overlap = intersect(type, connectingFromType);
-                                return overlap.type !== 'never';
+                                return !isDisjointWith(type, connectingFromType);
                             }
                         );
                         if (firstPossibleTarget) {
