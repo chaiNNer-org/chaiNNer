@@ -60,7 +60,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
                 })
             );
         }
-    }, [inputData, edgeChanges, getEdges]);
+    }, [inputData, edgeChanges, getEdges, functionInstance, typeDefinitions]);
 
     const disabledStatus = useMemo(
         () => getDisabledStatus(data, effectivelyDisabledNodes),

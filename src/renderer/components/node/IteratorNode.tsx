@@ -76,7 +76,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                 })
             );
         }
-    }, [inputData, edgeChanges, functionInstance]);
+    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
 
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 

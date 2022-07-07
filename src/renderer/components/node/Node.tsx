@@ -85,7 +85,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                 })
             );
         }
-    }, [inputData, edgeChanges, functionInstance]);
+    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
