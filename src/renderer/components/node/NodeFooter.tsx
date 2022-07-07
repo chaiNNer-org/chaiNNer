@@ -43,9 +43,6 @@ const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
                     <Center my={-1}>
                         <Center
                             className="nodrag"
-                            // h="full"
-                            // my={-1}
-                            // w={6}
                             onClick={toggleDirectlyDisabled}
                         >
                             <Center
