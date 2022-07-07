@@ -227,7 +227,7 @@ class ColorConvertNode(NodeBase):
             "Also can convert to different channel-spaces."
         )
         self.inputs = [
-            ImageInput(),
+            ImageInput(image_type=expression.Image(channels="Input1.inputChannels")),
             ColorModeInput(),
         ]
         self.outputs = [

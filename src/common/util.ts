@@ -128,3 +128,47 @@ export const visitByType = <State extends { readonly type: string }, R>(
     const v = (visitors as Record<string, unknown>)[state.type] as (state: State) => R;
     return v(state);
 };
+
+/**
+ * Tries to topologically sort the given graph. If the graph contains cycles, `undefined` will be
+ * returned.
+ */
+export const topologicalSort = <T>(
+    allNodes: Iterable<T>,
+    getOut: (node: T) => Iterable<T>
+): T[] | undefined => {
+    // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    const unmarked = new Set(allNodes);
+    const permanentMark = new Set<T>();
+    const tempMark = new Set<T>();
+
+    let cyclic = false;
+    const result: T[] = [];
+
+    const visit = (node: T): void => {
+        if (permanentMark.has(node)) return;
+        if (tempMark.has(node)) {
+            cyclic = true;
+            return;
+        }
+
+        unmarked.delete(node);
+        tempMark.add(node);
+        for (const out of getOut(node)) {
+            visit(out);
+        }
+        tempMark.delete(node);
+        permanentMark.add(node);
+        result.push(node);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (!cyclic && unmarked.size > 0) {
+        const [first] = unmarked;
+        visit(first);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (cyclic) return undefined;
+    return result.reverse();
+};
