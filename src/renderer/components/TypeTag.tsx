@@ -1,7 +1,7 @@
 import { Tag, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Type } from '../../common/types/types';
-import { isNumericLiteral } from '../../common/types/util';
+import { isImage, isNumericLiteral } from '../../common/types/util';
 
 const getColorMode = (channels: number) => {
     switch (channels) {
@@ -21,7 +21,7 @@ const getTypeText = (type: Type): string[] => {
 
     const tags: string[] = [];
     if (type.type === 'struct') {
-        if (type.name === 'Image' && type.fields.length === 3) {
+        if (isImage(type)) {
             const [width, height, channels] = type.fields;
             if (isNumericLiteral(width.type) && isNumericLiteral(height.type)) {
                 tags.push(`${width.type.toString()}x${height.type.toString()}`);

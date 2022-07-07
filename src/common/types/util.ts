@@ -3,6 +3,7 @@ import { Expression } from './expression';
 import {
     IntIntervalType,
     IntervalType,
+    NumberPrimitive,
     NumericLiteralType,
     StringLiteralType,
     StructType,
@@ -107,4 +108,17 @@ export const isNumericLiteral = (type: Type): type is NumericLiteralType => {
 };
 export const isStringLiteral = (type: Type): type is StringLiteralType => {
     return type.type === 'literal' && type.underlying === 'string';
+};
+
+export const isImage = (
+    type: Type
+): type is StructType & {
+    readonly name: 'Image';
+    readonly fields: readonly [
+        { readonly name: 'width'; readonly type: NumberPrimitive },
+        { readonly name: 'height'; readonly type: NumberPrimitive },
+        { readonly name: 'channels'; readonly type: NumberPrimitive }
+    ];
+} => {
+    return type.type === 'struct' && type.name === 'Image' && type.fields.length === 3;
 };
