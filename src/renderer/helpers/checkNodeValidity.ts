@@ -1,5 +1,6 @@
 import { Edge } from 'react-flow-renderer';
-import { EdgeData, Input, InputData } from '../../common/common-types';
+import { EdgeData, InputData, NodeSchema } from '../../common/common-types';
+import { FunctionInstance } from '../../common/types/function';
 import { parseHandle } from '../../common/util';
 
 export type Validity =
@@ -10,21 +11,23 @@ export const VALID: Validity = { isValid: true };
 
 export interface CheckNodeValidityOptions {
     id: string;
-    inputs: Input[];
+    schema: NodeSchema;
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
+    functionInstance: FunctionInstance | undefined;
 }
 export const checkNodeValidity = ({
     id,
-    inputs,
+    schema,
     inputData,
     edges,
+    functionInstance,
 }: CheckNodeValidityOptions): Validity => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
         .map((e) => parseHandle(e.targetHandle!).inOutId);
 
-    const missingInputs = inputs.filter((input) => {
+    const missingInputs = schema.inputs.filter((input) => {
         // optional inputs can't be missing
         if (input.optional) return false;
 

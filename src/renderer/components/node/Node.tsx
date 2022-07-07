@@ -60,6 +60,10 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
+
     const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
@@ -70,9 +74,11 @@ const Node = memo(({ data, selected }: NodeProps) => {
     const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
+            setValidity(
+                checkNodeValidity({ id, schema, inputData, edges: getEdges(), functionInstance })
+            );
         }
-    }, [inputData, edgeChanges]);
+    }, [inputData, edgeChanges, functionInstance]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);

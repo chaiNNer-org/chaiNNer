@@ -48,7 +48,12 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
-    const { inputs, outputs, icon, category, name } = schemata.get(schemaId);
+    const schema = schemata.get(schemaId);
+    const { inputs, outputs, icon, category, name } = schema;
+
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
 
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
@@ -63,13 +68,14 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             setValidity(
                 checkNodeValidity({
                     id,
-                    inputs,
+                    schema,
                     inputData,
                     edges: getEdges(),
+                    functionInstance,
                 })
             );
         }
-    }, [inputData, edgeChanges]);
+    }, [inputData, edgeChanges, functionInstance]);
 
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 

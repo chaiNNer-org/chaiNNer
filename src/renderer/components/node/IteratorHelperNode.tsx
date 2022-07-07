@@ -34,6 +34,10 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
+    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
+        c.typeState.functions.get(id)
+    );
+
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getAccentColor(category);
     const borderColor = useMemo(
@@ -44,7 +48,9 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     const [validity, setValidity] = useState(VALID);
     useEffect(() => {
         if (inputs.length) {
-            setValidity(checkNodeValidity({ id, inputs, inputData, edges: getEdges() }));
+            setValidity(
+                checkNodeValidity({ id, schema, inputData, edges: getEdges(), functionInstance })
+            );
         }
     }, [inputData, edgeChanges, getEdges]);
 
