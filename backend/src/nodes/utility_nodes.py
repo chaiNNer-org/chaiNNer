@@ -55,7 +55,21 @@ class MathNode(NodeBase):
                 controls_step=1,
             ),
         ]
-        self.outputs = [NumberOutput("Result")]
+        self.outputs = [
+            NumberOutput(
+                "Result",
+                output_type=expression.match(
+                    "Input1",
+                    ("MathOpAdd", None, expression.fn("add", "Input0", "Input2")),
+                    ("MathOpSub", None, expression.fn("subtract", "Input0", "Input2")),
+                    ("MathOpMul", None, expression.fn("multiply", "Input0", "Input2")),
+                    ("MathOpDiv", None, expression.fn("divide", "Input0", "Input2")),
+                    ("MathOpMax", None, expression.fn("max", "Input0", "Input2")),
+                    ("MathOpMin", None, expression.fn("min", "Input0", "Input2")),
+                    default="number",
+                ),
+            )
+        ]
 
         self.category = UTILITY
         self.name = "Math"
@@ -122,7 +136,7 @@ class TextPatternNode(NodeBase):
         super().__init__()
         self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
         self.inputs = [
-            TextInput("Pattern", has_handle=False, placeholder="E.g. \"{1} and {2}\""),
+            TextInput("Pattern", has_handle=False, placeholder='E.g. "{1} and {2}"'),
             TextInput("{1}", allow_numbers=True).make_optional(),
             TextInput("{2}", allow_numbers=True).make_optional(),
             TextInput("{3}", allow_numbers=True).make_optional(),

@@ -50,36 +50,34 @@ const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) =>
                     px={2}
                     textAlign="center"
                 >
-                    <Center
-                        className="nodrag"
-                        my={-1}
-                        onClick={toggleDirectlyDisabled}
-                    >
+                    <Center my={-1}>
                         <Center
-                            bgColor={iconShade}
-                            borderRadius="2em"
-                            cursor="pointer"
-                            h="1em"
-                            p={2}
-                            w="1.8em"
+                            className="nodrag"
+                            onClick={toggleDirectlyDisabled}
                         >
                             <Center
-                                bgColor={switchShade}
-                                borderRadius="100%"
+                                bgColor={iconShade}
+                                borderRadius="lg"
                                 cursor="pointer"
-                                h="0.85em"
-                                ml={isDirectlyDisabled ? '-0.8em' : 0}
-                                mr={isDirectlyDisabled ? 0 : '-0.8em'}
-                                transition="all 0.1s ease-in-out"
-                                w="0.85em"
+                                h="full"
+                                p="1px"
+                                verticalAlign="middle"
+                                w={7}
                             >
-                                <Icon
-                                    as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
-                                    color={iconShade}
-                                    h="0.7em"
-                                    ml={isDirectlyDisabled ? undefined : '0.02em'}
-                                    w="0.7em"
-                                />
+                                <Center
+                                    bgColor={switchShade}
+                                    borderRadius="100%"
+                                    cursor="pointer"
+                                    ml={isDirectlyDisabled ? 0 : '50%'}
+                                    mr={isDirectlyDisabled ? '50%' : 0}
+                                    transition="all 0.1s ease-in-out"
+                                >
+                                    <Icon
+                                        as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
+                                        boxSize="0.8rem"
+                                        color={iconShade}
+                                    />
+                                </Center>
                             </Center>
                         </Center>
                     </Center>
