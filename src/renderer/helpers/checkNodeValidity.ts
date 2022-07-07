@@ -3,7 +3,10 @@ import { EdgeData, InputData, NodeSchema } from '../../common/common-types';
 import { evaluate } from '../../common/types/evaluate';
 import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
 import { FunctionInstance } from '../../common/types/function';
+import { isDisjointWith } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
+import { IntIntervalType, NumericLiteralType } from '../../common/types/types';
+import { IntNumberType, isImage } from '../../common/types/util';
 import { parseHandle } from '../../common/util';
 
 export type Validity =
@@ -11,6 +14,50 @@ export type Validity =
     | { readonly isValid: false; readonly reason: string };
 
 export const VALID: Validity = { isValid: true };
+
+const getAcceptedNumbers = (number: IntNumberType): Set<number> | undefined => {
+    const numbers = new Set<number>();
+    let infinite = false;
+
+    const add = (n: NumericLiteralType | IntIntervalType): void => {
+        if (n.type === 'literal') {
+            numbers.add(n.value);
+        } else if (n.max - n.min < 10) {
+            for (let i = n.min; i <= n.max; i += 1) {
+                numbers.add(i);
+            }
+        } else {
+            infinite = true;
+        }
+    };
+
+    if (number.type === 'union') {
+        number.items.forEach(add);
+    } else {
+        add(number);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return infinite ? undefined : numbers;
+};
+const formatChannelNumber = (n: IntNumberType): string | undefined => {
+    const numbers = getAcceptedNumbers(n);
+    if (!numbers) return undefined;
+
+    const known: string[] = [];
+    if (numbers.has(1)) known.push('grayscale');
+    if (numbers.has(3)) known.push('RGB');
+    if (numbers.has(4)) known.push('RGBA');
+
+    if (known.length === numbers.size) {
+        const article = known[0] === 'grayscale' ? 'a' : 'an';
+        if (known.length === 1) return `${article} ${known[0]} image`;
+        if (known.length === 2) return `${article} ${known[0]} or ${known[1]} image`;
+        if (known.length === 3) return `${article} ${known[0]}, ${known[1]} or ${known[2]} image`;
+    }
+
+    return undefined;
+};
 
 export interface CheckNodeValidityOptions {
     id: string;
@@ -54,5 +101,44 @@ export const checkNodeValidity = ({
                 .join(', ')}`,
         };
     }
+
+    if (functionInstance) {
+        for (const { inputId, assignedType, inputType } of functionInstance.inputErrors) {
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+
+            if (isImage(assignedType)) {
+                const iType = evaluate(
+                    new IntersectionExpression([inputType, new NamedExpression('Image')]),
+                    typeDefinitions
+                );
+                if (isImage(iType)) {
+                    const assignedChannels = assignedType.fields[2].type;
+                    const inputChannels = iType.fields[2].type;
+
+                    if (isDisjointWith(assignedChannels, inputChannels)) {
+                        const expected = formatChannelNumber(inputChannels);
+                        const assigned = formatChannelNumber(assignedChannels);
+                        if (expected && assigned) {
+                            return {
+                                isValid: false,
+                                reason: `Input ${input.label} requires ${expected} but was connected with ${assigned}.`,
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        for (const { outputId } of functionInstance.outputErrors) {
+            const output = schema.inputs.find((o) => o.id === outputId)!;
+
+            if (output) {
+                return {
+                    isValid: false,
+                    reason: `Some inputs are incompatible with each other.`,
+                };
+            }
+        }
+    }
+
     return VALID;
 };

@@ -396,6 +396,9 @@ export class FunctionInstance {
                     definition.typeDefinitions,
                     genericParameters
                 );
+                if (type.type === 'never') {
+                    outputErrors.push({ outputId: id });
+                }
             } else {
                 type = definition.outputDefaults.get(id)!;
             }
