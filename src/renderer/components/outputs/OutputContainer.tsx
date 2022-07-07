@@ -153,7 +153,10 @@ const OutputContainer = memo(
         return (
             <Box
                 bg={bgColor}
-                p={2}
+                h="auto"
+                minH="2rem"
+                px={2}
+                verticalAlign="middle"
                 w="full"
             >
                 {contents}

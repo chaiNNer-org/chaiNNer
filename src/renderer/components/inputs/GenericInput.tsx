@@ -1,4 +1,4 @@
-import { Box, Tag, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Tag, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { InputProps } from './props';
 
@@ -12,34 +12,41 @@ const GenericInput = memo(({ label, optional }: GenericInputProps) => {
         <Box
             display="flex"
             flexDirection="row"
-            mb={-1}
-            mt={-1}
+            h="full"
+            minH="2rem"
+            verticalAlign="middle"
             w="full"
         >
             <Text
-                mb={-1}
-                mt={-1}
+                h="full"
+                lineHeight="2rem"
                 textAlign="left"
             >
                 {label}
             </Text>
-            <Tag
-                bgColor={tagColor}
-                color={tagFontColor}
-                display={label && optional ? 'block' : 'none'}
-                fontSize="xx-small"
-                fontStyle="italic"
-                height="15px"
-                lineHeight="auto"
-                minHeight="auto"
-                ml={1}
-                px={1}
-                py={0}
-                size="sm"
-                variant="subtle"
-            >
-                optional
-            </Tag>
+            {label && optional && (
+                <Center
+                    h="2rem"
+                    verticalAlign="middle"
+                >
+                    <Tag
+                        bgColor={tagColor}
+                        color={tagFontColor}
+                        fontSize="xx-small"
+                        fontStyle="italic"
+                        height="14px"
+                        lineHeight="auto"
+                        minHeight="14px"
+                        ml={1}
+                        px={1}
+                        size="sm"
+                        variant="subtle"
+                        verticalAlign="middle"
+                    >
+                        optional
+                    </Tag>
+                </Center>
+            )}
         </Box>
     );
 });
