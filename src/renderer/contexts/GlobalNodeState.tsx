@@ -716,6 +716,18 @@ export const GlobalProvider = memo(
 
         const useAnimateEdges = useCallback(() => {
             const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
+                setNodes((nodes) => {
+                    if (nodeIdsToAnimate) {
+                        const nodesToAnimate = nodes.filter((n) => nodeIdsToAnimate.includes(n.id));
+                        const animatedNodes = nodesToAnimate.map((node: Node<NodeData>) => ({
+                            ...node,
+                            data: { ...node.data, animated },
+                        }));
+                        const otherNodes = nodes.filter((n) => !nodeIdsToAnimate.includes(n.id));
+                        return [...otherNodes, ...animatedNodes];
+                    }
+                    return nodes.map((node) => ({ ...node, data: { ...node.data, animated } }));
+                });
                 setEdges((edges) => {
                     if (nodeIdsToAnimate) {
                         const edgesToAnimate = edges.filter((e) =>
@@ -738,30 +750,32 @@ export const GlobalProvider = memo(
                 setAnimated(false, nodeIdsToUnAnimate);
 
             const completeEdges = (finished: readonly string[]) => {
-                setEdges((edges) =>
-                    edges.map((edge): Edge<EdgeData> => {
-                        const complete = finished.includes(edge.source);
-                        return {
-                            ...edge,
-                            animated: !complete,
-                        };
-                    })
-                );
+                // setEdges((edges) =>
+                //     edges.map((edge): Edge<EdgeData> => {
+                //         const complete = finished.includes(edge.source);
+                //         return {
+                //             ...edge,
+                //             animated: !complete,
+                //         };
+                //     })
+                // );
+                unAnimateEdges(finished);
             };
 
             const clearCompleteEdges = () => {
-                setEdges((edges) =>
-                    edges.map((edge): Edge<EdgeData> => {
-                        return {
-                            ...edge,
-                            animated: false,
-                        };
-                    })
-                );
+                // setEdges((edges) =>
+                //     edges.map((edge): Edge<EdgeData> => {
+                //         return {
+                //             ...edge,
+                //             animated: false,
+                //         };
+                //     })
+                // );
+                unAnimateEdges();
             };
 
             return [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] as const;
-        }, [setEdges]);
+        }, [setEdges, setNodes]);
 
         const toggleNodeLock = useCallback(
             (id: string) => {

@@ -88,6 +88,7 @@ export interface NodeData {
     readonly percentComplete?: number;
     readonly maxWidth?: number;
     readonly maxHeight?: number;
+    readonly animated?: boolean;
 }
 export interface EdgeData {
     readonly complete?: boolean;

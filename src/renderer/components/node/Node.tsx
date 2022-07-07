@@ -53,7 +53,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const { id, inputData, isLocked, parentNode, schemaId } = data;
+    const { id, inputData, isLocked, parentNode, schemaId, animated } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -180,6 +180,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
                     schemaId={schemaId}
                 />
                 <NodeFooter
+                    animated={animated || false}
                     useDisable={disabled}
                     validity={validity}
                 />
