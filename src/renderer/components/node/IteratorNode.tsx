@@ -12,7 +12,7 @@ import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
-import NodeFooter from './NodeFooter';
+import NodeFooter from './NodeFooter/NodeFooter';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
 

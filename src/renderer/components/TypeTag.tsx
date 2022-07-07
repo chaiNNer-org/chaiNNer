@@ -58,6 +58,7 @@ export const TypeTag = memo(({ type }: TypeTagProps) => {
                     key={text}
                     lineHeight="auto"
                     minHeight="15px"
+                    minWidth={0}
                     ml={1}
                     px={1}
                     size="sm"
