@@ -1,13 +1,14 @@
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
-import { Center, Flex, Icon, Spacer, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { Center, Flex, Icon, Spacer, Spinner, Tooltip, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
+import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { Validity } from '../../helpers/checkNodeValidity';
 
 interface NodeFooterProps {
     validity: Validity;
+    animated: boolean;
 }
 
-const NodeFooter = memo(({ validity }: NodeFooterProps) => {
+const NodeFooter = memo(({ validity, animated }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     const invalidShade = useColorModeValue('red.400', 'red.600');
@@ -19,33 +20,53 @@ const NodeFooter = memo(({ validity }: NodeFooterProps) => {
             w="full"
         >
             <Spacer />
-            <Tooltip
-                hasArrow
-                borderRadius={8}
-                closeOnClick={false}
-                gutter={24}
-                label={validity.isValid ? 'Node valid' : validity.reason}
-                px={2}
-                py={1}
-                textAlign="center"
-            >
-                <Center
-                    className="nodrag"
-                    my={-1}
+            {animated ? (
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    closeOnClick={false}
+                    gutter={24}
+                    label="This node is currently running..."
+                    px={2}
+                    textAlign="center"
                 >
                     <Center
-                        bgColor={validity.isValid ? validShade : iconShade}
-                        borderRadius={100}
-                        mr={-3.5}
-                        p={1.5}
-                    />
-                    <Icon
-                        as={validity.isValid ? CheckCircleIcon : WarningIcon}
-                        color={validity.isValid ? iconShade : invalidShade}
-                        cursor="default"
-                    />
-                </Center>
-            </Tooltip>
+                        className="nodrag"
+                        my={-1}
+                    >
+                        <Spinner size="xs" />
+                    </Center>
+                </Tooltip>
+            ) : (
+                <Tooltip
+                    hasArrow
+                    borderRadius={8}
+                    closeOnClick={false}
+                    gutter={24}
+                    label={validity.isValid ? 'Node valid' : validity.reason}
+                    px={2}
+                    textAlign="center"
+                >
+                    <Center
+                        className="nodrag"
+                        my={-1}
+                    >
+                        <Center
+                            bgColor={validity.isValid ? iconShade : invalidShade}
+                            borderRadius={100}
+                            boxSize="1rem"
+                        >
+                            <Icon
+                                as={validity.isValid ? BsCheck : BsExclamation}
+                                boxSize="1rem"
+                                color={validity.isValid ? validShade : iconShade}
+                                cursor="default"
+                                m="auto"
+                            />
+                        </Center>
+                    </Center>
+                </Tooltip>
+            )}
             <Spacer />
         </Flex>
     );
