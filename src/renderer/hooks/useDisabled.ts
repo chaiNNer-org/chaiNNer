@@ -24,7 +24,9 @@ export const useDisabled = (data: NodeData): UseDisabled => {
     const schema = schemata.get(schemaId);
 
     return useMemoObject<UseDisabled>({
-        canDisable: schema.hasSideEffects || schema.outputs.length > 0,
+        canDisable:
+            (schema.hasSideEffects || schema.outputs.length > 0) &&
+            schema.nodeType !== 'iteratorHelper',
         isDirectlyDisabled: isDisabled ?? false,
         status: getDisabledStatus(data, effectivelyDisabledNodes),
         toggleDirectlyDisabled: useCallback(

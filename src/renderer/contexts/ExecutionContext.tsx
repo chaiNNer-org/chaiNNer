@@ -114,14 +114,14 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimateEdges, setIteratorPercent } = useContext(GlobalContext);
+    const { schemata, useAnimate, setIteratorPercent } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    const [animateEdges, unAnimateEdges, completeEdges, clearCompleteEdges] = useAnimateEdges();
+    const [animate, unAnimate] = useAnimate();
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -134,11 +134,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         // TODO: Actually fix this so it un-animates correctly
         const id = setTimeout(() => {
             if (status !== ExecutionStatus.RUNNING) {
-                unAnimateEdges();
+                unAnimate();
             }
         }, 1000);
         return () => clearTimeout(id);
-    }, [status, unAnimateEdges]);
+    }, [status, unAnimate]);
 
     useEffect(() => {
         if (status === ExecutionStatus.RUNNING) {
@@ -154,10 +154,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         eventSource,
         'finish',
         () => {
-            clearCompleteEdges();
+            unAnimate();
             setStatus(ExecutionStatus.READY);
         },
-        [setStatus, clearCompleteEdges]
+        [setStatus, unAnimate]
     );
 
     useBackendEventSourceListener(
@@ -166,23 +166,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         (data) => {
             if (data) {
                 sendAlert(AlertType.ERROR, null, data.exception);
-                unAnimateEdges();
+                unAnimate();
                 setStatus(ExecutionStatus.READY);
             }
         },
-        [setStatus, unAnimateEdges]
+        [setStatus, unAnimate]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
         (data) => {
             if (data) {
-                completeEdges(data.finished);
+                unAnimate(data.finished);
             }
         },
         350
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
-        completeEdges,
+        unAnimate,
         updateNodeFinish,
     ]);
 
@@ -192,15 +192,15 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         if (data) {
             const { percent, iteratorId, running: runningNodes } = data;
             if (runningNodes && status === ExecutionStatus.RUNNING) {
-                animateEdges(runningNodes);
+                animate(runningNodes);
             } else if (status !== ExecutionStatus.RUNNING) {
-                unAnimateEdges();
+                unAnimate();
             }
             setIteratorPercent(iteratorId, percent);
         }
     }, 350);
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress, [
-        animateEdges,
+        animate,
         updateIteratorProgress,
     ]);
 
@@ -220,10 +220,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 null,
                 'An unexpected error occurred. You may need to restart chaiNNer.'
             );
-            unAnimateEdges();
+            unAnimate();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimateEdges, isBackendKilled, ownsBackend]);
+    }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend]);
 
     const run = async () => {
         const allNodes = getNodes();
@@ -238,7 +238,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         );
 
         setStatus(ExecutionStatus.RUNNING);
-        animateEdges();
+        animate();
         if (nodes.length === 0) {
             sendAlert(
                 AlertType.ERROR,
@@ -247,7 +247,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     ? 'All nodes are disabled. There are no nodes to run.'
                     : 'There are no nodes to run.'
             );
-            unAnimateEdges();
+            unAnimate();
             setStatus(ExecutionStatus.READY);
         } else {
             const invalidNodes = nodes.flatMap((node) => {
@@ -269,7 +269,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     null,
                     `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
                 );
-                unAnimateEdges();
+                unAnimate();
                 setStatus(ExecutionStatus.READY);
                 return;
             }
@@ -282,12 +282,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
                 if (response.exception) {
                     sendAlert(AlertType.ERROR, null, response.exception);
-                    unAnimateEdges();
+                    unAnimate();
                     setStatus(ExecutionStatus.READY);
                 }
             } catch (err: unknown) {
                 sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
-                unAnimateEdges();
+                unAnimate();
                 setStatus(ExecutionStatus.READY);
             }
         }
@@ -303,20 +303,20 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
         setStatus(ExecutionStatus.PAUSED);
-        unAnimateEdges();
+        unAnimate();
     };
 
     const kill = async () => {
         try {
             const response = await backend.kill();
-            clearCompleteEdges();
+            unAnimate();
             if (response.exception) {
                 sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        unAnimateEdges();
+        unAnimate();
         setStatus(ExecutionStatus.READY);
     };
 
