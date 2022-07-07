@@ -18,6 +18,7 @@ interface InputContainerProps {
     hasHandle: boolean;
     definitionType: Type;
     optional: boolean;
+    generic: boolean;
 }
 
 interface LeftHandleProps {
@@ -54,6 +55,7 @@ const InputContainer = memo(
         label,
         definitionType,
         optional,
+        generic,
     }: React.PropsWithChildren<InputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -198,41 +200,55 @@ const InputContainer = memo(
         return (
             <Box
                 bg={bgColor}
-                p={2}
+                h="auto"
+                minH="2rem"
+                px={2}
+                verticalAlign="middle"
                 w="full"
             >
-                <Center
-                    mt={-1}
-                    p={1}
-                    pt={-1}
-                >
-                    <Text
-                        display={label ? 'block' : 'none'}
-                        fontSize="xs"
-                        lineHeight="0.9rem"
-                        textAlign="center"
+                {!generic && (
+                    <Center
+                        h="1.25rem"
+                        p={1}
+                        verticalAlign="middle"
                     >
-                        {label}
-                    </Text>
-                    <Tag
-                        bgColor={tagColor}
-                        color={tagFontColor}
-                        display={label && optional ? 'block' : 'none'}
-                        fontSize="xx-small"
-                        fontStyle="italic"
-                        height="15px"
-                        lineHeight="auto"
-                        minHeight="auto"
-                        ml={1}
-                        px={1}
-                        py={0}
-                        size="sm"
-                        variant="subtle"
-                    >
-                        optional
-                    </Tag>
-                </Center>
-                {contents}
+                        <Text
+                            display={label ? 'block' : 'none'}
+                            fontSize="xs"
+                            lineHeight="0.9rem"
+                            textAlign="center"
+                        >
+                            {label}
+                        </Text>
+                        {label && optional && (
+                            <Center
+                                h="1rem"
+                                verticalAlign="middle"
+                            >
+                                <Tag
+                                    bgColor={tagColor}
+                                    color={tagFontColor}
+                                    fontSize="xx-small"
+                                    fontStyle="italic"
+                                    // height="14px"
+                                    // lineHeight="2px"
+                                    // minHeight="14px"
+                                    height="0.9rem"
+                                    lineHeight="auto"
+                                    minHeight="0.9rem"
+                                    ml={1}
+                                    px={1}
+                                    size="sm"
+                                    variant="subtle"
+                                    verticalAlign="middle"
+                                >
+                                    optional
+                                </Tag>
+                            </Center>
+                        )}
+                    </Center>
+                )}
+                <Box pb={generic ? 0 : 2}>{contents}</Box>
             </Box>
         );
     }

@@ -1,4 +1,4 @@
-import { Flex, Spacer, Text } from '@chakra-ui/react';
+import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { Type } from '../../../common/types/types';
@@ -25,14 +25,26 @@ const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutp
             id={id}
             outputId={outputId}
         >
-            <Flex w="full">
+            <Flex
+                h="full"
+                minH="2rem"
+                verticalAlign="middle"
+                w="full"
+            >
                 <Spacer />
-                {type && <TypeTag type={type} />}
+                {type && (
+                    <Center
+                        h="2rem"
+                        verticalAlign="middle"
+                    >
+                        <TypeTag type={type} />
+                    </Center>
+                )}
                 <Text
+                    h="full"
+                    lineHeight="2rem"
                     marginInlineEnd="0.5rem"
-                    mb={-1}
                     ml={1}
-                    mt={-1}
                     textAlign="right"
                 >
                     {label}
