@@ -6,7 +6,7 @@ import { Expression } from './expression';
 import { intersect } from './intersection';
 import { fromJson } from './json';
 import { TypeDefinitions } from './typedef';
-import { Type } from './types';
+import { NonNeverType, Type } from './types';
 import { getReferences } from './util';
 
 const getParamRefs = (
@@ -50,7 +50,7 @@ interface InputInfo {
 const evaluateInputs = (
     schema: NodeSchema,
     definitions: TypeDefinitions
-): { ordered: InputInfo[]; defaults: Map<number, Type> } => {
+): { ordered: InputInfo[]; defaults: Map<number, NonNeverType> } => {
     const inputIds = new Set(schema.inputs.map((i) => i.id));
 
     const infos = new Map<number, InputInfo>();
@@ -74,19 +74,23 @@ const evaluateInputs = (
     }
     ordered.reverse();
 
-    const defaults = new Map<number, Type>();
+    const defaults = new Map<number, NonNeverType>();
     const genericParameters = new Map<string, Type>();
     for (const { expression, input } of ordered) {
+        const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+
+        let type: Type;
         try {
-            const type = evaluate(expression, definitions, genericParameters);
-            defaults.set(input.id, type);
-            genericParameters.set(getInputParamName(input.id), type);
+            type = evaluate(expression, definitions, genericParameters);
         } catch (error) {
-            throw new Error(
-                `Unable to evaluate input type of ${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})` +
-                    `: ${String(error)}`
-            );
+            throw new Error(`Unable to evaluate input type of ${name}: ${String(error)}`);
         }
+        if (type.type === 'never') {
+            throw new Error(`The input type of ${name} is always 'never'. This is a bug.`);
+        }
+
+        defaults.set(input.id, type);
+        genericParameters.set(getInputParamName(input.id), type);
     }
 
     return { ordered, defaults };
@@ -101,8 +105,8 @@ interface OutputInfo {
 const evaluateOutputs = (
     schema: NodeSchema,
     definitions: TypeDefinitions,
-    inputDefaults: ReadonlyMap<number, Type>
-): { ordered: OutputInfo[]; defaults: Map<number, Type> } => {
+    inputDefaults: ReadonlyMap<number, NonNeverType>
+): { ordered: OutputInfo[]; defaults: Map<number, NonNeverType> } => {
     const inputIds = new Set(inputDefaults.keys());
     const outputIds = new Set(schema.outputs.map((i) => i.id));
 
@@ -131,19 +135,23 @@ const evaluateOutputs = (
     }
     ordered.reverse();
 
-    const defaults = new Map<number, Type>();
+    const defaults = new Map<number, NonNeverType>();
     const genericParameters = createGenericParametersFromInputs(inputDefaults);
     for (const { expression, output } of ordered) {
+        const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
+
+        let type: Type;
         try {
-            const type = evaluate(expression, definitions, genericParameters);
-            defaults.set(output.id, type);
-            genericParameters.set(getOutputParamName(output.id), type);
+            type = evaluate(expression, definitions, genericParameters);
         } catch (error) {
-            throw new Error(
-                `Unable to evaluate output type of ${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})` +
-                    `: ${String(error)}`
-            );
+            throw new Error(`Unable to evaluate output type of ${name}: ${String(error)}`);
         }
+        if (type.type === 'never') {
+            throw new Error(`The input type of ${name} is always 'never'. This is a bug.`);
+        }
+
+        defaults.set(output.id, type);
+        genericParameters.set(getOutputParamName(output.id), type);
     }
     return { ordered, defaults };
 };
@@ -180,7 +188,11 @@ const evaluateInputOptions = (
 };
 
 export class FunctionDefinition {
-    readonly inputDefaults: ReadonlyMap<number, Type>;
+    readonly schema: NodeSchema;
+
+    readonly typeDefinitions: TypeDefinitions;
+
+    readonly inputDefaults: ReadonlyMap<number, NonNeverType>;
 
     readonly inputExpressions: ReadonlyMap<number, Expression>;
 
@@ -188,7 +200,7 @@ export class FunctionDefinition {
 
     readonly inputEvaluationOrder: readonly number[];
 
-    readonly outputDefaults: ReadonlyMap<number, Type>;
+    readonly outputDefaults: ReadonlyMap<number, NonNeverType>;
 
     readonly outputExpressions: ReadonlyMap<number, Expression>;
 
@@ -200,8 +212,6 @@ export class FunctionDefinition {
         return this.inputGenerics.size > 0 || this.outputGenerics.size > 0;
     }
 
-    readonly typeDefinitions: TypeDefinitions;
-
     readonly inputDataLiterals: Set<number>;
 
     readonly inputNullable: Set<number>;
@@ -211,6 +221,7 @@ export class FunctionDefinition {
     readonly defaultInstance: FunctionInstance;
 
     private constructor(schema: NodeSchema, definitions: TypeDefinitions) {
+        this.schema = schema;
         this.typeDefinitions = definitions;
 
         // inputs
@@ -262,35 +273,52 @@ export class FunctionDefinition {
     }
 }
 
+export interface FunctionInputAssignmentError {
+    inputId: number;
+    inputType: NonNeverType;
+    assignedType: NonNeverType;
+}
+export interface FunctionOutputError {
+    outputId: number;
+}
 export class FunctionInstance {
     readonly definition: FunctionDefinition;
 
-    readonly inputs: ReadonlyMap<number, Type>;
+    readonly inputs: ReadonlyMap<number, NonNeverType>;
 
-    readonly outputs: ReadonlyMap<number, Type>;
+    readonly outputs: ReadonlyMap<number, NonNeverType>;
+
+    readonly inputErrors: readonly FunctionInputAssignmentError[];
+
+    readonly outputErrors: readonly FunctionOutputError[];
 
     private constructor(
         definition: FunctionDefinition,
-        inputs: ReadonlyMap<number, Type>,
-        outputs: ReadonlyMap<number, Type>
+        inputs: ReadonlyMap<number, NonNeverType>,
+        outputs: ReadonlyMap<number, NonNeverType>,
+        inputErrors: readonly FunctionInputAssignmentError[],
+        outputErrors: readonly FunctionOutputError[]
     ) {
         this.definition = definition;
         this.inputs = inputs;
         this.outputs = outputs;
+        this.inputErrors = inputErrors;
+        this.outputErrors = outputErrors;
     }
 
     static fromDefinition(definition: FunctionDefinition): FunctionInstance {
         return new FunctionInstance(
             definition,
             definition.inputDefaults,
-            definition.outputDefaults
+            definition.outputDefaults,
+            [],
+            []
         );
     }
 
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined),
-        neverIsDefault: boolean,
         outputNarrowing: ReadonlyMap<number, Type> = EMPTY_MAP
     ): FunctionInstance {
         if (typeof partialInputs === 'object') {
@@ -300,8 +328,11 @@ export class FunctionInstance {
             partialInputs = (id) => map.get(id);
         }
 
+        const inputErrors: FunctionInputAssignmentError[] = [];
+        const outputErrors: FunctionOutputError[] = [];
+
         // evaluate inputs
-        const inputs = new Map<number, Type>();
+        const inputs = new Map<number, NonNeverType>();
         const genericParameters = new Map<string, Type>();
         for (const id of definition.inputEvaluationOrder) {
             let type: Type;
@@ -317,10 +348,18 @@ export class FunctionInstance {
 
             const assignedType = partialInputs(id);
             if (assignedType) {
-                type = intersect(assignedType, type);
+                const newType = intersect(assignedType, type);
+                if (
+                    newType.type === 'never' &&
+                    assignedType.type !== 'never' &&
+                    type.type !== 'never'
+                ) {
+                    inputErrors.push({ inputId: id, inputType: type, assignedType });
+                }
+                type = newType;
             }
 
-            if (neverIsDefault && type.type === 'never') {
+            if (type.type === 'never') {
                 // If the output type is never, then there is some error with the input.
                 // However, we don't have the means to communicate this error yet, so we'll just
                 // ignore it for now.
@@ -333,11 +372,17 @@ export class FunctionInstance {
 
         // we don't need to evaluate the outputs of if they aren't generic
         if (definition.outputGenerics.size === 0 && outputNarrowing.size === 0) {
-            return new FunctionInstance(definition, inputs, definition.outputDefaults);
+            return new FunctionInstance(
+                definition,
+                inputs,
+                definition.outputDefaults,
+                inputErrors,
+                outputErrors
+            );
         }
 
         // evaluate outputs
-        const outputs = new Map<number, Type>();
+        const outputs = new Map<number, NonNeverType>();
         for (const id of definition.outputEvaluationOrder) {
             let type: Type;
             if (definition.outputGenerics.has(id)) {
@@ -355,7 +400,7 @@ export class FunctionInstance {
                 type = intersect(narrowing, type);
             }
 
-            if (neverIsDefault && type.type === 'never') {
+            if (type.type === 'never') {
                 // If the output type is never, then there is some error with the input.
                 // However, we don't have the means to communicate this error yet, so we'll just
                 // ignore it for now.
@@ -366,7 +411,7 @@ export class FunctionInstance {
             genericParameters.set(getOutputParamName(id), type);
         }
 
-        return new FunctionInstance(definition, inputs, outputs);
+        return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);
     }
 
     canAssign(inputId: number, type: Type): boolean {
