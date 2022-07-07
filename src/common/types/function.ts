@@ -3,7 +3,7 @@ import { Input, InputSchemaValue, NodeSchema, Output } from '../common-types';
 import { EMPTY_MAP, topologicalSort } from '../util';
 import { evaluate } from './evaluate';
 import { Expression } from './expression';
-import { intersect } from './intersection';
+import { intersect, isDisjointWith } from './intersection';
 import { fromJson } from './json';
 import { TypeDefinitions } from './typedef';
 import { NonNeverType, Type } from './types';
@@ -424,8 +424,6 @@ export class FunctionInstance {
         if (!iType) throw new Error(`Invalid input id ${inputId}`);
 
         // we say that types A is assignable to type B if they are not disjoint
-        const overlap = intersect(type, iType);
-
-        return overlap.type !== 'never';
+        return !isDisjointWith(type, iType);
     }
 }
