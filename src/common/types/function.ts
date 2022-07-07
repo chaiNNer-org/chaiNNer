@@ -160,25 +160,30 @@ const evaluateInputOptions = (
     schema: NodeSchema,
     definitions: TypeDefinitions,
     genericParameters?: ReadonlyMap<string, Type>
-): Map<number, Map<InputSchemaValue, Type>> => {
-    const result = new Map<number, Map<InputSchemaValue, Type>>();
+): Map<number, Map<InputSchemaValue, NonNeverType>> => {
+    const result = new Map<number, Map<InputSchemaValue, NonNeverType>>();
     for (const input of schema.inputs) {
         if (input.kind === 'dropdown' && input.options) {
-            const options = new Map<InputSchemaValue, Type>();
+            const options = new Map<InputSchemaValue, NonNeverType>();
             result.set(input.id, options);
             for (const o of input.options) {
                 if (o.type !== undefined) {
+                    const name =
+                        `${o.option}=${JSON.stringify(o.value)} ` +
+                        `in (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+
                     let type;
                     try {
                         type = evaluate(fromJson(o.type), definitions, genericParameters);
                     } catch (error) {
                         throw new Error(
-                            `Unable to evaluate type of option ` +
-                                `${o.option}=${JSON.stringify(o.value)} ` +
-                                `in (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})` +
-                                `: ${String(error)}`
+                            `Unable to evaluate type of option ${name}: ${String(error)}`
                         );
                     }
+                    if (type.type === 'never') {
+                        throw new Error(`Type of ${name} cannot be 'never'.`);
+                    }
+
                     options.set(o.value, type);
                 }
             }
@@ -216,7 +221,7 @@ export class FunctionDefinition {
 
     readonly inputNullable: Set<number>;
 
-    readonly inputOptions: ReadonlyMap<number, ReadonlyMap<string | number, Type>>;
+    readonly inputOptions: ReadonlyMap<number, ReadonlyMap<string | number, NonNeverType>>;
 
     readonly defaultInstance: FunctionInstance;
 
@@ -318,7 +323,9 @@ export class FunctionInstance {
 
     static fromPartialInputs(
         definition: FunctionDefinition,
-        partialInputs: ReadonlyMap<number, Type> | ((inputId: number) => Type | undefined),
+        partialInputs:
+            | ReadonlyMap<number, NonNeverType>
+            | ((inputId: number) => NonNeverType | undefined),
         outputNarrowing: ReadonlyMap<number, Type> = EMPTY_MAP
     ): FunctionInstance {
         if (typeof partialInputs === 'object') {
@@ -346,17 +353,15 @@ export class FunctionInstance {
                 type = definition.inputDefaults.get(id)!;
             }
 
-            const assignedType = partialInputs(id);
-            if (assignedType) {
-                const newType = intersect(assignedType, type);
-                if (
-                    newType.type === 'never' &&
-                    assignedType.type !== 'never' &&
-                    type.type !== 'never'
-                ) {
-                    inputErrors.push({ inputId: id, inputType: type, assignedType });
+            if (type.type !== 'never') {
+                const assignedType = partialInputs(id);
+                if (assignedType) {
+                    const newType = intersect(assignedType, type);
+                    if (newType.type === 'never') {
+                        inputErrors.push({ inputId: id, inputType: type, assignedType });
+                    }
+                    type = newType;
                 }
-                type = newType;
             }
 
             if (type.type === 'never') {
