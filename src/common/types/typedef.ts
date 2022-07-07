@@ -211,7 +211,6 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'FlipAxis',
         'ImageExtension',
         'InterpolationMode',
-        'MathOperation',
         'Orientation',
         'OverflowMethod',
         'ReciprocalScalingFactor',
@@ -220,6 +219,14 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'ThresholdType',
         'TileMode',
         'VideoType',
+
+        'MathOpAdd',
+        'MathOpSub',
+        'MathOpMul',
+        'MathOpDiv',
+        'MathOpPow',
+        'MathOpMax',
+        'MathOpMin',
     ];
     for (const name of constants) {
         definitions.add(new StructDefinition(name));
@@ -227,6 +234,22 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
 
     definitions.add(new AliasDefinition('int', [], new IntIntervalType(-Infinity, Infinity)));
     definitions.add(new AliasDefinition('uint', [], new IntIntervalType(0, Infinity)));
+
+    definitions.add(
+        new AliasDefinition(
+            'MathOp',
+            [],
+            new UnionExpression([
+                new NamedExpression('MathOpAdd'),
+                new NamedExpression('MathOpSub'),
+                new NamedExpression('MathOpMul'),
+                new NamedExpression('MathOpDiv'),
+                new NamedExpression('MathOpPow'),
+                new NamedExpression('MathOpMax'),
+                new NamedExpression('MathOpMin'),
+            ])
+        )
+    );
 
     definitions.add(
         new StructDefinition('Image', [
