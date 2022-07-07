@@ -8,17 +8,18 @@ export type Validity =
 
 export const VALID: Validity = { isValid: true };
 
-const checkNodeValidity = ({
-    id,
-    inputs,
-    inputData,
-    edges,
-}: {
+export interface CheckNodeValidityOptions {
     id: string;
     inputs: Input[];
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
-}): Validity => {
+}
+export const checkNodeValidity = ({
+    id,
+    inputs,
+    inputData,
+    edges,
+}: CheckNodeValidityOptions): Validity => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
         .map((e) => parseHandle(e.targetHandle!).inOutId);
@@ -47,5 +48,3 @@ const checkNodeValidity = ({
     }
     return VALID;
 };
-
-export default checkNodeValidity;

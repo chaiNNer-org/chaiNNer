@@ -7,7 +7,7 @@ import { EdgeData, EdgeHandle, NodeData, UsableData } from '../../common/common-
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import { ParsedHandle, parseHandle } from '../../common/util';
-import checkNodeValidity from '../helpers/checkNodeValidity';
+import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
