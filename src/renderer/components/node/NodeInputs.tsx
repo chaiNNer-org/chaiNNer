@@ -106,7 +106,7 @@ const NodeInputs = memo(
             [useInputDataContext, id, inputData]
         );
 
-        const functions = functionDefinitions.get(schemaId)!.inputs;
+        const functions = functionDefinitions.get(schemaId)!.inputDefaults;
 
         return (
             <>

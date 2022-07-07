@@ -90,7 +90,7 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        return [...targetTypes.inputs].some(([number, type]) => {
+                        return [...targetTypes.inputDefaults].some(([number, type]) => {
                             const overlap = intersect(type, sourceType);
                             return (
                                 overlap.type !== 'never' &&
@@ -107,7 +107,7 @@ export const usePaneNodeSearchMenu = (
                         }
 
                         const { inOutId } = parseHandle(connectingFrom.handleId);
-                        const sourceType = sourceFn.inputs.get(inOutId);
+                        const sourceType = sourceFn.inputDefaults.get(inOutId);
 
                         if (!sourceType) {
                             return false;
@@ -167,7 +167,7 @@ export const usePaneNodeSearchMenu = (
             ) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
-                        const firstPossibleTarget = [...targetTypes.inputs].find(
+                        const firstPossibleTarget = [...targetTypes.inputDefaults].find(
                             ([inputId, type]) => {
                                 const overlap = intersect(type, connectingFromType);
                                 return (
@@ -367,7 +367,7 @@ export const usePaneNodeSearchMenu = (
                     case 'target': {
                         const targetType = functionDefinitions
                             .get(node.data.schemaId)
-                            ?.inputs.get(inOutId);
+                            ?.inputDefaults.get(inOutId);
                         setConnectingFromType(targetType ?? null);
                         setGlobalConnectingFromType(targetType ?? null);
                         break;
