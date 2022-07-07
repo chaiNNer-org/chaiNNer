@@ -77,7 +77,6 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             boxShadow="lg"
             opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
-            pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onClick={() => {}}
@@ -91,24 +90,27 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
             <VStack
                 minWidth="240px"
                 opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
+                spacing={0}
             >
-                <NodeHeader
-                    accentColor={accentColor}
-                    disabledStatus={disabledStatus}
-                    icon={icon}
-                    name={name}
-                    parentNode={parentNode}
-                    selected={selected}
-                />
-                <NodeBody
-                    accentColor={accentColor}
-                    id={id}
-                    inputData={inputData}
-                    inputs={inputs}
-                    isLocked={isLocked}
-                    outputs={outputs}
-                    schemaId={schemaId}
-                />
+                <VStack w="full">
+                    <NodeHeader
+                        accentColor={accentColor}
+                        disabledStatus={disabledStatus}
+                        icon={icon}
+                        name={name}
+                        parentNode={parentNode}
+                        selected={selected}
+                    />
+                    <NodeBody
+                        accentColor={accentColor}
+                        id={id}
+                        inputData={inputData}
+                        inputs={inputs}
+                        isLocked={isLocked}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </VStack>
                 <NodeFooter
                     animated={animated}
                     useDisable={disabled}
