@@ -43,35 +43,31 @@ const NodeFooter = memo(({ validity, useDisable }: NodeFooterProps) => {
                     <Center
                         className="nodrag"
                         my={-1}
+                        w={6}
                         onClick={toggleDirectlyDisabled}
                     >
-                        <Center
+                        <Flex
                             bgColor={iconShade}
-                            borderRadius="2em"
+                            borderRadius="lg"
                             cursor="pointer"
-                            h="1em"
-                            p={2}
-                            w="1.8em"
+                            p="1px"
+                            w={6}
                         >
                             <Center
                                 bgColor={switchShade}
                                 borderRadius="100%"
                                 cursor="pointer"
-                                h="0.85em"
-                                ml={isDirectlyDisabled ? '-0.8em' : 0}
-                                mr={isDirectlyDisabled ? 0 : '-0.8em'}
+                                ml={isDirectlyDisabled ? 0 : '50%'}
+                                mr={isDirectlyDisabled ? '50%' : 0}
                                 transition="all 0.1s ease-in-out"
-                                w="0.85em"
                             >
                                 <Icon
                                     as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
+                                    boxSize="0.7rem"
                                     color={iconShade}
-                                    h="0.7em"
-                                    ml={isDirectlyDisabled ? undefined : '0.02em'}
-                                    w="0.7em"
                                 />
                             </Center>
-                        </Center>
+                        </Flex>
                     </Center>
                 </Tooltip>
             ) : (
