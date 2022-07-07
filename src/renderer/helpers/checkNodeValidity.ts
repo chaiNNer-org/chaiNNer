@@ -128,15 +128,15 @@ export const checkNodeValidity = ({
                 }
             }
         }
-        for (const { outputId } of functionInstance.outputErrors) {
-            const output = schema.inputs.find((o) => o.id === outputId)!;
 
-            if (output) {
-                return {
-                    isValid: false,
-                    reason: `Some inputs are incompatible with each other.`,
-                };
-            }
+        // eslint-disable-next-line no-unreachable-loop
+        for (const { outputId } of functionInstance.outputErrors) {
+            const output = schema.outputs.find((o) => o.id === outputId)!;
+
+            return {
+                isValid: false,
+                reason: `Some inputs are incompatible with each other. ${output.neverReason ?? ''}`,
+            };
         }
     }
 

@@ -373,6 +373,8 @@ class NormalAdditionNode(NodeBase):
                     height=expression.intersect("Input0.height", "Input2.height"),
                     channels=3,
                 ),
+            ).with_never_reason(
+                "The given normal maps have different sizes but must be the same size."
             ),
         ]
         self.category = IMAGE_FILTER
