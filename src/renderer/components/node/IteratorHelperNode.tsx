@@ -24,7 +24,8 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { schemata, updateIteratorBounds, setHoveredNode, typeDefinitions } =
+        useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
@@ -49,7 +50,14 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     useEffect(() => {
         if (inputs.length) {
             setValidity(
-                checkNodeValidity({ id, schema, inputData, edges: getEdges(), functionInstance })
+                checkNodeValidity({
+                    id,
+                    schema,
+                    inputData,
+                    edges: getEdges(),
+                    functionInstance,
+                    typeDefinitions,
+                })
             );
         }
     }, [inputData, edgeChanges, getEdges]);

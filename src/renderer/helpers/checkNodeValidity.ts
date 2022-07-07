@@ -1,6 +1,9 @@
 import { Edge } from 'react-flow-renderer';
 import { EdgeData, InputData, NodeSchema } from '../../common/common-types';
+import { evaluate } from '../../common/types/evaluate';
+import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
 import { FunctionInstance } from '../../common/types/function';
+import { TypeDefinitions } from '../../common/types/typedef';
 import { parseHandle } from '../../common/util';
 
 export type Validity =
@@ -15,6 +18,7 @@ export interface CheckNodeValidityOptions {
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
     functionInstance: FunctionInstance | undefined;
+    typeDefinitions: TypeDefinitions;
 }
 export const checkNodeValidity = ({
     id,
@@ -22,6 +26,7 @@ export const checkNodeValidity = ({
     inputData,
     edges,
     functionInstance,
+    typeDefinitions,
 }: CheckNodeValidityOptions): Validity => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)

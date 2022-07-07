@@ -31,7 +31,7 @@ const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata } = useContext(GlobalContext);
+    const { schemata, typeDefinitions } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
@@ -72,6 +72,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                     inputData,
                     edges: getEdges(),
                     functionInstance,
+                    typeDefinitions,
                 })
             );
         }

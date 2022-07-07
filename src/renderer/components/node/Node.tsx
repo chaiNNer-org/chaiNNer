@@ -49,7 +49,7 @@ interface NodeProps {
 const Node = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
+    const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -75,7 +75,14 @@ const Node = memo(({ data, selected }: NodeProps) => {
     useEffect(() => {
         if (inputs.length) {
             setValidity(
-                checkNodeValidity({ id, schema, inputData, edges: getEdges(), functionInstance })
+                checkNodeValidity({
+                    id,
+                    schema,
+                    inputData,
+                    edges: getEdges(),
+                    functionInstance,
+                    typeDefinitions,
+                })
             );
         }
     }, [inputData, edgeChanges, functionInstance]);
