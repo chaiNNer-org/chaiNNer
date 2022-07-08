@@ -221,7 +221,7 @@ class BorderCropNode(NodeBase):
                             "Input0.width",
                             expression.fn("add", "Input1", "Input1"),
                         ),
-                        expression.int_interval(min=1, max=None),
+                        expression.int_interval(min=1),
                     ),
                     height=expression.intersect(
                         expression.fn(
@@ -229,7 +229,7 @@ class BorderCropNode(NodeBase):
                             "Input0.height",
                             expression.fn("add", "Input1", "Input1"),
                         ),
-                        expression.int_interval(min=1, max=None),
+                        expression.int_interval(min=1),
                     ),
                     channels_as="Input0",
                 )
@@ -276,7 +276,7 @@ class EdgeCropNode(NodeBase):
                             "Input0.width",
                             expression.fn("add", "Input2", "Input3"),
                         ),
-                        expression.int_interval(min=1, max=None),
+                        expression.int_interval(min=1),
                     ),
                     height=expression.intersect(
                         expression.fn(
@@ -284,7 +284,7 @@ class EdgeCropNode(NodeBase):
                             "Input0.height",
                             expression.fn("add", "Input1", "Input4"),
                         ),
-                        expression.int_interval(min=1, max=None),
+                        expression.int_interval(min=1),
                     ),
                     channels_as="Input0",
                 )
