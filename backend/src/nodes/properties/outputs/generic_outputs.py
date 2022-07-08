@@ -7,6 +7,6 @@ def NumberOutput(label: str, output_type: expression.ExpressionJson = "number"):
     return BaseOutput(expression.intersect("number", output_type), label)
 
 
-def TextOutput(label: str):
+def TextOutput(label: str, output_type: expression.ExpressionJson = "string"):
     """Output for arbitrary text"""
-    return BaseOutput("string", label)
+    return BaseOutput(expression.intersect("string", output_type), label)

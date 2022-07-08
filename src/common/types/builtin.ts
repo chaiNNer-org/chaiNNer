@@ -5,7 +5,9 @@ import {
     NumberPrimitive,
     NumberType,
     NumericLiteralType,
+    StringLiteralType,
     StringPrimitive,
+    StringType,
     UnionType,
     ValueType,
 } from './types';
@@ -23,16 +25,21 @@ const fixRoundingError = (n: number): number => {
 
 type Arg<T extends ValueType> = T | UnionType<T> | NeverType;
 
-export type UnaryFn<T extends ValueType> = (a: Arg<T>) => Arg<T>;
+export type UnaryFn<T extends ValueType, R extends ValueType = T> = (a: Arg<T>) => Arg<R>;
 export type BinaryFn<T extends ValueType> = (a: Arg<T>, b: Arg<T>) => Arg<T>;
 
 function wrapUnary(fn: (a: StringPrimitive) => Arg<StringPrimitive>): UnaryFn<StringPrimitive>;
 function wrapUnary(fn: (a: NumberPrimitive) => Arg<NumberPrimitive>): UnaryFn<NumberPrimitive>;
+function wrapUnary<T extends ValueType, R extends ValueType = T>(
+    fn: (a: T) => Arg<R>
+): UnaryFn<T, R>;
 // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
-function wrapUnary<T extends ValueType>(fn: (a: T) => Arg<T>): UnaryFn<T> {
+function wrapUnary<T extends ValueType, R extends ValueType = T>(
+    fn: (a: T) => Arg<R>
+): UnaryFn<T, R> {
     return (a) => {
         if (a.type === 'never') return NeverType.instance;
-        if (a.type === 'union') return union(...a.items.map(fn)) as Arg<T>;
+        if (a.type === 'union') return union(...a.items.map(fn)) as Arg<R>;
         return fn(a);
     };
 }
@@ -348,3 +355,22 @@ export const minimum = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
     return new IntervalType(Math.min(a.min, b.min), Math.min(a.max, b.max));
 });
 export const maximum: BinaryFn<NumberPrimitive> = (a, b) => negate(minimum(negate(a), negate(b)));
+
+export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
+    if (a.underlying === 'string') return a;
+    if (a.type === 'literal') {
+        // Keep in mind, the actual string conversion is done by python and that might implement
+        // it differently than JS. As such, we can only convert numbers where we are sure that the
+        // result will be the same of python's.
+        if (Number.isInteger(a.value) && Math.abs(a.value) <= Number.MAX_SAFE_INTEGER) {
+            return new StringLiteralType(String(a.value));
+        }
+    }
+    // we cannot statically determine the output string
+    return StringType.instance;
+});
+
+export const concat = wrapBinary((a: StringPrimitive, b: StringPrimitive) => {
+    if (a.type === 'string' || b.type === 'string') return StringType.instance;
+    return new StringLiteralType(a.value + b.value);
+});

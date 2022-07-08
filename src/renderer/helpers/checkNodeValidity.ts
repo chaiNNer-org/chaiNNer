@@ -85,7 +85,7 @@ export const checkNodeValidity = ({
 
         const inputValue = inputData[input.id];
         // a value is assigned
-        if (inputValue !== undefined && inputValue !== '') return false;
+        if (inputValue !== undefined) return false;
 
         // the value of the input is assigned by an edge
         if (targetedInputs.includes(input.id)) return false;

@@ -109,7 +109,46 @@ class TextAppendNode(NodeBase):
             TextInput("Text C", allow_numbers=True).make_optional(),
             TextInput("Text D", allow_numbers=True).make_optional(),
         ]
-        self.outputs = [TextOutput("Output Text")]
+        self.outputs = [
+            TextOutput(
+                "Output Text",
+                output_type=expression.fn(
+                    "concat",
+                    expression.fn(
+                        "concat",
+                        expression.fn(
+                            "concat",
+                            expression.fn("string", "Input1"),
+                            expression.fn(
+                                "concat", "Input0", expression.fn("string", "Input2")
+                            ),
+                        ),
+                        expression.match(
+                            "Input3",
+                            ("null", None, expression.literal("")),
+                            (
+                                "any",
+                                "s",
+                                expression.fn(
+                                    "concat", "Input0", expression.fn("string", "s")
+                                ),
+                            ),
+                        ),
+                    ),
+                    expression.match(
+                        "Input4",
+                        ("null", None, expression.literal("")),
+                        (
+                            "any",
+                            "s",
+                            expression.fn(
+                                "concat", "Input0", expression.fn("string", "s")
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        ]
 
         self.category = UTILITY
         self.name = "Text Append"
@@ -120,13 +159,11 @@ class TextAppendNode(NodeBase):
         self,
         separator: str,
         str1: str,
-        str2: Union[str, None],
+        str2: str,
         str3: Union[str, None],
         str4: Union[str, None],
     ) -> str:
-        strings = [
-            str(x) for x in [str1, str2, str3, str4] if x != "" and x is not None
-        ]
+        strings = [str(x) for x in [str1, str2, str3, str4] if x is not None]
         return separator.join(strings)
 
 
