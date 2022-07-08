@@ -13,7 +13,14 @@ import {
     subtract,
     toString,
 } from './builtin';
-import { Expression, NamedExpression, UnionExpression } from './expression';
+import {
+    BuiltinFunctionExpression,
+    Expression,
+    MatchArm,
+    MatchExpression,
+    NamedExpression,
+    UnionExpression,
+} from './expression';
 import {
     assertValidFunctionName,
     assertValidStructFieldName,
@@ -31,6 +38,7 @@ import {
     Type,
 } from './types';
 import { union } from './union';
+import { literal } from './util';
 
 export type Definition = StructDefinition | AliasDefinition;
 
@@ -270,6 +278,56 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
             new StructFieldDefinition('inputChannels', new IntIntervalType(1, Infinity)),
             new StructFieldDefinition('outputChannels', new IntIntervalType(1, Infinity)),
         ])
+    );
+
+    /**
+     * ```
+     * alias UpscaleChannels {
+     *   imageChannels: int(1..inf),
+     *   inputChannels: int(1..inf),
+     *   outputChannels: int(1..inf),
+     * } = match imageChannels {
+     *   1 => 1,
+     *   4 => match inputChannels { 3 => add(outputChannels, 1), _ => outputChannels },
+     *   _ => outputChannels
+     * }
+     * ```
+     */
+    definitions.add(
+        new AliasDefinition(
+            'UpscaleChannels',
+            [
+                new StructFieldDefinition('imageChannels', new IntIntervalType(1, Infinity)),
+                new StructFieldDefinition('inputChannels', new IntIntervalType(1, Infinity)),
+                new StructFieldDefinition('outputChannels', new IntIntervalType(1, Infinity)),
+            ],
+            new MatchExpression(new NamedExpression('imageChannels'), [
+                // grayscale will always result in grayscale
+                new MatchArm(literal(1), undefined, literal(1)),
+                // RGBA image
+                new MatchArm(
+                    literal(4),
+                    undefined,
+                    new MatchExpression(new NamedExpression('inputChannels'), [
+                        //  RGB models
+                        new MatchArm(
+                            literal(3),
+                            undefined,
+                            new BuiltinFunctionExpression('add', [
+                                new NamedExpression('outputChannels'),
+                                literal(1),
+                            ])
+                        ),
+                        new MatchArm(
+                            AnyType.instance,
+                            undefined,
+                            new NamedExpression('outputChannels')
+                        ),
+                    ])
+                ),
+                new MatchArm(AnyType.instance, undefined, new NamedExpression('outputChannels')),
+            ])
+        )
     );
 
     definitions.add(

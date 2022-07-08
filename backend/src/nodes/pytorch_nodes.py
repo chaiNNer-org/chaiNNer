@@ -141,7 +141,14 @@ class ImageUpscaleNode(NodeBase):
                 expression.Image(
                     width=expression.fn("multiply", "Input0.scale", "Input1.width"),
                     height=expression.fn("multiply", "Input0.scale", "Input1.height"),
-                    channels=["Input0.outputChannels", "Input1.channels"],
+                    channels=expression.named(
+                        "UpscaleChannels",
+                        {
+                            "imageChannels": "Input1.channels",
+                            "inputChannels": "Input0.inputChannels",
+                            "outputChannels": "Input0.outputChannels",
+                        },
+                    ),
                 ),
             )
         ]
