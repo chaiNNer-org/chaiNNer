@@ -1,4 +1,4 @@
-export default (category: string | undefined): string => {
+export const getNodeAccentColor = (category: string | undefined): string => {
     switch (category) {
         case 'OpenCV':
             return '#C53030';

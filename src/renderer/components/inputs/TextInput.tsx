@@ -11,7 +11,7 @@ interface TextInputProps extends InputProps {
     placeholder?: string;
 }
 
-const TextInput = memo(
+export const TextInput = memo(
     ({
         label,
         id,
@@ -62,5 +62,3 @@ const TextInput = memo(
         );
     }
 );
-
-export default TextInput;

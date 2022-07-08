@@ -61,7 +61,7 @@ interface IteratorNodeBodyProps {
     maxHeight?: number;
 }
 
-const IteratorNodeBody = memo(
+export const IteratorNodeBody = memo(
     ({ id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256 }: IteratorNodeBodyProps) => {
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
         const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
@@ -164,5 +164,3 @@ const IteratorNodeBody = memo(
         );
     }
 );
-
-export default IteratorNodeBody;

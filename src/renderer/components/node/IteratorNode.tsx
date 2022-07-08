@@ -7,29 +7,29 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
-import getAccentColor from '../../helpers/getNodeAccentColors';
+import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
-import IteratorNodeBody from './IteratorNodeBody';
-import IteratorNodeHeader from './IteratorNodeHeader';
-import NodeFooter from './NodeFooter/NodeFooter';
-import NodeInputs from './NodeInputs';
-import NodeOutputs from './NodeOutputs';
+import { IteratorNodeBody } from './IteratorNodeBody';
+import { IteratorNodeHeader } from './IteratorNodeHeader';
+import { NodeFooter } from './NodeFooter/NodeFooter';
+import { NodeInputs } from './NodeInputs';
+import { NodeOutputs } from './NodeOutputs';
 
 interface IteratorNodeProps {
     data: NodeData;
     selected: boolean;
 }
 
-const IteratorNodeWrapper = memo(({ data, selected }: IteratorNodeProps) => (
+export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    <IteratorNode
+    <IteratorNodeInner
         data={data}
         selected={selected}
     />
 ));
 
-const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
+const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, typeDefinitions } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
@@ -56,7 +56,7 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
     );
 
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
-    const accentColor = getAccentColor(category);
+    const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -181,5 +181,3 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
         </Center>
     );
 });
-
-export default IteratorNodeWrapper;

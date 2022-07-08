@@ -46,12 +46,10 @@ const getSystemUsage = async (): Promise<SystemUsage> => {
     return { cpu, ram, vram };
 };
 
-const useSystemUsage = (delay: number): SystemUsage => {
+export const useSystemUsage = (delay: number): SystemUsage => {
     const [usage, setUsage] = useState<SystemUsage>({ cpu: 0, ram: 0, vram: null });
 
     useAsyncInterval({ supplier: getSystemUsage, successEffect: setUsage }, delay);
 
     return useMemoObject(usage);
 };
-
-export default useSystemUsage;

@@ -4,7 +4,7 @@ import { useContextSelector } from 'use-context-selector';
 import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
-import OutputContainer from './OutputContainer';
+import { OutputContainer } from './OutputContainer';
 
 interface GenericOutputProps {
     id: string;
@@ -13,7 +13,7 @@ interface GenericOutputProps {
     definitionType: Type;
 }
 
-const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutputProps) => {
+export const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)?.outputs.get(outputId)
     );
@@ -53,5 +53,3 @@ const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutp
         </OutputContainer>
     );
 });
-
-export default GenericOutput;

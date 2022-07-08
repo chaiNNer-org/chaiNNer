@@ -22,7 +22,7 @@ import { assertNever, createUniqueId, parseHandle } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
-import getNodeAccentColors from '../helpers/getNodeAccentColors';
+import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
@@ -271,7 +271,7 @@ export const usePaneNodeSearchMenu = (
             >
                 {[...byCategories].length > 0 ? (
                     [...byCategories].map(([category, categoryNodes]) => {
-                        const accentColor = getNodeAccentColors(category);
+                        const accentColor = getNodeAccentColor(category);
                         return (
                             <Box key={category}>
                                 <HStack

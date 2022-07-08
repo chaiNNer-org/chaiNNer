@@ -9,7 +9,7 @@ interface chaiNNerLogoProps {
     percent?: number;
 }
 
-const chaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProps) => (
+export const ChaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProps) => (
     <Box
         boxSize={size}
         display="block"
@@ -92,5 +92,3 @@ const chaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProps) => (
         />
     </Box>
 ));
-
-export default chaiNNerLogo;

@@ -17,7 +17,7 @@ interface NumericalInputProps extends InputProps {
     hideTrailingZeros: boolean;
 }
 
-const NumericalInput = memo(
+export const NumberInput = memo(
     ({
         id,
         inputId,
@@ -72,5 +72,3 @@ const NumericalInput = memo(
         );
     }
 );
-
-export default NumericalInput;

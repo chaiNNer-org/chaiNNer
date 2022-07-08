@@ -7,7 +7,7 @@ interface DisableToggleProps {
     useDisable: UseDisabled;
 }
 
-const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
+export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
     const switchShade = useColorModeValue('gray.500', 'gray.600');
     const iconShade = useColorModeValue('gray.400', 'gray.800');
 
@@ -63,5 +63,3 @@ const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
         </Tooltip>
     );
 });
-
-export default DisableToggle;

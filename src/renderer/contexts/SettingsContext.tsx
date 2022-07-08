@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
 interface Settings {

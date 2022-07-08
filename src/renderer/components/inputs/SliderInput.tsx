@@ -12,7 +12,7 @@ import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import getTypeAccentColors from '../../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
@@ -41,7 +41,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
     }
 };
 
-const SliderInput = memo(
+export const SliderInput = memo(
     ({
         inputId,
         useInputData,
@@ -156,4 +156,3 @@ const SliderInput = memo(
         );
     }
 );
-export default SliderInput;

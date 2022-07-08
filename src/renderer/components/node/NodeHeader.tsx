@@ -21,7 +21,7 @@ interface NodeHeaderProps {
     disabledStatus: DisabledStatus;
 }
 
-const NodeHeader = memo(
+export const NodeHeader = memo(
     ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => {
         const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
         const bgColor = useColorModeValue(gray300, gray700);
@@ -81,5 +81,3 @@ const NodeHeader = memo(
         );
     }
 );
-
-export default NodeHeader;

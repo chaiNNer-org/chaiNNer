@@ -41,7 +41,7 @@ interface NodeSelectorProps {
     schemata: SchemaMap;
 }
 
-const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
+export const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
     const { openDependencyManager } = useContext(DependencyContext);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -250,5 +250,3 @@ const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
         </HStack>
     );
 });
-
-export default NodeSelector;

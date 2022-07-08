@@ -12,15 +12,15 @@ import { SchemaMap } from '../common/SchemaMap';
 import { FunctionDefinition } from '../common/types/function';
 import { TypeDefinitions } from '../common/types/typedef';
 import { getLocalStorage, getStorageKeys } from '../common/util';
-import ChaiNNerLogo from './components/chaiNNerLogo';
-import CustomEdge from './components/CustomEdge';
-import Header from './components/Header';
+import { ChaiNNerLogo } from './components/chaiNNerLogo';
+import { CustomEdge } from './components/CustomEdge';
+import { Header } from './components/Header';
 import { HistoryProvider } from './components/HistoryProvider';
-import IteratorHelperNode from './components/node/IteratorHelperNode';
-import IteratorNode from './components/node/IteratorNode';
-import Node from './components/node/Node';
-import NodeSelector from './components/NodeSelectorPanel/NodeSelectorPanel';
-import ReactFlowBox from './components/ReactFlowBox';
+import { IteratorHelperNode } from './components/node/IteratorHelperNode';
+import { IteratorNode } from './components/node/IteratorNode';
+import { Node } from './components/node/Node';
+import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
+import { ReactFlowBox } from './components/ReactFlowBox';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
 import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
@@ -74,7 +74,7 @@ interface MainProps {
     port: number;
 }
 
-const Main = memo(({ port }: MainProps) => {
+export const Main = memo(({ port }: MainProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo | null>(null);
@@ -210,5 +210,3 @@ const Main = memo(({ port }: MainProps) => {
         </ReactFlowProvider>
     );
 });
-
-export default Main;

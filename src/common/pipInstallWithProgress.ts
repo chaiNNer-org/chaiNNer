@@ -78,7 +78,7 @@ const downloadWheelAndInstall = async (
         }
     });
 
-const pipInstallWithProgress = async (
+export const pipInstallWithProgress = async (
     python: string,
     pkg: PyPiPackage,
     onProgress?: (percentage: number) => void,
@@ -189,5 +189,3 @@ const pipInstallWithProgress = async (
             }
         });
     });
-
-export default pipInstallWithProgress;

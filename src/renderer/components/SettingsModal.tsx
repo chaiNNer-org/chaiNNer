@@ -317,7 +317,7 @@ interface SettingsModalProps {
     onClose: () => void;
 }
 
-const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
+export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
     return (
         <Modal
             isCentered
@@ -419,5 +419,3 @@ export const SettingsButton = memo(() => {
         </>
     );
 });
-
-export default SettingsModal;

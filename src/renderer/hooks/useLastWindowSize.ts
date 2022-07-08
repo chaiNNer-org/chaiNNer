@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { WindowSize } from '../../common/common-types';
 import { debounce } from '../../common/util';
 import { useIpcRendererListener } from './useIpcRendererListener';
-import useLocalStorage from './useLocalStorage';
+import { useLocalStorage } from './useLocalStorage';
 
 const defaultSize: WindowSize = {
     maximized: false,

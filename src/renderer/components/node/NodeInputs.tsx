@@ -12,16 +12,16 @@ import {
 import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import DirectoryInput from '../inputs/DirectoryInput';
-import DropDownInput from '../inputs/DropDownInput';
-import FileInput from '../inputs/FileInput';
-import GenericInput from '../inputs/GenericInput';
-import InputContainer from '../inputs/InputContainer';
-import NumberInput from '../inputs/NumberInput';
+import { DirectoryInput } from '../inputs/DirectoryInput';
+import { DropDownInput } from '../inputs/DropDownInput';
+import { FileInput } from '../inputs/FileInput';
+import { GenericInput } from '../inputs/GenericInput';
+import { InputContainer } from '../inputs/InputContainer';
+import { NumberInput } from '../inputs/NumberInput';
 import { InputProps } from '../inputs/props';
-import SliderInput from '../inputs/SliderInput';
-import TextAreaInput from '../inputs/TextAreaInput';
-import TextInput from '../inputs/TextInput';
+import { SliderInput } from '../inputs/SliderInput';
+import { TextAreaInput } from '../inputs/TextAreaInput';
+import { TextInput } from '../inputs/TextInput';
 
 interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
     accentColor: string;
@@ -96,7 +96,7 @@ interface NodeInputsProps {
     accentColor: string;
 }
 
-const NodeInputs = memo(
+export const NodeInputs = memo(
     ({ inputs, id, inputData, isLocked, schemaId, accentColor }: NodeInputsProps) => {
         const { useInputData: useInputDataContext, functionDefinitions } =
             useContext(GlobalContext);
@@ -133,5 +133,3 @@ const NodeInputs = memo(
         );
     }
 );
-
-export default NodeInputs;

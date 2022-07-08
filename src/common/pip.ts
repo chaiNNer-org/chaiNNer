@@ -2,7 +2,7 @@
 import { spawn } from 'child_process';
 import log from 'electron-log';
 import { Dependency } from './dependencies';
-import pipInstallWithProgress from './pipInstallWithProgress';
+import { pipInstallWithProgress } from './pipInstallWithProgress';
 import { getPythonInfo } from './python';
 import { noop } from './util';
 

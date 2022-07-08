@@ -7,7 +7,7 @@ interface TextAreaInputProps extends InputProps {
     resizable: boolean;
 }
 
-const TextAreaInput = memo(
+export const TextAreaInput = memo(
     ({ label, inputId, useInputData, isLocked, resizable }: TextAreaInputProps) => {
         const [input, setInput] = useInputData<string>(inputId);
         const [tempText, setTempText] = useState('');
@@ -42,5 +42,3 @@ const TextAreaInput = memo(
         );
     }
 );
-
-export default TextAreaInput;

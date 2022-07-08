@@ -9,7 +9,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { ChainnerDragData, TransferTypes } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
-import RepresentativeNode from './RepresentativeNode';
+import { RepresentativeNode } from './RepresentativeNode';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, node: NodeSchema) => {
     const data: ChainnerDragData = {
@@ -28,7 +28,7 @@ interface RepresentativeNodeWrapperProps {
     collapsed?: boolean;
 }
 
-const RepresentativeNodeWrapper = memo(
+export const RepresentativeNodeWrapper = memo(
     ({ node, collapsed = false }: RepresentativeNodeWrapperProps) => {
         const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
         const { reactFlowWrapper, setHoveredNode } = useContext(GlobalContext);
@@ -150,5 +150,3 @@ const RepresentativeNodeWrapper = memo(
         );
     }
 );
-
-export default RepresentativeNodeWrapper;

@@ -11,7 +11,7 @@ const getLocalStorageOrDefault = <T>(key: string, defaultValue: T): T => {
     return JSON.parse(stored) as T;
 };
 
-const useLocalStorage = <T>(key: string, defaultValue: T) => {
+export const useLocalStorage = <T>(key: string, defaultValue: T) => {
     const [value, setValue] = useState(() => getLocalStorageOrDefault(key, defaultValue));
 
     useEffect(() => {
@@ -20,5 +20,3 @@ const useLocalStorage = <T>(key: string, defaultValue: T) => {
 
     return [value, setValue] as const;
 };
-
-export default useLocalStorage;
