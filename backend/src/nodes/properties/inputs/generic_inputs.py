@@ -41,6 +41,7 @@ class TextInput(BaseInput):
         self,
         label: str,
         has_handle=True,
+        min_length: int = 1,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
         allow_numbers: bool = False,
@@ -51,15 +52,20 @@ class TextInput(BaseInput):
             has_handle=has_handle,
             kind="text-line",
         )
+        self.min_length = min_length
         self.max_length = max_length
         self.placeholder = placeholder
 
     def enforce(self, value) -> str:
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
         return str(value)
 
     def toDict(self):
         return {
             **super().toDict(),
+            "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
         }

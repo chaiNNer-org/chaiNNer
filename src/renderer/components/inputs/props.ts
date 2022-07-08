@@ -13,5 +13,5 @@ export interface InputProps {
     readonly hasHandle: boolean;
     readonly useInputData: <T extends InputSchemaValue>(
         inputId: number
-    ) => readonly [T | undefined, (value: T) => void];
+    ) => readonly [T | undefined, (value: T) => void, () => void];
 }
