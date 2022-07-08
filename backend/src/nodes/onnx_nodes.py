@@ -92,7 +92,17 @@ class OnnxImageUpscaleNode(NodeBase):
             ImageInput(),
             NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
         ]
-        self.outputs = [ImageOutput("Upscaled Image")]
+        self.outputs = [
+            ImageOutput(
+                "Upscaled Image",
+                image_type=expression.Image(
+                    channels=expression.named(
+                        "UpscaleChannels",
+                        {"imageChannels": "Input1.channels"},
+                    )
+                ),
+            )
+        ]
 
         self.category = ONNX
         self.name = "Upscale Image"

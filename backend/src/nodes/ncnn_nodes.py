@@ -144,7 +144,20 @@ class NcnnUpscaleImageNode(NodeBase):
             ImageInput(),
             NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    channels=expression.named(
+                        "UpscaleChannels",
+                        {
+                            "imageChannels": "Input1.channels",
+                            "inputChannels": 3,
+                            "outputChannels": 3,
+                        },
+                    )
+                )
+            )
+        ]
         self.category = NCNN
         self.name = "Upscale Image"
         self.icon = "NCNN"
