@@ -14,7 +14,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.onnx_auto_split import onnx_auto_split_process
-from .utils.utils import get_h_w_c, np2nptensor, nptensor2np
+from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
 
 
 class TensorOrders:
@@ -160,53 +160,11 @@ class OnnxImageUpscaleNode(NodeBase):
         else:
             split_factor = 1
 
-        # Ensure correct amount of image channels for the model.
-
-        # Transparency hack (white/black background difference alpha)
-        if in_nc == 3 and c == 4:
-            # Ignore single-color alpha
-            unique = np.unique(img[:, :, 3])
-            if len(unique) == 1:
-                logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(
-                    img[:, :, :3], session, split_factor, change_shape
-                )
-                output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
-            else:
-                img1 = np.copy(img[:, :, :3])
-                img2 = np.copy(img[:, :, :3])
-                for c in range(3):
-                    img1[:, :, c] *= img[:, :, 3]
-                    img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
-
-                output1 = self.upscale(img1, session, split_factor, change_shape)
-                output2 = self.upscale(img2, session, split_factor, change_shape)
-                alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
-                output = np.dstack((output1, alpha))
-        else:
-            # Add extra channels if not enough (i.e single channel img, three channel model)
-            gray = False
-            if img.ndim == 2:
-                gray = True
-                logger.debug("Expanding image channels")
-                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))  # type: ignore
-            # Remove extra channels if too many (i.e three channel image, single channel model)
-            elif img.shape[2] > in_nc:
-                logger.warning("Truncating image channels")
-                img = img[:, :, :in_nc]
-            # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
-            elif img.shape[2] == 3 and in_nc == 4:
-                logger.debug("Expanding image channels")
-                img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
-
-            output = self.upscale(img, session, split_factor, change_shape)
-
-            if gray:
-                output = np.average(output, axis=2).astype("float32")
-
-        output = np.clip(output, 0, 1)
-
-        return output
+        return convenient_upscale(
+            img,
+            in_nc,
+            lambda i: self.upscale(i, session, split_factor, change_shape),
+        )
 
 
 # TODO: No point of this node for now
