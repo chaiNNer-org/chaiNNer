@@ -93,7 +93,7 @@ interface Global {
         id: string,
         inputId: number,
         inputData: InputData
-    ) => readonly [T | undefined, (data: T) => void];
+    ) => readonly [T | undefined, (data: T) => void, () => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     duplicateNode: (id: string) => void;
@@ -693,9 +693,9 @@ export const GlobalProvider = memo(
                 id: string,
                 inputId: number,
                 inputData: InputData
-            ): readonly [T | undefined, (data: T) => void] {
+            ): readonly [T | undefined, (data: T) => void, () => void] {
                 const currentInput = (inputData[inputId] ?? undefined) as T | undefined;
-                const setInputData = (data: T) => {
+                const setInputData = (data: T | undefined) => {
                     // This is a action that might be called asynchronously, so we cannot rely on of
                     // the captured data from `nodes` to be up-to-date anymore. For that reason, we
                     // must derive any changes to nodes from the previous value passed to us by
@@ -710,7 +710,8 @@ export const GlobalProvider = memo(
                         return nodeCopy;
                     });
                 };
-                return [currentInput, setInputData] as const;
+                const resetInputData = () => setInputData(undefined);
+                return [currentInput, setInputData, resetInputData] as const;
             },
             [modifyNode, schemata]
         );

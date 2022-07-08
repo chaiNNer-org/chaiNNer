@@ -6,32 +6,44 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
 interface TextInputProps extends InputProps {
+    minLength: number;
     maxLength?: number;
     placeholder?: string;
 }
 
 export const TextInput = memo(
-    ({ label, id, inputId, useInputData, isLocked, maxLength, placeholder }: TextInputProps) => {
+    ({
+        label,
+        id,
+        inputId,
+        useInputData,
+        isLocked,
+        minLength,
+        maxLength,
+        placeholder,
+    }: TextInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
             inputId
         );
 
-        const [input, setInput] = useInputData<string>(inputId);
-        const [tempText, setTempText] = useState('');
+        const [input, setInput, resetInput] = useInputData<string>(inputId);
+        const [tempText, setTempText] = useState(input ?? '');
 
         useEffect(() => {
-            if (!input) {
+            if (input === undefined && minLength === 0) {
                 setInput('');
-            } else {
-                setTempText(input);
             }
         }, []);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLInputElement>) => {
             let text = event.target.value;
             text = maxLength ? text.slice(0, maxLength) : text;
-            setInput(text);
+            if (text.length >= minLength) {
+                setInput(text);
+            } else {
+                resetInput();
+            }
         }, 500);
 
         return (

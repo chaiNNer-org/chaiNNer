@@ -33,6 +33,13 @@ const getTypeText = (type: Type): string[] => {
                 }
             }
         }
+
+        if (type.name === 'PyTorchModel' && type.fields.length === 3) {
+            const [scale] = type.fields;
+            if (isNumericLiteral(scale.type)) {
+                tags.push(`${scale.type.toString()}x`);
+            }
+        }
     }
     return tags;
 };
@@ -58,6 +65,7 @@ export const TypeTag = memo(({ type }: TypeTagProps) => {
                     key={text}
                     lineHeight="auto"
                     minHeight="15px"
+                    minWidth={0}
                     ml={1}
                     px={1}
                     size="sm"

@@ -3,6 +3,7 @@ import {
     BinaryFn,
     UnaryFn,
     add,
+    concat,
     divide,
     maximum,
     minimum,
@@ -10,6 +11,7 @@ import {
     negate,
     round,
     subtract,
+    toString,
 } from './builtin';
 import { Expression, NamedExpression, UnionExpression } from './expression';
 import {
@@ -28,6 +30,7 @@ import {
     StructType,
     Type,
 } from './types';
+import { union } from './union';
 
 export type Definition = StructDefinition | AliasDefinition;
 
@@ -312,6 +315,17 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
             BuiltinFunctionDefinition.binary(name, fn, NumberType.instance, NumberType.instance)
         );
     }
+
+    definitions.addFunction(
+        BuiltinFunctionDefinition.unary(
+            'string',
+            toString,
+            union(StringType.instance, NumberType.instance)
+        )
+    );
+    definitions.addFunction(
+        BuiltinFunctionDefinition.binary('concat', concat, StringType.instance, StringType.instance)
+    );
 };
 
 export class TypeDefinitions {

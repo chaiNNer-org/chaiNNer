@@ -10,7 +10,7 @@ import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { NodeBody } from './NodeBody';
-import { NodeFooter } from './NodeFooter';
+import NodeFooter from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
 
 interface IteratorHelperNodeProps {
@@ -91,7 +91,6 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
             boxShadow="lg"
             opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
-            pb={2}
             ref={targetRef}
             transition="0.15s ease-in-out"
             onClick={() => {}}
@@ -105,24 +104,27 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
             <VStack
                 minWidth="240px"
                 opacity={disabledStatus === DisabledStatus.Enabled ? 1 : 0.75}
+                spacing={0}
             >
-                <NodeHeader
-                    accentColor={accentColor}
-                    disabledStatus={disabledStatus}
-                    icon={icon}
-                    name={name}
-                    parentNode={parentNode}
-                    selected={selected}
-                />
-                <NodeBody
-                    accentColor={accentColor}
-                    id={id}
-                    inputData={inputData}
-                    inputs={inputs}
-                    isLocked={isLocked}
-                    outputs={outputs}
-                    schemaId={schemaId}
-                />
+                <VStack w="full">
+                    <NodeHeader
+                        accentColor={accentColor}
+                        disabledStatus={disabledStatus}
+                        icon={icon}
+                        name={name}
+                        parentNode={parentNode}
+                        selected={selected}
+                    />
+                    <NodeBody
+                        accentColor={accentColor}
+                        id={id}
+                        inputData={inputData}
+                        inputs={inputs}
+                        isLocked={isLocked}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </VStack>
                 <NodeFooter
                     animated={animated}
                     useDisable={disabled}

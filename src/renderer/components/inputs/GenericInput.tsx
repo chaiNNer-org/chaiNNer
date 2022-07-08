@@ -4,7 +4,7 @@ import { InputProps } from './props';
 
 type GenericInputProps = InputProps;
 
-export const GenericInput = memo(({ label, optional }: GenericInputProps) => {
+export const GenericInput = memo(({ label, optional, hasHandle }: GenericInputProps) => {
     const tagColor = useColorModeValue('gray.400', 'gray.750');
     const tagFontColor = useColorModeValue('gray.700', 'gray.400');
     return (
@@ -24,7 +24,7 @@ export const GenericInput = memo(({ label, optional }: GenericInputProps) => {
             >
                 {label}
             </Text>
-            {label && optional && (
+            {label && optional && hasHandle && (
                 <Center
                     h="2rem"
                     verticalAlign="middle"

@@ -125,6 +125,7 @@ export const NodeInputs = memo(
                         definitionType: functions.get(input.id)!,
                         accentColor,
                         optional: input.optional,
+                        hasHandle: input.hasHandle,
                     };
                     return pickInput(input.kind, props);
                 })}
