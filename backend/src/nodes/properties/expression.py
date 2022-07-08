@@ -119,8 +119,8 @@ def literal(value: Union[str, int, float]) -> ExpressionJson:
 
 
 def interval(
-    min: Union[int, float, None],
-    max: Union[int, float, None],
+    min: Union[int, float, None] = None,
+    max: Union[int, float, None] = None,
 ) -> ExpressionJson:
     return {
         "type": "interval",
@@ -130,8 +130,8 @@ def interval(
 
 
 def int_interval(
-    min: Union[int, float, None],
-    max: Union[int, float, None],
+    min: Union[int, float, None] = None,
+    max: Union[int, float, None] = None,
 ) -> ExpressionJson:
     return {
         "type": "int-interval",

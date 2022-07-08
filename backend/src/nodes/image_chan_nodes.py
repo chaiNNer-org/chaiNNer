@@ -166,7 +166,40 @@ class ChannelMergeRGBANode(NodeBase):
         ]
         self.outputs = [
             ImageOutput(
-                image_type=expression.Image(size_as="Input0", channels=[1, 3, 4])
+                image_type=expression.Image(
+                    size_as="Input0",
+                    channels=expression.match(
+                        expression.fn(
+                            "add",
+                            "Input0.channels",
+                            expression.fn(
+                                "add",
+                                expression.match(
+                                    "Input1",
+                                    ("Image", "i", "i.channels"),
+                                    default=0,
+                                ),
+                                expression.fn(
+                                    "add",
+                                    expression.match(
+                                        "Input2",
+                                        ("Image", "i", "i.channels"),
+                                        default=0,
+                                    ),
+                                    expression.match(
+                                        "Input3",
+                                        ("Image", "i", "i.channels"),
+                                        default=0,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        (1, None, 1),
+                        (2, None, 3),
+                        (3, None, 3),
+                        (expression.int_interval(min=4), None, 4),
+                    ),
+                )
             )
         ]
         self.category = IMAGE_CHANNEL
