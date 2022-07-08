@@ -5,7 +5,7 @@ import { IntersectionExpression, NamedExpression } from '../../common/types/expr
 import { FunctionInstance } from '../../common/types/function';
 import { isDisjointWith } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
-import { IntIntervalType, NumericLiteralType } from '../../common/types/types';
+import { IntIntervalType, NumericLiteralType, Type } from '../../common/types/types';
 import { IntNumberType, isImage } from '../../common/types/util';
 import { parseHandle } from '../../common/util';
 
@@ -59,6 +59,20 @@ const formatChannelNumber = (n: IntNumberType): string | undefined => {
     return undefined;
 };
 
+const explainNumber = (n: Type): string | undefined => {
+    if (n.underlying === 'number') {
+        if (n.type === 'number') return 'a number';
+        if (n.type === 'literal') return `the number ${n.value}`;
+
+        const kind = n.type === 'int-interval' ? 'an integer' : 'a number';
+        if (n.min === -Infinity && n.max === Infinity) return kind;
+        if (n.min === -Infinity) return `${kind} that is at most ${n.max}`;
+        if (n.max === Infinity) return `${kind} that is at least ${n.min}`;
+        return `${kind} between ${n.min} and ${n.max}`;
+    }
+    return undefined;
+};
+
 export interface CheckNodeValidityOptions {
     id: string;
     schema: NodeSchema;
@@ -106,6 +120,7 @@ export const checkNodeValidity = ({
         for (const { inputId, assignedType, inputType } of functionInstance.inputErrors) {
             const input = schema.inputs.find((i) => i.id === inputId)!;
 
+            // image channel mismatch
             if (isImage(assignedType)) {
                 const iType = evaluate(
                     new IntersectionExpression([inputType, new NamedExpression('Image')]),
@@ -126,6 +141,16 @@ export const checkNodeValidity = ({
                         }
                     }
                 }
+            }
+
+            // number mismatch
+            const assignedNumber = explainNumber(assignedType);
+            const inputNumber = explainNumber(inputType);
+            if (assignedNumber && inputNumber) {
+                return {
+                    isValid: false,
+                    reason: `Input ${input.label} requires ${inputNumber} but was connected with ${assignedNumber}.`,
+                };
             }
         }
 
