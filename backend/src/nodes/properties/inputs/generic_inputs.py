@@ -57,6 +57,9 @@ class TextInput(BaseInput):
         self.placeholder = placeholder
 
     def enforce(self, value) -> str:
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
         return str(value)
 
     def toDict(self):
