@@ -2,7 +2,7 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
-from typing import Tuple, Type, Union
+from typing import Callable, Tuple, Type, Union
 
 import numpy as np
 from sanic.log import logger
@@ -320,3 +320,60 @@ def nptensor2np(
 
     # has to be in range (0,255) before changing to np.uint8, else np.float32
     return img_np.astype(imtype)
+
+
+def convenient_upscale(
+    img: np.ndarray,
+    input_channels: int,
+    upscale: Callable[[np.ndarray], np.ndarray],
+) -> np.ndarray:
+    """
+    Upscales the given image in an intuitive/convenient way.
+
+    This method guarantees that the `upscale` function will be called with an image with
+    `input_channels` number of channels.
+    """
+
+    _, _, c = get_h_w_c(img)
+
+    # Transparency hack (white/black background difference alpha)
+    if input_channels == 3 and c == 4:
+        # Ignore single-color alpha
+        unique = np.unique(img[:, :, 3])
+        if len(unique) == 1:
+            logger.info("Single color alpha channel, ignoring.")
+            output = upscale(img[:, :, :3])
+            output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
+        else:
+            img1 = np.copy(img[:, :, :3])
+            img2 = np.copy(img[:, :, :3])
+            for c in range(3):
+                img1[:, :, c] *= img[:, :, 3]
+                img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
+
+            output1 = upscale(img1)
+            output2 = upscale(img2)
+            alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
+            output = np.dstack((output1, alpha))
+    else:
+        # Add extra channels if not enough (i.e single channel img, three channel model)
+        gray = False
+        if img.ndim == 2:
+            gray = True
+            logger.debug("Expanding image channels")
+            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3)))
+        # Remove extra channels if too many (i.e three channel image, single channel model)
+        elif c > input_channels:
+            logger.warning("Truncating image channels")
+            img = img[:, :, :input_channels]
+        # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
+        elif c == 3 and input_channels == 4:
+            logger.debug("Expanding image channels")
+            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+
+        output = upscale(img)
+
+        if gray:
+            output = np.average(output, axis=2).astype("float32")
+
+    return np.clip(output, 0, 1)

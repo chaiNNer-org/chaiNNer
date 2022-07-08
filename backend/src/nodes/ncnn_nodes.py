@@ -20,7 +20,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, convenient_upscale
 
 
 @NodeFactory.register("chainner:ncnn:load_model")
@@ -184,7 +184,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def run(
         self, net_tuple: tuple, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
-        h, w, c = get_h_w_c(img)
+        h, w, _ = get_h_w_c(img)
 
         if tile_size_target > 0:
             # Calculate split factor using a tile size target
@@ -218,62 +218,15 @@ class NcnnUpscaleImageNode(NodeBase):
                 binary_file.write(packed)
             net.load_model(temp_file)
 
-        # ncnn only supports 3 apparently
-        in_nc = 3
+        def upscale(i: np.ndarray) -> np.ndarray:
+            i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
+            i = self.upscale(i, net, input_name, output_name, split_factor)
+            assert (
+                get_h_w_c(i)[2] == 3
+            ), "Chainner only supports upscaling with NCNN models that output RGB images."
+            return cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
 
-        # TODO: This can prob just be a shared function tbh
-        # Transparency hack (white/black background difference alpha)
-        if in_nc == 3 and c == 4:
-            # NCNN expects RGB
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-            # Ignore single-color alpha
-            unique = np.unique(img[:, :, 3])
-            if len(unique) == 1:
-                logger.info("Single color alpha channel, ignoring.")
-                output = self.upscale(
-                    img[:, :, :3], net, input_name, output_name, split_factor
-                )
-                output = np.dstack((output, np.full(output.shape[:-1], (unique[0]))))
-            else:
-                img1 = np.copy(img[:, :, :3])
-                img2 = np.copy(img[:, :, :3])
-                for c in range(3):
-                    img1[:, :, c] *= img[:, :, 3]  # type: ignore
-                    img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1  # type: ignore
-
-                output1 = self.upscale(img1, net, input_name, output_name, split_factor)
-                output2 = self.upscale(img2, net, input_name, output_name, split_factor)
-                alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
-                output = np.dstack((output1, alpha))
-        else:
-            gray = False
-            if img.ndim == 2:
-                gray = True
-                logger.debug("Expanding image channels")
-                img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(in_nc, 3)))
-            # Remove extra channels if too many (i.e three channel image, single channel model)
-            elif img.shape[2] > in_nc:
-                logger.warning("Truncating image channels")
-                img = img[:, :, :in_nc]
-            # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
-            elif img.shape[2] == 3 and in_nc == 4:
-                logger.debug("Expanding image channels")
-                img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            output = self.upscale(img, net, input_name, output_name, split_factor)
-
-            if gray:
-                output = np.average(output, axis=2)
-
-        if output.ndim > 2:
-            if output.shape[2] == 4:
-                output = cv2.cvtColor(output, cv2.COLOR_BGRA2RGBA)
-            elif output.shape[2] == 3:
-                output = cv2.cvtColor(output, cv2.COLOR_RGB2BGR)
-
-        output = np.clip(output, 0, 1)
-
-        return output
+        return convenient_upscale(img, 3, upscale)
 
 
 @NodeFactory.register("chainner:ncnn:interpolate_models")
