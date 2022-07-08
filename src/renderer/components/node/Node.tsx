@@ -14,7 +14,7 @@ import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { NodeBody } from './NodeBody';
-import NodeFooter from './NodeFooter/NodeFooter';
+import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
 
 /**

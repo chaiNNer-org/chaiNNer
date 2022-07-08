@@ -10,7 +10,7 @@ import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { NodeBody } from './NodeBody';
-import NodeFooter from './NodeFooter/NodeFooter';
+import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
 
 interface IteratorHelperNodeProps {

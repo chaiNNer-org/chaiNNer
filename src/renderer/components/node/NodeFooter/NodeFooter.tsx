@@ -2,8 +2,8 @@ import { Box, Center } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Validity } from '../../../helpers/checkNodeValidity';
 import { UseDisabled } from '../../../hooks/useDisabled';
-import DisableToggle from './DisableToggle';
-import ValidityIndicator from './ValidityIndicator';
+import { DisableToggle } from './DisableToggle';
+import { ValidityIndicator } from './ValidityIndicator';
 
 interface NodeFooterProps {
     validity: Validity;
@@ -11,7 +11,7 @@ interface NodeFooterProps {
     animated: boolean;
 }
 
-const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
+export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
     const { canDisable } = useDisable;
 
     return (
@@ -44,5 +44,3 @@ const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) =>
         </Center>
     );
 });
-
-export default NodeFooter;

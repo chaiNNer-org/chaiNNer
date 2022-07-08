@@ -8,7 +8,7 @@ interface ValidityIndicatorProps {
     animated: boolean;
 }
 
-const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) => {
+export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     const invalidShade = useColorModeValue('red.400', 'red.600');
@@ -56,5 +56,3 @@ const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) 
         </Tooltip>
     );
 });
-
-export default ValidityIndicator;
