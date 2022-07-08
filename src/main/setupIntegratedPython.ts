@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import os from 'os';
 import path from 'path';
-import downloads from './downloads';
+import { downloads } from './downloads';
 
 export const downloadPython = async (directory: string, onProgress: (progress: string) => void) => {
     const platform = os.platform();

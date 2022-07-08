@@ -6,8 +6,8 @@ import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { ContextMenuProvider } from './contexts/ContextMenuContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
-import Main from './main';
-import theme from './theme';
+import { Main } from './main';
+import { theme } from './theme';
 
 const LoadingComponent = memo(() => (
     <Box
@@ -25,7 +25,7 @@ const LoadingComponent = memo(() => (
 
 const MainComponent = memo(({ port }: { port: number }) => <Main port={port} />);
 
-const App = memo(() => {
+export const App = memo(() => {
     const [port, setPort] = useState<number | null>(null);
     const [storageInitialized, setStorageInitialized] = useState(false);
 
@@ -56,5 +56,3 @@ const App = memo(() => {
         </ChakraProvider>
     );
 });
-
-export default App;

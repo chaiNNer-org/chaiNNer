@@ -79,6 +79,4 @@ const fonts = {
 };
 
 // 3. extend the theme
-const theme = extendTheme({ config, colors, fonts } as const) as Theme;
-
-export default theme;
+export const theme = extendTheme({ config, colors, fonts } as const) as Theme;

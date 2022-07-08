@@ -10,7 +10,7 @@ interface TextInputProps extends InputProps {
     placeholder?: string;
 }
 
-const TextInput = memo(
+export const TextInput = memo(
     ({ label, id, inputId, useInputData, isLocked, maxLength, placeholder }: TextInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
@@ -50,5 +50,3 @@ const TextInput = memo(
         );
     }
 );
-
-export default TextInput;

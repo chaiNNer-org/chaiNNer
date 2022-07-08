@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { useContext } from 'use-context-selector';
 import { Output, SchemaId } from '../../../common/common-types';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import GenericOutput from '../outputs/GenericOutput';
+import { GenericOutput } from '../outputs/GenericOutput';
 
 interface NodeOutputsProps {
     id: string;
@@ -10,7 +10,7 @@ interface NodeOutputsProps {
     schemaId: SchemaId;
 }
 
-const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputsProps) => {
+export const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputsProps) => {
     const { functionDefinitions } = useContext(GlobalContext);
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;
     return (
@@ -29,5 +29,3 @@ const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputsProps) => {
         </>
     );
 });
-
-export default NodeOutputs;

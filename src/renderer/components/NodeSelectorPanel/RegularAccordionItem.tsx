@@ -11,10 +11,10 @@ import {
 } from '@chakra-ui/react';
 import { memo } from 'react';
 import { NodeSchema } from '../../../common/common-types';
-import getNodeAccentColor from '../../helpers/getNodeAccentColors';
+import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { IconFactory } from '../CustomIcons';
-import RepresentativeNodeWrapper from './RepresentativeNodeWrapper';
-import SubcategoryHeading from './SubcategoryHeading';
+import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
+import { SubcategoryHeading } from './SubcategoryHeading';
 
 interface RegularAccordionItemProps {
     subcategoryMap: Map<string, NodeSchema[]>;
@@ -22,7 +22,7 @@ interface RegularAccordionItemProps {
     collapsed: boolean;
 }
 
-const RegularAccordionItem = memo(
+export const RegularAccordionItem = memo(
     ({ subcategoryMap, category, collapsed }: RegularAccordionItemProps) => {
         return (
             <AccordionItem key={category}>
@@ -91,5 +91,3 @@ const RegularAccordionItem = memo(
         );
     }
 );
-
-export { RegularAccordionItem };

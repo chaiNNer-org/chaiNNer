@@ -52,7 +52,7 @@ import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChange
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 import { useOpenRecent } from '../hooks/useOpenRecent';
-import useSessionStorage, { getSessionStorageOrDefault } from '../hooks/useSessionStorage';
+import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
 

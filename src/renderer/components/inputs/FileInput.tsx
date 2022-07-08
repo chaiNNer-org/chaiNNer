@@ -23,8 +23,8 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import ImagePreview from './previews/ImagePreview';
-import TorchModelPreview from './previews/TorchModelPreview';
+import { ImagePreview } from './previews/ImagePreview';
+import { TorchModelPreview } from './previews/TorchModelPreview';
 import { InputProps } from './props';
 
 interface FileInputProps extends InputProps {
@@ -32,7 +32,7 @@ interface FileInputProps extends InputProps {
     fileKind: FileInputKind;
 }
 
-const FileInput = memo(
+export const FileInput = memo(
     ({
         filetypes,
         id,
@@ -254,5 +254,3 @@ const FileInput = memo(
         );
     }
 );
-
-export default FileInput;

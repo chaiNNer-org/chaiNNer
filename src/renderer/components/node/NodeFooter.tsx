@@ -20,7 +20,7 @@ interface NodeFooterProps {
     animated: boolean;
 }
 
-const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
+export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     const switchShade = useColorModeValue('gray.500', 'gray.600');
@@ -145,5 +145,3 @@ const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) =>
         </Flex>
     );
 });
-
-export default NodeFooter;

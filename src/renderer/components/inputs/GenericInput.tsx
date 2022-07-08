@@ -4,7 +4,7 @@ import { InputProps } from './props';
 
 type GenericInputProps = InputProps;
 
-const GenericInput = memo(({ label, optional }: GenericInputProps) => {
+export const GenericInput = memo(({ label, optional }: GenericInputProps) => {
     const tagColor = useColorModeValue('gray.400', 'gray.750');
     const tagFontColor = useColorModeValue('gray.700', 'gray.400');
     return (
@@ -50,5 +50,3 @@ const GenericInput = memo(({ label, optional }: GenericInputProps) => {
         </Box>
     );
 });
-
-export default GenericInput;

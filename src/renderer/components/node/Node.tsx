@@ -10,12 +10,12 @@ import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
-import getAccentColor from '../../helpers/getNodeAccentColors';
+import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
-import NodeBody from './NodeBody';
-import NodeFooter from './NodeFooter';
-import NodeHeader from './NodeHeader';
+import { NodeBody } from './NodeBody';
+import { NodeFooter } from './NodeFooter';
+import { NodeHeader } from './NodeHeader';
 
 /**
  * If there is only one file input, then this input will be returned. `undefined` otherwise.
@@ -33,20 +33,20 @@ const getSingleFileInput = (inputs: readonly Input[]): Input | undefined => {
     return fileInputs.length === 1 ? fileInputs[0] : undefined;
 };
 
-const NodeWrapper = memo(({ data, selected }: NodeProps) => (
+export const Node = memo(({ data, selected }: NodeProps) => (
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    <Node
+    <NodeInner
         data={data}
         selected={selected}
     />
 ));
 
-interface NodeProps {
+export interface NodeProps {
     data: NodeData;
     selected: boolean;
 }
 
-const Node = memo(({ data, selected }: NodeProps) => {
+const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
@@ -65,7 +65,7 @@ const Node = memo(({ data, selected }: NodeProps) => {
     );
 
     const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
-    const accentColor = getAccentColor(category);
+    const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -201,5 +201,3 @@ const Node = memo(({ data, selected }: NodeProps) => {
         </Center>
     );
 });
-
-export default NodeWrapper;

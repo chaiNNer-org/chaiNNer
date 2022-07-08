@@ -20,7 +20,7 @@ import { InputProps } from './props';
 
 type DirectoryInputProps = InputProps;
 
-const DirectoryInput = memo(
+export const DirectoryInput = memo(
     ({ id, inputId, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
@@ -96,5 +96,3 @@ const DirectoryInput = memo(
         );
     }
 );
-
-export default DirectoryInput;

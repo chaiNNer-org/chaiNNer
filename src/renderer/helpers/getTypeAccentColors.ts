@@ -16,8 +16,12 @@ const colorList = (typeDefinitions: TypeDefinitions) => [
     { type: evaluate(new NamedExpression('NcnnNetwork'), typeDefinitions), color: '#ED64A6' },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default (inputType: Type, typeDefinitions: TypeDefinitions, isDarkMode = true): string[] => {
+export const getTypeAccentColors = (
+    inputType: Type,
+    typeDefinitions: TypeDefinitions,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isDarkMode = true
+): string[] => {
     const colors: string[] = [];
     for (const { type, color } of colorList(typeDefinitions)) {
         if (!isDisjointWith(type, inputType)) {

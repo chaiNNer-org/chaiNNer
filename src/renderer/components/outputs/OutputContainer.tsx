@@ -7,7 +7,7 @@ import { Type } from '../../../common/types/types';
 import { parseHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import getTypeAccentColors from '../../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface OutputContainerProps {
@@ -42,7 +42,7 @@ const Div = chakra('div', {
     baseStyle: {},
 });
 
-const OutputContainer = memo(
+export const OutputContainer = memo(
     ({
         children,
         hasHandle,
@@ -161,5 +161,3 @@ const OutputContainer = memo(
         );
     }
 );
-
-export default OutputContainer;

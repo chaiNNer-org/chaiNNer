@@ -7,9 +7,9 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import useSystemUsage from '../hooks/useSystemUsage';
+import { useSystemUsage } from '../hooks/useSystemUsage';
 
-const SystemStats = memo(() => {
+export const SystemStats = memo(() => {
     const usage = useSystemUsage(2500);
     const trackColor = useColorModeValue('gray.300', 'gray.700');
     return (
@@ -75,5 +75,3 @@ const SystemStats = memo(() => {
         </HStack>
     );
 });
-
-export default memo(SystemStats);

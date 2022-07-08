@@ -101,6 +101,7 @@ module.exports = {
                 'eslint-comments/no-unused-enable': 'warn',
                 'eslint-comments/no-unused-disable': 'warn',
                 'import/prefer-default-export': 'off',
+                'import/no-default-export': 'error',
                 'react/jsx-sort-props': [
                     'error',
                     {

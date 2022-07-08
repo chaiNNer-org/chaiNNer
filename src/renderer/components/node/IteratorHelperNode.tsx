@@ -7,18 +7,18 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
-import getAccentColor from '../../helpers/getNodeAccentColors';
+import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
-import NodeBody from './NodeBody';
-import NodeFooter from './NodeFooter';
-import NodeHeader from './NodeHeader';
+import { NodeBody } from './NodeBody';
+import { NodeFooter } from './NodeFooter';
+import { NodeHeader } from './NodeHeader';
 
 interface IteratorHelperNodeProps {
     data: NodeData;
     selected: boolean;
 }
 
-const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) => {
+export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const effectivelyDisabledNodes = useContextSelector(
         GlobalVolatileContext,
@@ -40,7 +40,7 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
     );
 
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
-    const accentColor = getAccentColor(category);
+    const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
@@ -132,5 +132,3 @@ const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) =>
         </Center>
     );
 });
-
-export default IteratorHelperNode;

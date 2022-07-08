@@ -47,7 +47,7 @@ type State =
 const CLEAR_STATE: State = { type: 'clear' };
 const LOADING_STATE: State = { type: 'loading' };
 
-const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
+export const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) => {
     const [state, setState] = useState<State>(CLEAR_STATE);
 
     const { setManualOutputType } = useContext(GlobalContext);
@@ -165,5 +165,3 @@ const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreviewProps) 
         </Center>
     );
 });
-
-export default TorchModelPreview;

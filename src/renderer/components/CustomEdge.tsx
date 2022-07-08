@@ -10,9 +10,9 @@ import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeStat
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
-import getTypeAccentColors from '../helpers/getTypeAccentColors';
+import { getTypeAccentColors } from '../helpers/getTypeAccentColors';
 
-const CustomEdge = memo(
+export const CustomEdge = memo(
     ({
         id,
         source,
@@ -216,5 +216,3 @@ const CustomEdge = memo(
         );
     }
 );
-
-export default CustomEdge;

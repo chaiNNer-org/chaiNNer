@@ -47,7 +47,7 @@ type State =
 const CLEAR_STATE: State = { type: 'clear' };
 const LOADING_STATE: State = { type: 'loading' };
 
-const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
+export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [state, setState] = useState<State>(CLEAR_STATE);
 
     const { setManualOutputType } = useContext(GlobalContext);
@@ -177,5 +177,3 @@ const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
         </Center>
     );
 });
-
-export default ImagePreview;

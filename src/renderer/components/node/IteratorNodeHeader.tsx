@@ -22,7 +22,7 @@ interface IteratorNodeHeaderProps {
     disabledStatus: DisabledStatus;
 }
 
-const IteratorNodeHeader = memo(
+export const IteratorNodeHeader = memo(
     ({
         name,
         width,
@@ -109,5 +109,3 @@ const IteratorNodeHeader = memo(
         );
     }
 );
-
-export default IteratorNodeHeader;

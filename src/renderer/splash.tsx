@@ -2,9 +2,9 @@ import { Center, ChakraProvider, Flex, Progress, Text, VStack } from '@chakra-ui
 import { memo, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ipcRenderer } from '../common/safeIpc';
-import ChaiNNerLogo from './components/chaiNNerLogo';
+import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import './global.css';
-import theme from './splashTheme';
+import { theme } from './splashTheme';
 
 const Splash = memo(() => {
     const [status, setStatus] = useState('Loading...');
@@ -132,5 +132,3 @@ const Splash = memo(() => {
 const container = document.getElementById('root');
 const root = createRoot(container!);
 root.render(<Splash />);
-
-export default Splash;

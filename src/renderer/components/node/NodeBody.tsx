@@ -1,8 +1,8 @@
 import { Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Input, InputData, Output, SchemaId } from '../../../common/common-types';
-import NodeInputs from './NodeInputs';
-import NodeOutputs from './NodeOutputs';
+import { NodeInputs } from './NodeInputs';
+import { NodeOutputs } from './NodeOutputs';
 
 interface NodeBodyProps {
     id: string;
@@ -14,7 +14,7 @@ interface NodeBodyProps {
     schemaId: SchemaId;
 }
 
-const NodeBody = memo(
+export const NodeBody = memo(
     ({ inputs, outputs, id, inputData, isLocked, schemaId, accentColor }: NodeBodyProps) => {
         return (
             <>
@@ -62,5 +62,3 @@ const NodeBody = memo(
         );
     }
 );
-
-export default NodeBody;

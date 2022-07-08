@@ -8,7 +8,7 @@ export const getSessionStorageOrDefault = <T>(key: string, defaultValue: T): T =
     return JSON.parse(stored) as T;
 };
 
-const useSessionStorage = <T>(key: string, defaultValue: T) => {
+export const useSessionStorage = <T>(key: string, defaultValue: T) => {
     const [value, setValue] = useState(() => getSessionStorageOrDefault(key, defaultValue));
 
     useEffect(() => {
@@ -17,5 +17,3 @@ const useSessionStorage = <T>(key: string, defaultValue: T) => {
 
     return [value, setValue] as const;
 };
-
-export default useSessionStorage;

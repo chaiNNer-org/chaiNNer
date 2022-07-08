@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { ipcRenderer } from '../../common/safeIpc';
 import { useIpcRendererListener } from './useIpcRendererListener';
-import useLocalStorage from './useLocalStorage';
+import { useLocalStorage } from './useLocalStorage';
 
 const MAX_ENTRIES = 20;
 

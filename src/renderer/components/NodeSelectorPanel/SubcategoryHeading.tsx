@@ -6,31 +6,31 @@ interface SubcategoryHeadingProps {
     collapsed?: boolean;
 }
 
-const SubcategoryHeading = memo(({ subcategory, collapsed = false }: SubcategoryHeadingProps) => {
-    return (
-        <HStack
-            h={6}
-            w="full"
-        >
-            {collapsed ? (
-                <Divider orientation="horizontal" />
-            ) : (
-                <>
+export const SubcategoryHeading = memo(
+    ({ subcategory, collapsed = false }: SubcategoryHeadingProps) => {
+        return (
+            <HStack
+                h={6}
+                w="full"
+            >
+                {collapsed ? (
                     <Divider orientation="horizontal" />
-                    <Text
-                        casing="uppercase"
-                        color="#71809699"
-                        fontSize="sm"
-                        py={0.5}
-                        whiteSpace="nowrap"
-                    >
-                        {subcategory}
-                    </Text>
-                    <Divider orientation="horizontal" />
-                </>
-            )}
-        </HStack>
-    );
-});
-
-export default SubcategoryHeading;
+                ) : (
+                    <>
+                        <Divider orientation="horizontal" />
+                        <Text
+                            casing="uppercase"
+                            color="#71809699"
+                            fontSize="sm"
+                            py={0.5}
+                            whiteSpace="nowrap"
+                        >
+                            {subcategory}
+                        </Text>
+                        <Divider orientation="horizontal" />
+                    </>
+                )}
+            </HStack>
+        );
+    }
+);

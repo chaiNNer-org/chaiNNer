@@ -19,9 +19,9 @@ import { ExecutionContext, ExecutionStatus } from '../contexts/ExecutionContext'
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { DependencyManagerButton } from './DependencyManagerButton';
 import { SettingsButton } from './SettingsModal';
-import SystemStats from './SystemStats';
+import { SystemStats } from './SystemStats';
 
-const Header = memo(() => {
+export const Header = memo(() => {
     const { run, pause, kill, status } = useContext(ExecutionContext);
 
     const [appVersion, setAppVersion] = useState('#.#.#');
@@ -144,5 +144,3 @@ const Header = memo(() => {
         </Box>
     );
 });
-
-export default memo(Header);
