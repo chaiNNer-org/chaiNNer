@@ -14,7 +14,7 @@ def onnx_auto_split_process(
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
-    change_shape: bool = True,
+    change_shape: bool = False,
 ) -> Tuple[np.ndarray, int]:
     """
     Run ONNX upscaling with automatic recursive tile splitting based on ability to process with current size
@@ -73,6 +73,7 @@ def onnx_auto_split_process(
         overlap=overlap,
         max_depth=max_depth,
         current_depth=current_depth + 1,
+        change_shape=change_shape,
     )
     top_right_rlt, _ = onnx_auto_split_process(
         top_right,
@@ -80,6 +81,7 @@ def onnx_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        change_shape=change_shape,
     )
     bottom_left_rlt, _ = onnx_auto_split_process(
         bottom_left,
@@ -87,6 +89,7 @@ def onnx_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        change_shape=change_shape,
     )
     bottom_right_rlt, _ = onnx_auto_split_process(
         bottom_right,
@@ -94,6 +97,7 @@ def onnx_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        change_shape=change_shape,
     )
 
     tl_h = top_left.shape[-2]
