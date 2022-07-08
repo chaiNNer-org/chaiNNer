@@ -12,7 +12,7 @@ import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import IteratorNodeBody from './IteratorNodeBody';
 import IteratorNodeHeader from './IteratorNodeHeader';
-import NodeFooter from './NodeFooter';
+import NodeFooter from './NodeFooter/NodeFooter';
 import NodeInputs from './NodeInputs';
 import NodeOutputs from './NodeOutputs';
 
@@ -91,68 +91,44 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
             borderWidth="0.5px"
             boxShadow="lg"
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
-            py={2}
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}
         >
             <VStack
                 minWidth="240px"
                 opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+                spacing={0}
             >
-                <IteratorNodeHeader
-                    accentColor={accentColor}
-                    disabledStatus={disabled.status}
-                    icon={icon}
-                    name={name}
-                    percentComplete={percentComplete}
-                    selected={selected}
-                />
-                {inputs.length && (
-                    <Center>
-                        <Text
-                            fontSize="xs"
-                            m={0}
-                            mb={-1}
-                            mt={-1}
-                            p={0}
-                        >
-                            INPUTS
-                        </Text>
-                    </Center>
-                )}
-                <NodeInputs
-                    accentColor={accentColor}
-                    id={id}
-                    inputData={inputData}
-                    inputs={inputs}
-                    isLocked={isLocked}
-                    schemaId={schemaId}
-                />
-                <Center>
-                    <Text
-                        fontSize="xs"
-                        m={0}
-                        mb={-1}
-                        mt={-1}
-                        p={0}
-                    >
-                        ITERATION
-                    </Text>
-                </Center>
-                <Center
-                    m={0}
-                    p={0}
-                    ref={iteratorBoxRef}
-                >
-                    <IteratorNodeBody
+                <VStack w="full">
+                    <IteratorNodeHeader
+                        accentColor={accentColor}
+                        disabledStatus={disabled.status}
+                        icon={icon}
+                        name={name}
+                        percentComplete={percentComplete}
+                        selected={selected}
+                    />
+                    {inputs.length && (
+                        <Center>
+                            <Text
+                                fontSize="xs"
+                                m={0}
+                                mb={-1}
+                                mt={-1}
+                                p={0}
+                            >
+                                INPUTS
+                            </Text>
+                        </Center>
+                    )}
+                    <NodeInputs
                         accentColor={accentColor}
                         id={id}
-                        iteratorSize={iteratorSize}
-                        maxHeight={maxHeight}
-                        maxWidth={maxWidth}
+                        inputData={inputData}
+                        inputs={inputs}
+                        isLocked={isLocked}
+                        schemaId={schemaId}
                     />
-                </Center>
-                {outputs.length > 0 && (
                     <Center>
                         <Text
                             fontSize="xs"
@@ -161,15 +137,41 @@ const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => {
                             mt={-1}
                             p={0}
                         >
-                            OUTPUTS
+                            ITERATION
                         </Text>
                     </Center>
-                )}
-                <NodeOutputs
-                    id={id}
-                    outputs={outputs}
-                    schemaId={schemaId}
-                />
+                    <Center
+                        m={0}
+                        p={0}
+                        ref={iteratorBoxRef}
+                    >
+                        <IteratorNodeBody
+                            accentColor={accentColor}
+                            id={id}
+                            iteratorSize={iteratorSize}
+                            maxHeight={maxHeight}
+                            maxWidth={maxWidth}
+                        />
+                    </Center>
+                    {outputs.length > 0 && (
+                        <Center>
+                            <Text
+                                fontSize="xs"
+                                m={0}
+                                mb={-1}
+                                mt={-1}
+                                p={0}
+                            >
+                                OUTPUTS
+                            </Text>
+                        </Center>
+                    )}
+                    <NodeOutputs
+                        id={id}
+                        outputs={outputs}
+                        schemaId={schemaId}
+                    />
+                </VStack>
                 <NodeFooter
                     animated={animated}
                     useDisable={disabled}
