@@ -33,6 +33,13 @@ const getTypeText = (type: Type): string[] => {
                 }
             }
         }
+
+        if (type.name === 'PyTorchModel' && type.fields.length === 3) {
+            const [scale] = type.fields;
+            if (isNumericLiteral(scale.type)) {
+                tags.push(`${scale.type.toString()}x`);
+            }
+        }
     }
     return tags;
 };
