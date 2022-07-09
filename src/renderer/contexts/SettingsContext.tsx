@@ -1,4 +1,5 @@
-import React, { memo } from 'react';
+import { useColorMode } from '@chakra-ui/react';
+import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -42,7 +43,15 @@ export const SettingsProvider = memo(
         const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
         const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
         const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
+
         const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
+
+        const { setColorMode } = useColorMode();
+        const [isDarkMode] = useIsDarkMode;
+        useEffect(() => {
+            setColorMode(isDarkMode ? 'dark' : 'light');
+        }, [setColorMode, isDarkMode]);
+
         const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
 
         // Snap to grid
