@@ -29,7 +29,6 @@ import {
     Text,
     Tooltip,
     VStack,
-    useColorMode,
     useDisclosure,
 } from '@chakra-ui/react';
 import path from 'path';
@@ -102,15 +101,10 @@ const Toggle = memo(({ title, description, isDisabled, value, onToggle }: Toggle
 const AppearanceSettings = memo(() => {
     const { useSnapToGrid, useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
 
-    const { setColorMode } = useColorMode();
     const [isDarkMode, setIsDarkMode] = useIsDarkMode;
     const [animateChain, setAnimateChain] = useAnimateChain;
 
     const [isSnapToGrid, setIsSnapToGrid, snapToGridAmount, setSnapToGridAmount] = useSnapToGrid;
-
-    useEffect(() => {
-        setColorMode(isDarkMode ? 'dark' : 'light');
-    }, [setColorMode, isDarkMode]);
 
     return (
         <VStack
