@@ -132,4 +132,6 @@ module.exports = {
             },
         },
     ],
+
+    ignorePatterns: ['**/antlr4/*.js'],
 };

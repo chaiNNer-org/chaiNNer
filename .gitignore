@@ -233,3 +233,8 @@ dmypy.json
 *.build*
 *.onefile-build*
 *.dist*
+
+# ANTLR4
+.antlr/
+*.interp
+*.tokens

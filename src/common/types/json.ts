@@ -10,16 +10,8 @@ import {
     NamedExpressionField,
     UnionExpression,
 } from './expression';
-import {
-    AnyType,
-    IntIntervalType,
-    IntervalType,
-    NeverType,
-    NumberType,
-    NumericLiteralType,
-    StringLiteralType,
-    StringType,
-} from './types';
+import { parseExpression } from './parse';
+import { IntIntervalType, IntervalType, NumericLiteralType, StringLiteralType } from './types';
 
 export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 
@@ -165,24 +157,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
     }
 
     if (typeof e === 'string') {
-        switch (e) {
-            case 'any':
-                return AnyType.instance;
-            case 'never':
-                return NeverType.instance;
-            case 'number':
-                return NumberType.instance;
-            case 'string':
-                return StringType.instance;
-            default:
-                break;
-        }
-
-        const field = /^(\w+)\.(\w+)$/.exec(e);
-        if (field) {
-            return new FieldAccessExpression(new NamedExpression(field[1]), field[2]);
-        }
-        return new NamedExpression(e);
+        return parseExpression(e);
     }
 
     if (Array.isArray(e)) {
