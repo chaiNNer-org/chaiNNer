@@ -1,5 +1,4 @@
 import { Box, Center, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react';
-import { useWindowHeight } from '@react-hook/window-size';
 import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
@@ -78,7 +77,6 @@ export const Main = memo(({ port }: MainProps) => {
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo | null>(null);
-    const height = useWindowHeight();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -147,7 +145,7 @@ export const Main = memo(({ port }: MainProps) => {
 
     if (error) return null;
 
-    if (!nodesInfo || !data || !height) {
+    if (!nodesInfo || !data) {
         return (
             <Box
                 h="100vh"
@@ -183,18 +181,19 @@ export const Main = memo(({ port }: MainProps) => {
                             <HistoryProvider>
                                 <VStack
                                     bg={bgColor}
+                                    h="100vh"
                                     overflow="hidden"
                                     p={2}
+                                    w="100vw"
                                 >
                                     <Header />
                                     <HStack
-                                        h={height - 80}
+                                        h="calc(100vh - 80px)"
+                                        minH="360px"
+                                        minW="720px"
                                         w="full"
                                     >
-                                        <NodeSelector
-                                            height={height}
-                                            schemata={nodesInfo.schemata}
-                                        />
+                                        <NodeSelector schemata={nodesInfo.schemata} />
                                         <ReactFlowBox
                                             edgeTypes={edgeTypes}
                                             nodeTypes={nodeTypes}
