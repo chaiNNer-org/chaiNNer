@@ -589,6 +589,7 @@ const createWindow = async () => {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
             contextIsolation: false,
+            backgroundThrottling: false,
         },
         // icon: `${__dirname}/public/icons/cross_platform/icon`,
         show: false,
