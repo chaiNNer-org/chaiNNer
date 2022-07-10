@@ -144,12 +144,20 @@ export class BuiltinFunctionDefinition {
 
     readonly args: readonly Expression[];
 
+    readonly varArgs: Expression | undefined;
+
     readonly fn: (...args: Type[]) => Type;
 
-    constructor(name: string, fn: (..._: Type[]) => Type, args: readonly Expression[]) {
+    constructor(
+        name: string,
+        fn: (..._: Type[]) => Type,
+        args: readonly Expression[],
+        varArgs?: Expression
+    ) {
         assertValidFunctionName(name);
         this.name = name;
         this.args = args;
+        this.varArgs = varArgs;
         this.fn = fn;
     }
 
@@ -169,6 +177,14 @@ export class BuiltinFunctionDefinition {
     ): BuiltinFunctionDefinition {
         return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [arg0, arg1]);
     }
+
+    static varArgs<T extends Type>(
+        name: string,
+        fn: (...args: T[]) => Type,
+        arg: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [], arg);
+    }
 }
 
 export interface AliasDefinitionEntry {
@@ -185,6 +201,7 @@ export interface StructDefinitionEntry {
 export interface BuiltinFunctionDefinitionEntry {
     readonly definition: BuiltinFunctionDefinition;
     evaluatedArgs?: Type[];
+    evaluatedVarArgs?: Type;
 }
 export type TypeDefinitionEntry = AliasDefinitionEntry | StructDefinitionEntry;
 
@@ -357,12 +374,8 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
         round,
     };
     const binaryNumber: Record<string, BinaryFn<NumberPrimitive>> = {
-        add,
         subtract,
-        multiply,
         divide,
-        min: minimum,
-        max: maximum,
     };
 
     for (const [name, fn] of Object.entries(unaryNumber)) {
@@ -374,6 +387,13 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
         );
     }
 
+    definitions.addFunction(BuiltinFunctionDefinition.varArgs('add', add, NumberType.instance));
+    definitions.addFunction(
+        BuiltinFunctionDefinition.varArgs('multiply', multiply, NumberType.instance)
+    );
+    definitions.addFunction(BuiltinFunctionDefinition.varArgs('min', minimum, NumberType.instance));
+    definitions.addFunction(BuiltinFunctionDefinition.varArgs('max', maximum, NumberType.instance));
+
     definitions.addFunction(
         BuiltinFunctionDefinition.unary(
             'string',
@@ -382,7 +402,7 @@ const addBuiltinFunctions = (definitions: TypeDefinitions) => {
         )
     );
     definitions.addFunction(
-        BuiltinFunctionDefinition.binary('concat', concat, StringType.instance, StringType.instance)
+        BuiltinFunctionDefinition.varArgs('concat', concat, StringType.instance)
     );
 };
 
