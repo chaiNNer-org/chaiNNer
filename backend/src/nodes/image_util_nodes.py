@@ -36,9 +36,9 @@ class ImBlend(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.fn("max", "Input0.width", "Input1.width"),
-                    height=expression.fn("max", "Input0.height", "Input1.height"),
-                    channels=expression.fn("max", "Input0.channels", "Input1.channels"),
+                    width="max(Input0.width, Input1.width)",
+                    height="max(Input0.height, Input1.height)",
+                    channels="max(Input0.channels, Input1.channels)",
                 )
             ),
         ]
@@ -264,16 +264,8 @@ class BorderMakeNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.fn(
-                        "add",
-                        "Input0.width",
-                        expression.fn("multiply", "Input2", 2),
-                    ),
-                    height=expression.fn(
-                        "add",
-                        "Input0.height",
-                        expression.fn("multiply", "Input2", 2),
-                    ),
+                    width="add(Input0.width, multiply(Input2, 2))",
+                    height="add(Input0.height, multiply(Input2, 2))",
                 )
             )
         ]
@@ -417,9 +409,9 @@ class ImageMetricsNode(NodeBase):
             ImageInput("Comparison Image"),
         ]
         self.outputs = [
-            NumberOutput("MSE", expression.interval(0, 1)),
-            NumberOutput("PSNR", expression.interval(0)),
-            NumberOutput("SSIM", expression.interval(0, 1)),
+            NumberOutput("MSE", output_type="0..1"),
+            NumberOutput("PSNR", output_type="0..inf"),
+            NumberOutput("SSIM", output_type="0..1"),
         ]
         self.category = IMAGE_UTILITY
         self.name = "Image Metrics"

@@ -44,11 +44,7 @@ class BaseInput:
         return self.enforce(value)
 
     def toDict(self):
-        actual_type = (
-            expression.union(self.input_type, "null")
-            if self.optional
-            else self.input_type
-        )
+        actual_type = [self.input_type, "null"] if self.optional else self.input_type
         return {
             "id": self.id,
             "type": actual_type,
