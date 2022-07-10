@@ -37,11 +37,10 @@ import { RegularAccordionItem } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
 interface NodeSelectorProps {
-    height: number;
     schemata: SchemaMap;
 }
 
-export const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
+export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
     const { openDependencyManager } = useContext(DependencyContext);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -143,7 +142,7 @@ export const NodeSelector = memo(({ schemata, height }: NodeSelectorProps) => {
                                     </InputRightElement>
                                 </InputGroup>
                                 <Box
-                                    h={height - 165}
+                                    h="calc(100vh - 165px)"
                                     overflowX="hidden"
                                     overflowY="scroll"
                                 >
