@@ -1,8 +1,8 @@
 import { assertNever } from '../util';
 import {
-    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
+    FunctionCallExpression,
     IntersectionExpression,
     MatchArm,
     MatchExpression,
@@ -24,7 +24,7 @@ export type ExpressionJson =
     | IntersectionExpressionJson
     | NamedExpressionJson
     | FieldAccessExpressionJson
-    | BuiltinFunctionExpressionJson
+    | FunctionCallExpressionJson
     | MatchExpressionJson;
 export type TypeJson = PrimitiveTypeJson | 'never' | 'any';
 export type PrimitiveTypeJson = NumberPrimitiveJson | StringPrimitiveJson;
@@ -72,8 +72,8 @@ export interface FieldAccessExpressionJson {
     field: string;
     of: ExpressionJson;
 }
-export interface BuiltinFunctionExpressionJson {
-    type: 'builtin-function';
+export interface FunctionCallExpressionJson {
+    type: 'function-call';
     name: string;
     args: ExpressionJson[];
 }
@@ -134,7 +134,7 @@ export const toJson = (e: Expression): ExpressionJson => {
         case 'field-access':
             return { type: 'field-access', of: toJson(e.of), field: e.field };
         case 'builtin-function':
-            return { type: 'builtin-function', name: e.functionName, args: e.args.map(toJson) };
+            return { type: 'function-call', name: e.functionName, args: e.args.map(toJson) };
         case 'match': {
             return {
                 type: 'match',
@@ -186,8 +186,8 @@ export const fromJson = (e: ExpressionJson): Expression => {
             );
         case 'field-access':
             return new FieldAccessExpression(fromJson(e.of), e.field);
-        case 'builtin-function':
-            return new BuiltinFunctionExpression(e.name, e.args.map(fromJson));
+        case 'function-call':
+            return new FunctionCallExpression(e.name, e.args.map(fromJson));
         case 'match':
             return new MatchExpression(
                 fromJson(e.of),

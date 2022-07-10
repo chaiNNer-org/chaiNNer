@@ -14,8 +14,8 @@ import {
     toString,
 } from './builtin';
 import {
-    BuiltinFunctionExpression,
     Expression,
+    FunctionCallExpression,
     MatchArm,
     MatchExpression,
     NamedExpression,
@@ -313,7 +313,7 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
                         new MatchArm(
                             literal(3),
                             undefined,
-                            new BuiltinFunctionExpression('add', [
+                            new FunctionCallExpression('add', [
                                 new NamedExpression('outputChannels'),
                                 literal(1),
                             ])

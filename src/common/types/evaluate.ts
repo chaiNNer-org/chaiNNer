@@ -2,9 +2,9 @@
 /* eslint-disable no-param-reassign */
 import { EMPTY_MAP, assertNever } from '../util';
 import {
-    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
+    FunctionCallExpression,
     MatchArm,
     MatchExpression,
     NamedExpression,
@@ -51,8 +51,8 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Unknown builtin function';
-          expression: BuiltinFunctionExpression;
+          type: 'Unknown function';
+          expression: FunctionCallExpression;
           message: string;
       }
     | {
@@ -104,14 +104,14 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Incorrect builtin function argument count';
-          expression: BuiltinFunctionExpression;
+          type: 'Incorrect function argument count';
+          expression: FunctionCallExpression;
           definition: BuiltinFunctionDefinition;
           message: string;
       }
     | {
           type: 'Incompatible argument type';
-          expression: BuiltinFunctionExpression;
+          expression: FunctionCallExpression;
           definition: BuiltinFunctionDefinition;
           argument: {
               index: number;
@@ -413,14 +413,14 @@ const evaluateFieldAccess = (
 };
 
 const evaluateBuiltinFunction = (
-    expression: BuiltinFunctionExpression,
+    expression: FunctionCallExpression,
     definitions: TypeDefinitions,
     genericParameters: ReadonlyMap<string, Type>
 ): Type => {
     const entry = definitions.getFunction(expression.functionName);
     if (entry === undefined) {
         throw new EvaluationError({
-            type: 'Unknown builtin function',
+            type: 'Unknown function',
             expression,
             message: `No builtin function ${expression.functionName} available.`,
         });
@@ -428,7 +428,7 @@ const evaluateBuiltinFunction = (
 
     if (entry.definition.args.length !== expression.args.length) {
         throw new EvaluationError({
-            type: 'Incorrect builtin function argument count',
+            type: 'Incorrect function argument count',
             expression,
             definition: entry.definition,
             message: `${expression.functionName} expected ${entry.definition.args.length} but got ${expression.args.length}.`,

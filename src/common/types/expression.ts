@@ -11,7 +11,7 @@ type PureExpression =
     | IntersectionExpression
     | NamedExpression
     | FieldAccessExpression
-    | BuiltinFunctionExpression
+    | FunctionCallExpression
     | MatchExpression;
 
 export type Expression = Type | PureExpression;
@@ -114,7 +114,7 @@ export class FieldAccessExpression implements ExpressionBase {
     }
 }
 
-export class BuiltinFunctionExpression implements ExpressionBase {
+export class FunctionCallExpression implements ExpressionBase {
     readonly type = 'builtin-function';
 
     readonly underlying = 'expression';

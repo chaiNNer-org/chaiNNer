@@ -3,9 +3,9 @@ import { assertNever, noop } from '../util';
 import NaviLexer from './antlr4/NaviLexer';
 import NaviParser from './antlr4/NaviParser';
 import {
-    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
+    FunctionCallExpression,
     IntersectionExpression,
     MatchArm,
     MatchExpression,
@@ -263,7 +263,7 @@ const toExpression = (
     }
     if (context instanceof NaviParser.FunctionCallContext) {
         const name = getRequiredToken(context, 'Identifier').getText();
-        return new BuiltinFunctionExpression(name, argsToExpression(getRequired(context, 'args')));
+        return new FunctionCallExpression(name, argsToExpression(getRequired(context, 'args')));
     }
     if (context instanceof NaviParser.MatchExpressionContext) {
         const ofExpression = toExpression(getRequired(context, 'expression'));
