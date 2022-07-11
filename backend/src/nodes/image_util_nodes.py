@@ -377,15 +377,7 @@ class FlipNode(NodeBase):
             ImageInput("Image"),
             FlipAxisInput(),
         ]
-        self.outputs = [
-            ImageOutput(
-                image_type=expression.Image(
-                    width=["Input0.width", "Input0.height"],
-                    height=["Input0.width", "Input0.height"],
-                    channels_as="Input0",
-                )
-            )
-        ]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
         self.name = "Flip"
         self.icon = "MdFlip"
