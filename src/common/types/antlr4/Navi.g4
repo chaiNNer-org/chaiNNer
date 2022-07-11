@@ -52,7 +52,7 @@ Discard: '_';
 
 // literals
 IntInterval: 'int' Space? '(' Space? Interval Space? ')';
-Interval: Number '..' Number;
+Interval: Number? '..' Number?;
 Number:
 	'-'? DIGITS ('.' [0-9]+)? ([eE] [+\-]? DIGITS)?
 	| 'inf'

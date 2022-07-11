@@ -159,7 +159,7 @@ class ChannelMergeRGBANode(NodeBase):
                     ) {
                         1 => 1,
                         2 | 3 => 3,
-                        int(4..inf) => 4
+                        int(4..) => 4
                     }
                     """,
                 )

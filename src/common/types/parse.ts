@@ -160,23 +160,23 @@ const getMultipleTokens = <
     return result;
 };
 
-const parseString = (text: string) => new StringLiteralType(JSON.parse(text) as string);
-const parseNumber = (text: string) => {
-    if (text === 'nan') return new NumericLiteralType(NaN);
-    if (text === 'inf') return new NumericLiteralType(Infinity);
-    if (text === '-inf') return new NumericLiteralType(-Infinity);
-    return new NumericLiteralType(JSON.parse(text) as number);
+const parseStringType = (text: string) => new StringLiteralType(JSON.parse(text) as string);
+const parseNumber = (text: string): number => {
+    if (text === 'nan') return NaN;
+    if (text === 'inf') return Infinity;
+    if (text === '-inf') return -Infinity;
+    return JSON.parse(text) as number;
 };
-const parseInterval = (text: string) => {
+const parseNumberType = (text: string) => new NumericLiteralType(parseNumber(text));
+const parseInterval = (text: string): [min: number, max: number] => {
     // e.g. "123.4..4.567e+2"
     const [min, max] = text.split('..');
-    return new IntervalType(parseNumber(min).value, parseNumber(max).value);
+    return [parseNumber(min || '-inf'), parseNumber(max || 'inf')];
 };
-const parseIntInterval = (text: string) => {
-    // e.g. "int ( 123..456 )"
+const parseIntervalType = (text: string) => new IntervalType(...parseInterval(text));
+const parseIntIntervalType = (text: string) => {
     const inner = text.slice(3).trim().slice(1, -1).trim();
-    const [min, max] = inner.split('..');
-    return new IntIntervalType(parseNumber(min).value, parseNumber(max).value);
+    return new IntIntervalType(...parseInterval(inner));
 };
 
 const argsToExpression = (args: Contexts['ArgsContext']): Expression[] => {
@@ -230,13 +230,13 @@ const toExpression = (
     }
     if (context instanceof NaviParser.PrimaryExpressionContext) {
         let text = getOptionalToken(context, 'String')?.getText();
-        if (text !== undefined) return parseString(text);
+        if (text !== undefined) return parseStringType(text);
         text = getOptionalToken(context, 'Number')?.getText();
-        if (text !== undefined) return parseNumber(text);
+        if (text !== undefined) return parseNumberType(text);
         text = getOptionalToken(context, 'Interval')?.getText();
-        if (text !== undefined) return parseInterval(text);
+        if (text !== undefined) return parseIntervalType(text);
         text = getOptionalToken(context, 'IntInterval')?.getText();
-        if (text !== undefined) return parseIntInterval(text);
+        if (text !== undefined) return parseIntIntervalType(text);
 
         const rule =
             getOptional(context, 'expression') ??

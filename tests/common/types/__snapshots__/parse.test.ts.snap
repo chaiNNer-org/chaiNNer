@@ -53,6 +53,15 @@ inf
 >>> -inf..0
 -inf..0
 
+>>> ..
+-inf..inf
+
+>>> ..0
+-inf..0
+
+>>> 1..
+1..inf
+
 >>> int(1..2)
 int(1..2)
 
@@ -67,6 +76,15 @@ int(-inf..inf)
 
 >>> int(-inf..0)
 int(-inf..0)
+
+>>> int(..)
+int(-inf..inf)
+
+>>> int(..0)
+int(-inf..0)
+
+>>> int(1..)
+int(1..inf)
 
 >>> \\"\\"
 \\"\\"
