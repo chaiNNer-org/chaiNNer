@@ -88,43 +88,43 @@ class NoteTextAreaInput(BaseInput):
 def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(
-        input_type="MathOp",
+        input_type="MathOperation",
         label="Math Operation",
         options=[
             {
                 "option": "Add (+)",
                 "value": "add",
-                "type": "MathOpAdd",
+                "type": """MathOperation { operation: "add" }""",
             },
             {
                 "option": "Subtract (-)",
                 "value": "sub",
-                "type": "MathOpSub",
+                "type": """MathOperation { operation: "sub" }""",
             },
             {
                 "option": "Multiply (×)",
                 "value": "mul",
-                "type": "MathOpMul",
+                "type": """MathOperation { operation: "mul" }""",
             },
             {
                 "option": "Divide (÷)",
                 "value": "div",
-                "type": "MathOpDiv",
+                "type": """MathOperation { operation: "div" }""",
             },
             {
                 "option": "Exponent/Power (^)",
                 "value": "pow",
-                "type": "MathOpPow",
+                "type": """MathOperation { operation: "pow" }""",
             },
             {
                 "option": "Maximum",
                 "value": "max",
-                "type": "MathOpMax",
+                "type": """MathOperation { operation: "max" }""",
             },
             {
                 "option": "Minimum",
                 "value": "min",
-                "type": "MathOpMin",
+                "type": """MathOperation { operation: "min" }""",
             },
         ],
     )

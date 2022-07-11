@@ -247,14 +247,6 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
         'ThresholdType',
         'TileMode',
         'VideoType',
-
-        'MathOpAdd',
-        'MathOpSub',
-        'MathOpMul',
-        'MathOpDiv',
-        'MathOpPow',
-        'MathOpMax',
-        'MathOpMin',
     ];
     for (const name of constants) {
         definitions.add(new StructDefinition(name));
@@ -264,19 +256,9 @@ const addBuiltinTypes = (definitions: TypeDefinitions) => {
     definitions.add(new AliasDefinition('uint', [], new IntIntervalType(0, Infinity)));
 
     definitions.add(
-        new AliasDefinition(
-            'MathOp',
-            [],
-            new UnionExpression([
-                new NamedExpression('MathOpAdd'),
-                new NamedExpression('MathOpSub'),
-                new NamedExpression('MathOpMul'),
-                new NamedExpression('MathOpDiv'),
-                new NamedExpression('MathOpPow'),
-                new NamedExpression('MathOpMax'),
-                new NamedExpression('MathOpMin'),
-            ])
-        )
+        new StructDefinition('MathOperation', [
+            new StructFieldDefinition('operation', StringType.instance),
+        ])
     );
 
     definitions.add(
