@@ -58,16 +58,17 @@ class MathNode(NodeBase):
         self.outputs = [
             NumberOutput(
                 "Result",
-                output_type=expression.match(
-                    "Input1",
-                    ("MathOpAdd", None, expression.fn("add", "Input0", "Input2")),
-                    ("MathOpSub", None, expression.fn("subtract", "Input0", "Input2")),
-                    ("MathOpMul", None, expression.fn("multiply", "Input0", "Input2")),
-                    ("MathOpDiv", None, expression.fn("divide", "Input0", "Input2")),
-                    ("MathOpMax", None, expression.fn("max", "Input0", "Input2")),
-                    ("MathOpMin", None, expression.fn("min", "Input0", "Input2")),
-                    default="number",
-                ),
+                output_type="""
+                match Input1 {
+                    MathOpAdd => add(Input0, Input2),
+                    MathOpSub => subtract(Input0, Input2),
+                    MathOpMul => multiply(Input0, Input2),
+                    MathOpDiv => divide(Input0, Input2),
+                    MathOpMax => max(Input0, Input2),
+                    MathOpMin => min(Input0, Input2),
+                    _ => number
+                }
+                """,
             )
         ]
 
@@ -112,41 +113,15 @@ class TextAppendNode(NodeBase):
         self.outputs = [
             TextOutput(
                 "Output Text",
-                output_type=expression.fn(
-                    "concat",
-                    expression.fn(
-                        "concat",
-                        expression.fn(
-                            "concat",
-                            expression.fn("string", "Input1"),
-                            expression.fn(
-                                "concat", "Input0", expression.fn("string", "Input2")
-                            ),
-                        ),
-                        expression.match(
-                            "Input3",
-                            ("null", None, expression.literal("")),
-                            (
-                                "any",
-                                "s",
-                                expression.fn(
-                                    "concat", "Input0", expression.fn("string", "s")
-                                ),
-                            ),
-                        ),
-                    ),
-                    expression.match(
-                        "Input4",
-                        ("null", None, expression.literal("")),
-                        (
-                            "any",
-                            "s",
-                            expression.fn(
-                                "concat", "Input0", expression.fn("string", "s")
-                            ),
-                        ),
-                    ),
-                ),
+                output_type="""
+                concat(
+                    string(Input1),
+                    Input0,
+                    string(Input2),
+                    match Input3 { null => "", _ as s => concat(Input0, string(s)) },
+                    match Input4 { null => "", _ as s => concat(Input0, string(s)) }
+                )
+                """,
             )
         ]
 

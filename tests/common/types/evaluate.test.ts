@@ -1,8 +1,8 @@
 import { reciprocal } from '../../../src/common/types/builtin';
 import { evaluate } from '../../../src/common/types/evaluate';
 import {
-    BuiltinFunctionExpression,
     Expression,
+    FunctionCallExpression,
     IntersectionExpression,
     MatchArm,
     MatchExpression,
@@ -202,7 +202,7 @@ describe('Builtin functions', () => {
     const testUnaryNumber = (name: string) => {
         test(name, () => {
             const actual = [...numbers, ...sets]
-                .map((e) => new BuiltinFunctionExpression(name, [e]))
+                .map((e) => new FunctionCallExpression(name, [e]))
                 .map((e) => {
                     let result;
                     try {
@@ -227,7 +227,7 @@ describe('Builtin functions', () => {
                     : orderedPairs(numbers);
 
                 const actual = inputs
-                    .map((args) => new BuiltinFunctionExpression(name, args))
+                    .map((args) => new FunctionCallExpression(name, args))
                     .map((e) => {
                         let result;
                         try {
@@ -246,8 +246,8 @@ describe('Builtin functions', () => {
                     for (const a of numbers) {
                         for (const b of numbers) {
                             assertSame(
-                                new BuiltinFunctionExpression(name, [a, b]),
-                                new BuiltinFunctionExpression(name, [b, a])
+                                new FunctionCallExpression(name, [a, b]),
+                                new FunctionCallExpression(name, [b, a])
                             );
                         }
                     }
@@ -257,7 +257,7 @@ describe('Builtin functions', () => {
             if (properties.reflexive) {
                 test('reflexive', () => {
                     for (const a of numbers) {
-                        assertSame(a, new BuiltinFunctionExpression(name, [a, a]));
+                        assertSame(a, new FunctionCallExpression(name, [a, a]));
                     }
                 });
             }
@@ -268,16 +268,16 @@ describe('Builtin functions', () => {
                         for (const b of numbers) {
                             for (const c of numbers) {
                                 assertSame(
-                                    new BuiltinFunctionExpression(name, [
+                                    new FunctionCallExpression(name, [
                                         a,
                                         evaluate(
-                                            new BuiltinFunctionExpression(name, [b, c]),
+                                            new FunctionCallExpression(name, [b, c]),
                                             definitions
                                         ),
                                     ]),
-                                    new BuiltinFunctionExpression(name, [
+                                    new FunctionCallExpression(name, [
                                         evaluate(
-                                            new BuiltinFunctionExpression(name, [a, b]),
+                                            new FunctionCallExpression(name, [a, b]),
                                             definitions
                                         ),
                                         c,

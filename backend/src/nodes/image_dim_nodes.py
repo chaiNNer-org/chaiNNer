@@ -40,36 +40,8 @@ class ImResizeByFactorNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.fn(
-                        "max",
-                        1,
-                        expression.intersect(
-                            "int",
-                            expression.fn(
-                                "round",
-                                expression.fn(
-                                    "multiply",
-                                    "Input0.width",
-                                    expression.fn("divide", "Input1", 100),
-                                ),
-                            ),
-                        ),
-                    ),
-                    height=expression.fn(
-                        "max",
-                        1,
-                        expression.intersect(
-                            "int",
-                            expression.fn(
-                                "round",
-                                expression.fn(
-                                    "multiply",
-                                    "Input0.height",
-                                    expression.fn("divide", "Input1", 100),
-                                ),
-                            ),
-                        ),
-                    ),
+                    width="max(1, int & round(multiply(Input0.width, divide(Input1, 100))))",
+                    height="max(1, int & round(multiply(Input0.height, divide(Input1, 100))))",
                     channels_as="Input0",
                 )
             )
@@ -215,22 +187,8 @@ class BorderCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.intersect(
-                        expression.fn(
-                            "subtract",
-                            "Input0.width",
-                            expression.fn("add", "Input1", "Input1"),
-                        ),
-                        expression.int_interval(min=1),
-                    ),
-                    height=expression.intersect(
-                        expression.fn(
-                            "subtract",
-                            "Input0.height",
-                            expression.fn("add", "Input1", "Input1"),
-                        ),
-                        expression.int_interval(min=1),
-                    ),
+                    width="subtract(Input0.width, add(Input1, Input1)) & int(1..inf)",
+                    height="subtract(Input0.height, add(Input1, Input1)) & int(1..inf)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
@@ -270,22 +228,8 @@ class EdgeCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width=expression.intersect(
-                        expression.fn(
-                            "subtract",
-                            "Input0.width",
-                            expression.fn("add", "Input2", "Input3"),
-                        ),
-                        expression.int_interval(min=1),
-                    ),
-                    height=expression.intersect(
-                        expression.fn(
-                            "subtract",
-                            "Input0.height",
-                            expression.fn("add", "Input1", "Input4"),
-                        ),
-                        expression.int_interval(min=1),
-                    ),
+                    width="subtract(Input0.width, add(Input2, Input3)) & int(1..inf)",
+                    height="subtract(Input0.height, add(Input1, Input4)) & int(1..inf)",
                     channels_as="Input0",
                 )
             ).with_never_reason(

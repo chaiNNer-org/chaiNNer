@@ -2,9 +2,9 @@
 /* eslint-disable no-param-reassign */
 import { EMPTY_MAP, assertNever } from '../util';
 import {
-    BuiltinFunctionExpression,
     Expression,
     FieldAccessExpression,
+    FunctionCallExpression,
     MatchArm,
     MatchExpression,
     NamedExpression,
@@ -51,8 +51,8 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Unknown builtin function';
-          expression: BuiltinFunctionExpression;
+          type: 'Unknown function';
+          expression: FunctionCallExpression;
           message: string;
       }
     | {
@@ -104,14 +104,14 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Incorrect builtin function argument count';
-          expression: BuiltinFunctionExpression;
+          type: 'Incorrect function argument count';
+          expression: FunctionCallExpression;
           definition: BuiltinFunctionDefinition;
           message: string;
       }
     | {
           type: 'Incompatible argument type';
-          expression: BuiltinFunctionExpression;
+          expression: FunctionCallExpression;
           definition: BuiltinFunctionDefinition;
           argument: {
               index: number;
@@ -412,23 +412,32 @@ const evaluateFieldAccess = (
     return union(...accessed);
 };
 
-const evaluateBuiltinFunction = (
-    expression: BuiltinFunctionExpression,
+const evaluateFunctionCall = (
+    expression: FunctionCallExpression,
     definitions: TypeDefinitions,
     genericParameters: ReadonlyMap<string, Type>
 ): Type => {
     const entry = definitions.getFunction(expression.functionName);
     if (entry === undefined) {
         throw new EvaluationError({
-            type: 'Unknown builtin function',
+            type: 'Unknown function',
             expression,
             message: `No builtin function ${expression.functionName} available.`,
         });
     }
 
-    if (entry.definition.args.length !== expression.args.length) {
+    if (entry.definition.varArgs) {
+        if (entry.definition.args.length > expression.args.length) {
+            throw new EvaluationError({
+                type: 'Incorrect function argument count',
+                expression,
+                definition: entry.definition,
+                message: `${expression.functionName} expected at least ${entry.definition.args.length} but got ${expression.args.length}.`,
+            });
+        }
+    } else if (entry.definition.args.length !== expression.args.length) {
         throw new EvaluationError({
-            type: 'Incorrect builtin function argument count',
+            type: 'Incorrect function argument count',
             expression,
             definition: entry.definition,
             message: `${expression.functionName} expected ${entry.definition.args.length} but got ${expression.args.length}.`,
@@ -438,10 +447,13 @@ const evaluateBuiltinFunction = (
     if (!entry.evaluatedArgs) {
         entry.evaluatedArgs = entry.definition.args.map((arg) => evaluate(arg, definitions));
     }
+    if (!entry.evaluatedVarArgs && entry.definition.varArgs) {
+        entry.evaluatedVarArgs = evaluate(entry.definition.varArgs, definitions);
+    }
 
     const args = expression.args.map((arg) => evaluate(arg, definitions, genericParameters));
 
-    for (let i = 0; i < args.length; i += 1) {
+    for (let i = 0; i < entry.evaluatedArgs.length; i += 1) {
         const eType = args[i];
         const dType = entry.evaluatedArgs[i];
 
@@ -453,6 +465,22 @@ const evaluateBuiltinFunction = (
                 argument: { index: i, expression: eType, definition: dType },
                 message: `The supplied argument type ${eType.toString()} is not compatible with the definition type.`,
             });
+        }
+    }
+    if (entry.evaluatedVarArgs) {
+        for (let i = entry.evaluatedArgs.length; i < args.length; i += 1) {
+            const eType = args[i];
+            const dType = entry.evaluatedVarArgs;
+
+            if (!isSubsetOf(eType, dType)) {
+                throw new EvaluationError({
+                    type: 'Incompatible argument type',
+                    expression,
+                    definition: entry.definition,
+                    argument: { index: i, expression: eType, definition: dType },
+                    message: `The supplied argument type ${eType.toString()} is not compatible with the definition type.`,
+                });
+            }
         }
     }
 
@@ -520,7 +548,7 @@ export const evaluate = (
         case 'field-access':
             return evaluateFieldAccess(expression, definitions, genericParameters);
         case 'builtin-function':
-            return evaluateBuiltinFunction(expression, definitions, genericParameters);
+            return evaluateFunctionCall(expression, definitions, genericParameters);
         case 'match':
             return evaluateMatch(expression, definitions, genericParameters);
         default:

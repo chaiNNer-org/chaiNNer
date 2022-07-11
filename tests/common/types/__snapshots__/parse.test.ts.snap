@@ -1,0 +1,314 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Expression parsing 1`] = `
+">>> /* some comment */ 0 // another comment
+    // and another
+0
+
+>>> 0
+0
+
+>>> 123
+123
+
+>>> -123
+-123
+
+>>> -123e45
+-1.23e+47
+
+>>> -123E+45
+-1.23e+47
+
+>>> 123e-45
+1.23e-43
+
+>>> 123.456e-45
+1.23456e-43
+
+>>> -123.456E-45
+-1.23456e-43
+
+>>> nan
+nan
+
+>>> inf
+inf
+
+>>> -inf
+-inf
+
+>>> 1..2
+1..2
+
+>>> 1..2.5
+1..2.5
+
+>>> 1e2..2.5e4
+100..25000
+
+>>> -inf..inf
+-inf..inf
+
+>>> -inf..0
+-inf..0
+
+>>> int(1..2)
+int(1..2)
+
+>>>   int   (   1..2   )  
+int(1..2)
+
+>>> int(1e2..2.5e4)
+int(100..25000)
+
+>>> int(-inf..inf)
+int(-inf..inf)
+
+>>> int(-inf..0)
+int(-inf..0)
+
+>>> \\"\\"
+\\"\\"
+
+>>> \\"foo\\"
+\\"foo\\"
+
+>>> \\"foo\\\\r\\\\n\\\\\\"\\"
+\\"foo\\\\r\\\\n\\\\\\"\\"
+
+>>> foo()
+foo()
+
+>>> foo(1)
+foo(1)
+
+>>> foo(1, )
+foo(1)
+
+>>> foo(1, 2)
+foo(1, 2)
+
+>>> foo(1, 2,)
+foo(1, 2)
+
+>>> foo (  1  , 2  )
+foo(1, 2)
+
+>>> any()
+any()
+
+>>> never()
+never()
+
+>>> number()
+number()
+
+>>> string()
+string()
+
+>>> int()
+int()
+
+>>> uint()
+uint()
+
+>>> null
+null
+
+>>> foo
+foo
+
+>>> foo {}
+foo
+
+>>> foo { foo: 3 }
+foo { foo: 3 }
+
+>>> foo { foo: uint }
+foo { foo: uint }
+
+>>> Image { width: uint, height: uint, channels: int(1..inf) }
+Image { width: uint, height: uint, channels: int(1..inf) }
+
+>>> bar { any: any, never: never, number: number, string: string }
+bar { any: any, never: never, number: number, string: string }
+
+>>> match never {}
+match never {  }
+
+>>> match (a) {}
+match a {  }
+
+>>> match a|b {}
+match a | b {  }
+
+>>> match a {}
+match a {  }
+
+>>> match a {} {}
+match a {  }
+
+>>> match a { foo: uint } { number => 1 }
+match a { foo: uint } { number => 1 }
+
+>>> match a { number => 1, }
+match a { number => 1 }
+
+>>> match a { number => 1, string => 2, any => 5 }
+match a { number => 1, string => 2, _ => 5 }
+
+>>> match a { number => 1, string => 2, _ => 5 }
+match a { number => 1, string => 2, _ => 5 }
+
+>>> match a { _ => 234, number => 1, string => 2, _ => 5 }
+match a { _ => 234, number => 1, string => 2, _ => 5 }
+
+>>> match a {  number as foo => add(foo, 1), _ as foo => foo, }
+match a { number as foo => add(foo, 1), _ as foo => foo }
+
+>>> match a { 1 | 2 as foo => add(foo, 1), \\"bar\\" => \\"baz\\", _ as foo => foo, }
+match a { 1 | 2 as foo => add(foo, 1), \\"bar\\" => \\"baz\\", _ as foo => foo }
+
+>>> a.b.c.d.e.f
+a.b.c.d.e.f
+
+>>> foo { foo: uint }.foo
+foo { foo: uint }.foo
+
+>>> a | b | c | d
+a | b | c | d
+
+>>> a & b & c & d
+a & b & c & d
+
+>>> a & b | c & d
+(a & b) | (c & d)"
+`;
+
+exports[`Invalid expression parsing 1`] = `
+">>> 
+SyntaxError: At 1:0: mismatched input '<EOF>' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> öäü0
+SyntaxError: At 1:0: token recognition error at: 'ö'
+
+>>> +0
+SyntaxError: At 1:0: token recognition error at: '+'
+
+>>> +123
+SyntaxError: At 1:0: token recognition error at: '+'
+
+>>> .2e4
+SyntaxError: At 1:0: extraneous input '.' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> 2.
+SyntaxError: At 1:2: missing Identifier at '<EOF>'
+
+>>> +inf
+SyntaxError: At 1:0: token recognition error at: '+'
+
+>>> 1..1
+Error: min=1 must be < max=1
+
+>>> 2..1
+Error: min=2 must be < max=1
+
+>>> -inf..nan
+Error: min=-Infinity and max=NaN cannot be NaN
+
+>>> nan..nan
+Error: min=NaN and max=NaN cannot be NaN
+
+>>> int(1..2.5)
+Error: min=1 and max=2.5 must be integers or infinity
+
+>>> int(1..1)
+Error: min=1 must be < max=1
+
+>>> int(2..1)
+Error: min=2 must be < max=1
+
+>>> int(-inf..nan)
+Error: min=-Infinity and max=NaN cannot be NaN
+
+>>> int(nan..nan)
+Error: min=NaN and max=NaN cannot be NaN
+
+>>> \\"\\"\\"
+SyntaxError: At 1:2: token recognition error at: '\\"'
+
+>>> \\"\\\\g\\"
+SyntaxError: Unexpected token g in JSON at position 2
+
+>>> \\"
+    \\"
+SyntaxError: At 1:0: token recognition error at: '\\"
+'
+
+>>> as()
+SyntaxError: At 1:0: extraneous input 'as' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> match()
+SyntaxError: At 1:6: mismatched input ')' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> struct()
+SyntaxError: At 1:0: extraneous input 'struct' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> alias()
+SyntaxError: At 1:0: extraneous input 'alias' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> match { }
+SyntaxError: At 1:6: mismatched input '{' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> as { }
+SyntaxError: At 1:0: mismatched input 'as' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> struct { }
+SyntaxError: At 1:0: mismatched input 'struct' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> alias { }
+SyntaxError: At 1:0: mismatched input 'alias' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> foo { as: as }
+SyntaxError: At 1:4: mismatched input '{' expecting <EOF>
+
+>>> match a
+SyntaxError: At 1:7: mismatched input '<EOF>' expecting '{'
+
+>>> match a { foo: uint }
+SyntaxError: At 1:21: mismatched input '<EOF>' expecting '{'
+
+>>> a.match
+SyntaxError: At 1:2: mismatched input 'match' expecting Identifier
+
+>>> a.as
+SyntaxError: At 1:2: mismatched input 'as' expecting Identifier
+
+>>> a.alias
+SyntaxError: At 1:2: mismatched input 'alias' expecting Identifier
+
+>>> a.struct
+SyntaxError: At 1:2: mismatched input 'struct' expecting Identifier
+
+>>> a.1
+SyntaxError: At 1:2: mismatched input '1' expecting Identifier
+
+>>> a.b.(c.d).e.f
+SyntaxError: At 1:4: extraneous input '(' expecting Identifier
+
+>>> a.
+SyntaxError: At 1:2: missing Identifier at '<EOF>'
+
+>>> a | b |
+SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> a & b &
+SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> | b
+SyntaxError: At 1:0: extraneous input '|' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}
+
+>>> & b
+SyntaxError: At 1:0: extraneous input '&' expecting {'(', 'match', IntInterval, Interval, Number, String, Identifier}"
+`;

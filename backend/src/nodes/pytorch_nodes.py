@@ -138,18 +138,17 @@ class ImageUpscaleNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
-                expression.Image(
-                    width=expression.fn("multiply", "Input0.scale", "Input1.width"),
-                    height=expression.fn("multiply", "Input0.scale", "Input1.height"),
-                    channels=expression.named(
-                        "UpscaleChannels",
-                        {
-                            "imageChannels": "Input1.channels",
-                            "inputChannels": "Input0.inputChannels",
-                            "outputChannels": "Input0.outputChannels",
-                        },
-                    ),
-                ),
+                image_type="""
+                Image {
+                    width: multiply(Input0.scale, Input1.width),
+                    height: multiply(Input0.scale, Input1.height),
+                    channels: UpscaleChannels {
+                        imageChannels: Input1.channels,
+                        inputChannels: Input0.inputChannels,
+                        outputChannels: Input0.outputChannels
+                    }
+                }
+                """,
             )
         ]
 
@@ -248,9 +247,7 @@ class InterpolateNode(NodeBase):
                 ends=("A", "B"),
             ),
         ]
-        self.outputs = [
-            ModelOutput(model_type=expression.intersect("Input0", "Input1"))
-        ]
+        self.outputs = [ModelOutput(model_type="Input0 & Input1")]
 
         self.category = PYTORCH
         self.name = "Interpolate Models"

@@ -27,6 +27,7 @@ type Arg<T extends ValueType> = T | UnionType<T> | NeverType;
 
 export type UnaryFn<T extends ValueType, R extends ValueType = T> = (a: Arg<T>) => Arg<R>;
 export type BinaryFn<T extends ValueType> = (a: Arg<T>, b: Arg<T>) => Arg<T>;
+export type VarArgsFn<T extends ValueType> = (...args: Arg<T>[]) => Arg<T>;
 
 function wrapUnary(fn: (a: StringPrimitive) => Arg<StringPrimitive>): UnaryFn<StringPrimitive>;
 function wrapUnary(fn: (a: NumberPrimitive) => Arg<NumberPrimitive>): UnaryFn<NumberPrimitive>;
@@ -43,14 +44,7 @@ function wrapUnary<T extends ValueType, R extends ValueType = T>(
         return fn(a);
     };
 }
-function wrapBinary(
-    fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
-): BinaryFn<StringPrimitive>;
-function wrapBinary(
-    fn: (a: NumberPrimitive, b: NumberPrimitive) => Arg<NumberPrimitive>
-): BinaryFn<NumberPrimitive>;
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
-function wrapBinary<T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T> {
+const wrapBinaryImpl = <T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T> => {
     return (a, b) => {
         if (a.type === 'never' || b.type === 'never') return NeverType.instance;
         if (a.type === 'union') {
@@ -70,6 +64,40 @@ function wrapBinary<T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T
             return union(...b.items.map((bItem) => fn(a, bItem))) as Arg<T>;
         }
         return fn(a, b);
+    };
+};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function wrapBinary(
+    fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
+): BinaryFn<StringPrimitive>;
+function wrapBinary(
+    fn: (a: NumberPrimitive, b: NumberPrimitive) => Arg<NumberPrimitive>
+): BinaryFn<NumberPrimitive>;
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
+function wrapBinary<T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T> {
+    return wrapBinaryImpl(fn);
+}
+function wrapVarArgs(
+    neutral: Arg<StringPrimitive>,
+    fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
+): VarArgsFn<StringPrimitive>;
+function wrapVarArgs(
+    neutral: Arg<NumberPrimitive>,
+    fn: (a: NumberPrimitive, b: NumberPrimitive) => Arg<NumberPrimitive>
+): VarArgsFn<NumberPrimitive>;
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
+function wrapVarArgs<T extends ValueType>(
+    neutral: Arg<T>,
+    fn: (a: T, b: T) => Arg<T>
+): VarArgsFn<T> {
+    const binary = wrapBinaryImpl(fn);
+    return (...args) => {
+        if (args.length === 0) return neutral;
+        let result = args[0];
+        for (let i = 1; i < args.length; i += 1) {
+            result = binary(result, args[i]);
+        }
+        return result;
     };
 }
 
@@ -111,7 +139,7 @@ const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimit
 
     return new IntervalType(min, max);
 };
-export const add = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+export const add = wrapVarArgs(literal(0), (a: NumberPrimitive, b: NumberPrimitive) => {
     if (a.type === 'literal') return addLiteral(a, b);
     if (b.type === 'literal') return addLiteral(b, a);
 
@@ -201,7 +229,7 @@ const multiplyLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberP
     if (a.value < 0) return interval(max, min);
     return interval(min, max);
 };
-export const multiply = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+export const multiply = wrapVarArgs(literal(1), (a: NumberPrimitive, b: NumberPrimitive) => {
     if (a.type === 'literal') return multiplyLiteral(a, b);
     if (b.type === 'literal') return multiplyLiteral(b, a);
 
@@ -342,7 +370,7 @@ const minimumIntInterval = (
     const intMax = Number.isInteger(b.min) ? b.min - 1 : Math.floor(b.min);
     return union(intInterval(a.min, intMax), interval(b.min, Math.min(a.max, b.max)));
 };
-export const minimum = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+export const minimum = wrapVarArgs(literal(Infinity), (a: NumberPrimitive, b: NumberPrimitive) => {
     if (a.type === 'literal') return minimumLiteral(a, b);
     if (b.type === 'literal') return minimumLiteral(b, a);
 
@@ -354,7 +382,9 @@ export const minimum = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
 
     return new IntervalType(Math.min(a.min, b.min), Math.min(a.max, b.max));
 });
-export const maximum: BinaryFn<NumberPrimitive> = (a, b) => negate(minimum(negate(a), negate(b)));
+export const maximum = wrapVarArgs(literal(-Infinity), (a: NumberPrimitive, b: NumberPrimitive) => {
+    return negate(minimum(negate(a), negate(b)));
+});
 
 export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
     if (a.underlying === 'string') return a;
@@ -370,7 +400,7 @@ export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimi
     return StringType.instance;
 });
 
-export const concat = wrapBinary((a: StringPrimitive, b: StringPrimitive) => {
+export const concat = wrapVarArgs(new StringLiteralType(''), (a, b) => {
     if (a.type === 'string' || b.type === 'string') return StringType.instance;
     return new StringLiteralType(a.value + b.value);
 });

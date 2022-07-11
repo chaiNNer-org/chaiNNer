@@ -38,7 +38,7 @@ ExpressionJson = Union[
     "IntersectionExpressionJson",
     "NamedExpressionJson",
     "FieldAccessExpressionJson",
-    "BuiltFunctionExpressionJson",
+    "FunctionCallExpressionJson",
     "MatchExpressionJson",
     List["ExpressionJson"],
 ]
@@ -88,8 +88,8 @@ class FieldAccessExpressionJson(TypedDict):
     field: str
 
 
-class BuiltFunctionExpressionJson(TypedDict):
-    type: Literal["builtin-function"]
+class FunctionCallExpressionJson(TypedDict):
+    type: Literal["function-call"]
     name: str
     args: List[ExpressionJson]
 
@@ -157,7 +157,7 @@ def field(of: ExpressionJson, field: str) -> ExpressionJson:
 
 
 def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
-    return {"type": "builtin-function", "name": name, "args": list(args)}
+    return {"type": "function-call", "name": name, "args": list(args)}
 
 
 def match(

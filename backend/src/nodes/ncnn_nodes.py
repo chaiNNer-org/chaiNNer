@@ -147,14 +147,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    channels=expression.named(
-                        "UpscaleChannels",
-                        {
-                            "imageChannels": "Input1.channels",
-                            "inputChannels": 3,
-                            "outputChannels": 3,
-                        },
-                    )
+                    channels="UpscaleChannels { imageChannels: Input1.channels, inputChannels: 3, outputChannels: 3 }"
                 )
             )
         ]
