@@ -24,6 +24,9 @@ const expressionSnippets: string[] = [
     String.raw`1e2..2.5e4`,
     String.raw`-inf..inf`,
     String.raw`-inf..0`,
+    String.raw`..`,
+    String.raw`..0`,
+    String.raw`1..`,
 
     // int intervals
     String.raw`int(1..2)`,
@@ -31,6 +34,9 @@ const expressionSnippets: string[] = [
     String.raw`int(1e2..2.5e4)`,
     String.raw`int(-inf..inf)`,
     String.raw`int(-inf..0)`,
+    String.raw`int(..)`,
+    String.raw`int(..0)`,
+    String.raw`int(1..)`,
 
     // strings
     String.raw`""`,

@@ -410,7 +410,7 @@ class ImageMetricsNode(NodeBase):
         ]
         self.outputs = [
             NumberOutput("MSE", output_type="0..1"),
-            NumberOutput("PSNR", output_type="0..inf"),
+            NumberOutput("PSNR", output_type="0.."),
             NumberOutput("SSIM", output_type="0..1"),
         ]
         self.category = IMAGE_UTILITY
