@@ -21,6 +21,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    OutputData,
     SchemaId,
     Size,
 } from '../../common/common-types';
@@ -87,7 +88,10 @@ interface Global {
     changeEdges: SetState<Edge<EdgeData>[]>;
     useAnimate: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
-        (nodeIdsToUnAnimate?: readonly string[] | undefined) => void
+        (
+            nodeIdsToUnAnimate?: readonly string[] | undefined,
+            outputData?: { [key: string]: OutputData }
+        ) => void
     ];
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
@@ -717,13 +721,21 @@ export const GlobalProvider = memo(
         );
 
         const useAnimate = useCallback(() => {
-            const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
+            const setAnimated = (
+                animated: boolean,
+                nodeIdsToAnimate?: readonly string[],
+                outputData?: { [key: string]: OutputData }
+            ) => {
                 setNodes((nodes) => {
                     if (nodeIdsToAnimate) {
                         const nodesToAnimate = nodes.filter((n) => nodeIdsToAnimate.includes(n.id));
                         const animatedNodes = nodesToAnimate.map((node: Node<NodeData>) => ({
                             ...node,
-                            data: { ...node.data, animated },
+                            data: {
+                                ...node.data,
+                                animated,
+                                ...(outputData ? { outputData: outputData[node.id] } : {}),
+                            },
                         }));
                         const otherNodes = nodes.filter((n) => !nodeIdsToAnimate.includes(n.id));
                         return [...otherNodes, ...animatedNodes];
@@ -748,8 +760,10 @@ export const GlobalProvider = memo(
             const animate = (nodeIdsToAnimate?: readonly string[]) =>
                 setAnimated(true, nodeIdsToAnimate);
 
-            const unAnimate = (nodeIdsToUnAnimate?: readonly string[]) =>
-                setAnimated(false, nodeIdsToUnAnimate);
+            const unAnimate = (
+                nodeIdsToUnAnimate?: readonly string[],
+                outputData?: { [key: string]: OutputData }
+            ) => setAnimated(false, nodeIdsToUnAnimate, outputData);
 
             return [animate, unAnimate] as const;
         }, [setEdges, setNodes]);

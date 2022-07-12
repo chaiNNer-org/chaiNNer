@@ -34,3 +34,9 @@ class BaseOutput:
 
     def __iter__(self):
         yield from self.toDict().items()
+
+    def broadcast(self, value):
+        raise NotImplementedError()
+
+    def get_id(self):
+        return self.id

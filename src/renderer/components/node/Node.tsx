@@ -6,11 +6,13 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { NodeBody } from './NodeBody';
@@ -48,12 +50,14 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
+    const { port } = useContext(SettingsContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
+    const { id, inputData, isLocked, parentNode, schemaId, outputData, animated = false } = data;
+    console.log('🚀 ~ file: Node.tsx ~ line 60 ~ NodeInner ~ outputData', outputData);
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -190,6 +194,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         inputData={inputData}
                         inputs={inputs}
                         isLocked={isLocked}
+                        outputData={outputData}
                         outputs={outputs}
                         schemaId={schemaId}
                     />

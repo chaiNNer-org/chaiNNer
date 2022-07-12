@@ -176,8 +176,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
         (data) => {
+            console.log(
+                '🚀 ~ file: ExecutionContext.tsx ~ line 179 ~ ExecutionProvider ~ data',
+                data
+            );
             if (data) {
-                unAnimate(data.finished);
+                unAnimate(data.finished, data.broadcastData);
             }
         },
         350
@@ -204,6 +208,21 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         animate,
         updateIteratorProgress,
     ]);
+
+    useBackendEventSourceListener(
+        eventSource,
+        'node-output-data',
+        (data) => {
+            console.log(
+                '🚀 ~ file: ExecutionContext.tsx ~ line 212 ~ ExecutionProvider ~ data',
+                data
+            );
+            if (data) {
+                console.log({ data });
+            }
+        },
+        []
+    );
 
     const [ownsBackend, setOwnsBackend] = useState(true);
     useAsyncEffect(

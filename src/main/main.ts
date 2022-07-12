@@ -591,7 +591,7 @@ const createWindow = async () => {
             contextIsolation: false,
         },
         // icon: `${__dirname}/public/icons/cross_platform/icon`,
-        show: false,
+        show: true,
     }) as BrowserWindowWithSafeIpc;
 
     setMainMenu({ mainWindow });

@@ -27,6 +27,7 @@ class Executor:
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
         self.output_cache = existing_cache
+        self.broadcast_cache = dict()
 
         self.process_task = None
         self.killed = False
@@ -45,7 +46,10 @@ class Executor:
         logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
-            finish_data = await self.check()
+            finish_data = {
+                "finished": [key for key in self.output_cache.keys()],
+                "broadcastData": self.broadcast_cache,
+            }
             await self.queue.put({"event": "node-finish", "data": finish_data})
             return self.output_cache[node_id]
 
@@ -129,9 +133,38 @@ class Executor:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
+            node_outputs = node_instance.get_outputs()
+            broadcast_data = dict()
+            if len(node_outputs) > 0:
+                if len(node_outputs) == 1:
+                    try:
+                        broadcast_data[0] = node_outputs[0].broadcast(output)
+                    except NotImplementedError:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Error broadcasting output: {e}")
+                else:
+                    for idx, node_output in enumerate(node_outputs):
+                        try:
+                            broadcast_data[idx] = node_output.broadcast(output[idx])
+                        except NotImplementedError:
+                            pass
+                        except Exception as e:
+                            logger.error(f"Error broadcasting output: {e}")
+                            # raise e
+                await self.queue.put(
+                    {
+                        "event": "node-output-data",
+                        "data": {"nodeId": node_id, "data": broadcast_data},
+                    }
+                )
             # Cache the output of the node
             self.output_cache[node_id] = output
-            finish_data = await self.check()
+            self.broadcast_cache[node_id] = broadcast_data
+            finish_data = {
+                "finished": [key for key in self.output_cache.keys()],
+                "broadcastData": self.broadcast_cache,
+            }
             await self.queue.put({"event": "node-finish", "data": finish_data})
             del node_instance, run_func, finish_data
             return output
