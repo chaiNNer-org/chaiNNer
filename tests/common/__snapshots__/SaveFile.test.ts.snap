@@ -357,10 +357,7 @@ Object {
         "id": "340606cc-7ca2-4289-93ae-2a3a02efa160",
         "inputData": Object {
           "0": "-",
-          "1": "",
           "2": "name",
-          "3": "",
-          "4": "",
         },
         "schemaId": "chainner:utility:text_append",
       },
@@ -532,7 +529,6 @@ Object {
         "id": "fe0d57e9-1de0-4238-ac2e-a188167ceba0",
         "inputData": Object {
           "1": "D:\\\\Upscaling\\\\models\\\\LoD\\\\New folder",
-          "2": "",
         },
         "schemaId": "chainner:pytorch:convert_to_onnx",
       },
@@ -592,7 +588,6 @@ Object {
         "id": "d4d4b060-3c0b-50a9-90ba-9364be167ad1",
         "inputData": Object {
           "1": "D:\\\\Upscaling\\\\models\\\\LoD\\\\New folder",
-          "2": "",
         },
         "schemaId": "chainner:onnx:save_model",
       },
@@ -1339,7 +1334,6 @@ Object {
         "id": "891982b8-2d6a-4228-aefb-2e0ef91796aa",
         "inputData": Object {
           "2": "foo",
-          "3": "",
           "4": "jpg",
         },
         "schemaId": "chainner:image:save",
@@ -1460,8 +1454,6 @@ Object {
       "data": Object {
         "id": "17750f85-fd24-4089-9fde-2ca8a1fd8abe",
         "inputData": Object {
-          "2": "",
-          "3": "",
           "4": "png",
         },
         "parentNode": "d237f8b4-1953-44d4-978c-d5cf7c4c84eb",
@@ -2005,9 +1997,7 @@ Object {
     Object {
       "data": Object {
         "id": "24b604f1-4c1b-40e1-a03b-3dfc6b2ba8df",
-        "inputData": Object {
-          "2": "",
-        },
+        "inputData": Object {},
         "schemaId": "chainner:ncnn:save_model",
       },
       "height": 284,
@@ -2230,9 +2220,7 @@ Object {
     Object {
       "data": Object {
         "id": "1e54b9e8-03ba-4705-8ef9-d8cd0c8c2d43",
-        "inputData": Object {
-          "2": "",
-        },
+        "inputData": Object {},
         "schemaId": "chainner:pytorch:save_model",
       },
       "height": 284,
@@ -2268,9 +2256,7 @@ Object {
     Object {
       "data": Object {
         "id": "8119c5d4-b2f9-4ffa-8621-a84dfd01d704",
-        "inputData": Object {
-          "2": "",
-        },
+        "inputData": Object {},
         "schemaId": "chainner:pytorch:convert_to_onnx",
       },
       "height": 284,
@@ -2308,7 +2294,6 @@ Object {
         "id": "b4f14ca8-484c-52da-81e6-68d215d2c059",
         "inputData": Object {
           "1": undefined,
-          "2": "",
         },
         "schemaId": "chainner:onnx:save_model",
       },
@@ -2420,10 +2405,6 @@ Object {
         "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
         "inputData": Object {
           "0": "{1}px x {2}px",
-          "1": "",
-          "2": "",
-          "3": "",
-          "4": "",
         },
         "isDisabled": false,
         "schemaId": "chainner:utility:text_pattern",
@@ -2442,9 +2423,7 @@ Object {
     Object {
       "data": Object {
         "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
-        "inputData": Object {
-          "1": "",
-        },
+        "inputData": Object {},
         "schemaId": "chainner:image:caption",
       },
       "height": 258,
@@ -2532,8 +2511,6 @@ Object {
           "0": "-",
           "1": "Foo",
           "2": "Bar",
-          "3": "",
-          "4": "",
         },
         "schemaId": "chainner:utility:text_append",
       },
@@ -2805,7 +2782,7 @@ Object {
 
 exports[`Write save file convert-onnx-update.chn 1`] = `
 Object {
-  "checksum": "b4fb9c2ae7fee260a77135ebb2cd1df7",
+  "checksum": "99b204702f8ad026547887afc1fb6453",
   "content": Object {
     "edges": Array [
       Object {
@@ -2969,10 +2946,7 @@ Object {
           "id": "340606cc-7ca2-4289-93ae-2a3a02efa160",
           "inputData": Object {
             "0": "-",
-            "1": "",
             "2": "name",
-            "3": "",
-            "4": "",
           },
           "schemaId": "chainner:utility:text_append",
         },
@@ -3144,7 +3118,6 @@ Object {
           "id": "fe0d57e9-1de0-4238-ac2e-a188167ceba0",
           "inputData": Object {
             "1": "D:\\\\Upscaling\\\\models\\\\LoD\\\\New folder",
-            "2": "",
           },
           "schemaId": "chainner:pytorch:convert_to_onnx",
         },
@@ -3204,7 +3177,6 @@ Object {
           "id": "d4d4b060-3c0b-50a9-90ba-9364be167ad1",
           "inputData": Object {
             "1": "D:\\\\Upscaling\\\\models\\\\LoD\\\\New folder",
-            "2": "",
           },
           "schemaId": "chainner:onnx:save_model",
         },
@@ -3904,7 +3876,7 @@ Object {
 
 exports[`Write save file image-input-output.chn 1`] = `
 Object {
-  "checksum": "a7638715714b8a8a65b2535e26d1f0e3",
+  "checksum": "b022fddff9056b6b0ee6b5633f4ea3ed",
   "content": Object {
     "edges": Array [
       Object {
@@ -3975,7 +3947,6 @@ Object {
           "id": "891982b8-2d6a-4228-aefb-2e0ef91796aa",
           "inputData": Object {
             "2": "foo",
-            "3": "",
             "4": "jpg",
           },
           "schemaId": "chainner:image:save",
@@ -4022,7 +3993,7 @@ Object {
 
 exports[`Write save file image-iterator.chn 1`] = `
 Object {
-  "checksum": "01eb8329fc451040c4dbeaf03bea17b1",
+  "checksum": "ab14fe72577920e77b2171df77f9b736",
   "content": Object {
     "edges": Array [
       Object {
@@ -4100,8 +4071,6 @@ Object {
         "data": Object {
           "id": "17750f85-fd24-4089-9fde-2ca8a1fd8abe",
           "inputData": Object {
-            "2": "",
-            "3": "",
             "4": "png",
           },
           "parentNode": "d237f8b4-1953-44d4-978c-d5cf7c4c84eb",
@@ -4609,7 +4578,7 @@ Object {
 
 exports[`Write save file ncnn.chn 1`] = `
 Object {
-  "checksum": "8a4a21b2193b4f86703d7b8239ada5d3",
+  "checksum": "f0218e94570b611d7f1e057d6aa527f3",
   "content": Object {
     "edges": Array [
       Object {
@@ -4661,9 +4630,7 @@ Object {
       Object {
         "data": Object {
           "id": "24b604f1-4c1b-40e1-a03b-3dfc6b2ba8df",
-          "inputData": Object {
-            "2": "",
-          },
+          "inputData": Object {},
           "schemaId": "chainner:ncnn:save_model",
         },
         "height": 284,
@@ -4781,7 +4748,7 @@ Object {
 
 exports[`Write save file pytorch.chn 1`] = `
 Object {
-  "checksum": "77565b2f2a135b2d308ac729b4a56492",
+  "checksum": "39a2553412e2d32bdf54893f21c37d7f",
   "content": Object {
     "edges": Array [
       Object {
@@ -4894,9 +4861,7 @@ Object {
       Object {
         "data": Object {
           "id": "1e54b9e8-03ba-4705-8ef9-d8cd0c8c2d43",
-          "inputData": Object {
-            "2": "",
-          },
+          "inputData": Object {},
           "schemaId": "chainner:pytorch:save_model",
         },
         "height": 284,
@@ -4932,9 +4897,7 @@ Object {
       Object {
         "data": Object {
           "id": "8119c5d4-b2f9-4ffa-8621-a84dfd01d704",
-          "inputData": Object {
-            "2": "",
-          },
+          "inputData": Object {},
           "schemaId": "chainner:pytorch:convert_to_onnx",
         },
         "height": 284,
@@ -4970,9 +4933,7 @@ Object {
       Object {
         "data": Object {
           "id": "b4f14ca8-484c-52da-81e6-68d215d2c059",
-          "inputData": Object {
-            "2": "",
-          },
+          "inputData": Object {},
           "schemaId": "chainner:onnx:save_model",
         },
         "height": 284,
@@ -5000,7 +4961,7 @@ Object {
 
 exports[`Write save file text-pattern.chn 1`] = `
 Object {
-  "checksum": "a7c78e811726c0e2473e00a89d0a48a5",
+  "checksum": "c0dff178466fea6b688fcb5459d05f79",
   "content": Object {
     "edges": Array [
       Object {
@@ -5087,10 +5048,6 @@ Object {
           "id": "37e5d099-9199-4c51-bffb-c7ea060e6aec",
           "inputData": Object {
             "0": "{1}px x {2}px",
-            "1": "",
-            "2": "",
-            "3": "",
-            "4": "",
           },
           "isDisabled": false,
           "schemaId": "chainner:utility:text_pattern",
@@ -5109,9 +5066,7 @@ Object {
       Object {
         "data": Object {
           "id": "3839b3f2-9d2a-43af-857c-71e4f8c17f29",
-          "inputData": Object {
-            "1": "",
-          },
+          "inputData": Object {},
           "schemaId": "chainner:image:caption",
         },
         "height": 258,
@@ -5192,7 +5147,7 @@ Object {
 
 exports[`Write save file utilities.chn 1`] = `
 Object {
-  "checksum": "0b701a58ee2c5edf56936dbd708f9d92",
+  "checksum": "90e8935b62a1e283442d4dfc48de964d",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -5203,8 +5158,6 @@ Object {
             "0": "-",
             "1": "Foo",
             "2": "Bar",
-            "3": "",
-            "4": "",
           },
           "schemaId": "chainner:utility:text_append",
         },

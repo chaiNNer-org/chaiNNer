@@ -656,6 +656,16 @@ const onnxConvertUpdate = (data) => {
     return data;
 };
 
+const removeEmptyStrings = (data) => {
+    data.nodes.forEach((node) => {
+        node.data.inputData = Object.fromEntries(
+            Object.entries(node.data.inputData).filter(([, value]) => value !== '')
+        );
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -691,6 +701,7 @@ const migrations = [
     addOpacityNode,
     fixDropDownNumberValues,
     onnxConvertUpdate,
+    removeEmptyStrings,
 ];
 
 export const currentMigration = migrations.length;
