@@ -239,7 +239,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         );
 
         setStatus(ExecutionStatus.RUNNING);
-        animate();
+        animate(nodes.map((n) => n.id));
         if (nodes.length === 0) {
             sendAlert(
                 AlertType.ERROR,
