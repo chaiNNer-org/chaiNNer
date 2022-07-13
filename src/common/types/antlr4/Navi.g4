@@ -7,9 +7,17 @@ definitionDocument: definition* EOF;
 expressionDocument: expression EOF;
 
 // definitions
-definition: aliasDefinition | structDefinition;
-structDefinition: Struct Identifier fields?;
-aliasDefinition: Alias Identifier fields? '=' expression;
+definition:
+	structDefinition
+	| functionDefinition
+	| variableDefinition;
+structDefinition: Struct Identifier (';' | fields);
+functionDefinition:
+	Def Identifier parameters (
+		'=' expression ';'
+		| scopeExpression
+	);
+variableDefinition: Let Identifier '=' expression ';';
 
 // expression
 primaryExpression:
@@ -20,6 +28,7 @@ primaryExpression:
 	| matchExpression
 	| functionCall
 	| named
+	| scopeExpression
 	| '(' expression ')';
 
 matchExpression:
@@ -27,6 +36,7 @@ matchExpression:
 matchArm: (Discard | expression) (As Identifier)? '=>' expression;
 functionCall: Identifier '(' args ')';
 named: Identifier fields?;
+scopeExpression: '{' definition* expression '}';
 
 fieldAccessExpression: primaryExpression ('.' Identifier)*;
 
@@ -42,12 +52,16 @@ expression: unionExpression;
 args: (expression (',' expression)* ','?)?;
 fields: '{' (field (',' field)* ','?)? '}';
 field: Identifier ':' expression;
+parameters: '(' (parameter (',' parameter)* ','?)? ')';
+parameter: Identifier ':' expression;
 
 // keywords
-Alias: 'alias';
-Struct: 'struct';
-Match: 'match';
 As: 'as';
+Def: 'def';
+Let: 'let';
+Match: 'match';
+Struct: 'struct';
+
 Discard: '_';
 
 // literals

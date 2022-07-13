@@ -41,12 +41,21 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by NaviParser#aliasDefinition.
-	enterAliasDefinition(ctx) {
+	// Enter a parse tree produced by NaviParser#functionDefinition.
+	enterFunctionDefinition(ctx) {
 	}
 
-	// Exit a parse tree produced by NaviParser#aliasDefinition.
-	exitAliasDefinition(ctx) {
+	// Exit a parse tree produced by NaviParser#functionDefinition.
+	exitFunctionDefinition(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#variableDefinition.
+	enterVariableDefinition(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#variableDefinition.
+	exitVariableDefinition(ctx) {
 	}
 
 
@@ -92,6 +101,15 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by NaviParser#named.
 	exitNamed(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#scopeExpression.
+	enterScopeExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#scopeExpression.
+	exitScopeExpression(ctx) {
 	}
 
 
@@ -155,6 +173,24 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by NaviParser#field.
 	exitField(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#parameters.
+	enterParameters(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#parameters.
+	exitParameters(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#parameter.
+	enterParameter(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#parameter.
+	exitParameter(ctx) {
 	}
 
 
