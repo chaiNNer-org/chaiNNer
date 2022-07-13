@@ -12,7 +12,7 @@ interface NodeFooterProps {
 }
 
 export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
-    const { canDisable } = useDisable;
+    const { canDisable, status } = useDisable;
 
     return (
         <Center
@@ -33,6 +33,7 @@ export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterPr
             <Center w="full">
                 <ValidityIndicator
                     animated={animated}
+                    status={status}
                     validity={validity}
                 />
             </Center>
