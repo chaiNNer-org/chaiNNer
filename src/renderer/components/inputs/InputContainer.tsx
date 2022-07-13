@@ -2,10 +2,10 @@ import { Box, Center, HStack, Tag, Text, chakra, useColorModeValue } from '@chak
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeData } from '../../../common/common-types';
+import { InputId, NodeData } from '../../../common/common-types';
 import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
-import { parseHandle } from '../../../common/util';
+import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
@@ -13,7 +13,7 @@ import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
     id: string;
-    inputId: number;
+    inputId: InputId;
     label?: string;
     hasHandle: boolean;
     definitionType: Type;
@@ -62,7 +62,7 @@ export const InputContainer = memo(
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const connectedEdge = edges.find(
-            (e) => e.target === id && parseHandle(e.targetHandle!).inOutId === inputId
+            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inOutId === inputId
         );
         const isConnected = !!connectedEdge;
         const [connectingFromType] = useConnectingFromType;
@@ -109,10 +109,10 @@ export const InputContainer = memo(
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
                 const parentNode: Node<NodeData> = getNode(connectedEdge.source)! as Node<NodeData>;
-                const parentInOutId = parseHandle(connectedEdge.sourceHandle!).inOutId;
+                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).inOutId;
                 const parentType = functionDefinitions
                     .get(parentNode.data.schemaId)!
-                    .outputDefaults.get(parentInOutId)!;
+                    .outputDefaults.get(parentOutputId)!;
                 return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
             }
             return null;

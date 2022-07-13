@@ -7,7 +7,7 @@ import { isDisjointWith } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
 import { IntIntervalType, NumericLiteralType, Type } from '../../common/types/types';
 import { IntNumberType, isImage } from '../../common/types/util';
-import { parseHandle } from '../../common/util';
+import { parseTargetHandle } from '../../common/util';
 
 export type Validity =
     | { readonly isValid: true }
@@ -91,7 +91,7 @@ export const checkNodeValidity = ({
 }: CheckNodeValidityOptions): Validity => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
-        .map((e) => parseHandle(e.targetHandle!).inOutId);
+        .map((e) => parseTargetHandle(e.targetHandle!).inOutId);
 
     const missingInputs = schema.inputs.filter((input) => {
         // optional inputs can't be missing

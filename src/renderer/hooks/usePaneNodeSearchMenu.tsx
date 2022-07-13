@@ -18,7 +18,12 @@ import { useContext } from 'use-context-selector';
 import { NodeData, NodeSchema } from '../../common/common-types';
 import { isDisjointWith } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
-import { assertNever, createUniqueId, parseHandle } from '../../common/util';
+import {
+    assertNever,
+    createUniqueId,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
@@ -77,7 +82,7 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const { inOutId } = parseSourceHandle(connectingFrom.handleId);
                         const sourceType = sourceFn.outputs.get(inOutId);
 
                         if (!sourceType) {
@@ -90,10 +95,11 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        return [...targetTypes.inputDefaults].some(([number, type]) => {
+                        return [...targetTypes.inputDefaults].some(([inputId, type]) => {
                             return (
                                 !isDisjointWith(type, sourceType) &&
-                                schemata.get(node.schemaId).inputs[number].hasHandle
+                                schemata.get(node.schemaId).inputs.find((i) => i.id === inputId)
+                                    ?.hasHandle
                             );
                         });
                     }
@@ -105,7 +111,7 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const { inOutId } = parseTargetHandle(connectingFrom.handleId);
                         const sourceType = sourceFn.inputDefaults.get(inOutId);
 
                         if (!sourceType) {
@@ -169,7 +175,9 @@ export const usePaneNodeSearchMenu = (
                             ([inputId, type]) => {
                                 return (
                                     !isDisjointWith(type, connectingFromType) &&
-                                    schemata.get(schema.schemaId).inputs[inputId].hasHandle
+                                    schemata
+                                        .get(schema.schemaId)
+                                        .inputs.find((i) => i.id === inputId)?.hasHandle
                                 );
                             }
                         );
@@ -347,9 +355,8 @@ export const usePaneNodeSearchMenu = (
     ));
 
     useEffect(() => {
-        if (connectingFrom && connectingFrom.handleId) {
-            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
-            const node: Node<NodeData> | undefined = getNode(nodeId);
+        if (connectingFrom && connectingFrom.handleId && connectingFrom.nodeId) {
+            const node: Node<NodeData> | undefined = getNode(connectingFrom.nodeId);
             if (node?.data.parentNode) {
                 setConnectingFrom(null);
                 setConnectingFromType(null);
@@ -357,6 +364,7 @@ export const usePaneNodeSearchMenu = (
             if (node && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
+                        const { inOutId } = parseSourceHandle(connectingFrom.handleId);
                         const sourceType = functionDefinitions
                             .get(node.data.schemaId)
                             ?.outputDefaults.get(inOutId);
@@ -365,6 +373,7 @@ export const usePaneNodeSearchMenu = (
                         break;
                     }
                     case 'target': {
+                        const { inOutId } = parseTargetHandle(connectingFrom.handleId);
                         const targetType = functionDefinitions
                             .get(node.data.schemaId)
                             ?.inputDefaults.get(inOutId);

@@ -3,7 +3,7 @@ import { Center, HStack, Image, Spinner, Tag, Text, VStack } from '@chakra-ui/re
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
-import { SchemaId } from '../../../../common/common-types';
+import { OutputId, SchemaId } from '../../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists, visitByType } from '../../../../common/util';
@@ -103,7 +103,7 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
             if (state.type === 'image') {
                 setManualOutputType(
                     id,
-                    0,
+                    0 as OutputId,
                     new NamedExpression('Image', [
                         new NamedExpressionField(
                             'width',
@@ -121,7 +121,7 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
                 );
                 setManualOutputType(
                     id,
-                    1,
+                    1 as OutputId,
                     new NamedExpression('Directory', [
                         new NamedExpressionField(
                             'path',
@@ -129,11 +129,11 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
                         ),
                     ])
                 );
-                setManualOutputType(id, 2, new StringLiteralType(state.image.name));
+                setManualOutputType(id, 2 as OutputId, new StringLiteralType(state.image.name));
             } else {
-                setManualOutputType(id, 0, undefined);
-                setManualOutputType(id, 1, undefined);
-                setManualOutputType(id, 2, undefined);
+                setManualOutputType(id, 0 as OutputId, undefined);
+                setManualOutputType(id, 1 as OutputId, undefined);
+                setManualOutputType(id, 2 as OutputId, undefined);
             }
         }
     }, [id, schemaId, state]);

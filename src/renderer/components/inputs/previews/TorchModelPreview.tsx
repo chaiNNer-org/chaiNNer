@@ -3,7 +3,7 @@ import { Center, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../../../common/Backend';
-import { SchemaId } from '../../../../common/common-types';
+import { OutputId, SchemaId } from '../../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../../common/types/types';
 import { checkFileExists, visitByType } from '../../../../common/util';
@@ -102,7 +102,7 @@ export const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreview
             if (state.type === 'model') {
                 setManualOutputType(
                     id,
-                    0,
+                    0 as OutputId,
                     new NamedExpression('PyTorchModel', [
                         new NamedExpressionField(
                             'scale',
@@ -118,10 +118,10 @@ export const TorchModelPreview = memo(({ path, schemaId, id }: TorchModelPreview
                         ),
                     ])
                 );
-                setManualOutputType(id, 1, new StringLiteralType(state.model.name));
+                setManualOutputType(id, 1 as OutputId, new StringLiteralType(state.model.name));
             } else {
-                setManualOutputType(id, 0, undefined);
-                setManualOutputType(id, 1, undefined);
+                setManualOutputType(id, 0 as OutputId, undefined);
+                setManualOutputType(id, 1 as OutputId, undefined);
             }
         }
     }, [id, state]);

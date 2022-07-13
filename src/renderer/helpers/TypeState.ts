@@ -1,5 +1,5 @@
 import { Edge, Node } from 'react-flow-renderer';
-import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
+import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
 import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
 import {
@@ -9,7 +9,7 @@ import {
     StructType,
     Type,
 } from '../../common/types/types';
-import { EMPTY_MAP, parseHandle } from '../../common/util';
+import { EMPTY_MAP, parseSourceHandle } from '../../common/util';
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
@@ -29,7 +29,7 @@ export class TypeState {
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
         edges: readonly Edge<EdgeData>[],
-        outputNarrowing: ReadonlyMap<string, ReadonlyMap<number, Type>>,
+        outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
         functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
     ): TypeState {
         // eslint-disable-next-line no-param-reassign
@@ -40,10 +40,10 @@ export class TypeState {
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
 
-        const getSourceType = (id: string, inputId: number): NonNeverType | undefined => {
+        const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
             const edge = byTargetHandle.get(`${id}-${inputId}`);
             if (edge && edge.sourceHandle) {
-                const sourceHandle = parseHandle(edge.sourceHandle);
+                const sourceHandle = parseSourceHandle(edge.sourceHandle);
                 const sourceNode = nodesMap.get(sourceHandle.nodeId);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
