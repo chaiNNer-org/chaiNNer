@@ -350,6 +350,10 @@ export const usePaneNodeSearchMenu = (
         if (connectingFrom && connectingFrom.handleId) {
             const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
             const node: Node<NodeData> | undefined = getNode(nodeId);
+            if (node?.data.parentNode) {
+                setConnectingFrom(null);
+                setConnectingFromType(null);
+            }
             if (node && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
