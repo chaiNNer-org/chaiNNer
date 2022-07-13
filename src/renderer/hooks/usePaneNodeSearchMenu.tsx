@@ -11,6 +11,7 @@ import {
     Spacer,
     Text,
     useColorModeValue,
+    useToken,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
@@ -27,6 +28,7 @@ import {
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
+import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
@@ -225,8 +227,10 @@ export const usePaneNodeSearchMenu = (
         ]
     );
 
-    const menuBgColor = useColorModeValue('gray.200', 'gray.800');
-    const bgColor = useColorModeValue('gray.300', 'gray.700');
+    const [gray200, gray800] = useToken('colors', ['gray.200', 'gray.800']) as string[];
+    const menuBgColor = useColorModeValue(gray200, gray800);
+    const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
+    const bgColor = useColorModeValue(gray300, gray700);
     const inputColor = useColorModeValue('gray.500', 'gray.300');
     const hoverColor = useColorModeValue('black', 'white');
 
@@ -280,6 +284,10 @@ export const usePaneNodeSearchMenu = (
                 {[...byCategories].length > 0 ? (
                     [...byCategories].map(([category, categoryNodes]) => {
                         const accentColor = getNodeAccentColor(category);
+                        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+                        const gradR = menuBgColor;
+                        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+                        const hoverGradR = bgColor;
                         return (
                             <Box key={category}>
                                 <HStack
@@ -299,11 +307,13 @@ export const usePaneNodeSearchMenu = (
                                     return (
                                         <HStack
                                             _hover={{
-                                                backgroundColor: bgColor,
+                                                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
                                             }}
+                                            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                                             borderRadius="md"
                                             key={node.schemaId}
                                             mx={1}
+                                            my={0.5}
                                             px={2}
                                             py={0.5}
                                             onClick={() => {
