@@ -599,6 +599,21 @@ export const GlobalProvider = memo(
             [changeNodes, changeEdges]
         );
 
+        // TODO: This shouldn't be necessary, but it at least fixes the issue
+        useEffect(() => {
+            const edges = getEdges();
+            const nodes = getNodes();
+            const validEdges = edges.filter(({ source, target }) => {
+                return (
+                    nodes.some((node) => node.id === source) &&
+                    nodes.some((node) => node.id === target)
+                );
+            });
+            if (edges.length !== validEdges.length) {
+                changeEdges(validEdges);
+            }
+        }, [nodeChanges]);
+
         const removeEdgeById = useCallback(
             (id: string) => {
                 changeEdges((edges) => edges.filter((e) => e.id !== id));

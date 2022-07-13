@@ -4,7 +4,7 @@ import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-ren
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { isDisjointWith } from '../../../common/types/intersection';
-import { Type } from '../../../common/types/types';
+import { NeverType, Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
@@ -108,12 +108,28 @@ export const InputContainer = memo(
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
-                const parentNode: Node<NodeData> = getNode(connectedEdge.source)! as Node<NodeData>;
+                const parentNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
                 const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).inOutId;
-                const parentType = functionDefinitions
-                    .get(parentNode.data.schemaId)!
-                    .outputDefaults.get(parentOutputId)!;
-                return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+                if (parentNode) {
+                    const parentDef = functionDefinitions.get(parentNode.data.schemaId);
+                    if (!parentDef) {
+                        return getTypeAccentColors(
+                            NeverType.instance,
+                            typeDefinitions,
+                            isDarkMode
+                        )[0];
+                    }
+                    const parentType = parentDef.outputDefaults.get(parentOutputId);
+                    if (!parentType) {
+                        return getTypeAccentColors(
+                            NeverType.instance,
+                            typeDefinitions,
+                            isDarkMode
+                        )[0];
+                    }
+                    return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+                }
+                return getTypeAccentColors(NeverType.instance, typeDefinitions, isDarkMode)[0];
             }
             return null;
         }, [connectedEdge, typeDefinitions, functionDefinitions, getNode, isDarkMode]);
