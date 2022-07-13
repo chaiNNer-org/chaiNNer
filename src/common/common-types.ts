@@ -17,6 +17,8 @@ export interface IteratorSize extends Size {
 }
 
 export type SchemaId = string & { readonly __schemaId: never };
+export type InputId = number & { readonly __inputId: never };
+export type OutputId = number & { readonly __outputId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
@@ -36,7 +38,7 @@ export type InputKind =
     | 'generic';
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 export interface Input {
-    readonly id: number;
+    readonly id: InputId;
     readonly type: ExpressionJson;
     readonly kind: InputKind;
     readonly label: string;
@@ -49,7 +51,7 @@ export interface Input {
     readonly filetypes?: string[];
 }
 export interface Output {
-    readonly id: number;
+    readonly id: OutputId;
     readonly type: ExpressionJson;
     /**
      * A likely reason as to why the (generic) type expression might evaluate to `never`.
@@ -58,7 +60,7 @@ export interface Output {
     readonly label: string;
 }
 
-export type InputData = Readonly<Record<number, InputValue>>;
+export type InputData = Readonly<Record<InputId, InputValue>>;
 
 export interface NodeSchema {
     readonly name: string;

@@ -1,6 +1,7 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
+import { OutputId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
@@ -9,7 +10,7 @@ import { OutputContainer } from './OutputContainer';
 interface GenericOutputProps {
     id: string;
     label: string;
-    outputId: number;
+    outputId: OutputId;
     definitionType: Type;
 }
 

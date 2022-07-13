@@ -15,7 +15,7 @@ import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { FileInputKind } from '../../../common/common-types';
+import { FileInputKind, InputId } from '../../../common/common-types';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { checkFileExists } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
@@ -56,7 +56,7 @@ export const FileInput = memo(
         // the file inputs directly
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
             // eslint-disable-next-line react-hooks/rules-of-hooks
-            const [paramFilePath] = useInputData<string>(inputId - 1);
+            const [paramFilePath] = useInputData<string>((inputId - 1) as InputId);
             // eslint-disable-next-line react-hooks/rules-of-hooks
             useEffect(() => {
                 (async () => {
@@ -72,7 +72,7 @@ export const FileInput = memo(
         }
         if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
             // eslint-disable-next-line react-hooks/rules-of-hooks
-            const [binFilePath] = useInputData<string>(inputId + 1);
+            const [binFilePath] = useInputData<string>((inputId + 1) as InputId);
             // eslint-disable-next-line react-hooks/rules-of-hooks
             useEffect(() => {
                 (async () => {

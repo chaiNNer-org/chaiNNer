@@ -2,6 +2,7 @@ import { constants } from 'fs';
 import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
+import type { InputId, OutputId } from './common-types';
 
 export const EMPTY_ARRAY: readonly never[] = [];
 export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
@@ -22,16 +23,18 @@ export const assertType: <T>(_: T) => void = noop;
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
-export interface ParsedHandle {
+export interface ParsedHandle<Id extends InputId | OutputId = InputId | OutputId> {
     nodeId: string;
-    inOutId: number;
+    inOutId: Id;
 }
-export const parseHandle = (handle: string): ParsedHandle => {
+const parseHandle = (handle: string): ParsedHandle => {
     return {
         nodeId: handle.substring(0, 36), // uuid
-        inOutId: Number(handle.substring(37)),
+        inOutId: Number(handle.substring(37)) as InputId | OutputId,
     };
 };
+export const parseSourceHandle = parseHandle as (handle: string) => ParsedHandle<OutputId>;
+export const parseTargetHandle = parseHandle as (handle: string) => ParsedHandle<InputId>;
 
 export const getLocalStorage = (): Storage => {
     const storage = (global as Record<string, unknown>).customLocalStorage;
