@@ -2,20 +2,18 @@ import { Center, Icon, Spinner, Tooltip, useColorModeValue } from '@chakra-ui/re
 import { memo } from 'react';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { Validity } from '../../../helpers/checkNodeValidity';
-import { DisabledStatus } from '../../../helpers/disabled';
 
 interface ValidityIndicatorProps {
     validity: Validity;
     animated: boolean;
-    status: DisabledStatus;
 }
 
-export const ValidityIndicator = memo(({ validity, animated, status }: ValidityIndicatorProps) => {
+export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) => {
     const iconShade = useColorModeValue('gray.400', 'gray.800');
     const validShade = useColorModeValue('gray.900', 'gray.100');
     const invalidShade = useColorModeValue('red.400', 'red.600');
 
-    return animated && status === DisabledStatus.Enabled ? (
+    return animated ? (
         <Tooltip
             hasArrow
             borderRadius={8}
