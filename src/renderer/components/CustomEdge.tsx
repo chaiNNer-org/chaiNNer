@@ -82,6 +82,8 @@ export const CustomEdge = memo(
 
         const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
 
+        const shouldShowAnimation = disabledStatus === DisabledStatus.Enabled && animateChain;
+
         return (
             <g
                 className="edge-chain-group"
@@ -128,10 +130,10 @@ export const CustomEdge = memo(
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation:
-                            animated && animateChain
+                            animated && shouldShowAnimation
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: animated && shouldShowAnimation ? 1 : 0,
                     }}
                 />
                 <path
@@ -151,10 +153,10 @@ export const CustomEdge = memo(
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation:
-                            animated && animateChain
+                            animated && shouldShowAnimation
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: animated && shouldShowAnimation ? 1 : 0,
                     }}
                 />
                 <path
