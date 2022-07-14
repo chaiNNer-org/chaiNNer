@@ -6,6 +6,16 @@ import {
 } from './names';
 import { Type } from './types';
 
+export interface SourcePosition {
+    readonly line: number;
+    readonly column: number;
+}
+export interface Source {
+    document: string;
+    start: SourcePosition;
+    end: SourcePosition;
+}
+
 type PureExpression =
     | UnionExpression
     | IntersectionExpression
@@ -26,6 +36,7 @@ const bracket = (expression: Expression): string => {
 interface ExpressionBase {
     readonly type: PureExpression['type'];
     readonly underlying: 'expression';
+    source?: Source;
     toString(): string;
 }
 
