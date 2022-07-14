@@ -7,8 +7,10 @@ import {
     Tooltip,
     VStack,
     useColorModeValue,
+    useToken,
 } from '@chakra-ui/react';
 import { memo } from 'react';
+import { interpolateColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
 import { IconFactory } from '../CustomIcons';
 
@@ -32,13 +34,19 @@ export const IteratorNodeHeader = memo(
         percentComplete,
         disabledStatus,
     }: IteratorNodeHeaderProps) => {
-        const shade = useColorModeValue('gray.600', 'gray.400');
+        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
+        const bgColor = useColorModeValue(gray300, gray700);
+        const iconAltColor = useColorModeValue('gray.800', 'gray.200');
+        const gradL = interpolateColor(accentColor, bgColor, 0.9);
+        const gradR = bgColor;
+
         return (
             <VStack
                 spacing={0}
                 w={width || 'full'}
             >
                 <Center
+                    bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                     borderBottomColor={accentColor}
                     borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
                     borderStyle="default"
@@ -63,7 +71,7 @@ export const IteratorNodeHeader = memo(
                             w={4}
                         >
                             <IconFactory
-                                accentColor={selected ? accentColor : shade}
+                                accentColor={selected ? accentColor : iconAltColor}
                                 icon={icon}
                             />
                         </Center>

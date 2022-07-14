@@ -91,6 +91,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
             borderWidth="0.5px"
             boxShadow="lg"
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
+            overflow="hidden"
             transition="0.15s ease-in-out"
             onContextMenu={menu.onContextMenu}
         >
