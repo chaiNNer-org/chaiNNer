@@ -3,22 +3,23 @@ import { assertNever, noop } from '../util';
 import NaviLexer from './antlr4/NaviLexer';
 import NaviParser from './antlr4/NaviParser';
 import {
+    Definition,
     Expression,
     FieldAccessExpression,
     FunctionCallExpression,
+    FunctionDefinition,
+    FunctionDefinitionParameter,
     IntersectionExpression,
     MatchArm,
     MatchExpression,
     NamedExpression,
     NamedExpressionField,
-    UnionExpression,
-} from './expression';
-import {
-    AliasDefinition,
-    AliasParameterDefinition,
+    ScopeExpression,
     StructDefinition,
-    StructFieldDefinition,
-} from './typedef';
+    StructDefinitionField,
+    UnionExpression,
+    VariableDefinition,
+} from './expression';
 import {
     AnyType,
     IntIntervalType,
@@ -194,6 +195,17 @@ const fieldsToList = (
         ] as const;
     });
 };
+const parametersToList = (
+    args: Contexts['ParametersContext']
+): (readonly [name: string, expressions: Expression])[] => {
+    return getMultiple(args, 'parameter').map((f) => {
+        return [
+            getRequiredToken(f, 'Identifier').getText(),
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            toExpression(getRequired(f, 'expression')),
+        ] as const;
+    });
+};
 
 const toExpression = (
     context:
@@ -206,9 +218,17 @@ const toExpression = (
         | Contexts['FunctionCallContext']
         | Contexts['MatchExpressionContext']
         | Contexts['NamedContext']
+        | Contexts['ScopeExpressionContext']
 ): Expression => {
-    if (context instanceof NaviParser.ExpressionDocumentContext) {
-        return toExpression(getRequired(context, 'expression'));
+    if (
+        context instanceof NaviParser.ExpressionDocumentContext ||
+        context instanceof NaviParser.ScopeExpressionContext
+    ) {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const definitions = getMultiple(context, 'definition').map(toDefinition);
+        const expression = toExpression(getRequired(context, 'expression'));
+        if (definitions.length === 0) return expression;
+        return new ScopeExpression(definitions, expression);
     }
     if (context instanceof NaviParser.ExpressionContext) {
         return toExpression(getRequired(context, 'unionExpression'));
@@ -240,6 +260,7 @@ const toExpression = (
 
         const rule =
             getOptional(context, 'expression') ??
+            getOptional(context, 'scopeExpression') ??
             getOptional(context, 'functionCall') ??
             getOptional(context, 'matchExpression') ??
             getOptional(context, 'named');
@@ -291,6 +312,53 @@ const toExpression = (
 
     return assertNever(context);
 };
+const toDefinition = (
+    context:
+        | Contexts['DefinitionContext']
+        | Contexts['StructDefinitionContext']
+        | Contexts['FunctionDefinitionContext']
+        | Contexts['VariableDefinitionContext']
+): Definition => {
+    if (context instanceof NaviParser.DefinitionContext) {
+        const rule =
+            getOptional(context, 'structDefinition') ??
+            getOptional(context, 'functionDefinition') ??
+            getOptional(context, 'variableDefinition');
+        if (!rule) throw new ConversionError(context, `No known rule or token`);
+        return toDefinition(rule);
+    }
+    if (context instanceof NaviParser.StructDefinitionContext) {
+        const name = getRequiredToken(context, 'Identifier').getText();
+        const fields = getOptional(context, 'fields');
+        if (!fields) return new StructDefinition(name);
+        return new StructDefinition(
+            name,
+            fieldsToList(fields).map(
+                ([fieldName, type]) => new StructDefinitionField(fieldName, type)
+            )
+        );
+    }
+    if (context instanceof NaviParser.FunctionDefinitionContext) {
+        const name = getRequiredToken(context, 'Identifier').getText();
+        const parameters = parametersToList(getRequired(context, 'parameters'));
+        const rule = getOptional(context, 'expression') ?? getOptional(context, 'scopeExpression');
+        if (!rule) throw new ConversionError(context, `No known rule or token`);
+        return new FunctionDefinition(
+            name,
+            parameters.map(
+                ([parameterName, type]) => new FunctionDefinitionParameter(parameterName, type)
+            ),
+            toExpression(rule)
+        );
+    }
+    if (context instanceof NaviParser.VariableDefinitionContext) {
+        const name = getRequiredToken(context, 'Identifier').getText();
+        const value = toExpression(getRequired(context, 'expression'));
+        return new VariableDefinition(name, value);
+    }
+
+    return assertNever(context);
+};
 
 const errorListener: Parameters<antlr4.Recognizer['addErrorListener']>[0] = {
     syntaxError: (recognizer, offendingSymbol, line, column, msg): void => {
@@ -315,52 +383,11 @@ export const parseExpression = (code: string): Expression => {
     const parser = getParser(code);
     return toExpression(parser.expressionDocument());
 };
-
-export interface Definitions {
-    struct: StructDefinition[];
-    alias: AliasDefinition[];
-}
-export const parseDefinitions = (code: string): Definitions => {
+export const parseDefinitions = (code: string): Definition[] => {
     const parser = getParser(code);
-    const definitions: Definitions = { alias: [], struct: [] };
+    const definitions: Definition[] = [];
     for (const definitionContext of getMultiple(parser.definitionDocument(), 'definition')) {
-        const alias = getOptional(definitionContext, 'aliasDefinition');
-        if (alias) {
-            const name = getRequiredToken(alias, 'Identifier').getText();
-            const expression = toExpression(getRequired(alias, 'expression'));
-            const fields = getOptional(alias, 'fields');
-            if (!fields) {
-                definitions.alias.push(new AliasDefinition(name, [], expression));
-            } else {
-                definitions.alias.push(
-                    new AliasDefinition(
-                        name,
-                        fieldsToList(fields).map(
-                            ([fieldName, e]) => new AliasParameterDefinition(fieldName, e)
-                        ),
-                        expression
-                    )
-                );
-            }
-        }
-
-        const struct = getOptional(definitionContext, 'structDefinition');
-        if (struct) {
-            const name = getRequiredToken(struct, 'Identifier').getText();
-            const fields = getOptional(struct, 'fields');
-            if (!fields) {
-                definitions.struct.push(new StructDefinition(name));
-            } else {
-                definitions.struct.push(
-                    new StructDefinition(
-                        name,
-                        fieldsToList(fields).map(
-                            ([fieldName, e]) => new StructFieldDefinition(fieldName, e)
-                        )
-                    )
-                );
-            }
-        }
+        definitions.push(toDefinition(definitionContext));
     }
     return definitions;
 };
