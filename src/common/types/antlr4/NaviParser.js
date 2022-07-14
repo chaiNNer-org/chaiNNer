@@ -2,75 +2,77 @@
 // jshint ignore: start
 import antlr4 from 'antlr4';
 import NaviListener from './NaviListener.js';
-const serializedATN = [4,1,26,222,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,
+const serializedATN = [4,1,26,228,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,
 4,2,5,7,5,2,6,7,6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,
 2,13,7,13,2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,
-20,7,20,1,0,5,0,44,8,0,10,0,12,0,47,9,0,1,0,1,0,1,1,1,1,1,1,1,2,1,2,1,2,
-3,2,57,8,2,1,3,1,3,1,3,1,3,3,3,63,8,3,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,
-4,73,8,4,1,5,1,5,1,5,1,5,1,5,1,5,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,
-1,6,1,6,3,6,93,8,6,1,7,1,7,1,7,1,7,1,7,1,7,5,7,101,8,7,10,7,12,7,104,9,7,
-1,7,3,7,107,8,7,3,7,109,8,7,1,7,1,7,1,8,1,8,3,8,115,8,8,1,8,1,8,3,8,119,
-8,8,1,8,1,8,1,8,1,9,1,9,1,9,1,9,1,9,1,10,1,10,3,10,131,8,10,1,11,1,11,5,
-11,135,8,11,10,11,12,11,138,9,11,1,11,1,11,1,11,1,12,1,12,1,12,5,12,146,
-8,12,10,12,12,12,149,9,12,1,13,1,13,1,13,5,13,154,8,13,10,13,12,13,157,9,
-13,1,14,1,14,1,14,5,14,162,8,14,10,14,12,14,165,9,14,1,15,1,15,1,16,1,16,
-1,16,5,16,172,8,16,10,16,12,16,175,9,16,1,16,3,16,178,8,16,3,16,180,8,16,
-1,17,1,17,1,17,1,17,5,17,186,8,17,10,17,12,17,189,9,17,1,17,3,17,192,8,17,
-3,17,194,8,17,1,17,1,17,1,18,1,18,1,18,1,18,1,19,1,19,1,19,1,19,5,19,206,
-8,19,10,19,12,19,209,9,19,1,19,3,19,212,8,19,3,19,214,8,19,1,19,1,19,1,20,
-1,20,1,20,1,20,1,20,0,0,21,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,
-34,36,38,40,0,0,232,0,45,1,0,0,0,2,50,1,0,0,0,4,56,1,0,0,0,6,58,1,0,0,0,
-8,64,1,0,0,0,10,74,1,0,0,0,12,92,1,0,0,0,14,94,1,0,0,0,16,114,1,0,0,0,18,
-123,1,0,0,0,20,128,1,0,0,0,22,132,1,0,0,0,24,142,1,0,0,0,26,150,1,0,0,0,
-28,158,1,0,0,0,30,166,1,0,0,0,32,179,1,0,0,0,34,181,1,0,0,0,36,197,1,0,0,
-0,38,201,1,0,0,0,40,217,1,0,0,0,42,44,3,4,2,0,43,42,1,0,0,0,44,47,1,0,0,
-0,45,43,1,0,0,0,45,46,1,0,0,0,46,48,1,0,0,0,47,45,1,0,0,0,48,49,5,0,0,1,
-49,1,1,0,0,0,50,51,3,30,15,0,51,52,5,0,0,1,52,3,1,0,0,0,53,57,3,6,3,0,54,
-57,3,8,4,0,55,57,3,10,5,0,56,53,1,0,0,0,56,54,1,0,0,0,56,55,1,0,0,0,57,5,
-1,0,0,0,58,59,5,17,0,0,59,62,5,23,0,0,60,63,5,1,0,0,61,63,3,34,17,0,62,60,
-1,0,0,0,62,61,1,0,0,0,63,7,1,0,0,0,64,65,5,14,0,0,65,66,5,23,0,0,66,72,3,
-38,19,0,67,68,5,2,0,0,68,69,3,30,15,0,69,70,5,1,0,0,70,73,1,0,0,0,71,73,
-3,22,11,0,72,67,1,0,0,0,72,71,1,0,0,0,73,9,1,0,0,0,74,75,5,15,0,0,75,76,
-5,23,0,0,76,77,5,2,0,0,77,78,3,30,15,0,78,79,5,1,0,0,79,11,1,0,0,0,80,93,
-5,19,0,0,81,93,5,20,0,0,82,93,5,21,0,0,83,93,5,22,0,0,84,93,3,14,7,0,85,
-93,3,18,9,0,86,93,3,20,10,0,87,93,3,22,11,0,88,89,5,3,0,0,89,90,3,30,15,
-0,90,91,5,4,0,0,91,93,1,0,0,0,92,80,1,0,0,0,92,81,1,0,0,0,92,82,1,0,0,0,
-92,83,1,0,0,0,92,84,1,0,0,0,92,85,1,0,0,0,92,86,1,0,0,0,92,87,1,0,0,0,92,
-88,1,0,0,0,93,13,1,0,0,0,94,95,5,16,0,0,95,96,3,30,15,0,96,108,5,5,0,0,97,
-102,3,16,8,0,98,99,5,6,0,0,99,101,3,16,8,0,100,98,1,0,0,0,101,104,1,0,0,
-0,102,100,1,0,0,0,102,103,1,0,0,0,103,106,1,0,0,0,104,102,1,0,0,0,105,107,
-5,6,0,0,106,105,1,0,0,0,106,107,1,0,0,0,107,109,1,0,0,0,108,97,1,0,0,0,108,
-109,1,0,0,0,109,110,1,0,0,0,110,111,5,7,0,0,111,15,1,0,0,0,112,115,5,18,
-0,0,113,115,3,30,15,0,114,112,1,0,0,0,114,113,1,0,0,0,115,118,1,0,0,0,116,
-117,5,13,0,0,117,119,5,23,0,0,118,116,1,0,0,0,118,119,1,0,0,0,119,120,1,
-0,0,0,120,121,5,8,0,0,121,122,3,30,15,0,122,17,1,0,0,0,123,124,5,23,0,0,
-124,125,5,3,0,0,125,126,3,32,16,0,126,127,5,4,0,0,127,19,1,0,0,0,128,130,
-5,23,0,0,129,131,3,34,17,0,130,129,1,0,0,0,130,131,1,0,0,0,131,21,1,0,0,
-0,132,136,5,5,0,0,133,135,3,4,2,0,134,133,1,0,0,0,135,138,1,0,0,0,136,134,
-1,0,0,0,136,137,1,0,0,0,137,139,1,0,0,0,138,136,1,0,0,0,139,140,3,30,15,
-0,140,141,5,7,0,0,141,23,1,0,0,0,142,147,3,12,6,0,143,144,5,9,0,0,144,146,
-5,23,0,0,145,143,1,0,0,0,146,149,1,0,0,0,147,145,1,0,0,0,147,148,1,0,0,0,
-148,25,1,0,0,0,149,147,1,0,0,0,150,155,3,24,12,0,151,152,5,10,0,0,152,154,
-3,24,12,0,153,151,1,0,0,0,154,157,1,0,0,0,155,153,1,0,0,0,155,156,1,0,0,
-0,156,27,1,0,0,0,157,155,1,0,0,0,158,163,3,26,13,0,159,160,5,11,0,0,160,
-162,3,26,13,0,161,159,1,0,0,0,162,165,1,0,0,0,163,161,1,0,0,0,163,164,1,
-0,0,0,164,29,1,0,0,0,165,163,1,0,0,0,166,167,3,28,14,0,167,31,1,0,0,0,168,
-173,3,30,15,0,169,170,5,6,0,0,170,172,3,30,15,0,171,169,1,0,0,0,172,175,
-1,0,0,0,173,171,1,0,0,0,173,174,1,0,0,0,174,177,1,0,0,0,175,173,1,0,0,0,
-176,178,5,6,0,0,177,176,1,0,0,0,177,178,1,0,0,0,178,180,1,0,0,0,179,168,
-1,0,0,0,179,180,1,0,0,0,180,33,1,0,0,0,181,193,5,5,0,0,182,187,3,36,18,0,
-183,184,5,6,0,0,184,186,3,36,18,0,185,183,1,0,0,0,186,189,1,0,0,0,187,185,
-1,0,0,0,187,188,1,0,0,0,188,191,1,0,0,0,189,187,1,0,0,0,190,192,5,6,0,0,
-191,190,1,0,0,0,191,192,1,0,0,0,192,194,1,0,0,0,193,182,1,0,0,0,193,194,
-1,0,0,0,194,195,1,0,0,0,195,196,5,7,0,0,196,35,1,0,0,0,197,198,5,23,0,0,
-198,199,5,12,0,0,199,200,3,30,15,0,200,37,1,0,0,0,201,213,5,3,0,0,202,207,
-3,40,20,0,203,204,5,6,0,0,204,206,3,40,20,0,205,203,1,0,0,0,206,209,1,0,
-0,0,207,205,1,0,0,0,207,208,1,0,0,0,208,211,1,0,0,0,209,207,1,0,0,0,210,
-212,5,6,0,0,211,210,1,0,0,0,211,212,1,0,0,0,212,214,1,0,0,0,213,202,1,0,
-0,0,213,214,1,0,0,0,214,215,1,0,0,0,215,216,5,4,0,0,216,39,1,0,0,0,217,218,
-5,23,0,0,218,219,5,12,0,0,219,220,3,30,15,0,220,41,1,0,0,0,24,45,56,62,72,
-92,102,106,108,114,118,130,136,147,155,163,173,177,179,187,191,193,207,211,
-213];
+20,7,20,1,0,5,0,44,8,0,10,0,12,0,47,9,0,1,0,1,0,1,1,5,1,52,8,1,10,1,12,1,
+55,9,1,1,1,1,1,1,1,1,2,1,2,1,2,3,2,63,8,2,1,3,1,3,1,3,1,3,3,3,69,8,3,1,4,
+1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,4,79,8,4,1,5,1,5,1,5,1,5,1,5,1,5,1,6,1,6,1,
+6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,99,8,6,1,7,1,7,1,7,1,7,1,7,1,7,
+5,7,107,8,7,10,7,12,7,110,9,7,1,7,3,7,113,8,7,3,7,115,8,7,1,7,1,7,1,8,1,
+8,3,8,121,8,8,1,8,1,8,3,8,125,8,8,1,8,1,8,1,8,1,9,1,9,1,9,1,9,1,9,1,10,1,
+10,3,10,137,8,10,1,11,1,11,5,11,141,8,11,10,11,12,11,144,9,11,1,11,1,11,
+1,11,1,12,1,12,1,12,5,12,152,8,12,10,12,12,12,155,9,12,1,13,1,13,1,13,5,
+13,160,8,13,10,13,12,13,163,9,13,1,14,1,14,1,14,5,14,168,8,14,10,14,12,14,
+171,9,14,1,15,1,15,1,16,1,16,1,16,5,16,178,8,16,10,16,12,16,181,9,16,1,16,
+3,16,184,8,16,3,16,186,8,16,1,17,1,17,1,17,1,17,5,17,192,8,17,10,17,12,17,
+195,9,17,1,17,3,17,198,8,17,3,17,200,8,17,1,17,1,17,1,18,1,18,1,18,1,18,
+1,19,1,19,1,19,1,19,5,19,212,8,19,10,19,12,19,215,9,19,1,19,3,19,218,8,19,
+3,19,220,8,19,1,19,1,19,1,20,1,20,1,20,1,20,1,20,0,0,21,0,2,4,6,8,10,12,
+14,16,18,20,22,24,26,28,30,32,34,36,38,40,0,0,239,0,45,1,0,0,0,2,53,1,0,
+0,0,4,62,1,0,0,0,6,64,1,0,0,0,8,70,1,0,0,0,10,80,1,0,0,0,12,98,1,0,0,0,14,
+100,1,0,0,0,16,120,1,0,0,0,18,129,1,0,0,0,20,134,1,0,0,0,22,138,1,0,0,0,
+24,148,1,0,0,0,26,156,1,0,0,0,28,164,1,0,0,0,30,172,1,0,0,0,32,185,1,0,0,
+0,34,187,1,0,0,0,36,203,1,0,0,0,38,207,1,0,0,0,40,223,1,0,0,0,42,44,3,4,
+2,0,43,42,1,0,0,0,44,47,1,0,0,0,45,43,1,0,0,0,45,46,1,0,0,0,46,48,1,0,0,
+0,47,45,1,0,0,0,48,49,5,0,0,1,49,1,1,0,0,0,50,52,3,4,2,0,51,50,1,0,0,0,52,
+55,1,0,0,0,53,51,1,0,0,0,53,54,1,0,0,0,54,56,1,0,0,0,55,53,1,0,0,0,56,57,
+3,30,15,0,57,58,5,0,0,1,58,3,1,0,0,0,59,63,3,6,3,0,60,63,3,8,4,0,61,63,3,
+10,5,0,62,59,1,0,0,0,62,60,1,0,0,0,62,61,1,0,0,0,63,5,1,0,0,0,64,65,5,17,
+0,0,65,68,5,23,0,0,66,69,5,1,0,0,67,69,3,34,17,0,68,66,1,0,0,0,68,67,1,0,
+0,0,69,7,1,0,0,0,70,71,5,14,0,0,71,72,5,23,0,0,72,78,3,38,19,0,73,74,5,2,
+0,0,74,75,3,30,15,0,75,76,5,1,0,0,76,79,1,0,0,0,77,79,3,22,11,0,78,73,1,
+0,0,0,78,77,1,0,0,0,79,9,1,0,0,0,80,81,5,15,0,0,81,82,5,23,0,0,82,83,5,2,
+0,0,83,84,3,30,15,0,84,85,5,1,0,0,85,11,1,0,0,0,86,99,5,19,0,0,87,99,5,20,
+0,0,88,99,5,21,0,0,89,99,5,22,0,0,90,99,3,14,7,0,91,99,3,18,9,0,92,99,3,
+20,10,0,93,99,3,22,11,0,94,95,5,3,0,0,95,96,3,30,15,0,96,97,5,4,0,0,97,99,
+1,0,0,0,98,86,1,0,0,0,98,87,1,0,0,0,98,88,1,0,0,0,98,89,1,0,0,0,98,90,1,
+0,0,0,98,91,1,0,0,0,98,92,1,0,0,0,98,93,1,0,0,0,98,94,1,0,0,0,99,13,1,0,
+0,0,100,101,5,16,0,0,101,102,3,30,15,0,102,114,5,5,0,0,103,108,3,16,8,0,
+104,105,5,6,0,0,105,107,3,16,8,0,106,104,1,0,0,0,107,110,1,0,0,0,108,106,
+1,0,0,0,108,109,1,0,0,0,109,112,1,0,0,0,110,108,1,0,0,0,111,113,5,6,0,0,
+112,111,1,0,0,0,112,113,1,0,0,0,113,115,1,0,0,0,114,103,1,0,0,0,114,115,
+1,0,0,0,115,116,1,0,0,0,116,117,5,7,0,0,117,15,1,0,0,0,118,121,5,18,0,0,
+119,121,3,30,15,0,120,118,1,0,0,0,120,119,1,0,0,0,121,124,1,0,0,0,122,123,
+5,13,0,0,123,125,5,23,0,0,124,122,1,0,0,0,124,125,1,0,0,0,125,126,1,0,0,
+0,126,127,5,8,0,0,127,128,3,30,15,0,128,17,1,0,0,0,129,130,5,23,0,0,130,
+131,5,3,0,0,131,132,3,32,16,0,132,133,5,4,0,0,133,19,1,0,0,0,134,136,5,23,
+0,0,135,137,3,34,17,0,136,135,1,0,0,0,136,137,1,0,0,0,137,21,1,0,0,0,138,
+142,5,5,0,0,139,141,3,4,2,0,140,139,1,0,0,0,141,144,1,0,0,0,142,140,1,0,
+0,0,142,143,1,0,0,0,143,145,1,0,0,0,144,142,1,0,0,0,145,146,3,30,15,0,146,
+147,5,7,0,0,147,23,1,0,0,0,148,153,3,12,6,0,149,150,5,9,0,0,150,152,5,23,
+0,0,151,149,1,0,0,0,152,155,1,0,0,0,153,151,1,0,0,0,153,154,1,0,0,0,154,
+25,1,0,0,0,155,153,1,0,0,0,156,161,3,24,12,0,157,158,5,10,0,0,158,160,3,
+24,12,0,159,157,1,0,0,0,160,163,1,0,0,0,161,159,1,0,0,0,161,162,1,0,0,0,
+162,27,1,0,0,0,163,161,1,0,0,0,164,169,3,26,13,0,165,166,5,11,0,0,166,168,
+3,26,13,0,167,165,1,0,0,0,168,171,1,0,0,0,169,167,1,0,0,0,169,170,1,0,0,
+0,170,29,1,0,0,0,171,169,1,0,0,0,172,173,3,28,14,0,173,31,1,0,0,0,174,179,
+3,30,15,0,175,176,5,6,0,0,176,178,3,30,15,0,177,175,1,0,0,0,178,181,1,0,
+0,0,179,177,1,0,0,0,179,180,1,0,0,0,180,183,1,0,0,0,181,179,1,0,0,0,182,
+184,5,6,0,0,183,182,1,0,0,0,183,184,1,0,0,0,184,186,1,0,0,0,185,174,1,0,
+0,0,185,186,1,0,0,0,186,33,1,0,0,0,187,199,5,5,0,0,188,193,3,36,18,0,189,
+190,5,6,0,0,190,192,3,36,18,0,191,189,1,0,0,0,192,195,1,0,0,0,193,191,1,
+0,0,0,193,194,1,0,0,0,194,197,1,0,0,0,195,193,1,0,0,0,196,198,5,6,0,0,197,
+196,1,0,0,0,197,198,1,0,0,0,198,200,1,0,0,0,199,188,1,0,0,0,199,200,1,0,
+0,0,200,201,1,0,0,0,201,202,5,7,0,0,202,35,1,0,0,0,203,204,5,23,0,0,204,
+205,5,12,0,0,205,206,3,30,15,0,206,37,1,0,0,0,207,219,5,3,0,0,208,213,3,
+40,20,0,209,210,5,6,0,0,210,212,3,40,20,0,211,209,1,0,0,0,212,215,1,0,0,
+0,213,211,1,0,0,0,213,214,1,0,0,0,214,217,1,0,0,0,215,213,1,0,0,0,216,218,
+5,6,0,0,217,216,1,0,0,0,217,218,1,0,0,0,218,220,1,0,0,0,219,208,1,0,0,0,
+219,220,1,0,0,0,220,221,1,0,0,0,221,222,5,4,0,0,222,39,1,0,0,0,223,224,5,
+23,0,0,224,225,5,12,0,0,225,226,3,30,15,0,226,41,1,0,0,0,25,45,53,62,68,
+78,98,108,112,114,120,124,136,142,153,161,169,179,183,185,193,197,199,213,
+217,219];
 
 
 const atn = new antlr4.atn.ATNDeserializer().deserialize(serializedATN);
@@ -148,11 +150,22 @@ export default class NaviParser extends antlr4.Parser {
 	expressionDocument() {
 	    let localctx = new ExpressionDocumentContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 2, NaviParser.RULE_expressionDocument);
+	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 50;
+	        this.state = 53;
+	        this._errHandler.sync(this);
+	        _la = this._input.LA(1);
+	        while((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << NaviParser.Def) | (1 << NaviParser.Let) | (1 << NaviParser.Struct))) !== 0)) {
+	            this.state = 50;
+	            this.definition();
+	            this.state = 55;
+	            this._errHandler.sync(this);
+	            _la = this._input.LA(1);
+	        }
+	        this.state = 56;
 	        this.expression();
-	        this.state = 51;
+	        this.state = 57;
 	        this.match(NaviParser.EOF);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -174,22 +187,22 @@ export default class NaviParser extends antlr4.Parser {
 	    let localctx = new DefinitionContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 4, NaviParser.RULE_definition);
 	    try {
-	        this.state = 56;
+	        this.state = 62;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case NaviParser.Struct:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 53;
+	            this.state = 59;
 	            this.structDefinition();
 	            break;
 	        case NaviParser.Def:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 54;
+	            this.state = 60;
 	            this.functionDefinition();
 	            break;
 	        case NaviParser.Let:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 55;
+	            this.state = 61;
 	            this.variableDefinition();
 	            break;
 	        default:
@@ -216,19 +229,19 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 6, NaviParser.RULE_structDefinition);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 58;
+	        this.state = 64;
 	        this.match(NaviParser.Struct);
-	        this.state = 59;
+	        this.state = 65;
 	        this.match(NaviParser.Identifier);
-	        this.state = 62;
+	        this.state = 68;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case NaviParser.T__0:
-	            this.state = 60;
+	            this.state = 66;
 	            this.match(NaviParser.T__0);
 	            break;
 	        case NaviParser.T__4:
-	            this.state = 61;
+	            this.state = 67;
 	            this.fields();
 	            break;
 	        default:
@@ -255,25 +268,25 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 8, NaviParser.RULE_functionDefinition);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 64;
+	        this.state = 70;
 	        this.match(NaviParser.Def);
-	        this.state = 65;
+	        this.state = 71;
 	        this.match(NaviParser.Identifier);
-	        this.state = 66;
-	        this.parameters();
 	        this.state = 72;
+	        this.parameters();
+	        this.state = 78;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case NaviParser.T__1:
-	            this.state = 67;
+	            this.state = 73;
 	            this.match(NaviParser.T__1);
-	            this.state = 68;
+	            this.state = 74;
 	            this.expression();
-	            this.state = 69;
+	            this.state = 75;
 	            this.match(NaviParser.T__0);
 	            break;
 	        case NaviParser.T__4:
-	            this.state = 71;
+	            this.state = 77;
 	            this.scopeExpression();
 	            break;
 	        default:
@@ -300,15 +313,15 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 10, NaviParser.RULE_variableDefinition);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 74;
+	        this.state = 80;
 	        this.match(NaviParser.Let);
-	        this.state = 75;
+	        this.state = 81;
 	        this.match(NaviParser.Identifier);
-	        this.state = 76;
+	        this.state = 82;
 	        this.match(NaviParser.T__1);
-	        this.state = 77;
+	        this.state = 83;
 	        this.expression();
-	        this.state = 78;
+	        this.state = 84;
 	        this.match(NaviParser.T__0);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -330,65 +343,65 @@ export default class NaviParser extends antlr4.Parser {
 	    let localctx = new PrimaryExpressionContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 12, NaviParser.RULE_primaryExpression);
 	    try {
-	        this.state = 92;
+	        this.state = 98;
 	        this._errHandler.sync(this);
-	        var la_ = this._interp.adaptivePredict(this._input,4,this._ctx);
+	        var la_ = this._interp.adaptivePredict(this._input,5,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 80;
+	            this.state = 86;
 	            this.match(NaviParser.IntInterval);
 	            break;
 
 	        case 2:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 81;
+	            this.state = 87;
 	            this.match(NaviParser.Interval);
 	            break;
 
 	        case 3:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 82;
+	            this.state = 88;
 	            this.match(NaviParser.Number);
 	            break;
 
 	        case 4:
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 83;
+	            this.state = 89;
 	            this.match(NaviParser.String);
 	            break;
 
 	        case 5:
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 84;
+	            this.state = 90;
 	            this.matchExpression();
 	            break;
 
 	        case 6:
 	            this.enterOuterAlt(localctx, 6);
-	            this.state = 85;
+	            this.state = 91;
 	            this.functionCall();
 	            break;
 
 	        case 7:
 	            this.enterOuterAlt(localctx, 7);
-	            this.state = 86;
+	            this.state = 92;
 	            this.named();
 	            break;
 
 	        case 8:
 	            this.enterOuterAlt(localctx, 8);
-	            this.state = 87;
+	            this.state = 93;
 	            this.scopeExpression();
 	            break;
 
 	        case 9:
 	            this.enterOuterAlt(localctx, 9);
-	            this.state = 88;
+	            this.state = 94;
 	            this.match(NaviParser.T__2);
-	            this.state = 89;
+	            this.state = 95;
 	            this.expression();
-	            this.state = 90;
+	            this.state = 96;
 	            this.match(NaviParser.T__3);
 	            break;
 
@@ -415,44 +428,44 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 94;
+	        this.state = 100;
 	        this.match(NaviParser.Match);
-	        this.state = 95;
+	        this.state = 101;
 	        this.expression();
-	        this.state = 96;
+	        this.state = 102;
 	        this.match(NaviParser.T__4);
-	        this.state = 108;
+	        this.state = 114;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << NaviParser.T__2) | (1 << NaviParser.T__4) | (1 << NaviParser.Match) | (1 << NaviParser.Discard) | (1 << NaviParser.IntInterval) | (1 << NaviParser.Interval) | (1 << NaviParser.Number) | (1 << NaviParser.String) | (1 << NaviParser.Identifier))) !== 0)) {
-	            this.state = 97;
+	            this.state = 103;
 	            this.matchArm();
-	            this.state = 102;
+	            this.state = 108;
 	            this._errHandler.sync(this);
-	            var _alt = this._interp.adaptivePredict(this._input,5,this._ctx)
+	            var _alt = this._interp.adaptivePredict(this._input,6,this._ctx)
 	            while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	                if(_alt===1) {
-	                    this.state = 98;
+	                    this.state = 104;
 	                    this.match(NaviParser.T__5);
-	                    this.state = 99;
+	                    this.state = 105;
 	                    this.matchArm(); 
 	                }
-	                this.state = 104;
+	                this.state = 110;
 	                this._errHandler.sync(this);
-	                _alt = this._interp.adaptivePredict(this._input,5,this._ctx);
+	                _alt = this._interp.adaptivePredict(this._input,6,this._ctx);
 	            }
 
-	            this.state = 106;
+	            this.state = 112;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	            if(_la===NaviParser.T__5) {
-	                this.state = 105;
+	                this.state = 111;
 	                this.match(NaviParser.T__5);
 	            }
 
 	        }
 
-	        this.state = 110;
+	        this.state = 116;
 	        this.match(NaviParser.T__6);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -476,11 +489,11 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 114;
+	        this.state = 120;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case NaviParser.Discard:
-	            this.state = 112;
+	            this.state = 118;
 	            this.match(NaviParser.Discard);
 	            break;
 	        case NaviParser.T__2:
@@ -491,25 +504,25 @@ export default class NaviParser extends antlr4.Parser {
 	        case NaviParser.Number:
 	        case NaviParser.String:
 	        case NaviParser.Identifier:
-	            this.state = 113;
+	            this.state = 119;
 	            this.expression();
 	            break;
 	        default:
 	            throw new antlr4.error.NoViableAltException(this);
 	        }
-	        this.state = 118;
+	        this.state = 124;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if(_la===NaviParser.As) {
-	            this.state = 116;
+	            this.state = 122;
 	            this.match(NaviParser.As);
-	            this.state = 117;
+	            this.state = 123;
 	            this.match(NaviParser.Identifier);
 	        }
 
-	        this.state = 120;
+	        this.state = 126;
 	        this.match(NaviParser.T__7);
-	        this.state = 121;
+	        this.state = 127;
 	        this.expression();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -532,13 +545,13 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 18, NaviParser.RULE_functionCall);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 123;
+	        this.state = 129;
 	        this.match(NaviParser.Identifier);
-	        this.state = 124;
+	        this.state = 130;
 	        this.match(NaviParser.T__2);
-	        this.state = 125;
+	        this.state = 131;
 	        this.args();
-	        this.state = 126;
+	        this.state = 132;
 	        this.match(NaviParser.T__3);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -561,13 +574,13 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 20, NaviParser.RULE_named);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 128;
+	        this.state = 134;
 	        this.match(NaviParser.Identifier);
-	        this.state = 130;
+	        this.state = 136;
 	        this._errHandler.sync(this);
-	        var la_ = this._interp.adaptivePredict(this._input,10,this._ctx);
+	        var la_ = this._interp.adaptivePredict(this._input,11,this._ctx);
 	        if(la_===1) {
-	            this.state = 129;
+	            this.state = 135;
 	            this.fields();
 
 	        }
@@ -593,21 +606,21 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 132;
+	        this.state = 138;
 	        this.match(NaviParser.T__4);
-	        this.state = 136;
+	        this.state = 142;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        while((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << NaviParser.Def) | (1 << NaviParser.Let) | (1 << NaviParser.Struct))) !== 0)) {
-	            this.state = 133;
+	            this.state = 139;
 	            this.definition();
-	            this.state = 138;
+	            this.state = 144;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        }
-	        this.state = 139;
+	        this.state = 145;
 	        this.expression();
-	        this.state = 140;
+	        this.state = 146;
 	        this.match(NaviParser.T__6);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -631,17 +644,17 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 142;
+	        this.state = 148;
 	        this.primaryExpression();
-	        this.state = 147;
+	        this.state = 153;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        while(_la===NaviParser.T__8) {
-	            this.state = 143;
-	            this.match(NaviParser.T__8);
-	            this.state = 144;
-	            this.match(NaviParser.Identifier);
 	            this.state = 149;
+	            this.match(NaviParser.T__8);
+	            this.state = 150;
+	            this.match(NaviParser.Identifier);
+	            this.state = 155;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        }
@@ -667,17 +680,17 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 150;
+	        this.state = 156;
 	        this.fieldAccessExpression();
-	        this.state = 155;
+	        this.state = 161;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        while(_la===NaviParser.T__9) {
-	            this.state = 151;
-	            this.match(NaviParser.T__9);
-	            this.state = 152;
-	            this.fieldAccessExpression();
 	            this.state = 157;
+	            this.match(NaviParser.T__9);
+	            this.state = 158;
+	            this.fieldAccessExpression();
+	            this.state = 163;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        }
@@ -703,17 +716,17 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 158;
+	        this.state = 164;
 	        this.intersectionExpression();
-	        this.state = 163;
+	        this.state = 169;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        while(_la===NaviParser.T__10) {
-	            this.state = 159;
-	            this.match(NaviParser.T__10);
-	            this.state = 160;
-	            this.intersectionExpression();
 	            this.state = 165;
+	            this.match(NaviParser.T__10);
+	            this.state = 166;
+	            this.intersectionExpression();
+	            this.state = 171;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        }
@@ -738,7 +751,7 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 30, NaviParser.RULE_expression);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 166;
+	        this.state = 172;
 	        this.unionExpression();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -762,32 +775,32 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 179;
+	        this.state = 185;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << NaviParser.T__2) | (1 << NaviParser.T__4) | (1 << NaviParser.Match) | (1 << NaviParser.IntInterval) | (1 << NaviParser.Interval) | (1 << NaviParser.Number) | (1 << NaviParser.String) | (1 << NaviParser.Identifier))) !== 0)) {
-	            this.state = 168;
+	            this.state = 174;
 	            this.expression();
-	            this.state = 173;
+	            this.state = 179;
 	            this._errHandler.sync(this);
-	            var _alt = this._interp.adaptivePredict(this._input,15,this._ctx)
+	            var _alt = this._interp.adaptivePredict(this._input,16,this._ctx)
 	            while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	                if(_alt===1) {
-	                    this.state = 169;
+	                    this.state = 175;
 	                    this.match(NaviParser.T__5);
-	                    this.state = 170;
+	                    this.state = 176;
 	                    this.expression(); 
 	                }
-	                this.state = 175;
+	                this.state = 181;
 	                this._errHandler.sync(this);
-	                _alt = this._interp.adaptivePredict(this._input,15,this._ctx);
+	                _alt = this._interp.adaptivePredict(this._input,16,this._ctx);
 	            }
 
-	            this.state = 177;
+	            this.state = 183;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	            if(_la===NaviParser.T__5) {
-	                this.state = 176;
+	                this.state = 182;
 	                this.match(NaviParser.T__5);
 	            }
 
@@ -815,40 +828,40 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 181;
+	        this.state = 187;
 	        this.match(NaviParser.T__4);
-	        this.state = 193;
+	        this.state = 199;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if(_la===NaviParser.Identifier) {
-	            this.state = 182;
+	            this.state = 188;
 	            this.field();
-	            this.state = 187;
+	            this.state = 193;
 	            this._errHandler.sync(this);
-	            var _alt = this._interp.adaptivePredict(this._input,18,this._ctx)
+	            var _alt = this._interp.adaptivePredict(this._input,19,this._ctx)
 	            while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	                if(_alt===1) {
-	                    this.state = 183;
+	                    this.state = 189;
 	                    this.match(NaviParser.T__5);
-	                    this.state = 184;
+	                    this.state = 190;
 	                    this.field(); 
 	                }
-	                this.state = 189;
+	                this.state = 195;
 	                this._errHandler.sync(this);
-	                _alt = this._interp.adaptivePredict(this._input,18,this._ctx);
+	                _alt = this._interp.adaptivePredict(this._input,19,this._ctx);
 	            }
 
-	            this.state = 191;
+	            this.state = 197;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	            if(_la===NaviParser.T__5) {
-	                this.state = 190;
+	                this.state = 196;
 	                this.match(NaviParser.T__5);
 	            }
 
 	        }
 
-	        this.state = 195;
+	        this.state = 201;
 	        this.match(NaviParser.T__6);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -871,11 +884,11 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 36, NaviParser.RULE_field);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 197;
+	        this.state = 203;
 	        this.match(NaviParser.Identifier);
-	        this.state = 198;
+	        this.state = 204;
 	        this.match(NaviParser.T__11);
-	        this.state = 199;
+	        this.state = 205;
 	        this.expression();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -899,40 +912,40 @@ export default class NaviParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 201;
+	        this.state = 207;
 	        this.match(NaviParser.T__2);
-	        this.state = 213;
+	        this.state = 219;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if(_la===NaviParser.Identifier) {
-	            this.state = 202;
+	            this.state = 208;
 	            this.parameter();
-	            this.state = 207;
+	            this.state = 213;
 	            this._errHandler.sync(this);
-	            var _alt = this._interp.adaptivePredict(this._input,21,this._ctx)
+	            var _alt = this._interp.adaptivePredict(this._input,22,this._ctx)
 	            while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	                if(_alt===1) {
-	                    this.state = 203;
+	                    this.state = 209;
 	                    this.match(NaviParser.T__5);
-	                    this.state = 204;
+	                    this.state = 210;
 	                    this.parameter(); 
 	                }
-	                this.state = 209;
+	                this.state = 215;
 	                this._errHandler.sync(this);
-	                _alt = this._interp.adaptivePredict(this._input,21,this._ctx);
+	                _alt = this._interp.adaptivePredict(this._input,22,this._ctx);
 	            }
 
-	            this.state = 211;
+	            this.state = 217;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	            if(_la===NaviParser.T__5) {
-	                this.state = 210;
+	                this.state = 216;
 	                this.match(NaviParser.T__5);
 	            }
 
 	        }
 
-	        this.state = 215;
+	        this.state = 221;
 	        this.match(NaviParser.T__3);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -955,11 +968,11 @@ export default class NaviParser extends antlr4.Parser {
 	    this.enterRule(localctx, 40, NaviParser.RULE_parameter);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 217;
+	        this.state = 223;
 	        this.match(NaviParser.Identifier);
-	        this.state = 218;
+	        this.state = 224;
 	        this.match(NaviParser.T__11);
-	        this.state = 219;
+	        this.state = 225;
 	        this.expression();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1094,6 +1107,17 @@ class ExpressionDocumentContext extends antlr4.ParserRuleContext {
 
 	EOF() {
 	    return this.getToken(NaviParser.EOF, 0);
+	};
+
+	definition = function(i) {
+	    if(i===undefined) {
+	        i = null;
+	    }
+	    if(i===null) {
+	        return this.getTypedRuleContexts(DefinitionContext);
+	    } else {
+	        return this.getTypedRuleContext(DefinitionContext,i);
+	    }
 	};
 
 	enterRule(listener) {

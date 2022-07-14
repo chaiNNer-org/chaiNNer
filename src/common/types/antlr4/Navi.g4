@@ -4,7 +4,7 @@ options {
 }
 
 definitionDocument: definition* EOF;
-expressionDocument: expression EOF;
+expressionDocument: definition* expression EOF;
 
 // definitions
 definition:
