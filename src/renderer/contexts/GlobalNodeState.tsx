@@ -587,16 +587,20 @@ export const GlobalProvider = memo(
 
         const removeNodeById = useCallback(
             (id: string) => {
-                changeEdges((edges) => edges.filter((e) => e.source !== id && e.target !== id));
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.type !== 'iteratorHelper') {
-                        return nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                    }
-                    return nodes;
-                });
+                const node = getNode(id);
+                if (!node || node.type === 'iteratorHelper') return;
+                const toRemove = new Set([
+                    id,
+                    ...getNodes()
+                        .filter((n) => n.parentNode === id)
+                        .map((n) => n.id),
+                ]);
+                changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
+                changeEdges((edges) =>
+                    edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
+                );
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges, getNode, getNodes]
         );
 
         const removeEdgeById = useCallback(
