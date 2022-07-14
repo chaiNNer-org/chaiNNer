@@ -265,14 +265,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges();
             addEdgeChanges();
         },
-        [
-            addNodeChanges,
-            addEdgeChanges,
-            changeNodes,
-            nodes,
-            changeEdges,
-            edges,
-        ]
+        [addNodeChanges, addEdgeChanges, changeNodes, nodes, changeEdges, edges]
     );
 
     const onSelectionDragStop = useCallback(() => {
