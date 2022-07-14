@@ -5,6 +5,7 @@ import { useContext } from 'use-context-selector';
 import {
     Input,
     InputData,
+    InputId,
     InputKind,
     InputSchemaValue,
     SchemaId,
@@ -102,7 +103,7 @@ export const NodeInputs = memo(
             useContext(GlobalContext);
 
         const useInputData = useCallback(
-            <T extends InputSchemaValue>(inputId: number) =>
+            <T extends InputSchemaValue>(inputId: InputId) =>
                 // eslint-disable-next-line react-hooks/rules-of-hooks
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]

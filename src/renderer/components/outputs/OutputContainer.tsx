@@ -2,9 +2,10 @@ import { Box, Center, HStack, chakra, useColorModeValue } from '@chakra-ui/react
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
+import { OutputId } from '../../../common/common-types';
 import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
-import { parseHandle } from '../../../common/util';
+import { parseSourceHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
@@ -12,7 +13,7 @@ import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface OutputContainerProps {
     hasHandle: boolean;
-    outputId: number;
+    outputId: OutputId;
     id: string;
     definitionType: Type;
 }
@@ -58,7 +59,7 @@ export const OutputContainer = memo(
         const { getEdges } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const isConnected = !!edges.find(
-            (e) => e.source === id && parseHandle(e.sourceHandle!).inOutId === outputId
+            (e) => e.source === id && parseSourceHandle(e.sourceHandle!).inOutId === outputId
         );
         const [connectingFromType] = useConnectingFromType;
         const [connectingFrom] = useConnectingFrom;

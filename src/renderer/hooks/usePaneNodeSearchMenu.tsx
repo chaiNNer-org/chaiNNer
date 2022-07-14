@@ -11,6 +11,7 @@ import {
     Spacer,
     Text,
     useColorModeValue,
+    useToken,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
@@ -18,10 +19,16 @@ import { useContext } from 'use-context-selector';
 import { NodeData, NodeSchema } from '../../common/common-types';
 import { isDisjointWith } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
-import { assertNever, createUniqueId, parseHandle } from '../../common/util';
+import {
+    assertNever,
+    createUniqueId,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
+import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
 import { useContextMenu } from './useContextMenu';
@@ -77,7 +84,7 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const { inOutId } = parseSourceHandle(connectingFrom.handleId);
                         const sourceType = sourceFn.outputs.get(inOutId);
 
                         if (!sourceType) {
@@ -90,10 +97,11 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        return [...targetTypes.inputDefaults].some(([number, type]) => {
+                        return [...targetTypes.inputDefaults].some(([inputId, type]) => {
                             return (
                                 !isDisjointWith(type, sourceType) &&
-                                schemata.get(node.schemaId).inputs[number].hasHandle
+                                schemata.get(node.schemaId).inputs.find((i) => i.id === inputId)
+                                    ?.hasHandle
                             );
                         });
                     }
@@ -105,7 +113,7 @@ export const usePaneNodeSearchMenu = (
                             return false;
                         }
 
-                        const { inOutId } = parseHandle(connectingFrom.handleId);
+                        const { inOutId } = parseTargetHandle(connectingFrom.handleId);
                         const sourceType = sourceFn.inputDefaults.get(inOutId);
 
                         if (!sourceType) {
@@ -169,7 +177,9 @@ export const usePaneNodeSearchMenu = (
                             ([inputId, type]) => {
                                 return (
                                     !isDisjointWith(type, connectingFromType) &&
-                                    schemata.get(schema.schemaId).inputs[inputId].hasHandle
+                                    schemata
+                                        .get(schema.schemaId)
+                                        .inputs.find((i) => i.id === inputId)?.hasHandle
                                 );
                             }
                         );
@@ -217,8 +227,10 @@ export const usePaneNodeSearchMenu = (
         ]
     );
 
-    const menuBgColor = useColorModeValue('gray.200', 'gray.800');
-    const bgColor = useColorModeValue('gray.300', 'gray.700');
+    const [gray200, gray800] = useToken('colors', ['gray.200', 'gray.800']) as string[];
+    const menuBgColor = useColorModeValue(gray200, gray800);
+    const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
+    const bgColor = useColorModeValue(gray300, gray700);
     const inputColor = useColorModeValue('gray.500', 'gray.300');
     const hoverColor = useColorModeValue('black', 'white');
 
@@ -272,6 +284,10 @@ export const usePaneNodeSearchMenu = (
                 {[...byCategories].length > 0 ? (
                     [...byCategories].map(([category, categoryNodes]) => {
                         const accentColor = getNodeAccentColor(category);
+                        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+                        const gradR = menuBgColor;
+                        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+                        const hoverGradR = bgColor;
                         return (
                             <Box key={category}>
                                 <HStack
@@ -291,11 +307,13 @@ export const usePaneNodeSearchMenu = (
                                     return (
                                         <HStack
                                             _hover={{
-                                                backgroundColor: bgColor,
+                                                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
                                             }}
+                                            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                                             borderRadius="md"
                                             key={node.schemaId}
                                             mx={1}
+                                            my={0.5}
                                             px={2}
                                             py={0.5}
                                             onClick={() => {
@@ -347,9 +365,8 @@ export const usePaneNodeSearchMenu = (
     ));
 
     useEffect(() => {
-        if (connectingFrom && connectingFrom.handleId) {
-            const { nodeId, inOutId } = parseHandle(connectingFrom.handleId);
-            const node: Node<NodeData> | undefined = getNode(nodeId);
+        if (connectingFrom && connectingFrom.handleId && connectingFrom.nodeId) {
+            const node: Node<NodeData> | undefined = getNode(connectingFrom.nodeId);
             if (node?.data.parentNode) {
                 setConnectingFrom(null);
                 setConnectingFromType(null);
@@ -357,6 +374,7 @@ export const usePaneNodeSearchMenu = (
             if (node && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
+                        const { inOutId } = parseSourceHandle(connectingFrom.handleId);
                         const sourceType = functionDefinitions
                             .get(node.data.schemaId)
                             ?.outputDefaults.get(inOutId);
@@ -365,6 +383,7 @@ export const usePaneNodeSearchMenu = (
                         break;
                     }
                     case 'target': {
+                        const { inOutId } = parseTargetHandle(connectingFrom.handleId);
                         const targetType = functionDefinitions
                             .get(node.data.schemaId)
                             ?.inputDefaults.get(inOutId);

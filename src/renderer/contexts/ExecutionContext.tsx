@@ -3,10 +3,17 @@ import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
-import { EdgeData, EdgeHandle, NodeData, UsableData } from '../../common/common-types';
+import {
+    EdgeData,
+    EdgeHandle,
+    InputId,
+    NodeData,
+    OutputId,
+    UsableData,
+} from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ParsedHandle, parseHandle } from '../../common/util';
+import { ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -59,15 +66,18 @@ const convertToUsableFormat = (
         return { id: handle.nodeId, index };
     };
 
-    type Handles = Record<string, Record<number, EdgeHandle | undefined> | undefined>;
-    const inputHandles: Handles = {};
-    const outputHandles: Handles = {};
+    type Handles<I extends InputId | OutputId> = Record<
+        string,
+        Record<I, EdgeHandle | undefined> | undefined
+    >;
+    const inputHandles: Handles<InputId> = {};
+    const outputHandles: Handles<OutputId> = {};
     edges.forEach((element) => {
         const { sourceHandle, targetHandle } = element;
         if (!sourceHandle || !targetHandle) return;
 
-        const sourceH = parseHandle(sourceHandle);
-        const targetH = parseHandle(targetHandle);
+        const sourceH = parseSourceHandle(sourceHandle);
+        const targetH = parseTargetHandle(targetHandle);
 
         (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
@@ -239,7 +249,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         );
 
         setStatus(ExecutionStatus.RUNNING);
-        animate();
+        animate(nodes.map((n) => n.id));
         if (nodes.length === 0) {
             sendAlert(
                 AlertType.ERROR,

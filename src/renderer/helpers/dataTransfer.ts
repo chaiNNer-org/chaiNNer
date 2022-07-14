@@ -1,7 +1,7 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { XYPosition } from 'react-flow-renderer';
-import { SchemaId } from '../../common/common-types';
+import { InputId, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -105,7 +105,7 @@ const openImageFileProcessor: DataTransferProcessor = (
             position: getNodePosition(100, 100),
             data: {
                 schemaId: LOAD_IMAGE_ID,
-                inputData: { 0: path },
+                inputData: { [0 as InputId]: path },
             },
             nodeType: schema.nodeType,
         });
