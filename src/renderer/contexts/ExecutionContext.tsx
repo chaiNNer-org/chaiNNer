@@ -16,6 +16,7 @@ import { SchemaMap } from '../../common/SchemaMap';
 import { ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
+import { getNodesWithSideEffects } from '../helpers/sideEffect';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
     BackendEventSourceListener,
@@ -243,10 +244,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const disabledNodes = new Set(
             getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
         );
-        const nodes = allNodes.filter((n) => !disabledNodes.has(n.id));
-        const edges = allEdges.filter(
-            (e) => !disabledNodes.has(e.source) && !disabledNodes.has(e.target)
+        const nodes = getNodesWithSideEffects(
+            allNodes.filter((n) => !disabledNodes.has(n.id)),
+            allEdges,
+            schemata
         );
+        const nodeIds = new Set(nodes.map((n) => n.id));
+        const edges = allEdges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
 
         setStatus(ExecutionStatus.RUNNING);
         animate(nodes.map((n) => n.id));
