@@ -318,6 +318,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 edges={displayEdges}
                 maxZoom={8}
                 minZoom={0.125}
+                multiSelectionKeyCode={useMemo(() => ['Control', 'Meta'], [])}
                 nodeTypes={nodeTypes}
                 nodes={displayNodes}
                 snapGrid={useMemoArray<[number, number]>([snapToGridAmount, snapToGridAmount])}
