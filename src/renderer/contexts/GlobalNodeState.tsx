@@ -587,32 +587,21 @@ export const GlobalProvider = memo(
 
         const removeNodeById = useCallback(
             (id: string) => {
-                changeEdges((edges) => edges.filter((e) => e.source !== id && e.target !== id));
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.type !== 'iteratorHelper') {
-                        return nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                    }
-                    return nodes;
-                });
-            },
-            [changeNodes, changeEdges]
-        );
-
-        // TODO: This shouldn't be necessary, but it at least fixes the issue
-        useEffect(() => {
-            const edges = getEdges();
-            const nodes = getNodes();
-            const validEdges = edges.filter(({ source, target }) => {
-                return (
-                    nodes.some((node) => node.id === source) &&
-                    nodes.some((node) => node.id === target)
+                const node = getNode(id);
+                if (!node || node.type === 'iteratorHelper') return;
+                const toRemove = new Set([
+                    id,
+                    ...getNodes()
+                        .filter((n) => n.parentNode === id)
+                        .map((n) => n.id),
+                ]);
+                changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
+                changeEdges((edges) =>
+                    edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
                 );
-            });
-            if (edges.length !== validEdges.length) {
-                changeEdges(validEdges);
-            }
-        }, [nodeChanges]);
+            },
+            [changeNodes, changeEdges, getNode, getNodes]
+        );
 
         const removeEdgeById = useCallback(
             (id: string) => {
