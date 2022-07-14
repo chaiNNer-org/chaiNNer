@@ -8,7 +8,7 @@ import { NeverType, Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -113,19 +113,11 @@ export const InputContainer = memo(
                 if (parentNode) {
                     const parentDef = functionDefinitions.get(parentNode.data.schemaId);
                     if (!parentDef) {
-                        return getTypeAccentColors(
-                            NeverType.instance,
-                            typeDefinitions,
-                            isDarkMode
-                        )[0];
+                        return defaultColor;
                     }
                     const parentType = parentDef.outputDefaults.get(parentOutputId);
                     if (!parentType) {
-                        return getTypeAccentColors(
-                            NeverType.instance,
-                            typeDefinitions,
-                            isDarkMode
-                        )[0];
+                        return defaultColor;
                     }
                     return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
                 }
