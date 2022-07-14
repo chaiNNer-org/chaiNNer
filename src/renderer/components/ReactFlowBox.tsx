@@ -165,6 +165,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setSetNodes,
         setSetEdges,
+        updateIteratorBounds,
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -265,7 +266,15 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             addNodeChanges();
             addEdgeChanges();
         },
-        [addNodeChanges, addEdgeChanges, changeNodes, nodes, changeEdges, edges]
+        [
+            addNodeChanges,
+            addEdgeChanges,
+            changeNodes,
+            nodes,
+            changeEdges,
+            edges,
+            updateIteratorBounds,
+        ]
     );
 
     const onSelectionDragStop = useCallback(() => {
