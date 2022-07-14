@@ -165,7 +165,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setSetNodes,
         setSetEdges,
-        updateIteratorBounds,
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -273,7 +272,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             nodes,
             changeEdges,
             edges,
-            updateIteratorBounds,
         ]
     );
 
