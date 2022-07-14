@@ -36,6 +36,7 @@ import { TypeDefinitions } from '../../common/types/typedef';
 import { Type } from '../../common/types/types';
 import {
     createUniqueId,
+    deepCopy,
     deriveUniqueId,
     parseSourceHandle,
     parseTargetHandle,
@@ -120,6 +121,7 @@ interface Global {
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
+    releaseNodeFromParent: (id: string) => void;
 }
 
 export interface NodeProto {
@@ -646,6 +648,32 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const releaseNodeFromParent = useCallback(
+            (id: string) => {
+                changeNodes((nodes) => {
+                    const node = nodes.find((n) => n.id === id);
+                    if (node && node.parentNode) {
+                        const parentNode = nodes.find((n) => n.id === node.parentNode);
+                        if (parentNode) {
+                            const newNode: Node<Mutable<NodeData>> = deepCopy(node);
+                            delete newNode.parentNode;
+                            delete newNode.data.parentNode;
+                            delete newNode.extent;
+                            delete newNode.positionAbsolute;
+                            newNode.position = {
+                                x: parentNode.position.x - 100,
+                                y: parentNode.position.y - 100,
+                            };
+                            return [...nodes.filter((n) => n.id !== node.id), newNode];
+                        }
+                    }
+                    return nodes;
+                });
+                changeEdges((edges) => edges.filter((e) => e.target !== id));
+            },
+            [changeNodes, changeEdges]
+        );
+
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
                 if (source === target || !source || !target || !sourceHandle || !targetHandle) {
@@ -993,6 +1021,7 @@ export const GlobalProvider = memo(
             functionDefinitions,
             typeDefinitions,
             typeStateRef,
+            releaseNodeFromParent,
         });
 
         return (

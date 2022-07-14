@@ -6,6 +6,7 @@ import ReactFlow, {
     Background,
     BackgroundVariant,
     Controls,
+    CoordinateExtent,
     Edge,
     EdgeTypes,
     Node,
@@ -164,6 +165,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         changeEdges,
         setSetNodes,
         setSetEdges,
+        updateIteratorBounds,
     } = useContext(GlobalContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
@@ -212,10 +214,68 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         return [displayNodes, displayEdges, isSnapToGrid && snapToGridAmount];
     }, [nodes, edges]);
 
-    const onNodeDragStop = useCallback(() => {
-        addNodeChanges();
-        addEdgeChanges();
-    }, [addNodeChanges, addEdgeChanges]);
+    const onNodeDragStop = useCallback(
+        (event: React.MouseEvent, node: Node<NodeData>) => {
+            if (!node.parentNode && node.type === 'regularNode') {
+                const allIterators = nodes.filter((n) => n.type === 'iterator');
+                const iterInBounds = allIterators.find(
+                    (iterator) =>
+                        iterator.position.x + (iterator.data.iteratorSize?.offsetLeft ?? 0) <
+                            node.position.x &&
+                        iterator.position.y + (iterator.data.iteratorSize?.offsetTop ?? 0) <
+                            node.position.y &&
+                        iterator.position.x + (iterator.width ?? 0) >
+                            node.position.x + (node.width ?? 0) &&
+                        iterator.position.y + (iterator.height ?? 0) >
+                            node.position.y + (node.height ?? 0)
+                );
+                if (iterInBounds) {
+                    const {
+                        offsetTop = 0,
+                        offsetLeft = 0,
+                        width = 0,
+                        height = 0,
+                    } = iterInBounds.data.iteratorSize ?? {};
+                    const wBound = width - (node.width ?? 0) + offsetLeft;
+                    const hBound = height - (node.height ?? 0) + offsetTop;
+                    const newNode = {
+                        ...node,
+                        data: { ...node.data, parentNode: iterInBounds.id },
+                        parentNode: iterInBounds.id,
+                        extent: [
+                            [offsetLeft, offsetTop],
+                            [wBound, hBound],
+                        ] as CoordinateExtent,
+                        position: {
+                            x: node.position.x - iterInBounds.position.x,
+                            y: node.position.y - iterInBounds.position.y,
+                        },
+                    };
+                    const edgesToRemove = edges.filter(
+                        (e) =>
+                            e.source === node.id &&
+                            nodes.find((n) => n.id === e.target)?.parentNode !== iterInBounds.id
+                    );
+                    changeNodes((oldNodes) => [
+                        ...oldNodes.filter((n) => n.id !== node.id),
+                        newNode,
+                    ]);
+                    changeEdges((oldEdges) => oldEdges.filter((e) => !edgesToRemove.includes(e)));
+                }
+            }
+            addNodeChanges();
+            addEdgeChanges();
+        },
+        [
+            addNodeChanges,
+            addEdgeChanges,
+            changeNodes,
+            nodes,
+            changeEdges,
+            edges,
+            updateIteratorBounds,
+        ]
+    );
 
     const onSelectionDragStop = useCallback(() => {
         addNodeChanges();
