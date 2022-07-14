@@ -215,7 +215,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [nodes, edges]);
 
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, _node: Node<NodeData>, nNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, _node: Node<NodeData> | null, nNodes: Node<NodeData>[]) => {
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');
@@ -290,10 +290,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         ]
     );
 
-    const onSelectionDragStop = useCallback(() => {
-        addNodeChanges();
-        addEdgeChanges();
-    }, [addNodeChanges, addEdgeChanges]);
+    const onSelectionDragStop = useCallback(
+        (event: React.MouseEvent, nNodes: Node<NodeData>[]) => {
+            onNodeDragStop(event, null, nNodes);
+        },
+        [onNodeDragStop]
+    );
 
     const onNodesDelete = useCallback(
         (toDelete: readonly Node<NodeData>[]) => {
