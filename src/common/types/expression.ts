@@ -4,17 +4,8 @@ import {
     assertValidStructFieldName,
     assertValidStructName,
 } from './names';
+import { Source } from './source';
 import { Type } from './types';
-
-export interface SourcePosition {
-    readonly line: number;
-    readonly column: number;
-}
-export interface Source {
-    document: string;
-    start: SourcePosition;
-    end: SourcePosition;
-}
 
 type PureExpression =
     | UnionExpression
@@ -36,7 +27,7 @@ const bracket = (expression: Expression): string => {
 interface ExpressionBase {
     readonly type: PureExpression['type'];
     readonly underlying: 'expression';
-    source?: Source;
+    source: Source | undefined;
     toString(): string;
 }
 
@@ -44,6 +35,8 @@ export class UnionExpression implements ExpressionBase {
     readonly type = 'union';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly items: readonly Expression[];
 
@@ -60,6 +53,8 @@ export class IntersectionExpression implements ExpressionBase {
     readonly type = 'intersection';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly items: readonly Expression[];
 
@@ -88,6 +83,8 @@ export class NamedExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly fields: readonly NamedExpressionField[];
 
     readonly name: string;
@@ -111,6 +108,8 @@ export class FieldAccessExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly of: Expression;
 
     readonly field: string;
@@ -130,6 +129,8 @@ export class FunctionCallExpression implements ExpressionBase {
     readonly type = 'builtin-function';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly functionName: string;
 
@@ -171,6 +172,8 @@ export class MatchExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly of: Expression;
 
     readonly arms: readonly MatchArm[];
@@ -190,6 +193,8 @@ export class ScopeExpression implements ExpressionBase {
     readonly type = 'scope';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly definitions: readonly Definition[];
 
@@ -211,6 +216,7 @@ export type Definition = StructDefinition | FunctionDefinition | VariableDefinit
 
 interface DefinitionBase {
     readonly type: Definition['type'];
+    source: Source | undefined;
     toString(): string;
 }
 
@@ -227,6 +233,8 @@ export class StructDefinitionField {
 }
 export class StructDefinition implements DefinitionBase {
     readonly type = 'struct';
+
+    source: Source | undefined = undefined;
 
     readonly name: string;
 
@@ -260,6 +268,8 @@ export class FunctionDefinitionParameter {
 export class FunctionDefinition implements DefinitionBase {
     readonly type = 'function';
 
+    source: Source | undefined = undefined;
+
     readonly name: string;
 
     readonly parameters: readonly FunctionDefinitionParameter[];
@@ -289,6 +299,8 @@ export class FunctionDefinition implements DefinitionBase {
 
 export class VariableDefinition implements DefinitionBase {
     readonly type = 'variable';
+
+    source: Source | undefined = undefined;
 
     readonly name: string;
 
