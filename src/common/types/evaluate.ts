@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-param-reassign */
-import { EMPTY_MAP, assertNever } from '../util';
+import { assertNever } from '../util';
 import {
     Expression,
     FieldAccessExpression,
@@ -12,6 +12,7 @@ import {
 } from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
+import { ReadonlyScope } from './scope';
 import {
     AliasDefinition,
     AliasDefinitionEntry,
@@ -248,7 +249,7 @@ const evaluateAlias = (
 
 const evaluateStructDefinition = (
     def: StructDefinition,
-    definitions: TypeDefinitions
+    scope: ReadonlyScope
 ): StructType | NeverType => {
     const fields: StructTypeField[] = [];
     for (const f of def.fields) {
@@ -274,8 +275,7 @@ const evaluateStructDefinition = (
 const evaluateStruct = (
     expression: NamedExpression,
     entry: StructDefinitionEntry,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
+    scope: ReadonlyScope
 ): Type => {
     const unknownField = expression.fields.find((f) => !entry.definition.fieldNames.has(f.name));
     if (unknownField) {
@@ -321,11 +321,7 @@ const evaluateStruct = (
     return new StructType(expression.name, fields);
 };
 
-const evaluateNamed = (
-    expression: NamedExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
+const evaluateNamed = (expression: NamedExpression, scope: ReadonlyScope): Type => {
     // generic parameter
     const genericParam = genericParameters.get(expression.name);
     if (genericParam) {
@@ -366,12 +362,8 @@ const evaluateNamed = (
     return evaluateStruct(expression, entry, definitions, genericParameters);
 };
 
-const evaluateFieldAccess = (
-    expression: FieldAccessExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    const type = evaluate(expression.of, definitions, genericParameters);
+const evaluateFieldAccess = (expression: FieldAccessExpression, scope: ReadonlyScope): Type => {
+    const type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
     if (type.type === 'any') {
         throw new EvaluationError({
@@ -386,7 +378,7 @@ const evaluateFieldAccess = (
     const types = type.type === 'union' ? type.items : [type];
     const accessed: Type[] = [];
     for (const t of types) {
-        if (t.type !== 'struct') {
+        if (t.underlying === 'number' || t.underlying === 'string') {
             throw new EvaluationError({
                 type: 'Invalid field access',
                 expression,
@@ -412,11 +404,7 @@ const evaluateFieldAccess = (
     return union(...accessed);
 };
 
-const evaluateFunctionCall = (
-    expression: FunctionCallExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
+const evaluateFunctionCall = (expression: FunctionCallExpression, scope: ReadonlyScope): Type => {
     const entry = definitions.getFunction(expression.functionName);
     if (entry === undefined) {
         throw new EvaluationError({
@@ -487,12 +475,8 @@ const evaluateFunctionCall = (
     return entry.definition.fn(...args);
 };
 
-const evaluateMatch = (
-    expression: MatchExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    let type = evaluate(expression.of, definitions, genericParameters);
+const evaluateMatch = (expression: MatchExpression, scope: ReadonlyScope): Type => {
+    let type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
 
     const withBinding = (arm: MatchArm, armType: Type): ReadonlyMap<string, Type> => {
@@ -524,11 +508,7 @@ const evaluateMatch = (
  * @returns
  * @throws {@link EvaluationError}
  */
-export const evaluate = (
-    expression: Expression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type> = EMPTY_MAP
-): Type => {
+export const evaluate = (expression: Expression, scope: ReadonlyScope): Type => {
     if (expression.underlying !== 'expression') {
         // type
         return expression;
@@ -536,21 +516,17 @@ export const evaluate = (
 
     switch (expression.type) {
         case 'named':
-            return evaluateNamed(expression, definitions, genericParameters);
+            return evaluateNamed(expression, scope);
         case 'union':
-            return union(
-                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
-            );
+            return union(...expression.items.map((e) => evaluate(e, scope)));
         case 'intersection':
-            return intersect(
-                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
-            );
+            return intersect(...expression.items.map((e) => evaluate(e, scope)));
         case 'field-access':
-            return evaluateFieldAccess(expression, definitions, genericParameters);
+            return evaluateFieldAccess(expression, scope);
         case 'builtin-function':
-            return evaluateFunctionCall(expression, definitions, genericParameters);
+            return evaluateFunctionCall(expression, scope);
         case 'match':
-            return evaluateMatch(expression, definitions, genericParameters);
+            return evaluateMatch(expression, scope);
         default:
             return assertNever(expression);
     }

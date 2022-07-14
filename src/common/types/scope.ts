@@ -1,5 +1,12 @@
 /* eslint-disable max-classes-per-file */
-import { Definition, FunctionDefinition, StructDefinition, VariableDefinition } from './expression';
+import {
+    Definition,
+    Expression,
+    FunctionDefinition,
+    StructDefinition,
+    VariableDefinition,
+} from './expression';
+import { assertValidFunctionName } from './names';
 import { NeverType, StructType, Type } from './types';
 
 type ScopeDefinition = ScopeStructDefinition | ScopeFunctionDefinition | ScopeVariableDefinition;
@@ -15,6 +22,54 @@ export interface ScopeFunctionDefinition {
 export interface ScopeVariableDefinition {
     readonly definition: VariableDefinition;
     value?: Type;
+}
+
+export class BuiltinFunctionDefinition {
+    readonly name: string;
+
+    readonly args: readonly Expression[];
+
+    readonly varArgs: Expression | undefined;
+
+    readonly fn: (...args: Type[]) => Type;
+
+    constructor(
+        name: string,
+        fn: (..._: Type[]) => Type,
+        args: readonly Expression[],
+        varArgs?: Expression
+    ) {
+        assertValidFunctionName(name);
+        this.name = name;
+        this.args = args;
+        this.varArgs = varArgs;
+        this.fn = fn;
+    }
+
+    static unary<T extends Type>(
+        name: string,
+        fn: (a: T) => Type,
+        arg: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [arg]);
+    }
+
+    static binary<T1 extends Type, T2 extends Type>(
+        name: string,
+        fn: (a: T1, b: T2) => Type,
+        arg0: Expression,
+        arg1: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [arg0, arg1]);
+    }
+
+    static varArgs<T extends Type>(
+        name: string,
+        fn: (...args: T[]) => Type,
+        arg: Expression
+    ): BuiltinFunctionDefinition {
+        return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [], arg);
+    }
 }
 
 /**
@@ -56,12 +111,16 @@ export class NameResolutionError extends Error {
     }
 }
 
+export interface ResolvedName {
+    definition: ScopeDefinition;
+    scope: ReadonlyScope;
+}
 export interface ReadonlyScope {
     readonly name: string;
     readonly parent: ReadonlyScope | undefined;
     readonly definitions: ReadonlyMap<string, ScopeDefinition>;
     has(name: string): boolean;
-    get(name: string): ScopeDefinition;
+    get(name: string): ResolvedName;
 }
 
 export class Scope implements ReadonlyScope {
@@ -91,12 +150,12 @@ export class Scope implements ReadonlyScope {
         this.definitions.set(name, { definition } as ScopeDefinition);
     }
 
-    private getOptional(name: string): ScopeDefinition | undefined {
+    private getOptional(name: string): ResolvedName | undefined {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        for (let s: ReadonlyScope | undefined = this; s; s = s.parent) {
-            const definition = s.definitions.get(name);
+        for (let scope: ReadonlyScope | undefined = this; scope; scope = scope.parent) {
+            const definition = scope.definitions.get(name);
             if (definition) {
-                return definition;
+                return { definition, scope };
             }
         }
         return undefined;
@@ -106,9 +165,9 @@ export class Scope implements ReadonlyScope {
         return this.getOptional(name) !== undefined;
     }
 
-    get(name: string): ScopeDefinition {
-        const definition = this.getOptional(name);
-        if (definition) return definition;
+    get(name: string): ResolvedName {
+        const resolution = this.getOptional(name);
+        if (resolution) return resolution;
 
         // Find similar names for the name resolution error
         const allNames = new Set<string>();
