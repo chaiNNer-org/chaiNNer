@@ -5,8 +5,13 @@ export interface BackendSuccessResponse {
     message: string;
     exception?: never;
 }
+export interface BackendExceptionSource {
+    nodeId: string;
+    schemaId: SchemaId;
+}
 export interface BackendExceptionResponse {
     message: string;
+    source?: BackendExceptionSource | null;
     exception: string;
 }
 export type BackendNodesResponse = NodeSchema[];
