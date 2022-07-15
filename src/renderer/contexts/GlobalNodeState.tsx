@@ -118,7 +118,7 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
-    functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
