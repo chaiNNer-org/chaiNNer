@@ -5,7 +5,6 @@ import functools
 import os
 import uuid
 from typing import Any, Dict, List, Optional, TypedDict
-from typing_extensions import NotRequired
 
 from sanic.log import logger
 
@@ -18,9 +17,9 @@ class UsableData(TypedDict):
     inputs: list
     outputs: list
     child: bool
-    children: NotRequired[List[str]]
+    children: List[str]
     nodeType: str
-    percent: NotRequired[int | float]
+    percent: int | float
     hasSideEffects: bool
 
 
