@@ -5,6 +5,7 @@ import {
     useEventSourceListener,
 } from '@react-nano/use-event-source';
 import log from 'electron-log';
+import { BackendExceptionSource } from '../../common/Backend';
 
 export type BackendEventSource = EventSource & { readonly __backend?: never };
 
@@ -16,7 +17,11 @@ export const useBackendEventSource = (
 
 export interface BackendEventMap {
     finish: { message: string };
-    'execution-error': { message: string; exception: string };
+    'execution-error': {
+        message: string;
+        source?: BackendExceptionSource | null;
+        exception: string;
+    };
     'node-finish': { finished: string[] };
     'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] };
 }
