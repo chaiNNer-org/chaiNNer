@@ -40,8 +40,8 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
         isLocked,
         schemaId,
         iteratorSize,
-        maxWidth,
-        maxHeight,
+        minWidth,
+        minHeight,
         percentComplete,
         animated = false,
     } = data;
@@ -149,8 +149,8 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                             accentColor={accentColor}
                             id={id}
                             iteratorSize={iteratorSize}
-                            maxHeight={maxHeight}
-                            maxWidth={maxWidth}
+                            minHeight={minHeight}
+                            minWidth={minWidth}
                         />
                     </Center>
                     {outputs.length > 0 && (
