@@ -9,25 +9,41 @@ import {
 import { assertValidFunctionName } from './names';
 import { NeverType, StructType, Type } from './types';
 
-type ScopeDefinition = ScopeStructDefinition | ScopeFunctionDefinition | ScopeVariableDefinition;
+type ScopeDefinition =
+    | ScopeStructDefinition
+    | ScopeFunctionDefinition
+    | ScopeVariableDefinition
+    | ScopeBuiltinFunctionDefinition;
 
 export interface ScopeStructDefinition {
+    readonly type: 'struct';
     readonly definition: StructDefinition;
     default?: StructType | NeverType;
 }
 export interface ScopeFunctionDefinition {
+    readonly type: 'function';
     readonly definition: FunctionDefinition;
     parameters?: readonly Type[];
+    varArgs?: undefined;
 }
 export interface ScopeVariableDefinition {
+    readonly type: 'variable';
     readonly definition: VariableDefinition;
     value?: Type;
 }
+export interface ScopeBuiltinFunctionDefinition {
+    readonly type: 'builtin-function';
+    readonly definition: BuiltinFunctionDefinition;
+    parameters?: readonly Type[];
+    varArgs?: Type;
+}
 
 export class BuiltinFunctionDefinition {
+    readonly type = 'builtin-function';
+
     readonly name: string;
 
-    readonly args: readonly Expression[];
+    readonly parameters: readonly Expression[];
 
     readonly varArgs: Expression | undefined;
 
@@ -36,12 +52,12 @@ export class BuiltinFunctionDefinition {
     constructor(
         name: string,
         fn: (..._: Type[]) => Type,
-        args: readonly Expression[],
+        parameters: readonly Expression[],
         varArgs?: Expression
     ) {
         assertValidFunctionName(name);
         this.name = name;
-        this.args = args;
+        this.parameters = parameters;
         this.varArgs = varArgs;
         this.fn = fn;
     }
@@ -111,8 +127,8 @@ export class NameResolutionError extends Error {
     }
 }
 
-export interface ResolvedName {
-    definition: ScopeDefinition;
+export interface ResolvedName<D extends ScopeDefinition = ScopeDefinition> {
+    definition: D;
     scope: ReadonlyScope;
 }
 export interface ReadonlyScope {
@@ -139,15 +155,17 @@ export class Scope implements ReadonlyScope {
         const current = this.definitions.get(name);
         if (current) {
             throw new Error(
-                `The name "${name}" is already defined by a ${current.definition.type} in ${this.name}.`
+                `The name "${name}" is already defined by a ${current.type} in ${this.name}.`
             );
         }
     }
 
-    addDefinition(definition: Definition): void {
-        const { name } = definition;
+    addDefinition(definition: Definition | BuiltinFunctionDefinition): void {
+        const { name, type } = definition;
         this.assertNameAvailable(name);
-        this.definitions.set(name, { definition } as ScopeDefinition);
+
+        const scopeType: ScopeDefinition['type'] = type;
+        this.definitions.set(name, { type: scopeType, definition } as ScopeDefinition);
     }
 
     private getOptional(name: string): ResolvedName | undefined {

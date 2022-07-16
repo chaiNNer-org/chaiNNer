@@ -240,10 +240,24 @@ export class StructDefinition implements DefinitionBase {
 
     readonly fields: readonly StructDefinitionField[];
 
+    public readonly fieldNames: ReadonlySet<string>;
+
     constructor(name: string, fields: readonly StructDefinitionField[] = []) {
         assertValidStructName(name);
         this.name = name;
         this.fields = fields;
+
+        const names = new Set<string>();
+        this.fieldNames = names;
+        for (const f of fields) {
+            if (names.has(f.name)) {
+                throw new Error(
+                    `Invalid strut definition. ` +
+                        `The field ${f.name} was used twice in ${this.toString()}`
+                );
+            }
+            names.add(f.name);
+        }
     }
 
     toString(): string {
