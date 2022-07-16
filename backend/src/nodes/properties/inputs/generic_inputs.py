@@ -136,8 +136,16 @@ def StackOrientationDropdown() -> DropDownInput:
         input_type="Orientation",
         label="Orientation",
         options=[
-            {"option": "Horizontal", "value": "horizontal"},
-            {"option": "Vertical", "value": "vertical"},
+            {
+                "option": "Horizontal",
+                "value": "horizontal",
+                "type": "Horizontal",
+            },
+            {
+                "option": "Vertical",
+                "value": "vertical",
+                "type": "Vertical",
+            },
         ],
     )
 
