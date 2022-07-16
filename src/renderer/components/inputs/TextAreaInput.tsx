@@ -23,7 +23,7 @@ export const TextAreaInput = memo(
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {
-            if (!size) {
+            if (size.width === 0 && size.height === 0) {
                 setSize({ width: 320, height: 240 });
             }
             if (!input) {
