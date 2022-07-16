@@ -18,6 +18,7 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputSize,
     InputValue,
     IteratorSize,
     Mutable,
@@ -102,6 +103,11 @@ interface Global {
         inputId: InputId,
         inputData: InputData
     ) => readonly [T | undefined, (data: T) => void, () => void];
+    useInputSize: (
+        id: string,
+        inputId: InputId,
+        inputSize: InputSize | undefined
+    ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     duplicateNode: (id: string) => void;
@@ -755,6 +761,28 @@ export const GlobalProvider = memo(
             [modifyNode, schemata]
         );
 
+        const useInputSize = useCallback(
+            (
+                id: string,
+                inputId: InputId,
+                inputSize: InputSize | undefined
+            ): readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void] => {
+                const currentSize = inputSize?.[inputId];
+                const setInputSize = (size: Readonly<Size>) => {
+                    modifyNode(id, (old) => {
+                        const nodeCopy = copyNode(old);
+                        nodeCopy.data.inputSize = {
+                            ...nodeCopy.data.inputSize,
+                            [inputId]: size,
+                        };
+                        return nodeCopy;
+                    });
+                };
+                return [currentSize, setInputSize] as const;
+            },
+            [modifyNode, schemata]
+        );
+
         const useAnimate = useCallback(() => {
             const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
                 setNodes((nodes) => {
@@ -1010,6 +1038,7 @@ export const GlobalProvider = memo(
             changeEdges,
             useAnimate,
             useInputData,
+            useInputSize,
             toggleNodeLock,
             clearNode,
             removeNodeById,
