@@ -8,6 +8,7 @@ import {
     InputId,
     InputKind,
     InputSchemaValue,
+    InputSize,
     SchemaId,
 } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
@@ -92,21 +93,32 @@ interface NodeInputsProps {
     inputs: readonly Input[];
     id: string;
     inputData: InputData;
+    inputSize?: InputSize;
     isLocked?: boolean;
     schemaId: SchemaId;
     accentColor: string;
 }
 
 export const NodeInputs = memo(
-    ({ inputs, id, inputData, isLocked, schemaId, accentColor }: NodeInputsProps) => {
-        const { useInputData: useInputDataContext, functionDefinitions } =
-            useContext(GlobalContext);
+    ({ inputs, id, inputData, inputSize, isLocked, schemaId, accentColor }: NodeInputsProps) => {
+        const {
+            useInputData: useInputDataContext,
+            useInputSize: useInputSizeContext,
+            functionDefinitions,
+        } = useContext(GlobalContext);
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: InputId) =>
                 // eslint-disable-next-line react-hooks/rules-of-hooks
                 useInputDataContext<T>(id, inputId, inputData),
             [useInputDataContext, id, inputData]
+        );
+
+        const useInputSize = useCallback(
+            (inputId: InputId) =>
+                // eslint-disable-next-line react-hooks/rules-of-hooks
+                useInputSizeContext(id, inputId, inputSize),
+            [useInputSizeContext, id, inputSize]
         );
 
         const functions = functionDefinitions.get(schemaId)!.inputDefaults;
@@ -120,6 +132,7 @@ export const NodeInputs = memo(
                         inputId: input.id,
                         inputData,
                         useInputData,
+                        useInputSize,
                         kind: input.kind,
                         isLocked: isLocked ?? false,
                         schemaId,

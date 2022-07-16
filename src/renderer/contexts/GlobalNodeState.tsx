@@ -18,6 +18,7 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputSize,
     InputValue,
     IteratorSize,
     Mutable,
@@ -102,6 +103,11 @@ interface Global {
         inputId: InputId,
         inputData: InputData
     ) => readonly [T | undefined, (data: T) => void, () => void];
+    useInputSize: (
+        id: string,
+        inputId: InputId,
+        inputSize: InputSize
+    ) => readonly [Size, (size: Size) => void, () => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     duplicateNode: (id: string) => void;
@@ -755,6 +761,29 @@ export const GlobalProvider = memo(
             [modifyNode, schemata]
         );
 
+        const useInputSize = useCallback(
+            (
+                id: string,
+                inputId: InputId,
+                inputSize?: InputSize
+            ): readonly [Size, (size: Size) => void, () => void] => {
+                const currentSize = inputSize ? inputSize[inputId] : { width: 0, height: 0 };
+                const setInputSize = (size: Size) => {
+                    modifyNode(id, (old) => {
+                        const nodeCopy = copyNode(old);
+                        nodeCopy.data.inputSize = {
+                            ...nodeCopy.data.inputData,
+                            [inputId]: size,
+                        };
+                        return nodeCopy;
+                    });
+                };
+                const resetInputSize = () => setInputSize({ width: 0, height: 0 } as Size);
+                return [currentSize, setInputSize, resetInputSize] as const;
+            },
+            [modifyNode, schemata]
+        );
+
         const useAnimate = useCallback(() => {
             const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
                 setNodes((nodes) => {
@@ -1010,6 +1039,7 @@ export const GlobalProvider = memo(
             changeEdges,
             useAnimate,
             useInputData,
+            useInputSize,
             toggleNodeLock,
             clearNode,
             removeNodeById,

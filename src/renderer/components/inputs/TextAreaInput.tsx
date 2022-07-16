@@ -3,6 +3,7 @@ import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useMemoArray } from '../../hooks/useMemo';
@@ -12,46 +13,30 @@ interface TextAreaInputProps extends InputProps {
     resizable: boolean;
 }
 
-interface StringifiedValue {
-    input: string;
-    height: number;
-    width: number;
-}
-
 export const TextAreaInput = memo(
-    ({ label, inputId, useInputData, isLocked, resizable }: TextAreaInputProps) => {
+    ({ label, inputId, useInputData, useInputSize, isLocked, resizable }: TextAreaInputProps) => {
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
         const { useSnapToGrid } = useContext(SettingsContext);
         const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
-        const [inputValue, setInputValue] = useInputData<string>(inputId);
+        const [input, setInput] = useInputData<string>(inputId);
+        const [size, setSize] = useInputSize<Size>(inputId);
         const [tempText, setTempText] = useState('');
-        const [size, setSize] = useState({ width: 0, height: 0 });
 
         useEffect(() => {
-            if (!inputValue) {
-                setInputValue('');
+            if (!size) {
                 setSize({ width: 320, height: 240 });
+            }
+            if (!input) {
+                setInput('');
             } else {
-                try {
-                    const { input, width, height } = JSON.parse(inputValue) as StringifiedValue;
-                    setTempText(input);
-                    setSize({ width, height });
-                } catch (error) {
-                    setInputValue(
-                        JSON.stringify({
-                            input: inputValue,
-                            height: size.height,
-                            width: size.width,
-                        })
-                    );
-                }
+                setTempText(input);
             }
         }, []);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
             const text = event.target.value;
-            setInputValue(JSON.stringify({ input: text, height: size.height, width: size.width }));
+            setInput(text);
         }, 500);
 
         return (
@@ -60,11 +45,11 @@ export const TextAreaInput = memo(
                 defaultSize={size}
                 enable={{
                     top: false,
-                    right: resizable && true,
-                    bottom: resizable && true,
+                    right: !isLocked && resizable && true,
+                    bottom: !isLocked && resizable && true,
                     left: false,
                     topRight: false,
-                    bottomRight: resizable && true,
+                    bottomRight: !isLocked && resizable && true,
                     bottomLeft: false,
                     topLeft: false,
                 }}
@@ -75,22 +60,15 @@ export const TextAreaInput = memo(
                 minWidth={240}
                 scale={zoom}
                 size={{
-                    width: size.width,
-                    height: size.height,
+                    width: size?.width || 320,
+                    height: size?.height || 240,
                 }}
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: size.width + d.width,
-                            height: size.height + d.height,
+                            width: (size?.width || 0) + d.width,
+                            height: (size?.height || 0) + d.height,
                         });
-                        setInputValue(
-                            JSON.stringify({
-                                input: tempText,
-                                width: size.width + d.width,
-                                height: size.height + d.height,
-                            })
-                        );
                     }
                 }}
             >
