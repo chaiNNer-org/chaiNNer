@@ -22,5 +22,7 @@ export interface InputProps {
     readonly useInputData: <T extends InputSchemaValue>(
         inputId: InputId
     ) => readonly [T | undefined, (value: T) => void, () => void];
-    readonly useInputSize: (inputId: InputId) => readonly [Size, (size: Size) => void, () => void];
+    readonly useInputSize: (
+        inputId: InputId
+    ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
 }

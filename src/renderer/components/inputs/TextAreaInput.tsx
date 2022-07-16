@@ -23,7 +23,7 @@ export const TextAreaInput = memo(
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {
-            if (size.width === 0 && size.height === 0) {
+            if (!size) {
                 setSize({ width: 320, height: 240 });
             }
             if (!input) {
@@ -59,14 +59,14 @@ export const TextAreaInput = memo(
                 minWidth={240}
                 scale={zoom}
                 size={{
-                    width: size.width || 320,
-                    height: size.height || 240,
+                    width: size?.width || 320,
+                    height: size?.height || 240,
                 }}
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: (size.width || 0) + d.width,
-                            height: (size.height || 0) + d.height,
+                            width: (size?.width || 0) + d.width,
+                            height: (size?.height || 0) + d.height,
                         });
                     }
                 }}

@@ -107,7 +107,7 @@ interface Global {
         id: string,
         inputId: InputId,
         inputSize?: InputSize
-    ) => readonly [Size, (size: Size) => void, () => void];
+    ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     duplicateNode: (id: string) => void;
@@ -766,9 +766,9 @@ export const GlobalProvider = memo(
                 id: string,
                 inputId: InputId,
                 inputSize?: InputSize
-            ): readonly [Size, (size: Size) => void, () => void] => {
-                const currentSize = inputSize?.[inputId] ?? { width: 0, height: 0 };
-                const setInputSize = (size: Size) => {
+            ): readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void] => {
+                const currentSize = inputSize?.[inputId];
+                const setInputSize = (size: Readonly<Size>) => {
                     modifyNode(id, (old) => {
                         const nodeCopy = copyNode(old);
                         nodeCopy.data.inputSize = {
@@ -778,8 +778,7 @@ export const GlobalProvider = memo(
                         return nodeCopy;
                     });
                 };
-                const resetInputSize = () => setInputSize({ width: 0, height: 0 });
-                return [currentSize, setInputSize, resetInputSize] as const;
+                return [currentSize, setInputSize] as const;
             },
             [modifyNode, schemata]
         );
