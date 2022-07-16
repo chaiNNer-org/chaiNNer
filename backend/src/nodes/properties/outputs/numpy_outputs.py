@@ -32,7 +32,7 @@ class ImageOutput(NumPyOutput):
 
         # resize the image, so the preview loads faster and doesn't lag the UI
         # 512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
-        target_size = 512
+        target_size = 64
         max_size = target_size * 1.2
         if w > max_size or h > max_size:
             f = max(w / target_size, h / target_size)
