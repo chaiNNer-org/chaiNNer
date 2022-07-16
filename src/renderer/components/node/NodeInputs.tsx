@@ -132,7 +132,6 @@ export const NodeInputs = memo(
                         inputId: input.id,
                         inputData,
                         useInputData,
-                        inputSize,
                         useInputSize,
                         kind: input.kind,
                         isLocked: isLocked ?? false,

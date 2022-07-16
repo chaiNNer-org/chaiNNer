@@ -1,18 +1,10 @@
-import {
-    InputData,
-    InputId,
-    InputSchemaValue,
-    InputSize,
-    SchemaId,
-    Size,
-} from '../../../common/common-types';
+import { InputData, InputId, InputSchemaValue, SchemaId, Size } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 
 export interface InputProps {
     readonly id: string;
     readonly inputId: InputId;
     readonly inputData: InputData;
-    readonly inputSize?: InputSize;
     readonly isLocked: boolean;
     readonly label: string;
     readonly schemaId: SchemaId;
