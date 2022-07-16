@@ -11,6 +11,7 @@ import {
     UnionExpression,
 } from './expression';
 import { parseExpression } from './parse';
+import { SourceDocument } from './source';
 import { IntIntervalType, IntervalType, NumericLiteralType, StringLiteralType } from './types';
 
 export type NumberJson = number | 'inf' | '-inf' | 'NaN';
@@ -146,6 +147,8 @@ export const toJson = (e: Expression): ExpressionJson => {
                 })),
             };
         }
+        case 'scope':
+            throw new Error('Converting scoped expressions to JSON is currently not supported.');
         default:
             return assertNever(e);
     }
@@ -157,7 +160,7 @@ export const fromJson = (e: ExpressionJson): Expression => {
     }
 
     if (typeof e === 'string') {
-        return parseExpression(e);
+        return parseExpression(new SourceDocument(e, 'unnamed JSON'));
     }
 
     if (Array.isArray(e)) {

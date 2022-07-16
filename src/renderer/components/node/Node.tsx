@@ -49,7 +49,7 @@ export interface NodeProps {
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
+    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -81,11 +81,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     inputData,
                     edges: getEdges(),
                     functionInstance,
-                    typeDefinitions,
                 })
             );
         }
-    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
+    }, [inputData, edgeChanges, functionInstance]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);

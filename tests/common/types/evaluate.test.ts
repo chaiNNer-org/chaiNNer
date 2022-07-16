@@ -1,4 +1,5 @@
 import { reciprocal } from '../../../src/common/types/builtin';
+import { getChainnerScope } from '../../../src/common/types/chainner-scope';
 import { evaluate } from '../../../src/common/types/evaluate';
 import {
     Expression,
@@ -9,7 +10,7 @@ import {
     NamedExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { BuiltinFunctionDefinition, TypeDefinitions } from '../../../src/common/types/typedef';
+import { BuiltinFunctionDefinition, Scope } from '../../../src/common/types/scope';
 import {
     AnyType,
     NeverType,
@@ -33,14 +34,12 @@ import {
     unorderedPairs,
 } from './data';
 
-const definitions = new TypeDefinitions();
-definitions.addFunction(
-    BuiltinFunctionDefinition.unary('reciprocal', reciprocal, NumberType.instance)
-);
+const scope = new Scope('test scope', getChainnerScope());
+scope.add(BuiltinFunctionDefinition.unary('reciprocal', reciprocal, NumberType.instance));
 
 const assertSame = (a: Expression, b: Expression): void => {
-    const expected = evaluate(a, definitions).getTypeId();
-    const actual = evaluate(b, definitions).getTypeId();
+    const expected = evaluate(a, scope).getTypeId();
+    const actual = evaluate(b, scope).getTypeId();
     if (expected !== actual) {
         const prefix = `a = ${a.toString()}\nb = ${b.toString()}\n`;
         expect(prefix + actual).toBe(prefix + expected);
@@ -66,7 +65,7 @@ test('Expression evaluation', () => {
         .map((e) => {
             let result;
             try {
-                result = evaluate(e, definitions).toString();
+                result = evaluate(e, scope).toString();
             } catch (error) {
                 result = String(error);
             }
@@ -94,11 +93,8 @@ describe('union', () => {
             for (const b of types) {
                 for (const c of types) {
                     assertSame(
-                        new UnionExpression([
-                            a,
-                            evaluate(new UnionExpression([b, c]), definitions),
-                        ]),
-                        new UnionExpression([evaluate(new UnionExpression([a, b]), definitions), c])
+                        new UnionExpression([a, evaluate(new UnionExpression([b, c]), scope)]),
+                        new UnionExpression([evaluate(new UnionExpression([a, b]), scope), c])
                     );
                 }
             }
@@ -126,10 +122,10 @@ describe('intersection', () => {
                     assertSame(
                         new IntersectionExpression([
                             a,
-                            evaluate(new IntersectionExpression([b, c]), definitions),
+                            evaluate(new IntersectionExpression([b, c]), scope),
                         ]),
                         new IntersectionExpression([
-                            evaluate(new IntersectionExpression([a, b]), definitions),
+                            evaluate(new IntersectionExpression([a, b]), scope),
                             c,
                         ])
                     );
@@ -206,7 +202,7 @@ describe('Builtin functions', () => {
                 .map((e) => {
                     let result;
                     try {
-                        result = evaluate(e, definitions).toString();
+                        result = evaluate(e, scope).toString();
                     } catch (error) {
                         result = String(error);
                     }
@@ -231,7 +227,7 @@ describe('Builtin functions', () => {
                     .map((e) => {
                         let result;
                         try {
-                            result = evaluate(e, definitions).toString();
+                            result = evaluate(e, scope).toString();
                         } catch (error) {
                             result = String(error);
                         }
@@ -270,16 +266,10 @@ describe('Builtin functions', () => {
                                 assertSame(
                                     new FunctionCallExpression(name, [
                                         a,
-                                        evaluate(
-                                            new FunctionCallExpression(name, [b, c]),
-                                            definitions
-                                        ),
+                                        evaluate(new FunctionCallExpression(name, [b, c]), scope),
                                     ]),
                                     new FunctionCallExpression(name, [
-                                        evaluate(
-                                            new FunctionCallExpression(name, [a, b]),
-                                            definitions
-                                        ),
+                                        evaluate(new FunctionCallExpression(name, [a, b]), scope),
                                         c,
                                     ])
                                 );
@@ -344,7 +334,7 @@ describe('Match', () => {
             .map((e) => {
                 let result;
                 try {
-                    result = evaluate(e, definitions).toString();
+                    result = evaluate(e, scope).toString();
                 } catch (error) {
                     result = String(error);
                 }

@@ -31,7 +31,7 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, typeDefinitions } = useContext(GlobalContext);
+    const { schemata } = useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
@@ -72,11 +72,10 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                     inputData,
                     edges: getEdges(),
                     functionInstance,
-                    typeDefinitions,
                 })
             );
         }
-    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
+    }, [inputData, edgeChanges, functionInstance]);
 
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 

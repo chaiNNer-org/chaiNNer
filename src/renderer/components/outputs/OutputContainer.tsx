@@ -6,7 +6,7 @@ import { OutputId } from '../../../common/common-types';
 import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseSourceHandle } from '../../../common/util';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
@@ -92,10 +92,8 @@ export const OutputContainer = memo(
             return false;
         }, [connectingFromType, connectingFrom, definitionType, id, outputId]);
 
-        const { typeDefinitions } = useContext(GlobalContext);
-
         let contents = children;
-        const [handleColor] = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
+        const [handleColor] = getTypeAccentColors(definitionType, isDarkMode);
         const connectedColor = useColorModeValue('#EDF2F7', '#171923');
         if (hasHandle) {
             contents = (

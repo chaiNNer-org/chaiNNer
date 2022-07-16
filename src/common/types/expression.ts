@@ -216,6 +216,7 @@ export type Definition = StructDefinition | FunctionDefinition | VariableDefinit
 
 interface DefinitionBase {
     readonly type: Definition['type'];
+    readonly underlying: 'definition';
     source: Source | undefined;
     toString(): string;
 }
@@ -233,6 +234,8 @@ export class StructDefinitionField {
 }
 export class StructDefinition implements DefinitionBase {
     readonly type = 'struct';
+
+    readonly underlying = 'definition';
 
     source: Source | undefined = undefined;
 
@@ -282,6 +285,8 @@ export class FunctionDefinitionParameter {
 export class FunctionDefinition implements DefinitionBase {
     readonly type = 'function';
 
+    readonly underlying = 'definition';
+
     source: Source | undefined = undefined;
 
     readonly name: string;
@@ -313,6 +318,8 @@ export class FunctionDefinition implements DefinitionBase {
 
 export class VariableDefinition implements DefinitionBase {
     readonly type = 'variable';
+
+    readonly underlying = 'definition';
 
     source: Source | undefined = undefined;
 

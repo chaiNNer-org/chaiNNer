@@ -1,4 +1,5 @@
 import { parseExpression } from '../../../src/common/types/parse';
+import { SourceDocument } from '../../../src/common/types/source';
 
 const expressionSnippets: string[] = [
     // comments and spaces
@@ -155,7 +156,7 @@ const invalidExpressionSnippets: string[] = [
 const expressionParsing = (expr: string): string => {
     let result: string;
     try {
-        result = parseExpression(expr).toString();
+        result = parseExpression(new SourceDocument(expr, 'test document')).toString();
     } catch (error) {
         result = String(error);
     }

@@ -1,5 +1,5 @@
 import { assertNever } from '../util';
-import { Expression } from './expression';
+import { Definition, Expression } from './expression';
 import {
     IntIntervalType,
     IntervalType,
@@ -53,7 +53,7 @@ export const isSameStructType = (a: StructType, b: StructType): boolean => {
 
 export const isSameType = (a: Type, b: Type): boolean => a === b || a.getTypeId() === b.getTypeId();
 
-export function* getReferences(expression: Expression): Iterable<string> {
+export function* getReferences(expression: Expression | Definition): Iterable<string> {
     if (expression.type === 'named') {
         yield expression.name;
     }
@@ -85,8 +85,35 @@ export function* getReferences(expression: Expression): Iterable<string> {
                     yield* getReferences(arm.to);
                 }
                 break;
+            case 'scope':
+                for (const d of expression.definitions) {
+                    yield* getReferences(d);
+                }
+                yield* getReferences(expression.expression);
+                break;
             default:
                 yield assertNever(expression);
+        }
+    }
+
+    if (expression.underlying === 'definition') {
+        const definition: Definition = expression;
+        switch (definition.type) {
+            case 'variable':
+                yield* getReferences(definition.value);
+                break;
+            case 'struct':
+                for (const f of definition.fields) {
+                    yield* getReferences(f.type);
+                }
+                break;
+            case 'function':
+                for (const f of definition.parameters) {
+                    yield* getReferences(f.type);
+                }
+                break;
+            default:
+                yield assertNever(definition);
         }
     }
 }

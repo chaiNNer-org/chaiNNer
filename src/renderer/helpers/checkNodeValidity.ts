@@ -1,10 +1,10 @@
 import { Edge } from 'react-flow-renderer';
 import { EdgeData, InputData, NodeSchema } from '../../common/common-types';
+import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';
 import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
 import { FunctionInstance } from '../../common/types/function';
 import { isDisjointWith } from '../../common/types/intersection';
-import { TypeDefinitions } from '../../common/types/typedef';
 import { IntIntervalType, NumericLiteralType, Type } from '../../common/types/types';
 import { IntNumberType, isImage } from '../../common/types/util';
 import { parseTargetHandle } from '../../common/util';
@@ -79,7 +79,6 @@ export interface CheckNodeValidityOptions {
     inputData: InputData;
     edges: readonly Edge<EdgeData>[];
     functionInstance: FunctionInstance | undefined;
-    typeDefinitions: TypeDefinitions;
 }
 export const checkNodeValidity = ({
     id,
@@ -87,7 +86,6 @@ export const checkNodeValidity = ({
     inputData,
     edges,
     functionInstance,
-    typeDefinitions,
 }: CheckNodeValidityOptions): Validity => {
     const targetedInputs = edges
         .filter((e) => e.target === id && e.targetHandle)
@@ -124,7 +122,7 @@ export const checkNodeValidity = ({
             if (isImage(assignedType)) {
                 const iType = evaluate(
                     new IntersectionExpression([inputType, new NamedExpression('Image')]),
-                    typeDefinitions
+                    getChainnerScope()
                 );
                 if (isImage(iType)) {
                     const assignedChannels = assignedType.fields[2].type;
