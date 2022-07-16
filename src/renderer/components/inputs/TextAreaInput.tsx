@@ -54,8 +54,8 @@ export const TextAreaInput = memo(
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: (size?.width || 0) + d.width,
-                            height: (size?.height || 0) + d.height,
+                            width: (size?.width ?? 0) + d.width,
+                            height: (size?.height ?? 0) + d.height,
                         });
                     }
                 }}
