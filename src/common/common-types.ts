@@ -92,8 +92,8 @@ export interface NodeData {
     readonly invalid?: boolean;
     readonly iteratorSize?: IteratorSize;
     readonly percentComplete?: number;
-    readonly maxWidth?: number;
-    readonly maxHeight?: number;
+    readonly minWidth?: number;
+    readonly minHeight?: number;
     readonly animated?: boolean;
 }
 export interface EdgeData {

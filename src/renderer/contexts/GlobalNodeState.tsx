@@ -839,13 +839,13 @@ export const GlobalProvider = memo(
                     if (iteratorNode && nodesToUpdate.length > 0) {
                         const { width, height, offsetTop, offsetLeft } =
                             iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
-                        let maxWidth = 256;
-                        let maxHeight = 256;
+                        let minWidth = 256;
+                        let minHeight = 256;
                         nodesToUpdate.forEach((n) => {
-                            maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
-                            maxHeight = Math.max(
-                                n.height ?? dimensions?.height ?? maxHeight,
-                                maxHeight
+                            minWidth = Math.max(n.width ?? dimensions?.width ?? minWidth, minWidth);
+                            minHeight = Math.max(
+                                n.height ?? dimensions?.height ?? minHeight,
+                                minHeight
                             );
                         });
                         const newNodes = nodesToUpdate.map((n) => {
@@ -870,13 +870,13 @@ export const GlobalProvider = memo(
 
                         const newIteratorNode = copyNode(iteratorNode);
 
-                        newIteratorNode.data.maxWidth = maxWidth;
-                        newIteratorNode.data.maxHeight = maxHeight;
+                        newIteratorNode.data.minWidth = minWidth;
+                        newIteratorNode.data.minHeight = minHeight;
                         // TODO: prove that those non-null assertions are valid or make them unnecessary
                         newIteratorNode.data.iteratorSize!.width =
-                            width < maxWidth ? maxWidth : width;
+                            width < minWidth ? minWidth : width;
                         newIteratorNode.data.iteratorSize!.height =
-                            height < maxHeight ? maxHeight : height;
+                            height < minHeight ? minHeight : height;
                         return [
                             newIteratorNode,
                             ...nodes.filter((n) => n.parentNode !== id && n.id !== id),

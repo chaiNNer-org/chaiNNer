@@ -57,12 +57,12 @@ interface IteratorNodeBodyProps {
     id: string;
     iteratorSize?: IteratorSize;
     accentColor: string;
-    maxWidth?: number;
-    maxHeight?: number;
+    minWidth?: number;
+    minHeight?: number;
 }
 
 export const IteratorNodeBody = memo(
-    ({ id, iteratorSize, accentColor, maxWidth = 256, maxHeight = 256 }: IteratorNodeBodyProps) => {
+    ({ id, iteratorSize, accentColor, minWidth = 256, minHeight = 256 }: IteratorNodeBodyProps) => {
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
         const hoveredNode = useContextSelector(GlobalVolatileContext, (c) => c.hoveredNode);
         const { defaultIteratorSize, setIteratorSize, setHoveredNode, updateIteratorBounds } =
@@ -94,7 +94,7 @@ export const IteratorNodeBody = memo(
         return (
             <Resizable
                 className="nodrag"
-                defaultSize={defaultIteratorSize}
+                defaultSize={iteratorSize ?? defaultIteratorSize}
                 enable={{
                     top: false,
                     right: true,
@@ -108,16 +108,12 @@ export const IteratorNodeBody = memo(
                 grid={useMemoArray<[number, number]>(
                     isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
                 )}
-                minHeight={maxHeight}
-                minWidth={maxWidth}
+                minHeight={minHeight}
+                minWidth={minWidth}
                 ref={(r) => {
                     setResizeRef(r);
                 }}
                 scale={zoom}
-                size={{
-                    width: width < maxWidth ? maxWidth : width,
-                    height: height < maxHeight ? maxHeight : height,
-                }}
                 style={{
                     margin: 8,
                     marginBottom: 0,
@@ -127,8 +123,8 @@ export const IteratorNodeBody = memo(
                     const size = {
                         offsetTop: ref.offsetTop,
                         offsetLeft: ref.offsetLeft,
-                        width: (width < maxWidth ? maxWidth : width) + d.width,
-                        height: (height < maxHeight ? maxHeight : height) + d.height,
+                        width: (width < minWidth ? minWidth : width) + d.width,
+                        height: (height < minHeight ? minHeight : height) + d.height,
                     };
                     setIteratorSize(id, size);
                     updateIteratorBounds(id, size);
