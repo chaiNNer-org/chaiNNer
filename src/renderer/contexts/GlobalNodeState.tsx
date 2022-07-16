@@ -106,7 +106,7 @@ interface Global {
     useInputSize: (
         id: string,
         inputId: InputId,
-        inputSize?: InputSize
+        inputSize: InputSize | undefined
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
@@ -765,7 +765,7 @@ export const GlobalProvider = memo(
             (
                 id: string,
                 inputId: InputId,
-                inputSize?: InputSize
+                inputSize: InputSize | undefined
             ): readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void] => {
                 const currentSize = inputSize?.[inputId];
                 const setInputSize = (size: Readonly<Size>) => {
