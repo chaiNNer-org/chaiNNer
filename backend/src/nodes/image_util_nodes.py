@@ -117,7 +117,12 @@ class StackNode(NodeBase):
                 image_type="""
                 def getWidth(img: Image | null) = match img { null => 0, _ as i => i.width };
                 def getHeight(img: Image | null) = match img { null => 0, _ as i => i.height };
-                def getChannels(img: Image | null) = match img { null => 0, _ as i => i.channels };
+                def getChannels(img: Image | null) {
+                    match img {
+                        null => 0,
+                        _ as i => match i.channels { 1 => 3, _ as c => c }
+                    }
+                }
 
                 let maxWidth = max(Input0.width, getWidth(Input1), getWidth(Input2), getWidth(Input3));
                 let maxHeight = max(Input0.height, getHeight(Input1), getHeight(Input2), getHeight(Input3));
