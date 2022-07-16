@@ -1,11 +1,9 @@
 import { Textarea } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
-import { useMemoArray } from '../../hooks/useMemo';
 import { InputProps } from './props';
 
 interface TextAreaInputProps extends InputProps {
@@ -15,8 +13,6 @@ interface TextAreaInputProps extends InputProps {
 export const TextAreaInput = memo(
     ({ label, inputId, useInputData, useInputSize, isLocked, resizable }: TextAreaInputProps) => {
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-        const { useSnapToGrid } = useContext(SettingsContext);
-        const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
         const [input, setInput] = useInputData<string>(inputId);
         const [size, setSize] = useInputSize(inputId);
@@ -52,16 +48,9 @@ export const TextAreaInput = memo(
                     bottomLeft: false,
                     topLeft: false,
                 }}
-                grid={useMemoArray<[number, number]>(
-                    isSnapToGrid ? [snapToGridAmount, snapToGridAmount] : [1, 1]
-                )}
                 minHeight={80}
                 minWidth={240}
                 scale={zoom}
-                // size={{
-                //     width: size?.width || 320,
-                //     height: size?.height || 240,
-                // }}
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
