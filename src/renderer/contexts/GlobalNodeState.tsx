@@ -17,11 +17,13 @@ import { createContext, useContext } from 'use-context-selector';
 import {
     EdgeData,
     InputData,
+    InputId,
     InputValue,
     IteratorSize,
     Mutable,
     NodeData,
     OutputData,
+    OutputId,
     SchemaId,
     Size,
 } from '../../common/common-types';
@@ -33,7 +35,13 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { TypeDefinitions } from '../../common/types/typedef';
 import { Type } from '../../common/types/types';
-import { createUniqueId, deriveUniqueId, parseHandle } from '../../common/util';
+import {
+    createUniqueId,
+    deepCopy,
+    deriveUniqueId,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import {
     copyToClipboard,
     cutAndCopyToClipboard,
@@ -65,7 +73,7 @@ interface GlobalVolatile {
     typeState: TypeState;
     createNode: (proto: NodeProto) => void;
     createConnection: (connection: Connection) => void;
-    isNodeInputLocked: (id: string, inputId: number) => boolean;
+    isNodeInputLocked: (id: string, inputId: InputId) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
@@ -95,7 +103,7 @@ interface Global {
     ];
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
-        inputId: number,
+        inputId: InputId,
         inputData: InputData
     ) => readonly [T | undefined, (data: T) => void, () => void];
     removeNodeById: (id: string) => void;
@@ -113,10 +121,11 @@ interface Global {
     setNodeDisabled: (id: string, isDisabled: boolean) => void;
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
-    setManualOutputType: (nodeId: string, outputId: number, type: Expression | undefined) => void;
-    functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeDefinitions: TypeDefinitions;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
+    releaseNodeFromParent: (id: string) => void;
 }
 
 export interface NodeProto {
@@ -246,10 +255,10 @@ export const GlobalProvider = memo(
         );
 
         const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
-            map: new Map<string, Map<number, Type>>(),
+            map: new Map<string, Map<OutputId, Type>>(),
         }));
         const setManualOutputType = useCallback(
-            (nodeId: string, outputId: number, type: Expression | undefined): void => {
+            (nodeId: string, outputId: OutputId, type: Expression | undefined): void => {
                 setManualOutputTypes(({ map }) => {
                     let inner = map.get(nodeId);
                     if (type) {
@@ -584,16 +593,20 @@ export const GlobalProvider = memo(
 
         const removeNodeById = useCallback(
             (id: string) => {
-                changeEdges((edges) => edges.filter((e) => e.source !== id && e.target !== id));
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.type !== 'iteratorHelper') {
-                        return nodes.filter((n) => n.id !== id && n.parentNode !== id);
-                    }
-                    return nodes;
-                });
+                const node = getNode(id);
+                if (!node || node.type === 'iteratorHelper') return;
+                const toRemove = new Set([
+                    id,
+                    ...getNodes()
+                        .filter((n) => n.parentNode === id)
+                        .map((n) => n.id),
+                ]);
+                changeNodes((nodes) => nodes.filter((n) => !toRemove.has(n.id)));
+                changeEdges((edges) =>
+                    edges.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
+                );
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges, getNode, getNodes]
         );
 
         const removeEdgeById = useCallback(
@@ -643,13 +656,39 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const releaseNodeFromParent = useCallback(
+            (id: string) => {
+                changeNodes((nodes) => {
+                    const node = nodes.find((n) => n.id === id);
+                    if (node && node.parentNode) {
+                        const parentNode = nodes.find((n) => n.id === node.parentNode);
+                        if (parentNode) {
+                            const newNode: Node<Mutable<NodeData>> = deepCopy(node);
+                            delete newNode.parentNode;
+                            delete newNode.data.parentNode;
+                            delete newNode.extent;
+                            delete newNode.positionAbsolute;
+                            newNode.position = {
+                                x: parentNode.position.x - 100,
+                                y: parentNode.position.y - 100,
+                            };
+                            return [...nodes.filter((n) => n.id !== node.id), newNode];
+                        }
+                    }
+                    return nodes;
+                });
+                changeEdges((edges) => edges.filter((e) => e.target !== id));
+            },
+            [changeNodes, changeEdges]
+        );
+
         const isValidConnection = useCallback(
             ({ target, targetHandle, source, sourceHandle }: Readonly<Connection>) => {
                 if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                     return false;
                 }
-                const sourceHandleId = parseHandle(sourceHandle).inOutId;
-                const targetHandleId = parseHandle(targetHandle).inOutId;
+                const sourceHandleId = parseSourceHandle(sourceHandle).inOutId;
+                const targetHandleId = parseTargetHandle(targetHandle).inOutId;
 
                 const sourceFn = typeState.functions.get(source);
                 const targetFn = typeState.functions.get(target);
@@ -695,7 +734,7 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
             function <T extends NonNullable<InputValue>>(
                 id: string,
-                inputId: number,
+                inputId: InputId,
                 inputData: InputData
             ): readonly [T | undefined, (data: T) => void, () => void] {
                 const currentInput = (inputData[inputId] ?? undefined) as T | undefined;
@@ -783,12 +822,12 @@ export const GlobalProvider = memo(
         );
 
         const isNodeInputLocked = useCallback(
-            (id: string, inputId: number): boolean => {
+            (id: string, inputId: InputId): boolean => {
                 return getEdges().some(
                     (e) =>
                         e.target === id &&
                         !!e.targetHandle &&
-                        parseHandle(e.targetHandle).inOutId === inputId
+                        parseTargetHandle(e.targetHandle).inOutId === inputId
                 );
             },
             [edgeChanges]
@@ -1000,6 +1039,7 @@ export const GlobalProvider = memo(
             functionDefinitions,
             typeDefinitions,
             typeStateRef,
+            releaseNodeFromParent,
         });
 
         return (

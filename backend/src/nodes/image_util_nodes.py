@@ -131,18 +131,15 @@ class StackNode(NodeBase):
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
         for img in im1, im2, im3, im4:
-            if img is not None and not isinstance(img, str):
+            if img is not None:
                 h, w, c = get_h_w_c(img)
                 if c == 1:
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                    c = 3
                 max_h = max(h, max_h)
                 max_w = max(w, max_w)
                 max_c = max(c, max_c)
                 imgs.append(img)
-            # dirty fix for problem with optional inputs and them just being positional
-            # TODO: Check if this is still needed or if that null stuff made it obsolete
-            elif isinstance(img, str) and img in ["horizontal", "vertical"]:
-                orientation = img
 
         fixed_imgs: List[np.ndarray] = []
         for img in imgs:
@@ -152,20 +149,20 @@ class StackNode(NodeBase):
             # Fix images so they resize proportionally to the max image
             if orientation == "horizontal":
                 if h < max_h:
-                    ratio = max_h / h
                     fixed_img = cv2.resize(
                         img,
-                        (math.ceil(w * ratio), max_h),
+                        (math.ceil(w * max_h / h), max_h),
                         interpolation=cv2.INTER_NEAREST,
                     )
             elif orientation == "vertical":
                 if w < max_w:
-                    ratio = max_w / w
                     fixed_img = cv2.resize(
                         img,
-                        (max_w, math.ceil(h * ratio)),
+                        (max_w, math.ceil(h * max_w / w)),
                         interpolation=cv2.INTER_NEAREST,
                     )
+            else:
+                assert False, f"Invalid orientation '{orientation}'"
 
             # Expand channel dims if necessary
             if c < max_c:
@@ -193,8 +190,10 @@ class StackNode(NodeBase):
                     fixed_imgs[i].dtype == fixed_imgs[0].dtype
                 ), "The image types are not the same and could not be auto-fixed"
             img = cv2.vconcat(fixed_imgs)  # type: ignore
+        else:
+            assert False, f"Invalid orientation '{orientation}'"
 
-        return img  # type: ignore
+        return img
 
 
 @NodeFactory.register("chainner:image:caption")
@@ -377,15 +376,7 @@ class FlipNode(NodeBase):
             ImageInput("Image"),
             FlipAxisInput(),
         ]
-        self.outputs = [
-            ImageOutput(
-                image_type=expression.Image(
-                    width=["Input0.width", "Input0.height"],
-                    height=["Input0.width", "Input0.height"],
-                    channels_as="Input0",
-                )
-            )
-        ]
+        self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_UTILITY
         self.name = "Flip"
         self.icon = "MdFlip"
@@ -410,7 +401,7 @@ class ImageMetricsNode(NodeBase):
         ]
         self.outputs = [
             NumberOutput("MSE", output_type="0..1"),
-            NumberOutput("PSNR", output_type="0..inf"),
+            NumberOutput("PSNR", output_type="0.."),
             NumberOutput("SSIM", output_type="0..1"),
         ]
         self.category = IMAGE_UTILITY

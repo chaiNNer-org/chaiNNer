@@ -1,16 +1,26 @@
+import log from 'electron-log';
+import init, { RRegex } from 'rregex';
 import { NodeSchema } from '../../common/common-types';
+import { lazy } from '../../common/util';
 
+// This is not good, but I can't think of a better way.
+// We are racing loading the wasm module and using it.
+init().catch((reason) => log.error(reason));
+
+const isLetter = lazy(() => new RRegex('(?is)^[a-z]$'));
 export const createSearchPredicate = (query: string): ((name: string) => boolean) => {
-    const pattern = new RegExp(
-        `^${[...query]
+    if (!query) return () => true;
+
+    const pattern = new RRegex(
+        `(?is)^${[...query]
             .map((char) => {
                 const hex = `\\u{${char.codePointAt(0)!.toString(16)}}`;
-                return `(?:.+(?:(?<![a-z])|(?<=[a-z])(?![a-z])))?${hex}`;
+                const before = isLetter().isMatch(char) ? `[^a-z]` : `.`;
+                return `(?:.*${before})?${hex}`;
             })
-            .join('')}`,
-        'iu'
+            .join('')}`
     );
-    return (name) => pattern.test(name);
+    return (name) => pattern.isMatch(name);
 };
 
 export const compareIgnoreCase = (a: string, b: string): number => {

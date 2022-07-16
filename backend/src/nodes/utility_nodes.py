@@ -59,13 +59,13 @@ class MathNode(NodeBase):
             NumberOutput(
                 "Result",
                 output_type="""
-                match Input1 {
-                    MathOpAdd => add(Input0, Input2),
-                    MathOpSub => subtract(Input0, Input2),
-                    MathOpMul => multiply(Input0, Input2),
-                    MathOpDiv => divide(Input0, Input2),
-                    MathOpMax => max(Input0, Input2),
-                    MathOpMin => min(Input0, Input2),
+                match Input1.operation {
+                    "add" => add(Input0, Input2),
+                    "sub" => subtract(Input0, Input2),
+                    "mul" => multiply(Input0, Input2),
+                    "div" => divide(Input0, Input2),
+                    "max" => max(Input0, Input2),
+                    "min" => min(Input0, Input2),
                     _ => number
                 }
                 """,

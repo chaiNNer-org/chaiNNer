@@ -43,6 +43,7 @@ export const IteratorNodeHeader = memo(
                     borderBottomWidth={percentComplete !== undefined ? '0px' : '4px'}
                     borderStyle="default"
                     h="auto"
+                    pt={2}
                     verticalAlign="middle"
                     w={width || 'full'}
                 >

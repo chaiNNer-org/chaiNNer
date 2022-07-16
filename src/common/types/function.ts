@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { Input, InputSchemaValue, NodeSchema, Output } from '../common-types';
+import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, topologicalSort } from '../util';
 import { evaluate } from './evaluate';
 import { Expression } from './expression';
@@ -9,17 +9,18 @@ import { TypeDefinitions } from './typedef';
 import { NonNeverType, Type } from './types';
 import { getReferences } from './util';
 
-const getParamRefs = (
+type IdType<P extends 'Input' | 'Output'> = P extends 'Input' ? InputId : OutputId;
+const getParamRefs = <P extends 'Input' | 'Output'>(
     expression: Expression,
-    param: 'Input' | 'Output',
-    valid: ReadonlySet<number>
-): Set<number> => {
-    const refs = new Set<number>();
+    param: P,
+    valid: ReadonlySet<IdType<P>>
+): Set<IdType<P>> => {
+    const refs = new Set<IdType<P>>();
     for (const ref of getReferences(expression)) {
         if (ref.startsWith(param)) {
             const rest = ref.slice(param.length);
             if (/^\d+$/.test(rest)) {
-                const id = Number(rest);
+                const id = Number(rest) as IdType<P>;
                 if (valid.has(id)) {
                     refs.add(id);
                 }
@@ -29,11 +30,11 @@ const getParamRefs = (
     return refs;
 };
 
-const getInputParamName = (inputId: number) => `Input${inputId}` as const;
-const getOutputParamName = (outputId: number) => `Output${outputId}` as const;
+const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
+const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
 
 const createGenericParametersFromInputs = (
-    inputs: ReadonlyMap<number, Type>
+    inputs: ReadonlyMap<InputId, Type>
 ): Map<string, Type> => {
     const parameters = new Map<string, Type>();
     for (const [id, type] of inputs) {
@@ -44,16 +45,16 @@ const createGenericParametersFromInputs = (
 
 interface InputInfo {
     expression: Expression;
-    inputRefs: Set<number>;
+    inputRefs: Set<InputId>;
     input: Input;
 }
 const evaluateInputs = (
     schema: NodeSchema,
     definitions: TypeDefinitions
-): { ordered: InputInfo[]; defaults: Map<number, NonNeverType> } => {
+): { ordered: InputInfo[]; defaults: Map<InputId, NonNeverType> } => {
     const inputIds = new Set(schema.inputs.map((i) => i.id));
 
-    const infos = new Map<number, InputInfo>();
+    const infos = new Map<InputId, InputInfo>();
     for (const input of schema.inputs) {
         const expression = fromJson(input.type);
         infos.set(input.id, {
@@ -74,7 +75,7 @@ const evaluateInputs = (
     }
     ordered.reverse();
 
-    const defaults = new Map<number, NonNeverType>();
+    const defaults = new Map<InputId, NonNeverType>();
     const genericParameters = new Map<string, Type>();
     for (const { expression, input } of ordered) {
         const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
@@ -98,19 +99,19 @@ const evaluateInputs = (
 
 interface OutputInfo {
     expression: Expression;
-    inputRefs: Set<number>;
-    outputRefs: Set<number>;
+    inputRefs: Set<InputId>;
+    outputRefs: Set<OutputId>;
     output: Output;
 }
 const evaluateOutputs = (
     schema: NodeSchema,
     definitions: TypeDefinitions,
-    inputDefaults: ReadonlyMap<number, NonNeverType>
-): { ordered: OutputInfo[]; defaults: Map<number, NonNeverType> } => {
+    inputDefaults: ReadonlyMap<InputId, NonNeverType>
+): { ordered: OutputInfo[]; defaults: Map<OutputId, NonNeverType> } => {
     const inputIds = new Set(inputDefaults.keys());
     const outputIds = new Set(schema.outputs.map((i) => i.id));
 
-    const infos = new Map<number, OutputInfo>();
+    const infos = new Map<OutputId, OutputInfo>();
     for (const output of schema.outputs) {
         const expression = fromJson(output.type);
         infos.set(output.id, {
@@ -135,7 +136,7 @@ const evaluateOutputs = (
     }
     ordered.reverse();
 
-    const defaults = new Map<number, NonNeverType>();
+    const defaults = new Map<OutputId, NonNeverType>();
     const genericParameters = createGenericParametersFromInputs(inputDefaults);
     for (const { expression, output } of ordered) {
         const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
@@ -160,8 +161,8 @@ const evaluateInputOptions = (
     schema: NodeSchema,
     definitions: TypeDefinitions,
     genericParameters?: ReadonlyMap<string, Type>
-): Map<number, Map<InputSchemaValue, NonNeverType>> => {
-    const result = new Map<number, Map<InputSchemaValue, NonNeverType>>();
+): Map<InputId, Map<InputSchemaValue, NonNeverType>> => {
+    const result = new Map<InputId, Map<InputSchemaValue, NonNeverType>>();
     for (const input of schema.inputs) {
         if (input.kind === 'dropdown' && input.options) {
             const options = new Map<InputSchemaValue, NonNeverType>();
@@ -197,31 +198,31 @@ export class FunctionDefinition {
 
     readonly typeDefinitions: TypeDefinitions;
 
-    readonly inputDefaults: ReadonlyMap<number, NonNeverType>;
+    readonly inputDefaults: ReadonlyMap<InputId, NonNeverType>;
 
-    readonly inputExpressions: ReadonlyMap<number, Expression>;
+    readonly inputExpressions: ReadonlyMap<InputId, Expression>;
 
-    readonly inputGenerics: ReadonlySet<number>;
+    readonly inputGenerics: ReadonlySet<InputId>;
 
-    readonly inputEvaluationOrder: readonly number[];
+    readonly inputEvaluationOrder: readonly InputId[];
 
-    readonly outputDefaults: ReadonlyMap<number, NonNeverType>;
+    readonly outputDefaults: ReadonlyMap<OutputId, NonNeverType>;
 
-    readonly outputExpressions: ReadonlyMap<number, Expression>;
+    readonly outputExpressions: ReadonlyMap<OutputId, Expression>;
 
-    readonly outputGenerics: ReadonlySet<number>;
+    readonly outputGenerics: ReadonlySet<OutputId>;
 
-    readonly outputEvaluationOrder: readonly number[];
+    readonly outputEvaluationOrder: readonly OutputId[];
 
     get isGeneric() {
         return this.inputGenerics.size > 0 || this.outputGenerics.size > 0;
     }
 
-    readonly inputDataLiterals: Set<number>;
+    readonly inputDataLiterals: Set<InputId>;
 
-    readonly inputNullable: Set<number>;
+    readonly inputNullable: Set<InputId>;
 
-    readonly inputOptions: ReadonlyMap<number, ReadonlyMap<string | number, NonNeverType>>;
+    readonly inputOptions: ReadonlyMap<InputId, ReadonlyMap<string | number, NonNeverType>>;
 
     readonly defaultInstance: FunctionInstance;
 
@@ -279,19 +280,19 @@ export class FunctionDefinition {
 }
 
 export interface FunctionInputAssignmentError {
-    inputId: number;
+    inputId: InputId;
     inputType: NonNeverType;
     assignedType: NonNeverType;
 }
 export interface FunctionOutputError {
-    outputId: number;
+    outputId: OutputId;
 }
 export class FunctionInstance {
     readonly definition: FunctionDefinition;
 
-    readonly inputs: ReadonlyMap<number, NonNeverType>;
+    readonly inputs: ReadonlyMap<InputId, NonNeverType>;
 
-    readonly outputs: ReadonlyMap<number, NonNeverType>;
+    readonly outputs: ReadonlyMap<OutputId, NonNeverType>;
 
     readonly inputErrors: readonly FunctionInputAssignmentError[];
 
@@ -299,8 +300,8 @@ export class FunctionInstance {
 
     private constructor(
         definition: FunctionDefinition,
-        inputs: ReadonlyMap<number, NonNeverType>,
-        outputs: ReadonlyMap<number, NonNeverType>,
+        inputs: ReadonlyMap<InputId, NonNeverType>,
+        outputs: ReadonlyMap<OutputId, NonNeverType>,
         inputErrors: readonly FunctionInputAssignmentError[],
         outputErrors: readonly FunctionOutputError[]
     ) {
@@ -324,9 +325,9 @@ export class FunctionInstance {
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs:
-            | ReadonlyMap<number, NonNeverType>
-            | ((inputId: number) => NonNeverType | undefined),
-        outputNarrowing: ReadonlyMap<number, Type> = EMPTY_MAP
+            | ReadonlyMap<InputId, NonNeverType>
+            | ((inputId: InputId) => NonNeverType | undefined),
+        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP
     ): FunctionInstance {
         if (typeof partialInputs === 'object') {
             if (partialInputs.size === 0) return definition.defaultInstance;
@@ -339,7 +340,7 @@ export class FunctionInstance {
         const outputErrors: FunctionOutputError[] = [];
 
         // evaluate inputs
-        const inputs = new Map<number, NonNeverType>();
+        const inputs = new Map<InputId, NonNeverType>();
         const genericParameters = new Map<string, Type>();
         for (const id of definition.inputEvaluationOrder) {
             let type: Type;
@@ -387,7 +388,7 @@ export class FunctionInstance {
         }
 
         // evaluate outputs
-        const outputs = new Map<number, NonNeverType>();
+        const outputs = new Map<OutputId, NonNeverType>();
         for (const id of definition.outputEvaluationOrder) {
             let type: Type;
             if (definition.outputGenerics.has(id)) {
@@ -422,7 +423,7 @@ export class FunctionInstance {
         return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);
     }
 
-    canAssign(inputId: number, type: Type): boolean {
+    canAssign(inputId: InputId, type: Type): boolean {
         const iType = this.definition.inputDefaults.get(inputId);
         if (!iType) throw new Error(`Invalid input id ${inputId}`);
 

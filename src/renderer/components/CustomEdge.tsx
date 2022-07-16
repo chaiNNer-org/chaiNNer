@@ -5,7 +5,7 @@ import { TbUnlink } from 'react-icons/tb';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
-import { parseHandle } from '../../common/util';
+import { parseSourceHandle } from '../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
@@ -60,7 +60,7 @@ export const CustomEdge = memo(
 
         const [isHovered, setIsHovered] = useState(false);
 
-        const { inOutId } = useMemo(() => parseHandle(sourceHandleId!), [sourceHandleId]);
+        const { inOutId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
         const type = functionDefinitions
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
@@ -131,7 +131,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: animated && animateChain ? 1 : 0,
                     }}
                 />
                 <path
@@ -154,7 +154,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: animated && animateChain ? 1 : 0,
                     }}
                 />
                 <path

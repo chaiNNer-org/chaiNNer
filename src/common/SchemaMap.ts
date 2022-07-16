@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import { InputData, InputValue, NodeSchema, SchemaId } from './common-types';
+import { InputData, InputId, InputValue, NodeSchema, SchemaId } from './common-types';
 
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
@@ -38,7 +38,7 @@ export class SchemaMap {
     }
 
     getDefaultInput(schemaId: SchemaId): InputData {
-        const defaultData: Record<number, InputValue> = {};
+        const defaultData: Record<InputId, InputValue> = {};
         const { inputs } = this.get(schemaId);
         inputs.forEach((input) => {
             if (input.def || input.def === 0) {

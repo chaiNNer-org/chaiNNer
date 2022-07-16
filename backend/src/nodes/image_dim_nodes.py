@@ -187,8 +187,8 @@ class BorderCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input1, Input1)) & int(1..inf)",
-                    height="subtract(Input0.height, add(Input1, Input1)) & int(1..inf)",
+                    width="subtract(Input0.width, add(Input1, Input1)) & int(1..)",
+                    height="subtract(Input0.height, add(Input1, Input1)) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
@@ -228,8 +228,8 @@ class EdgeCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input2, Input3)) & int(1..inf)",
-                    height="subtract(Input0.height, add(Input1, Input4)) & int(1..inf)",
+                    width="subtract(Input0.width, add(Input2, Input3)) & int(1..)",
+                    height="subtract(Input0.height, add(Input1, Input4)) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(

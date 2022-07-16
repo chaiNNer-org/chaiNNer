@@ -4,7 +4,7 @@ import { isDisjointWith } from '../../common/types/intersection';
 import { TypeDefinitions } from '../../common/types/typedef';
 import { NumberType, StringType, Type } from '../../common/types/types';
 
-const defaultColor = () => '#718096';
+export const defaultColor = '#718096';
 
 const colorList = (typeDefinitions: TypeDefinitions) => [
     { type: evaluate(new NamedExpression('Directory'), typeDefinitions), color: '#805AD5' },
@@ -28,5 +28,5 @@ export const getTypeAccentColors = (
             colors.push(color);
         }
     }
-    return colors.length > 0 ? colors : [defaultColor()];
+    return colors.length > 0 ? colors : [defaultColor];
 };
