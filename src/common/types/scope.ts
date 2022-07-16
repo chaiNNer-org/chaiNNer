@@ -115,7 +115,8 @@ const getMostSimilar = (target: string, topK: number, others: Iterable<string>):
         })
         .sort((a, b) => a.score - b.score)
         .map((n) => n.name)
-        .slice(-topK);
+        .slice(-topK)
+        .reverse();
 };
 
 export class NameResolutionError extends Error {
