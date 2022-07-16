@@ -772,7 +772,7 @@ export const GlobalProvider = memo(
                     modifyNode(id, (old) => {
                         const nodeCopy = copyNode(old);
                         nodeCopy.data.inputSize = {
-                            ...nodeCopy.data.inputData,
+                            ...nodeCopy.data.inputSize,
                             [inputId]: size,
                         };
                         return nodeCopy;
