@@ -56,12 +56,6 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Unknown struct';
-          expression: NamedExpression;
-          similarNames: string[];
-          message: string;
-      }
-    | {
           type: 'Not a struct';
           expression: NamedExpression;
           message: string;
@@ -136,7 +130,7 @@ const evaluateStructDefinition = (
     for (const f of def.fields) {
         let type;
         try {
-            type = evaluate(f.type, definitions);
+            type = evaluate(f.type, scope);
         } catch (error: unknown) {
             if (error instanceof EvaluationError) {
                 throw new EvaluationError({
@@ -159,6 +153,16 @@ const evaluateStruct = (
     definition: ScopeStructDefinition,
     definitionScope: ReadonlyScope
 ): Type => {
+    // eslint-disable-next-line no-param-reassign
+    definition.default ??= evaluateStructDefinition(definition.definition, definitionScope);
+    if (definition.default.type === 'never') return NeverType.instance;
+
+    // no fields
+    if (expression.fields.length === 0) {
+        return definition.default;
+    }
+
+    // check for unknown fields
     const unknownField = expression.fields.find(
         (f) => !definition.definition.fieldNames.has(f.name)
     );
@@ -172,35 +176,32 @@ const evaluateStruct = (
         });
     }
 
-    entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
-    if (entry.evaluated.type === 'never') return NeverType.instance;
-
-    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
+    const expressionFields = new Map(expression.fields.map((f) => [f.name, f.type]));
 
     const fields: StructTypeField[] = [];
-    for (const f of entry.evaluated.fields) {
-        const eField = eFields.get(f.name);
+    for (const dField of definition.default.fields) {
+        const eField = expressionFields.get(dField.name);
         let type;
         if (eField) {
-            type = evaluate(eField, definitions, genericParameters);
+            type = evaluate(eField, scope);
             if (type.type === 'never') return NeverType.instance;
 
-            if (!isSubsetOf(type, f.type)) {
+            if (!isSubsetOf(type, dField.type)) {
                 throw new EvaluationError({
                     type: 'Incompatible field type',
                     expression,
-                    definition: entry.definition,
-                    field: { name: f.name, expression: type, definition: f.type },
+                    definition: definition.definition,
+                    field: { name: dField.name, expression: type, definition: dField.type },
                     message: `The type ${type.toString()} of the ${
-                        f.name
-                    } field is not compatible with its type definition ${f.type.toString()}.`,
+                        dField.name
+                    } field is not compatible with its type definition ${dField.type.toString()}.`,
                 });
             }
         } else {
             // default to definition type
-            type = f.type;
+            type = dField.type;
         }
-        fields.push(new StructTypeField(f.name, type));
+        fields.push(new StructTypeField(dField.name, type));
     }
     return new StructType(expression.name, fields);
 };
