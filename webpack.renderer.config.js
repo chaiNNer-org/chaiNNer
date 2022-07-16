@@ -10,6 +10,7 @@ rules.push({
     use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
 });
 
+/** @type {import("webpack").Configuration} */
 module.exports = {
     // Put your normal webpack config below here
     module: {
