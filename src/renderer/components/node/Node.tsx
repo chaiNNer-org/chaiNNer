@@ -57,7 +57,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const { id, inputData, isLocked, parentNode, schemaId, outputData, animated = false } = data;
-    console.log('🚀 ~ file: Node.tsx ~ line 60 ~ NodeInner ~ outputData', outputData);
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file

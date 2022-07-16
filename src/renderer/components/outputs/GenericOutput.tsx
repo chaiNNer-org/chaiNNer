@@ -1,8 +1,7 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
-import { OutputData } from '../../../common/common-types';
-import { OutputId } from '../../../common/common-types';
+import { OutputData, OutputId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
@@ -13,7 +12,7 @@ interface GenericOutputProps {
     label: string;
     outputId: OutputId;
     definitionType: Type;
-    outputData: OutputData;
+    outputData?: OutputData;
 }
 
 export const GenericOutput = memo(
@@ -21,7 +20,9 @@ export const GenericOutput = memo(
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
-        const value = outputData[outputId];
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const value = outputData ? outputData[outputId] : '';
 
         return (
             <OutputContainer
@@ -36,8 +37,6 @@ export const GenericOutput = memo(
                     verticalAlign="middle"
                     w="full"
                 >
-                    <p>{String(JSON.stringify(value)).slice(0, 100)}</p>
-
                     <Spacer />
                     {type && (
                         <Center

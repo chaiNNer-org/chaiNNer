@@ -12,7 +12,7 @@ interface NodeBodyProps {
     outputs: readonly Output[];
     accentColor: string;
     schemaId: SchemaId;
-    outputData: OutputData;
+    outputData?: OutputData;
 }
 
 export const NodeBody = memo(
@@ -65,9 +65,9 @@ export const NodeBody = memo(
                 )}
                 <NodeOutputs
                     id={id}
+                    outputData={outputData}
                     outputs={outputs}
                     schemaId={schemaId}
-                    outputData={outputData}
                 />
             </>
         );

@@ -220,21 +220,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         updateIteratorProgress,
     ]);
 
-    useBackendEventSourceListener(
-        eventSource,
-        'node-output-data',
-        (data) => {
-            console.log(
-                '🚀 ~ file: ExecutionContext.tsx ~ line 212 ~ ExecutionProvider ~ data',
-                data
-            );
-            if (data) {
-                console.log({ data });
-            }
-        },
-        []
-    );
-
     const [ownsBackend, setOwnsBackend] = useState(true);
     useAsyncEffect(
         {

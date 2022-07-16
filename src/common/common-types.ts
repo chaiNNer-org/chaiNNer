@@ -61,7 +61,7 @@ export interface Output {
 }
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
-export type OutputData = Readonly<Record<number, unknown>>;
+export type OutputData = Readonly<Record<OutputId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;
@@ -90,7 +90,7 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
-    readonly outputData: OutputData;
+    readonly outputData?: OutputData;
     readonly invalid?: boolean;
     readonly iteratorSize?: IteratorSize;
     readonly percentComplete?: number;

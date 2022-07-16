@@ -28,7 +28,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
-    const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
+    const { id, inputData, outputData, isLocked, parentNode, schemaId, animated = false } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -121,6 +121,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                         inputData={inputData}
                         inputs={inputs}
                         isLocked={isLocked}
+                        outputData={outputData}
                         outputs={outputs}
                         schemaId={schemaId}
                     />

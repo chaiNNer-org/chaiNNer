@@ -8,7 +8,7 @@ interface NodeOutputsProps {
     id: string;
     outputs: readonly Output[];
     schemaId: SchemaId;
-    outputData: OutputData;
+    outputData?: OutputData;
 }
 
 export const NodeOutputs = memo(({ outputs, id, schemaId, outputData }: NodeOutputsProps) => {
