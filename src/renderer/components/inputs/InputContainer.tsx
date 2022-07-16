@@ -8,7 +8,7 @@ import { Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
+import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 
 interface InputContainerProps {
@@ -108,12 +108,20 @@ export const InputContainer = memo(
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
-                const parentNode: Node<NodeData> = getNode(connectedEdge.source)! as Node<NodeData>;
+                const parentNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
                 const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).inOutId;
-                const parentType = functionDefinitions
-                    .get(parentNode.data.schemaId)!
-                    .outputDefaults.get(parentOutputId)!;
-                return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+                if (parentNode) {
+                    const parentDef = functionDefinitions.get(parentNode.data.schemaId);
+                    if (!parentDef) {
+                        return defaultColor;
+                    }
+                    const parentType = parentDef.outputDefaults.get(parentOutputId);
+                    if (!parentType) {
+                        return defaultColor;
+                    }
+                    return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+                }
+                return defaultColor;
             }
             return null;
         }, [connectedEdge, typeDefinitions, functionDefinitions, getNode, isDarkMode]);

@@ -65,7 +65,7 @@ except Exception as e:
 # pylint: disable=unused-import
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
-from process import Executor
+from process import Executor, NodeExecutionError
 
 app = Sanic("chaiNNer")
 CORS(app)
@@ -140,7 +140,7 @@ async def run(request: Request):
             await executor.resume()
         else:
             logger.info("Running new executor...")
-            full_data = dict(request.json)
+            full_data = dict(request.json)  # type: ignore
             logger.info(full_data)
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
@@ -163,25 +163,27 @@ async def run(request: Request):
         logger.error(exception, exc_info=True)
         request.app.ctx.executor = None
         logger.error(traceback.format_exc())
-        await queue.put(
-            {
-                "event": "execution-error",
-                "data": {
-                    "message": "Error running nodes!",
-                    "exception": str(exception),
-                },
+
+        error = {
+            "message": "Error running nodes!",
+            "source": None,
+            "exception": str(exception),
+        }
+        if isinstance(exception, NodeExecutionError):
+            error["source"] = {
+                "nodeId": exception.node["id"],
+                "schemaId": exception.node["schemaId"],
             }
-        )
-        return json(
-            {"message": "Error running nodes!", "exception": str(exception)}, status=500
-        )
+
+        await queue.put({"event": "execution-error", "data": error})
+        return json(error, status=500)
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
     try:
-        full_data = dict(request.json)
+        full_data = dict(request.json)  # type: ignore
         logger.info(full_data)
         os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
         os.environ["isFp16"] = str(full_data["isFp16"])

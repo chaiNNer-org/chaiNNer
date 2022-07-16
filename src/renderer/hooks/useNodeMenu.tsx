@@ -1,5 +1,6 @@
 import { CloseIcon, CopyIcon, DeleteIcon, LockIcon, UnlockIcon } from '@chakra-ui/icons';
 import { MenuItem, MenuList } from '@chakra-ui/react';
+import { BsLayerForward } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
@@ -16,9 +17,10 @@ export const useNodeMenu = (
     useDisabled: UseDisabled,
     { canLock = true }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
-    const { id, isLocked = false } = data;
+    const { id, isLocked = false, parentNode } = data;
 
-    const { removeNodeById, clearNode, duplicateNode, toggleNodeLock } = useContext(GlobalContext);
+    const { removeNodeById, clearNode, duplicateNode, toggleNodeLock, releaseNodeFromParent } =
+        useContext(GlobalContext);
     const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
 
     return useContextMenu(() => (
@@ -66,6 +68,16 @@ export const useNodeMenu = (
             >
                 Delete
             </MenuItem>
+            {parentNode && (
+                <MenuItem
+                    icon={<BsLayerForward />}
+                    onClick={() => {
+                        releaseNodeFromParent(id);
+                    }}
+                >
+                    Release
+                </MenuItem>
+            )}
         </MenuList>
     ));
 };
