@@ -131,8 +131,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimate, setIteratorPercent, typeStateRef, typeDefinitions } =
-        useContext(GlobalContext);
+    const { schemata, useAnimate, setIteratorPercent, typeStateRef } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -292,7 +291,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     edges,
                     schema,
                     functionInstance,
-                    typeDefinitions,
                 });
                 if (validity.isValid) return [];
 

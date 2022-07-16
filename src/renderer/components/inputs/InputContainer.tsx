@@ -99,12 +99,12 @@ export const InputContainer = memo(
             return false;
         }, [connectingFrom, connectingFromType, definitionType, id, inputId]);
 
-        const { typeDefinitions, functionDefinitions } = useContext(GlobalContext);
+        const { functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const handleColors = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
+        const handleColors = getTypeAccentColors(definitionType, isDarkMode);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
@@ -119,12 +119,12 @@ export const InputContainer = memo(
                     if (!parentType) {
                         return defaultColor;
                     }
-                    return getTypeAccentColors(parentType, typeDefinitions, isDarkMode)[0];
+                    return getTypeAccentColors(parentType, isDarkMode)[0];
                 }
                 return defaultColor;
             }
             return null;
-        }, [connectedEdge, typeDefinitions, functionDefinitions, getNode, isDarkMode]);
+        }, [connectedEdge, functionDefinitions, getNode, isDarkMode]);
 
         // A conic gradient that uses all handle colors to give an even distribution of colors
         const handleColorString = handleColors

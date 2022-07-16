@@ -8,8 +8,8 @@ import { BackendNodesResponse } from '../common/Backend';
 import { SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
+import { getChainnerScope } from '../common/types/chainner-scope';
 import { FunctionDefinition } from '../common/types/function';
-import { TypeDefinitions } from '../common/types/typedef';
 import { getLocalStorage, getStorageKeys } from '../common/util';
 import { ChaiNNerLogo } from './components/chaiNNerLogo';
 import { CustomEdge } from './components/CustomEdge';
@@ -31,13 +31,11 @@ import { useLastWindowSize } from './hooks/useLastWindowSize';
 interface NodesInfo {
     schemata: SchemaMap;
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
-    typeDefinitions: TypeDefinitions;
 }
 
 const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
     const schemata = new SchemaMap(response);
 
-    const typeDefinitions = new TypeDefinitions();
     const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
 
     const errors: string[] = [];
@@ -46,7 +44,7 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
         try {
             functionDefinitions.set(
                 schema.schemaId,
-                FunctionDefinition.fromSchema(schema, typeDefinitions)
+                FunctionDefinition.fromSchema(schema, getChainnerScope())
             );
         } catch (error) {
             errors.push(String(error));
@@ -57,7 +55,7 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
         throw new Error(errors.join('\n\n'));
     }
 
-    return { schemata, functionDefinitions, typeDefinitions };
+    return { schemata, functionDefinitions };
 };
 
 const nodeTypes: NodeTypes = {
@@ -174,7 +172,6 @@ export const Main = memo(({ port }: MainProps) => {
                     functionDefinitions={nodesInfo.functionDefinitions}
                     reactFlowWrapper={reactFlowWrapper}
                     schemata={nodesInfo.schemata}
-                    typeDefinitions={nodesInfo.typeDefinitions}
                 >
                     <ExecutionProvider>
                         <DependencyProvider>

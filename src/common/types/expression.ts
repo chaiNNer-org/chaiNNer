@@ -4,6 +4,7 @@ import {
     assertValidStructFieldName,
     assertValidStructName,
 } from './names';
+import { Source } from './source';
 import { Type } from './types';
 
 type PureExpression =
@@ -12,7 +13,8 @@ type PureExpression =
     | NamedExpression
     | FieldAccessExpression
     | FunctionCallExpression
-    | MatchExpression;
+    | MatchExpression
+    | ScopeExpression;
 
 export type Expression = Type | PureExpression;
 
@@ -25,6 +27,7 @@ const bracket = (expression: Expression): string => {
 interface ExpressionBase {
     readonly type: PureExpression['type'];
     readonly underlying: 'expression';
+    source: Source | undefined;
     toString(): string;
 }
 
@@ -32,6 +35,8 @@ export class UnionExpression implements ExpressionBase {
     readonly type = 'union';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly items: readonly Expression[];
 
@@ -48,6 +53,8 @@ export class IntersectionExpression implements ExpressionBase {
     readonly type = 'intersection';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly items: readonly Expression[];
 
@@ -76,6 +83,8 @@ export class NamedExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly fields: readonly NamedExpressionField[];
 
     readonly name: string;
@@ -99,6 +108,8 @@ export class FieldAccessExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly of: Expression;
 
     readonly field: string;
@@ -118,6 +129,8 @@ export class FunctionCallExpression implements ExpressionBase {
     readonly type = 'builtin-function';
 
     readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
 
     readonly functionName: string;
 
@@ -159,6 +172,8 @@ export class MatchExpression implements ExpressionBase {
 
     readonly underlying = 'expression';
 
+    source: Source | undefined = undefined;
+
     readonly of: Expression;
 
     readonly arms: readonly MatchArm[];
@@ -171,5 +186,154 @@ export class MatchExpression implements ExpressionBase {
     toString(): string {
         const arms = this.arms.map((a) => a.toString()).join(', ');
         return `match ${this.of.toString()} { ${arms} }`;
+    }
+}
+
+export class ScopeExpression implements ExpressionBase {
+    readonly type = 'scope';
+
+    readonly underlying = 'expression';
+
+    source: Source | undefined = undefined;
+
+    readonly definitions: readonly Definition[];
+
+    readonly expression: Expression;
+
+    constructor(definitions: readonly Definition[], expression: Expression) {
+        this.definitions = definitions;
+        this.expression = expression;
+    }
+
+    toString(): string {
+        return `{ ${this.definitions
+            .map((d) => `${d.toString()} `)
+            .join('')}${this.expression.toString()} }`;
+    }
+}
+
+export type Definition = StructDefinition | FunctionDefinition | VariableDefinition;
+
+interface DefinitionBase {
+    readonly type: Definition['type'];
+    readonly underlying: 'definition';
+    source: Source | undefined;
+    toString(): string;
+}
+
+export class StructDefinitionField {
+    readonly name: string;
+
+    readonly type: Expression;
+
+    constructor(name: string, type: Expression) {
+        assertValidStructFieldName(name);
+        this.name = name;
+        this.type = type;
+    }
+}
+export class StructDefinition implements DefinitionBase {
+    readonly type = 'struct';
+
+    readonly underlying = 'definition';
+
+    source: Source | undefined = undefined;
+
+    readonly name: string;
+
+    readonly fields: readonly StructDefinitionField[];
+
+    public readonly fieldNames: ReadonlySet<string>;
+
+    constructor(name: string, fields: readonly StructDefinitionField[] = []) {
+        assertValidStructName(name);
+        this.name = name;
+        this.fields = fields;
+
+        const names = new Set<string>();
+        this.fieldNames = names;
+        for (const f of fields) {
+            if (names.has(f.name)) {
+                throw new Error(
+                    `Invalid strut definition. ` +
+                        `The field ${f.name} was used twice in ${this.toString()}`
+                );
+            }
+            names.add(f.name);
+        }
+    }
+
+    toString(): string {
+        if (this.fields.length === 0) return `struct ${this.name};`;
+        return `struct ${this.name} { ${this.fields
+            .map((f) => `${f.name}: ${f.type.toString()}`)
+            .join(', ')} }`;
+    }
+}
+
+export class FunctionDefinitionParameter {
+    readonly name: string;
+
+    readonly type: Expression;
+
+    constructor(name: string, type: Expression) {
+        assertValidStructFieldName(name);
+        this.name = name;
+        this.type = type;
+    }
+}
+export class FunctionDefinition implements DefinitionBase {
+    readonly type = 'function';
+
+    readonly underlying = 'definition';
+
+    source: Source | undefined = undefined;
+
+    readonly name: string;
+
+    readonly parameters: readonly FunctionDefinitionParameter[];
+
+    readonly value: Expression;
+
+    constructor(
+        name: string,
+        parameters: readonly FunctionDefinitionParameter[],
+        value: Expression
+    ) {
+        assertValidStructName(name);
+        this.name = name;
+        this.parameters = parameters;
+        this.value = value;
+    }
+
+    toString(): string {
+        const params = `(${this.parameters
+            .map((p) => `${p.name}: ${p.type.toString()}`)
+            .join(', ')})`;
+        const value =
+            this.value.type === 'scope' ? this.value.toString() : `= ${this.value.toString()};`;
+        return `def ${this.name}${params} ${value}`;
+    }
+}
+
+export class VariableDefinition implements DefinitionBase {
+    readonly type = 'variable';
+
+    readonly underlying = 'definition';
+
+    source: Source | undefined = undefined;
+
+    readonly name: string;
+
+    readonly value: Expression;
+
+    constructor(name: string, value: Expression) {
+        assertValidStructName(name);
+        this.name = name;
+        this.value = value;
+    }
+
+    toString(): string {
+        return `let ${this.name} = ${this.value.toString()};`;
     }
 }

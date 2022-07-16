@@ -115,11 +115,11 @@ class TextAppendNode(NodeBase):
                 "Output Text",
                 output_type="""
                 concat(
-                    string(Input1),
+                    toString(Input1),
                     Input0,
-                    string(Input2),
-                    match Input3 { null => "", _ as s => concat(Input0, string(s)) },
-                    match Input4 { null => "", _ as s => concat(Input0, string(s)) }
+                    toString(Input2),
+                    match Input3 { null => "", _ as s => concat(Input0, toString(s)) },
+                    match Input4 { null => "", _ as s => concat(Input0, toString(s)) }
                 )
                 """,
             )
