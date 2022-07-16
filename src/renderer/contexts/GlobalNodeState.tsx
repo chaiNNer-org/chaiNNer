@@ -767,7 +767,7 @@ export const GlobalProvider = memo(
                 inputId: InputId,
                 inputSize?: InputSize
             ): readonly [Size, (size: Size) => void, () => void] => {
-                const currentSize = inputSize ? inputSize[inputId] : { width: 0, height: 0 };
+                const currentSize = inputSize?.[inputId] ?? { width: 0, height: 0 };
                 const setInputSize = (size: Size) => {
                     modifyNode(id, (old) => {
                         const nodeCopy = copyNode(old);
