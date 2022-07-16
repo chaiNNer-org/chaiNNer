@@ -160,7 +160,7 @@ export class Scope implements ReadonlyScope {
         }
     }
 
-    addDefinition(definition: Definition | BuiltinFunctionDefinition): void {
+    add(definition: Definition | BuiltinFunctionDefinition): void {
         const { name, type } = definition;
         this.assertNameAvailable(name);
 

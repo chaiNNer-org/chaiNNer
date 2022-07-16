@@ -2,10 +2,10 @@
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, topologicalSort } from '../util';
 import { evaluate } from './evaluate';
-import { Expression } from './expression';
+import { Expression, VariableDefinition } from './expression';
 import { intersect, isDisjointWith } from './intersection';
 import { fromJson } from './json';
-import { TypeDefinitions } from './typedef';
+import { ReadonlyScope, Scope } from './scope';
 import { NonNeverType, Type } from './types';
 import { getReferences } from './util';
 
@@ -33,16 +33,6 @@ const getParamRefs = <P extends 'Input' | 'Output'>(
 const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
 const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
 
-const createGenericParametersFromInputs = (
-    inputs: ReadonlyMap<InputId, Type>
-): Map<string, Type> => {
-    const parameters = new Map<string, Type>();
-    for (const [id, type] of inputs) {
-        parameters.set(getInputParamName(id), type);
-    }
-    return parameters;
-};
-
 interface InputInfo {
     expression: Expression;
     inputRefs: Set<InputId>;
@@ -50,7 +40,7 @@ interface InputInfo {
 }
 const evaluateInputs = (
     schema: NodeSchema,
-    definitions: TypeDefinitions
+    scope: ReadonlyScope
 ): { ordered: InputInfo[]; defaults: Map<InputId, NonNeverType> } => {
     const inputIds = new Set(schema.inputs.map((i) => i.id));
 
@@ -75,14 +65,15 @@ const evaluateInputs = (
     }
     ordered.reverse();
 
+    const expressionScope = new Scope('evaluateInputs scope', scope);
+
     const defaults = new Map<InputId, NonNeverType>();
-    const genericParameters = new Map<string, Type>();
     for (const { expression, input } of ordered) {
         const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
 
         let type: Type;
         try {
-            type = evaluate(expression, definitions, genericParameters);
+            type = evaluate(expression, expressionScope);
         } catch (error) {
             throw new Error(`Unable to evaluate input type of ${name}: ${String(error)}`);
         }
@@ -91,7 +82,7 @@ const evaluateInputs = (
         }
 
         defaults.set(input.id, type);
-        genericParameters.set(getInputParamName(input.id), type);
+        expressionScope.add(new VariableDefinition(getInputParamName(input.id), type));
     }
 
     return { ordered, defaults };
@@ -105,7 +96,7 @@ interface OutputInfo {
 }
 const evaluateOutputs = (
     schema: NodeSchema,
-    definitions: TypeDefinitions,
+    scope: ReadonlyScope,
     inputDefaults: ReadonlyMap<InputId, NonNeverType>
 ): { ordered: OutputInfo[]; defaults: Map<OutputId, NonNeverType> } => {
     const inputIds = new Set(inputDefaults.keys());
@@ -136,14 +127,18 @@ const evaluateOutputs = (
     }
     ordered.reverse();
 
+    const expressionScope = new Scope('evaluateOutputs scope', scope);
+    for (const [inputId, inputType] of inputDefaults) {
+        expressionScope.add(new VariableDefinition(getInputParamName(inputId), inputType));
+    }
+
     const defaults = new Map<OutputId, NonNeverType>();
-    const genericParameters = createGenericParametersFromInputs(inputDefaults);
     for (const { expression, output } of ordered) {
         const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
 
         let type: Type;
         try {
-            type = evaluate(expression, definitions, genericParameters);
+            type = evaluate(expression, expressionScope);
         } catch (error) {
             throw new Error(`Unable to evaluate output type of ${name}: ${String(error)}`);
         }
@@ -152,15 +147,14 @@ const evaluateOutputs = (
         }
 
         defaults.set(output.id, type);
-        genericParameters.set(getOutputParamName(output.id), type);
+        expressionScope.add(new VariableDefinition(getOutputParamName(output.id), type));
     }
     return { ordered, defaults };
 };
 
 const evaluateInputOptions = (
     schema: NodeSchema,
-    definitions: TypeDefinitions,
-    genericParameters?: ReadonlyMap<string, Type>
+    scope: ReadonlyScope
 ): Map<InputId, Map<InputSchemaValue, NonNeverType>> => {
     const result = new Map<InputId, Map<InputSchemaValue, NonNeverType>>();
     for (const input of schema.inputs) {
@@ -175,7 +169,7 @@ const evaluateInputOptions = (
 
                     let type;
                     try {
-                        type = evaluate(fromJson(o.type), definitions, genericParameters);
+                        type = evaluate(fromJson(o.type), scope);
                     } catch (error) {
                         throw new Error(
                             `Unable to evaluate type of option ${name}: ${String(error)}`
@@ -196,7 +190,7 @@ const evaluateInputOptions = (
 export class FunctionDefinition {
     readonly schema: NodeSchema;
 
-    readonly typeDefinitions: TypeDefinitions;
+    readonly scope: ReadonlyScope;
 
     readonly inputDefaults: ReadonlyMap<InputId, NonNeverType>;
 
@@ -226,12 +220,12 @@ export class FunctionDefinition {
 
     readonly defaultInstance: FunctionInstance;
 
-    private constructor(schema: NodeSchema, definitions: TypeDefinitions) {
+    private constructor(schema: NodeSchema, scope: ReadonlyScope) {
         this.schema = schema;
-        this.typeDefinitions = definitions;
+        this.scope = scope;
 
         // inputs
-        const inputs = evaluateInputs(schema, definitions);
+        const inputs = evaluateInputs(schema, scope);
         this.inputDefaults = inputs.defaults;
         this.inputExpressions = new Map(
             inputs.ordered.map(({ expression, input }) => [input.id, expression])
@@ -242,7 +236,7 @@ export class FunctionDefinition {
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
 
         // outputs
-        const outputs = evaluateOutputs(schema, definitions, this.inputDefaults);
+        const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
         this.outputDefaults = outputs.defaults;
         this.outputExpressions = new Map(
             outputs.ordered.map(({ expression, output }) => [output.id, expression])
@@ -268,14 +262,14 @@ export class FunctionDefinition {
                 .map((i) => i.id)
         );
         this.inputNullable = new Set(schema.inputs.filter((i) => i.optional).map((i) => i.id));
-        this.inputOptions = evaluateInputOptions(schema, definitions);
+        this.inputOptions = evaluateInputOptions(schema, scope);
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         this.defaultInstance = FunctionInstance.fromDefinition(this);
     }
 
-    static fromSchema(schema: NodeSchema, definitions: TypeDefinitions): FunctionDefinition {
-        return new FunctionDefinition(schema, definitions);
+    static fromSchema(schema: NodeSchema, scope: ReadonlyScope): FunctionDefinition {
+        return new FunctionDefinition(schema, scope);
     }
 }
 
@@ -339,17 +333,15 @@ export class FunctionInstance {
         const inputErrors: FunctionInputAssignmentError[] = [];
         const outputErrors: FunctionOutputError[] = [];
 
+        // scope
+        const scope = new Scope('function instance', definition.scope);
+
         // evaluate inputs
         const inputs = new Map<InputId, NonNeverType>();
-        const genericParameters = new Map<string, Type>();
         for (const id of definition.inputEvaluationOrder) {
             let type: Type;
             if (definition.inputGenerics.has(id)) {
-                type = evaluate(
-                    definition.inputExpressions.get(id)!,
-                    definition.typeDefinitions,
-                    genericParameters
-                );
+                type = evaluate(definition.inputExpressions.get(id)!, scope);
             } else {
                 type = definition.inputDefaults.get(id)!;
             }
@@ -373,7 +365,7 @@ export class FunctionInstance {
             }
 
             inputs.set(id, type);
-            genericParameters.set(getInputParamName(id), type);
+            scope.add(new VariableDefinition(getInputParamName(id), type));
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
@@ -392,11 +384,7 @@ export class FunctionInstance {
         for (const id of definition.outputEvaluationOrder) {
             let type: Type;
             if (definition.outputGenerics.has(id)) {
-                type = evaluate(
-                    definition.outputExpressions.get(id)!,
-                    definition.typeDefinitions,
-                    genericParameters
-                );
+                type = evaluate(definition.outputExpressions.get(id)!, scope);
                 if (type.type === 'never') {
                     outputErrors.push({ outputId: id });
                 }
@@ -417,7 +405,7 @@ export class FunctionInstance {
             }
 
             outputs.set(id, type);
-            genericParameters.set(getOutputParamName(id), type);
+            scope.add(new VariableDefinition(getOutputParamName(id), type));
         }
 
         return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);

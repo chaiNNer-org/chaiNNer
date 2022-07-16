@@ -413,7 +413,7 @@ const evaluateFunctionCall = (expression: FunctionCallExpression, scope: Readonl
     if (definition.type === 'function') {
         const functionScope = new Scope('function scope', definitionScope);
         definition.definition.parameters.forEach(({ name }, i) => {
-            functionScope.addDefinition(new VariableDefinition(name, args[i]));
+            functionScope.add(new VariableDefinition(name, args[i]));
         });
         return evaluate(definition.definition.value, functionScope);
     }
@@ -428,7 +428,7 @@ const evaluateMatch = (expression: MatchExpression, scope: ReadonlyScope): Type 
         if (arm.binding === undefined) return scope;
 
         const armScope = new Scope(`match arm`, scope);
-        armScope.addDefinition(new VariableDefinition(arm.binding, armType));
+        armScope.add(new VariableDefinition(arm.binding, armType));
         return armScope;
     };
 
@@ -454,7 +454,7 @@ const evaluateScope = (expression: ScopeExpression, parentScope: ReadonlyScope):
     const scope = new Scope(name, parentScope);
 
     for (const def of expression.definitions) {
-        scope.addDefinition(def);
+        scope.add(def);
     }
 
     return evaluate(expression.expression, scope);
