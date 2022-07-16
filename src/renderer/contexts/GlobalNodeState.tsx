@@ -778,7 +778,7 @@ export const GlobalProvider = memo(
                         return nodeCopy;
                     });
                 };
-                const resetInputSize = () => setInputSize({ width: 0, height: 0 } as Size);
+                const resetInputSize = () => setInputSize({ width: 0, height: 0 });
                 return [currentSize, setInputSize, resetInputSize] as const;
             },
             [modifyNode, schemata]
