@@ -204,10 +204,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
         (data) => {
-            console.log(
-                '🚀 ~ file: ExecutionContext.tsx ~ line 179 ~ ExecutionProvider ~ data',
-                data
-            );
             if (data) {
                 unAnimate(data.finished, data.broadcastData);
             }

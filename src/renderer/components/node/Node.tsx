@@ -6,7 +6,6 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
@@ -50,7 +49,6 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { port } = useContext(SettingsContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
         useContext(GlobalContext);
