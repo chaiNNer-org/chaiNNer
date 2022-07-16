@@ -192,7 +192,7 @@ async def run_individual(request: Request):
         run_func = functools.partial(node_instance.run, *full_data["inputs"])
         output = await app.loop.run_in_executor(None, run_func)
         # Cache the output of the node
-        # app.ctx.cache[full_data["id"]] = output
+        app.ctx.cache[full_data["id"]] = output
         extra_data = node_instance.get_extra_data()
         del node_instance, run_func
         return json({"success": True, "data": extra_data})
