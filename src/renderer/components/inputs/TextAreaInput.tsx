@@ -40,11 +40,11 @@ export const TextAreaInput = memo(
                 defaultSize={size}
                 enable={{
                     top: false,
-                    right: !isLocked && resizable && true,
-                    bottom: !isLocked && resizable && true,
+                    right: !isLocked && resizable,
+                    bottom: !isLocked && resizable,
                     left: false,
                     topRight: false,
-                    bottomRight: !isLocked && resizable && true,
+                    bottomRight: !isLocked && resizable,
                     bottomLeft: false,
                     topLeft: false,
                 }}
@@ -65,7 +65,6 @@ export const TextAreaInput = memo(
                     disabled={isLocked}
                     draggable={false}
                     h="100%"
-                    minW={240}
                     placeholder={label}
                     resize="none"
                     value={tempText}
