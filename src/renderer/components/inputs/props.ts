@@ -1,11 +1,18 @@
-import { InputData, InputId, InputSchemaValue, SchemaId, Size } from '../../../common/common-types';
+import {
+    InputData,
+    InputId,
+    InputSchemaValue,
+    InputSize,
+    SchemaId,
+    Size,
+} from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 
 export interface InputProps {
     readonly id: string;
     readonly inputId: InputId;
     readonly inputData: InputData;
-    readonly inputSize: Size;
+    readonly inputSize?: InputSize;
     readonly isLocked: boolean;
     readonly label: string;
     readonly schemaId: SchemaId;
@@ -15,7 +22,5 @@ export interface InputProps {
     readonly useInputData: <T extends InputSchemaValue>(
         inputId: InputId
     ) => readonly [T | undefined, (value: T) => void, () => void];
-    readonly useInputSize: <Size>(
-        inputId: InputId
-    ) => readonly [Size | undefined, (value: Size) => void, () => void];
+    readonly useInputSize: (inputId: InputId) => readonly [Size, (size: Size) => void, () => void];
 }

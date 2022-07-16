@@ -3,7 +3,6 @@ import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
-import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useMemoArray } from '../../hooks/useMemo';
@@ -20,7 +19,7 @@ export const TextAreaInput = memo(
         const [isSnapToGrid, , snapToGridAmount] = useSnapToGrid;
 
         const [input, setInput] = useInputData<string>(inputId);
-        const [size, setSize] = useInputSize<Size>(inputId);
+        const [size, setSize] = useInputSize(inputId);
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {
@@ -60,14 +59,14 @@ export const TextAreaInput = memo(
                 minWidth={240}
                 scale={zoom}
                 size={{
-                    width: size?.width || 320,
-                    height: size?.height || 240,
+                    width: size.width || 320,
+                    height: size.height || 240,
                 }}
                 onResizeStop={(e, direction, ref, d) => {
                     if (!isLocked) {
                         setSize({
-                            width: (size?.width || 0) + d.width,
-                            height: (size?.height || 0) + d.height,
+                            width: (size.width || 0) + d.width,
+                            height: (size.height || 0) + d.height,
                         });
                     }
                 }}

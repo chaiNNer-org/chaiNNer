@@ -106,7 +106,7 @@ interface Global {
     useInputSize: (
         id: string,
         inputId: InputId,
-        inputSize: InputSize
+        inputSize?: InputSize
     ) => readonly [Size, (size: Size) => void, () => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
