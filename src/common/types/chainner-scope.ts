@@ -60,6 +60,7 @@ struct ThresholdType;
 struct TileMode;
 struct VideoType;
 struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
+struct MathOperation { operation: string }
 
 // util function for upscaling nodes
 let real = ..;

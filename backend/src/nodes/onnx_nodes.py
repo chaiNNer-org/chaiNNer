@@ -96,7 +96,7 @@ class OnnxImageUpscaleNode(NodeBase):
             ImageOutput(
                 "Upscaled Image",
                 image_type=expression.Image(
-                    channels="UpscaleChannels { imageChannels: Input1.channels }"
+                    channels="getUpscaleChannels(Input1.channels, int(1..), int(1..))"
                 ),
             )
         ]
