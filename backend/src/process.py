@@ -4,11 +4,29 @@ import asyncio
 import functools
 import os
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, TypedDict
 
 from sanic.log import logger
 
 from nodes.node_factory import NodeFactory
+
+
+class UsableData(TypedDict):
+    id: str
+    schemaId: str
+    inputs: list
+    outputs: list
+    child: bool
+    children: List[str]
+    nodeType: str
+    percent: int | float
+    hasSideEffects: bool
+
+
+class NodeExecutionError(Exception):
+    def __init__(self, node: UsableData, cause: str):
+        super().__init__(cause)
+        self.node = node
 
 
 class Executor:
@@ -18,11 +36,11 @@ class Executor:
 
     def __init__(
         self,
-        nodes: Dict,
-        loop,
+        nodes: Dict[str, UsableData],
+        loop: asyncio.AbstractEventLoop,
         queue: asyncio.Queue,
-        existing_cache: Dict,
-        parent_executor=None,
+        existing_cache: Dict[str, Any],
+        parent_executor: Optional[Executor] = None,
     ):
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
@@ -39,7 +57,15 @@ class Executor:
 
         self.parent_executor = parent_executor
 
-    async def process(self, node: Dict) -> Any:
+    async def process(self, node: UsableData) -> Any:
+        try:
+            return await self.__process(node)
+        except NodeExecutionError:
+            raise
+        except Exception as e:
+            raise NodeExecutionError(node, str(e)) from e
+
+    async def __process(self, node: UsableData) -> Any:
         """Process a single node"""
         logger.debug(f"node: {node}")
         node_id = node["id"]
@@ -95,8 +121,8 @@ class Executor:
 
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
-            sub_nodes = {}
-            for child in node["children"]:
+            sub_nodes: Dict[str, UsableData] = {}
+            for child in node["children"]:  # type: ignore
                 sub_nodes[child] = self.nodes[child]
             sub_nodes_ids = sub_nodes.keys()
             for v in sub_nodes.copy().values():
@@ -175,7 +201,6 @@ class Executor:
         for node in self.nodes.values():
             if self.killed:
                 break
-            print(node["hasSideEffects"])
             if (node["hasSideEffects"]) and not node["child"]:
                 output_nodes.append(node)
         # Run each of the output nodes through processing

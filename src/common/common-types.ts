@@ -134,7 +134,7 @@ export interface UsableData {
     outputs: (InputValue | EdgeHandle | null)[];
     child: boolean;
     children?: string[];
-    nodeType: string | undefined;
+    nodeType: string;
     percent?: number;
     hasSideEffects: boolean;
 }

@@ -90,6 +90,12 @@ const convertToUsableFormat = (
         const { schemaId, inputData } = data;
         const schema = schemata.get(schemaId);
 
+        if (!nodeType) {
+            throw new Error(
+                `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`
+            );
+        }
+
         // Node
         result[id] = {
             schemaId,
@@ -177,12 +183,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'execution-error',
         (data) => {
             if (data) {
-                sendAlert(AlertType.ERROR, null, data.exception);
+                let errorSource = '';
+                if (data.source) {
+                    const schema = schemata.get(data.source.schemaId);
+                    let { name } = schema;
+                    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
+                        // make the name unique using the category of the schema
+                        name = `${schema.category} ${schema.name}`;
+                    }
+                    errorSource = `An error occurred in a ${name} node:\n\n`;
+                }
+
+                sendAlert(AlertType.ERROR, null, errorSource + data.exception);
                 unAnimate();
                 setStatus(ExecutionStatus.READY);
             }
         },
-        [setStatus, unAnimate]
+        [setStatus, unAnimate, schemata]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
@@ -304,7 +321,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     isFp16,
                 });
                 if (response.exception) {
-                    sendAlert(AlertType.ERROR, null, response.exception);
+                    // no need to alert here, because the error has already been handled by the queue
                     unAnimate();
                     setStatus(ExecutionStatus.READY);
                 }
