@@ -8,12 +8,15 @@ from typing import Union
 from ...properties import expression
 from .base_output import BaseOutput
 
-from ...utils.architecture.RRDB import RRDBNet as ESRGAN
-from ...utils.architecture.SPSR import SPSRNet as SPSR
-from ...utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from ...utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
+try:
+    from ...utils.architecture.RRDB import RRDBNet as ESRGAN
+    from ...utils.architecture.SPSR import SPSRNet as SPSR
+    from ...utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
+    from ...utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
 
-PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN]
+    PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN]
+except:
+    PyTorchModel = None
 
 
 class ModelOutput(BaseOutput):
@@ -24,11 +27,11 @@ class ModelOutput(BaseOutput):
     ):
         super().__init__(model_type, label)
 
-    def broadcast(self, value: PyTorchModel) -> dict:
+    def broadcast(self, value: PyTorchModel) -> dict:  # type: ignore
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model"
 
-        if "SRVGG" in value.model_type:
+        if "SRVGG" in value.model_type:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
         else:
             size = [
