@@ -1,4 +1,4 @@
-# Type system
+# Navi
 
 Types are sets of all their possible value.
 E.g. the type `string` is the set of all possible strings (e.g. `""`, `"foo"`), and the type `number` is the set of all floating point numbers (e.g. 0, -2, 3.14, inf, NaN).
