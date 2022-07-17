@@ -582,10 +582,14 @@ export const GlobalProvider = memo(
 
         const releaseNodeFromParent = useCallback(
             (id: string) => {
+                let parentNode: Node<NodeData> | undefined;
+                let node: Node<NodeData> | undefined;
+                let capturedNodes: Node<NodeData>[];
                 changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
+                    capturedNodes = nodes;
+                    node = nodes.find((n) => n.id === id);
                     if (node && node.parentNode) {
-                        const parentNode = nodes.find((n) => n.id === node.parentNode);
+                        parentNode = nodes.find((n) => n.id === node!.parentNode);
                         if (parentNode) {
                             const newNode: Node<Mutable<NodeData>> = deepCopy(node);
                             delete newNode.parentNode;
@@ -596,12 +600,22 @@ export const GlobalProvider = memo(
                                 x: parentNode.position.x - 100,
                                 y: parentNode.position.y - 100,
                             };
-                            return [...nodes.filter((n) => n.id !== node.id), newNode];
+                            return [...nodes.filter((n) => n.id !== node!.id), newNode];
                         }
                     }
                     return nodes;
                 });
-                changeEdges((edges) => edges.filter((e) => e.target !== id));
+                changeEdges((edges) => {
+                    const sourceEdges = edges.filter((e) => e.target === id);
+                    return edges.filter((e) => {
+                        const invalidSources = capturedNodes
+                            .filter(
+                                (n) => n.parentNode && sourceEdges.some((ed) => ed.source === n.id)
+                            )
+                            .map((n) => n.id);
+                        return !invalidSources.includes(e.source);
+                    });
+                });
             },
             [changeNodes, changeEdges]
         );
