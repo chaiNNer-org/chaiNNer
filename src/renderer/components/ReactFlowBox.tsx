@@ -215,11 +215,12 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     }, [nodes, edges]);
 
     const onNodeDragStop = useCallback(
-        (event: React.MouseEvent, _node: Node<NodeData> | null, nNodes: Node<NodeData>[]) => {
+        (event: React.MouseEvent, _node: Node<NodeData> | null, draggedNodes: Node<NodeData>[]) => {
             const newNodes: Node<NodeData>[] = [];
             const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');
-            nNodes.forEach((node) => {
+            const draggedNodeIds = draggedNodes.map((n) => n.id);
+            draggedNodes.forEach((node) => {
                 if (!node.parentNode && node.type === 'regularNode') {
                     const iterInBounds = allIterators.find(
                         (iterator) =>
@@ -255,13 +256,16 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             },
                         };
 
-                        edgesToRemove.concat(
-                            edges.filter(
-                                (e) =>
-                                    e.source === node.id &&
-                                    nodes.find((n) => n.id === e.target)?.parentNode !==
-                                        iterInBounds.id
-                            )
+                        edgesToRemove.push(
+                            ...edges.filter((e) => {
+                                if (e.source === node.id) {
+                                    const target = nodes.find((n) => n.id === e.target);
+                                    if (target && !draggedNodeIds.includes(target.id)) {
+                                        return target.parentNode !== iterInBounds.id;
+                                    }
+                                }
+                                return false;
+                            })
                         );
 
                         newNodes.push(newNode);

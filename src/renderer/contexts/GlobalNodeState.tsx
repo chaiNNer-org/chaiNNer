@@ -582,28 +582,36 @@ export const GlobalProvider = memo(
 
         const releaseNodeFromParent = useCallback(
             (id: string) => {
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.parentNode) {
-                        const parentNode = nodes.find((n) => n.id === node.parentNode);
-                        if (parentNode) {
-                            const newNode: Node<Mutable<NodeData>> = deepCopy(node);
-                            delete newNode.parentNode;
-                            delete newNode.data.parentNode;
-                            delete newNode.extent;
-                            delete newNode.positionAbsolute;
-                            newNode.position = {
-                                x: parentNode.position.x - 100,
-                                y: parentNode.position.y - 100,
-                            };
-                            return [...nodes.filter((n) => n.id !== node.id), newNode];
-                        }
+                const nodes = getNodes();
+                const edges = getEdges();
+                const node = nodes.find((n) => n.id === id);
+                let newNodes = nodes;
+                if (node && node.parentNode) {
+                    const parentNode = nodes.find((n) => n.id === node.parentNode);
+                    if (parentNode) {
+                        const newNode: Node<Mutable<NodeData>> = deepCopy(node);
+                        delete newNode.parentNode;
+                        delete newNode.data.parentNode;
+                        delete newNode.extent;
+                        delete newNode.positionAbsolute;
+                        newNode.position = {
+                            x: parentNode.position.x - 100,
+                            y: parentNode.position.y - 100,
+                        };
+                        newNodes = [...nodes.filter((n) => n.id !== node.id), newNode];
                     }
-                    return nodes;
+                }
+                changeNodes(newNodes);
+                const sourceEdges = edges.filter((e) => e.target === id);
+                const filteredEdges = edges.filter((e) => {
+                    const invalidSources = nodes
+                        .filter((n) => n.parentNode && sourceEdges.some((ed) => ed.source === n.id))
+                        .map((n) => n.id);
+                    return !invalidSources.includes(e.source);
                 });
-                changeEdges((edges) => edges.filter((e) => e.target !== id));
+                changeEdges(filteredEdges);
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges, getNodes, getEdges]
         );
 
         const isValidConnection = useCallback(
