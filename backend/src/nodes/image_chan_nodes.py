@@ -41,14 +41,14 @@ class SeparateRgbaNode(NodeBase):
         self.icon = "MdCallSplit"
         self.sub = "All"
 
-    def run(self, img: np.ndarray) -> list[np.ndarray]:
-        """Split a multi-channel image into separate channels"""
-
+    def run(
+        self, img: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         h, w, c = get_h_w_c(img)
         safe_out = np.ones((h, w))
 
         if img.ndim == 2:
-            return [img, safe_out, safe_out, safe_out]
+            return img, safe_out, safe_out, safe_out
 
         c = min(c, 4)
 
@@ -58,7 +58,7 @@ class SeparateRgbaNode(NodeBase):
         for i in range(4 - c):
             out.append(safe_out)
 
-        return [out[2], out[1], out[0], out[3]]
+        return out[2], out[1], out[0], out[3]
 
 
 @NodeFactory.register("chainner:image:combine_rgba")
