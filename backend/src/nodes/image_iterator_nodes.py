@@ -81,7 +81,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         directory: str,
         nodes: Union[dict, None] = None,
         external_cache: Union[dict, None] = None,
-        loop=None,
+        loop: asyncio.AbstractEventLoop = asyncio.AbstractEventLoop(),
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
@@ -267,7 +267,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         path: str,
         nodes: Union[dict, None] = None,
         external_cache: Union[dict, None] = None,
-        loop=None,
+        loop: asyncio.AbstractEventLoop = asyncio.AbstractEventLoop(),
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
@@ -350,7 +350,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
 
 @NodeFactory.register(SPRITESHEET_ITERATOR_INPUT_NODE_ID)
-class ImageFileIteratorLoadImageNode(NodeBase):
+class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = ""
@@ -369,7 +369,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
 
 @NodeFactory.register(SPRITESHEET_ITERATOR_OUTPUT_NODE_ID)
-class ImageFileIteratorAppendImageNode(NodeBase):
+class ImageSpriteSheetIteratorAppendImageNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = ""
@@ -420,11 +420,11 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         columns: int,
         nodes: Union[dict, None] = None,
         external_cache: Union[dict, None] = None,
-        loop=None,
+        loop: asyncio.AbstractEventLoop = asyncio.AbstractEventLoop(),
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
-        percent=0,
+        _percent=0,
     ) -> np.ndarray:
         assert nodes is not None, "Nodes must be provided"
         assert external_cache is not None, "External cache must be provided"
@@ -464,9 +464,6 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                     ]
                 )
 
-        # img_arr = np.array_split(sprite_sheet, rows, axis=0)
-        # img_arr = np.array_split(img_arr, columns, axis=1)
-
         length = len(img_list)
 
         results = []
@@ -505,17 +502,6 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                     },
                 }
             )
-        logger.info(results)
-        # Turn the results dict into an array
-        # results = list(results.values())
-        # Merge results back into sprite sheet
-        # sheet_arr = np.reshape(np.array(results), (-1, columns))
-        # # result_arr = []
-        # # for i in range(sheet_arr.shape[0]):
-        # #     row = np.concatenate(sheet_arr[i], axis=1)
-        # concat_1 = np.concatenate(sheet_arr, axis=0)
-        # concat_2 = np.concatenate(concat_1, axis=1)
-        # logger.info(concat_2.shape)
         result_rows = []
         for i in range(rows):
             row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)
