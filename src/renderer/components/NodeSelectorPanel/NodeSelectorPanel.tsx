@@ -30,6 +30,7 @@ import {
     getMatchingNodes,
     getNodesByCategory,
     getSubcategories,
+    sortSchemata,
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
@@ -45,7 +46,7 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    const matchingNodes = getMatchingNodes(searchQuery, schemata.schemata);
+    const matchingNodes = getMatchingNodes(searchQuery, sortSchemata(schemata.schemata));
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(
