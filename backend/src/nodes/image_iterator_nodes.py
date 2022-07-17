@@ -396,8 +396,20 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         self.description = "Iterate over sub-images in a single image spritesheet."
         self.inputs = [
             ImageInput("Spritesheet"),
-            NumberInput("Number of rows (vertical)", 1, 1, 1, 1),
-            NumberInput("Number of columns (horizontal)", 1, 1, 1, 1),
+            NumberInput(
+                "Number of rows (vertical)",
+                step=1,
+                controls_step=1,
+                minimum=1,
+                default=1,
+            ),
+            NumberInput(
+                "Number of columns (horizontal)",
+                step=1,
+                controls_step=1,
+                minimum=1,
+                default=1,
+            ),
         ]
         self.outputs = [ImageOutput()]
         self.category = IMAGE
@@ -424,7 +436,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         queue: asyncio.Queue = asyncio.Queue(),
         iterator_id="",
         parent_executor=None,
-        _percent=0,
+        # pylint: disable=unused-argument
+        percent=0,
     ) -> np.ndarray:
         assert nodes is not None, "Nodes must be provided"
         assert external_cache is not None, "External cache must be provided"
@@ -455,6 +468,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
 
         # Split sprite sheet into a single list of images
         img_list = []
+
         for row in range(rows):
             for col in range(columns):
                 img_list.append(
