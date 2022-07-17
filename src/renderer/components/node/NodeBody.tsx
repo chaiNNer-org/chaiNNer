@@ -1,7 +1,13 @@
 import { Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
-import { Input, InputData, InputSize, Output, SchemaId } from '../../../common/common-types';
-import { Input, InputData, Output, OutputData, SchemaId } from '../../../common/common-types';
+import {
+    Input,
+    InputData,
+    InputSize,
+    Output,
+    OutputData,
+    SchemaId,
+} from '../../../common/common-types';
 import { NodeInputs } from './NodeInputs';
 import { NodeOutputs } from './NodeOutputs';
 
