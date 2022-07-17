@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 import antlr4 from 'antlr4';
 import { assertNever, noop } from '../util';
 import NaviLexer from './antlr4/NaviLexer';

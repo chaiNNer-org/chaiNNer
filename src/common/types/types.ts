@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable max-classes-per-file */
 
 import { assertValidStructFieldName, assertValidStructName } from './names';
 
