@@ -45,15 +45,15 @@ struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
 struct BorderType;
+struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
 struct FillColor;
 struct FillMethod;
 struct FlipAxis;
+struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
-struct Horizontal;
-struct Vertical;
-let Orientation = Horizontal | Vertical;
+struct MathOperation { operation: string }
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
 struct RotateExpandCrop;
@@ -61,8 +61,10 @@ struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
 struct VideoType;
-struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
-struct MathOperation { operation: string }
+
+struct Horizontal;
+struct Vertical;
+let Orientation = Horizontal | Vertical;
 
 // util function for upscaling nodes
 let real = ..;
