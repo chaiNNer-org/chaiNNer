@@ -31,7 +31,7 @@ import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
+import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
@@ -46,7 +46,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, schemata)),
+        () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
         [searchQuery, schemata]
     );
 
