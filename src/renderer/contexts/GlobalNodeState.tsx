@@ -60,6 +60,7 @@ import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
+import { useMap } from '../hooks/useMap';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 import { useOpenRecent } from '../hooks/useOpenRecent';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
@@ -779,6 +780,23 @@ export const GlobalProvider = memo(
                     });
                 };
                 return [currentSize, setInputSize] as const;
+            },
+            [modifyNode, schemata]
+        );
+
+        const [outputDataMap, outputDataActions] = useMap<string, unknown | undefined>();
+        const useOutputData = useCallback(
+            (
+                id: string,
+                inputId: InputId
+            ): readonly [unknown | undefined, (data: unknown | undefined) => void, () => void] => {
+                const fullId = `${id}-${inputId}`;
+                const outputData = outputDataMap.get(fullId);
+                const setOutputData = (data: unknown | undefined) => {
+                    outputDataActions.set(fullId, data);
+                };
+                const resetOutputData = () => outputDataActions.set(fullId, undefined);
+                return [outputData, setOutputData, resetOutputData] as const;
             },
             [modifyNode, schemata]
         );
