@@ -7,7 +7,6 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
-    XYPosition,
     getOutgoers,
     useReactFlow,
     useViewport,
@@ -36,6 +35,7 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
+    EMPTY_SET,
     createUniqueId,
     deepCopy,
     deriveUniqueId,
@@ -49,9 +49,12 @@ import {
 } from '../helpers/copyAndPaste';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
+    NodeProto,
     copyEdges,
     copyNode,
     copyNodes,
+    createNode as createNodeImpl,
+    defaultIteratorSize,
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
@@ -87,7 +90,7 @@ interface GlobalVolatile {
 interface Global {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    defaultIteratorSize: Size;
+    defaultIteratorSize: Readonly<Size>;
     setSetNodes: SetState<SetState<Node<NodeData>[]>>;
     setSetEdges: SetState<SetState<Edge<EdgeData>[]>>;
     addNodeChanges: () => void;
@@ -129,92 +132,15 @@ interface Global {
     releaseNodeFromParent: (id: string) => void;
 }
 
-export interface NodeProto {
-    id?: string;
-    position: Readonly<XYPosition>;
-    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
-    nodeType: string;
-}
-
 // TODO: Find default
 export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
-
-const createNodeImpl = (
-    { id = createUniqueId(), position, data, nodeType }: NodeProto,
-    schemata: SchemaMap,
-    parent?: Node<NodeData>,
-    selected = false
-): Node<NodeData>[] => {
-    const newNode: Node<Mutable<NodeData>> = {
-        type: nodeType,
-        id,
-        position: { ...position },
-        data: {
-            ...data,
-            id,
-            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
-        },
-        selected,
-    };
-
-    if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
-        const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
-            width: 1280,
-            height: 720,
-            offsetTop: 0,
-            offsetLeft: 0,
-        };
-        newNode.position.x = position.x - parent.position.x;
-        newNode.position.y = position.y - parent.position.y;
-        newNode.parentNode = parent.id;
-        newNode.data.parentNode = parent.id;
-        newNode.extent = [
-            [offsetLeft, offsetTop],
-            [width, height],
-        ];
-    }
-
-    const extraNodes: Node<NodeData>[] = [];
-    if (nodeType === 'iterator') {
-        newNode.data.iteratorSize = {
-            width: 1280,
-            height: 720,
-            offsetTop: 0,
-            offsetLeft: 0,
-        };
-
-        const { defaultNodes = [] } = schemata.get(data.schemaId);
-
-        defaultNodes.forEach(({ schemaId }) => {
-            const schema = schemata.get(schemaId);
-            const subNode = createNodeImpl(
-                {
-                    nodeType: schema.nodeType,
-                    position: newNode.position,
-                    data: {
-                        schemaId,
-                    },
-                },
-                schemata,
-                newNode
-            );
-            extraNodes.push(...subNode);
-        });
-    }
-
-    return [newNode, ...extraNodes];
-};
-
-const defaultIteratorSize: Size = { width: 1280, height: 720 };
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
-
-const EMPTY_SET: ReadonlySet<never> = new Set();
 
 export const GlobalProvider = memo(
     ({

@@ -28,7 +28,7 @@ import {
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
@@ -306,15 +306,14 @@ export const usePaneNodeSearchMenu = (
                 y: y - reactFlowBounds.top,
             });
             const nodeId = createUniqueId();
-            const nodeToMake: NodeProto = {
+            createNode({
                 id: nodeId,
                 position: projPosition,
                 data: {
                     schemaId: schema.schemaId,
                 },
                 nodeType: schema.nodeType,
-            };
-            createNode(nodeToMake);
+            });
             const targetTypes = functionDefinitions.get(schema.schemaId);
             if (
                 isStoppedOnPane &&
