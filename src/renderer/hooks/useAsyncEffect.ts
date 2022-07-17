@@ -1,4 +1,3 @@
-// eslint-disable-next-line max-classes-per-file
 import log from 'electron-log';
 import { useEffect } from 'react';
 import { noop } from '../../common/util';
