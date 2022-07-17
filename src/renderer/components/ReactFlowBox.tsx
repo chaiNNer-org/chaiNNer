@@ -217,7 +217,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const onNodeDragStop = useCallback(
         (event: React.MouseEvent, _node: Node<NodeData> | null, nNodes: Node<NodeData>[]) => {
             const newNodes: Node<NodeData>[] = [];
-            let edgesToRemove: Edge[] = [];
+            const edgesToRemove: Edge[] = [];
             const allIterators = nodes.filter((n) => n.type === 'iterator');
             nNodes.forEach((node) => {
                 if (!node.parentNode && node.type === 'regularNode') {
@@ -264,7 +264,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                                     }
                                 }
                                 return false;
-                            }),
+                            })
                         );
 
                         newNodes.push(newNode);
