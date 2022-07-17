@@ -112,7 +112,46 @@ class StackNode(NodeBase):
             ImageInput("Image D").make_optional(),
             StackOrientationDropdown(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                def getWidth(img: Image | null) = match img { null => 0, _ as i => i.width };
+                def getHeight(img: Image | null) = match img { null => 0, _ as i => i.height };
+                def getChannels(img: Image | null) {
+                    match img {
+                        null => 0,
+                        _ as i => match i.channels { 1 => 3, _ as c => c }
+                    }
+                }
+
+                let maxWidth = max(Input0.width, getWidth(Input1), getWidth(Input2), getWidth(Input3));
+                let maxHeight = max(Input0.height, getHeight(Input1), getHeight(Input2), getHeight(Input3));
+                let maxChannels = max(Input0.channels, getChannels(Input1), getChannels(Input2), getChannels(Input3));
+
+                def getAdjustedWidth(img: Image | null) {
+                    match img {
+                        null => 0,
+                        _ as i => uint & round(divide(multiply(i.width, maxHeight), i.height))
+                    }
+                }
+                def getAdjustedHeight(img: Image | null) {
+                    match img {
+                        null => 0,
+                        _ as i => uint & round(divide(multiply(i.height, maxWidth), i.width))
+                    }
+                }
+
+                let widthSum = add(getAdjustedWidth(Input0), getAdjustedWidth(Input1), getAdjustedWidth(Input2), getAdjustedWidth(Input3));
+                let heightSum = add(getAdjustedHeight(Input0), getAdjustedHeight(Input1), getAdjustedHeight(Input2), getAdjustedHeight(Input3));
+
+                Image {
+                    width: match Input4 { Vertical => maxWidth, Horizontal => widthSum },
+                    height: match Input4 { Vertical => heightSum, Horizontal => maxHeight },
+                    channels: maxChannels
+                }
+                """
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Stack Images"
         self.icon = "CgMergeVertical"
@@ -151,14 +190,14 @@ class StackNode(NodeBase):
                 if h < max_h:
                     fixed_img = cv2.resize(
                         img,
-                        (math.ceil(w * max_h / h), max_h),
+                        (round(w * max_h / h), max_h),
                         interpolation=cv2.INTER_NEAREST,
                     )
             elif orientation == "vertical":
                 if w < max_w:
                     fixed_img = cv2.resize(
                         img,
-                        (max_w, math.ceil(h * max_w / w)),
+                        (max_w, round(h * max_w / w)),
                         interpolation=cv2.INTER_NEAREST,
                     )
             else:

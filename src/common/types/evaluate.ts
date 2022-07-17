@@ -1,43 +1,37 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable no-param-reassign */
-import { EMPTY_MAP, assertNever } from '../util';
+
+import { assertNever } from '../util';
 import {
     Expression,
     FieldAccessExpression,
     FunctionCallExpression,
+    FunctionDefinition,
     MatchArm,
     MatchExpression,
     NamedExpression,
     NamedExpressionField,
+    ScopeExpression,
+    StructDefinition,
+    VariableDefinition,
 } from './expression';
 import { intersect } from './intersection';
 import { isSubsetOf } from './relation';
 import {
-    AliasDefinition,
-    AliasDefinitionEntry,
-    AliasParameterDefinition,
     BuiltinFunctionDefinition,
-    StructDefinition,
-    StructDefinitionEntry,
-    TypeDefinitions,
-} from './typedef';
+    NameResolutionError,
+    ReadonlyScope,
+    ResolvedName,
+    Scope,
+    ScopeBuiltinFunctionDefinition,
+    ScopeFunctionDefinition,
+    ScopeStructDefinition,
+    ScopeVariableDefinition,
+} from './scope';
 import { NeverType, StructType, StructTypeField, Type } from './types';
 import { union } from './union';
 import { without } from './without';
 
 export type ErrorDetails =
-    | {
-          type: 'Generic parameter with fields';
-          expression: NamedExpression;
-          message: string;
-      }
-    | {
-          type: 'Unknown alias parameter';
-          expression: NamedExpression;
-          definition: AliasDefinition;
-          field: NamedExpressionField;
-          message: string;
-      }
     | {
           type: 'Unknown struct field';
           expression: NamedExpression;
@@ -53,6 +47,28 @@ export type ErrorDetails =
     | {
           type: 'Unknown function';
           expression: FunctionCallExpression;
+          similarNames: string[];
+          message: string;
+      }
+    | {
+          type: 'Not a function';
+          expression: FunctionCallExpression;
+          message: string;
+      }
+    | {
+          type: 'Not a struct';
+          expression: NamedExpression;
+          message: string;
+      }
+    | {
+          type: 'Unknown named';
+          expression: NamedExpression;
+          similarNames: string[];
+          message: string;
+      }
+    | {
+          type: 'Cannot reference function';
+          expression: NamedExpression;
           message: string;
       }
     | {
@@ -67,32 +83,8 @@ export type ErrorDetails =
           message: string;
       }
     | {
-          type: 'Incompatible parameter type';
-          expression: NamedExpression;
-          definition: AliasDefinition;
-          parameter: {
-              name: string;
-              expression: Type;
-              definition: Type;
-          };
-          message: string;
-      }
-    | {
           type: 'Invalid structure definition';
           definition: StructDefinition;
-          details: ErrorDetails;
-          message: string;
-      }
-    | {
-          type: 'Invalid alias definition type';
-          definition: AliasDefinition;
-          details: ErrorDetails;
-          message: string;
-      }
-    | {
-          type: 'Invalid alias definition parameter type';
-          definition: AliasDefinition;
-          parameter: AliasParameterDefinition;
           details: ErrorDetails;
           message: string;
       }
@@ -106,13 +98,13 @@ export type ErrorDetails =
     | {
           type: 'Incorrect function argument count';
           expression: FunctionCallExpression;
-          definition: BuiltinFunctionDefinition;
+          definition: BuiltinFunctionDefinition | FunctionDefinition;
           message: string;
       }
     | {
           type: 'Incompatible argument type';
           expression: FunctionCallExpression;
-          definition: BuiltinFunctionDefinition;
+          definition: BuiltinFunctionDefinition | FunctionDefinition;
           argument: {
               index: number;
               expression: Type;
@@ -130,131 +122,15 @@ export class EvaluationError extends Error {
     }
 }
 
-/**
- * Implements an F1 score based on bi-grams.
- */
-const getSimilarityScore = (a: string, b: string): number => {
-    const getBiGrams = (s: string): Set<string> => {
-        const bi = new Set<string>();
-        for (let i = 1; i < s.length; i += 1) {
-            bi.add(s.substring(i - 1, i + 1));
-        }
-        return bi;
-    };
-
-    const aBi = getBiGrams(a);
-    const bBi = getBiGrams(b);
-    if (aBi.size === 0 || bBi.size === 0) return 0;
-
-    const intersection = [...aBi].filter((g) => bBi.has(g));
-
-    return (2 * intersection.length) / (aBi.size + bBi.size);
-};
-
-const evaluateAlias = (
-    expression: NamedExpression,
-    entry: AliasDefinitionEntry,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    const unknownField = expression.fields.find(
-        (f) => !entry.definition.parameterNames.has(f.name)
-    );
-    if (unknownField) {
-        throw new EvaluationError({
-            type: 'Unknown alias parameter',
-            expression,
-            definition: entry.definition,
-            field: unknownField,
-            message: `The alias definition for ${entry.definition.name} has no parameter ${unknownField.name}.`,
-        });
-    }
-
-    if (entry.evaluatedParams === undefined) {
-        entry.evaluatedParams = entry.definition.parameters.map((p) => {
-            try {
-                return evaluate(p.type, definitions);
-            } catch (error: unknown) {
-                if (error instanceof EvaluationError) {
-                    throw new EvaluationError({
-                        type: 'Invalid alias definition parameter type',
-                        definition: entry.definition,
-                        parameter: p,
-                        details: error.details,
-                        message: `The alias definition parameter type for ${entry.definition.name}.${p.name} is invalid.`,
-                    });
-                }
-                throw error;
-            }
-        });
-    }
-
-    if (entry.evaluated === undefined) {
-        try {
-            const params = new Map(
-                entry.definition.parameters.map((p, i) => [p.name, entry.evaluatedParams![i]])
-            );
-            entry.evaluated = evaluate(entry.definition.type, definitions, params);
-        } catch (error: unknown) {
-            if (error instanceof EvaluationError) {
-                throw new EvaluationError({
-                    type: 'Invalid alias definition type',
-                    definition: entry.definition,
-                    details: error.details,
-                    message: `The alias definition type for ${entry.definition.name} is invalid.`,
-                });
-            }
-            throw error;
-        }
-    }
-
-    if (entry.definition.parameters.length === 0) {
-        // non-generic alias instantiation
-        return entry.evaluated;
-    }
-
-    // generic alias
-    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
-
-    const aliasParams = new Map<string, Type>();
-    for (let index = 0; index < entry.definition.parameters.length; index += 1) {
-        const p = entry.definition.parameters[index];
-        const pType = entry.evaluatedParams[index];
-        const eField = eFields.get(p.name);
-
-        let type;
-        if (eField) {
-            type = evaluate(eField, definitions, genericParameters);
-
-            if (!isSubsetOf(type, pType)) {
-                throw new EvaluationError({
-                    type: 'Incompatible parameter type',
-                    expression,
-                    definition: entry.definition,
-                    parameter: { name: p.name, expression: type, definition: pType },
-                    message: `The type expression of the ${p.name} parameter is not compatible with its type definition.`,
-                });
-            }
-        } else {
-            // default to definition type
-            type = pType;
-        }
-
-        aliasParams.set(p.name, type);
-    }
-
-    return evaluate(entry.definition.type, definitions, aliasParams);
-};
-
 const evaluateStructDefinition = (
     def: StructDefinition,
-    definitions: TypeDefinitions
+    scope: ReadonlyScope
 ): StructType | NeverType => {
     const fields: StructTypeField[] = [];
     for (const f of def.fields) {
         let type;
         try {
-            type = evaluate(f.type, definitions);
+            type = evaluate(f.type, scope);
         } catch (error: unknown) {
             if (error instanceof EvaluationError) {
                 throw new EvaluationError({
@@ -273,105 +149,119 @@ const evaluateStructDefinition = (
 };
 const evaluateStruct = (
     expression: NamedExpression,
-    entry: StructDefinitionEntry,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
+    scope: ReadonlyScope,
+    definition: ScopeStructDefinition,
+    definitionScope: ReadonlyScope
 ): Type => {
-    const unknownField = expression.fields.find((f) => !entry.definition.fieldNames.has(f.name));
+    // eslint-disable-next-line no-param-reassign
+    definition.default ??= evaluateStructDefinition(definition.definition, definitionScope);
+    if (definition.default.type === 'never') return NeverType.instance;
+
+    // no fields
+    if (expression.fields.length === 0) {
+        return definition.default;
+    }
+
+    // check for unknown fields
+    const unknownField = expression.fields.find(
+        (f) => !definition.definition.fieldNames.has(f.name)
+    );
     if (unknownField) {
         throw new EvaluationError({
             type: 'Unknown struct field',
             expression,
-            definition: entry.definition,
+            definition: definition.definition,
             field: unknownField,
-            message: `The struct definition for ${entry.definition.name} has no field ${unknownField.name}.`,
+            message: `The struct definition for ${definition.definition.name} has no field ${unknownField.name}.`,
         });
     }
 
-    entry.evaluated ??= evaluateStructDefinition(entry.definition, definitions);
-    if (entry.evaluated.type === 'never') return NeverType.instance;
-
-    const eFields = new Map(expression.fields.map((f) => [f.name, f.type]));
+    const expressionFields = new Map(expression.fields.map((f) => [f.name, f.type]));
 
     const fields: StructTypeField[] = [];
-    for (const f of entry.evaluated.fields) {
-        const eField = eFields.get(f.name);
+    for (const dField of definition.default.fields) {
+        const eField = expressionFields.get(dField.name);
         let type;
         if (eField) {
-            type = evaluate(eField, definitions, genericParameters);
+            type = evaluate(eField, scope);
             if (type.type === 'never') return NeverType.instance;
 
-            if (!isSubsetOf(type, f.type)) {
+            if (!isSubsetOf(type, dField.type)) {
                 throw new EvaluationError({
                     type: 'Incompatible field type',
                     expression,
-                    definition: entry.definition,
-                    field: { name: f.name, expression: type, definition: f.type },
+                    definition: definition.definition,
+                    field: { name: dField.name, expression: type, definition: dField.type },
                     message: `The type ${type.toString()} of the ${
-                        f.name
-                    } field is not compatible with its type definition ${f.type.toString()}.`,
+                        dField.name
+                    } field is not compatible with its type definition ${dField.type.toString()}.`,
                 });
             }
         } else {
             // default to definition type
-            type = f.type;
+            type = dField.type;
         }
-        fields.push(new StructTypeField(f.name, type));
+        fields.push(new StructTypeField(dField.name, type));
     }
     return new StructType(expression.name, fields);
 };
 
-const evaluateNamed = (
+const resolveNamed = (
     expression: NamedExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    // generic parameter
-    const genericParam = genericParameters.get(expression.name);
-    if (genericParam) {
-        if (expression.fields.length > 0) {
+    currentScope: ReadonlyScope
+): ResolvedName<ScopeStructDefinition | ScopeVariableDefinition> => {
+    let resolved;
+    try {
+        resolved = currentScope.get(expression.name);
+    } catch (error: unknown) {
+        if (error instanceof NameResolutionError) {
             throw new EvaluationError({
-                type: 'Generic parameter with fields',
+                type: 'Unknown named',
                 expression,
-                message: `${expression.name} refers to a generic parameter and does not support fields.`,
+                similarNames: error.similar,
+                message: error.message,
             });
         }
-        return genericParam;
+        throw error;
     }
 
-    // definition
-    const entry = definitions.get(expression.name);
-    if (entry === undefined) {
-        const names = [...definitions.names()]
-            .map((name) => {
-                return { name, score: getSimilarityScore(name, expression.name) };
-            })
-            .sort((a, b) => a.score - b.score)
-            .map((n) => n.name);
-
+    const { definition, scope } = resolved;
+    if (definition.type === 'function' || definition.type === 'builtin-function') {
         throw new EvaluationError({
-            type: 'Unknown type definition',
+            type: 'Cannot reference function',
             expression,
-            message:
-                `Unknown type definition ${expression.name}. ` +
-                `Did you mean ${names.slice(-3).join(', ')}?`,
+            message: `The name ${expression.name} resolves to a ${resolved.definition.type} and not a struct.`,
         });
     }
 
-    // alias
-    if (entry.kind === 'alias') {
-        return evaluateAlias(expression, entry, definitions, genericParameters);
+    return { definition, scope };
+};
+const evaluateNamed = (expression: NamedExpression, scope: ReadonlyScope): Type => {
+    const { definition, scope: definitionScope } = resolveNamed(expression, scope);
+
+    // variable
+    if (definition.type === 'variable') {
+        if (expression.fields.length > 0) {
+            throw new EvaluationError({
+                type: 'Not a struct',
+                expression,
+                message: `${expression.name} is a variable and does not support struct fields.`,
+            });
+        }
+
+        if (definition.value === undefined) {
+            definition.value = evaluate(definition.definition.value, definitionScope);
+        }
+
+        return definition.value;
     }
 
-    return evaluateStruct(expression, entry, definitions, genericParameters);
+    // struct
+    return evaluateStruct(expression, scope, definition, definitionScope);
 };
 
-const evaluateFieldAccess = (
-    expression: FieldAccessExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    const type = evaluate(expression.of, definitions, genericParameters);
+const evaluateFieldAccess = (expression: FieldAccessExpression, scope: ReadonlyScope): Type => {
+    const type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
     if (type.type === 'any') {
         throw new EvaluationError({
@@ -386,7 +276,7 @@ const evaluateFieldAccess = (
     const types = type.type === 'union' ? type.items : [type];
     const accessed: Type[] = [];
     for (const t of types) {
-        if (t.type !== 'struct') {
+        if (t.underlying === 'number' || t.underlying === 'string') {
             throw new EvaluationError({
                 type: 'Invalid field access',
                 expression,
@@ -412,71 +302,106 @@ const evaluateFieldAccess = (
     return union(...accessed);
 };
 
-const evaluateFunctionCall = (
+const resolveFunction = (
     expression: FunctionCallExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    const entry = definitions.getFunction(expression.functionName);
-    if (entry === undefined) {
-        throw new EvaluationError({
-            type: 'Unknown function',
-            expression,
-            message: `No builtin function ${expression.functionName} available.`,
-        });
+    currentScope: ReadonlyScope
+): ResolvedName<ScopeFunctionDefinition | ScopeBuiltinFunctionDefinition> => {
+    let resolved;
+    try {
+        resolved = currentScope.get(expression.functionName);
+    } catch (error: unknown) {
+        if (error instanceof NameResolutionError) {
+            throw new EvaluationError({
+                type: 'Unknown function',
+                expression,
+                similarNames: error.similar,
+                message: error.message,
+            });
+        }
+        throw error;
     }
 
-    if (entry.definition.varArgs) {
-        if (entry.definition.args.length > expression.args.length) {
+    const { definition, scope } = resolved;
+    if (definition.type === 'function' || definition.type === 'builtin-function') {
+        return { definition, scope };
+    }
+
+    throw new EvaluationError({
+        type: 'Not a function',
+        expression,
+        message: `The name ${expression.functionName} resolves to a ${resolved.definition.type} and not a function.`,
+    });
+};
+const evaluateFunctionCall = (expression: FunctionCallExpression, scope: ReadonlyScope): Type => {
+    const { definition, scope: definitionScope } = resolveFunction(expression, scope);
+
+    // check argument number
+    if (definition.type === 'builtin-function' && definition.definition.varArgs) {
+        if (definition.definition.parameters.length > expression.args.length) {
             throw new EvaluationError({
                 type: 'Incorrect function argument count',
                 expression,
-                definition: entry.definition,
-                message: `${expression.functionName} expected at least ${entry.definition.args.length} but got ${expression.args.length}.`,
+                definition: definition.definition,
+                message: `${expression.functionName} expected at least ${definition.definition.parameters.length} but got ${expression.args.length}.`,
             });
         }
-    } else if (entry.definition.args.length !== expression.args.length) {
+    } else if (definition.definition.parameters.length !== expression.args.length) {
         throw new EvaluationError({
             type: 'Incorrect function argument count',
             expression,
-            definition: entry.definition,
-            message: `${expression.functionName} expected ${entry.definition.args.length} but got ${expression.args.length}.`,
+            definition: definition.definition,
+            message: `${expression.functionName} expected ${definition.definition.parameters.length} but got ${expression.args.length}.`,
         });
     }
 
-    if (!entry.evaluatedArgs) {
-        entry.evaluatedArgs = entry.definition.args.map((arg) => evaluate(arg, definitions));
+    // evaluate parameter types
+    if (!definition.parameters) {
+        if (definition.type === 'builtin-function') {
+            definition.parameters = definition.definition.parameters.map((p) =>
+                evaluate(p, definitionScope)
+            );
+        } else {
+            definition.parameters = definition.definition.parameters.map((p) =>
+                evaluate(p.type, definitionScope)
+            );
+        }
     }
-    if (!entry.evaluatedVarArgs && entry.definition.varArgs) {
-        entry.evaluatedVarArgs = evaluate(entry.definition.varArgs, definitions);
+    if (
+        definition.type === 'builtin-function' &&
+        !definition.varArgs &&
+        definition.definition.varArgs
+    ) {
+        definition.varArgs = evaluate(definition.definition.varArgs, definitionScope);
     }
 
-    const args = expression.args.map((arg) => evaluate(arg, definitions, genericParameters));
+    // evaluate arguments
+    const args = expression.args.map((arg) => evaluate(arg, scope));
 
-    for (let i = 0; i < entry.evaluatedArgs.length; i += 1) {
+    // check argument types
+    for (let i = 0; i < definition.parameters.length; i += 1) {
         const eType = args[i];
-        const dType = entry.evaluatedArgs[i];
+        const dType = definition.parameters[i];
 
         if (!isSubsetOf(eType, dType)) {
             throw new EvaluationError({
                 type: 'Incompatible argument type',
                 expression,
-                definition: entry.definition,
+                definition: definition.definition,
                 argument: { index: i, expression: eType, definition: dType },
                 message: `The supplied argument type ${eType.toString()} is not compatible with the definition type.`,
             });
         }
     }
-    if (entry.evaluatedVarArgs) {
-        for (let i = entry.evaluatedArgs.length; i < args.length; i += 1) {
+    if (definition.varArgs) {
+        for (let i = definition.parameters.length; i < args.length; i += 1) {
             const eType = args[i];
-            const dType = entry.evaluatedVarArgs;
+            const dType = definition.varArgs;
 
             if (!isSubsetOf(eType, dType)) {
                 throw new EvaluationError({
                     type: 'Incompatible argument type',
                     expression,
-                    definition: entry.definition,
+                    definition: definition.definition,
                     argument: { index: i, expression: eType, definition: dType },
                     message: `The supplied argument type ${eType.toString()} is not compatible with the definition type.`,
                 });
@@ -484,30 +409,35 @@ const evaluateFunctionCall = (
         }
     }
 
-    return entry.definition.fn(...args);
+    // run function
+    if (definition.type === 'function') {
+        const functionScope = new Scope('function scope', definitionScope);
+        definition.definition.parameters.forEach(({ name }, i) => {
+            functionScope.add(new VariableDefinition(name, args[i]));
+        });
+        return evaluate(definition.definition.value, functionScope);
+    }
+    return definition.definition.fn(...args);
 };
 
-const evaluateMatch = (
-    expression: MatchExpression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type>
-): Type => {
-    let type = evaluate(expression.of, definitions, genericParameters);
+const evaluateMatch = (expression: MatchExpression, scope: ReadonlyScope): Type => {
+    let type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
 
-    const withBinding = (arm: MatchArm, armType: Type): ReadonlyMap<string, Type> => {
-        if (arm.binding === undefined) return genericParameters;
-        const copy = new Map(genericParameters);
-        copy.set(arm.binding, armType);
-        return copy;
+    const withBinding = (arm: MatchArm, armType: Type): ReadonlyScope => {
+        if (arm.binding === undefined) return scope;
+
+        const armScope = new Scope(`match arm`, scope);
+        armScope.add(new VariableDefinition(arm.binding, armType));
+        return armScope;
     };
 
     const matchTypes: Type[] = [];
     for (const arm of expression.arms) {
-        const armType = evaluate(arm.pattern, definitions, genericParameters);
+        const armType = evaluate(arm.pattern, scope);
         const t = intersect(armType, type);
         if (t.type !== 'never') {
-            matchTypes.push(evaluate(arm.to, definitions, withBinding(arm, t)));
+            matchTypes.push(evaluate(arm.to, withBinding(arm, t)));
             type = without(type, armType);
         }
     }
@@ -515,20 +445,27 @@ const evaluateMatch = (
     return union(...matchTypes);
 };
 
+const evaluateScope = (expression: ScopeExpression, parentScope: ReadonlyScope): Type => {
+    let name = 'scope expression';
+    if (expression.source) {
+        const { document, span } = expression.source;
+        name += ` at ${document.name}:${span[0]}`;
+    }
+    const scope = new Scope(name, parentScope);
+
+    for (const def of expression.definitions) {
+        scope.add(def);
+    }
+
+    return evaluate(expression.expression, scope);
+};
+
 /**
  * Evaluates the given expression. If a type is given, then the type will be returned as is.
  *
- * @param expression
- * @param definitions
- * @param genericParameters
- * @returns
  * @throws {@link EvaluationError}
  */
-export const evaluate = (
-    expression: Expression,
-    definitions: TypeDefinitions,
-    genericParameters: ReadonlyMap<string, Type> = EMPTY_MAP
-): Type => {
+export const evaluate = (expression: Expression, scope: ReadonlyScope): Type => {
     if (expression.underlying !== 'expression') {
         // type
         return expression;
@@ -536,21 +473,19 @@ export const evaluate = (
 
     switch (expression.type) {
         case 'named':
-            return evaluateNamed(expression, definitions, genericParameters);
+            return evaluateNamed(expression, scope);
         case 'union':
-            return union(
-                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
-            );
+            return union(...expression.items.map((e) => evaluate(e, scope)));
         case 'intersection':
-            return intersect(
-                ...expression.items.map((e) => evaluate(e, definitions, genericParameters))
-            );
+            return intersect(...expression.items.map((e) => evaluate(e, scope)));
         case 'field-access':
-            return evaluateFieldAccess(expression, definitions, genericParameters);
+            return evaluateFieldAccess(expression, scope);
         case 'builtin-function':
-            return evaluateFunctionCall(expression, definitions, genericParameters);
+            return evaluateFunctionCall(expression, scope);
         case 'match':
-            return evaluateMatch(expression, definitions, genericParameters);
+            return evaluateMatch(expression, scope);
+        case 'scope':
+            return evaluateScope(expression, scope);
         default:
             return assertNever(expression);
     }

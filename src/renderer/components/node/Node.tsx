@@ -50,10 +50,11 @@ export interface NodeProps {
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData, typeDefinitions } =
+    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
+    const { id, inputData, inputSize, isLocked, parentNode, schemaId, animated = false } = data;
     const { id, inputData, isLocked, parentNode, schemaId, outputData, animated = false } = data;
 
     // We get inputs and outputs this way in case something changes with them in the future
@@ -82,11 +83,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     inputData,
                     edges: getEdges(),
                     functionInstance,
-                    typeDefinitions,
                 })
             );
         }
-    }, [inputData, edgeChanges, functionInstance, typeDefinitions]);
+    }, [inputData, edgeChanges, functionInstance]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -189,6 +189,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         accentColor={accentColor}
                         id={id}
                         inputData={inputData}
+                        inputSize={inputSize}
                         inputs={inputs}
                         isLocked={isLocked}
                         outputData={outputData}

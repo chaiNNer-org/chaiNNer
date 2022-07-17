@@ -18,6 +18,7 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputSize,
     InputValue,
     IteratorSize,
     Mutable,
@@ -30,10 +31,10 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
+import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';
 import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
-import { TypeDefinitions } from '../../common/types/typedef';
 import { Type } from '../../common/types/types';
 import {
     createUniqueId,
@@ -106,6 +107,11 @@ interface Global {
         inputId: InputId,
         inputData: InputData
     ) => readonly [T | undefined, (data: T) => void, () => void];
+    useInputSize: (
+        id: string,
+        inputId: InputId,
+        inputSize: InputSize | undefined
+    ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
     removeNodeById: (id: string) => void;
     removeEdgeById: (id: string) => void;
     duplicateNode: (id: string) => void;
@@ -123,7 +129,6 @@ interface Global {
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
-    typeDefinitions: TypeDefinitions;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
 }
@@ -211,7 +216,6 @@ interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
-    typeDefinitions: TypeDefinitions;
 }
 
 const EMPTY_SET: ReadonlySet<never> = new Set();
@@ -222,8 +226,6 @@ export const GlobalProvider = memo(
         schemata,
         reactFlowWrapper,
         functionDefinitions,
-
-        typeDefinitions,
     }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
         const { useStartupTemplate } = useContext(SettingsContext);
@@ -267,14 +269,14 @@ export const GlobalProvider = memo(
                             map.set(nodeId, inner);
                         }
 
-                        inner.set(outputId, evaluate(type, typeDefinitions));
+                        inner.set(outputId, evaluate(type, getChainnerScope()));
                     } else {
                         inner?.delete(outputId);
                     }
                     return { map };
                 });
             },
-            [setManualOutputTypes, typeDefinitions]
+            [setManualOutputTypes]
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
@@ -759,6 +761,28 @@ export const GlobalProvider = memo(
             [modifyNode, schemata]
         );
 
+        const useInputSize = useCallback(
+            (
+                id: string,
+                inputId: InputId,
+                inputSize: InputSize | undefined
+            ): readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void] => {
+                const currentSize = inputSize?.[inputId];
+                const setInputSize = (size: Readonly<Size>) => {
+                    modifyNode(id, (old) => {
+                        const nodeCopy = copyNode(old);
+                        nodeCopy.data.inputSize = {
+                            ...nodeCopy.data.inputSize,
+                            [inputId]: size,
+                        };
+                        return nodeCopy;
+                    });
+                };
+                return [currentSize, setInputSize] as const;
+            },
+            [modifyNode, schemata]
+        );
+
         const useAnimate = useCallback(() => {
             const setAnimated = (
                 animated: boolean,
@@ -853,13 +877,13 @@ export const GlobalProvider = memo(
                     if (iteratorNode && nodesToUpdate.length > 0) {
                         const { width, height, offsetTop, offsetLeft } =
                             iteratorSize === null ? iteratorNode.data.iteratorSize! : iteratorSize;
-                        let maxWidth = 256;
-                        let maxHeight = 256;
+                        let minWidth = 256;
+                        let minHeight = 256;
                         nodesToUpdate.forEach((n) => {
-                            maxWidth = Math.max(n.width ?? dimensions?.width ?? maxWidth, maxWidth);
-                            maxHeight = Math.max(
-                                n.height ?? dimensions?.height ?? maxHeight,
-                                maxHeight
+                            minWidth = Math.max(n.width ?? dimensions?.width ?? minWidth, minWidth);
+                            minHeight = Math.max(
+                                n.height ?? dimensions?.height ?? minHeight,
+                                minHeight
                             );
                         });
                         const newNodes = nodesToUpdate.map((n) => {
@@ -884,13 +908,13 @@ export const GlobalProvider = memo(
 
                         const newIteratorNode = copyNode(iteratorNode);
 
-                        newIteratorNode.data.maxWidth = maxWidth;
-                        newIteratorNode.data.maxHeight = maxHeight;
+                        newIteratorNode.data.minWidth = minWidth;
+                        newIteratorNode.data.minHeight = minHeight;
                         // TODO: prove that those non-null assertions are valid or make them unnecessary
                         newIteratorNode.data.iteratorSize!.width =
-                            width < maxWidth ? maxWidth : width;
+                            width < minWidth ? minWidth : width;
                         newIteratorNode.data.iteratorSize!.height =
-                            height < maxHeight ? maxHeight : height;
+                            height < minHeight ? minHeight : height;
                         return [
                             newIteratorNode,
                             ...nodes.filter((n) => n.parentNode !== id && n.id !== id),
@@ -1024,6 +1048,7 @@ export const GlobalProvider = memo(
             changeEdges,
             useAnimate,
             useInputData,
+            useInputSize,
             toggleNodeLock,
             clearNode,
             removeNodeById,
@@ -1037,7 +1062,6 @@ export const GlobalProvider = memo(
             setZoom,
             setManualOutputType,
             functionDefinitions,
-            typeDefinitions,
             typeStateRef,
             releaseNodeFromParent,
         });

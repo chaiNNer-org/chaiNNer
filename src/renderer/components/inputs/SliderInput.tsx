@@ -10,7 +10,6 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext } from 'use-context-selector';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
@@ -59,7 +58,6 @@ export const SliderInput = memo(
         isLocked,
         definitionType,
     }: SliderInputProps) => {
-        const { typeDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
@@ -98,7 +96,7 @@ export const SliderInput = memo(
             : undefined;
         const filled = !expr;
 
-        const [typeAccentColor] = getTypeAccentColors(definitionType, typeDefinitions, isDarkMode);
+        const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
 
         return (
             <VStack w="full">

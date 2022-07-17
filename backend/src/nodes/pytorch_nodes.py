@@ -142,11 +142,7 @@ class ImageUpscaleNode(NodeBase):
                 Image {
                     width: multiply(Input0.scale, Input1.width),
                     height: multiply(Input0.scale, Input1.height),
-                    channels: UpscaleChannels {
-                        imageChannels: Input1.channels,
-                        inputChannels: Input0.inputChannels,
-                        outputChannels: Input0.outputChannels
-                    }
+                    channels: getUpscaleChannels(Input1.channels, Input0.inputChannels, Input0.outputChannels)
                 }
                 """,
             )

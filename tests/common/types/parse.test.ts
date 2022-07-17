@@ -1,4 +1,5 @@
 import { parseExpression } from '../../../src/common/types/parse';
+import { SourceDocument } from '../../../src/common/types/source';
 
 const expressionSnippets: string[] = [
     // comments and spaces
@@ -88,6 +89,13 @@ const expressionSnippets: string[] = [
     String.raw`a | b | c | d`,
     String.raw`a & b & c & d`,
     String.raw`a & b | c & d`,
+
+    // scope
+    String.raw`{ 0 }`,
+    String.raw`{ let foo = 0; foo }`,
+    String.raw`{ def getFoo() = 0; getFoo() }`,
+    String.raw`{ def getFoo() { 0 } getFoo() }`,
+    String.raw`{ struct Foo { bar: 0 }; Foo.bar }`,
 ];
 const invalidExpressionSnippets: string[] = [
     String.raw``,
@@ -123,13 +131,15 @@ const invalidExpressionSnippets: string[] = [
     String.raw`as()`,
     String.raw`match()`,
     String.raw`struct()`,
-    String.raw`alias()`,
+    String.raw`let()`,
+    String.raw`def()`,
 
     // named
     String.raw`match { }`,
     String.raw`as { }`,
     String.raw`struct { }`,
-    String.raw`alias { }`,
+    String.raw`def { }`,
+    String.raw`let { }`,
     String.raw`foo { as: as }`,
 
     // match
@@ -139,7 +149,8 @@ const invalidExpressionSnippets: string[] = [
     // field access
     String.raw`a.match`,
     String.raw`a.as`,
-    String.raw`a.alias`,
+    String.raw`a.def`,
+    String.raw`a.let`,
     String.raw`a.struct`,
     String.raw`a.1`,
     String.raw`a.b.(c.d).e.f`,
@@ -155,7 +166,7 @@ const invalidExpressionSnippets: string[] = [
 const expressionParsing = (expr: string): string => {
     let result: string;
     try {
-        result = parseExpression(expr).toString();
+        result = parseExpression(new SourceDocument(expr, 'test document')).toString();
     } catch (error) {
         result = String(error);
     }
