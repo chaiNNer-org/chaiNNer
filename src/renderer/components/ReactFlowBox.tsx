@@ -255,8 +255,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             },
                         };
 
-                        edgesToRemove = [
-                            ...edgesToRemove,
+                        edgesToRemove.push(
                             ...edges.filter((e) => {
                                 if (e.source === node.id) {
                                     const target = nodes.find((n) => n.id === e.target);
@@ -266,7 +265,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                                 }
                                 return false;
                             }),
-                        ];
+                        );
 
                         newNodes.push(newNode);
                     }
