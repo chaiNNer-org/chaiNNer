@@ -5,7 +5,7 @@ import { InputId, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
-import { NodeProto } from '../contexts/GlobalNodeState';
+import { NodeProto } from './reactFlowUtil';
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
