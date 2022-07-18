@@ -19,7 +19,7 @@ class UsableData(TypedDict):
     child: bool
     children: List[str]
     nodeType: str
-    percent: int | float
+    percent: float
     hasSideEffects: bool
 
 
@@ -27,6 +27,26 @@ class NodeExecutionError(Exception):
     def __init__(self, node: UsableData, cause: str):
         super().__init__(cause)
         self.node = node
+
+
+class ExecutionContext:
+    def __init__(
+        self,
+        nodes: Dict[str, UsableData],
+        loop: asyncio.AbstractEventLoop,
+        queue: asyncio.Queue,
+        cache: Dict[str, Any],
+        iterator_id: str,
+        executor: Executor,
+        percent: float,
+    ):
+        self.nodes = nodes
+        self.loop = loop
+        self.queue = queue
+        self.cache = cache
+        self.iterator_id = iterator_id
+        self.executor = executor
+        self.percent = percent
 
 
 class Executor:
@@ -141,13 +161,15 @@ class Executor:
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
             output = await node_instance.run(
                 *enforced_inputs,
-                nodes=sub_nodes,  # type: ignore
-                loop=self.loop,  # type: ignore
-                queue=self.queue,  # type: ignore
-                external_cache=self.output_cache,  # type: ignore
-                iterator_id=node["id"],  # type: ignore
-                parent_executor=self,  # type: ignore
-                percent=node["percent"] if self.resumed else 0,  # type: ignore
+                context=ExecutionContext(  # type: ignore
+                    sub_nodes,
+                    self.loop,
+                    self.queue,
+                    self.output_cache,
+                    node["id"],
+                    self,
+                    node["percent"] if self.resumed else 0,
+                ),
             )
             # Cache the output of the node
             self.output_cache[node_id] = output

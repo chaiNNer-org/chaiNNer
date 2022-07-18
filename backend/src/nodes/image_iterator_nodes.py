@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import math
 import os
 
 import numpy as np
-from process import Executor
+from process import Executor, ExecutionContext
 from sanic.log import logger
 
 from .categories import IMAGE
@@ -21,6 +20,9 @@ IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
+
+SPRITESHEET_ITERATOR_INPUT_NODE_ID = "chainner:image:spritesheet_iterator_load"
+SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"
 
 
 @NodeFactory.register(IMAGE_ITERATOR_NODE_ID)
@@ -73,32 +75,19 @@ class ImageFileIteratorNode(IteratorNodeBase):
         ]
 
     # pylint: disable=invalid-overridden-method
-    async def run(
-        self,
-        directory: str,
-        nodes: Union[dict, None] = None,
-        external_cache: Union[dict, None] = None,
-        loop=None,
-        queue: asyncio.Queue = asyncio.Queue(),
-        iterator_id="",
-        parent_executor=None,
-        percent=0,
-    ) -> None:
+    async def run(self, directory: str, context: ExecutionContext) -> None:
         logger.info(f"Iterating over images in directory: {directory}")
-        logger.info(nodes)
-
-        assert nodes is not None, "Nodes must be provided"
-        assert external_cache is not None, "External cache must be provided"
+        logger.info(context.nodes)
 
         img_path_node_id = None
         child_nodes = []
-        for k, v in nodes.items():
+        for k, v in context.nodes.items():
             if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
                 img_path_node_id = v["id"]
-            if nodes[k]["child"]:
+            if context.nodes[k]["child"]:
                 child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
-            nodes[k]["child"] = False
+            context.nodes[k]["child"] = False
 
         supported_filetypes = get_available_image_formats()
 
@@ -111,7 +100,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
-            if parent_executor is not None and parent_executor.should_stop_running():
+            if context.executor.should_stop_running():
                 return
 
             for name in files:
@@ -121,37 +110,38 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     just_image_files.append(filepath)
 
         file_len = len(just_image_files)
-        start_idx = math.ceil(float(percent) * file_len)
+        start_idx = math.ceil(float(context.percent) * file_len)
         for idx, filepath in enumerate(just_image_files):
-            if parent_executor is not None and parent_executor.should_stop_running():
+            if context.executor.should_stop_running():
                 return
             if idx >= start_idx:
-                await queue.put(
+                await context.queue.put(
                     {
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": idx / file_len,
-                            "iteratorId": iterator_id,
+                            "iteratorId": context.iterator_id,
                             "running": child_nodes,
                         },
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                # TODO: Fix None key
+                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]  # type: ignore
                 executor = Executor(
-                    nodes,
-                    loop,
-                    queue,
-                    external_cache.copy(),
-                    parent_executor=parent_executor,
+                    context.nodes,
+                    context.loop,
+                    context.queue,
+                    context.cache.copy(),
+                    parent_executor=context.executor,
                 )
                 await executor.run()
-                await queue.put(
+                await context.queue.put(
                     {
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": (idx + 1) / file_len,
-                            "iteratorId": iterator_id,
+                            "iteratorId": context.iterator_id,
                             "running": None,
                         },
                     }
@@ -259,35 +249,22 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.icon = "MdVideoCameraBack"
 
     # pylint: disable=invalid-overridden-method
-    async def run(
-        self,
-        path: str,
-        nodes: Union[dict, None] = None,
-        external_cache: Union[dict, None] = None,
-        loop=None,
-        queue: asyncio.Queue = asyncio.Queue(),
-        iterator_id="",
-        parent_executor=None,
-        percent=0,
-    ) -> None:
+    async def run(self, path: str, context: ExecutionContext) -> None:
         logger.info(f"Iterating over frames in video file: {path}")
-        logger.info(nodes)
-
-        assert nodes is not None, "Nodes must be provided"
-        assert external_cache is not None, "External cache must be provided"
+        logger.info(context.nodes)
 
         input_node_id = None
         output_node_id = None
         child_nodes = []
-        for k, v in nodes.items():
+        for k, v in context.nodes.items():
             if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
                 input_node_id = v["id"]
             elif v["schemaId"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
                 output_node_id = v["id"]
-            if nodes[k]["child"]:
+            if context.nodes[k]["child"]:
                 child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
-            nodes[k]["child"] = False
+            context.nodes[k]["child"] = False
 
         # TODO: Open Video Buffer
         cap = cv2.VideoCapture(path)
@@ -295,10 +272,11 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        start_idx = math.ceil(float(percent) * frame_count)
-        nodes[output_node_id]["inputs"].extend((writer, fps))
+        start_idx = math.ceil(float(context.percent) * frame_count)
+        # TODO: Fix None key
+        context.nodes[output_node_id]["inputs"].extend((writer, fps))  # type: ignore
         for idx in range(frame_count):
-            if parent_executor is not None and parent_executor.should_stop_running():
+            if context.executor.should_stop_running():
                 cap.release()
                 if writer["out"] is not None:
                     writer["out"].release()
@@ -309,33 +287,34 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
             if idx >= start_idx:
-                await queue.put(
+                await context.queue.put(
                     {
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": idx / frame_count,
-                            "iteratorId": iterator_id,
+                            "iteratorId": context.iterator_id,
                             "running": child_nodes,
                         },
                     }
                 )
-                nodes[input_node_id]["inputs"] = [frame, idx]
-                external_cache_copy = external_cache.copy()
+                # TODO: Fix None key
+                context.nodes[input_node_id]["inputs"] = [frame, idx]  # type: ignore
+                external_cache_copy = context.cache.copy()
                 executor = Executor(
-                    nodes,
-                    loop,
-                    queue,
+                    context.nodes,
+                    context.loop,
+                    context.queue,
                     external_cache_copy,
-                    parent_executor=parent_executor,
+                    parent_executor=context.executor,
                 )
                 await executor.run()
                 del external_cache_copy
-                await queue.put(
+                await context.queue.put(
                     {
                         "event": "iterator-progress-update",
                         "data": {
                             "percent": (idx + 1) / frame_count,
-                            "iteratorId": iterator_id,
+                            "iteratorId": context.iterator_id,
                             "running": None,
                         },
                     }
@@ -344,3 +323,169 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         cap.release()
         if writer["out"] is not None:
             writer["out"].release()
+
+
+@NodeFactory.register(SPRITESHEET_ITERATOR_INPUT_NODE_ID)
+class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = ""
+        self.inputs = [IteratorInput().make_optional()]
+        self.outputs = [ImageOutput()]
+
+        self.category = IMAGE
+        self.name = "Load Image (Iterator)"
+        self.icon = "MdSubdirectoryArrowRight"
+        self.sub = "Iteration"
+
+        self.type = "iteratorHelper"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        return img
+
+
+@NodeFactory.register(SPRITESHEET_ITERATOR_OUTPUT_NODE_ID)
+class ImageSpriteSheetIteratorAppendImageNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = ""
+        self.inputs = [ImageInput()]
+        self.outputs = []
+
+        self.category = IMAGE
+        self.name = "Append Image"
+        self.icon = "CgExtensionAdd"
+        self.sub = "Iteration"
+
+        self.type = "iteratorHelper"
+
+        self.side_effects = True
+
+    def run(self, img: np.ndarray, results: List[np.ndarray]) -> None:
+        results.append(img)
+
+
+@NodeFactory.register("chainner:image:spritesheet_iterator")
+class ImageSpriteSheetIteratorNode(IteratorNodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Iterate over sub-images in a single image spritesheet."
+        self.inputs = [
+            ImageInput("Spritesheet"),
+            NumberInput(
+                "Number of rows (vertical)",
+                step=1,
+                controls_step=1,
+                minimum=1,
+                default=1,
+            ),
+            NumberInput(
+                "Number of columns (horizontal)",
+                step=1,
+                controls_step=1,
+                minimum=1,
+                default=1,
+            ),
+        ]
+        self.outputs = [ImageOutput()]
+        self.category = IMAGE
+        self.name = "Spritesheet Iterator"
+        self.default_nodes = [
+            # TODO: Figure out a better way to do this
+            {
+                "schemaId": SPRITESHEET_ITERATOR_INPUT_NODE_ID,
+            },
+            {
+                "schemaId": SPRITESHEET_ITERATOR_OUTPUT_NODE_ID,
+            },
+        ]
+
+    # pylint: disable=invalid-overridden-method
+    async def run(
+        self,
+        sprite_sheet: np.ndarray,
+        rows: int,
+        columns: int,
+        context: ExecutionContext,
+    ) -> np.ndarray:
+        h, w, _ = get_h_w_c(sprite_sheet)
+        assert (
+            h % rows == 0
+        ), "Height of sprite sheet must be a multiple of the number of rows"
+        assert (
+            w % columns == 0
+        ), "Width of sprite sheet must be a multiple of the number of columns"
+
+        img_loader_node_id = None
+        output_node_id = None
+        child_nodes = []
+        for k, v in context.nodes.items():
+            if v["schemaId"] == SPRITESHEET_ITERATOR_INPUT_NODE_ID:
+                img_loader_node_id = v["id"]
+            elif v["schemaId"] == SPRITESHEET_ITERATOR_OUTPUT_NODE_ID:
+                output_node_id = v["id"]
+            if context.nodes[k]["child"]:
+                child_nodes.append(v["id"])
+            # Set this to false to actually allow processing to happen
+            context.nodes[k]["child"] = False
+
+        individual_h = h // rows
+        individual_w = w // columns
+
+        # Split sprite sheet into a single list of images
+        img_list = []
+
+        for row in range(rows):
+            for col in range(columns):
+                img_list.append(
+                    sprite_sheet[
+                        row * individual_h : (row + 1) * individual_h,
+                        col * individual_w : (col + 1) * individual_w,
+                    ]
+                )
+
+        length = len(img_list)
+
+        results = []
+        # TODO: Fix None key
+        context.nodes[output_node_id]["inputs"].append(results)  # type: ignore
+        for idx, img in enumerate(img_list):
+            if context.executor.should_stop_running():
+                break
+            await context.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": idx / length,
+                        "iteratorId": context.iterator_id,
+                        "running": child_nodes,
+                    },
+                }
+            )
+            # Replace the input filepath with the filepath from the loop
+            # TODO: Fix None key
+            context.nodes[img_loader_node_id]["inputs"] = [img]  # type: ignore
+            # logger.info(nodes[output_node_id]["inputs"])
+            executor = Executor(
+                context.nodes,
+                context.loop,
+                context.queue,
+                context.cache.copy(),
+                parent_executor=context.executor,
+            )
+            await executor.run()
+            await context.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": (idx + 1) / length,
+                        "iteratorId": context.iterator_id,
+                        "running": None,
+                    },
+                }
+            )
+        result_rows = []
+        for i in range(rows):
+            row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)
+            result_rows.append(row)
+        return np.concatenate(result_rows, axis=0)

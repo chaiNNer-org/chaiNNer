@@ -7,7 +7,6 @@ import {
     Node,
     OnConnectStartParams,
     Viewport,
-    XYPosition,
     getOutgoers,
     useReactFlow,
     useViewport,
@@ -37,6 +36,7 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
+    EMPTY_SET,
     createUniqueId,
     deepCopy,
     deriveUniqueId,
@@ -50,9 +50,12 @@ import {
 } from '../helpers/copyAndPaste';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import {
+    NodeProto,
     copyEdges,
     copyNode,
     copyNodes,
+    createNode as createNodeImpl,
+    defaultIteratorSize,
     expandSelection,
     setSelected,
 } from '../helpers/reactFlowUtil';
@@ -89,7 +92,7 @@ interface GlobalVolatile {
 interface Global {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    defaultIteratorSize: Size;
+    defaultIteratorSize: Readonly<Size>;
     setSetNodes: SetState<SetState<Node<NodeData>[]>>;
     setSetEdges: SetState<SetState<Edge<EdgeData>[]>>;
     addNodeChanges: () => void;
@@ -134,92 +137,15 @@ interface Global {
     releaseNodeFromParent: (id: string) => void;
 }
 
-export interface NodeProto {
-    id?: string;
-    position: Readonly<XYPosition>;
-    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
-    nodeType: string;
-}
-
 // TODO: Find default
 export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
-
-const createNodeImpl = (
-    { id = createUniqueId(), position, data, nodeType }: NodeProto,
-    schemata: SchemaMap,
-    parent?: Node<NodeData>,
-    selected = false
-): Node<NodeData>[] => {
-    const newNode: Node<Mutable<NodeData>> = {
-        type: nodeType,
-        id,
-        position: { ...position },
-        data: {
-            ...data,
-            id,
-            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
-        },
-        selected,
-    };
-
-    if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
-        const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
-            width: 1280,
-            height: 720,
-            offsetTop: 0,
-            offsetLeft: 0,
-        };
-        newNode.position.x = position.x - parent.position.x;
-        newNode.position.y = position.y - parent.position.y;
-        newNode.parentNode = parent.id;
-        newNode.data.parentNode = parent.id;
-        newNode.extent = [
-            [offsetLeft, offsetTop],
-            [width, height],
-        ];
-    }
-
-    const extraNodes: Node<NodeData>[] = [];
-    if (nodeType === 'iterator') {
-        newNode.data.iteratorSize = {
-            width: 1280,
-            height: 720,
-            offsetTop: 0,
-            offsetLeft: 0,
-        };
-
-        const { defaultNodes = [] } = schemata.get(data.schemaId);
-
-        defaultNodes.forEach(({ schemaId }) => {
-            const schema = schemata.get(schemaId);
-            const subNode = createNodeImpl(
-                {
-                    nodeType: schema.nodeType,
-                    position: newNode.position,
-                    data: {
-                        schemaId,
-                    },
-                },
-                schemata,
-                newNode
-            );
-            extraNodes.push(...subNode);
-        });
-    }
-
-    return [newNode, ...extraNodes];
-};
-
-const defaultIteratorSize: Size = { width: 1280, height: 720 };
 
 interface GlobalProviderProps {
     schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
-
-const EMPTY_SET: ReadonlySet<never> = new Set();
 
 export const GlobalProvider = memo(
     ({
@@ -661,28 +587,36 @@ export const GlobalProvider = memo(
 
         const releaseNodeFromParent = useCallback(
             (id: string) => {
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.parentNode) {
-                        const parentNode = nodes.find((n) => n.id === node.parentNode);
-                        if (parentNode) {
-                            const newNode: Node<Mutable<NodeData>> = deepCopy(node);
-                            delete newNode.parentNode;
-                            delete newNode.data.parentNode;
-                            delete newNode.extent;
-                            delete newNode.positionAbsolute;
-                            newNode.position = {
-                                x: parentNode.position.x - 100,
-                                y: parentNode.position.y - 100,
-                            };
-                            return [...nodes.filter((n) => n.id !== node.id), newNode];
-                        }
+                const nodes = getNodes();
+                const edges = getEdges();
+                const node = nodes.find((n) => n.id === id);
+                let newNodes = nodes;
+                if (node && node.parentNode) {
+                    const parentNode = nodes.find((n) => n.id === node.parentNode);
+                    if (parentNode) {
+                        const newNode: Node<Mutable<NodeData>> = deepCopy(node);
+                        delete newNode.parentNode;
+                        delete newNode.data.parentNode;
+                        delete newNode.extent;
+                        delete newNode.positionAbsolute;
+                        newNode.position = {
+                            x: parentNode.position.x - 100,
+                            y: parentNode.position.y - 100,
+                        };
+                        newNodes = [...nodes.filter((n) => n.id !== node.id), newNode];
                     }
-                    return nodes;
+                }
+                changeNodes(newNodes);
+                const sourceEdges = edges.filter((e) => e.target === id);
+                const filteredEdges = edges.filter((e) => {
+                    const invalidSources = nodes
+                        .filter((n) => n.parentNode && sourceEdges.some((ed) => ed.source === n.id))
+                        .map((n) => n.id);
+                    return !invalidSources.includes(e.source);
                 });
-                changeEdges((edges) => edges.filter((e) => e.target !== id));
+                changeEdges(filteredEdges);
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges, getNodes, getEdges]
         );
 
         const isValidConnection = useCallback(

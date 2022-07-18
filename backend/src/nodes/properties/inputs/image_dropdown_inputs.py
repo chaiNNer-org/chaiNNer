@@ -38,6 +38,11 @@ def ColorModeInput() -> DropDownInput:
                 "type": "ColorMode { inputChannels: 4, outputChannels: 1 }",
             },
             {
+                "option": "Gray -> RGBA",
+                "value": cv2.COLOR_GRAY2BGRA,
+                "type": "ColorMode { inputChannels: 1, outputChannels: 4 }",
+            },
+            {
                 "option": "RGB -> YUV",
                 "value": cv2.COLOR_BGR2YUV,
                 "type": "ColorMode { inputChannels: 3, outputChannels: 3 }",
@@ -239,5 +244,16 @@ def TileModeInput():
                 "option": "Mirror",
                 "value": TileMode.MIRROR,
             },
+        ],
+    )
+
+
+def GammaOptionInput():
+    return DropDownInput(
+        input_type="GammaOption",
+        label="Gamma Option",
+        options=[
+            {"option": "None", "value": "normal"},
+            {"option": "Invert gamma", "value": "invert"},
         ],
     )

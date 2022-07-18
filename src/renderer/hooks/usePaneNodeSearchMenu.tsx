@@ -28,10 +28,10 @@ import {
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext, NodeProto } from '../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
+import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
@@ -46,7 +46,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, schemata)),
+        () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
         [searchQuery, schemata]
     );
 
@@ -306,15 +306,14 @@ export const usePaneNodeSearchMenu = (
                 y: y - reactFlowBounds.top,
             });
             const nodeId = createUniqueId();
-            const nodeToMake: NodeProto = {
+            createNode({
                 id: nodeId,
                 position: projPosition,
                 data: {
                     schemaId: schema.schemaId,
                 },
                 nodeType: schema.nodeType,
-            };
-            createNode(nodeToMake);
+            });
             const targetTypes = functionDefinitions.get(schema.schemaId);
             if (
                 isStoppedOnPane &&

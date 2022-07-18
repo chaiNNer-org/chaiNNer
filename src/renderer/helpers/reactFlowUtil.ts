@@ -1,6 +1,77 @@
+import { Size } from 'electron/common';
 import { Edge, Node, XYPosition } from 'react-flow-renderer';
-import { EdgeData, Mutable, NodeData } from '../../common/common-types';
+import { EdgeData, InputData, Mutable, NodeData } from '../../common/common-types';
+import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deepCopy } from '../../common/util';
+
+export const defaultIteratorSize: Readonly<Size> = { width: 1280, height: 720 };
+
+export interface NodeProto {
+    id?: string;
+    position: Readonly<XYPosition>;
+    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
+    nodeType: string;
+}
+
+export const createNode = (
+    { id = createUniqueId(), position, data, nodeType }: NodeProto,
+    schemata: SchemaMap,
+    parent?: Node<NodeData>,
+    selected = false
+): Node<NodeData>[] => {
+    const newNode: Node<Mutable<NodeData>> = {
+        type: nodeType,
+        id,
+        position: { ...position },
+        data: {
+            ...data,
+            id,
+            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
+        },
+        selected,
+    };
+
+    if (parent && parent.type === 'iterator' && nodeType !== 'iterator') {
+        const { width, height, offsetTop, offsetLeft } = parent.data.iteratorSize ?? {
+            ...defaultIteratorSize,
+            offsetTop: 0,
+            offsetLeft: 0,
+        };
+        newNode.position.x = position.x - parent.position.x;
+        newNode.position.y = position.y - parent.position.y;
+        newNode.parentNode = parent.id;
+        newNode.data.parentNode = parent.id;
+        newNode.extent = [
+            [offsetLeft, offsetTop],
+            [width, height],
+        ];
+    }
+
+    const extraNodes: Node<NodeData>[] = [];
+    if (nodeType === 'iterator') {
+        newNode.data.iteratorSize = { ...defaultIteratorSize, offsetTop: 0, offsetLeft: 0 };
+
+        const { defaultNodes = [] } = schemata.get(data.schemaId);
+
+        defaultNodes.forEach(({ schemaId }) => {
+            const schema = schemata.get(schemaId);
+            const subNode = createNode(
+                {
+                    nodeType: schema.nodeType,
+                    position: newNode.position,
+                    data: {
+                        schemaId,
+                    },
+                },
+                schemata,
+                newNode
+            );
+            extraNodes.push(...subNode);
+        });
+    }
+
+    return [newNode, ...extraNodes];
+};
 
 export const snapToGrid = (
     position: Readonly<XYPosition>,

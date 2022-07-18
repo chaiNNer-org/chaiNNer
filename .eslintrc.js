@@ -21,6 +21,7 @@ module.exports = {
         ecmaVersion: 2020,
     },
     rules: {
+        'max-classes-per-file': 'off',
         'no-use-before-define': 'off',
         'react/jsx-sort-props': [
             'error',
@@ -93,6 +94,7 @@ module.exports = {
                 project: './tsconfig.json',
             },
             rules: {
+                'max-classes-per-file': 'off',
                 'no-restricted-syntax': 'off',
                 'react/require-default-props': 'off',
                 '@typescript-eslint/no-non-null-assertion': 'off',

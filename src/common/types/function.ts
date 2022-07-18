@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, topologicalSort } from '../util';
 import { evaluate } from './evaluate';
