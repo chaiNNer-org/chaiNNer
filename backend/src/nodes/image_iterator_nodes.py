@@ -140,7 +140,8 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                if img_path_node_id is not None:
+                    nodes[img_path_node_id]["inputs"] = [filepath, directory]
                 executor = Executor(
                     nodes,
                     loop,
@@ -322,7 +323,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
-                nodes[input_node_id]["inputs"] = [frame, idx]
+                if input_node_id is not None:
+                    nodes[input_node_id]["inputs"] = [frame, idx]
                 external_cache_copy = external_cache.copy()
                 executor = Executor(
                     nodes,
@@ -496,7 +498,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 }
             )
             # Replace the input filepath with the filepath from the loop
-            nodes[img_loader_node_id]["inputs"] = [img]
+            if img_loader_node_id is not None:
+                nodes[img_loader_node_id]["inputs"] = [img]
             # logger.info(nodes[output_node_id]["inputs"])
             executor = Executor(
                 nodes,
