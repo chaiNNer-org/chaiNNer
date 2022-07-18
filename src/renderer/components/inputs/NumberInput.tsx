@@ -52,13 +52,20 @@ export const NumberInput = memo(
             }
         }, [input]);
 
+        const typeNumberString = useContextSelector(GlobalVolatileContext, (c) => {
+            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
+            return type && type.underlying === 'number' && type.type === 'literal'
+                ? type.toString()
+                : '';
+        });
+
         return (
             <HStack w="full">
                 <AdvancedNumberInput
                     controlsStep={controlsStep}
                     defaultValue={def}
                     hideTrailingZeros={hideTrailingZeros}
-                    inputString={inputString}
+                    inputString={isInputLocked ? typeNumberString : inputString}
                     isDisabled={isLocked || isInputLocked}
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
