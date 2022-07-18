@@ -9,7 +9,8 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
@@ -42,6 +43,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
 
 export const SliderInput = memo(
     ({
+        id,
         inputId,
         useInputData,
         def,
@@ -58,6 +60,11 @@ export const SliderInput = memo(
         isLocked,
         definitionType,
     }: SliderInputProps) => {
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            inputId
+        );
+
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
@@ -105,7 +112,7 @@ export const SliderInput = memo(
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
-                        isDisabled={isLocked}
+                        isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
                         step={sliderStep}
@@ -139,7 +146,7 @@ export const SliderInput = memo(
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
                         inputString={inputString}
-                        isDisabled={isLocked}
+                        isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
                         offset={offset}
