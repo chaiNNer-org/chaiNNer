@@ -91,7 +91,6 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
-    readonly outputData?: OutputData;
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: IteratorSize;
