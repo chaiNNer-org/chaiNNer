@@ -2,8 +2,16 @@ import { Input } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { getChainnerScope } from '../../../common/types/chainner-scope';
+import { evaluate } from '../../../common/types/evaluate';
+import { FunctionCallExpression } from '../../../common/types/expression';
+import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
+
+const typeToString = (type: Type): Type => {
+    return evaluate(new FunctionCallExpression('toString', [type]), getChainnerScope());
+};
 
 interface TextInputProps extends InputProps {
     minLength: number;
@@ -46,6 +54,15 @@ export const TextInput = memo(
             }
         }, 500);
 
+        const typeText = useContextSelector(GlobalVolatileContext, (c) => {
+            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
+            if (!type) return undefined;
+            const strType = type.underlying === 'number' ? typeToString(type) : type;
+            return strType.underlying === 'string' && strType.type === 'literal'
+                ? strType.value
+                : undefined;
+        });
+
         return (
             <Input
                 className="nodrag"
@@ -53,7 +70,7 @@ export const TextInput = memo(
                 draggable={false}
                 maxLength={maxLength}
                 placeholder={placeholder ?? label}
-                value={tempText}
+                value={isInputLocked ? typeText ?? '' : tempText}
                 onChange={(event) => {
                     setTempText(event.target.value);
                     handleChange(event);

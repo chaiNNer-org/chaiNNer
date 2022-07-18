@@ -105,6 +105,14 @@ export const SliderInput = memo(
 
         const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
 
+        const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
+            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
+            return type && type.underlying === 'number' && type.type === 'literal'
+                ? type.value
+                : undefined;
+        });
+        const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
+
         return (
             <VStack w="full">
                 <HStack w="full">
@@ -116,7 +124,7 @@ export const SliderInput = memo(
                         max={max}
                         min={min}
                         step={sliderStep}
-                        value={sliderValue}
+                        value={isInputLocked ? typeNumber ?? def : sliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setInput}
                         onMouseEnter={() => setShowTooltip(true)}
@@ -145,7 +153,7 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputString={inputString}
+                        inputString={isInputLocked ? typeNumberString : inputString}
                         isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
