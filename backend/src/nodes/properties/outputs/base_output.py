@@ -37,6 +37,3 @@ class BaseOutput:
 
     def broadcast(self, value):
         raise NotImplementedError()
-
-    def get_id(self):
-        return self.id
