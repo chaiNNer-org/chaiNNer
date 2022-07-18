@@ -284,7 +284,27 @@ class ColorConvertNode(NodeBase):
     def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        result = cv2.cvtColor(img, int(color_mode))
+        def reverse3(image: np.ndarray) -> np.ndarray:
+            c = get_h_w_c(image)[2]
+            assert c == 3, "Expected a 3-channel image"
+            return np.stack([image[:, :, 2], image[:, :, 1], image[:, :, 0]], axis=2)
+
+        # preprocessing
+        if color_mode in (cv2.COLOR_HSV2BGR, cv2.COLOR_YUV2BGR):
+            img = reverse3(img)
+
+        if color_mode == cv2.COLOR_HSV2BGR:
+            img[:, :, 0] *= 360
+
+        # color conversion
+        result = cv2.cvtColor(img, color_mode)
+
+        # postprocessing
+        if color_mode == cv2.COLOR_BGR2HSV:
+            result[:, :, 0] /= 360
+
+        if color_mode in (cv2.COLOR_BGR2HSV, cv2.COLOR_BGR2YUV):
+            result = reverse3(result)
 
         return result
 
