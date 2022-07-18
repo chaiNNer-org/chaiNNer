@@ -128,8 +128,8 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                # TODO: Fix None key
-                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]  # type: ignore
+                if img_path_node_id is not None:
+                    context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
                 executor = Executor(
                     context.nodes,
                     context.loop,
@@ -277,8 +277,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         start_idx = math.ceil(float(context.percent) * frame_count)
-        # TODO: Fix None key
-        context.nodes[output_node_id]["inputs"].extend((writer, fps))  # type: ignore
+        if output_node_id is not None:
+            context.nodes[output_node_id]["inputs"].extend((writer, fps))
         for idx in range(frame_count):
             if context.executor.should_stop_running():
                 cap.release()
@@ -301,8 +301,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
-                # TODO: Fix None key
-                context.nodes[input_node_id]["inputs"] = [frame, idx]  # type: ignore
+                if input_node_id is not None:
+                    context.nodes[input_node_id]["inputs"] = [frame, idx]
                 external_cache_copy = context.cache.copy()
                 executor = Executor(
                     context.nodes,
@@ -453,8 +453,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         length = len(img_list)
 
         results = []
-        # TODO: Fix None key
-        context.nodes[output_node_id]["inputs"].append(results)  # type: ignore
+        if output_node_id is not None:
+            context.nodes[output_node_id]["inputs"].append(results)
         for idx, img in enumerate(img_list):
             if context.executor.should_stop_running():
                 break
@@ -469,8 +469,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 }
             )
             # Replace the input filepath with the filepath from the loop
-            # TODO: Fix None key
-            context.nodes[img_loader_node_id]["inputs"] = [img]  # type: ignore
+            if img_loader_node_id is not None:
+                context.nodes[img_loader_node_id]["inputs"] = [img]
             # logger.info(nodes[output_node_id]["inputs"])
             executor = Executor(
                 context.nodes,
