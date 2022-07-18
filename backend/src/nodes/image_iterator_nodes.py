@@ -126,7 +126,8 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                # TODO: Fix None key
+                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]  # type: ignore
                 executor = Executor(
                     context.nodes,
                     context.loop,
@@ -272,7 +273,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         start_idx = math.ceil(float(context.percent) * frame_count)
-        context.nodes[output_node_id]["inputs"].extend((writer, fps))
+        # TODO: Fix None key
+        context.nodes[output_node_id]["inputs"].extend((writer, fps))  # type: ignore
         for idx in range(frame_count):
             if context.executor.should_stop_running():
                 cap.release()
@@ -295,7 +297,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
-                context.nodes[input_node_id]["inputs"] = [frame, idx]
+                # TODO: Fix None key
+                context.nodes[input_node_id]["inputs"] = [frame, idx]  # type: ignore
                 external_cache_copy = context.cache.copy()
                 executor = Executor(
                     context.nodes,
@@ -444,7 +447,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         length = len(img_list)
 
         results = []
-        context.nodes[output_node_id]["inputs"].append(results)
+        # TODO: Fix None key
+        context.nodes[output_node_id]["inputs"].append(results)  # type: ignore
         for idx, img in enumerate(img_list):
             if context.executor.should_stop_running():
                 break
@@ -459,7 +463,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 }
             )
             # Replace the input filepath with the filepath from the loop
-            context.nodes[img_loader_node_id]["inputs"] = [img]
+            # TODO: Fix None key
+            context.nodes[img_loader_node_id]["inputs"] = [img]  # type: ignore
             # logger.info(nodes[output_node_id]["inputs"])
             executor = Executor(
                 context.nodes,
