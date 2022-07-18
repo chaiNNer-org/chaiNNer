@@ -43,6 +43,8 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
         self.type = "iteratorHelper"
 
+        self.side_effects = True
+
     def run(
         self, directory: str = "", root_dir: str = ""
     ) -> Tuple[np.ndarray, str, str, str]:
@@ -162,6 +164,8 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.sub = "Iteration"
 
         self.type = "iteratorHelper"
+
+        self.side_effects = True
 
     def run(self, img: np.ndarray, idx: int) -> Tuple[np.ndarray, int]:
         return normalize(img), idx
@@ -339,6 +343,8 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         self.sub = "Iteration"
 
         self.type = "iteratorHelper"
+
+        self.side_effects = True
 
     def run(self, img: np.ndarray) -> np.ndarray:
         return img
