@@ -1,11 +1,8 @@
-import base64
-
 from ...utils.image_utils import preview_encode
 from ...utils.utils import get_h_w_c
 from .base_output import BaseOutput
 from .. import expression
 import numpy as np
-import cv2
 
 
 class NumPyOutput(BaseOutput):

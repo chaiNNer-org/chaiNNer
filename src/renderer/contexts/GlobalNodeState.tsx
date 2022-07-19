@@ -22,7 +22,6 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
-    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -100,10 +99,7 @@ interface Global {
     changeEdges: SetState<Edge<EdgeData>[]>;
     useAnimate: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
-        (
-            nodeIdsToUnAnimate?: readonly string[] | undefined,
-            outputData?: { [key: string]: OutputData }
-        ) => void
+        (nodeIdsToUnAnimate?: readonly string[] | undefined) => void
     ];
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
