@@ -28,14 +28,14 @@ class ImageOutput(NumPyOutput):
     ):
         super().__init__(expression.intersect(image_type, "Image"), label)
 
-    def broadcast(self, value: np.ndarray) -> dict:
+    def get_broadcast_data(self, value: np.ndarray) -> dict:
         img = value
         h, w, c = get_h_w_c(img)
 
         base64_img = preview_encode(img, 64)
 
         return {
-            "image": "data:image/png;base64," + base64_img,
+            "image": base64_img,
             "height": h,
             "width": w,
             "channels": c,

@@ -57,7 +57,7 @@ class ImReadNode(NodeBase):
         base64_img = preview_encode(img)
 
         return {
-            "image": "data:image/png;base64," + base64_img,
+            "image": base64_img,
             "height": h,
             "width": w,
             "channels": c,

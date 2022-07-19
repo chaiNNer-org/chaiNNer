@@ -1,16 +1,7 @@
-import torch
-
-from typing import Union
-
 from .. import expression
 from .base_output import BaseOutput
 
-from ...utils.architecture.RRDB import RRDBNet as ESRGAN
-from ...utils.architecture.SPSR import SPSRNet as SPSR
-from ...utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from ...utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
-
-PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN]
+from ...utils.torch_types import PyTorchModel
 
 
 class ModelOutput(BaseOutput):
@@ -21,7 +12,7 @@ class ModelOutput(BaseOutput):
     ):
         super().__init__(model_type, label)
 
-    def broadcast(self, value: PyTorchModel):
+    def get_broadcast_data(self, value: PyTorchModel):
         if "SRVGG" in value.model_type:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
         else:

@@ -249,4 +249,4 @@ def preview_encode(img: np.ndarray, target_size: int = 512) -> str:
 
     _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))  # type: ignore
     base64_img = base64.b64encode(encoded_img).decode("utf8")
-    return base64_img
+    return f"data:image/png;base64,{base64_img}"

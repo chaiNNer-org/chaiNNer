@@ -182,17 +182,14 @@ class Executor:
             node_outputs = node_instance.get_outputs()
             broadcast_data = dict()
             if len(node_outputs) > 0:
-                if len(node_outputs) == 1:
+                output_iter = [output] if len(node_outputs) == 1 else output
+                for idx, node_output in enumerate(output_iter):
                     try:
-                        broadcast_data[0] = node_outputs[0].broadcast(output)
+                        broadcast_data[node_output.id] = node_output.get_broadcast_data(
+                            output[node_output.id]
+                        )
                     except Exception as e:
                         logger.error(f"Error broadcasting output: {e}")
-                else:
-                    for idx, node_output in enumerate(node_outputs):
-                        try:
-                            broadcast_data[idx] = node_output.broadcast(output[idx])
-                        except Exception as e:
-                            logger.error(f"Error broadcasting output: {e}")
                 await self.queue.put(
                     {
                         "event": "node-output-data",

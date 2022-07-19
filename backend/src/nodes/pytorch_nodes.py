@@ -25,7 +25,7 @@ from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 
 
-PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN]
+from .utils.torch_types import PyTorchModel
 
 
 def check_env():
