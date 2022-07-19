@@ -752,10 +752,8 @@ export const GlobalProvider = memo(
             const animate = (nodeIdsToAnimate?: readonly string[]) =>
                 setAnimated(true, nodeIdsToAnimate);
 
-            const unAnimate = (
-                nodeIdsToUnAnimate?: readonly string[],
-                outputData?: { [key: string]: OutputData }
-            ) => setAnimated(false, nodeIdsToUnAnimate, outputData);
+            const unAnimate = (nodeIdsToUnAnimate?: readonly string[]) =>
+                setAnimated(false, nodeIdsToUnAnimate);
 
             return [animate, unAnimate] as const;
         }, [setEdges, setNodes]);
