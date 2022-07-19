@@ -151,10 +151,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [outputDataMap, setOutputDataMap] = useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
     const useOutputData = useCallback(
-        (id: string, outputId: OutputId): unknown => {
-            const currentInput = outputDataMap.get(id)?.[outputId];
-            return currentInput;
-        },
+        (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
         [outputDataMap]
     );
     useEffect(() => {
