@@ -149,9 +149,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
-    const [outputDataMap, setOutputDataMap] = useState<Map<string, OutputData>>(
-        new Map<string, OutputData>()
-    );
+    const [outputDataMap, setOutputDataMap] = useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
     const useOutputData = useCallback(
         (id: string, outputId: OutputId): unknown => {
             const currentInput = outputDataMap.get(id)?.[outputId];
