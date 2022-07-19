@@ -927,16 +927,10 @@ export const GlobalProvider = memo(
         }, [changeNodes, changeEdges]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => {
-                return nodes.map((n) => ({
-                    ...n,
-                    selected: true,
-                }));
+                return nodes.map((n) => ({ ...n, selected: true }));
             });
             changeEdges((edges) => {
-                return edges.map((e) => ({
-                    ...e,
-                    selected: true,
-                }));
+                return edges.map((e) => ({ ...e, selected: true }));
             });
         }, [changeNodes, changeEdges]);
 
