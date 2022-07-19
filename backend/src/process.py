@@ -182,11 +182,11 @@ class Executor:
             node_outputs = node_instance.get_outputs()
             broadcast_data = dict()
             if len(node_outputs) > 0:
-                output_iter = [output] if len(node_outputs) == 1 else output
-                for idx, node_output in enumerate(output_iter):
+                output_idxable = [output] if len(node_outputs) == 1 else output
+                for idx, node_output in enumerate(node_outputs):
                     try:
                         broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                            output[node_output.id]
+                            output_idxable[node_output.id or 0]
                         )
                     except Exception as e:
                         logger.error(f"Error broadcasting output: {e}")
