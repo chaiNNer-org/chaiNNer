@@ -90,6 +90,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             context.nodes[k]["child"] = False
+        assert img_path_node_id is not None, "Unable to find image iterator helper node"
 
         supported_filetypes = get_available_image_formats()
 
@@ -128,8 +129,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                if img_path_node_id is not None:
-                    context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
                 executor = Executor(
                     context.nodes,
                     context.loop,
@@ -269,6 +269,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             context.nodes[k]["child"] = False
+        assert input_node_id is not None, "Unable to find video frame load helper node"
+        assert output_node_id is not None, "Unable to find video frame save helper node"
 
         # TODO: Open Video Buffer
         cap = cv2.VideoCapture(path)
@@ -277,8 +279,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         start_idx = math.ceil(float(context.percent) * frame_count)
-        if output_node_id is not None:
-            context.nodes[output_node_id]["inputs"].extend((writer, fps))
+        context.nodes[output_node_id]["inputs"].extend((writer, fps))
         for idx in range(frame_count):
             if context.executor.should_stop_running():
                 cap.release()
@@ -301,8 +302,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
-                if input_node_id is not None:
-                    context.nodes[input_node_id]["inputs"] = [frame, idx]
+                context.nodes[input_node_id]["inputs"] = [frame, idx]
                 external_cache_copy = context.cache.copy()
                 executor = Executor(
                     context.nodes,
@@ -434,6 +434,12 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 child_nodes.append(v["id"])
             # Set this to false to actually allow processing to happen
             context.nodes[k]["child"] = False
+        assert (
+            img_loader_node_id is not None
+        ), "Unable to find sprite sheet load helper node"
+        assert (
+            output_node_id is not None
+        ), "Unable to find sprite sheet append helper node"
 
         individual_h = h // rows
         individual_w = w // columns
@@ -453,8 +459,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         length = len(img_list)
 
         results = []
-        if output_node_id is not None:
-            context.nodes[output_node_id]["inputs"].append(results)
+        context.nodes[output_node_id]["inputs"].append(results)
         for idx, img in enumerate(img_list):
             if context.executor.should_stop_running():
                 break
@@ -469,8 +474,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 }
             )
             # Replace the input filepath with the filepath from the loop
-            if img_loader_node_id is not None:
-                context.nodes[img_loader_node_id]["inputs"] = [img]
+            context.nodes[img_loader_node_id]["inputs"] = [img]
             # logger.info(nodes[output_node_id]["inputs"])
             executor = Executor(
                 context.nodes,
