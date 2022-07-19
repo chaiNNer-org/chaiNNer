@@ -14,7 +14,7 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import { EMPTY_MAP, ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -213,7 +213,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                setOutputDataMap((prev) => new Map([ ...prev, [data.nodeId, data.data] ]));
+                setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
             }
         },
         [setOutputDataMap]
