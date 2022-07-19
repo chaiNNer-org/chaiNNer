@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -8,6 +8,7 @@ import {
     EdgeHandle,
     InputId,
     NodeData,
+    OutputData,
     OutputId,
     UsableData,
 } from '../../common/common-types';
@@ -23,6 +24,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useMap } from '../hooks/useMap';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -41,6 +43,7 @@ interface ExecutionContextValue {
     status: ExecutionStatus;
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
+    useOutputData: (id: string, outputId: OutputId) => OutputData | undefined;
 }
 
 const convertToUsableFormat = (
@@ -147,6 +150,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
+    const [outputDataMap, outputDataMapActions] = useMap<string, OutputData>();
+    const useOutputData = useCallback(
+        (id: string, outputId: OutputId): OutputData | undefined => {
+            const currentInput = outputDataMap.get(id)?.[outputId] as OutputData | undefined;
+            return currentInput;
+        },
+        [outputDataMap]
+    );
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
         const id = setTimeout(() => {
@@ -201,10 +212,21 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setStatus, unAnimate, schemata]
     );
 
+    useBackendEventSourceListener(
+        eventSource,
+        'node-output-data',
+        (data) => {
+            if (data) {
+                outputDataMapActions.set(data.nodeId, data.data);
+            }
+        },
+        [outputDataMap, outputDataMapActions]
+    );
+
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
         (data) => {
             if (data) {
-                unAnimate(data.finished, data.broadcastData);
+                unAnimate(data.finished);
             }
         },
         350
@@ -361,6 +383,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         status,
         isBackendKilled,
         setIsBackendKilled,
+        useOutputData,
     });
 
     return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
