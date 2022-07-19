@@ -295,7 +295,7 @@ class NcnnInterpolateModelsNode(NodeBase):
                 "These models are not compatible and able not able to be interpolated together"
             )
 
-    def check_can_interp(self, a: NcnnNetData, b: NcnnNetData) -> bool:
+    def check_can_interp(self, a: NcnnNetData, b: NcnnNetData):
         interp_50 = self.perform_interp(a.bin_data, b.bin_data, 50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
         new_net = NcnnNetData(a.param_path, interp_50, a.input_name, a.output_name)
