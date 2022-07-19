@@ -8,7 +8,6 @@ import os
 import platform
 import subprocess
 import time
-import base64
 from tempfile import mkdtemp
 
 import cv2
@@ -21,7 +20,12 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
+from .utils.image_utils import (
+    get_opencv_formats,
+    get_pil_formats,
+    normalize,
+    preview_encode,
+)
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -50,18 +54,7 @@ class ImReadNode(NodeBase):
         img, dirname, basename = self.result
         h, w, c = get_h_w_c(img)
 
-        # resize the image, so the preview loads faster and doesn't lag the UI
-        # 512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
-        target_size = 512
-        max_size = target_size * 1.2
-        if w > max_size or h > max_size:
-            f = max(w / target_size, h / target_size)
-            img = cv2.resize(
-                img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA
-            )
-
-        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))  # type: ignore
-        base64_img = base64.b64encode(encoded_img).decode("utf8")
+        base64_img = preview_encode(img)
 
         return {
             "image": "data:image/png;base64," + base64_img,
