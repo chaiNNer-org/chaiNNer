@@ -724,10 +724,7 @@ export const GlobalProvider = memo(
                         const nodesToAnimate = nodes.filter((n) => nodeIdsToAnimate.includes(n.id));
                         const animatedNodes = nodesToAnimate.map((node: Node<NodeData>) => ({
                             ...node,
-                            data: {
-                                ...node.data,
-                                animated,
-                            },
+                            data: { ...node.data, animated },
                         }));
                         const otherNodes = nodes.filter((n) => !nodeIdsToAnimate.includes(n.id));
                         return [...otherNodes, ...animatedNodes];
