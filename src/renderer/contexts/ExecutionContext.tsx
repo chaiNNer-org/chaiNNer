@@ -218,7 +218,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                setOutputDataMap((prev) => new Map({ ...prev, [data.nodeId]: data.data }));
+                setOutputDataMap((prev) => new Map([ ...prev, [data.nodeId, data.data] ]));
             }
         },
         [setOutputDataMap]
