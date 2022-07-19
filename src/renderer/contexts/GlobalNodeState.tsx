@@ -925,6 +925,20 @@ export const GlobalProvider = memo(
         const pasteFn = useCallback(() => {
             pasteFromClipboard(changeNodes, changeEdges);
         }, [changeNodes, changeEdges]);
+        const selectAllFn = useCallback(() => {
+            changeNodes((nodes) => {
+                return nodes.map((n) => ({
+                    ...n,
+                    selected: true,
+                }));
+            });
+            changeEdges((edges) => {
+                return edges.map((e) => ({
+                    ...e,
+                    selected: true,
+                }));
+            });
+        }, [changeNodes, changeEdges]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn, [cutFn]);
         useIpcRendererListener('cut', cutFn, [cutFn]);
@@ -932,6 +946,7 @@ export const GlobalProvider = memo(
         useIpcRendererListener('copy', copyFn, [copyFn]);
         useHotkeys('ctrl+v, cmd+v', pasteFn, [pasteFn]);
         useIpcRendererListener('paste', pasteFn, [pasteFn]);
+        useHotkeys('ctrl+a, cmd+a', selectAllFn, [selectAllFn]);
 
         const [zoom, setZoom] = useState(1);
 
