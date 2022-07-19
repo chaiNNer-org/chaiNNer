@@ -180,7 +180,7 @@ class Executor:
             run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
             node_outputs = node_instance.get_outputs()
-            broadcast_data = dict()
+            broadcast_data: Dict[int, Any] = dict()
             if len(node_outputs) > 0:
                 output_idxable = [output] if len(node_outputs) == 1 else output
                 for idx, node_output in enumerate(node_outputs):
