@@ -149,10 +149,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
-    const [outputDataMap, setOutputDataMap] = useState(new Map<string, OutputData>());
+    const [outputDataMap, setOutputDataMap] = useState<Map<string, OutputData>>(
+        new Map<string, OutputData>()
+    );
     const useOutputData = useCallback(
-        (id: string, outputId: OutputId): OutputData | undefined => {
-            const currentInput = outputDataMap.get(id)?.[outputId] as OutputData | undefined;
+        (id: string, outputId: OutputId): unknown => {
+            const currentInput = outputDataMap.get(id)?.[outputId];
             return currentInput;
         },
         [outputDataMap]
