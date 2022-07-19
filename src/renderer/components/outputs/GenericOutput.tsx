@@ -21,10 +21,8 @@ export const GenericOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const value = useOutputData(outputId);
-        if (value) {
-            console.log({ value });
-        }
 
         return (
             <OutputContainer
