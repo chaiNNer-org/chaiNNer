@@ -24,7 +24,6 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
-import { useMap } from '../hooks/useMap';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -150,7 +149,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
-    const [outputDataMap, outputDataMapActions] = useMap<string, OutputData>();
+    const [outputDataMap, setOutputDataMap] = useState(new Map<string, OutputData>());
     const useOutputData = useCallback(
         (id: string, outputId: OutputId): OutputData | undefined => {
             const currentInput = outputDataMap.get(id)?.[outputId] as OutputData | undefined;
@@ -217,10 +216,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                outputDataMapActions.set(data.nodeId, data.data);
+                setOutputDataMap((prev) => new Map({ ...prev, [data.nodeId]: data.data }));
             }
         },
-        [outputDataMap, outputDataMapActions]
+        [setOutputDataMap]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
