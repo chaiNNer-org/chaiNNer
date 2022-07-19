@@ -36,4 +36,4 @@ class BaseOutput:
         yield from self.toDict().items()
 
     def broadcast(self, value):
-        raise NotImplementedError()
+        return None
