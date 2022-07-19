@@ -42,7 +42,7 @@ interface ExecutionContextValue {
     status: ExecutionStatus;
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
-    useOutputData: (id: string, outputId: OutputId) => OutputData | undefined;
+    useOutputData: (id: string, outputId: OutputId) => unknown;
 }
 
 const convertToUsableFormat = (

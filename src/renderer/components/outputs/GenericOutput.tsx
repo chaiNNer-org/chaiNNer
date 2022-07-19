@@ -1,7 +1,7 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
-import { OutputData, OutputId } from '../../../common/common-types';
+import { OutputId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
@@ -12,7 +12,7 @@ interface GenericOutputProps {
     label: string;
     outputId: OutputId;
     definitionType: Type;
-    useOutputData: (outputId: OutputId) => OutputData | undefined;
+    useOutputData: (outputId: OutputId) => unknown;
 }
 
 export const GenericOutput = memo(
