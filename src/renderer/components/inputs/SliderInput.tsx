@@ -94,15 +94,6 @@ export const SliderInput = memo(
             setSliderValue(Number(numberAsString));
         };
 
-        const expr = noteExpression
-            ? tryEvaluate(noteExpression, {
-                  min,
-                  max,
-                  value: sliderValue,
-              })
-            : undefined;
-        const filled = !expr;
-
         const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
 
         const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
@@ -112,6 +103,16 @@ export const SliderInput = memo(
                 : undefined;
         });
         const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
+
+        const displaySliderValue: number = isInputLocked ? typeNumber ?? def : sliderValue;
+        const expr = noteExpression
+            ? tryEvaluate(noteExpression, {
+                  min,
+                  max,
+                  value: displaySliderValue,
+              })
+            : undefined;
+        const filled = !expr;
 
         return (
             <VStack w="full">
@@ -124,7 +125,7 @@ export const SliderInput = memo(
                         max={max}
                         min={min}
                         step={sliderStep}
-                        value={isInputLocked ? typeNumber ?? def : sliderValue}
+                        value={displaySliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setInput}
                         onMouseEnter={() => setShowTooltip(true)}
@@ -139,7 +140,7 @@ export const SliderInput = memo(
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}
-                            label={`${precisionOutput(sliderValue)}${unit ?? ''}`}
+                            label={`${precisionOutput(displaySliderValue)}${unit ?? ''}`}
                             placement="top"
                             px={2}
                             py={1}
