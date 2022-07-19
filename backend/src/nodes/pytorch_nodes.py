@@ -243,7 +243,11 @@ class InterpolateNode(NodeBase):
                 ends=("A", "B"),
             ),
         ]
-        self.outputs = [ModelOutput(model_type="Input0 & Input1")]
+        self.outputs = [
+            ModelOutput(model_type="Input0 & Input1"),
+            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount B", "Input2"),
+        ]
 
         self.category = PYTORCH
         self.name = "Interpolate Models"
@@ -300,7 +304,7 @@ class InterpolateNode(NodeBase):
         state_dict = self.perform_interp(state_a, state_b, amount)
         model = load_state_dict(state_dict)
 
-        return model
+        return model, 100 - amount, amount
 
 
 @NodeFactory.register("chainner:pytorch:save_model")
