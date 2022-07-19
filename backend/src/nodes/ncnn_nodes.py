@@ -7,7 +7,7 @@ import os
 import re
 import struct
 import tempfile
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 from ncnn_vulkan import ncnn
@@ -21,6 +21,20 @@ from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
 from .utils.utils import get_h_w_c, convenient_upscale
+
+
+class NcnnNetData:
+    def __init__(
+        self,
+        param_path: str,
+        bin_data: np.ndarray,
+        input_name: str,
+        output_name: str,
+    ):
+        self.param_path = param_path
+        self.bin_data = bin_data
+        self.input_name = input_name
+        self.output_name = output_name
 
 
 @NodeFactory.register("chainner:ncnn:load_model")
@@ -73,9 +87,7 @@ class NcnnLoadModelNode(NodeBase):
 
         return input_name, output_name, out_nc
 
-    def run(
-        self, param_path: str, bin_path: bytes
-    ) -> Tuple[Tuple[str, np.ndarray, str, str], str]:
+    def run(self, param_path: str, bin_path: bytes) -> Tuple[NcnnNetData, str]:
         assert os.path.exists(
             param_path
         ), f"Param file at location {param_path} does not exist"
@@ -95,7 +107,7 @@ class NcnnLoadModelNode(NodeBase):
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         # Put all this info with the net and disguise it as just the net
-        return (param_path, bin_data, input_name, output_name), model_name
+        return NcnnNetData(param_path, bin_data, input_name, output_name), model_name
 
 
 @NodeFactory.register("chainner:ncnn:save_model")
@@ -113,22 +125,21 @@ class NcnnSaveNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, net_tuple: tuple, directory: str, name: str) -> bool:
-        param_path, bin_data, _, _ = net_tuple
+    def run(self, net: NcnnNetData, directory: str, name: str) -> bool:
         full_bin = f"{name}.bin"
         full_param = f"{name}.param"
         full_bin_path = os.path.join(directory, full_bin)
         full_param_path = os.path.join(directory, full_param)
 
         logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        is_fp16 = bin_data.dtype == np.float16
+        is_fp16 = net.bin_data.dtype == np.float16
         flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
         dtype = np.float16 if is_fp16 else np.float32
-        packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
+        packed = struct.pack("<I", flag) + net.bin_data.astype(dtype).tobytes("F")
         with open(full_bin_path, "wb") as binary_file:
             binary_file.write(packed)
         with open(full_param_path, "w", encoding="utf-8") as param_file:
-            with open(param_path, "r", encoding="utf-8") as original_param_file:
+            with open(net.param_path, "r", encoding="utf-8") as original_param_file:
                 param_file.write(original_param_file.read())
 
         return True
@@ -159,7 +170,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        net: tuple,
+        net,
         input_name: str,
         output_name: str,
         split_factor: Union[int, None],
@@ -188,7 +199,7 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(
-        self, net_tuple: tuple, img: np.ndarray, tile_size_target: int
+        self, net_data: NcnnNetData, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         h, w, _ = get_h_w_c(img)
 
@@ -203,8 +214,6 @@ class NcnnUpscaleImageNode(NodeBase):
         else:
             split_factor = None
 
-        param_path, bin_data, input_name, output_name = net_tuple
-
         net = ncnn.Net()
 
         # Use vulkan compute
@@ -212,13 +221,15 @@ class NcnnUpscaleImageNode(NodeBase):
         net.set_vulkan_device(ncnn.get_default_gpu_index())
 
         # Load model param and bin
-        net.load_param(param_path)
+        net.load_param(net_data.param_path)
 
         with tempfile.TemporaryDirectory(prefix="chaiNNer-") as tempdir:
-            is_fp16 = bin_data.dtype == np.float16
+            is_fp16 = net_data.bin_data.dtype == np.float16
             flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
             dtype = np.float16 if is_fp16 else np.float32
-            packed = struct.pack("<I", flag) + bin_data.astype(dtype).tobytes("F")
+            packed = struct.pack("<I", flag) + net_data.bin_data.astype(dtype).tobytes(
+                "F"
+            )
             temp_file = os.path.join(tempdir, "ncnn.bin")
             with open(temp_file, "wb") as binary_file:
                 binary_file.write(packed)
@@ -226,7 +237,9 @@ class NcnnUpscaleImageNode(NodeBase):
 
         def upscale(i: np.ndarray) -> np.ndarray:
             i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
-            i = self.upscale(i, net, input_name, output_name, split_factor)
+            i = self.upscale(
+                i, net, net_data.input_name, net_data.output_name, split_factor
+            )
             assert (
                 get_h_w_c(i)[2] == 3
             ), "Chainner only supports upscaling with NCNN models that output RGB images."
@@ -282,45 +295,40 @@ class NcnnInterpolateModelsNode(NodeBase):
                 "These models are not compatible and able not able to be interpolated together"
             )
 
-    def check_can_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, net_tuple_a):
-        param_path_a, _, input_name_a, output_name_a = net_tuple_a
-        interp_50 = self.perform_interp(bin_a, bin_b, 50)
+    def check_can_interp(self, a: NcnnNetData, b: NcnnNetData):
+        interp_50 = self.perform_interp(a.bin_data, b.bin_data, 50)
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        new_net_tuple = (param_path_a, interp_50, input_name_a, output_name_a)
-        result = NcnnUpscaleImageNode().run(new_net_tuple, fake_img, 0)
-        del interp_50, new_net_tuple
+        new_net = NcnnNetData(a.param_path, interp_50, a.input_name, a.output_name)
+        result = NcnnUpscaleImageNode().run(new_net, fake_img, 0)
+        del interp_50, new_net
 
         mean_color = np.mean(result)
         del result
         return mean_color > 0.5
 
     def run(
-        self, net_tuple_a: tuple, net_tuple_b: tuple, amount: int
-    ) -> Tuple[Tuple[str, np.ndarray, str, str], int, int]:
-
-        param_path_a, bin_data_a, input_name_a, output_name_a = net_tuple_a
-        _, bin_data_b, _, _ = net_tuple_b
-
-        logger.info(len(bin_data_a))
-        logger.info(len(bin_data_b))
-        assert len(bin_data_a) == len(
-            bin_data_b
+        self, a: NcnnNetData, b: NcnnNetData, amount: int
+    ) -> Tuple[NcnnNetData, int, int]:
+        logger.info(len(a.bin_data))
+        logger.info(len(b.bin_data))
+        assert len(a.bin_data) == len(
+            b.bin_data
         ), "The provided model bins are not compatible as they are not the same size."
         assert (
-            bin_data_a.dtype == bin_data_b.dtype
+            a.bin_data.dtype == b.bin_data.dtype
         ), "The provided model bins are not compatible as they are not the same datatype."
 
         logger.info(f"Interpolating NCNN models...")
-        if not self.check_can_interp(bin_data_a, bin_data_b, net_tuple_a):
+        if not self.check_can_interp(a, b):
             raise ValueError(
                 "These NCNN models are not compatible and not able to be interpolated together"
             )
 
-        interp_bin_data = self.perform_interp(bin_data_a, bin_data_b, amount)
+        interp_bin_data = self.perform_interp(a.bin_data, b.bin_data, amount)
 
         # Put all this info with the net and disguise it as just the net
         return (
-            (param_path_a, interp_bin_data, input_name_a, output_name_a),
+            NcnnNetData(a.param_path, interp_bin_data, a.input_name, a.output_name),
             100 - amount,
             amount,
         )
