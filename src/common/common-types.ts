@@ -62,6 +62,7 @@ export interface Output {
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
+export type OutputData = Readonly<Record<OutputId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;

@@ -34,3 +34,6 @@ class BaseOutput:
 
     def __iter__(self):
         yield from self.toDict().items()
+
+    def get_broadcast_data(self, value):
+        return None
