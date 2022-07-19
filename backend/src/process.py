@@ -185,8 +185,12 @@ class Executor:
                 output_idxable = [output] if len(node_outputs) == 1 else output
                 for idx, node_output in enumerate(node_outputs):
                     try:
-                        output_id = node_output.id if node_output.id is not None else idx
-                        broadcast_data[node_output.id] = node_output.get_broadcast_data(output_idxable[idx])
+                        output_id = (
+                            node_output.id if node_output.id is not None else idx
+                        )
+                        broadcast_data[output_id] = node_output.get_broadcast_data(
+                            output_idxable[idx]
+                        )
                     except Exception as e:
                         logger.error(f"Error broadcasting output: {e}")
                 await self.queue.put(
