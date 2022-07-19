@@ -180,14 +180,13 @@ class Executor:
             run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
             node_outputs = node_instance.get_outputs()
-            broadcast_data = dict()
+            broadcast_data: Dict[int, Any] = dict()
             if len(node_outputs) > 0:
                 output_idxable = [output] if len(node_outputs) == 1 else output
                 for idx, node_output in enumerate(node_outputs):
                     try:
-                        broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                            output_idxable[node_output.id or 0]
-                        )
+                        output_id = node_output.id if node_output.id is not None else idx
+                        broadcast_data[node_output.id] = node_output.get_broadcast_data(output_idxable[idx])
                     except Exception as e:
                         logger.error(f"Error broadcasting output: {e}")
                 await self.queue.put(
