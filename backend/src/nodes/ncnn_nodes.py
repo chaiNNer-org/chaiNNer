@@ -254,7 +254,11 @@ class NcnnInterpolateModelsNode(NodeBase):
                 ends=("A", "B"),
             ),
         ]
-        self.outputs = [NcnnNetOutput()]
+        self.outputs = [
+            NcnnNetOutput(),
+            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount B", "Input2"),
+        ]
 
         self.category = NCNN
         self.name = "Interpolate Models"
@@ -291,8 +295,8 @@ class NcnnInterpolateModelsNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, net_tuple_a: tuple, net_tuple_b: tuple, amount: str
-    ) -> List[Tuple[str, np.ndarray, str, str]]:
+        self, net_tuple_a: tuple, net_tuple_b: tuple, amount: int
+    ) -> Tuple[Tuple[str, np.ndarray, str, str], int, int]:
 
         param_path_a, bin_data_a, input_name_a, output_name_a = net_tuple_a
         _, bin_data_b, _, _ = net_tuple_b
@@ -312,7 +316,11 @@ class NcnnInterpolateModelsNode(NodeBase):
                 "These NCNN models are not compatible and not able to be interpolated together"
             )
 
-        interp_bin_data = self.perform_interp(bin_data_a, bin_data_b, int(amount))
+        interp_bin_data = self.perform_interp(bin_data_a, bin_data_b, amount)
 
         # Put all this info with the net and disguise it as just the net
-        return [(param_path_a, interp_bin_data, input_name_a, output_name_a)]
+        return (
+            (param_path_a, interp_bin_data, input_name_a, output_name_a),
+            100 - amount,
+            amount,
+        )
