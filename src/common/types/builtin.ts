@@ -323,6 +323,29 @@ export const round = wrapUnary((n: NumberPrimitive) => {
     if (max === Infinity) items.push(literal(Infinity));
     return union(...items);
 });
+export const floor = wrapUnary((n: NumberPrimitive) => {
+    if (n.type === 'literal') return literal(Math.floor(n.value));
+    if (n.type === 'int-interval') return n;
+    if (n.type === 'number')
+        return union(
+            literal(NaN),
+            literal(-Infinity),
+            literal(Infinity),
+            new IntIntervalType(-Infinity, Infinity)
+        );
+
+    const min = Math.floor(n.min);
+    const max = Math.floor(n.max);
+    if (min === max) return literal(min);
+    if (Number.isFinite(min) && Number.isFinite(max)) return new IntIntervalType(min, max);
+
+    const items: NumberPrimitive[] = [new IntIntervalType(min, max)];
+    if (min === -Infinity) items.push(literal(-Infinity));
+    if (max === Infinity) items.push(literal(Infinity));
+    return union(...items);
+});
+export const ceil: UnaryFn<NumberPrimitive> = (a) => negate(floor(negate(a)));
+export const degToRad: UnaryFn<NumberPrimitive> = (a) => multiply(a, literal(Math.PI / 180));
 
 const minimumLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
     if (Number.isNaN(a.value)) return a;
@@ -384,6 +407,70 @@ export const minimum = wrapVarArgs(literal(Infinity), (a: NumberPrimitive, b: Nu
 });
 export const maximum = wrapVarArgs(literal(-Infinity), (a: NumberPrimitive, b: NumberPrimitive) => {
     return negate(minimum(negate(a), negate(b)));
+});
+
+export const abs = wrapUnary<NumberPrimitive>((a) => {
+    if (a.type === 'literal') return literal(Math.abs(a.value));
+    if (a.type === 'number') return union(literal(NaN), interval(0, Infinity));
+
+    let min;
+    let max;
+    if (a.min > 0) {
+        min = a.min;
+        max = a.max;
+    } else if (a.max < 0) {
+        min = -a.max;
+        max = -a.min;
+    } else {
+        min = 0;
+        max = Math.max(Math.abs(a.min), Math.abs(a.max));
+    }
+
+    if (a.type === 'int-interval') return intInterval(min, max);
+    return interval(min, max);
+});
+
+export const sin = wrapUnary<NumberPrimitive>((a: NumberPrimitive) => {
+    if (a.type === 'literal') return literal(Math.sin(a.value));
+    if (a.type === 'number') return union(literal(NaN), interval(-1, 1));
+
+    if (a.type === 'int-interval') {
+        const count = a.max - a.min;
+        if (count <= 10) {
+            const items: NumberPrimitive[] = [];
+            for (let i = a.min; i <= a.max; i += 1) {
+                items.push(literal(Math.sin(i)));
+            }
+            return union(...items);
+        }
+    }
+
+    // the following could be improved, but it's not important right now
+    if (a.has(-Infinity) || a.has(Infinity)) {
+        return union(literal(NaN), interval(-1, 1));
+    }
+    return interval(-1, 1);
+});
+export const cos = wrapUnary<NumberPrimitive>((a: NumberPrimitive) => {
+    if (a.type === 'literal') return literal(Math.cos(a.value));
+    if (a.type === 'number') return union(literal(NaN), interval(-1, 1));
+
+    if (a.type === 'int-interval') {
+        const count = a.max - a.min;
+        if (count <= 10) {
+            const items: NumberPrimitive[] = [];
+            for (let i = a.min; i <= a.max; i += 1) {
+                items.push(literal(Math.cos(i)));
+            }
+            return union(...items);
+        }
+    }
+
+    // the following could be improved, but it's not important right now
+    if (a.has(-Infinity) || a.has(Infinity)) {
+        return union(literal(NaN), interval(-1, 1));
+    }
+    return interval(-1, 1);
 });
 
 export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
