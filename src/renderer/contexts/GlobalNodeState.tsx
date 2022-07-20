@@ -240,7 +240,7 @@ export const GlobalProvider = memo(
         useEffect(() => {
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedOutputData', JSON.stringify([...outputDataMap]));
-            }, 100);
+            }, 500);
             return () => clearTimeout(timerId);
         }, [outputDataMap]);
         useEffect(() => {
