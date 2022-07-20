@@ -232,7 +232,10 @@ export const FileInput = memo(
                 </Tooltip>
                 <Box>
                     {fileKind === 'image' && (
-                        <Box mt={2}>
+                        <Box
+                            display="none"
+                            mt={2}
+                        >
                             <ImagePreview
                                 id={id}
                                 path={filePath}
