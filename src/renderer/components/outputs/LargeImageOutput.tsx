@@ -26,6 +26,14 @@ export const LargeImageOutput = memo(
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
+        const [, setOutputDataMap] = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.useOutputDataMap
+        );
+
+        // useEffect(() => {
+        //     setOutputDataMap((prev) => new Map([...prev, [id, {}]]));
+        // }, [type]);
 
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 

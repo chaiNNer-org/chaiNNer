@@ -22,6 +22,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -35,6 +36,7 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
+    EMPTY_MAP,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -85,6 +87,10 @@ interface GlobalVolatile {
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
+    ];
+    useOutputDataMap: readonly [
+        ReadonlyMap<string, OutputData>,
+        SetState<ReadonlyMap<string, OutputData>>
     ];
 }
 interface Global {
@@ -227,6 +233,23 @@ export const GlobalProvider = memo(
             }, 100);
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
+
+        const [outputDataMap, setOutputDataMap] =
+            useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                sessionStorage.setItem('cachedOutputData', JSON.stringify([...outputDataMap]));
+            }, 100);
+            return () => clearTimeout(timerId);
+        }, [outputDataMap]);
+        useEffect(() => {
+            const cachedOutputData = getSessionStorageOrDefault<ReadonlyMap<string, OutputData>>(
+                'cachedOutputData',
+                EMPTY_MAP
+            );
+            setOutputDataMap(new Map([...cachedOutputData]));
+        }, [setOutputDataMap]);
 
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
@@ -959,6 +982,7 @@ export const GlobalProvider = memo(
                 setConnectingFromType,
             ] as const),
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
+            useOutputDataMap: useMemoArray([outputDataMap, setOutputDataMap] as const),
         });
 
         const globalValue = useMemoObject<Global>({

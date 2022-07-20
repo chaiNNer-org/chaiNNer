@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
 import {
@@ -8,13 +8,12 @@ import {
     EdgeHandle,
     InputId,
     NodeData,
-    OutputData,
     OutputId,
     UsableData,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { EMPTY_MAP, ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import { ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -26,7 +25,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { GlobalContext } from './GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
@@ -134,6 +133,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const { schemata, useAnimate, setIteratorPercent, typeStateRef } = useContext(GlobalContext);
+    const useOutputDataMap = useContextSelector(GlobalVolatileContext, (c) => c.useOutputDataMap);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -149,15 +149,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
-    const [outputDataMap, setOutputDataMap] = useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
-    console.log(
-        '🚀 ~ file: ExecutionContext.tsx ~ line 153 ~ ExecutionProvider ~ outputDataMap',
-        outputDataMap
-    );
+    const [outputDataMap, setOutputDataMap] = useOutputDataMap;
     const useOutputData = useCallback(
         (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
         [outputDataMap]
     );
+
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
         const id = setTimeout(() => {
@@ -217,10 +214,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                console.log(
-                    '🚀 ~ file: ExecutionContext.tsx ~ line 220 ~ ExecutionProvider ~ data',
-                    data
-                );
                 setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
             }
         },

@@ -139,7 +139,10 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
     }, [id, schemaId, state]);
 
     return (
-        <Center w="full">
+        <Center
+            display="none"
+            w="full"
+        >
             {visitByType(state, {
                 clear: () => null,
                 loading: () => <Spinner />,

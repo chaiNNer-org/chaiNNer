@@ -205,7 +205,9 @@ class ImViewNode(NodeBase):
         super().__init__()
         self.description = "See an inline preview of the image in the editor."
         self.inputs = [ImageInput()]
-        self.outputs = [LargeImageOutput("Preview", has_handle=False)]
+        self.outputs = [
+            LargeImageOutput("Preview", image_type="Input0", has_handle=False)
+        ]
         self.category = IMAGE
         self.name = "View Image"
         self.icon = "BsEyeFill"

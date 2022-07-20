@@ -173,6 +173,7 @@ export const OutputContainer = memo(
                         {type && (
                             <Center
                                 h="2rem"
+                                mr={1}
                                 verticalAlign="middle"
                             >
                                 <TypeTag type={type} />

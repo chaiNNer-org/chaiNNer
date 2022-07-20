@@ -1,8 +1,10 @@
 import { Center, Flex, Image, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useReactFlow } from 'react-flow-renderer';
 import { useContextSelector } from 'use-context-selector';
-import { OutputId } from '../../../common/common-types';
+import { OutputId, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
+import { createUniqueId } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 
@@ -27,11 +29,19 @@ export const SmallImageOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
+        const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
+        const createConnection = useContextSelector(
+            GlobalVolatileContext,
+            (c) => c.createConnection
+        );
+
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
         const value = useOutputData(outputId) as SmallImageBroadcastData | undefined;
 
         const imgBgColor = useColorModeValue('gray.400', 'gray.750');
+
+        const { getNode } = useReactFlow();
 
         return (
             <Flex
@@ -42,12 +52,41 @@ export const SmallImageOutput = memo(
             >
                 {value && (
                     <Center
+                        cursor="zoom-in"
                         h="2rem"
                         w="2rem"
+                        onClick={() => {
+                            const containingNode = getNode(id);
+                            if (containingNode) {
+                                const nodeId = createUniqueId();
+                                // TODO: This is a bit of hardcoding, but it works
+                                createNode({
+                                    id: nodeId,
+                                    position: {
+                                        x:
+                                            containingNode.position.x +
+                                            (containingNode.width ?? 0) +
+                                            75,
+                                        y: containingNode.position.y,
+                                    },
+                                    data: {
+                                        schemaId: 'chainner:image:view' as SchemaId,
+                                    },
+                                    nodeType: 'regularNode',
+                                });
+                                createConnection({
+                                    source: id,
+                                    sourceHandle: `${id}-${outputId}`,
+                                    target: nodeId,
+                                    targetHandle: `${nodeId}-${0}`,
+                                });
+                            }
+                        }}
                     >
                         <Center
                             bgColor={imgBgColor}
                             borderRadius="md"
+                            cursor="zoom-in"
                             h="1.75rem"
                             maxH="1.75rem"
                             maxW="1.75rem"
@@ -63,6 +102,7 @@ export const SmallImageOutput = memo(
                                         ? 'data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQABAACMCWJaQAA3AA/u11j//aQAAA'
                                         : ''
                                 }
+                                cursor="zoom-in"
                                 draggable={false}
                                 maxH="1.75rem"
                                 maxW="1.75rem"
