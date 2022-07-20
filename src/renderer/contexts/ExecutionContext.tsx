@@ -150,6 +150,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     const [outputDataMap, setOutputDataMap] = useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+    console.log(
+        '🚀 ~ file: ExecutionContext.tsx ~ line 153 ~ ExecutionProvider ~ outputDataMap',
+        outputDataMap
+    );
     const useOutputData = useCallback(
         (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
         [outputDataMap]
@@ -213,10 +217,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
+                console.log(
+                    '🚀 ~ file: ExecutionContext.tsx ~ line 220 ~ ExecutionProvider ~ data',
+                    data
+                );
                 setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
             }
         },
-        [setOutputDataMap]
+        [unAnimate, outputDataMap, setOutputDataMap]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(

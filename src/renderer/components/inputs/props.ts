@@ -1,4 +1,11 @@
-import { InputData, InputId, InputSchemaValue, SchemaId, Size } from '../../../common/common-types';
+import {
+    InputData,
+    InputId,
+    InputSchemaValue,
+    OutputId,
+    SchemaId,
+    Size,
+} from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 
 export interface InputProps {
@@ -17,4 +24,14 @@ export interface InputProps {
     readonly useInputSize: (
         inputId: InputId
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
+}
+
+export interface OutputProps {
+    readonly id: string;
+    readonly outputId: OutputId;
+    readonly label: string;
+    readonly schemaId: SchemaId;
+    readonly definitionType: Type;
+    readonly hasHandle: boolean;
+    readonly useOutputData: (outputId: OutputId) => unknown;
 }

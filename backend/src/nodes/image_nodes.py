@@ -37,7 +37,7 @@ class ImReadNode(NodeBase):
         self.description = "Load image from file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
-            ImageOutput(),
+            LargeImageOutput(),
             DirectoryOutput(),
             TextOutput("Image Name"),
         ]
@@ -197,3 +197,22 @@ class ImOpenNode(NodeBase):
                 os.startfile(temp_save_dir)  # type: ignore
             else:  # linux variants
                 subprocess.call(("xdg-open", temp_save_dir))  # type: ignore
+
+
+@NodeFactory.register("chainner:image:view")
+class ImViewNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "See an inline preview of the image in the editor."
+        self.inputs = [ImageInput()]
+        self.outputs = [LargeImageOutput("Preview", has_handle=False)]
+        self.category = IMAGE
+        self.name = "View Image"
+        self.icon = "BsEyeFill"
+        self.sub = "Input & Output"
+
+        self.side_effects = True
+
+    def run(self, img: np.ndarray):
+        # Put image back in int range
+        return img
