@@ -281,9 +281,15 @@ describe('Builtin functions', () => {
         });
     };
 
+    testUnaryNumber('abs');
     testUnaryNumber('negate');
     testUnaryNumber('round');
+    testUnaryNumber('floor');
     testUnaryNumber('reciprocal');
+
+    testUnaryNumber('degToRad');
+    testUnaryNumber('sin');
+    testUnaryNumber('cos');
 
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
     testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });

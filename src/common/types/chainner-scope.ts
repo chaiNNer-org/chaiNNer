@@ -47,7 +47,6 @@ struct BlendMode;
 struct BorderType;
 struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
-struct FillColor;
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
@@ -56,7 +55,6 @@ struct InterpolationMode;
 struct MathOperation { operation: string }
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
-struct RotateExpandCrop;
 struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
@@ -65,6 +63,15 @@ struct VideoType;
 struct Horizontal;
 struct Vertical;
 let Orientation = Horizontal | Vertical;
+
+struct RotateCropSize;
+struct RotateExpandSize;
+let RotateSizeChange = RotateCropSize | RotateExpandSize;
+
+struct AutoColorFill;
+struct BlackColorFill;
+struct TransparentColorFill;
+let FillColor = AutoColorFill | BlackColorFill | TransparentColorFill;
 
 // util function for upscaling nodes
 let real = ..;

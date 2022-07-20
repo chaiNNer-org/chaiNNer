@@ -1,12 +1,18 @@
 import {
+    abs,
     add,
+    ceil,
     concat,
+    cos,
+    degToRad,
     divide,
+    floor,
     maximum,
     minimum,
     multiply,
     negate,
     round,
+    sin,
     subtract,
     toString,
 } from './builtin';
@@ -36,8 +42,15 @@ scope.add(varArgs('multiply', multiply, NumberType.instance));
 scope.add(binary('divide', divide, NumberType.instance, NumberType.instance));
 scope.add(varArgs('min', minimum, NumberType.instance));
 scope.add(varArgs('max', maximum, NumberType.instance));
+scope.add(varArgs('abs', abs, NumberType.instance));
 scope.add(unary('negate', negate, NumberType.instance));
 scope.add(unary('round', round, NumberType.instance));
+scope.add(unary('floor', floor, NumberType.instance));
+scope.add(unary('ceil', ceil, NumberType.instance));
+
+scope.add(unary('degToRad', degToRad, NumberType.instance));
+scope.add(unary('sin', sin, NumberType.instance));
+scope.add(unary('cos', cos, NumberType.instance));
 
 scope.add(varArgs('concat', concat, StringType.instance));
 scope.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));

@@ -268,8 +268,20 @@ def FillColorDropdown() -> DropDownInput:
         input_type="FillColor",
         label="Negative Space Fill",
         options=[
-            {"option": "Auto", "value": FillColor.AUTO},
-            {"option": "Black Fill", "value": FillColor.BLACK},
-            {"option": "Transparency", "value": FillColor.TRANSPARENT},
+            {
+                "option": "Auto",
+                "value": FillColor.AUTO,
+                "type": "AutoColorFill",
+            },
+            {
+                "option": "Black Fill",
+                "value": FillColor.BLACK,
+                "type": "BlackColorFill",
+            },
+            {
+                "option": "Transparency",
+                "value": FillColor.TRANSPARENT,
+                "type": "TransparentColorFill",
+            },
         ],
     )
