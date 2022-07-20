@@ -72,7 +72,7 @@ export const LargeImageOutput = memo(
                         overflow="hidden"
                         w="200px"
                     >
-                        {value ? (
+                        {value && !animated ? (
                             <Image
                                 alt="Image preview failed to load, probably unsupported file type."
                                 backgroundImage={
