@@ -185,6 +185,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     />
                     <NodeBody
                         accentColor={accentColor}
+                        animated={animated}
                         id={id}
                         inputData={inputData}
                         inputSize={inputSize}

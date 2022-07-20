@@ -50,7 +50,7 @@ const LOADING_STATE: State = { type: 'loading' };
 export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => {
     const [state, setState] = useState<State>(CLEAR_STATE);
 
-    const { setManualOutputType } = useContext(GlobalContext);
+    const { setManualOutputType, changeNodes } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -72,6 +72,21 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
                     };
                 }
 
+                changeNodes((nodes) =>
+                    nodes.map((n) => {
+                        if (n.id === id) {
+                            return {
+                                ...n,
+                                data: {
+                                    ...n.data,
+                                    animated: true,
+                                },
+                            };
+                        }
+                        return n;
+                    })
+                );
+
                 const result = await backend.runIndividual<ImageObject>({
                     schemaId,
                     id,
@@ -79,6 +94,21 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
                     isCpu,
                     isFp16,
                 });
+
+                changeNodes((nodes) =>
+                    nodes.map((n) => {
+                        if (n.id === id) {
+                            return {
+                                ...n,
+                                data: {
+                                    ...n.data,
+                                    animated: false,
+                                },
+                            };
+                        }
+                        return n;
+                    })
+                );
 
                 if (!result.success) {
                     return {

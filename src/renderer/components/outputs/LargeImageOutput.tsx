@@ -1,5 +1,6 @@
+/* eslint-disable no-nested-ternary */
 import { ViewOffIcon } from '@chakra-ui/icons';
-import { Center, HStack, Image, Text, useColorModeValue } from '@chakra-ui/react';
+import { Center, HStack, Image, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
@@ -11,6 +12,7 @@ interface GenericOutputProps {
     label: string;
     outputId: OutputId;
     definitionType: Type;
+    animated?: boolean;
     useOutputData: (outputId: OutputId) => unknown;
 }
 
@@ -22,7 +24,14 @@ interface LargeImageBroadcastData {
 }
 
 export const LargeImageOutput = memo(
-    ({ label, id, outputId, definitionType, useOutputData }: GenericOutputProps) => {
+    ({
+        label,
+        id,
+        outputId,
+        definitionType,
+        useOutputData,
+        animated = false,
+    }: GenericOutputProps) => {
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
@@ -79,6 +88,8 @@ export const LargeImageOutput = memo(
                                     imageRendering: zoom > 2 ? 'pixelated' : 'auto',
                                 }}
                             />
+                        ) : animated ? (
+                            <Spinner />
                         ) : (
                             <HStack>
                                 <ViewOffIcon />

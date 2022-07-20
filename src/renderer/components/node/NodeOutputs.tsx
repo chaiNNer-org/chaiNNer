@@ -15,6 +15,7 @@ import { SmallImageOutput } from '../outputs/SmallImageOutput';
 
 interface FullOutputProps extends Omit<Omit<Output, 'type'>, 'id'>, OutputProps {
     definitionType: Type;
+    animated?: boolean;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
@@ -66,9 +67,10 @@ interface NodeOutputProps {
     outputs: readonly Output[];
     id: string;
     schemaId: SchemaId;
+    animated?: boolean;
 }
 
-export const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputProps) => {
+export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: NodeOutputProps) => {
     const { functionDefinitions } = useContext(GlobalContext);
     const useOutputDataContext = useContextSelector(ExecutionContext, (c) => c.useOutputData);
 
@@ -91,6 +93,7 @@ export const NodeOutputs = memo(({ outputs, id, schemaId }: NodeOutputProps) => 
                     schemaId,
                     definitionType: functions.get(output.id)!,
                     hasHandle: output.hasHandle,
+                    animated,
                 };
                 return pickOutput(output.kind, props);
             })}
