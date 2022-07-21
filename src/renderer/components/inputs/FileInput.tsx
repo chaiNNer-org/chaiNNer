@@ -151,6 +151,7 @@ export const FileInput = memo(
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
+                    disabled={isLocked || isInputLocked}
                     icon={<BsFileEarmarkPlus />}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
