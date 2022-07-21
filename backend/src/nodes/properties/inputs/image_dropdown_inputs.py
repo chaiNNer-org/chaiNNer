@@ -129,12 +129,12 @@ def RotateExpansionInput() -> DropDownInput:
             {
                 "option": "Expand to fit",
                 "value": RotateExpandCrop.EXPAND,
-                "type": "RotateExpandSize",
+                "type": "RotateSizeChange::Expand",
             },
             {
                 "option": "Crop to original",
                 "value": RotateExpandCrop.CROP,
-                "type": "RotateCropSize",
+                "type": "RotateSizeChange::Crop",
             },
         ],
     )

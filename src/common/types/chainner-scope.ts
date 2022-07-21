@@ -60,21 +60,11 @@ struct ThresholdType;
 struct TileMode;
 struct VideoType;
 
-struct Horizontal;
-struct Vertical;
-let Orientation = Horizontal | Vertical;
-
-struct RotateCropSize;
-struct RotateExpandSize;
-let RotateSizeChange = RotateCropSize | RotateExpandSize;
-
-struct AutoColorFill;
-struct BlackColorFill;
-struct TransparentColorFill;
-let FillColor = AutoColorFill | BlackColorFill | TransparentColorFill;
+enum Orientation { Horizontal, Vertical }
+enum RotateSizeChange { Crop, Expand }
+enum FillColor { Auto, Black, Transparent }
 
 // util function for upscaling nodes
-let real = ..;
 def getUpscaleChannels(
     imageChannels: int(1..),
     inputChannels: int(1..),
