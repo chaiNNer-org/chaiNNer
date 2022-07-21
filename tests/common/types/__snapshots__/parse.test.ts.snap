@@ -215,13 +215,28 @@ a & b & c & d
 >>> { def getFoo() { 0 } getFoo() }
 { def getFoo() = 0; getFoo() }
 
->>> { struct Foo { bar: 0 }; Foo.bar }
-SyntaxError: At 1:23: extraneous input ';' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}"
+>>> { struct Foo { bar: 0 } Foo.bar }
+{ struct Foo { bar: 0 } Foo.bar }
+
+>>> struct false; false
+{ struct false; false }
+
+>>> struct Image { width: uint, height: uint, channels: int(1..) } Image
+{ struct Image { width: uint, height: uint, channels: int(1..inf) } Image }
+
+>>> let bool = true | false; bool
+{ let bool = true | false; bool }
+
+>>> enum Direction { North, East, South, West } Direction
+{ let Direction = North | East | South | West; struct North; struct East; struct South; struct West; Direction }
+
+>>> def inc(a: number) = add(a, 1); inc(0)
+{ def inc(a: number) = add(a, 1); inc(0) }"
 `;
 
 exports[`Invalid expression parsing 1`] = `
 ">>> 
-SyntaxError: At 1:0: mismatched input '<EOF>' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:0: mismatched input '<EOF>' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> öäü0
 SyntaxError: At 1:0: token recognition error at: 'ö'
@@ -233,7 +248,7 @@ SyntaxError: At 1:0: token recognition error at: '+'
 SyntaxError: At 1:0: token recognition error at: '+'
 
 >>> .2e4
-SyntaxError: At 1:0: extraneous input '.' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:0: extraneous input '.' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> 2.
 SyntaxError: At 1:2: missing Identifier at '<EOF>'
@@ -280,10 +295,10 @@ SyntaxError: At 1:0: token recognition error at: '\\"
 '
 
 >>> as()
-SyntaxError: At 1:0: extraneous input 'as' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:0: extraneous input 'as' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> match()
-SyntaxError: At 1:6: mismatched input ')' expecting {'(', '{', 'match', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:6: mismatched input ')' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier}
 
 >>> struct()
 SyntaxError: At 1:6: mismatched input '(' expecting Identifier
@@ -295,10 +310,10 @@ SyntaxError: At 1:3: mismatched input '(' expecting Identifier
 SyntaxError: At 1:3: missing Identifier at '('
 
 >>> match { }
-SyntaxError: At 1:8: mismatched input '}' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:8: mismatched input '}' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> as { }
-SyntaxError: At 1:0: extraneous input 'as' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:0: extraneous input 'as' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> struct { }
 SyntaxError: At 1:7: missing Identifier at '{'
@@ -343,14 +358,14 @@ SyntaxError: At 1:4: extraneous input '(' expecting Identifier
 SyntaxError: At 1:2: missing Identifier at '<EOF>'
 
 >>> a | b |
-SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'(', '{', 'match', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier}
 
 >>> a & b &
-SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'(', '{', 'match', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier}
 
 >>> | b
-SyntaxError: At 1:0: extraneous input '|' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}
+SyntaxError: At 1:0: extraneous input '|' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> & b
-SyntaxError: At 1:0: extraneous input '&' expecting {'(', '{', 'def', 'let', 'match', 'struct', IntInterval, Interval, Number, String, Identifier}"
+SyntaxError: At 1:0: extraneous input '&' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}"
 `;

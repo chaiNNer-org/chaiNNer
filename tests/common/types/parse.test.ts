@@ -95,7 +95,22 @@ const expressionSnippets: string[] = [
     String.raw`{ let foo = 0; foo }`,
     String.raw`{ def getFoo() = 0; getFoo() }`,
     String.raw`{ def getFoo() { 0 } getFoo() }`,
-    String.raw`{ struct Foo { bar: 0 }; Foo.bar }`,
+    String.raw`{ struct Foo { bar: 0 } Foo.bar }`,
+
+    // definitions
+
+    // struct
+    String.raw`struct false; false`,
+    String.raw`struct Image { width: uint, height: uint, channels: int(1..) } Image`,
+
+    // let
+    String.raw`let bool = true | false; bool`,
+
+    // enum
+    String.raw`enum Direction { North, East, South, West } Direction`,
+
+    // def
+    String.raw`def inc(a: number) = add(a, 1); inc(0)`,
 ];
 const invalidExpressionSnippets: string[] = [
     String.raw``,

@@ -10,7 +10,8 @@ expressionDocument: definition* expression EOF;
 definition:
 	structDefinition
 	| functionDefinition
-	| variableDefinition;
+	| variableDefinition
+	| enumDefinition;
 structDefinition: Struct Identifier (';' | fields);
 functionDefinition:
 	Def Identifier parameters (
@@ -18,6 +19,9 @@ functionDefinition:
 		| scopeExpression
 	);
 variableDefinition: Let Identifier '=' expression ';';
+enumDefinition:
+	Enum Identifier '{' (enumVariant (',' enumVariant)* ','?)* '}';
+enumVariant: Identifier fields?;
 
 // expression
 primaryExpression:
@@ -61,6 +65,7 @@ Def: 'def';
 Let: 'let';
 Match: 'match';
 Struct: 'struct';
+Enum: 'enum';
 
 Discard: '_';
 
