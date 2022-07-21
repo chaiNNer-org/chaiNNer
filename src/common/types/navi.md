@@ -132,6 +132,41 @@ If they aren't referenced, they won't be evaluated at all.
 
 Lazy evaluation also brings the benefit that variables can be arranged in any order.
 
+## Enum definitions
+
+Enums are syntactic sugar to more easily create sum types (disjoint union).
+Example:
+
+```
+enum bool { true, false }
+```
+
+is equivalent to:
+
+```
+let bool = bool::true | bool::false;
+struct bool::true;
+struct bool::false;
+```
+
+The `::` is a namespace accessor.
+It allows names to be separated into groups.
+
+Enum variants can also have fields.
+Example:
+
+```
+enum Option { Some { value: any }, None }
+```
+
+is equivalent to:
+
+```
+let Option = Option::Some | Option::None;
+struct Option::Some { value: any }
+struct Option::None;
+```
+
 ## Function definitions
 
 User-defined functions are supported.
