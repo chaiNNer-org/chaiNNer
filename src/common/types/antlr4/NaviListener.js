@@ -59,6 +59,24 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by NaviParser#enumDefinition.
+	enterEnumDefinition(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#enumDefinition.
+	exitEnumDefinition(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#enumVariant.
+	enterEnumVariant(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#enumVariant.
+	exitEnumVariant(ctx) {
+	}
+
+
 	// Enter a parse tree produced by NaviParser#primaryExpression.
 	enterPrimaryExpression(ctx) {
 	}
@@ -191,6 +209,15 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by NaviParser#parameter.
 	exitParameter(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#name.
+	enterName(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#name.
+	exitName(ctx) {
 	}
 
 

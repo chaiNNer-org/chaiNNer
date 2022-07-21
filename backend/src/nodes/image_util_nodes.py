@@ -145,8 +145,14 @@ class StackNode(NodeBase):
                 let heightSum = add(getAdjustedHeight(Input0), getAdjustedHeight(Input1), getAdjustedHeight(Input2), getAdjustedHeight(Input3));
 
                 Image {
-                    width: match Input4 { Vertical => maxWidth, Horizontal => widthSum },
-                    height: match Input4 { Vertical => heightSum, Horizontal => maxHeight },
+                    width: match Input4 {
+                        Orientation::Vertical => maxWidth,
+                        Orientation::Horizontal => widthSum
+                    },
+                    height: match Input4 {
+                        Orientation::Vertical => heightSum,
+                        Orientation::Horizontal => maxHeight
+                    },
                     channels: maxChannels
                 }
                 """
@@ -451,14 +457,14 @@ class RotateNode(NodeBase):
 
                 Image {
                     width: match Input3 {
-                        RotateCropSize => Input0.width,
+                        RotateSizeChange::Crop => Input0.width,
                         _ => expandWidth
                     },
                     height: match Input3 {
-                        RotateCropSize => Input0.height,
+                        RotateSizeChange::Crop => Input0.height,
                         _ => expandHeight
                     },
-                    channels: match Input4 { TransparentColorFill => 4, _ => Input0.channels }
+                    channels: match Input4 { FillColor::Transparent => 4, _ => Input0.channels }
                 }
                 """
             )
