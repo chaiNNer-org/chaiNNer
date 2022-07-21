@@ -13,10 +13,26 @@ import { BsFolderPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
+import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { InputProps } from './props';
+
+const getDirectoryPath = (type: Type): string | undefined => {
+    if (
+        type.type === 'struct' &&
+        type.name === 'Directory' &&
+        type.fields.length > 0 &&
+        type.fields[0].name === 'path'
+    ) {
+        const pathType = type.fields[0].type;
+        if (pathType.underlying === 'string' && pathType.type === 'literal') {
+            return pathType.value;
+        }
+    }
+    return undefined;
+};
 
 type DirectoryInputProps = InputProps;
 
@@ -42,6 +58,12 @@ export const DirectoryInput = memo(
             }
         };
 
+        const typeDirectory = useContextSelector(GlobalVolatileContext, (c) => {
+            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
+            return type ? getDirectoryPath(type) : undefined;
+        });
+        const displayDirectory = isInputLocked ? typeDirectory : directory;
+
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
@@ -54,10 +76,10 @@ export const DirectoryInput = memo(
                 <MenuDivider />
                 <MenuItem
                     icon={<MdFolder />}
-                    isDisabled={!directory}
+                    isDisabled={!displayDirectory}
                     onClick={() => {
-                        if (directory) {
-                            shell.showItemInFolder(directory);
+                        if (displayDirectory) {
+                            shell.showItemInFolder(displayDirectory);
                         }
                     }}
                 >
@@ -69,7 +91,7 @@ export const DirectoryInput = memo(
         return (
             <Tooltip
                 borderRadius={8}
-                label={isInputLocked ? undefined : directory}
+                label={displayDirectory}
                 maxW="auto"
                 openDelay={500}
                 px={2}
@@ -87,7 +109,7 @@ export const DirectoryInput = memo(
                         draggable={false}
                         placeholder="Select a directory..."
                         textOverflow="ellipsis"
-                        value={directory ?? ''}
+                        value={displayDirectory ?? ''}
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
                         onClick={onButtonClick}
                     />
