@@ -45,6 +45,7 @@ export const DirectoryInput = memo(
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
+                    disabled={isLocked || isInputLocked}
                     icon={<BsFolderPlus />}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
