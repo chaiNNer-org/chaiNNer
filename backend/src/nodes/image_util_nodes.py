@@ -250,7 +250,19 @@ class CaptionNode(NodeBase):
             ImageInput(),
             TextInput("Caption", allow_numbers=True),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                // this value is defined by
+                let captionHeight = 42;
+                Image {
+                    width: Input0.width,
+                    height: add(Input0.height, captionHeight),
+                    channels: Input0.channels,
+                }
+                """
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Add Caption"
         self.icon = "MdVideoLabel"
