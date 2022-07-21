@@ -1,6 +1,7 @@
-import { Center, Flex, Image, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
+import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
+import { BsEyeFill } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
 import { OutputId, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
@@ -35,11 +36,8 @@ export const SmallImageOutput = memo(
             (c) => c.createConnection
         );
 
-        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-
-        const value = useOutputData(outputId) as SmallImageBroadcastData | undefined;
-
         const imgBgColor = useColorModeValue('gray.400', 'gray.750');
+        const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
 
         const { getNode } = useReactFlow();
 
@@ -50,70 +48,53 @@ export const SmallImageOutput = memo(
                 verticalAlign="middle"
                 w="full"
             >
-                {value && (
+                <Center
+                    cursor="zoom-in"
+                    h="2rem"
+                    w="2rem"
+                    onClick={() => {
+                        const containingNode = getNode(id);
+                        if (containingNode) {
+                            const nodeId = createUniqueId();
+                            // TODO: This is a bit of hardcoding, but it works
+                            createNode({
+                                id: nodeId,
+                                position: {
+                                    x: containingNode.position.x + (containingNode.width ?? 0) + 75,
+                                    y: containingNode.position.y,
+                                },
+                                data: {
+                                    schemaId: 'chainner:image:view' as SchemaId,
+                                },
+                                nodeType: 'regularNode',
+                            });
+                            createConnection({
+                                source: id,
+                                sourceHandle: `${id}-${outputId}`,
+                                target: nodeId,
+                                targetHandle: `${nodeId}-${0}`,
+                            });
+                        }
+                    }}
+                >
                     <Center
+                        bgColor={imgBgColor}
+                        borderRadius="md"
                         cursor="zoom-in"
-                        h="2rem"
-                        w="2rem"
-                        onClick={() => {
-                            const containingNode = getNode(id);
-                            if (containingNode) {
-                                const nodeId = createUniqueId();
-                                // TODO: This is a bit of hardcoding, but it works
-                                createNode({
-                                    id: nodeId,
-                                    position: {
-                                        x:
-                                            containingNode.position.x +
-                                            (containingNode.width ?? 0) +
-                                            75,
-                                        y: containingNode.position.y,
-                                    },
-                                    data: {
-                                        schemaId: 'chainner:image:view' as SchemaId,
-                                    },
-                                    nodeType: 'regularNode',
-                                });
-                                createConnection({
-                                    source: id,
-                                    sourceHandle: `${id}-${outputId}`,
-                                    target: nodeId,
-                                    targetHandle: `${nodeId}-${0}`,
-                                });
-                            }
-                        }}
+                        h="1.75rem"
+                        maxH="1.75rem"
+                        maxW="1.75rem"
+                        minH="1.75rem"
+                        minW="1.75rem"
+                        overflow="hidden"
+                        w="1.75rem"
                     >
-                        <Center
-                            bgColor={imgBgColor}
-                            borderRadius="md"
-                            cursor="zoom-in"
-                            h="1.75rem"
-                            maxH="1.75rem"
-                            maxW="1.75rem"
-                            minH="1.75rem"
-                            minW="1.75rem"
-                            overflow="hidden"
-                            w="1.75rem"
-                        >
-                            <Image
-                                alt="Image preview failed to load, probably unsupported file type."
-                                backgroundImage={
-                                    value.channels === 4
-                                        ? 'data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQABAACMCWJaQAA3AA/u11j//aQAAA'
-                                        : ''
-                                }
-                                cursor="zoom-in"
-                                draggable={false}
-                                maxH="1.75rem"
-                                maxW="1.75rem"
-                                src={value.image}
-                                sx={{
-                                    imageRendering: zoom > 2 ? 'pixelated' : 'auto',
-                                }}
-                            />
-                        </Center>
+                        <Icon
+                            as={BsEyeFill}
+                            color={eyeIconColor}
+                        />
                     </Center>
-                )}
+                </Center>
                 <Spacer />
                 {type && (
                     <Center

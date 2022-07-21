@@ -39,18 +39,9 @@ class ImageOutput(NumPyOutput):
             has_handle=has_handle,
         )
 
-    def get_broadcast_data(self, value: np.ndarray):
-        img = value
-        h, w, c = get_h_w_c(img)
-
-        base64_img = preview_encode(img, 128)
-
-        return {
-            "image": base64_img,
-            "height": h,
-            "width": w,
-            "channels": c,
-        }
+    # Maybe someday we'll bring this back, but not today.
+    def get_broadcast_data(self, _value: np.ndarray):
+        return None
 
 
 class LargeImageOutput(ImageOutput):
