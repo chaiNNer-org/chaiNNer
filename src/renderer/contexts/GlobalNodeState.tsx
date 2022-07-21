@@ -924,6 +924,7 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
+                setOutputDataMap((prev) => new Map([...prev, [id, {}]]));
             },
             [modifyNode]
         );

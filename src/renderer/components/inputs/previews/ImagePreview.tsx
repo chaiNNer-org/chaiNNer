@@ -57,76 +57,76 @@ export const ImagePreview = memo(({ path, schemaId, id }: ImagePreviewProps) => 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    useAsyncEffect(
-        {
-            supplier: async (token): Promise<State> => {
-                if (!path) return CLEAR_STATE;
+    // useAsyncEffect(
+    //     {
+    //         supplier: async (token): Promise<State> => {
+    //             if (!path) return CLEAR_STATE;
 
-                token.causeEffect(() => setState(LOADING_STATE));
+    //             token.causeEffect(() => setState(LOADING_STATE));
 
-                if (!(await checkFileExists(path))) {
-                    return {
-                        type: 'error',
-                        message:
-                            'File does not exist on the system. Please select a different file.',
-                    };
-                }
+    //             if (!(await checkFileExists(path))) {
+    //                 return {
+    //                     type: 'error',
+    //                     message:
+    //                         'File does not exist on the system. Please select a different file.',
+    //                 };
+    //             }
 
-                changeNodes((nodes) =>
-                    nodes.map((n) => {
-                        if (n.id === id) {
-                            return {
-                                ...n,
-                                data: {
-                                    ...n.data,
-                                    animated: true,
-                                },
-                            };
-                        }
-                        return n;
-                    })
-                );
+    //             changeNodes((nodes) =>
+    //                 nodes.map((n) => {
+    //                     if (n.id === id) {
+    //                         return {
+    //                             ...n,
+    //                             data: {
+    //                                 ...n.data,
+    //                                 animated: true,
+    //                             },
+    //                         };
+    //                     }
+    //                     return n;
+    //                 })
+    //             );
 
-                const result = await backend.runIndividual<ImageObject>({
-                    schemaId,
-                    id,
-                    inputs: [path],
-                    isCpu,
-                    isFp16,
-                });
+    //             const result = await backend.runIndividual<ImageObject>({
+    //                 schemaId,
+    //                 id,
+    //                 inputs: [path],
+    //                 isCpu,
+    //                 isFp16,
+    //             });
 
-                changeNodes((nodes) =>
-                    nodes.map((n) => {
-                        if (n.id === id) {
-                            return {
-                                ...n,
-                                data: {
-                                    ...n.data,
-                                    animated: false,
-                                },
-                            };
-                        }
-                        return n;
-                    })
-                );
+    //             changeNodes((nodes) =>
+    //                 nodes.map((n) => {
+    //                     if (n.id === id) {
+    //                         return {
+    //                             ...n,
+    //                             data: {
+    //                                 ...n.data,
+    //                                 animated: false,
+    //                             },
+    //                         };
+    //                     }
+    //                     return n;
+    //                 })
+    //             );
 
-                if (!result.success) {
-                    return {
-                        type: 'error',
-                        message: 'Image failed to load, probably unsupported file type.',
-                    };
-                }
+    //             if (!result.success) {
+    //                 return {
+    //                     type: 'error',
+    //                     message: 'Image failed to load, probably unsupported file type.',
+    //                 };
+    //             }
 
-                const fileType = (/\.(\w+)$/.exec(path) ?? ['', 'unknown'])[1];
-                return { type: 'image', image: result.data, fileType };
-            },
-            successEffect: setState,
-            catchEffect: (error) => {
-                setState({ type: 'error', message: String(error) });
-            },
-        },
-        [path]
-    );
+    //             const fileType = (/\.(\w+)$/.exec(path) ?? ['', 'unknown'])[1];
+    //             return { type: 'image', image: result.data, fileType };
+    //         },
+    //         successEffect: setState,
+    //         catchEffect: (error) => {
+    //             setState({ type: 'error', message: String(error) });
+    //         },
+    //     },
+    //     [path]
+    // );
 
     useEffect(() => {
         if (schemaId === 'chainner:image:load') {

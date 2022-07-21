@@ -15,6 +15,8 @@ export type Validity =
 
 export const VALID: Validity = { isValid: true };
 
+export const INVALID: Validity = { isValid: false, reason: '' };
+
 const getAcceptedNumbers = (number: IntNumberType): Set<number> | undefined => {
     const numbers = new Set<number>();
     let infinite = false;
