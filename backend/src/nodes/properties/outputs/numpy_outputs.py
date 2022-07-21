@@ -29,7 +29,7 @@ class ImageOutput(NumPyOutput):
         self,
         label: str = "Image",
         image_type: expression.ExpressionJson = "Image",
-        kind: str = "small-image",
+        kind: str = "image",
         has_handle: bool = True,
     ):
         super().__init__(

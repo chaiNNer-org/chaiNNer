@@ -17,14 +17,7 @@ interface GenericOutputProps {
     useOutputData: (outputId: OutputId) => unknown;
 }
 
-interface SmallImageBroadcastData {
-    image: string;
-    width: number;
-    height: number;
-    channels: number;
-}
-
-export const SmallImageOutput = memo(
+export const DefaultImageOutput = memo(
     ({ label, id, outputId, definitionType, useOutputData }: GenericOutputProps) => {
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)

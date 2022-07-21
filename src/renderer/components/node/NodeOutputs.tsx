@@ -8,10 +8,10 @@ import { assertNever } from '../../../common/util';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from '../inputs/props';
+import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
-import { SmallImageOutput } from '../outputs/SmallImageOutput';
 
 interface FullOutputProps extends Omit<Omit<Output, 'type'>, 'id'>, OutputProps {
     definitionType: Type;
@@ -24,8 +24,8 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
     let OutputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericOutput;
     let isGenericType = true;
     switch (kind) {
-        case 'small-image':
-            OutputType = SmallImageOutput;
+        case 'image':
+            OutputType = DefaultImageOutput;
             break;
         case 'large-image':
             OutputType = LargeImageOutput;

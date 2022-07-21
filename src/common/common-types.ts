@@ -51,7 +51,7 @@ export interface Input {
     readonly filetypes?: string[];
 }
 
-export type OutputKind = 'small-image' | 'large-image' | 'generic';
+export type OutputKind = 'image' | 'large-image' | 'generic';
 
 export interface Output {
     readonly id: OutputId;
