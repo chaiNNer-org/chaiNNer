@@ -249,7 +249,7 @@ a & b & c & d
 { let std::bool = true | false; std::bool }
 
 >>> enum Direction { North, East, South, West } Direction
-{ let Direction = North | East | South | West; struct Direction::North; struct Direction::East; struct Direction::South; struct Direction::West; Direction }
+{ let Direction = Direction::North | Direction::East | Direction::South | Direction::West; struct Direction::North; struct Direction::East; struct Direction::South; struct Direction::West; Direction }
 
 >>> def inc(a: number) = add(a, 1); inc(0)
 { def inc(a: number) = add(a, 1); inc(0) }

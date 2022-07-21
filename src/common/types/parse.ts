@@ -437,7 +437,9 @@ class AstConverter {
             return [
                 new VariableDefinition(
                     name,
-                    new UnionExpression(variants.map((v) => new NamedExpression(v.name)))
+                    new UnionExpression(
+                        variants.map((v) => new NamedExpression(`${name}::${v.name}`))
+                    )
                 ),
                 ...variants.map(
                     (v) =>
