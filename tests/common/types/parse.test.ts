@@ -115,6 +115,7 @@ const expressionSnippets: string[] = [
 
     // enum
     String.raw`enum Direction { North, East, South, West } Direction`,
+    String.raw`enum Empty { } Empty`,
 
     // def
     String.raw`def inc(a: number) = add(a, 1); inc(0)`,

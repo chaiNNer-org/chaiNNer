@@ -251,6 +251,9 @@ a & b & c & d
 >>> enum Direction { North, East, South, West } Direction
 { let Direction = Direction::North | Direction::East | Direction::South | Direction::West; struct Direction::North; struct Direction::East; struct Direction::South; struct Direction::West; Direction }
 
+>>> enum Empty { } Empty
+{ let Empty = (never /* empty union */); Empty }
+
 >>> def inc(a: number) = add(a, 1); inc(0)
 { def inc(a: number) = add(a, 1); inc(0) }
 
