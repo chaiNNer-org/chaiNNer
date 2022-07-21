@@ -12,15 +12,12 @@ definition:
 	| functionDefinition
 	| variableDefinition
 	| enumDefinition;
-structDefinition: Struct Identifier (';' | fields);
+structDefinition: Struct name (';' | fields);
 functionDefinition:
-	Def Identifier parameters (
-		'=' expression ';'
-		| scopeExpression
-	);
-variableDefinition: Let Identifier '=' expression ';';
+	Def name parameters ('=' expression ';' | scopeExpression);
+variableDefinition: Let name '=' expression ';';
 enumDefinition:
-	Enum Identifier '{' (enumVariant (',' enumVariant)* ','?)* '}';
+	Enum name '{' (enumVariant (',' enumVariant)* ','?)* '}';
 enumVariant: Identifier fields?;
 
 // expression
@@ -38,8 +35,8 @@ primaryExpression:
 matchExpression:
 	Match expression '{' (matchArm (',' matchArm)* ','?)? '}';
 matchArm: (Discard | expression) (As Identifier)? '=>' expression;
-functionCall: Identifier '(' args ')';
-named: Identifier fields?;
+functionCall: name '(' args ')';
+named: name fields?;
 scopeExpression: '{' definition* expression '}';
 
 fieldAccessExpression: primaryExpression ('.' Identifier)*;
@@ -58,6 +55,8 @@ fields: '{' (field (',' field)* ','?)? '}';
 field: Identifier ':' expression;
 parameters: '(' (parameter (',' parameter)* ','?)? ')';
 parameter: Identifier ':' expression;
+
+name: Identifier ('::' Identifier)*;
 
 // keywords
 As: 'as';

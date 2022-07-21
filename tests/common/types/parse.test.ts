@@ -57,6 +57,7 @@ const expressionSnippets: string[] = [
     String.raw`string()`,
     String.raw`int()`,
     String.raw`uint()`,
+    String.raw`foo::bar::baz()`,
 
     // named
     String.raw`null`,
@@ -66,6 +67,8 @@ const expressionSnippets: string[] = [
     String.raw`foo { foo: uint }`,
     String.raw`Image { width: uint, height: uint, channels: int(1..inf) }`,
     String.raw`bar { any: any, never: never, number: number, string: string }`,
+    String.raw`foo::bar::baz`,
+    String.raw`foo::bar::baz {}`,
 
     // match
     String.raw`match never {}`,
@@ -80,9 +83,11 @@ const expressionSnippets: string[] = [
     String.raw`match a { _ => 234, number => 1, string => 2, _ => 5 }`,
     String.raw`match a {  number as foo => add(foo, 1), _ as foo => foo, }`,
     String.raw`match a { 1 | 2 as foo => add(foo, 1), "bar" => "baz", _ as foo => foo, }`,
+    String.raw`match a { foo::bar => baz, }`,
 
     // field access
     String.raw`a.b.c.d.e.f`,
+    String.raw`foo::bar.baz`,
     String.raw`foo { foo: uint }.foo`,
 
     // intersection and union
@@ -102,15 +107,18 @@ const expressionSnippets: string[] = [
     // struct
     String.raw`struct false; false`,
     String.raw`struct Image { width: uint, height: uint, channels: int(1..) } Image`,
+    String.raw`struct foo::bar; foo::bar`,
 
     // let
     String.raw`let bool = true | false; bool`,
+    String.raw`let std::bool = true | false; std::bool`,
 
     // enum
     String.raw`enum Direction { North, East, South, West } Direction`,
 
     // def
     String.raw`def inc(a: number) = add(a, 1); inc(0)`,
+    String.raw`def math :: inc(a: number) = add(a, 1); math::inc(0)`,
 ];
 const invalidExpressionSnippets: string[] = [
     String.raw``,
@@ -148,6 +156,8 @@ const invalidExpressionSnippets: string[] = [
     String.raw`struct()`,
     String.raw`let()`,
     String.raw`def()`,
+    String.raw`bar.baz()`,
+    String.raw`foo::bar.baz()`,
 
     // named
     String.raw`match { }`,
@@ -160,6 +170,7 @@ const invalidExpressionSnippets: string[] = [
     // match
     String.raw`match a`,
     String.raw`match a { foo: uint }`,
+    String.raw`match a { foo as bar::baz }`,
 
     // field access
     String.raw`a.match`,
@@ -170,12 +181,24 @@ const invalidExpressionSnippets: string[] = [
     String.raw`a.1`,
     String.raw`a.b.(c.d).e.f`,
     String.raw`a.`,
+    String.raw`foo.bar::baz`,
 
     // intersection and union
     String.raw`a | b |`,
     String.raw`a & b &`,
     String.raw`| b`,
     String.raw`& b`,
+
+    // definitions
+
+    // struct
+    String.raw`struct A { a::bar: bool } A`,
+
+    // enum
+    String.raw`enum Direction { North, East, South, S::West } Direction`,
+
+    // def
+    String.raw`def inc(a::b: number) = add(a, 1); inc(0)`,
 ];
 
 const expressionParsing = (expr: string): string => {

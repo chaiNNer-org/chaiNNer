@@ -212,5 +212,14 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by NaviParser#name.
+	enterName(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#name.
+	exitName(ctx) {
+	}
+
+
 
 }

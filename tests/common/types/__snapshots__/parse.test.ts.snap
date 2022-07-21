@@ -131,6 +131,9 @@ int()
 >>> uint()
 uint()
 
+>>> foo::bar::baz()
+foo::bar::baz()
+
 >>> null
 null
 
@@ -151,6 +154,12 @@ Image { width: uint, height: uint, channels: int(1..inf) }
 
 >>> bar { any: any, never: never, number: number, string: string }
 bar { any: any, never: never, number: number, string: string }
+
+>>> foo::bar::baz
+foo::bar::baz
+
+>>> foo::bar::baz {}
+foo::bar::baz
 
 >>> match never {}
 match never {  }
@@ -188,8 +197,14 @@ match a { number as foo => add(foo, 1), _ as foo => foo }
 >>> match a { 1 | 2 as foo => add(foo, 1), \\"bar\\" => \\"baz\\", _ as foo => foo, }
 match a { 1 | 2 as foo => add(foo, 1), \\"bar\\" => \\"baz\\", _ as foo => foo }
 
+>>> match a { foo::bar => baz, }
+match a { foo::bar => baz }
+
 >>> a.b.c.d.e.f
 a.b.c.d.e.f
+
+>>> foo::bar.baz
+foo::bar.baz
 
 >>> foo { foo: uint }.foo
 foo { foo: uint }.foo
@@ -224,14 +239,23 @@ a & b & c & d
 >>> struct Image { width: uint, height: uint, channels: int(1..) } Image
 { struct Image { width: uint, height: uint, channels: int(1..inf) } Image }
 
+>>> struct foo::bar; foo::bar
+{ struct foo::bar; foo::bar }
+
 >>> let bool = true | false; bool
 { let bool = true | false; bool }
 
+>>> let std::bool = true | false; std::bool
+{ let std::bool = true | false; std::bool }
+
 >>> enum Direction { North, East, South, West } Direction
-{ let Direction = North | East | South | West; struct North; struct East; struct South; struct West; Direction }
+{ let Direction = North | East | South | West; struct Direction::North; struct Direction::East; struct Direction::South; struct Direction::West; Direction }
 
 >>> def inc(a: number) = add(a, 1); inc(0)
-{ def inc(a: number) = add(a, 1); inc(0) }"
+{ def inc(a: number) = add(a, 1); inc(0) }
+
+>>> def math :: inc(a: number) = add(a, 1); math::inc(0)
+{ def math::inc(a: number) = add(a, 1); math::inc(0) }"
 `;
 
 exports[`Invalid expression parsing 1`] = `
@@ -309,6 +333,12 @@ SyntaxError: At 1:3: mismatched input '(' expecting Identifier
 >>> def()
 SyntaxError: At 1:3: missing Identifier at '('
 
+>>> bar.baz()
+SyntaxError: At 1:7: mismatched input '(' expecting <EOF>
+
+>>> foo::bar.baz()
+SyntaxError: At 1:12: mismatched input '(' expecting <EOF>
+
 >>> match { }
 SyntaxError: At 1:8: mismatched input '}' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
@@ -332,6 +362,9 @@ SyntaxError: At 1:7: mismatched input '<EOF>' expecting '{'
 
 >>> match a { foo: uint }
 SyntaxError: At 1:21: mismatched input '<EOF>' expecting '{'
+
+>>> match a { foo as bar::baz }
+SyntaxError: At 1:20: mismatched input '::' expecting '=>'
 
 >>> a.match
 SyntaxError: At 1:2: mismatched input 'match' expecting Identifier
@@ -357,6 +390,9 @@ SyntaxError: At 1:4: extraneous input '(' expecting Identifier
 >>> a.
 SyntaxError: At 1:2: missing Identifier at '<EOF>'
 
+>>> foo.bar::baz
+SyntaxError: At 1:7: mismatched input '::' expecting <EOF>
+
 >>> a | b |
 SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier}
 
@@ -367,5 +403,14 @@ SyntaxError: At 1:7: mismatched input '<EOF>' expecting {'{', '(', 'match', IntI
 SyntaxError: At 1:0: extraneous input '|' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
 
 >>> & b
-SyntaxError: At 1:0: extraneous input '&' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}"
+SyntaxError: At 1:0: extraneous input '&' expecting {'{', '(', 'def', 'let', 'match', 'struct', 'enum', IntInterval, Interval, Number, String, Identifier}
+
+>>> struct A { a::bar: bool } A
+SyntaxError: At 1:12: mismatched input '::' expecting ':'
+
+>>> enum Direction { North, East, South, S::West } Direction
+SyntaxError: At 1:38: no viable alternative at input ',S::'
+
+>>> def inc(a::b: number) = add(a, 1); inc(0)
+SyntaxError: At 1:9: mismatched input '::' expecting ':'"
 `;

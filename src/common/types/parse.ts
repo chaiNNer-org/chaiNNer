@@ -224,6 +224,13 @@ class AstConverter {
         });
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    private getName(name: Contexts['NameContext']): string {
+        return getMultipleTokens(name, 'Identifier')
+            .map((id) => id.getText())
+            .join('::');
+    }
+
     toExpression(context: Parameters<AstConverter['toExpressionWithoutSource']>[0]): Expression {
         const expression = this.toExpressionWithoutSource(context);
         // can't add source info to types
@@ -301,7 +308,7 @@ class AstConverter {
             return this.toExpression(rule);
         }
         if (context instanceof NaviParser.NamedContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const fields = getOptional(context, 'fields');
             if (!fields) {
                 if (name === 'any') return AnyType.instance;
@@ -318,7 +325,7 @@ class AstConverter {
             );
         }
         if (context instanceof NaviParser.FunctionCallContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             return new FunctionCallExpression(
                 name,
                 this.argsToExpression(getRequired(context, 'args'))
@@ -384,7 +391,7 @@ class AstConverter {
             return this.toDefinitions(rule);
         }
         if (context instanceof NaviParser.StructDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const fields = getOptional(context, 'fields');
             if (!fields) return [new StructDefinition(name)];
             return [
@@ -397,7 +404,7 @@ class AstConverter {
             ];
         }
         if (context instanceof NaviParser.FunctionDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const parameters = this.parametersToList(getRequired(context, 'parameters'));
             const rule =
                 getOptional(context, 'expression') ?? getOptional(context, 'scopeExpression');
@@ -414,12 +421,12 @@ class AstConverter {
             ];
         }
         if (context instanceof NaviParser.VariableDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const value = this.toExpression(getRequired(context, 'expression'));
             return [new VariableDefinition(name, value)];
         }
         if (context instanceof NaviParser.EnumDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const variants = getMultiple(context, 'enumVariant').map((v) => {
                 const fields = getOptional(v, 'fields');
                 return {
@@ -435,7 +442,7 @@ class AstConverter {
                 ...variants.map(
                     (v) =>
                         new StructDefinition(
-                            v.name,
+                            `${name}::${v.name}`,
                             v.fields.map(
                                 ([fieldName, type]) => new StructDefinitionField(fieldName, type)
                             )
