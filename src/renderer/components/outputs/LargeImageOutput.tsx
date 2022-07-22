@@ -3,20 +3,10 @@ import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { OutputId, SchemaId } from '../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType, Type } from '../../../common/types/types';
+import { NumericLiteralType } from '../../../common/types/types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-
-interface GenericOutputProps {
-    id: string;
-    label: string;
-    outputId: OutputId;
-    definitionType: Type;
-    animated?: boolean;
-    useOutputData: (outputId: OutputId) => unknown;
-    schemaId: SchemaId;
-}
+import { OutputProps } from '../inputs/props';
 
 interface LargeImageBroadcastData {
     image: string;
@@ -26,18 +16,7 @@ interface LargeImageBroadcastData {
 }
 
 export const LargeImageOutput = memo(
-    ({
-        label,
-        id,
-        outputId,
-        definitionType,
-        useOutputData,
-        animated = false,
-        schemaId,
-    }: GenericOutputProps) => {
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(id)?.outputs.get(outputId)
-        );
+    ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
         const inputDataChanges = useContextSelector(
             GlobalVolatileContext,
             (c) => c.inputDataChanges

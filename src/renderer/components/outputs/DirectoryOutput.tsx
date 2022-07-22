@@ -1,23 +1,14 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { OutputId, SchemaId } from '../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { StringLiteralType, Type } from '../../../common/types/types';
+import { StringLiteralType } from '../../../common/types/types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { OutputProps } from '../inputs/props';
 import { TypeTag } from '../TypeTag';
 
-interface GenericOutputProps {
-    id: string;
-    label: string;
-    outputId: OutputId;
-    definitionType: Type;
-    schemaId: SchemaId;
-    useOutputData: (outputId: OutputId) => unknown;
-}
-
 export const DirectoryOutput = memo(
-    ({ label, id, outputId, definitionType, schemaId, useOutputData }: GenericOutputProps) => {
+    ({ label, id, outputId, schemaId, useOutputData }: OutputProps) => {
         const type = useContextSelector(GlobalVolatileContext, (c) =>
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );

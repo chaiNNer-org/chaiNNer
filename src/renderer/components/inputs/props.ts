@@ -34,4 +34,5 @@ export interface OutputProps {
     readonly definitionType: Type;
     readonly hasHandle: boolean;
     readonly useOutputData: (outputId: OutputId) => unknown;
+    readonly animated: boolean;
 }

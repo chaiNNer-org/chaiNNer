@@ -17,7 +17,6 @@ import { TextOutput } from '../outputs/TextOutput';
 
 interface FullOutputProps extends Omit<Omit<Output, 'type'>, 'id'>, OutputProps {
     definitionType: Type;
-    animated?: boolean;
 }
 
 // TODO: perhaps make this an object instead of a switch statement
