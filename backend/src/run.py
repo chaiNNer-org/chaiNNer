@@ -147,7 +147,9 @@ async def run(request: Request):
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
             os.environ["isFp16"] = str(full_data["isFp16"])
             logger.info(f"Using device: {os.environ['device']}")
-            executor = Executor(nodes_list, app.loop, queue, app.ctx.cache.copy())
+            executor = Executor(
+                nodes_list, app.loop, queue, request.app.ctx.cache.copy()
+            )
             request.app.ctx.executor = executor
             await executor.run()
         if not executor.paused:
@@ -229,7 +231,7 @@ async def run_individual(request: Request):
                 }
             )
         # Cache the output of the node
-        app.ctx.cache[full_data["id"]] = output
+        request.app.ctx.cache[full_data["id"]] = output
         extra_data = node_instance.get_extra_data()
         del node_instance, run_func
         return json({"success": True, "data": extra_data})
