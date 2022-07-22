@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
@@ -14,7 +15,13 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { EMPTY_MAP, ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import {
+    EMPTY_MAP,
+    ParsedHandle,
+    assertNever,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -371,6 +378,35 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         unAnimate();
         setStatus(ExecutionStatus.READY);
     };
+
+    useHotkeys(
+        'F5',
+        () => {
+            switch (status) {
+                case ExecutionStatus.READY:
+                case ExecutionStatus.PAUSED:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    run();
+                    break;
+                case ExecutionStatus.RUNNING:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    pause();
+                    break;
+                default:
+                    assertNever(status);
+            }
+        },
+        [run, pause, status]
+    );
+
+    useHotkeys(
+        'shift+F5',
+        () => {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            kill();
+        },
+        [kill]
+    );
 
     const value = useMemoObject<ExecutionContextValue>({
         run,

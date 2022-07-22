@@ -64,33 +64,35 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label={status === ExecutionStatus.PAUSED ? 'Resume' : 'Start'}
+                        label={status === ExecutionStatus.PAUSED ? 'Resume (F5)' : 'Start (F5)'}
                         px={2}
                         py={1}
                     >
-                        <IconButton
-                            aria-label="Start button"
-                            colorScheme="green"
-                            disabled={
-                                !(
-                                    status === ExecutionStatus.READY ||
-                                    status === ExecutionStatus.PAUSED
-                                )
-                            }
-                            icon={<IoPlay />}
-                            size="md"
-                            variant="outline"
-                            onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                run();
-                            }}
-                        />
+                        <span>
+                            <IconButton
+                                aria-label="Start button"
+                                colorScheme="green"
+                                disabled={
+                                    !(
+                                        status === ExecutionStatus.READY ||
+                                        status === ExecutionStatus.PAUSED
+                                    )
+                                }
+                                icon={<IoPlay />}
+                                size="md"
+                                variant="outline"
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                    run();
+                                }}
+                            />
+                        </span>
                     </Tooltip>
                     <Tooltip
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Pause"
+                        label="Pause (F5)"
                         px={2}
                         py={1}
                     >
@@ -111,7 +113,7 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Stop"
+                        label="Stop (Shift+F5)"
                         px={2}
                         py={1}
                     >
