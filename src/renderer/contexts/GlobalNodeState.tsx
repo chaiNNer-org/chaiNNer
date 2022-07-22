@@ -83,6 +83,8 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
+    inputDataChanges: ChangeCounter;
+    lastInputDataUpdatedId: string | undefined;
     useConnectingFromType: readonly [Type | null, SetState<Type | null>];
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
@@ -237,19 +239,19 @@ export const GlobalProvider = memo(
         const [outputDataMap, setOutputDataMap] =
             useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
 
-        useEffect(() => {
-            const timerId = setTimeout(() => {
-                sessionStorage.setItem('cachedOutputData', JSON.stringify([...outputDataMap]));
-            }, 500);
-            return () => clearTimeout(timerId);
-        }, [outputDataMap]);
-        useEffect(() => {
-            const cachedOutputData = getSessionStorageOrDefault<ReadonlyMap<string, OutputData>>(
-                'cachedOutputData',
-                EMPTY_MAP
-            );
-            setOutputDataMap(new Map([...cachedOutputData]));
-        }, [setOutputDataMap]);
+        // useEffect(() => {
+        //     const timerId = setTimeout(() => {
+        //         sessionStorage.setItem('cachedOutputData', JSON.stringify([...outputDataMap]));
+        //     }, 500);
+        //     return () => clearTimeout(timerId);
+        // }, [outputDataMap]);
+        // useEffect(() => {
+        //     const cachedOutputData = getSessionStorageOrDefault<ReadonlyMap<string, OutputData>>(
+        //         'cachedOutputData',
+        //         EMPTY_MAP
+        //     );
+        //     setOutputDataMap(new Map([...cachedOutputData]));
+        // }, [setOutputDataMap]);
 
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
@@ -685,6 +687,16 @@ export const GlobalProvider = memo(
             [getNode, getNodes, getEdges, typeState]
         );
 
+        const [inputDataChanges, addInputDataChangesCounter] = useChangeCounter();
+        const [lastInputDataUpdatedId, setLastInputDataUpdatedId] = useState<string | undefined>();
+        const addInputDataChanges = useCallback(
+            (id: string) => {
+                addInputDataChangesCounter();
+                setLastInputDataUpdatedId(id);
+            },
+            [addInputDataChangesCounter, setLastInputDataUpdatedId]
+        );
+
         const useInputData = useCallback(
             // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
             function <T extends NonNullable<InputValue>>(
@@ -707,11 +719,12 @@ export const GlobalProvider = memo(
                         };
                         return nodeCopy;
                     });
+                    addInputDataChanges(id);
                 };
                 const resetInputData = () => setInputData(undefined);
                 return [currentInput, setInputData, resetInputData] as const;
             },
-            [modifyNode, schemata]
+            [modifyNode, schemata, addInputDataChanges]
         );
 
         const useInputSize = useCallback(
@@ -924,9 +937,16 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
-                setOutputDataMap((prev) => new Map([...prev, [id, {}]]));
+                if (outputDataMap.get(id)) {
+                    setOutputDataMap((prev) => {
+                        const tempPrev = prev as Map<string, OutputData>;
+                        tempPrev.delete(id);
+                        return new Map([...(tempPrev as ReadonlyMap<string, OutputData>)]);
+                    });
+                }
+                addInputDataChanges(id);
             },
-            [modifyNode]
+            [modifyNode, addInputDataChanges, outputDataMap, setOutputDataMap]
         );
 
         const setNodeDisabled = useCallback(
@@ -978,6 +998,8 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            inputDataChanges,
+            lastInputDataUpdatedId,
             useConnectingFromType: useMemoArray([
                 connectingFromType,
                 setConnectingFromType,

@@ -157,11 +157,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const inputDataValues = useMemo(() => Object.values(inputData), [inputData]);
 
-    const shouldRun = useMemo(() => {
-        return (
+    const [shouldRun, setShouldRun] = useState(false);
+    useEffect(() => {
+        setShouldRun(
             validity.isValid &&
-            !inputs.some((i) => i.hasHandle) &&
-            inputDataValues.length >= inputs.filter((i) => !i.optional).length
+                !inputs.some((i) => i.hasHandle) &&
+                inputDataValues.length >= inputs.filter((i) => !i.optional).length
         );
     }, [inputDataValues, inputs, validity]);
 
@@ -212,6 +213,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     description: 'Image failed to load, probably unsupported file type.',
                 });
             }
+            setShouldRun(false);
         }
     }, [shouldRun]);
 
