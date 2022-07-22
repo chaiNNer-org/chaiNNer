@@ -64,12 +64,12 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label={status === ExecutionStatus.PAUSED ? 'Resume' : 'Start'}
+                        label={status === ExecutionStatus.PAUSED ? 'Resume' : 'Run'}
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Start button"
+                            aria-label="Run button"
                             colorScheme="green"
                             disabled={
                                 !(
