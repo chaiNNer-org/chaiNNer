@@ -216,5 +216,4 @@ class ImViewNode(NodeBase):
         self.side_effects = True
 
     def run(self, img: np.ndarray):
-        # Put image back in int range
         return img
