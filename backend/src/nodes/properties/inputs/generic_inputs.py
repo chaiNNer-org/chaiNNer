@@ -139,12 +139,12 @@ def StackOrientationDropdown() -> DropDownInput:
             {
                 "option": "Horizontal",
                 "value": "horizontal",
-                "type": "Horizontal",
+                "type": "Orientation::Horizontal",
             },
             {
                 "option": "Vertical",
                 "value": "vertical",
-                "type": "Vertical",
+                "type": "Orientation::Vertical",
             },
         ],
     )
@@ -268,8 +268,20 @@ def FillColorDropdown() -> DropDownInput:
         input_type="FillColor",
         label="Negative Space Fill",
         options=[
-            {"option": "Auto", "value": FillColor.AUTO},
-            {"option": "Black Fill", "value": FillColor.BLACK},
-            {"option": "Transparency", "value": FillColor.TRANSPARENT},
+            {
+                "option": "Auto",
+                "value": FillColor.AUTO,
+                "type": "FillColor::Auto",
+            },
+            {
+                "option": "Black Fill",
+                "value": FillColor.BLACK,
+                "type": "FillColor::Black",
+            },
+            {
+                "option": "Transparency",
+                "value": FillColor.TRANSPARENT,
+                "type": "FillColor::Transparent",
+            },
         ],
     )

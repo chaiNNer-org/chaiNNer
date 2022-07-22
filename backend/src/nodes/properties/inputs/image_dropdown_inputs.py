@@ -1,7 +1,7 @@
 import cv2
 
 # pylint: disable=relative-beyond-top-level
-from ...utils.pil_utils import InterpolationMethod
+from ...utils.pil_utils import InterpolationMethod, RotateExpandCrop
 from ...utils.tile_util import TileMode
 from .generic_inputs import DropDownInput
 
@@ -101,7 +101,6 @@ def InterpolationInput() -> DropDownInput:
 
 
 def RotateInterpolationInput() -> DropDownInput:
-    """Rotate interpolation dropdown"""
     return DropDownInput(
         input_type="RotateInterpolationMode",
         label="Interpolation Method",
@@ -117,6 +116,25 @@ def RotateInterpolationInput() -> DropDownInput:
             {
                 "option": "Nearest Neighbor",
                 "value": InterpolationMethod.NEAREST,
+            },
+        ],
+    )
+
+
+def RotateExpansionInput() -> DropDownInput:
+    return DropDownInput(
+        input_type="RotateSizeChange",
+        label="Image Dimensions",
+        options=[
+            {
+                "option": "Expand to fit",
+                "value": RotateExpandCrop.EXPAND,
+                "type": "RotateSizeChange::Expand",
+            },
+            {
+                "option": "Crop to original",
+                "value": RotateExpandCrop.CROP,
+                "type": "RotateSizeChange::Crop",
             },
         ],
     )

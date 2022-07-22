@@ -68,7 +68,7 @@ export const FavoritesAccordionItem = memo(
                             favoriteNodes.map((node) => (
                                 <RepresentativeNodeWrapper
                                     collapsed={collapsed}
-                                    key={node.name}
+                                    key={node.schemaId}
                                     node={node}
                                 />
                             ))
