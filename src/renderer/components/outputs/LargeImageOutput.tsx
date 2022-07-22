@@ -53,7 +53,9 @@ export const LargeImageOutput = memo(
 
         const value = useOutputData(outputId) as LargeImageBroadcastData | undefined;
 
-        const { setManualOutputType } = useContext(GlobalContext);
+        const { setManualOutputType, schemata } = useContext(GlobalContext);
+
+        const schema = schemata.get(schemaId);
 
         useEffect(() => {
             if (value) {
@@ -68,8 +70,8 @@ export const LargeImageOutput = memo(
         }, [inputDataChanges]);
 
         useEffect(() => {
-            // TODO: Find a better way to do this that isnt hardcoding the schema id
-            if (schemaId === 'chainner:image:load') {
+            // Run this only if this is a "starting" node
+            if (!schema.inputs.some((i) => i.hasHandle)) {
                 if (value) {
                     setManualOutputType(
                         id,
@@ -86,21 +88,8 @@ export const LargeImageOutput = memo(
                             ),
                         ])
                     );
-                    // setManualOutputType(
-                    //     id,
-                    //     1 as OutputId,
-                    //     new NamedExpression('Directory', [
-                    //         new NamedExpressionField(
-                    //             'path',
-                    //             new StringLiteralType(state.image.directory)
-                    //         ),
-                    //     ])
-                    // );
-                    // setManualOutputType(id, 2 as OutputId, new StringLiteralType(state.image.name));
                 } else {
-                    setManualOutputType(id, 0 as OutputId, undefined);
-                    // setManualOutputType(id, 1 as OutputId, undefined);
-                    // setManualOutputType(id, 2 as OutputId, undefined);
+                    setManualOutputType(id, outputId, undefined);
                 }
             }
         }, [id, schemaId, value]);

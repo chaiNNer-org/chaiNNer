@@ -9,9 +9,11 @@ import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from '../inputs/props';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
+import { DirectoryOutput } from '../outputs/DirectoryOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
+import { TextOutput } from '../outputs/TextOutput';
 
 interface FullOutputProps extends Omit<Omit<Output, 'type'>, 'id'>, OutputProps {
     definitionType: Type;
@@ -30,6 +32,12 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
         case 'large-image':
             OutputType = LargeImageOutput;
             isGenericType = false;
+            break;
+        case 'directory':
+            OutputType = DirectoryOutput;
+            break;
+        case 'text':
+            OutputType = TextOutput;
             break;
         case 'generic':
             return (
