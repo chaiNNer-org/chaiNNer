@@ -68,25 +68,23 @@ export const Header = memo(() => {
                         px={2}
                         py={1}
                     >
-                        <span>
-                            <IconButton
-                                aria-label="Start button"
-                                colorScheme="green"
-                                disabled={
-                                    !(
-                                        status === ExecutionStatus.READY ||
-                                        status === ExecutionStatus.PAUSED
-                                    )
-                                }
-                                icon={<IoPlay />}
-                                size="md"
-                                variant="outline"
-                                onClick={() => {
-                                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                                    run();
-                                }}
-                            />
-                        </span>
+                        <IconButton
+                            aria-label="Start button"
+                            colorScheme="green"
+                            disabled={
+                                !(
+                                    status === ExecutionStatus.READY ||
+                                    status === ExecutionStatus.PAUSED
+                                )
+                            }
+                            icon={<IoPlay />}
+                            size="md"
+                            variant="outline"
+                            onClick={() => {
+                                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                                run();
+                            }}
+                        />
                     </Tooltip>
                     <Tooltip
                         closeOnClick
