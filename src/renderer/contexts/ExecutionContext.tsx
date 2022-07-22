@@ -389,8 +389,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     run();
                     break;
                 case ExecutionStatus.RUNNING:
-                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                    pause();
                     break;
                 default:
                     assertNever(status);
@@ -400,10 +398,37 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     );
 
     useHotkeys(
-        'shift+F5',
+        'F6',
         () => {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            kill();
+            switch (status) {
+                case ExecutionStatus.RUNNING:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    pause();
+                    break;
+                case ExecutionStatus.READY:
+                case ExecutionStatus.PAUSED:
+                    break;
+                default:
+                    assertNever(status);
+            }
+        },
+        [run, pause, status]
+    );
+
+    useHotkeys(
+        'F7',
+        () => {
+            switch (status) {
+                case ExecutionStatus.RUNNING:
+                case ExecutionStatus.PAUSED:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    kill();
+                    break;
+                case ExecutionStatus.READY:
+                    break;
+                default:
+                    assertNever(status);
+            }
         },
         [kill]
     );
