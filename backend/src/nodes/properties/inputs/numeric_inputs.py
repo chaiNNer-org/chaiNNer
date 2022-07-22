@@ -13,7 +13,7 @@ def clampNumber(
 ) -> Union[float, int]:
     # Convert proper number type
     if offset % 1 == 0 and step % 1 == 0:
-        value = int(value)
+        value = round(value)
     else:
         value = float(value)
 
