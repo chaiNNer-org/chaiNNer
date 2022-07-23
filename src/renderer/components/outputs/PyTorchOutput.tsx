@@ -1,4 +1,15 @@
-import { Center, Spinner, Tag, Wrap, WrapItem, useColorModeValue } from '@chakra-ui/react';
+/* eslint-disable no-nested-ternary */
+import { ViewOffIcon } from '@chakra-ui/icons';
+import {
+    Center,
+    HStack,
+    Spinner,
+    Tag,
+    Text,
+    Wrap,
+    WrapItem,
+    useColorModeValue,
+} from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
@@ -116,8 +127,18 @@ export const PyTorchOutput = memo(
                             ))}
                         </Wrap>
                     </Center>
+                ) : animated ? (
+                    <Spinner />
                 ) : (
-                    animated && <Spinner />
+                    <HStack>
+                        <ViewOffIcon />
+                        <Text
+                            fontSize="sm"
+                            lineHeight="0.5rem"
+                        >
+                            Model data not available.
+                        </Text>
+                    </HStack>
                 )}
             </Center>
         );
