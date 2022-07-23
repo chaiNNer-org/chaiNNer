@@ -95,7 +95,7 @@ class NumberInput(BaseInput):
         }
 
     def make_optional(self):
-        raise ValueError("DropDownInput cannot be made optional")
+        raise ValueError("NumberInput and SliderInput cannot be made optional")
 
     def enforce(self, value):
         return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
@@ -143,6 +143,3 @@ class SliderInput(NumberInput):
             "ends": self.ends,
             "sliderStep": self.slider_step,
         }
-
-    def enforce(self, value):
-        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
