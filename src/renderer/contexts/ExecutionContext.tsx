@@ -221,10 +221,13 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                const existingData = outputDataMap.get(data.nodeId);
-                if (!existingData || !isJsonEqual(existingData, data.data)) {
-                    setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
-                }
+                setOutputDataMap((prev) => {
+                    const existingData = prev.get(data.nodeId);
+                    if (!existingData || !isJsonEqual(existingData, data.data)) {
+                        return new Map([...prev, [data.nodeId, data.data]]);
+                    }
+                    return prev;
+                });
             }
         },
         [unAnimate, outputDataMap, setOutputDataMap]
