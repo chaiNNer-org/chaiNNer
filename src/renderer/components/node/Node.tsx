@@ -1,4 +1,5 @@
 import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import isDeepEqual from 'fast-deep-equal/react';
 import path from 'path';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
@@ -158,8 +159,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const bgColor = useColorModeValue('gray.400', 'gray.750');
     const shadowColor = useColorModeValue('gray.600', 'gray.900');
 
-    const inputDataValues = useMemo(() => Object.values(inputData), [inputData]);
-
+    const inputDataRef = useRef(inputData);
+    if (!isDeepEqual(inputDataRef.current, inputData)) {
+        inputDataRef.current = inputData;
+    }
     const [shouldRun, setShouldRun] = useState(false);
     useEffect(() => {
         setShouldRun(
@@ -167,9 +170,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 !disabled.isDirectlyDisabled &&
                 validity.isValid &&
                 !inputs.some((i) => i.hasHandle) &&
-                inputDataValues.length >= inputs.filter((i) => !i.optional).length
+                Object.values(inputData).length >= inputs.filter((i) => !i.optional).length
         );
-    }, [inputDataValues, inputs, validity]);
+    }, [inputDataRef.current, validity.isValid]);
 
     useAsyncEffect(async () => {
         if (shouldRun) {
@@ -191,7 +194,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             const result = await backend.runIndividual({
                 schemaId,
                 id,
-                inputs: inputDataValues,
+                inputs: Object.values(inputData),
                 isCpu,
                 isFp16,
             });

@@ -48,23 +48,6 @@ class ImReadNode(NodeBase):
         self.sub = "Input & Output"
         self.result = None
 
-    def get_extra_data(self) -> Dict:
-        assert self.result is not None
-
-        img, dirname, basename = self.result
-        h, w, c = get_h_w_c(img)
-
-        base64_img = preview_encode(img)
-
-        return {
-            "image": base64_img,
-            "height": h,
-            "width": w,
-            "channels": c,
-            "directory": dirname,
-            "name": basename,
-        }
-
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
