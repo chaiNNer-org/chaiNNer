@@ -15,7 +15,7 @@ import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { TextOutput } from '../outputs/TextOutput';
 
-interface FullOutputProps extends Omit<Omit<Output, 'type'>, 'id'>, OutputProps {
+interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
 }
 
