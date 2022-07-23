@@ -1,3 +1,4 @@
+import isDeepEqual from 'fast-deep-equal/react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -14,13 +15,7 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import {
-    ParsedHandle,
-    assertNever,
-    isJsonEqual,
-    parseSourceHandle,
-    parseTargetHandle,
-} from '../../common/util';
+import { ParsedHandle, assertNever, parseSourceHandle, parseTargetHandle } from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -223,14 +218,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             if (data) {
                 setOutputDataMap((prev) => {
                     const existingData = prev.get(data.nodeId);
-                    if (!existingData || !isJsonEqual(existingData, data.data)) {
+                    if (!existingData || !isDeepEqual(existingData, data.data)) {
                         return new Map([...prev, [data.nodeId, data.data]]);
                     }
                     return prev;
                 });
             }
         },
-        [unAnimate, outputDataMap, setOutputDataMap]
+        [[...outputDataMap], setOutputDataMap]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
