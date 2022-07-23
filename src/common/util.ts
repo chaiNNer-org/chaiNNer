@@ -175,3 +175,9 @@ export const topologicalSort = <T>(
     if (cyclic) return undefined;
     return result.reverse();
 };
+
+export const isJsonEqual = (a: unknown, b: unknown): boolean => {
+    const aJson = JSON.stringify(a);
+    const bJson = JSON.stringify(b);
+    return aJson === bJson;
+};

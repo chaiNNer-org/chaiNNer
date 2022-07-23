@@ -14,7 +14,13 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ParsedHandle, assertNever, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import {
+    ParsedHandle,
+    assertNever,
+    isJsonEqual,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -215,7 +221,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'node-output-data',
         (data) => {
             if (data) {
-                setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
+                const existingData = outputDataMap.get(data.nodeId);
+                if (!existingData || !isJsonEqual(existingData, data.data)) {
+                    setOutputDataMap((prev) => new Map([...prev, [data.nodeId, data.data]]));
+                }
             }
         },
         [unAnimate, outputDataMap, setOutputDataMap]
