@@ -39,19 +39,8 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             OutputType = TextOutput;
             break;
         case 'generic':
-            return (
-                <OutputContainer
-                    generic
-                    definitionType={props.definitionType}
-                    hasHandle={props.hasHandle}
-                    id={props.id}
-                    key={`${props.id}-${props.outputId}`}
-                    label={props.label}
-                    outputId={props.outputId}
-                >
-                    <GenericOutput {...props} />
-                </OutputContainer>
-            );
+            OutputType = GenericOutput;
+            break;
         default:
             return assertNever(kind);
     }
