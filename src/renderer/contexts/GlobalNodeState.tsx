@@ -81,7 +81,6 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
-    useConnectingFromType: readonly [Type | null, SetState<Type | null>];
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
@@ -940,7 +939,6 @@ export const GlobalProvider = memo(
 
         const [zoom, setZoom] = useState(1);
 
-        const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
         const globalChainValue = useMemoObject<GlobalVolatile>({
@@ -954,10 +952,6 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
-            useConnectingFromType: useMemoArray([
-                connectingFromType,
-                setConnectingFromType,
-            ] as const),
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
         });
 

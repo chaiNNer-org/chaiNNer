@@ -270,6 +270,22 @@ export class FunctionDefinition {
     static fromSchema(schema: NodeSchema, scope: ReadonlyScope): FunctionDefinition {
         return new FunctionDefinition(schema, scope);
     }
+
+    canAssignInput(inputId: InputId, type: Type): boolean {
+        const inputType = this.inputDefaults.get(inputId);
+        if (!inputType) {
+            throw new Error('Invalid input id');
+        }
+        return !isDisjointWith(inputType, type);
+    }
+
+    canAssignOutput(outputId: OutputId, type: Type): boolean {
+        const outputType = this.outputDefaults.get(outputId);
+        if (!outputType) {
+            throw new Error('Invalid output id');
+        }
+        return !isDisjointWith(outputType, type);
+    }
 }
 
 export interface FunctionInputAssignmentError {
