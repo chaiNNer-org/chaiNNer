@@ -3,7 +3,6 @@ import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
-import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
 import { parseSourceHandle } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -51,7 +50,7 @@ export const OutputContainer = memo(
         id,
         definitionType,
     }: React.PropsWithChildren<OutputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
+        const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
@@ -61,36 +60,23 @@ export const OutputContainer = memo(
         const isConnected = !!edges.find(
             (e) => e.source === id && parseSourceHandle(e.sourceHandle!).inOutId === outputId
         );
-        const [connectingFromType] = useConnectingFromType;
         const [connectingFrom] = useConnectingFrom;
 
         const showHandle = useMemo(() => {
-            if (
-                !connectingFrom ||
-                !connectingFromType ||
-                // We want to display the connectingFrom handle
-                (connectingFrom.handleId === `${id}-${outputId}` &&
-                    connectingFrom.handleType === 'source')
-            ) {
-                return true;
-            }
-            if (connectingFrom.nodeId === id) {
-                return false;
-            }
-            if (connectingFrom.handleType === 'source') {
-                return false;
-            }
-            const connectionIsValid = isValidConnection({
+            // no active connection
+            if (!connectingFrom) return true;
+
+            // We only want to display the connectingFrom source handle
+            if (connectingFrom.handleType === 'source')
+                return connectingFrom.handleId === `${id}-${outputId}`;
+
+            return isValidConnection({
                 source: id,
                 sourceHandle: `${id}-${outputId}`,
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-            if (connectionIsValid && !isDisjointWith(connectingFromType, definitionType)) {
-                return true;
-            }
-            return false;
-        }, [connectingFromType, connectingFrom, definitionType, id, outputId]);
+        }, [connectingFrom, definitionType, id, outputId]);
 
         let contents = children;
         const [handleColor] = getTypeAccentColors(definitionType, isDarkMode);
