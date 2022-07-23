@@ -13,6 +13,7 @@ import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps } from '../outputs/props';
+import { PyTorchOutput } from '../outputs/PyTorchOutput';
 import { TextOutput } from '../outputs/TextOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
@@ -37,6 +38,10 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             break;
         case 'text':
             OutputType = TextOutput;
+            break;
+        case 'pytorch':
+            OutputType = PyTorchOutput;
+            isGenericType = false;
             break;
         case 'generic':
             OutputType = GenericOutput;
