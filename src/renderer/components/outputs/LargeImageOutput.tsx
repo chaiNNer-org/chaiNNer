@@ -48,9 +48,11 @@ export const LargeImageOutput = memo(
             }
         }, [inputDataChanges]);
 
+        const isStartingNode = !schema.inputs.some((i) => i.hasHandle);
+
         useEffect(() => {
             // Run this only if this is a "starting" node
-            if (!schema.inputs.some((i) => i.hasHandle)) {
+            if (isStartingNode) {
                 if (value) {
                     setManualOutputType(
                         id,
@@ -90,7 +92,7 @@ export const LargeImageOutput = memo(
                     w="200px"
                 >
                     <Box
-                        // display={stale ? 'block' : 'none'}
+                        display={stale && !isStartingNode ? 'block' : 'none'}
                         h="200px"
                         marginRight="-200px"
                         w="200px"
