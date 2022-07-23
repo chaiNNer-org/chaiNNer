@@ -3,6 +3,7 @@ import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { StringLiteralType } from '../../../common/types/types';
+import { isStartingNode } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 import { OutputProps } from './props';
