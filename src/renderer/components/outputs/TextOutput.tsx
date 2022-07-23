@@ -2,6 +2,7 @@ import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { StringLiteralType } from '../../../common/types/types';
+import { isStartingNode } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 import { OutputProps } from './props';
@@ -18,8 +19,7 @@ export const TextOutput = memo(({ label, id, outputId, schemaId, useOutputData }
     const value = useOutputData(outputId) as string;
 
     useEffect(() => {
-        // Run this only if this is a "starting" node
-        if (!schema.inputs.some((i) => i.hasHandle)) {
+        if (isStartingNode(schema)) {
             if (value) {
                 setManualOutputType(id, outputId, new StringLiteralType(value));
             } else {

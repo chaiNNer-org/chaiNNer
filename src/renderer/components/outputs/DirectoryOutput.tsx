@@ -20,8 +20,7 @@ export const DirectoryOutput = memo(
         const value = useOutputData(outputId) as string;
 
         useEffect(() => {
-            // Run this only if this is a "starting" node
-            if (!schema.inputs.some((i) => i.hasHandle)) {
+            if (isStartingNode(schema)) {
                 if (value) {
                     setManualOutputType(
                         id,

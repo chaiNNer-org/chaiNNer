@@ -5,6 +5,7 @@ import { memo, useEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
+import { isStartingNode } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
@@ -49,8 +50,7 @@ export const LargeImageOutput = memo(
         }, [inputDataChanges]);
 
         useEffect(() => {
-            // Run this only if this is a "starting" node
-            if (!schema.inputs.some((i) => i.hasHandle)) {
+            if (isStartingNode(schema)) {
                 if (value) {
                     setManualOutputType(
                         id,
