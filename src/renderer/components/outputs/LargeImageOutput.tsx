@@ -90,7 +90,7 @@ export const LargeImageOutput = memo(
                     w="200px"
                 >
                     <Box
-                        display={stale ? 'block' : 'none'}
+                        // display={stale ? 'block' : 'none'}
                         h="200px"
                         marginRight="-200px"
                         w="200px"
@@ -100,23 +100,23 @@ export const LargeImageOutput = memo(
                             alignContent="center"
                             alignItems="center"
                             bgColor={imgBgColor}
-                            borderRadius="lg"
-                            margin={1}
+                            borderRadius="md"
+                            margin={2}
                             opacity={0.75}
                             px={2}
                             py={1}
-                            spacing={0.5}
+                            spacing={1}
                             verticalAlign="middle"
-                            w="4rem"
+                            w="auto"
                             zIndex="99"
                         >
                             <WarningIcon
-                                boxSize={2}
+                                boxSize={3}
                                 color={fontColor}
                             />
                             <Text
                                 color={fontColor}
-                                fontSize="xx-small"
+                                fontSize="sm"
                                 fontWeight={500}
                             >
                                 Outdated
