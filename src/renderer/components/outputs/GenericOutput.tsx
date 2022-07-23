@@ -5,13 +5,10 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 import { OutputProps } from './props';
 
-export const GenericOutput = memo(({ label, id, outputId, useOutputData }: OutputProps) => {
+export const GenericOutput = memo(({ label, id, outputId }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)?.outputs.get(outputId)
     );
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const value = useOutputData(outputId);
 
     return (
         <Flex
