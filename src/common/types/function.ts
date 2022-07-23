@@ -195,7 +195,7 @@ const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
 
         const e = fromJson(input.conversion);
 
-        // test it out
+        // verify that it's a valid conversion
         const scope = new Scope('test scope', getChainnerScope());
         scope.add(new VariableDefinition('Input', AnyType.instance));
         try {
