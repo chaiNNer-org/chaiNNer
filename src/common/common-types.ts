@@ -40,6 +40,7 @@ export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' |
 export interface Input {
     readonly id: InputId;
     readonly type: ExpressionJson;
+    readonly conversion?: ExpressionJson | null;
     readonly kind: InputKind;
     readonly label: string;
     readonly optional: boolean;

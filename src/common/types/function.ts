@@ -1,11 +1,12 @@
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, topologicalSort } from '../util';
+import { getChainnerScope } from './chainner-scope';
 import { evaluate } from './evaluate';
 import { Expression, VariableDefinition } from './expression';
 import { intersect, isDisjointWith } from './intersection';
 import { fromJson } from './json';
 import { ReadonlyScope, Scope } from './scope';
-import { NonNeverType, Type } from './types';
+import { AnyType, NonNeverType, Type } from './types';
 import { getReferences } from './util';
 
 type IdType<P extends 'Input' | 'Output'> = P extends 'Input' ? InputId : OutputId;
@@ -186,6 +187,29 @@ const evaluateInputOptions = (
     return result;
 };
 
+const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
+    const result = new Map<InputId, Expression>();
+    for (const input of schema.inputs) {
+        // eslint-disable-next-line no-continue
+        if (!input.conversion) continue;
+
+        const e = fromJson(input.conversion);
+
+        // test it out
+        const scope = new Scope('test scope', getChainnerScope());
+        scope.add(new VariableDefinition('Input', AnyType.instance));
+        try {
+            evaluate(e, scope);
+        } catch (error) {
+            const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+            throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
+        }
+
+        result.set(input.id, e);
+    }
+    return result;
+};
+
 export class FunctionDefinition {
     readonly schema: NodeSchema;
 
@@ -198,6 +222,8 @@ export class FunctionDefinition {
     readonly inputGenerics: ReadonlySet<InputId>;
 
     readonly inputEvaluationOrder: readonly InputId[];
+
+    readonly inputConversions: ReadonlyMap<InputId, Expression>;
 
     readonly outputDefaults: ReadonlyMap<OutputId, NonNeverType>;
 
@@ -233,6 +259,7 @@ export class FunctionDefinition {
             inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id)
         );
         this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
+        this.inputConversions = getConversions(schema);
 
         // outputs
         const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
@@ -271,12 +298,23 @@ export class FunctionDefinition {
         return new FunctionDefinition(schema, scope);
     }
 
+    convertInput(inputId: InputId, type: Type): Type {
+        const conversion = this.inputConversions.get(inputId);
+        if (!conversion) {
+            return type;
+        }
+
+        const scope = new Scope('Conversion scope', getChainnerScope());
+        scope.add(new VariableDefinition('Input', type));
+        return evaluate(conversion, scope);
+    }
+
     canAssignInput(inputId: InputId, type: Type): boolean {
         const inputType = this.inputDefaults.get(inputId);
         if (!inputType) {
             throw new Error('Invalid input id');
         }
-        return !isDisjointWith(inputType, type);
+        return !isDisjointWith(inputType, this.convertInput(inputId, type));
     }
 
     canAssignOutput(outputId: OutputId, type: Type): boolean {
@@ -364,7 +402,8 @@ export class FunctionInstance {
             if (type.type !== 'never') {
                 const assignedType = partialInputs(id);
                 if (assignedType) {
-                    const newType = intersect(assignedType, type);
+                    const converted = definition.convertInput(id, assignedType);
+                    const newType = intersect(converted, type);
                     if (newType.type === 'never') {
                         inputErrors.push({ inputId: id, inputType: type, assignedType });
                     }
@@ -431,6 +470,6 @@ export class FunctionInstance {
         if (!iType) throw new Error(`Invalid input id ${inputId}`);
 
         // we say that types A is assignable to type B if they are not disjoint
-        return !isDisjointWith(type, iType);
+        return !isDisjointWith(iType, this.definition.convertInput(inputId, type));
     }
 }

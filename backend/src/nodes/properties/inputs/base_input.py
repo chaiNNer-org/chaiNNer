@@ -22,6 +22,7 @@ class BaseInput:
         has_handle=True,
     ):
         self.input_type = input_type
+        self.input_conversion: Union[expression.ExpressionJson, None] = None
         self.kind = kind
         self.label = label
         self.optional: bool = False
@@ -48,6 +49,7 @@ class BaseInput:
         return {
             "id": self.id,
             "type": actual_type,
+            "conversion": self.input_conversion,
             "kind": self.kind,
             "label": self.label,
             "optional": self.optional,

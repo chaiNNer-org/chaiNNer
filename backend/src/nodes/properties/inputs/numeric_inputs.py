@@ -79,6 +79,13 @@ class NumberInput(BaseInput):
             self.maximum,
             self.step,
         )
+        if self.step == 1 and self.offset == 0:
+            self.input_conversion = """
+                match Input {
+                    number as i => round(i),
+                    _ as i => i,
+                }
+            """
 
     def toDict(self):
         return {
