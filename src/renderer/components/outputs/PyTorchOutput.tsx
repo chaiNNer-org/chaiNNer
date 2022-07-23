@@ -14,6 +14,7 @@ import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
+import { isStartingNode } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from '../inputs/props';
 
@@ -47,8 +48,7 @@ export const PyTorchOutput = memo(
         const schema = schemata.get(schemaId);
 
         useEffect(() => {
-            // Run this only if this is a "starting" node
-            if (!schema.inputs.some((i) => i.hasHandle)) {
+            if (isStartingNode(schema)) {
                 if (value) {
                     setManualOutputType(
                         id,
