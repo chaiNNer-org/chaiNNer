@@ -169,7 +169,7 @@ class ImOpenNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = []
         self.category = IMAGE
-        self.name = "Preview Image"
+        self.name = "View Image (external)"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 

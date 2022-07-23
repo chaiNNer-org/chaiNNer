@@ -6,8 +6,8 @@ import { useContextSelector } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
 import { createUniqueId } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
 import { TypeTag } from '../TypeTag';
+import { OutputProps } from './props';
 
 export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>

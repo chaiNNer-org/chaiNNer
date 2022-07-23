@@ -2,8 +2,8 @@ import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
 import { TypeTag } from '../TypeTag';
+import { OutputProps } from './props';
 
 export const GenericOutput = memo(({ label, id, outputId, useOutputData }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>

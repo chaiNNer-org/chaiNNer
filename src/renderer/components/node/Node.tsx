@@ -8,7 +8,7 @@ import { EdgeData, Input, NodeData } from '../../../common/common-types';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { INVALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
+import { Validity, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
@@ -79,7 +79,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState(INVALID);
+    const [validity, setValidity] = useState({
+        isValid: false,
+        reason: 'Validating nodes...',
+    } as Validity);
     useEffect(() => {
         if (inputs.length) {
             setValidity(
@@ -160,9 +163,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const [shouldRun, setShouldRun] = useState(false);
     useEffect(() => {
         setShouldRun(
-            validity.isValid &&
-                !inputs.some((i) => i.hasHandle) &&
-                inputDataValues.length >= inputs.filter((i) => !i.optional).length
+            !isLocked &&
+                !disabled.isDirectlyDisabled &&
+                validity.isValid &&
+                !inputs.some((i) => i.hasHandle)
         );
     }, [inputDataValues, inputs, validity]);
 

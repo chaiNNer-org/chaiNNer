@@ -7,12 +7,12 @@ import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { DirectoryOutput } from '../outputs/DirectoryOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
+import { OutputProps } from '../outputs/props';
 import { TextOutput } from '../outputs/TextOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {

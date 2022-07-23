@@ -3,8 +3,8 @@ import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { StringLiteralType } from '../../../common/types/types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
 import { TypeTag } from '../TypeTag';
+import { OutputProps } from './props';
 
 export const TextOutput = memo(({ label, id, outputId, schemaId, useOutputData }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>

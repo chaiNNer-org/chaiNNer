@@ -239,20 +239,6 @@ export const GlobalProvider = memo(
         const [outputDataMap, setOutputDataMap] =
             useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
 
-        // useEffect(() => {
-        //     const timerId = setTimeout(() => {
-        //         sessionStorage.setItem('cachedOutputData', JSON.stringify([...outputDataMap]));
-        //     }, 500);
-        //     return () => clearTimeout(timerId);
-        // }, [outputDataMap]);
-        // useEffect(() => {
-        //     const cachedOutputData = getSessionStorageOrDefault<ReadonlyMap<string, OutputData>>(
-        //         'cachedOutputData',
-        //         EMPTY_MAP
-        //     );
-        //     setOutputDataMap(new Map([...cachedOutputData]));
-        // }, [setOutputDataMap]);
-
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
             const timerId = setTimeout(() => {

@@ -6,7 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
+import { OutputProps } from './props';
 
 interface LargeImageBroadcastData {
     image: string;

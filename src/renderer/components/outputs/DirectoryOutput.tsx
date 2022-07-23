@@ -4,8 +4,8 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { StringLiteralType } from '../../../common/types/types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
 import { TypeTag } from '../TypeTag';
+import { OutputProps } from './props';
 
 export const DirectoryOutput = memo(
     ({ label, id, outputId, schemaId, useOutputData }: OutputProps) => {
