@@ -166,7 +166,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             !isLocked &&
                 !disabled.isDirectlyDisabled &&
                 validity.isValid &&
-                !inputs.some((i) => i.hasHandle)
+                !inputs.some((i) => i.hasHandle) &&
+                inputDataValues.length >= inputs.filter((i) => !i.optional).length
         );
     }, [inputDataValues, inputs, validity]);
 
