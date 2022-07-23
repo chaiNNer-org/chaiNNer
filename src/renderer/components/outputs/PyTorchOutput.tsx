@@ -16,7 +16,7 @@ import { NamedExpression, NamedExpressionField } from '../../../common/types/exp
 import { NumericLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
-import { OutputProps } from '../inputs/props';
+import { OutputProps } from './props';
 
 interface PyTorchModelData {
     modelType?: string;
