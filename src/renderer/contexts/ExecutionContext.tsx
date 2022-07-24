@@ -225,7 +225,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         },
-        [[...outputDataMap], setOutputDataMap]
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        [{}, setOutputDataMap]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
