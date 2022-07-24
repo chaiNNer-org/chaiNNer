@@ -22,7 +22,7 @@ export const GenericOutput = memo(
 
         useEffect(() => {
             if (isStartingNode(schema)) {
-                if (value) {
+                if (value !== undefined) {
                     if (kind === 'text') {
                         setManualOutputType(id, outputId, new StringLiteralType(value as string));
                     } else if (kind === 'directory') {
