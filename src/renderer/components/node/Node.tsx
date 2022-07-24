@@ -171,6 +171,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 !disabled.isDirectlyDisabled &&
                 validity.isValid &&
                 isStartingNode(schema) &&
+                // Without the below line, the node will run the first render after clearing, which we don't want.
                 Object.values(inputData).length >= inputs.filter((i) => !i.optional).length
         );
     }, [inputDataRef.current, validity.isValid]);
