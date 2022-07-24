@@ -107,6 +107,7 @@ ipcMain.handle('owns-backend', () => ownsBackend);
 
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
+let lastOpenRecent: string[];
 
 const registerEventHandlers = () => {
     ipcMain.handle('dir-select', (event, dirPath) =>
@@ -175,6 +176,14 @@ const registerEventHandlers = () => {
             powerSaveBlocker.stop(blockerId);
             blockerId = undefined;
         }
+    });
+
+    ipcMain.on('disable-menu', () => {
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: false });
+    });
+
+    ipcMain.on('enable-menu', () => {
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
     });
 };
 
@@ -597,10 +606,11 @@ const createWindow = async () => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
-    setMainMenu({ mainWindow });
-    ipcMain.on('update-open-recent-menu', (_, openRecent) =>
-        setMainMenu({ mainWindow, openRecentRev: openRecent })
-    );
+    setMainMenu({ mainWindow, enabled: true });
+    ipcMain.on('update-open-recent-menu', (_, openRecent) => {
+        lastOpenRecent = openRecent;
+        setMainMenu({ mainWindow, openRecentRev: openRecent, enabled: true });
+    });
 
     await doSplashScreenChecks();
 
