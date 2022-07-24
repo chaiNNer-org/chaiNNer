@@ -76,7 +76,7 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    createNode: (proto: NodeProto) => void;
+    createNode: (proto: NodeProto, parent?: Node<NodeData>) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
@@ -551,12 +551,13 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (proto: NodeProto): void => {
+            (proto: NodeProto, parent?: Node<NodeData>): void => {
                 changeNodes((nodes) => {
-                    const parent = hoveredNode
-                        ? nodes.find((n) => n.id === hoveredNode)
-                        : undefined;
-                    const newNodes = createNodeImpl(proto, schemata, parent, true);
+                    const hoverParent =
+                        !parent && hoveredNode
+                            ? nodes.find((n) => n.id === hoveredNode)
+                            : undefined;
+                    const newNodes = createNodeImpl(proto, schemata, parent ?? hoverParent, true);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
                         ...newNodes,

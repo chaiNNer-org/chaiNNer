@@ -38,17 +38,22 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                     if (containingNode) {
                         const nodeId = createUniqueId();
                         // TODO: This is a bit of hardcoding, but it works
-                        createNode({
-                            id: nodeId,
-                            position: {
-                                x: containingNode.position.x + (containingNode.width ?? 0) + 75,
-                                y: containingNode.position.y,
+                        createNode(
+                            {
+                                id: nodeId,
+                                position: {
+                                    x: containingNode.position.x + (containingNode.width ?? 0) + 75,
+                                    y: containingNode.position.y,
+                                },
+                                data: {
+                                    schemaId: 'chainner:image:view' as SchemaId,
+                                },
+                                nodeType: 'regularNode',
                             },
-                            data: {
-                                schemaId: 'chainner:image:view' as SchemaId,
-                            },
-                            nodeType: 'regularNode',
-                        });
+                            containingNode.parentNode
+                                ? getNode(containingNode.parentNode)
+                                : undefined
+                        );
                         createConnection({
                             source: id,
                             sourceHandle: `${id}-${outputId}`,
