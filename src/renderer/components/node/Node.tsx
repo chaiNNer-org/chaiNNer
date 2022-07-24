@@ -1,16 +1,21 @@
 import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import isDeepEqual from 'fast-deep-equal/react';
 import path from 'path';
 import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
+import { getBackend } from '../../../common/Backend';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
+import { isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
+import { SettingsContext } from '../../contexts/SettingsContext';
+import { Validity, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+import { useAsyncEffect } from '../../hooks/useAsyncEffect';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { NodeBody } from './NodeBody';
@@ -49,9 +54,14 @@ export interface NodeProps {
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
     const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
+    const { schemata, updateIteratorBounds, setHoveredNode, useInputData, changeNodes } =
         useContext(GlobalContext);
     const { getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
+    const backend = getBackend(port);
+
+    const [isCpu] = useIsCpu;
+    const [isFp16] = useIsFp16;
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId, animated = false } = data;
 
@@ -71,7 +81,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState(VALID);
+    const [validity, setValidity] = useState<Validity>({
+        isValid: false,
+        reason: 'Validating nodes...',
+    });
     useEffect(() => {
         if (inputs.length) {
             setValidity(
@@ -147,6 +160,73 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const bgColor = useColorModeValue('gray.400', 'gray.750');
     const shadowColor = useColorModeValue('gray.600', 'gray.900');
 
+    const inputDataRef = useRef(inputData);
+    if (!isDeepEqual(inputDataRef.current, inputData)) {
+        inputDataRef.current = inputData;
+    }
+    const [shouldRun, setShouldRun] = useState(false);
+    useEffect(() => {
+        setShouldRun(
+            !isLocked &&
+                !disabled.isDirectlyDisabled &&
+                validity.isValid &&
+                isStartingNode(schema) &&
+                // Without the below line, the node will run the first render after clearing, which we don't want.
+                Object.values(inputData).length >= inputs.filter((i) => !i.optional).length
+        );
+    }, [inputDataRef.current, validity.isValid]);
+
+    useAsyncEffect(async () => {
+        if (shouldRun) {
+            changeNodes((nodes) =>
+                nodes.map((n) => {
+                    if (n.id === id) {
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                animated: true,
+                            },
+                        };
+                    }
+                    return n;
+                })
+            );
+
+            const result = await backend.runIndividual({
+                schemaId,
+                id,
+                inputs: Object.values(inputData),
+                isCpu,
+                isFp16,
+            });
+
+            changeNodes((nodes) =>
+                nodes.map((n) => {
+                    if (n.id === id) {
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                animated: false,
+                            },
+                        };
+                    }
+                    return n;
+                })
+            );
+
+            if (!result.success) {
+                sendToast({
+                    status: 'error',
+                    title: 'Error',
+                    description: 'Image failed to load, probably unsupported file type.',
+                });
+            }
+            setShouldRun(false);
+        }
+    }, [shouldRun]);
+
     return (
         <Center
             bg={bgColor}
@@ -185,6 +265,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     />
                     <NodeBody
                         accentColor={accentColor}
+                        animated={animated}
                         id={id}
                         inputData={inputData}
                         inputSize={inputSize}
