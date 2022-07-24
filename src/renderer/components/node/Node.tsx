@@ -80,10 +80,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState({
+    const [validity, setValidity] = useState<Validity>({
         isValid: false,
         reason: 'Validating nodes...',
-    } as Validity);
+    });
     useEffect(() => {
         if (inputs.length) {
             setValidity(
