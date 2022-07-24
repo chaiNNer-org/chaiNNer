@@ -267,14 +267,11 @@ export const GlobalProvider = memo(
             }
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
-        const [savePath, setSavePathInternal] = useSessionStorage<string | undefined>(
-            'save-path',
-            undefined
-        );
+        const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
         const setSavePath = useCallback(
             (path: string | undefined) => {
-                setSavePathInternal(path);
+                setSavePathInternal(path ?? null);
                 if (path) pushOpenPath(path);
             },
             [setSavePathInternal, pushOpenPath]

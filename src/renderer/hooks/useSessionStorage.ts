@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const safeJsonParse = (value: string) => {
-    try {
-        return JSON.parse(value) as unknown;
-    } catch (e) {
-        return undefined;
-    }
-};
+import { safeJsonParse } from '../../common/util';
 
 export const getSessionStorageOrDefault = <T>(key: string, defaultValue: T): T => {
     const stored = sessionStorage.getItem(key);
