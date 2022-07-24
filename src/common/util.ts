@@ -175,3 +175,11 @@ export const topologicalSort = <T>(
     if (cyclic) return undefined;
     return result.reverse();
 };
+
+export const safeJsonParse = (value: string) => {
+    try {
+        return JSON.parse(value) as unknown;
+    } catch (e) {
+        return null;
+    }
+};
