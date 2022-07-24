@@ -10,9 +10,10 @@ import { getCpuInfo, getGpuInfo } from './systemInfo';
 export interface MainMenuArgs {
     mainWindow: BrowserWindowWithSafeIpc;
     openRecentRev?: string[];
+    enabled?: boolean;
 }
 
-export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) => {
+export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }: MainMenuArgs) => {
     const openRecent = openRecentRev.reverse();
     const defaultPath = openRecent[0] ? path.dirname(openRecent[0]) : undefined;
 
@@ -27,6 +28,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('file-new');
                     },
+                    enabled,
                 },
                 {
                     label: 'Open...',
@@ -45,6 +47,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
 
                         mainWindow.webContents.send('file-open', await openSaveFile(filepath));
                     },
+                    enabled,
                 },
                 {
                     label: 'Open Recent',
@@ -65,6 +68,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                                           await openSaveFile(filepath)
                                       );
                                   },
+                                  enabled,
                               }))),
                         { type: 'separator' },
                         {
@@ -72,8 +76,10 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                             click: () => {
                                 mainWindow.webContents.send('clear-open-recent');
                             },
+                            enabled,
                         },
                     ],
+                    enabled,
                 },
                 { type: 'separator' },
                 {
@@ -82,6 +88,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('file-save');
                     },
+                    enabled,
                 },
                 {
                     label: 'Save As...',
@@ -89,9 +96,10 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('file-save-as');
                     },
+                    enabled,
                 },
                 { type: 'separator' },
-                isMac ? { role: 'close' } : { role: 'quit' },
+                isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],
         },
         {
@@ -104,6 +112,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('history-undo');
                     },
+                    enabled,
                 },
                 {
                     label: 'Redo',
@@ -112,6 +121,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('history-redo');
                     },
+                    enabled,
                 },
                 { type: 'separator' },
                 {
@@ -121,6 +131,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('cut');
                     },
+                    enabled,
                 },
                 {
                     label: 'Copy',
@@ -129,6 +140,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('copy');
                     },
+                    enabled,
                 },
                 {
                     label: 'Paste',
@@ -137,34 +149,19 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
                     click: () => {
                         mainWindow.webContents.send('paste');
                     },
+                    enabled,
                 },
-                // ...(isMac ? [
-                //   { role: 'delete' },
-                //   { role: 'selectAll' },
-                //   { type: 'separator' },
-                //   {
-                //     label: 'Speech',
-                //     submenu: [
-                //       { role: 'startSpeaking' },
-                //       { role: 'stopSpeaking' },
-                //     ],
-                //   },
-                // ] : [
-                //   { role: 'delete' },
-                //   { type: 'separator' },
-                //   { role: 'selectAll' },
-                // ]),
             ],
         },
         {
             label: 'View',
             submenu: [
-                { role: 'reload' },
-                { role: 'forceReload' },
+                { role: 'reload', enabled },
+                { role: 'forceReload', enabled },
                 { type: 'separator' },
-                { role: 'resetZoom' },
-                { role: 'zoomIn' },
-                { role: 'zoomOut' },
+                { role: 'resetZoom', enabled },
+                { role: 'zoomIn', enabled },
+                { role: 'zoomOut', enabled },
                 { type: 'separator' },
                 { role: 'togglefullscreen' },
             ],
@@ -173,15 +170,15 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
             label: 'Window',
             submenu: [
                 { role: 'minimize' },
-                { role: 'zoom' },
+                { role: 'zoom', enabled },
                 ...(isMac
                     ? [
                           { type: 'separator' },
-                          { role: 'front' },
+                          { role: 'front', enabled },
                           { type: 'separator' },
-                          { role: 'window' },
+                          { role: 'window', enabled },
                       ]
-                    : [{ role: 'close' }]),
+                    : [{ role: 'close', enabled }]),
                 ...(!app.isPackaged ? [{ type: 'separator' }, { role: 'toggleDevTools' }] : []),
             ],
         },
@@ -242,6 +239,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [] }: MainMenuArgs) =>
 
                         mainWindow.webContents.send('show-collected-information', information);
                     },
+                    enabled,
                 },
             ],
         },
