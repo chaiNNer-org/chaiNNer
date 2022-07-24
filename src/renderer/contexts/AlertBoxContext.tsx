@@ -162,7 +162,6 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
     const sendAlert = useCallback<AlertBox['sendAlert']>(
         (type: AlertType | AlertOptions, title?: string | null, message?: string) => {
-            ipcRenderer.send('disable-menu');
             if (typeof type === 'object') {
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 showAlert(type);
@@ -179,6 +178,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     useEffect(() => {
         if (current && !isOpen) {
+            ipcRenderer.send('disable-menu');
             onOpen();
         }
     }, [current, isOpen, onOpen]);

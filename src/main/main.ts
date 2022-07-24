@@ -18,7 +18,7 @@ import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists } from '../common/util';
 import { getArguments } from './arguments';
-import { setEmptyMenu, setMainMenu } from './menu';
+import { setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython } from './setupIntegratedPython';
 import { getGpuInfo } from './systemInfo';
@@ -106,6 +106,7 @@ ipcMain.handle('owns-backend', () => ownsBackend);
 
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
+let lastOpenRecent: string[];
 
 const registerEventHandlers = () => {
     ipcMain.handle('dir-select', (event, dirPath) =>
@@ -177,11 +178,11 @@ const registerEventHandlers = () => {
     });
 
     ipcMain.on('disable-menu', () => {
-        setEmptyMenu();
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: false });
     });
 
     ipcMain.on('enable-menu', () => {
-        setMainMenu({ mainWindow });
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
     });
 };
 
@@ -602,10 +603,11 @@ const createWindow = async () => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
-    setMainMenu({ mainWindow });
-    ipcMain.on('update-open-recent-menu', (_, openRecent) =>
-        setMainMenu({ mainWindow, openRecentRev: openRecent })
-    );
+    setMainMenu({ mainWindow, enabled: true });
+    ipcMain.on('update-open-recent-menu', (_, openRecent) => {
+        lastOpenRecent = openRecent;
+        setMainMenu({ mainWindow, openRecentRev: openRecent, enabled: true });
+    });
 
     await doSplashScreenChecks();
 
