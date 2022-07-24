@@ -554,10 +554,7 @@ export const GlobalProvider = memo(
             (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
                     const searchId = parentId ?? hoveredNode;
-                    const parent =
-                        searchId
-                            ? nodes.find((n) => n.id === searchId)
-                            : undefined;
+                    const parent = searchId ? nodes.find((n) => n.id === searchId) : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
