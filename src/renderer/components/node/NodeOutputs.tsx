@@ -8,13 +8,11 @@ import { assertNever } from '../../../common/util';
 import { ExecutionContext } from '../../contexts/ExecutionContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
-import { DirectoryOutput } from '../outputs/DirectoryOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps } from '../outputs/props';
 import { PyTorchOutput } from '../outputs/PyTorchOutput';
-import { TextOutput } from '../outputs/TextOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
@@ -33,16 +31,12 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             OutputType = LargeImageOutput;
             isGenericType = false;
             break;
-        case 'directory':
-            OutputType = DirectoryOutput;
-            break;
-        case 'text':
-            OutputType = TextOutput;
-            break;
         case 'pytorch':
             OutputType = PyTorchOutput;
             isGenericType = false;
             break;
+        case 'directory':
+        case 'text':
         case 'generic':
             OutputType = GenericOutput;
             break;

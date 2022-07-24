@@ -6,6 +6,7 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { getBackend } from '../../../common/Backend';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
+import { isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
@@ -80,10 +81,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState({
+    const [validity, setValidity] = useState<Validity>({
         isValid: false,
         reason: 'Validating nodes...',
-    } as Validity);
+    });
     useEffect(() => {
         if (inputs.length) {
             setValidity(
@@ -169,7 +170,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             !isLocked &&
                 !disabled.isDirectlyDisabled &&
                 validity.isValid &&
-                !inputs.some((i) => i.hasHandle) &&
+                isStartingNode(schema) &&
+                // Without the below line, the node will run the first render after clearing, which we don't want.
                 Object.values(inputData).length >= inputs.filter((i) => !i.optional).length
         );
     }, [inputDataRef.current, validity.isValid]);

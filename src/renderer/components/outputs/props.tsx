@@ -1,4 +1,4 @@
-import { OutputId, SchemaId } from '../../../common/common-types';
+import { OutputId, OutputKind, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 
 export interface OutputProps {
@@ -10,4 +10,5 @@ export interface OutputProps {
     readonly hasHandle: boolean;
     readonly useOutputData: (outputId: OutputId) => unknown;
     readonly animated: boolean;
+    readonly kind: OutputKind;
 }
