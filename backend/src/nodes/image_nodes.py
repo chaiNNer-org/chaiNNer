@@ -46,7 +46,6 @@ class ImReadNode(NodeBase):
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
-        self.result = None
 
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -90,8 +89,7 @@ class ImReadNode(NodeBase):
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        self.result = (img, dirname, basename)
-        return self.result
+        return img, dirname, basename
 
 
 @NodeFactory.register("chainner:image:save")
