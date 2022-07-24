@@ -86,26 +86,6 @@ class LoadModelNode(NodeBase):
         self.model = None
         self.basename = None
 
-    def get_extra_data(self) -> Dict:
-        assert self.model is not None
-
-        if "SRVGG" in self.model.model_type:
-            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]
-        else:
-            size = [
-                f"{self.model.num_filters}nf",
-                f"{self.model.num_blocks}nb",
-            ]
-
-        return {
-            "modelType": self.model.model_type,
-            "inNc": self.model.in_nc,
-            "outNc": self.model.out_nc,
-            "size": size,
-            "scale": self.model.scale,
-            "name": self.basename,
-        }
-
     def run(self, path: str) -> Tuple[PyTorchModel, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""

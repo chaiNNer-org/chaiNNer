@@ -232,9 +232,8 @@ async def run_individual(request: Request):
             )
         # Cache the output of the node
         request.app.ctx.cache[full_data["id"]] = output
-        extra_data = node_instance.get_extra_data()
         del node_instance, run_func
-        return json({"success": True, "data": extra_data})
+        return json({"success": True, "data": {}})
     except Exception as exception:
         logger.error(exception, exc_info=True)
         return json({"success": False, "error": str(exception)})
