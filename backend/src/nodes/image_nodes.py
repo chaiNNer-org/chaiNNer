@@ -89,7 +89,7 @@ class ImReadNode(NodeBase):
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        return (img, dirname, basename)
+        return img, dirname, basename
 
 
 @NodeFactory.register("chainner:image:save")
