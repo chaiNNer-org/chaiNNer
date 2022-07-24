@@ -51,8 +51,6 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                                 nodeType: 'regularNode',
                             },
                             containingNode.parentNode
-                                ? getNode(containingNode.parentNode)
-                                : undefined
                         );
                         createConnection({
                             source: id,
