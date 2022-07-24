@@ -553,9 +553,10 @@ export const GlobalProvider = memo(
         const createNode = useCallback(
             (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
+                    const searchId = parentId ?? hoveredNode;
                     const parent =
-                        parentId || hoveredNode
-                            ? nodes.find((n) => n.id === (parentId ?? hoveredNode))
+                        searchId
+                            ? nodes.find((n) => n.id === searchId)
                             : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
                     return [
