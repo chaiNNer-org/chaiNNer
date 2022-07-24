@@ -31,11 +31,7 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             isGenericType = false;
             break;
         case 'directory':
-            OutputType = GenericOutput;
-            break;
         case 'text':
-            OutputType = GenericOutput;
-            break;
         case 'generic':
             OutputType = GenericOutput;
             break;
