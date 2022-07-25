@@ -44,15 +44,9 @@ export const RepresentativeNode = memo(
 
         return (
             <Center
-                _active={{
-                    outlineColor: accentColor,
-                }}
-                _focus={{
-                    outlineColor: accentColor,
-                }}
-                _hover={{
-                    outlineColor: accentColor,
-                }}
+                _active={{ outlineColor: accentColor }}
+                _focus={{ outlineColor: accentColor }}
+                _hover={{ outlineColor: accentColor }}
                 bgGradient={bgGradient}
                 borderColor={bgColor}
                 borderRadius="lg"
