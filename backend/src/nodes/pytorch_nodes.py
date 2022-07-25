@@ -72,36 +72,15 @@ class LoadModelNode(NodeBase):
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
             Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
         self.inputs = [PthFileInput()]
-        self.outputs = [ModelOutput(), TextOutput("Model Name")]
+        self.outputs = [
+            ModelOutput(kind="pytorch", should_broadcast=True),
+            TextOutput("Model Name"),
+        ]
 
         self.category = PYTORCH
         self.name = "Load Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
-
-        # Defined in run
-        self.model = None
-        self.basename = None
-
-    def get_extra_data(self) -> Dict:
-        assert self.model is not None
-
-        if "SRVGG" in self.model.model_type:
-            size = [f"{self.model.num_feat}nf", f"{self.model.num_conv}nc"]
-        else:
-            size = [
-                f"{self.model.num_filters}nf",
-                f"{self.model.num_blocks}nb",
-            ]
-
-        return {
-            "modelType": self.model.model_type,
-            "inNc": self.model.in_nc,
-            "outNc": self.model.out_nc,
-            "size": size,
-            "scale": self.model.scale,
-            "name": self.basename,
-        }
 
     def run(self, path: str) -> Tuple[PyTorchModel, str]:
         """Read a pth file from the specified path and return it as a state dict
@@ -113,19 +92,26 @@ class LoadModelNode(NodeBase):
 
         check_env()
 
-        logger.info(f"Reading state dict from path: {path}")
-        state_dict = torch.load(path, map_location=torch.device(os.environ["device"]))
+        try:
+            logger.info(f"Reading state dict from path: {path}")
+            state_dict = torch.load(
+                path, map_location=torch.device(os.environ["device"])
+            )
+            model = load_state_dict(state_dict)
 
-        self.model = load_state_dict(state_dict)
+            for _, v in model.named_parameters():
+                v.requires_grad = False
+            model.eval()
+            model = model.to(torch.device(os.environ["device"]))
+        except ValueError as e:
+            raise e
+        except Exception:
+            # pylint: disable=raise-missing-from
+            raise ValueError("Model unsupported by chaiNNer. Please try another.")
 
-        for _, v in self.model.named_parameters():
-            v.requires_grad = False
-        self.model.eval()
-        self.model = self.model.to(torch.device(os.environ["device"]))
+        basename = os.path.splitext(os.path.basename(path))[0]
 
-        self.basename = os.path.splitext(os.path.basename(path))[0]
-
-        return self.model, self.basename
+        return model, basename
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")

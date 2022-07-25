@@ -12,6 +12,7 @@ import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps } from '../outputs/props';
+import { PyTorchOutput } from '../outputs/PyTorchOutput';
 
 interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
@@ -28,6 +29,10 @@ const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
             break;
         case 'large-image':
             OutputType = LargeImageOutput;
+            isGenericType = false;
+            break;
+        case 'pytorch':
+            OutputType = PyTorchOutput;
             isGenericType = false;
             break;
         case 'directory':

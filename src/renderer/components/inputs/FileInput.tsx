@@ -1,5 +1,4 @@
 import {
-    Box,
     Input,
     InputGroup,
     InputLeftElement,
@@ -15,7 +14,7 @@ import { DragEvent, memo, useEffect } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { FileInputKind, InputId } from '../../../common/common-types';
+import { InputId } from '../../../common/common-types';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { checkFileExists } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
@@ -23,25 +22,14 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { TorchModelPreview } from './previews/TorchModelPreview';
 import { InputProps } from './props';
 
 interface FileInputProps extends InputProps {
     filetypes: readonly string[];
-    fileKind: FileInputKind;
 }
 
 export const FileInput = memo(
-    ({
-        filetypes,
-        id,
-        inputId,
-        useInputData,
-        label,
-        fileKind,
-        isLocked,
-        schemaId,
-    }: FileInputProps) => {
+    ({ filetypes, id, inputId, useInputData, label, isLocked, schemaId }: FileInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
             inputId
@@ -230,17 +218,6 @@ export const FileInput = memo(
                         />
                     </InputGroup>
                 </Tooltip>
-                <Box>
-                    {fileKind === 'pth' && (
-                        <Box mt={2}>
-                            <TorchModelPreview
-                                id={id}
-                                path={filePath}
-                                schemaId={schemaId}
-                            />
-                        </Box>
-                    )}
-                </Box>
             </VStack>
         );
     }
