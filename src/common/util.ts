@@ -179,11 +179,3 @@ export const topologicalSort = <T>(
 export const isStartingNode = (schema: NodeSchema) => {
     return !schema.inputs.some((i) => i.hasHandle);
 };
-
-export const safeJsonParse = (value: string) => {
-    try {
-        return JSON.parse(value) as unknown;
-    } catch (e) {
-        return null;
-    }
-};
