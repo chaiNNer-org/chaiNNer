@@ -6,7 +6,7 @@ import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { getBackend } from '../../../common/Backend';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
-import { isStartingNode } from '../../../common/util';
+import { getInputValues, isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
@@ -196,7 +196,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             const result = await backend.runIndividual({
                 schemaId,
                 id,
-                inputs: Object.values(inputData),
+                inputs: getInputValues(schema, (inputId) => inputData[inputId] ?? null),
                 isCpu,
                 isFp16,
             });

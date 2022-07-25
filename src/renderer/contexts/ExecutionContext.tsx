@@ -15,7 +15,13 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ParsedHandle, assertNever, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import {
+    ParsedHandle,
+    assertNever,
+    getInputValues,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -103,8 +109,9 @@ const convertToUsableFormat = (
         result[id] = {
             schemaId,
             id,
-            inputs: schema.inputs.map(
-                (input) => inputHandles[id]?.[input.id] ?? inputData[input.id] ?? null
+            inputs: getInputValues(
+                schema,
+                (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
             ),
             outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
