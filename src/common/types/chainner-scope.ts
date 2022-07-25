@@ -29,6 +29,7 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
+    modelType: "ESRGAN" | "RealESRGAN" | "RealSRGANv2" | "Swift-SRGAN",
 }
 
 struct NcnnBinFile;

@@ -217,7 +217,7 @@ class InterpolateNode(NodeBase):
              in order to be interpolatable."""
         self.inputs = [
             ModelInput("Model A"),
-            ModelInput("Model B"),
+            ModelInput("Model B", input_type="Input0"),
             SliderInput(
                 "Weights",
                 controls_step=5,

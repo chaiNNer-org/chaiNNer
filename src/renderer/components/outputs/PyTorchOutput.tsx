@@ -11,15 +11,15 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
+import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
-    modelType?: string;
+    modelType: string;
     inNc: number;
     outNc: number;
     size: string[];
@@ -41,6 +41,11 @@ const getColorMode = (channels: number) => {
 
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
+        const type = useContextSelector(GlobalVolatileContext, (c) =>
+            c.typeState.functions.get(id)?.outputs.get(outputId)
+        );
+        console.log('🚀 ~ file: PyTorchOutput.tsx ~ line 47 ~ type', type);
+
         const value = useOutputData(outputId) as PyTorchModelData | undefined;
 
         const { setManualOutputType, schemata } = useContext(GlobalContext);
@@ -63,6 +68,10 @@ export const PyTorchOutput = memo(
                                 'outputChannels',
                                 new NumericLiteralType(value.outNc)
                             ),
+                            new NamedExpressionField(
+                                'modelType',
+                                new StringLiteralType(value.modelType)
+                            ),
                         ])
                     );
                 } else {
@@ -75,72 +84,75 @@ export const PyTorchOutput = memo(
         const fontColor = useColorModeValue('gray.700', 'gray.400');
 
         return (
-            <Center
-                h="full"
-                minH="2rem"
-                overflow="hidden"
-                verticalAlign="middle"
-                w="full"
-            >
-                {value && !animated ? (
-                    <Center mt={1}>
-                        <Wrap
-                            justify="center"
-                            maxW={60}
-                            spacing={2}
-                        >
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {value.modelType ?? '?'}
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {value.scale}x
-                                </Tag>
-                            </WrapItem>
-                            <WrapItem>
-                                <Tag
-                                    bgColor={tagColor}
-                                    textColor={fontColor}
-                                >
-                                    {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
-                                </Tag>
-                            </WrapItem>
-                            {value.size.map((size) => (
-                                <WrapItem key={size}>
+            <>
+                <Center
+                    h="full"
+                    minH="2rem"
+                    overflow="hidden"
+                    verticalAlign="middle"
+                    w="full"
+                >
+                    {value && !animated ? (
+                        <Center mt={1}>
+                            <Wrap
+                                justify="center"
+                                maxW={60}
+                                spacing={2}
+                            >
+                                <WrapItem>
                                     <Tag
                                         bgColor={tagColor}
-                                        key={size}
-                                        textAlign="center"
                                         textColor={fontColor}
                                     >
-                                        {size}
+                                        {value.modelType}
                                     </Tag>
                                 </WrapItem>
-                            ))}
-                        </Wrap>
-                    </Center>
-                ) : animated ? (
-                    <Spinner />
-                ) : (
-                    <HStack>
-                        <ViewOffIcon />
-                        <Text
-                            fontSize="sm"
-                            lineHeight="0.5rem"
-                        >
-                            Model data not available.
-                        </Text>
-                    </HStack>
-                )}
-            </Center>
+                                <WrapItem>
+                                    <Tag
+                                        bgColor={tagColor}
+                                        textColor={fontColor}
+                                    >
+                                        {value.scale}x
+                                    </Tag>
+                                </WrapItem>
+                                <WrapItem>
+                                    <Tag
+                                        bgColor={tagColor}
+                                        textColor={fontColor}
+                                    >
+                                        {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
+                                    </Tag>
+                                </WrapItem>
+                                {value.size.map((size) => (
+                                    <WrapItem key={size}>
+                                        <Tag
+                                            bgColor={tagColor}
+                                            key={size}
+                                            textAlign="center"
+                                            textColor={fontColor}
+                                        >
+                                            {size}
+                                        </Tag>
+                                    </WrapItem>
+                                ))}
+                            </Wrap>
+                        </Center>
+                    ) : animated ? (
+                        <Spinner />
+                    ) : (
+                        <HStack>
+                            <ViewOffIcon />
+                            <Text
+                                fontSize="sm"
+                                lineHeight="0.5rem"
+                            >
+                                Model data not available.
+                            </Text>
+                        </HStack>
+                    )}
+                </Center>
+                {JSON.stringify(type)}
+            </>
         );
     }
 );
