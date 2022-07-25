@@ -3,8 +3,8 @@ import { memo } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
 import { useContextSelector } from 'use-context-selector';
-import { SchemaId } from '../../../common/common-types';
-import { createUniqueId } from '../../../common/util';
+import { InputId, SchemaId } from '../../../common/common-types';
+import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 import { OutputProps } from './props';
@@ -51,9 +51,9 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                         });
                         createConnection({
                             source: id,
-                            sourceHandle: `${id}-${outputId}`,
+                            sourceHandle: stringifySourceHandle(id, outputId),
                             target: nodeId,
-                            targetHandle: `${nodeId}-${0}`,
+                            targetHandle: stringifyTargetHandle(nodeId, 0 as InputId),
                         });
                     }
                 }}
