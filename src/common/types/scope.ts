@@ -1,3 +1,4 @@
+import { assertNever } from '../util';
 import {
     Definition,
     Expression,
@@ -7,35 +8,6 @@ import {
 } from './expression';
 import { assertValidFunctionName } from './names';
 import { NeverType, StructType, Type } from './types';
-
-type ScopeDefinition =
-    | ScopeStructDefinition
-    | ScopeFunctionDefinition
-    | ScopeVariableDefinition
-    | ScopeBuiltinFunctionDefinition;
-
-export interface ScopeStructDefinition {
-    readonly type: 'struct';
-    readonly definition: StructDefinition;
-    default?: StructType | NeverType;
-}
-export interface ScopeFunctionDefinition {
-    readonly type: 'function';
-    readonly definition: FunctionDefinition;
-    parameters?: readonly Type[];
-    varArgs?: undefined;
-}
-export interface ScopeVariableDefinition {
-    readonly type: 'variable';
-    readonly definition: VariableDefinition;
-    value?: Type;
-}
-export interface ScopeBuiltinFunctionDefinition {
-    readonly type: 'builtin-function';
-    readonly definition: BuiltinFunctionDefinition;
-    parameters?: readonly Type[];
-    varArgs?: Type;
-}
 
 export class BuiltinFunctionDefinition {
     readonly type = 'builtin-function';
@@ -87,6 +59,70 @@ export class BuiltinFunctionDefinition {
     }
 }
 
+export type ScopeBuilderDefinition = Definition | BuiltinFunctionDefinition;
+
+export class ScopeBuilder {
+    name: string;
+
+    parent: Scope | undefined;
+
+    private readonly definitions = new Map<string, ScopeBuilderDefinition>();
+
+    constructor(name: string, parent?: Scope) {
+        this.name = name;
+        this.parent = parent;
+    }
+
+    private assertNameAvailable(name: string): void {
+        const current = this.definitions.get(name);
+        if (current) {
+            throw new Error(
+                `The name "${name}" is already defined by a ${current.type} in ${this.name}.`
+            );
+        }
+    }
+
+    add(definition: ScopeBuilderDefinition): void {
+        const { name } = definition;
+        this.assertNameAvailable(name);
+        this.definitions.set(name, definition);
+    }
+
+    createScope(): Scope {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        return new Scope(this.name, this.parent, this.definitions.values());
+    }
+}
+
+type ScopeDefinition =
+    | ScopeStructDefinition
+    | ScopeFunctionDefinition
+    | ScopeVariableDefinition
+    | ScopeBuiltinFunctionDefinition;
+
+export interface ScopeStructDefinition {
+    readonly type: 'struct';
+    readonly definition: StructDefinition;
+    default?: StructType | NeverType;
+}
+export interface ScopeFunctionDefinition {
+    readonly type: 'function';
+    readonly definition: FunctionDefinition;
+    parameters?: readonly Type[];
+    varArgs?: undefined;
+}
+export interface ScopeVariableDefinition {
+    readonly type: 'variable';
+    readonly definition: VariableDefinition;
+    value?: Type;
+}
+export interface ScopeBuiltinFunctionDefinition {
+    readonly type: 'builtin-function';
+    readonly definition: BuiltinFunctionDefinition;
+    parameters?: readonly Type[];
+    varArgs?: Type;
+}
+
 /**
  * Implements an F1 score based on bi-grams.
  */
@@ -129,26 +165,44 @@ export class NameResolutionError extends Error {
 
 export interface ResolvedName<D extends ScopeDefinition = ScopeDefinition> {
     definition: D;
-    scope: ReadonlyScope;
+    scope: Scope;
 }
-export interface ReadonlyScope {
-    readonly name: string;
-    readonly parent: ReadonlyScope | undefined;
-    readonly definitions: ReadonlyMap<string, ScopeDefinition>;
-    has(name: string): boolean;
-    get(name: string): ResolvedName;
-}
-
-export class Scope implements ReadonlyScope {
+export class Scope {
     readonly name: string;
 
-    readonly parent: ReadonlyScope | undefined;
+    readonly parent: Scope | undefined;
 
-    readonly definitions = new Map<string, ScopeDefinition>();
+    private readonly definitions: ReadonlyMap<string, ScopeDefinition>;
 
-    constructor(name: string, parent?: ReadonlyScope) {
+    constructor(
+        name: string,
+        parent: Scope | undefined,
+        definitions: Iterable<ScopeBuilderDefinition>
+    ) {
         this.name = name;
         this.parent = parent;
+
+        const defs = new Map<string, ScopeDefinition>();
+        for (const definition of definitions) {
+            defs.set(definition.name, Scope.toScopeDefinition(definition));
+        }
+        this.definitions = defs;
+    }
+
+    static toScopeDefinition(definition: ScopeBuilderDefinition): ScopeDefinition {
+        const { type } = definition;
+        switch (type) {
+            case 'builtin-function':
+                return { type, definition };
+            case 'function':
+                return { type, definition };
+            case 'struct':
+                return { type, definition };
+            case 'variable':
+                return { type, definition };
+            default:
+                return assertNever(definition);
+        }
     }
 
     private assertNameAvailable(name: string): void {
@@ -160,17 +214,9 @@ export class Scope implements ReadonlyScope {
         }
     }
 
-    add(definition: Definition | BuiltinFunctionDefinition): void {
-        const { name, type } = definition;
-        this.assertNameAvailable(name);
-
-        const scopeType: ScopeDefinition['type'] = type;
-        this.definitions.set(name, { type: scopeType, definition } as ScopeDefinition);
-    }
-
     private getOptional(name: string): ResolvedName | undefined {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        for (let scope: ReadonlyScope | undefined = this; scope; scope = scope.parent) {
+        for (let scope: Scope | undefined = this; scope; scope = scope.parent) {
             const definition = scope.definitions.get(name);
             if (definition) {
                 return { definition, scope };
@@ -190,7 +236,7 @@ export class Scope implements ReadonlyScope {
         // Find similar names for the name resolution error
         const allNames = new Set<string>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        for (let s: ReadonlyScope | undefined = this; s; s = s.parent) {
+        for (let s: Scope | undefined = this; s; s = s.parent) {
             for (const n of s.definitions.keys()) {
                 allNames.add(n);
             }
