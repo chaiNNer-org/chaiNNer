@@ -2,7 +2,7 @@ import { constants } from 'fs';
 import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
-import type { InputId, NodeSchema, OutputId } from './common-types';
+import type { EdgeHandle, InputId, InputValue, NodeSchema, OutputId } from './common-types';
 
 export const EMPTY_ARRAY: readonly never[] = [];
 export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
@@ -35,6 +35,10 @@ const parseHandle = (handle: string): ParsedHandle => {
 };
 export const parseSourceHandle = parseHandle as (handle: string) => ParsedHandle<OutputId>;
 export const parseTargetHandle = parseHandle as (handle: string) => ParsedHandle<InputId>;
+const stringifyHandle = (nodeId: string, inOutId: InputId | OutputId): string =>
+    `${nodeId}-${inOutId}`;
+export const stringifySourceHandle: (nodeId: string, inOutId: OutputId) => string = stringifyHandle;
+export const stringifyTargetHandle: (nodeId: string, inOutId: InputId) => string = stringifyHandle;
 
 export const getLocalStorage = (): Storage => {
     const storage = (global as Record<string, unknown>).customLocalStorage;
@@ -179,3 +183,14 @@ export const topologicalSort = <T>(
 export const isStartingNode = (schema: NodeSchema) => {
     return !schema.inputs.some((i) => i.hasHandle);
 };
+
+export const delay = (ms: number): Promise<void> => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
+
+export const getInputValues = <T extends InputValue | EdgeHandle | null>(
+    schema: NodeSchema,
+    getValue: (inputId: InputId) => T
+): T[] => schema.inputs.map((input) => getValue(input.id));

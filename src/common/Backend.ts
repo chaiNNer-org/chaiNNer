@@ -22,7 +22,7 @@ export interface BackendRunRequest {
 }
 export interface BackendRunIndividualRequest {
     id: string;
-    inputs: InputValue[];
+    inputs: (InputValue | null)[];
     isCpu: boolean;
     isFp16: boolean;
     schemaId: SchemaId;
