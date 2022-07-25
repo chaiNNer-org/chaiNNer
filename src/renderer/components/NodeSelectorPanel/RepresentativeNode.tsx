@@ -1,6 +1,7 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
-import { memo, useState } from 'react';
+import { memo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { SchemaId } from '../../../common/common-types';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
@@ -13,6 +14,7 @@ interface RepresentativeNodeProps {
     name: string;
     collapsed?: boolean;
     schemaId: SchemaId;
+    createNodeFromSelector: () => void;
 }
 
 export const RepresentativeNode = memo(
@@ -23,6 +25,7 @@ export const RepresentativeNode = memo(
         icon,
         schemaId,
         collapsed = false,
+        createNodeFromSelector,
     }: RepresentativeNodeProps) => {
         const bgColor = useColorModeValue('gray.50', 'gray.700');
         const accentColor = getNodeAccentColor(category);
@@ -40,8 +43,26 @@ export const RepresentativeNode = memo(
             bgGradient = `linear-gradient(90deg, ${accentColor} 0%, ${bgColor} 100%)`;
         }
 
+        const ref = useRef(null);
+
+        useHotkeys(
+            'enter',
+            () => {
+                if (document.activeElement === ref.current) {
+                    createNodeFromSelector();
+                }
+            },
+            [ref]
+        );
+
         return (
             <Center
+                _active={{
+                    outlineColor: accentColor,
+                }}
+                _focus={{
+                    outlineColor: accentColor,
+                }}
                 _hover={{
                     outlineColor: accentColor,
                 }}
@@ -53,6 +74,8 @@ export const RepresentativeNode = memo(
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
+                ref={ref}
+                tabIndex={0}
                 transition="outline 0.15s ease-in-out"
                 w="full"
                 onMouseEnter={() => setHover(true)}
