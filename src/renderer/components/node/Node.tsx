@@ -220,7 +220,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 sendToast({
                     status: 'error',
                     title: 'Error',
-                    description: 'Preview failed to load, probably unsupported file type.',
+                    description:
+                        result.error || 'Preview failed to load, probably unsupported file type.',
                 });
             }
             setShouldRun(false);
