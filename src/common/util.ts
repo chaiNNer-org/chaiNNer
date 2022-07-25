@@ -184,6 +184,12 @@ export const isStartingNode = (schema: NodeSchema) => {
     return !schema.inputs.some((i) => i.hasHandle);
 };
 
+export const delay = (ms: number): Promise<void> => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
+
 export const getInputValues = <T extends InputValue | EdgeHandle | null>(
     schema: NodeSchema,
     getValue: (inputId: InputId) => T
