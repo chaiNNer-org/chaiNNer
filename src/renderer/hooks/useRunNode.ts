@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../common/Backend';
 import { NodeData } from '../../common/common-types';
-import { delay } from '../../common/util';
+import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -10,12 +10,14 @@ import { useAsyncEffect } from './useAsyncEffect';
 
 export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { changeNodes } = useContext(GlobalContext);
+    const { changeNodes, schemata } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
+
+    const schema = schemata.get(schemaId);
 
     const setAnimated = (nodeAnimated: boolean) => {
         changeNodes((nodes) =>
@@ -34,7 +36,11 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
         );
     };
 
-    const inputHash = useMemo(() => JSON.stringify(Object.values(inputData)), [inputData]);
+    const inputs = useMemo(
+        () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
+        [inputData]
+    );
+    const inputHash = useMemo(() => JSON.stringify(inputs), [inputData]);
     const lastRunInputHash = useRef<string>();
     useAsyncEffect(
         async (token) => {
@@ -46,13 +52,7 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 lastRunInputHash.current = inputHash;
                 setAnimated(true);
 
-                const result = await backend.runIndividual({
-                    schemaId,
-                    id,
-                    inputs: Object.values(inputData),
-                    isCpu,
-                    isFp16,
-                });
+                const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
                 setAnimated(false);
 
