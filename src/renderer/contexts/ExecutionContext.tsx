@@ -295,70 +295,71 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const disabledNodes = new Set(
             getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
         );
-        const nodes = getNodesWithSideEffects(
-            allNodes.filter((n) => !disabledNodes.has(n.id)),
-            allEdges,
-            schemata
-        );
+        const nodesToOptimize = allNodes.filter((n) => !disabledNodes.has(n.id));
+        const nodes = getNodesWithSideEffects(nodesToOptimize, allEdges, schemata);
         const nodeIds = new Set(nodes.map((n) => n.id));
         const edges = allEdges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
 
-        setStatus(ExecutionStatus.RUNNING);
-        animate(nodes.map((n) => n.id));
+        // show an error if there are no nodes to run
         if (nodes.length === 0) {
+            let message;
+            if (nodesToOptimize.length > 0) {
+                message =
+                    'There are no nodes that have an effect. Try to view or output images/files.';
+            } else if (disabledNodes.size > 0) {
+                message = 'All nodes are disabled. There are no nodes to run.';
+            } else {
+                message = 'There are no nodes to run.';
+            }
+            sendAlert(AlertType.ERROR, null, message);
+            return;
+        }
+
+        // check for static errors
+        const invalidNodes = nodes.flatMap((node) => {
+            const functionInstance = typeStateRef.current.functions.get(node.data.id);
+            const schema = schemata.get(node.data.schemaId);
+            const { category, name } = schema;
+            const validity = checkNodeValidity({
+                id: node.id,
+                inputData: node.data.inputData,
+                edges,
+                schema,
+                functionInstance,
+            });
+            if (validity.isValid) return [];
+
+            return [`• ${category}: ${name}: ${validity.reason}`];
+        });
+        if (invalidNodes.length > 0) {
+            const reasons = invalidNodes.join('\n');
             sendAlert(
                 AlertType.ERROR,
                 null,
-                disabledNodes.size > 0
-                    ? 'All nodes are disabled. There are no nodes to run.'
-                    : 'There are no nodes to run.'
+                `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
             );
+            return;
+        }
+
+        try {
+            setStatus(ExecutionStatus.RUNNING);
+            animate(nodes.map((n) => n.id));
+
+            const data = convertToUsableFormat(nodes, edges, schemata);
+            const response = await backend.run({
+                data,
+                isCpu,
+                isFp16,
+            });
+            if (response.exception) {
+                // no need to alert here, because the error has already been handled by the queue
+                unAnimate();
+                setStatus(ExecutionStatus.READY);
+            }
+        } catch (err: unknown) {
+            sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
             unAnimate();
             setStatus(ExecutionStatus.READY);
-        } else {
-            const invalidNodes = nodes.flatMap((node) => {
-                const functionInstance = typeStateRef.current.functions.get(node.data.id);
-                const schema = schemata.get(node.data.schemaId);
-                const { category, name } = schema;
-                const validity = checkNodeValidity({
-                    id: node.id,
-                    inputData: node.data.inputData,
-                    edges,
-                    schema,
-                    functionInstance,
-                });
-                if (validity.isValid) return [];
-
-                return [`• ${category}: ${name}: ${validity.reason}`];
-            });
-            if (invalidNodes.length > 0) {
-                const reasons = invalidNodes.join('\n');
-                sendAlert(
-                    AlertType.ERROR,
-                    null,
-                    `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
-                );
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-                return;
-            }
-            try {
-                const data = convertToUsableFormat(nodes, edges, schemata);
-                const response = await backend.run({
-                    data,
-                    isCpu,
-                    isFp16,
-                });
-                if (response.exception) {
-                    // no need to alert here, because the error has already been handled by the queue
-                    unAnimate();
-                    setStatus(ExecutionStatus.READY);
-                }
-            } catch (err: unknown) {
-                sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-            }
         }
     };
 
