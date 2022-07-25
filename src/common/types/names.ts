@@ -1,4 +1,5 @@
-const namePattern = /^(?!(?:NaN|Infinity)$)[a-zA-Z_]\w*$/;
+const namePattern = /^[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*$/;
+const identifierPattern = /^[a-zA-Z_]\w*$/;
 
 export const assertValidStructName = (name: string): void => {
     if (!namePattern.test(name))
@@ -8,7 +9,7 @@ export const assertValidStructName = (name: string): void => {
 };
 
 export const assertValidStructFieldName = (name: string): void => {
-    if (!namePattern.test(name))
+    if (!identifierPattern.test(name))
         throw new Error(
             `Invalid name. Struct field name ${JSON.stringify(name)} must match ${String(
                 namePattern

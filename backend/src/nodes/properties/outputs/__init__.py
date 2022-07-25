@@ -1,7 +1,17 @@
 from .base_output import *
 from .file_outputs import *
 from .generic_outputs import *
-from .ncnn_outputs import *
 from .numpy_outputs import *
-from .onnx_outputs import *
-from .pytorch_outputs import *
+
+try:
+    from .ncnn_outputs import *
+except:
+    pass
+try:
+    from .onnx_outputs import *
+except:
+    pass
+try:
+    from .pytorch_outputs import *
+except:
+    pass

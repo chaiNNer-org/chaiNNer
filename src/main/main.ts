@@ -12,6 +12,7 @@ import semver from 'semver';
 import util from 'util';
 import { PythonInfo, WindowSize } from '../common/common-types';
 import { requiredDependencies } from '../common/dependencies';
+import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
@@ -106,6 +107,7 @@ ipcMain.handle('owns-backend', () => ownsBackend);
 
 let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
+let lastOpenRecent: string[];
 
 const registerEventHandlers = () => {
     ipcMain.handle('dir-select', (event, dirPath) =>
@@ -174,6 +176,14 @@ const registerEventHandlers = () => {
             powerSaveBlocker.stop(blockerId);
             blockerId = undefined;
         }
+    });
+
+    ipcMain.on('disable-menu', () => {
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: false });
+    });
+
+    ipcMain.on('enable-menu', () => {
+        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
     });
 };
 
@@ -391,7 +401,9 @@ const spawnBackend = async (port: number) => {
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
-        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)]);
+        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)], {
+            env: sanitizedEnv,
+        });
         backend.stdout.on('data', (data) => {
             const dataString = String(data);
             // Remove unneeded timestamp
@@ -594,10 +606,11 @@ const createWindow = async () => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
-    setMainMenu({ mainWindow });
-    ipcMain.on('update-open-recent-menu', (_, openRecent) =>
-        setMainMenu({ mainWindow, openRecentRev: openRecent })
-    );
+    setMainMenu({ mainWindow, enabled: true });
+    ipcMain.on('update-open-recent-menu', (_, openRecent) => {
+        lastOpenRecent = openRecent;
+        setMainMenu({ mainWindow, openRecentRev: openRecent, enabled: true });
+    });
 
     await doSplashScreenChecks();
 

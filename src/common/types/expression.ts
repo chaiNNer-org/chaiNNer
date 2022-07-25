@@ -44,6 +44,7 @@ export class UnionExpression implements ExpressionBase {
     }
 
     toString(): string {
+        if (this.items.length === 0) return '(never /* empty union */)';
         return this.items.map(bracket).join(' | ');
     }
 }
@@ -62,6 +63,7 @@ export class IntersectionExpression implements ExpressionBase {
     }
 
     toString(): string {
+        if (this.items.length === 0) return '(any /* empty intersection */)';
         return this.items.map(bracket).join(' & ');
     }
 }

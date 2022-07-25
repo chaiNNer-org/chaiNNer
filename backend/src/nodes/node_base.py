@@ -33,10 +33,6 @@ class NodeBase(metaclass=ABCMeta):
         """Abstract method to run a node's logic"""
         return
 
-    def get_extra_data(self) -> Any:
-        """Abstract method for getting extra data the frontend needs"""
-        return
-
     def get_inputs(self, with_implicit_ids=False):
         if with_implicit_ids:
             assign_implicit_ids(self.inputs)

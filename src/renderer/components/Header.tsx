@@ -64,12 +64,12 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label={status === ExecutionStatus.PAUSED ? 'Resume' : 'Start'}
+                        label={status === ExecutionStatus.PAUSED ? 'Resume (F5)' : 'Run (F5)'}
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Start button"
+                            aria-label="Run button"
                             colorScheme="green"
                             disabled={
                                 !(
@@ -90,7 +90,7 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Pause"
+                        label="Pause (F6)"
                         px={2}
                         py={1}
                     >
@@ -111,7 +111,7 @@ export const Header = memo(() => {
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label="Stop"
+                        label="Stop (F7)"
                         px={2}
                         py={1}
                     >

@@ -16,22 +16,23 @@ import {
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { NodeData, NodeSchema, SchemaId } from '../../common/common-types';
+import { InputId, NodeData, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
 import { FunctionDefinition } from '../../common/types/function';
-import { isDisjointWith } from '../../common/types/intersection';
 import { Type } from '../../common/types/types';
 import {
     assertNever,
     createUniqueId,
     parseSourceHandle,
     parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
-import { getMatchingNodes, getNodesByCategory } from '../helpers/nodeSearchFuncs';
+import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
@@ -46,7 +47,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
-        () => getNodesByCategory(getMatchingNodes(searchQuery, schemata)),
+        () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
         [searchQuery, schemata]
     );
 
@@ -188,6 +189,11 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
     );
 });
 
+const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | undefined =>
+    fn.schema.inputs.find((i) => i.hasHandle && fn.canAssignInput(i.id, type))?.id;
+const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | undefined =>
+    fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
+
 const canConnectWith = (
     connectingFrom: OnConnectStartParams,
     schema: NodeSchema,
@@ -200,28 +206,18 @@ const canConnectWith = (
     }
     switch (connectingFrom.handleType) {
         case 'source': {
-            const sourceFn = typeState.functions.get(connectingFrom.nodeId);
-            if (!sourceFn) {
-                return false;
-            }
-
             const { inOutId } = parseSourceHandle(connectingFrom.handleId);
-            const sourceType = sourceFn.outputs.get(inOutId);
+            const sourceType = typeState.functions.get(connectingFrom.nodeId)?.outputs.get(inOutId);
             if (!sourceType) {
                 return false;
             }
 
-            const targetTypes = functionDefinitions.get(schema.schemaId);
-            if (!targetTypes) {
+            const targetFn = functionDefinitions.get(schema.schemaId);
+            if (!targetFn) {
                 return false;
             }
 
-            return [...targetTypes.inputDefaults].some(([inputId, type]) => {
-                return (
-                    !isDisjointWith(type, sourceType) &&
-                    schema.inputs.find((i) => i.id === inputId)?.hasHandle
-                );
-            });
+            return getFirstPossibleInput(targetFn, sourceType) !== undefined;
         }
         case 'target': {
             const sourceNode = getNode(connectingFrom.nodeId);
@@ -239,14 +235,12 @@ const canConnectWith = (
                 return false;
             }
 
-            const targetTypes = functionDefinitions.get(schema.schemaId);
-            if (!targetTypes) {
+            const targetFn = functionDefinitions.get(schema.schemaId);
+            if (!targetFn) {
                 return false;
             }
 
-            return [...targetTypes.outputDefaults].some(([, type]) => {
-                return !isDisjointWith(type, sourceType);
-            });
+            return getFirstPossibleOutput(targetFn, sourceType) !== undefined;
         }
         default:
             assertNever(connectingFrom.handleType);
@@ -268,7 +262,7 @@ interface Position {
 export const usePaneNodeSearchMenu = (
     wrapperRef: React.RefObject<HTMLDivElement>
 ): UsePaneNodeSearchMenuValue => {
-    const { createNode, createConnection, typeState, useConnectingFromType, useConnectingFrom } =
+    const { createNode, createConnection, typeState, useConnectingFrom } =
         useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions } = useContext(GlobalContext);
@@ -276,7 +270,6 @@ export const usePaneNodeSearchMenu = (
     const { favorites } = useNodeFavorites();
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
-    const [, setGlobalConnectingFromType] = useConnectingFromType;
     const [, setGlobalConnectingFrom] = useConnectingFrom;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
 
@@ -315,44 +308,33 @@ export const usePaneNodeSearchMenu = (
                 },
                 nodeType: schema.nodeType,
             });
-            const targetTypes = functionDefinitions.get(schema.schemaId);
+            const targetFn = functionDefinitions.get(schema.schemaId);
             if (
                 isStoppedOnPane &&
                 connectingFrom &&
-                targetTypes &&
+                targetFn &&
                 connectingFromType &&
                 connectingFrom.handleType
             ) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
-                        const firstPossibleTarget = [...targetTypes.inputDefaults].find(
-                            ([inputId, type]) => {
-                                return (
-                                    !isDisjointWith(type, connectingFromType) &&
-                                    schema.inputs.find((i) => i.id === inputId)?.hasHandle
-                                );
-                            }
-                        );
-                        if (firstPossibleTarget) {
+                        const first = getFirstPossibleInput(targetFn, connectingFromType);
+                        if (first !== undefined) {
                             createConnection({
                                 source: connectingFrom.nodeId,
                                 sourceHandle: connectingFrom.handleId,
                                 target: nodeId,
-                                targetHandle: `${nodeId}-${firstPossibleTarget[0]}`,
+                                targetHandle: stringifyTargetHandle(nodeId, first),
                             });
                         }
                         break;
                     }
                     case 'target': {
-                        const firstPossibleTarget = [...targetTypes.outputDefaults].find(
-                            ([, type]) => {
-                                return !isDisjointWith(type, connectingFromType);
-                            }
-                        );
-                        if (firstPossibleTarget) {
+                        const first = getFirstPossibleOutput(targetFn, connectingFromType);
+                        if (first !== undefined) {
                             createConnection({
                                 source: nodeId,
-                                sourceHandle: `${nodeId}-${firstPossibleTarget[0]}`,
+                                sourceHandle: stringifySourceHandle(nodeId, first),
                                 target: connectingFrom.nodeId,
                                 targetHandle: connectingFrom.handleId,
                             });
@@ -400,7 +382,6 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.outputDefaults.get(inOutId);
                         setConnectingFromType(sourceType ?? null);
-                        setGlobalConnectingFromType(sourceType ?? null);
                         break;
                     }
                     case 'target': {
@@ -409,7 +390,6 @@ export const usePaneNodeSearchMenu = (
                             .get(node.data.schemaId)
                             ?.inputDefaults.get(inOutId);
                         setConnectingFromType(targetType ?? null);
-                        setGlobalConnectingFromType(targetType ?? null);
                         break;
                     }
                     default:
@@ -449,7 +429,6 @@ export const usePaneNodeSearchMenu = (
                 x: event.pageX,
                 y: event.pageY,
             });
-            setGlobalConnectingFromType(null);
             setGlobalConnectingFrom(null);
         },
         [setCoordinates, setIsStoppedOnPane]

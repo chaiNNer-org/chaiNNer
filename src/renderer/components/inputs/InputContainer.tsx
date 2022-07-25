@@ -3,9 +3,8 @@ import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
-import { isDisjointWith } from '../../../common/types/intersection';
 import { Type } from '../../../common/types/types';
-import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
+import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
@@ -57,7 +56,7 @@ export const InputContainer = memo(
         optional,
         generic,
     }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFromType, useConnectingFrom } =
+        const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
@@ -65,39 +64,26 @@ export const InputContainer = memo(
             (e) => e.target === id && parseTargetHandle(e.targetHandle!).inOutId === inputId
         );
         const isConnected = !!connectedEdge;
-        const [connectingFromType] = useConnectingFromType;
         const [connectingFrom] = useConnectingFrom;
 
         const showHandle = useMemo(() => {
-            if (
-                !connectingFrom ||
-                !connectingFromType ||
-                // We want to display the connectingFrom handle
-                (connectingFrom.handleId === `${id}-${inputId}` &&
-                    connectingFrom.handleType === 'target')
-            ) {
-                return true;
-            }
-            // If the connecting from node is the same as the node we're connecting to
-            if (connectingFrom.nodeId === id) {
-                return false;
-            }
-            // Any other inputs should be invalid
-            if (connectingFrom.handleType === 'target') {
-                return false;
-            }
+            // no active connection
+            if (!connectingFrom) return true;
+
+            const targetHandle = stringifyTargetHandle(id, inputId);
+
+            // We only want to display the connectingFrom target handle
+            if (connectingFrom.handleType === 'target')
+                return connectingFrom.handleId === targetHandle;
+
             // Show same types
-            const connectionIsValid = isValidConnection({
+            return isValidConnection({
                 source: connectingFrom.nodeId,
                 sourceHandle: connectingFrom.handleId,
                 target: id,
-                targetHandle: `${id}-${inputId}`,
+                targetHandle,
             });
-            if (connectionIsValid && !isDisjointWith(connectingFromType, definitionType)) {
-                return true;
-            }
-            return false;
-        }, [connectingFrom, connectingFromType, definitionType, id, inputId]);
+        }, [connectingFrom, definitionType, id, inputId]);
 
         const { functionDefinitions } = useContext(GlobalContext);
         const { useIsDarkMode } = useContext(SettingsContext);
@@ -163,7 +149,7 @@ export const InputContainer = memo(
                             }}
                             as={LeftHandle}
                             className="input-handle"
-                            id={`${id}-${inputId}`}
+                            id={stringifyTargetHandle(id, inputId)}
                             isValidConnection={isValidConnection}
                             sx={{
                                 width: '16px',

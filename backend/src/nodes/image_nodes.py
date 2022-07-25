@@ -8,7 +8,6 @@ import os
 import platform
 import subprocess
 import time
-import base64
 from tempfile import mkdtemp
 
 import cv2
@@ -21,7 +20,12 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
+from .utils.image_utils import (
+    get_opencv_formats,
+    get_pil_formats,
+    normalize,
+    preview_encode,
+)
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -33,7 +37,7 @@ class ImReadNode(NodeBase):
         self.description = "Load image from file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
-            ImageOutput(),
+            LargeImageOutput(),
             DirectoryOutput(),
             TextOutput("Image Name"),
         ]
@@ -42,35 +46,6 @@ class ImReadNode(NodeBase):
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
-        self.result = None
-
-    def get_extra_data(self) -> Dict:
-        assert self.result is not None
-
-        img, dirname, basename = self.result
-        h, w, c = get_h_w_c(img)
-
-        # resize the image, so the preview loads faster and doesn't lag the UI
-        # 512 was chosen as the target because a 512x512 RGBA 8bit PNG is at most 1MB in size
-        target_size = 512
-        max_size = target_size * 1.2
-        if w > max_size or h > max_size:
-            f = max(w / target_size, h / target_size)
-            img = cv2.resize(
-                img, (int(w / f), int(h / f)), interpolation=cv2.INTER_AREA
-            )
-
-        _, encoded_img = cv2.imencode(".png", (img * 255).astype("uint8"))  # type: ignore
-        base64_img = base64.b64encode(encoded_img).decode("utf8")
-
-        return {
-            "image": "data:image/png;base64," + base64_img,
-            "height": h,
-            "width": w,
-            "channels": c,
-            "directory": dirname,
-            "name": basename,
-        }
 
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
@@ -114,8 +89,7 @@ class ImReadNode(NodeBase):
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        self.result = (img, dirname, basename)
-        return self.result
+        return img, dirname, basename
 
 
 @NodeFactory.register("chainner:image:save")
@@ -176,7 +150,7 @@ class ImOpenNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = []
         self.category = IMAGE
-        self.name = "Preview Image"
+        self.name = "View Image (external)"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
 
@@ -204,3 +178,23 @@ class ImOpenNode(NodeBase):
                 os.startfile(temp_save_dir)  # type: ignore
             else:  # linux variants
                 subprocess.call(("xdg-open", temp_save_dir))  # type: ignore
+
+
+@NodeFactory.register("chainner:image:view")
+class ImViewNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "See an inline preview of the image in the editor."
+        self.inputs = [ImageInput()]
+        self.outputs = [
+            LargeImageOutput("Preview", image_type="Input0", has_handle=False)
+        ]
+        self.category = IMAGE
+        self.name = "View Image"
+        self.icon = "BsEyeFill"
+        self.sub = "Input & Output"
+
+        self.side_effects = True
+
+    def run(self, img: np.ndarray):
+        return img

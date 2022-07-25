@@ -40,6 +40,7 @@ export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' |
 export interface Input {
     readonly id: InputId;
     readonly type: ExpressionJson;
+    readonly conversion?: ExpressionJson | null;
     readonly kind: InputKind;
     readonly label: string;
     readonly optional: boolean;
@@ -50,6 +51,9 @@ export interface Input {
     readonly fileKind?: FileInputKind;
     readonly filetypes?: string[];
 }
+
+export type OutputKind = 'image' | 'large-image' | 'text' | 'directory' | 'pytorch' | 'generic';
+
 export interface Output {
     readonly id: OutputId;
     readonly type: ExpressionJson;
@@ -58,10 +62,13 @@ export interface Output {
      */
     readonly neverReason?: string | null;
     readonly label: string;
+    readonly kind: OutputKind;
+    readonly hasHandle: boolean;
 }
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
+export type OutputData = Readonly<Record<OutputId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;

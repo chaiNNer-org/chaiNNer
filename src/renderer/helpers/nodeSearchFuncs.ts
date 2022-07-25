@@ -23,8 +23,21 @@ export const createSearchPredicate = (query: string): ((name: string) => boolean
     return (name) => pattern.isMatch(name);
 };
 
-export const compareIgnoreCase = (a: string, b: string): number => {
+const compareIgnoreCase = (a: string, b: string): number => {
     return a.toUpperCase().localeCompare(b.toUpperCase());
+};
+
+export const sortSchemata = (schemata: readonly NodeSchema[]): NodeSchema[] => {
+    const categories = new Map([...new Set(schemata.map((s) => s.category))].map((c, i) => [c, i]));
+    return [...schemata].sort((a, b) => {
+        const categoryCompare =
+            (categories.get(a.category) ?? 0) - (categories.get(b.category) ?? 0);
+        return (
+            categoryCompare ||
+            compareIgnoreCase(a.subcategory, b.subcategory) ||
+            compareIgnoreCase(a.name, b.name)
+        );
+    });
 };
 
 export const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema[]> => {
@@ -39,21 +52,14 @@ export const byCategory = (nodes: readonly NodeSchema[]): Map<string, NodeSchema
 
 /**
  * Returns a map that maps for sub category name to all nodes of that sub category.
- *
- * The nodes per subcategory are sorted by name.
  */
 export const getSubcategories = (nodes: readonly NodeSchema[]) => {
     const map = new Map<string, NodeSchema[]>();
-    [...nodes]
-        .sort(
-            (a, b) =>
-                compareIgnoreCase(a.subcategory, b.subcategory) || compareIgnoreCase(a.name, b.name)
-        )
-        .forEach((n) => {
-            const list = map.get(n.subcategory) ?? [];
-            map.set(n.subcategory, list);
-            list.push(n);
-        });
+    nodes.forEach((n) => {
+        const list = map.get(n.subcategory) ?? [];
+        map.set(n.subcategory, list);
+        list.push(n);
+    });
     return map;
 };
 

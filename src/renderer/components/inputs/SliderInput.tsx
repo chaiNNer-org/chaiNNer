@@ -9,7 +9,8 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
@@ -42,6 +43,7 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
 
 export const SliderInput = memo(
     ({
+        id,
         inputId,
         useInputData,
         def,
@@ -58,6 +60,11 @@ export const SliderInput = memo(
         isLocked,
         definitionType,
     }: SliderInputProps) => {
+        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+            id,
+            inputId
+        );
+
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 
@@ -87,16 +94,25 @@ export const SliderInput = memo(
             setSliderValue(Number(numberAsString));
         };
 
+        const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
+
+        const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
+            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
+            return type && type.underlying === 'number' && type.type === 'literal'
+                ? type.value
+                : undefined;
+        });
+        const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
+
+        const displaySliderValue: number = isInputLocked ? typeNumber ?? def : sliderValue;
         const expr = noteExpression
             ? tryEvaluate(noteExpression, {
                   min,
                   max,
-                  value: sliderValue,
+                  value: displaySliderValue,
               })
             : undefined;
         const filled = !expr;
-
-        const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
 
         return (
             <VStack w="full">
@@ -105,11 +121,11 @@ export const SliderInput = memo(
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
-                        isDisabled={isLocked}
+                        isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
                         step={sliderStep}
-                        value={sliderValue}
+                        value={displaySliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setInput}
                         onMouseEnter={() => setShowTooltip(true)}
@@ -124,7 +140,7 @@ export const SliderInput = memo(
                             borderRadius={8}
                             color="white"
                             isOpen={showTooltip}
-                            label={`${precisionOutput(sliderValue)}${unit ?? ''}`}
+                            label={`${precisionOutput(displaySliderValue)}${unit ?? ''}`}
                             placement="top"
                             px={2}
                             py={1}
@@ -138,8 +154,8 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputString={inputString}
-                        isDisabled={isLocked}
+                        inputString={isInputLocked ? typeNumberString : inputString}
+                        isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
                         offset={offset}

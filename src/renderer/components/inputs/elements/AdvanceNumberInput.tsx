@@ -17,10 +17,13 @@ const clamp = (value: number, min?: number | null, max?: number | null): number 
 };
 
 export const getPrecision = (n: number) => {
-    // eslint-disable-next-line no-param-reassign
-    n %= 1;
-    if (areApproximatelyEqual(n, 0)) return 0;
-    return Math.min(10, n.toFixed(10).replace(/0+$/, '').split('.')[1]?.length ?? 0);
+    if (n >= 1) {
+        // eslint-disable-next-line no-param-reassign
+        n %= 1;
+        if (areApproximatelyEqual(n, 0)) return 0;
+    }
+    if (n === 0) return 0;
+    return Math.min(10, n.toFixed(100).replace(/0+$/, '').split('.')[1]?.length ?? 0);
 };
 
 interface AdvancedNumberInputProps {

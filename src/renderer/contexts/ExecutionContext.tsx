@@ -1,6 +1,8 @@
-import { memo, useEffect, useState } from 'react';
+import isDeepEqual from 'fast-deep-equal/react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
-import { createContext, useContext } from 'use-context-selector';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
 import {
@@ -13,7 +15,13 @@ import {
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
-import { ParsedHandle, parseSourceHandle, parseTargetHandle } from '../../common/util';
+import {
+    ParsedHandle,
+    assertNever,
+    getInputValues,
+    parseSourceHandle,
+    parseTargetHandle,
+} from '../../common/util';
 import { checkNodeValidity } from '../helpers/checkNodeValidity';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
@@ -25,7 +33,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { GlobalContext } from './GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
@@ -41,6 +49,7 @@ interface ExecutionContextValue {
     status: ExecutionStatus;
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
+    useOutputData: (id: string, outputId: OutputId) => unknown;
 }
 
 const convertToUsableFormat = (
@@ -100,8 +109,9 @@ const convertToUsableFormat = (
         result[id] = {
             schemaId,
             id,
-            inputs: schema.inputs.map(
-                (input) => inputHandles[id]?.[input.id] ?? inputData[input.id] ?? null
+            inputs: getInputValues(
+                schema,
+                (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
             ),
             outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
@@ -132,6 +142,7 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const { schemata, useAnimate, setIteratorPercent, typeStateRef } = useContext(GlobalContext);
+    const useOutputDataMap = useContextSelector(GlobalVolatileContext, (c) => c.useOutputDataMap);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -146,6 +157,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const backend = getBackend(port);
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
+
+    const [outputDataMap, setOutputDataMap] = useOutputDataMap;
+    const useOutputData = useCallback(
+        (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
+        [outputDataMap]
+    );
 
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
@@ -199,6 +216,24 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             }
         },
         [setStatus, unAnimate, schemata]
+    );
+
+    useBackendEventSourceListener(
+        eventSource,
+        'node-output-data',
+        (data) => {
+            if (data) {
+                setOutputDataMap((prev) => {
+                    const existingData = prev.get(data.nodeId);
+                    if (!existingData || !isDeepEqual(existingData, data.data)) {
+                        return new Map([...prev, [data.nodeId, data.data]]);
+                    }
+                    return prev;
+                });
+            }
+        },
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        [{}, setOutputDataMap]
     );
 
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
@@ -260,70 +295,71 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         const disabledNodes = new Set(
             getEffectivelyDisabledNodes(allNodes, allEdges).map((n) => n.id)
         );
-        const nodes = getNodesWithSideEffects(
-            allNodes.filter((n) => !disabledNodes.has(n.id)),
-            allEdges,
-            schemata
-        );
+        const nodesToOptimize = allNodes.filter((n) => !disabledNodes.has(n.id));
+        const nodes = getNodesWithSideEffects(nodesToOptimize, allEdges, schemata);
         const nodeIds = new Set(nodes.map((n) => n.id));
         const edges = allEdges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
 
-        setStatus(ExecutionStatus.RUNNING);
-        animate(nodes.map((n) => n.id));
+        // show an error if there are no nodes to run
         if (nodes.length === 0) {
+            let message;
+            if (nodesToOptimize.length > 0) {
+                message =
+                    'There are no nodes that have an effect. Try to view or output images/files.';
+            } else if (disabledNodes.size > 0) {
+                message = 'All nodes are disabled. There are no nodes to run.';
+            } else {
+                message = 'There are no nodes to run.';
+            }
+            sendAlert(AlertType.ERROR, null, message);
+            return;
+        }
+
+        // check for static errors
+        const invalidNodes = nodes.flatMap((node) => {
+            const functionInstance = typeStateRef.current.functions.get(node.data.id);
+            const schema = schemata.get(node.data.schemaId);
+            const { category, name } = schema;
+            const validity = checkNodeValidity({
+                id: node.id,
+                inputData: node.data.inputData,
+                edges,
+                schema,
+                functionInstance,
+            });
+            if (validity.isValid) return [];
+
+            return [`• ${category}: ${name}: ${validity.reason}`];
+        });
+        if (invalidNodes.length > 0) {
+            const reasons = invalidNodes.join('\n');
             sendAlert(
                 AlertType.ERROR,
                 null,
-                disabledNodes.size > 0
-                    ? 'All nodes are disabled. There are no nodes to run.'
-                    : 'There are no nodes to run.'
+                `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
             );
+            return;
+        }
+
+        try {
+            setStatus(ExecutionStatus.RUNNING);
+            animate(nodes.map((n) => n.id));
+
+            const data = convertToUsableFormat(nodes, edges, schemata);
+            const response = await backend.run({
+                data,
+                isCpu,
+                isFp16,
+            });
+            if (response.exception) {
+                // no need to alert here, because the error has already been handled by the queue
+                unAnimate();
+                setStatus(ExecutionStatus.READY);
+            }
+        } catch (err: unknown) {
+            sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
             unAnimate();
             setStatus(ExecutionStatus.READY);
-        } else {
-            const invalidNodes = nodes.flatMap((node) => {
-                const functionInstance = typeStateRef.current.functions.get(node.data.id);
-                const schema = schemata.get(node.data.schemaId);
-                const { category, name } = schema;
-                const validity = checkNodeValidity({
-                    id: node.id,
-                    inputData: node.data.inputData,
-                    edges,
-                    schema,
-                    functionInstance,
-                });
-                if (validity.isValid) return [];
-
-                return [`• ${category}: ${name}: ${validity.reason}`];
-            });
-            if (invalidNodes.length > 0) {
-                const reasons = invalidNodes.join('\n');
-                sendAlert(
-                    AlertType.ERROR,
-                    null,
-                    `There are invalid nodes in the editor. Please fix them before running.\n${reasons}`
-                );
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-                return;
-            }
-            try {
-                const data = convertToUsableFormat(nodes, edges, schemata);
-                const response = await backend.run({
-                    data,
-                    isCpu,
-                    isFp16,
-                });
-                if (response.exception) {
-                    // no need to alert here, because the error has already been handled by the queue
-                    unAnimate();
-                    setStatus(ExecutionStatus.READY);
-                }
-            } catch (err: unknown) {
-                sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-            }
         }
     };
 
@@ -354,6 +390,60 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setStatus(ExecutionStatus.READY);
     };
 
+    useHotkeys(
+        'F5',
+        () => {
+            switch (status) {
+                case ExecutionStatus.READY:
+                case ExecutionStatus.PAUSED:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    run();
+                    break;
+                case ExecutionStatus.RUNNING:
+                    break;
+                default:
+                    assertNever(status);
+            }
+        },
+        [run, pause, status]
+    );
+
+    useHotkeys(
+        'F6',
+        () => {
+            switch (status) {
+                case ExecutionStatus.RUNNING:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    pause();
+                    break;
+                case ExecutionStatus.READY:
+                case ExecutionStatus.PAUSED:
+                    break;
+                default:
+                    assertNever(status);
+            }
+        },
+        [run, pause, status]
+    );
+
+    useHotkeys(
+        'F7',
+        () => {
+            switch (status) {
+                case ExecutionStatus.RUNNING:
+                case ExecutionStatus.PAUSED:
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    kill();
+                    break;
+                case ExecutionStatus.READY:
+                    break;
+                default:
+                    assertNever(status);
+            }
+        },
+        [kill]
+    );
+
     const value = useMemoObject<ExecutionContextValue>({
         run,
         pause,
@@ -361,6 +451,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         status,
         isBackendKilled,
         setIsBackendKilled,
+        useOutputData,
     });
 
     return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;

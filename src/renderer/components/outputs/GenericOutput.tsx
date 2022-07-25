@@ -1,31 +1,49 @@
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
-import { memo } from 'react';
-import { useContextSelector } from 'use-context-selector';
-import { OutputId } from '../../../common/common-types';
-import { Type } from '../../../common/types/types';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { memo, useEffect } from 'react';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
+import { StringLiteralType } from '../../../common/types/types';
+import { isStartingNode } from '../../../common/util';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
-import { OutputContainer } from './OutputContainer';
+import { OutputProps } from './props';
 
-interface GenericOutputProps {
-    id: string;
-    label: string;
-    outputId: OutputId;
-    definitionType: Type;
-}
+export const GenericOutput = memo(
+    ({ label, id, outputId, schemaId, useOutputData, kind }: OutputProps) => {
+        const type = useContextSelector(GlobalVolatileContext, (c) =>
+            c.typeState.functions.get(id)?.outputs.get(outputId)
+        );
 
-export const GenericOutput = memo(({ label, id, outputId, definitionType }: GenericOutputProps) => {
-    const type = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)?.outputs.get(outputId)
-    );
+        const { setManualOutputType, schemata } = useContext(GlobalContext);
 
-    return (
-        <OutputContainer
-            hasHandle
-            definitionType={definitionType}
-            id={id}
-            outputId={outputId}
-        >
+        const schema = schemata.get(schemaId);
+
+        const value = useOutputData(outputId);
+
+        useEffect(() => {
+            if (isStartingNode(schema)) {
+                if (value !== undefined) {
+                    if (kind === 'text') {
+                        setManualOutputType(id, outputId, new StringLiteralType(value as string));
+                    } else if (kind === 'directory') {
+                        setManualOutputType(
+                            id,
+                            outputId,
+                            new NamedExpression('Directory', [
+                                new NamedExpressionField(
+                                    'path',
+                                    new StringLiteralType(value as string)
+                                ),
+                            ])
+                        );
+                    }
+                } else {
+                    setManualOutputType(id, outputId, undefined);
+                }
+            }
+        }, [id, schemaId, value]);
+
+        return (
             <Flex
                 h="full"
                 minH="2rem"
@@ -51,6 +69,6 @@ export const GenericOutput = memo(({ label, id, outputId, definitionType }: Gene
                     {label}
                 </Text>
             </Flex>
-        </OutputContainer>
-    );
-});
+        );
+    }
+);

@@ -6,6 +6,7 @@ import {
 } from '@react-nano/use-event-source';
 import log from 'electron-log';
 import { BackendExceptionSource } from '../../common/Backend';
+import { OutputData } from '../../common/common-types';
 
 export type BackendEventSource = EventSource & { readonly __backend?: never };
 
@@ -24,6 +25,7 @@ export interface BackendEventMap {
     };
     'node-finish': { finished: string[] };
     'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] };
+    'node-output-data': { nodeId: string; data: OutputData };
 }
 
 export type BackendEventSourceListener<T extends keyof BackendEventMap> = (

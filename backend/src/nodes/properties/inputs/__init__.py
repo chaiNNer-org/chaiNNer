@@ -2,8 +2,18 @@ from .base_input import *
 from .image_dropdown_inputs import *
 from .file_inputs import *
 from .generic_inputs import *
-from .ncnn_inputs import *
 from .numeric_inputs import *
 from .numpy_inputs import *
-from .onnx_inputs import *
-from .pytorch_inputs import *
+
+try:
+    from .ncnn_inputs import *
+except:
+    pass
+try:
+    from .onnx_inputs import *
+except:
+    pass
+try:
+    from .pytorch_inputs import *
+except:
+    pass

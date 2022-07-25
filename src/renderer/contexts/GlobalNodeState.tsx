@@ -22,6 +22,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -35,6 +36,7 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
+    EMPTY_MAP,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -74,17 +76,22 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    createNode: (proto: NodeProto) => void;
+    createNode: (proto: NodeProto, parentId?: string) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
-    useConnectingFromType: readonly [Type | null, SetState<Type | null>];
+    inputDataChanges: ChangeCounter;
+    lastInputDataUpdatedId: string | undefined;
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
+    ];
+    useOutputDataMap: readonly [
+        ReadonlyMap<string, OutputData>,
+        SetState<ReadonlyMap<string, OutputData>>
     ];
 }
 interface Global {
@@ -228,6 +235,9 @@ export const GlobalProvider = memo(
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
 
+        const [outputDataMap, setOutputDataMap] =
+            useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
             const timerId = setTimeout(() => {
@@ -268,11 +278,11 @@ export const GlobalProvider = memo(
             }
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
-        const [savePath, setSavePathInternal] = useState<string | undefined>();
+        const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
         const setSavePath = useCallback(
             (path: string | undefined) => {
-                setSavePathInternal(path);
+                setSavePathInternal(path ?? null);
                 if (path) pushOpenPath(path);
             },
             [setSavePathInternal, pushOpenPath]
@@ -557,11 +567,10 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (proto: NodeProto): void => {
+            (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
-                    const parent = hoveredNode
-                        ? nodes.find((n) => n.id === hoveredNode)
-                        : undefined;
+                    const searchId = parentId ?? hoveredNode;
+                    const parent = searchId ? nodes.find((n) => n.id === searchId) : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
@@ -598,28 +607,36 @@ export const GlobalProvider = memo(
 
         const releaseNodeFromParent = useCallback(
             (id: string) => {
-                changeNodes((nodes) => {
-                    const node = nodes.find((n) => n.id === id);
-                    if (node && node.parentNode) {
-                        const parentNode = nodes.find((n) => n.id === node.parentNode);
-                        if (parentNode) {
-                            const newNode: Node<Mutable<NodeData>> = deepCopy(node);
-                            delete newNode.parentNode;
-                            delete newNode.data.parentNode;
-                            delete newNode.extent;
-                            delete newNode.positionAbsolute;
-                            newNode.position = {
-                                x: parentNode.position.x - 100,
-                                y: parentNode.position.y - 100,
-                            };
-                            return [...nodes.filter((n) => n.id !== node.id), newNode];
-                        }
+                const nodes = getNodes();
+                const edges = getEdges();
+                const node = nodes.find((n) => n.id === id);
+                let newNodes = nodes;
+                if (node && node.parentNode) {
+                    const parentNode = nodes.find((n) => n.id === node.parentNode);
+                    if (parentNode) {
+                        const newNode: Node<Mutable<NodeData>> = deepCopy(node);
+                        delete newNode.parentNode;
+                        delete newNode.data.parentNode;
+                        delete newNode.extent;
+                        delete newNode.positionAbsolute;
+                        newNode.position = {
+                            x: parentNode.position.x - 100,
+                            y: parentNode.position.y - 100,
+                        };
+                        newNodes = [...nodes.filter((n) => n.id !== node.id), newNode];
                     }
-                    return nodes;
+                }
+                changeNodes(newNodes);
+                const sourceEdges = edges.filter((e) => e.target === id);
+                const filteredEdges = edges.filter((e) => {
+                    const invalidSources = nodes
+                        .filter((n) => n.parentNode && sourceEdges.some((ed) => ed.source === n.id))
+                        .map((n) => n.id);
+                    return !invalidSources.includes(e.source);
                 });
-                changeEdges((edges) => edges.filter((e) => e.target !== id));
+                changeEdges(filteredEdges);
             },
-            [changeNodes, changeEdges]
+            [changeNodes, changeEdges, getNodes, getEdges]
         );
 
         const isValidConnection = useCallback(
@@ -670,6 +687,16 @@ export const GlobalProvider = memo(
             [getNode, getNodes, getEdges, typeState]
         );
 
+        const [inputDataChanges, addInputDataChangesCounter] = useChangeCounter();
+        const [lastInputDataUpdatedId, setLastInputDataUpdatedId] = useState<string | undefined>();
+        const addInputDataChanges = useCallback(
+            (id: string) => {
+                addInputDataChangesCounter();
+                setLastInputDataUpdatedId(id);
+            },
+            [addInputDataChangesCounter, setLastInputDataUpdatedId]
+        );
+
         const useInputData = useCallback(
             // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
             function <T extends NonNullable<InputValue>>(
@@ -692,11 +719,12 @@ export const GlobalProvider = memo(
                         };
                         return nodeCopy;
                     });
+                    addInputDataChanges(id);
                 };
                 const resetInputData = () => setInputData(undefined);
                 return [currentInput, setInputData, resetInputData] as const;
             },
-            [modifyNode, schemata]
+            [modifyNode, schemata, addInputDataChanges]
         );
 
         const useInputSize = useCallback(
@@ -909,8 +937,16 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
+                if (outputDataMap.get(id)) {
+                    setOutputDataMap((prev) => {
+                        const tempPrev = prev as Map<string, OutputData>;
+                        tempPrev.delete(id);
+                        return new Map([...(tempPrev as ReadonlyMap<string, OutputData>)]);
+                    });
+                }
+                addInputDataChanges(id);
             },
-            [modifyNode]
+            [modifyNode, addInputDataChanges, outputDataMap, setOutputDataMap]
         );
 
         const setNodeDisabled = useCallback(
@@ -933,6 +969,10 @@ export const GlobalProvider = memo(
         const pasteFn = useCallback(() => {
             pasteFromClipboard(changeNodes, changeEdges);
         }, [changeNodes, changeEdges]);
+        const selectAllFn = useCallback(() => {
+            changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
+            changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
+        }, [changeNodes, changeEdges]);
 
         useHotkeys('ctrl+x, cmd+x', cutFn, [cutFn]);
         useIpcRendererListener('cut', cutFn, [cutFn]);
@@ -940,10 +980,10 @@ export const GlobalProvider = memo(
         useIpcRendererListener('copy', copyFn, [copyFn]);
         useHotkeys('ctrl+v, cmd+v', pasteFn, [pasteFn]);
         useIpcRendererListener('paste', pasteFn, [pasteFn]);
+        useHotkeys('ctrl+a, cmd+a', selectAllFn, [selectAllFn]);
 
         const [zoom, setZoom] = useState(1);
 
-        const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
         const globalChainValue = useMemoObject<GlobalVolatile>({
@@ -957,11 +997,10 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
-            useConnectingFromType: useMemoArray([
-                connectingFromType,
-                setConnectingFromType,
-            ] as const),
+            inputDataChanges,
+            lastInputDataUpdatedId,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
+            useOutputDataMap: useMemoArray([outputDataMap, setOutputDataMap] as const),
         });
 
         const globalValue = useMemoObject<Global>({

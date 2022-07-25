@@ -1,6 +1,6 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra-ui/react';
-import { DragEvent, memo, useEffect, useState } from 'react';
+import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -66,6 +66,25 @@ export const RepresentativeNodeWrapper = memo(
             </MenuList>
         ));
 
+        const createNodeFromSelector = useCallback(() => {
+            if (!reactFlowWrapper.current) return;
+
+            const { height: wHeight, width } = reactFlowWrapper.current.getBoundingClientRect();
+
+            const position = reactFlowInstance.project({
+                x: width / 2,
+                y: wHeight / 2,
+            });
+
+            createNode({
+                nodeType: node.nodeType,
+                position,
+                data: {
+                    schemaId: node.schemaId,
+                },
+            });
+        }, [createNode, node.schemaId, node.nodeType, reactFlowInstance, reactFlowWrapper.current]);
+
         return (
             <Box
                 key={node.name}
@@ -107,23 +126,7 @@ export const RepresentativeNodeWrapper = memo(
                                 }}
                                 onDoubleClick={() => {
                                     setDidSingleClick(false);
-                                    if (!reactFlowWrapper.current) return;
-
-                                    const { height: wHeight, width } =
-                                        reactFlowWrapper.current.getBoundingClientRect();
-
-                                    const position = reactFlowInstance.project({
-                                        x: width / 2,
-                                        y: wHeight / 2,
-                                    });
-
-                                    createNode({
-                                        nodeType: node.nodeType,
-                                        position,
-                                        data: {
-                                            schemaId: node.schemaId,
-                                        },
-                                    });
+                                    createNodeFromSelector();
                                 }}
                                 onDragEnd={() => {
                                     setHoveredNode(null);
@@ -137,6 +140,7 @@ export const RepresentativeNodeWrapper = memo(
                                 <RepresentativeNode
                                     category={node.category}
                                     collapsed={collapsed}
+                                    createNodeFromSelector={createNodeFromSelector}
                                     icon={node.icon}
                                     name={node.name}
                                     schemaId={node.schemaId}

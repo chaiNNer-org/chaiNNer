@@ -224,6 +224,13 @@ class AstConverter {
         });
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    private getName(name: Contexts['NameContext']): string {
+        return getMultipleTokens(name, 'Identifier')
+            .map((id) => id.getText())
+            .join('::');
+    }
+
     toExpression(context: Parameters<AstConverter['toExpressionWithoutSource']>[0]): Expression {
         const expression = this.toExpressionWithoutSource(context);
         // can't add source info to types
@@ -252,7 +259,9 @@ class AstConverter {
             context instanceof NaviParser.ExpressionDocumentContext ||
             context instanceof NaviParser.ScopeExpressionContext
         ) {
-            const definitions = getMultiple(context, 'definition').map((d) => this.toDefinition(d));
+            const definitions = getMultiple(context, 'definition').flatMap((d) =>
+                this.toDefinitions(d)
+            );
             const expression = this.toExpression(getRequired(context, 'expression'));
             if (definitions.length === 0) return expression;
             return new ScopeExpression(definitions, expression);
@@ -299,7 +308,7 @@ class AstConverter {
             return this.toExpression(rule);
         }
         if (context instanceof NaviParser.NamedContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const fields = getOptional(context, 'fields');
             if (!fields) {
                 if (name === 'any') return AnyType.instance;
@@ -316,7 +325,7 @@ class AstConverter {
             );
         }
         if (context instanceof NaviParser.FunctionCallContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             return new FunctionCallExpression(
                 name,
                 this.argsToExpression(getRequired(context, 'args'))
@@ -349,59 +358,99 @@ class AstConverter {
         return assertNever(context);
     }
 
-    toDefinition(context: Parameters<AstConverter['toDefinitionWithoutSource']>[0]): Definition {
-        const definition = this.toDefinitionWithoutSource(context);
-        // already has source info
-        if (definition.source) return definition;
-
-        definition.source = this.getSource(context);
-        return definition;
+    toDefinitions(
+        context: Parameters<AstConverter['toDefinitionsWithoutSource']>[0]
+    ): Definition[] {
+        const definitions = this.toDefinitionsWithoutSource(context);
+        const source = this.getSource(context);
+        for (const d of definitions) {
+            d.source ??= source;
+        }
+        return definitions;
     }
 
-    private toDefinitionWithoutSource(
+    private toDefinitionsWithoutSource(
         context:
+            | Contexts['DefinitionDocumentContext']
             | Contexts['DefinitionContext']
             | Contexts['StructDefinitionContext']
             | Contexts['FunctionDefinitionContext']
             | Contexts['VariableDefinitionContext']
-    ): Definition {
+            | Contexts['EnumDefinitionContext']
+    ): Definition[] {
+        if (context instanceof NaviParser.DefinitionDocumentContext) {
+            return getMultiple(context, 'definition').flatMap((d) => this.toDefinitions(d));
+        }
         if (context instanceof NaviParser.DefinitionContext) {
             const rule =
                 getOptional(context, 'structDefinition') ??
                 getOptional(context, 'functionDefinition') ??
-                getOptional(context, 'variableDefinition');
+                getOptional(context, 'variableDefinition') ??
+                getOptional(context, 'enumDefinition');
             if (!rule) throw new ConversionError(context, `No known rule or token`);
-            return this.toDefinition(rule);
+            return this.toDefinitions(rule);
         }
         if (context instanceof NaviParser.StructDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const fields = getOptional(context, 'fields');
-            if (!fields) return new StructDefinition(name);
-            return new StructDefinition(
-                name,
-                this.fieldsToList(fields).map(
-                    ([fieldName, type]) => new StructDefinitionField(fieldName, type)
-                )
-            );
+            if (!fields) return [new StructDefinition(name)];
+            return [
+                new StructDefinition(
+                    name,
+                    this.fieldsToList(fields).map(
+                        ([fieldName, type]) => new StructDefinitionField(fieldName, type)
+                    )
+                ),
+            ];
         }
         if (context instanceof NaviParser.FunctionDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const parameters = this.parametersToList(getRequired(context, 'parameters'));
             const rule =
                 getOptional(context, 'expression') ?? getOptional(context, 'scopeExpression');
             if (!rule) throw new ConversionError(context, `No known rule or token`);
-            return new FunctionDefinition(
-                name,
-                parameters.map(
-                    ([parameterName, type]) => new FunctionDefinitionParameter(parameterName, type)
+            return [
+                new FunctionDefinition(
+                    name,
+                    parameters.map(
+                        ([parameterName, type]) =>
+                            new FunctionDefinitionParameter(parameterName, type)
+                    ),
+                    this.toExpression(rule)
                 ),
-                this.toExpression(rule)
-            );
+            ];
         }
         if (context instanceof NaviParser.VariableDefinitionContext) {
-            const name = getRequiredToken(context, 'Identifier').getText();
+            const name = this.getName(getRequired(context, 'name'));
             const value = this.toExpression(getRequired(context, 'expression'));
-            return new VariableDefinition(name, value);
+            return [new VariableDefinition(name, value)];
+        }
+        if (context instanceof NaviParser.EnumDefinitionContext) {
+            const name = this.getName(getRequired(context, 'name'));
+            const variants = getMultiple(context, 'enumVariant').map((v) => {
+                const fields = getOptional(v, 'fields');
+                return {
+                    name: getRequiredToken(v, 'Identifier').getText(),
+                    fields: fields === undefined ? [] : this.fieldsToList(fields),
+                };
+            });
+            return [
+                new VariableDefinition(
+                    name,
+                    new UnionExpression(
+                        variants.map((v) => new NamedExpression(`${name}::${v.name}`))
+                    )
+                ),
+                ...variants.map(
+                    (v) =>
+                        new StructDefinition(
+                            `${name}::${v.name}`,
+                            v.fields.map(
+                                ([fieldName, type]) => new StructDefinitionField(fieldName, type)
+                            )
+                        )
+                ),
+            ];
         }
 
         return assertNever(context);
@@ -433,10 +482,5 @@ export const parseExpression = (document: SourceDocument): Expression => {
 };
 export const parseDefinitions = (document: SourceDocument): Definition[] => {
     const parser = getParser(document.text);
-    const converter = new AstConverter(document);
-    const definitions: Definition[] = [];
-    for (const definitionContext of getMultiple(parser.definitionDocument(), 'definition')) {
-        definitions.push(converter.toDefinition(definitionContext));
-    }
-    return definitions;
+    return new AstConverter(document).toDefinitions(parser.definitionDocument());
 };

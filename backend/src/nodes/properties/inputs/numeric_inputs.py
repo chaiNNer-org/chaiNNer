@@ -13,7 +13,7 @@ def clampNumber(
 ) -> Union[float, int]:
     # Convert proper number type
     if offset % 1 == 0 and step % 1 == 0:
-        value = int(value)
+        value = round(value)
     else:
         value = float(value)
 
@@ -79,6 +79,13 @@ class NumberInput(BaseInput):
             self.maximum,
             self.step,
         )
+        if self.step == 1 and self.offset == 0:
+            self.input_conversion = """
+                match Input {
+                    number as i => round(i),
+                    _ as i => i,
+                }
+            """
 
     def toDict(self):
         return {
@@ -95,7 +102,7 @@ class NumberInput(BaseInput):
         }
 
     def make_optional(self):
-        raise ValueError("DropDownInput cannot be made optional")
+        raise ValueError("NumberInput and SliderInput cannot be made optional")
 
     def enforce(self, value):
         return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
@@ -110,9 +117,9 @@ class SliderInput(NumberInput):
         step: Union[float, int] = 1,
         controls_step: Union[float, int, None] = None,
         slider_step: Union[float, int, None] = None,
-        minimum: int = 0,
-        maximum: int = 100,
-        default: int = 50,
+        minimum: Union[float, int] = 0,
+        maximum: Union[float, int] = 100,
+        default: Union[float, int] = 50,
         unit: Union[str, None] = None,
         note_expression: Union[str, None] = None,
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
@@ -143,6 +150,3 @@ class SliderInput(NumberInput):
             "ends": self.ends,
             "sliderStep": self.slider_step,
         }
-
-    def enforce(self, value):
-        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)

@@ -10,14 +10,15 @@ expressionDocument: definition* expression EOF;
 definition:
 	structDefinition
 	| functionDefinition
-	| variableDefinition;
-structDefinition: Struct Identifier (';' | fields);
+	| variableDefinition
+	| enumDefinition;
+structDefinition: Struct name (';' | fields);
 functionDefinition:
-	Def Identifier parameters (
-		'=' expression ';'
-		| scopeExpression
-	);
-variableDefinition: Let Identifier '=' expression ';';
+	Def name parameters ('=' expression ';' | scopeExpression);
+variableDefinition: Let name '=' expression ';';
+enumDefinition:
+	Enum name '{' (enumVariant (',' enumVariant)* ','?)* '}';
+enumVariant: Identifier fields?;
 
 // expression
 primaryExpression:
@@ -34,8 +35,8 @@ primaryExpression:
 matchExpression:
 	Match expression '{' (matchArm (',' matchArm)* ','?)? '}';
 matchArm: (Discard | expression) (As Identifier)? '=>' expression;
-functionCall: Identifier '(' args ')';
-named: Identifier fields?;
+functionCall: name '(' args ')';
+named: name fields?;
 scopeExpression: '{' definition* expression '}';
 
 fieldAccessExpression: primaryExpression ('.' Identifier)*;
@@ -55,12 +56,15 @@ field: Identifier ':' expression;
 parameters: '(' (parameter (',' parameter)* ','?)? ')';
 parameter: Identifier ':' expression;
 
+name: Identifier ('::' Identifier)*;
+
 // keywords
 As: 'as';
 Def: 'def';
 Let: 'let';
 Match: 'match';
 Struct: 'struct';
+Enum: 'enum';
 
 Discard: '_';
 

@@ -145,8 +145,14 @@ class StackNode(NodeBase):
                 let heightSum = add(getAdjustedHeight(Input0), getAdjustedHeight(Input1), getAdjustedHeight(Input2), getAdjustedHeight(Input3));
 
                 Image {
-                    width: match Input4 { Vertical => maxWidth, Horizontal => widthSum },
-                    height: match Input4 { Vertical => heightSum, Horizontal => maxHeight },
+                    width: match Input4 {
+                        Orientation::Vertical => maxWidth,
+                        Orientation::Horizontal => widthSum
+                    },
+                    height: match Input4 {
+                        Orientation::Vertical => heightSum,
+                        Orientation::Horizontal => maxHeight
+                    },
                     channels: maxChannels
                 }
                 """
@@ -244,7 +250,19 @@ class CaptionNode(NodeBase):
             ImageInput(),
             TextInput("Caption", allow_numbers=True),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                // this value is defined by
+                let captionHeight = 42;
+                Image {
+                    width: Input0.width,
+                    height: add(Input0.height, captionHeight),
+                    channels: Input0.channels,
+                }
+                """
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Add Caption"
         self.icon = "MdVideoLabel"
@@ -284,7 +302,27 @@ class ColorConvertNode(NodeBase):
     def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        result = cv2.cvtColor(img, int(color_mode))
+        def reverse3(image: np.ndarray) -> np.ndarray:
+            c = get_h_w_c(image)[2]
+            assert c == 3, "Expected a 3-channel image"
+            return np.stack([image[:, :, 2], image[:, :, 1], image[:, :, 0]], axis=2)
+
+        # preprocessing
+        if color_mode in (cv2.COLOR_HSV2BGR, cv2.COLOR_YUV2BGR):
+            img = reverse3(img)
+
+        if color_mode == cv2.COLOR_HSV2BGR:
+            img[:, :, 0] *= 360
+
+        # color conversion
+        result = cv2.cvtColor(img, color_mode)
+
+        # postprocessing
+        if color_mode == cv2.COLOR_BGR2HSV:
+            result[:, :, 0] /= 360
+
+        if color_mode in (cv2.COLOR_BGR2HSV, cv2.COLOR_BGR2YUV):
+            result = reverse3(result)
 
         return result
 
@@ -384,17 +422,65 @@ class RotateNode(NodeBase):
                 unit="°",
             ),
             RotateInterpolationInput(),
-            DropDownInput(
-                input_type="RotateExpandCrop",
-                label="Image Dimensions",
-                options=[
-                    {"option": "Expand to fit", "value": RotateExpandCrop.EXPAND},
-                    {"option": "Crop to original", "value": RotateExpandCrop.CROP},
-                ],
-            ),
+            RotateExpansionInput(),
             FillColorDropdown(),
         ]
-        self.outputs = [ImageOutput()]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                // This is a near verbatim copy of PIL's rotate code
+                // to get the size of the rotated image.
+                // https://pillow.readthedocs.io/en/stable/_modules/PIL/Image.html#Image.rotate
+                struct Point { x: number, y: number }
+
+                let rot_center = Point {
+                    x: divide(Input0.width, 2),
+                    y: divide(Input0.height, 2),
+                };
+
+                let angle = negate(degToRad(Input1));
+                let m0 = cos(angle);
+                let m1 = sin(angle);
+                let m2 = add(rot_center.x, multiply(m0, negate(rot_center.x)), multiply(m1, negate(rot_center.y)));
+                let m3 = negate(sin(angle));
+                let m4 = cos(angle);
+                let m5 = add(rot_center.y, multiply(m3, negate(rot_center.x)), multiply(m4, negate(rot_center.y)));
+
+                def transform(x: number, y: number) {
+                    Point {
+                        x: add(multiply(m0, x), multiply(m1, y), m2),
+                        y: add(multiply(m3, x), multiply(m4, y), m5),
+                    }
+                }
+
+                let p0 = transform(0, 0);
+                let p1 = transform(Input0.width, 0);
+                let p2 = transform(Input0.width, Input0.height);
+                let p3 = transform(0, Input0.height);
+
+                let expandWidth = uint & subtract(
+                    ceil(max(p0.x, p1.x, p2.x, p3.x)),
+                    floor(min(p0.x, p1.x, p2.x, p3.x))
+                );
+                let expandHeight = uint & subtract(
+                    ceil(max(p0.y, p1.y, p2.y, p3.y)),
+                    floor(min(p0.y, p1.y, p2.y, p3.y))
+                );
+
+                Image {
+                    width: match Input3 {
+                        RotateSizeChange::Crop => Input0.width,
+                        _ => expandWidth
+                    },
+                    height: match Input3 {
+                        RotateSizeChange::Crop => Input0.height,
+                        _ => expandHeight
+                    },
+                    channels: match Input4 { FillColor::Transparent => 4, _ => Input0.channels }
+                }
+                """
+            )
+        ]
         self.category = IMAGE_UTILITY
         self.name = "Rotate"
         self.icon = "MdRotate90DegreesCcw"
