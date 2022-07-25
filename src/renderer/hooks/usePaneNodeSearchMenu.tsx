@@ -24,6 +24,8 @@ import {
     createUniqueId,
     parseSourceHandle,
     parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -321,7 +323,7 @@ export const usePaneNodeSearchMenu = (
                                 source: connectingFrom.nodeId,
                                 sourceHandle: connectingFrom.handleId,
                                 target: nodeId,
-                                targetHandle: `${nodeId}-${first}`,
+                                targetHandle: stringifyTargetHandle(nodeId, first),
                             });
                         }
                         break;
@@ -331,7 +333,7 @@ export const usePaneNodeSearchMenu = (
                         if (first !== undefined) {
                             createConnection({
                                 source: nodeId,
-                                sourceHandle: `${nodeId}-${first}`,
+                                sourceHandle: stringifySourceHandle(nodeId, first),
                                 target: connectingFrom.nodeId,
                                 targetHandle: connectingFrom.handleId,
                             });

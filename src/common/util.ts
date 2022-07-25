@@ -35,6 +35,10 @@ const parseHandle = (handle: string): ParsedHandle => {
 };
 export const parseSourceHandle = parseHandle as (handle: string) => ParsedHandle<OutputId>;
 export const parseTargetHandle = parseHandle as (handle: string) => ParsedHandle<InputId>;
+const stringifyHandle = (nodeId: string, inOutId: InputId | OutputId): string =>
+    `${nodeId}-${inOutId}`;
+export const stringifySourceHandle: (nodeId: string, inOutId: OutputId) => string = stringifyHandle;
+export const stringifyTargetHandle: (nodeId: string, inOutId: InputId) => string = stringifyHandle;
 
 export const getLocalStorage = (): Storage => {
     const storage = (global as Record<string, unknown>).customLocalStorage;

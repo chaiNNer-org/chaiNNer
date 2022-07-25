@@ -4,7 +4,7 @@ import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-ren
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
-import { parseSourceHandle, parseTargetHandle } from '../../../common/util';
+import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
@@ -70,16 +70,18 @@ export const InputContainer = memo(
             // no active connection
             if (!connectingFrom) return true;
 
+            const targetHandle = stringifyTargetHandle(id, inputId);
+
             // We only want to display the connectingFrom target handle
             if (connectingFrom.handleType === 'target')
-                return connectingFrom.handleId === `${id}-${inputId}`;
+                return connectingFrom.handleId === targetHandle;
 
             // Show same types
             return isValidConnection({
                 source: connectingFrom.nodeId,
                 sourceHandle: connectingFrom.handleId,
                 target: id,
-                targetHandle: `${id}-${inputId}`,
+                targetHandle,
             });
         }, [connectingFrom, definitionType, id, inputId]);
 
@@ -147,7 +149,7 @@ export const InputContainer = memo(
                             }}
                             as={LeftHandle}
                             className="input-handle"
-                            id={`${id}-${inputId}`}
+                            id={stringifyTargetHandle(id, inputId)}
                             isValidConnection={isValidConnection}
                             sx={{
                                 width: '16px',
