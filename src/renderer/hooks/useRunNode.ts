@@ -60,7 +60,9 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                     sendToast({
                         status: 'error',
                         title: 'Error',
-                        description: 'Image failed to load, probably unsupported file type.',
+                        description:
+                            result.error ||
+                            'Preview failed to load, probably unsupported file type.',
                     });
                 }
             }
