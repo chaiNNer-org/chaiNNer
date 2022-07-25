@@ -281,6 +281,7 @@ export const usePaneNodeSearchMenu = (
     const matchingSchemata = useMemo(
         () =>
             schemata.schemata.filter((schema) => {
+                if (schema.deprecated) return false;
                 return (
                     !connectingFrom ||
                     !connectingFromType ||
