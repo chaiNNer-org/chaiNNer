@@ -144,12 +144,6 @@ class ImageUpscaleNode(NodeBase):
             # Borrowed from iNNfer
             logger.info("Converting image to tensor")
             img_tensor = np2tensor(img, change_range=True)
-            if os.environ["isFp16"] == "True":
-                model = model.half()
-                img_tensor = img_tensor.half()
-            else:
-                model = model.float()
-                img_tensor = img_tensor.float()
             logger.info("Upscaling image")
 
             if os.environ["device"] == "cuda":
@@ -262,11 +256,11 @@ class InterpolateNode(NodeBase):
         if a_keys != b_keys:
             return False
         interp_50 = self.perform_interp(model_a, model_b, 50)
-        model = load_state_dict(interp_50)
+        model = load_state_dict(interp_50).cpu()
         fake_img = np.ones((3, 3, model.in_nc), dtype=np.float32)
         del interp_50
         with torch.no_grad():
-            img_tensor = np2tensor(fake_img, change_range=True)
+            img_tensor = np2tensor(fake_img, change_range=True).cpu()
             t_out = model(img_tensor)
             result = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
         del model, img_tensor, t_out, fake_img
