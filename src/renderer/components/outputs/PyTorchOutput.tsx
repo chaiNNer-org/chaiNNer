@@ -39,6 +39,15 @@ const getColorMode = (channels: number) => {
     }
 };
 
+const convertToInternalModelType = (modelType: string) => {
+    switch (modelType) {
+        case 'RealESRGAN':
+            return 'ESRGAN';
+        default:
+            return modelType;
+    }
+};
+
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
         const type = useContextSelector(GlobalVolatileContext, (c) =>
@@ -70,7 +79,11 @@ export const PyTorchOutput = memo(
                             ),
                             new NamedExpressionField(
                                 'modelType',
-                                new StringLiteralType(value.modelType)
+                                new StringLiteralType(convertToInternalModelType(value.modelType))
+                            ),
+                            new NamedExpressionField(
+                                'size',
+                                new StringLiteralType(value.size.join('x'))
                             ),
                         ])
                     );
@@ -84,75 +97,72 @@ export const PyTorchOutput = memo(
         const fontColor = useColorModeValue('gray.700', 'gray.400');
 
         return (
-            <>
-                <Center
-                    h="full"
-                    minH="2rem"
-                    overflow="hidden"
-                    verticalAlign="middle"
-                    w="full"
-                >
-                    {value && !animated ? (
-                        <Center mt={1}>
-                            <Wrap
-                                justify="center"
-                                maxW={60}
-                                spacing={2}
-                            >
-                                <WrapItem>
+            <Center
+                h="full"
+                minH="2rem"
+                overflow="hidden"
+                verticalAlign="middle"
+                w="full"
+            >
+                {value && !animated ? (
+                    <Center mt={1}>
+                        <Wrap
+                            justify="center"
+                            maxW={60}
+                            spacing={2}
+                        >
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.modelType}
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.scale}x
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
+                                </Tag>
+                            </WrapItem>
+                            {value.size.map((size) => (
+                                <WrapItem key={size}>
                                     <Tag
                                         bgColor={tagColor}
+                                        key={size}
+                                        textAlign="center"
                                         textColor={fontColor}
                                     >
-                                        {value.modelType}
+                                        {size}
                                     </Tag>
                                 </WrapItem>
-                                <WrapItem>
-                                    <Tag
-                                        bgColor={tagColor}
-                                        textColor={fontColor}
-                                    >
-                                        {value.scale}x
-                                    </Tag>
-                                </WrapItem>
-                                <WrapItem>
-                                    <Tag
-                                        bgColor={tagColor}
-                                        textColor={fontColor}
-                                    >
-                                        {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
-                                    </Tag>
-                                </WrapItem>
-                                {value.size.map((size) => (
-                                    <WrapItem key={size}>
-                                        <Tag
-                                            bgColor={tagColor}
-                                            key={size}
-                                            textAlign="center"
-                                            textColor={fontColor}
-                                        >
-                                            {size}
-                                        </Tag>
-                                    </WrapItem>
-                                ))}
-                            </Wrap>
-                        </Center>
-                    ) : animated ? (
-                        <Spinner />
-                    ) : (
-                        <HStack>
-                            <ViewOffIcon />
-                            <Text
-                                fontSize="sm"
-                                lineHeight="0.5rem"
-                            >
-                                Model data not available.
-                            </Text>
-                        </HStack>
-                    )}
-                </Center>
-                {JSON.stringify(type)}
-            </>
+                            ))}
+                        </Wrap>
+                    </Center>
+                ) : animated ? (
+                    <Spinner />
+                ) : (
+                    <HStack>
+                        <ViewOffIcon />
+                        <Text
+                            fontSize="sm"
+                            lineHeight="0.5rem"
+                        >
+                            Model data not available.
+                        </Text>
+                    </HStack>
+                )}
+            </Center>
         );
     }
 );

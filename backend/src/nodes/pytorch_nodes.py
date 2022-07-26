@@ -73,7 +73,7 @@ class LoadModelNode(NodeBase):
             Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
         self.inputs = [PthFileInput()]
         self.outputs = [
-            ModelOutput(kind="pytorch", should_broadcast=True),
+            ModelOutput(kind="PyTorchModel", should_broadcast=True),
             TextOutput("Model Name"),
         ]
 
@@ -217,7 +217,7 @@ class InterpolateNode(NodeBase):
              in order to be interpolatable."""
         self.inputs = [
             ModelInput("Model A"),
-            ModelInput("Model B", input_type="Input0"),
+            ModelInput("Model B"),
             SliderInput(
                 "Weights",
                 controls_step=5,
@@ -230,7 +230,9 @@ class InterpolateNode(NodeBase):
             ),
         ]
         self.outputs = [
-            ModelOutput(model_type="Input0 & Input1"),
+            ModelOutput(model_type="Input0 & Input1").with_never_reason(
+                "Models must be of the same type and have the same parameters to be interpolated."
+            ),
             NumberOutput("Amount A", "subtract(100, Input2)"),
             NumberOutput("Amount B", "Input2"),
         ]
