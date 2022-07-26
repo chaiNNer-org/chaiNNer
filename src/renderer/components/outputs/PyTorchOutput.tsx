@@ -11,11 +11,11 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
@@ -50,11 +50,6 @@ const convertToInternalModelType = (modelType: string) => {
 
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(id)?.outputs.get(outputId)
-        );
-        console.log('🚀 ~ file: PyTorchOutput.tsx ~ line 47 ~ type', type);
-
         const value = useOutputData(outputId) as PyTorchModelData | undefined;
 
         const { setManualOutputType, schemata } = useContext(GlobalContext);
