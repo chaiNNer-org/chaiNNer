@@ -15,7 +15,6 @@ class UsableData(TypedDict):
     id: str
     schemaId: str
     inputs: list
-    outputs: list
     child: bool
     children: List[str]
     nodeType: str
@@ -111,7 +110,7 @@ class Executor:
                 processed_input = await self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
                 if type(processed_input) in [list, tuple]:
-                    index = next_index  # next_input["outputs"].index({"id": node_id})
+                    index = next_index
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
                 if self.should_stop_running():

@@ -113,7 +113,6 @@ const convertToUsableFormat = (
                 schema,
                 (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
             ),
-            outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
             nodeType,
             hasSideEffects: schema.hasSideEffects,
