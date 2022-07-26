@@ -26,14 +26,11 @@ class NodeBase(metaclass=ABCMeta):
         self.type = "regularNode"
 
         self.side_effects = False
+        self.deprecated = False
 
     @abstractmethod
     def run(self) -> Any:
         """Abstract method to run a node's logic"""
-        return
-
-    def get_extra_data(self) -> Any:
-        """Abstract method for getting extra data the frontend needs"""
         return
 
     def get_inputs(self, with_implicit_ids=False):
@@ -66,6 +63,9 @@ class NodeBase(metaclass=ABCMeta):
 
     def get_has_side_effects(self):
         return self.side_effects
+
+    def is_deprecated(self):
+        return self.deprecated
 
 
 # pylint: disable=abstract-method

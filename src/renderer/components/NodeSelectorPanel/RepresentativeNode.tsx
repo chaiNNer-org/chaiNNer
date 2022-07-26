@@ -13,6 +13,7 @@ interface RepresentativeNodeProps {
     name: string;
     collapsed?: boolean;
     schemaId: SchemaId;
+    createNodeFromSelector: () => void;
 }
 
 export const RepresentativeNode = memo(
@@ -23,6 +24,7 @@ export const RepresentativeNode = memo(
         icon,
         schemaId,
         collapsed = false,
+        createNodeFromSelector,
     }: RepresentativeNodeProps) => {
         const bgColor = useColorModeValue('gray.50', 'gray.700');
         const accentColor = getNodeAccentColor(category);
@@ -42,9 +44,9 @@ export const RepresentativeNode = memo(
 
         return (
             <Center
-                _hover={{
-                    outlineColor: accentColor,
-                }}
+                _active={{ outlineColor: accentColor }}
+                _focus={{ outlineColor: accentColor }}
+                _hover={{ outlineColor: accentColor }}
                 bgGradient={bgGradient}
                 borderColor={bgColor}
                 borderRadius="lg"
@@ -53,8 +55,14 @@ export const RepresentativeNode = memo(
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
+                tabIndex={0}
                 transition="outline 0.15s ease-in-out"
                 w="full"
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        createNodeFromSelector();
+                    }
+                }}
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >

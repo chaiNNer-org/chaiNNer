@@ -9,10 +9,16 @@ class ModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "PyTorchModel",
         label: str = "Model",
+        kind="generic",
+        should_broadcast=False,
     ):
-        super().__init__(model_type, label)
+        super().__init__(model_type, label, kind=kind)
+        self.should_broadcast = should_broadcast
 
     def get_broadcast_data(self, value: PyTorchModel):
+        if not self.should_broadcast:
+            return None
+
         if "SRVGG" in value.model_type:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
         else:

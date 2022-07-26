@@ -15,6 +15,7 @@ import {
 import { app, clipboard } from 'electron';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext } from 'use-context-selector';
+import { ipcRenderer } from '../../common/safeIpc';
 import { assertNever, noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
 import { ContextMenuContext } from './ContextMenuContext';
@@ -177,6 +178,7 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     useEffect(() => {
         if (current && !isOpen) {
+            ipcRenderer.send('disable-menu');
             onOpen();
         }
     }, [current, isOpen, onOpen]);
@@ -185,7 +187,10 @@ export const AlertBoxProvider = memo(({ children }: React.PropsWithChildren<unkn
         (button: number) => {
             current?.resolve(button);
             setQueue((q) => q.slice(1));
-            if (isLast) onDisclosureClose();
+            if (isLast) {
+                onDisclosureClose();
+                ipcRenderer.send('enable-menu');
+            }
         },
         [current, isLast, setQueue, onDisclosureClose]
     );

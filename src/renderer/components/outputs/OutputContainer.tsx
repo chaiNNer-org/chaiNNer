@@ -1,20 +1,23 @@
-import { Box, Center, HStack, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Position, useReactFlow } from 'react-flow-renderer';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import { OutputId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
-import { parseSourceHandle } from '../../../common/util';
+import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
+import { TypeTag } from '../TypeTag';
 
 interface OutputContainerProps {
     hasHandle: boolean;
     outputId: OutputId;
     id: string;
     definitionType: Type;
+    label: string;
+    generic: boolean;
 }
 
 interface RightHandleProps {
@@ -49,6 +52,8 @@ export const OutputContainer = memo(
         outputId,
         id,
         definitionType,
+        label,
+        generic,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
@@ -62,17 +67,23 @@ export const OutputContainer = memo(
         );
         const [connectingFrom] = useConnectingFrom;
 
+        const type = useContextSelector(GlobalVolatileContext, (c) =>
+            c.typeState.functions.get(id)?.outputs.get(outputId)
+        );
+
         const showHandle = useMemo(() => {
             // no active connection
             if (!connectingFrom) return true;
 
+            const sourceHandle = stringifySourceHandle(id, outputId);
+
             // We only want to display the connectingFrom source handle
             if (connectingFrom.handleType === 'source')
-                return connectingFrom.handleId === `${id}-${outputId}`;
+                return connectingFrom.handleId === sourceHandle;
 
             return isValidConnection({
                 source: id,
-                sourceHandle: `${id}-${outputId}`,
+                sourceHandle,
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
@@ -109,7 +120,7 @@ export const OutputContainer = memo(
                             }}
                             as={RightHandle}
                             className="output-handle"
-                            id={`${id}-${outputId}`}
+                            id={stringifySourceHandle(id, outputId)}
                             isValidConnection={isValidConnection}
                             sx={{
                                 width: '16px',
@@ -141,7 +152,32 @@ export const OutputContainer = memo(
                 verticalAlign="middle"
                 w="full"
             >
-                {contents}
+                {!generic && (
+                    <Center
+                        h="1.25rem"
+                        p={1}
+                        verticalAlign="middle"
+                    >
+                        {type && (
+                            <Center
+                                h="2rem"
+                                mr={1}
+                                verticalAlign="middle"
+                            >
+                                <TypeTag type={type} />
+                            </Center>
+                        )}
+                        <Text
+                            display={label ? 'block' : 'none'}
+                            fontSize="xs"
+                            lineHeight="0.9rem"
+                            textAlign="center"
+                        >
+                            {label}
+                        </Text>
+                    </Center>
+                )}
+                <Box pb={generic ? 0 : 2}>{contents}</Box>
             </Box>
         );
     }

@@ -4,15 +4,17 @@ import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState 
 import { useReactFlow } from 'react-flow-renderer';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, Input, NodeData } from '../../../common/common-types';
+import { isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
+import { Validity, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
+import { useRunNode } from '../../hooks/useRunNode';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -71,7 +73,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState(VALID);
+    const [validity, setValidity] = useState<Validity>({
+        isValid: false,
+        reason: 'Validating nodes...',
+    });
     useEffect(() => {
         if (inputs.length) {
             setValidity(
@@ -147,6 +152,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const bgColor = useColorModeValue('gray.400', 'gray.750');
     const shadowColor = useColorModeValue('gray.600', 'gray.900');
 
+    useRunNode(data, validity.isValid && isStartingNode(schema));
+
     return (
         <Center
             bg={bgColor}
@@ -185,6 +192,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     />
                     <NodeBody
                         accentColor={accentColor}
+                        animated={animated}
                         id={id}
                         inputData={inputData}
                         inputSize={inputSize}

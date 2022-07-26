@@ -9,7 +9,7 @@ import {
     StructType,
     Type,
 } from '../../common/types/types';
-import { EMPTY_MAP, parseSourceHandle } from '../../common/util';
+import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../../common/util';
 
 export class TypeState {
     readonly functions: ReadonlyMap<string, FunctionInstance>;
@@ -41,7 +41,7 @@ export class TypeState {
         const evaluationErrors = new Map<string, EvaluationError>();
 
         const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
-            const edge = byTargetHandle.get(`${id}-${inputId}`);
+            const edge = byTargetHandle.get(stringifyTargetHandle(id, inputId));
             if (edge && edge.sourceHandle) {
                 const sourceHandle = parseSourceHandle(edge.sourceHandle);
                 const sourceNode = nodesMap.get(sourceHandle.nodeId);

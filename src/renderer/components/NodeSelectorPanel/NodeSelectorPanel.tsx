@@ -46,7 +46,10 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    const matchingNodes = getMatchingNodes(searchQuery, sortSchemata(schemata.schemata));
+    const matchingNodes = getMatchingNodes(
+        searchQuery,
+        sortSchemata(schemata.schemata.filter((s) => !s.deprecated))
+    );
     const byCategories = useMemo(() => getNodesByCategory(matchingNodes), [matchingNodes]);
 
     const [collapsed, setCollapsed] = useContextSelector(

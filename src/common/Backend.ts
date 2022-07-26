@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { InputValue, JsonValue, NodeSchema, SchemaId, UsableData } from './common-types';
+import { InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
     message: string;
@@ -22,7 +22,7 @@ export interface BackendRunRequest {
 }
 export interface BackendRunIndividualRequest {
     id: string;
-    inputs: InputValue[];
+    inputs: (InputValue | null)[];
     isCpu: boolean;
     isFp16: boolean;
     schemaId: SchemaId;
@@ -86,7 +86,7 @@ export class Backend {
     /**
      * Runs a single node
      */
-    runIndividual<T = JsonValue>(data: BackendRunIndividualRequest): Promise<BackendResult<T>> {
+    runIndividual(data: BackendRunIndividualRequest): Promise<BackendResult<null>> {
         return this.fetchJson('/run/individual', 'POST', data);
     }
 

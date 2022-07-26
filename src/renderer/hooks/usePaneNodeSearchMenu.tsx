@@ -24,6 +24,8 @@ import {
     createUniqueId,
     parseSourceHandle,
     parseTargetHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -190,7 +192,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
 const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | undefined =>
     fn.schema.inputs.find((i) => i.hasHandle && fn.canAssignInput(i.id, type))?.id;
 const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | undefined =>
-    fn.schema.outputs.find((o) => fn.canAssignOutput(o.id, type))?.id;
+    fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
 
 const canConnectWith = (
     connectingFrom: OnConnectStartParams,
@@ -279,6 +281,7 @@ export const usePaneNodeSearchMenu = (
     const matchingSchemata = useMemo(
         () =>
             schemata.schemata.filter((schema) => {
+                if (schema.deprecated) return false;
                 return (
                     !connectingFrom ||
                     !connectingFromType ||
@@ -321,7 +324,7 @@ export const usePaneNodeSearchMenu = (
                                 source: connectingFrom.nodeId,
                                 sourceHandle: connectingFrom.handleId,
                                 target: nodeId,
-                                targetHandle: `${nodeId}-${first}`,
+                                targetHandle: stringifyTargetHandle(nodeId, first),
                             });
                         }
                         break;
@@ -331,7 +334,7 @@ export const usePaneNodeSearchMenu = (
                         if (first !== undefined) {
                             createConnection({
                                 source: nodeId,
-                                sourceHandle: `${nodeId}-${first}`,
+                                sourceHandle: stringifySourceHandle(nodeId, first),
                                 target: connectingFrom.nodeId,
                                 targetHandle: connectingFrom.handleId,
                             });

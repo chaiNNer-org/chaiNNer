@@ -22,6 +22,7 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
+    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -35,6 +36,7 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
+    EMPTY_MAP,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -74,16 +76,22 @@ interface GlobalVolatile {
     nodeChanges: ChangeCounter;
     edgeChanges: ChangeCounter;
     typeState: TypeState;
-    createNode: (proto: NodeProto) => void;
+    createNode: (proto: NodeProto, parentId?: string) => void;
     createConnection: (connection: Connection) => void;
     isNodeInputLocked: (id: string, inputId: InputId) => boolean;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
+    inputDataChanges: ChangeCounter;
+    lastInputDataUpdatedId: string | undefined;
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
+    ];
+    useOutputDataMap: readonly [
+        ReadonlyMap<string, OutputData>,
+        SetState<ReadonlyMap<string, OutputData>>
     ];
 }
 interface Global {
@@ -227,6 +235,9 @@ export const GlobalProvider = memo(
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
 
+        const [outputDataMap, setOutputDataMap] =
+            useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
             const timerId = setTimeout(() => {
@@ -267,11 +278,11 @@ export const GlobalProvider = memo(
             }
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
-        const [savePath, setSavePathInternal] = useState<string | undefined>();
+        const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
         const setSavePath = useCallback(
             (path: string | undefined) => {
-                setSavePathInternal(path);
+                setSavePathInternal(path ?? null);
                 if (path) pushOpenPath(path);
             },
             [setSavePathInternal, pushOpenPath]
@@ -387,6 +398,22 @@ export const GlobalProvider = memo(
                         title: 'File has been modified',
                         message:
                             'The file you are trying to open has been modified outside of chaiNNer. The modifications may cause chaiNNer to behave incorrectly or in unexpected ways. The file will now be loaded with the modifications.',
+                    });
+                }
+                const deprecatedNodes = [...new Set(validNodes.map((n) => n.data.schemaId))].filter(
+                    (id) => schemata.get(id).deprecated
+                );
+                if (deprecatedNodes.length > 0) {
+                    const list = deprecatedNodes
+                        .map((id) => {
+                            const schema = schemata.get(id);
+                            return `- ${schema.category} > ${schema.name}`;
+                        })
+                        .join('\n');
+                    sendAlert({
+                        type: AlertType.WARN,
+                        title: 'File contains deprecated nodes',
+                        message: `This file contains the following deprecated node(s):\n\n${list}\n\nThis chain will still work right now, but these nodes will stop working in future versions of Chainner.`,
                     });
                 }
                 changeNodes(validNodes);
@@ -540,11 +567,10 @@ export const GlobalProvider = memo(
         );
 
         const createNode = useCallback(
-            (proto: NodeProto): void => {
+            (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
-                    const parent = hoveredNode
-                        ? nodes.find((n) => n.id === hoveredNode)
-                        : undefined;
+                    const searchId = parentId ?? hoveredNode;
+                    const parent = searchId ? nodes.find((n) => n.id === searchId) : undefined;
                     const newNodes = createNodeImpl(proto, schemata, parent, true);
                     return [
                         ...nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
@@ -661,6 +687,16 @@ export const GlobalProvider = memo(
             [getNode, getNodes, getEdges, typeState]
         );
 
+        const [inputDataChanges, addInputDataChangesCounter] = useChangeCounter();
+        const [lastInputDataUpdatedId, setLastInputDataUpdatedId] = useState<string | undefined>();
+        const addInputDataChanges = useCallback(
+            (id: string) => {
+                addInputDataChangesCounter();
+                setLastInputDataUpdatedId(id);
+            },
+            [addInputDataChangesCounter, setLastInputDataUpdatedId]
+        );
+
         const useInputData = useCallback(
             // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
             function <T extends NonNullable<InputValue>>(
@@ -683,11 +719,12 @@ export const GlobalProvider = memo(
                         };
                         return nodeCopy;
                     });
+                    addInputDataChanges(id);
                 };
                 const resetInputData = () => setInputData(undefined);
                 return [currentInput, setInputData, resetInputData] as const;
             },
-            [modifyNode, schemata]
+            [modifyNode, schemata, addInputDataChanges]
         );
 
         const useInputSize = useCallback(
@@ -900,8 +937,16 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
+                if (outputDataMap.get(id)) {
+                    setOutputDataMap((prev) => {
+                        const tempPrev = prev as Map<string, OutputData>;
+                        tempPrev.delete(id);
+                        return new Map([...(tempPrev as ReadonlyMap<string, OutputData>)]);
+                    });
+                }
+                addInputDataChanges(id);
             },
-            [modifyNode]
+            [modifyNode, addInputDataChanges, outputDataMap, setOutputDataMap]
         );
 
         const setNodeDisabled = useCallback(
@@ -952,7 +997,10 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            inputDataChanges,
+            lastInputDataUpdatedId,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
+            useOutputDataMap: useMemoArray([outputDataMap, setOutputDataMap] as const),
         });
 
         const globalValue = useMemoObject<Global>({
