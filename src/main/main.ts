@@ -119,7 +119,7 @@ const registerEventHandlers = () => {
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
         dialog.showOpenDialog(mainWindow, {
-            filters,
+            filters: [...filters, { name: 'All Files', extensions: ['*'] }],
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
         })
