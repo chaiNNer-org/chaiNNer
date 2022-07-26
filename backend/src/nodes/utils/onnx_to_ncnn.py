@@ -1393,6 +1393,263 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 5
                 i += 5
 
+    def fuse_pixelshuffle(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # PixelShuffle <= Reshape - Transpose - Reshape
+            # PixelShuffle <= Reshape - Transpose - Constant - Reshape
+            if node.op_type == "Reshape":
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+
+                if len(node.input) == 1:
+                    shape = self.get_node_attr_ai(node, "shape")
+                else:
+                    # skip weight reshape
+                    if node.input[1] not in self.weights:
+                        continue
+
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
+                    )
+
+                # -1, 3, upscale_factor, upscale_factor, height, width
+                if (
+                    shape.size != 6
+                    or (shape[0] != 1 and shape[0] != -1)
+                    or shape[2] != shape[3]
+                    or i + 2 >= node_count
+                ):
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+
+                if node3.op_type == "Constant":
+                    if i + 3 >= node_count:
+                        continue
+
+                    node3 = self.mutable_graph_nodes[i + 3]
+
+                if node.op_type != "Transpose" or node3.op_type != "Reshape":
+                    continue
+                if self.node_reference[node2.output[0]] != 1:
+                    continue
+
+                # 0 1 4 2 5 3
+                perm = self.get_node_attr_ai(node2, "perm")
+                if (
+                    perm.size != 6
+                    or perm[0] != 0
+                    or perm[1] != 1
+                    or perm[2] != 4
+                    or perm[3] != 2
+                    or perm[4] != 5
+                    or perm[5] != 3
+                ):
+                    continue
+
+                if len(node3.input) == 1:
+                    shape3 = self.get_node_attr_ai(node3, "shape")
+                else:
+                    if node3.input[1] not in self.weights:
+                        continue
+
+                    shape3 = self.get_node_attr_from_input_ai(
+                        self.weights[node3.input[1]]
+                    )
+
+                # -1, 3, height, width
+                if (
+                    shape3.size != 4
+                    or (shape3[0] != 1 and shape3[0] != -1)
+                    or shape3[1] != shape[1]
+                    or shape3[2] != shape[2] * shape[4]
+                    or shape3[3] != shape[3] * shape[5]
+                ):
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+
+                if len(node.input) == 2:
+                    self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                if len(node3) == 2:
+                    self.node_reference[node3.input[1]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+
+                node3.op_type = "PixelShuffle"
+                node3.input[0] = node.input[0]
+
+                attr_group = onnx.AttributeProto(
+                    name="scale_factor", i=shape[2], type=APT.INT
+                )
+                node3.attribute.append(attr_group)
+
+                reduced_node_count[0] += 2
+                i += 2
+
+    def fuse_reorg(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # PixelShuffle <= Reshape - Transpose - Reshape
+            # PixelShuffle <= Reshape - Transpose - Constant - Reshape
+            if node.op_type == "Reshape":
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+
+                if len(node.input) == 1:
+                    shape = self.get_node_attr_ai(node, "shape")
+                else:
+                    if node.input[1] not in self.weights:
+                        continue
+
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
+                    )
+
+                # -1, 3, out_height, block_size, out_width, block_size
+                if (
+                    shape.size != 6
+                    or (shape[0] != 1 and shape[0] != -1)
+                    or shape[3] != shape[5]
+                    or i + 2 >= node_count
+                ):
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+
+                if node3.op_type == "Constant":
+                    if i + 3 >= node_count:
+                        continue
+
+                    node3 = self.mutable_graph_nodes[i + 3]
+
+                if node2.op_type != "Transpose" or node3.op_type != "Reshape":
+                    continue
+                if self.node_reference[node2.output[0]] != 1:
+                    continue
+
+                # 0 1 3 5 2 4
+                perm = self.get_node_attr_ai(node2, "perm")
+                if (
+                    perm.size != 6
+                    or perm[0] != 0
+                    or perm[1] != 1
+                    or perm[2] != 3
+                    or perm[3] != 5
+                    or perm[4] != 2
+                    or perm[5] != 4
+                ):
+                    continue
+
+                if len(node3.input) == 1:
+                    shape3 = self.get_node_attr_ai(node3, "shape")
+                else:
+                    if node3.input[1] not in self.weights:
+                        continue
+
+                    shape3 = self.get_node_attr_from_input_ai(
+                        self.weights[node3.input[1]]
+                    )
+
+                # -1, out_channels, out_height, out_width
+                if (
+                    shape3.size != 4
+                    or (shape3[0] != 1 and shape3[0] != -1)
+                    or shape3[1] != shape[1] * shape[3] * shape[5]
+                    or shape3[2] != shape[2]
+                    or shape3[3] != shape[4]
+                ):
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+
+                if len(node.input) == 2:
+                    self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                if len(node3) == 2:
+                    self.node_reference[node3.input[1]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+
+                node3.op_type = "Reorg"
+                node3.input[0] = node.input[0]
+
+                attr_group = onnx.AttributeProto(
+                    name="stride", i=shape[3], type=APT.INT
+                )
+                node3.attribute.append(attr_group)
+
+                reduced_node_count[0] += 2
+                i += 2
+
+    def fuse_expand_broadcast(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # Add/Sub/Mul/Div/Min/Max <= Expand - Add/Sub/Mul/Div/Min/Max
+            if node.op_type == "Expand":
+                if self.node_reference[node.output[0]] != 1 or i + 1 >= node_count:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+
+                if node2.op_type not in ["Add", "Sub", "Mul", "Div", "Min", "Max"]:
+                    continue
+                if (
+                    node2.input[1] != node.output[0]
+                    and node2.input[0] != node.output[0]
+                ):
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+
+                self.node_reference[node.output[0]] -= 1
+                if len(node.input) == 2:
+                    self.node_reference[node.input[1]] -= 1
+
+                del self.blob_names[node.output[0]]
+
+                if node2.input[0] == node.output[0]:
+                    node2.input[0] = node.input[0]
+                else:
+                    node2.input[1] = node.input[0]
+
+                reduced_node_count[0] += 1
+                i += 1
+
+    def fuse_lstm_gru_rnn(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+    def fuse_multiheadattention(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+    def fuse_binaryop_with_scalar(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
     def convert(self):
         # Topological sort
         for i, node in enumerate(self.mutable_graph_nodes):
@@ -1482,6 +1739,18 @@ class Onnx2NcnnConverter:
         self.fuse_hardswish(reduced_node_count)
         self.fuse_swish(reduced_node_count)
         self.fuse_batchnorm1d_squeeze_unsqueeze(reduced_node_count)
+        self.fuse_unsqueeze_prelu(reduced_node_count)
+        self.fuse_normalize(reduced_node_count)
+        self.fuse_groupnorm(reduced_node_count)
+        self.fuse_layernorm(reduced_node_count)
+        self.fuse_flatten(reduced_node_count)
+        self.fuse_pixelshuffle(reduced_node_count)
+        self.fuse_reorg(reduced_node_count)
+        self.fuse_expand_broadcast(reduced_node_count)
+        self.fuse_lstm_gru_rnn(reduced_node_count)
+        self.fuse_multiheadattention(reduced_node_count)
+        self.fuse_binaryop_with_scalar(reduced_node_count)
+        self.fuse_rewrite_gather()
 
 
 if __name__ == "__main__":
