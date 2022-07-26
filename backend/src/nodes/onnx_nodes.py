@@ -9,11 +9,13 @@ import onnxruntime as ort
 from sanic.log import logger
 
 from .categories import ONNX
+from .ncnn_nodes import NcnnNetData
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.onnx_auto_split import onnx_auto_split_process
+from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
 
 
@@ -172,3 +174,23 @@ class OnnxImageUpscaleNode(NodeBase):
             in_nc,
             lambda i: self.upscale(i, session, split_factor, change_shape),
         )
+
+
+@NodeFactory.register("chainner:onnx:convert_to_ncnn")
+class ConvertOnnxToNcnnNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = """Convert an ONNX model to NCNN."""
+        self.inputs = [OnnxModelInput("ONNX Model")]
+        self.outputs = [NcnnNetOutput("NCNN Model")]
+
+        self.category = "ONNX"
+        self.name = "Convert To NCNN"
+        self.icon = "NCNN"
+        self.sub = "Utility"
+        self.side_effects = True
+
+    def run(self, onnx_model: bytes) -> NcnnNetData:
+        converter = Onnx2NcnnConverter(onnx_model)
+        converter.convert()
+        return NcnnNetData("", np.zeros((1, 1)), "", "")
