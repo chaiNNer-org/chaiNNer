@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 
 from sanic.log import logger
 
+from nodes.node_base import NodeBase
 from nodes.node_factory import NodeFactory
 
 
@@ -91,10 +92,7 @@ class Executor:
         logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
-            finish_data = {
-                "finished": [key for key in self.output_cache.keys()],
-            }
-            await self.queue.put({"event": "node-finish", "data": finish_data})
+            await self.queue.put(self.__create_node_finish())
             return self.output_cache[node_id]
 
         inputs = []
@@ -171,43 +169,54 @@ class Executor:
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
-            finish_data = await self.check()
-            await self.queue.put({"event": "node-finish", "data": finish_data})
-            del node_instance, finish_data
+            await self.queue.put(self.__create_node_finish())
+            del node_instance
             return output
         else:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *enforced_inputs)
             output = await self.loop.run_in_executor(None, run_func)
-            node_outputs = node_instance.get_outputs()
-            broadcast_data: Dict[int, Any] = dict()
-            # Only broadcast the output if the node has outputs and the output is not cached
-            if len(node_outputs) > 0 and self.output_cache.get(node_id, None) is None:
-                output_idxable = [output] if len(node_outputs) == 1 else output
-                for idx, node_output in enumerate(node_outputs):
-                    try:
-                        output_id = (
-                            node_output.id if node_output.id is not None else idx
-                        )
-                        broadcast_data[output_id] = node_output.get_broadcast_data(
-                            output_idxable[idx]
-                        )
-                    except Exception as e:
-                        logger.error(f"Error broadcasting output: {e}")
-                await self.queue.put(
-                    {
-                        "event": "node-output-data",
-                        "data": {"nodeId": node_id, "data": broadcast_data},
-                    }
-                )
+            await self.__broadcast_data(node_instance, node_id, output)
             # Cache the output of the node
             self.output_cache[node_id] = output
-            finish_data = {
-                "finished": [key for key in self.output_cache.keys()],
-            }
-            await self.queue.put({"event": "node-finish", "data": finish_data})
-            del node_instance, run_func, finish_data
+            await self.queue.put(self.__create_node_finish())
+            del node_instance, run_func
             return output
+
+    async def __broadcast_data(
+        self,
+        node_instance: NodeBase,
+        node_id: str,
+        output: Any,
+    ):
+        node_outputs = node_instance.get_outputs()
+        # Only broadcast the output if the node has outputs and the output is not cached
+        if len(node_outputs) > 0 and self.output_cache.get(node_id, None) is None:
+            broadcast_data: Dict[int, Any] = dict()
+            output_idxable = [output] if len(node_outputs) == 1 else output
+            for idx, node_output in enumerate(node_outputs):
+                try:
+                    output_id = node_output.id if node_output.id is not None else idx
+                    broadcast_data[output_id] = node_output.get_broadcast_data(
+                        output_idxable[idx]
+                    )
+                except Exception as e:
+                    logger.error(f"Error broadcasting output: {e}")
+            await self.queue.put(
+                {
+                    "event": "node-output-data",
+                    "data": {"nodeId": node_id, "data": broadcast_data},
+                }
+            )
+
+    def __create_node_finish(self):
+        cached_ids = [key for key in self.output_cache.keys()]
+        return {
+            "event": "node-finish",
+            "data": {
+                "finished": cached_ids,
+            },
+        }
 
     async def process_nodes(self):
         # Create a list of all output nodes
@@ -235,13 +244,6 @@ class Executor:
         self.resumed = True
         os.environ["killed"] = "False"
         await self.process_nodes()
-
-    async def check(self):
-        """Check the executor"""
-        cached_ids = [key for key in self.output_cache.keys()]
-        return {
-            "finished": cached_ids,
-        }
 
     async def pause(self):
         """Pause the executor"""
