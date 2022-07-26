@@ -959,10 +959,17 @@ class Onnx2NcnnConverter:
                     if node.input[1] not in self.weights:
                         continue
 
-                    shape = self.get_node_attr_from_input_ai(self.weights[node.input[1]])
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
+                    )
 
                 # 0, group, -1
-                if shape.size != 3 or shape[0] != 0 or shape[2] != -1 or i + 4 >= node_count:
+                if (
+                    shape.size != 3
+                    or shape[0] != 0
+                    or shape[2] != -1
+                    or i + 4 >= node_count
+                ):
                     continue
 
                 groups = shape[1]
@@ -972,11 +979,25 @@ class Onnx2NcnnConverter:
                 node4 = self.mutable_graph_nodes[i + 3]
                 node5 = self.mutable_graph_nodes[i + 4]
 
-                if node2.op_type != "InstanceNormalization" or node3.op_type != "Reshape" or node4.op_type != "Mul" or node5.op_type != "Add":
+                if (
+                    node2.op_type != "InstanceNormalization"
+                    or node3.op_type != "Reshape"
+                    or node4.op_type != "Mul"
+                    or node5.op_type != "Add"
+                ):
                     continue
-                if self.node_reference[node2.output[0]] != 1 or self.node_reference[node3.output[0]] != 1 or self.node_reference[node4.output[0]] != 1:
+                if (
+                    self.node_reference[node2.output[0]] != 1
+                    or self.node_reference[node3.output[0]] != 1
+                    or self.node_reference[node4.output[0]] != 1
+                ):
                     continue
-                if node2.input[0] != node.output[0] or node3.input[0] != node2.output[0] or node4.input[0] != node3.output[0] or node5.input[0] != node4.output[0]:
+                if (
+                    node2.input[0] != node.output[0]
+                    or node3.input[0] != node2.output[0]
+                    or node4.input[0] != node3.output[0]
+                    or node5.input[0] != node4.output[0]
+                ):
                     continue
 
                 # +eps
@@ -1004,7 +1025,9 @@ class Onnx2NcnnConverter:
                     if node3.input[1] not in self.weights:
                         continue
 
-                    shape2 = self.get_node_attr_from_input_ai(self.weights[node3.input[1]])
+                    shape2 = self.get_node_attr_from_input_ai(
+                        self.weights[node3.input[1]]
+                    )
 
                 # 1, channels, w, h
                 if shape2.size != 4 or shape2[0] != 1:
@@ -1013,8 +1036,12 @@ class Onnx2NcnnConverter:
                 channels = shape2[1]
 
                 # affine
-                affine_S = self.get_node_attr_from_input_af(self.weights[node4.input[1]])
-                affine_B = self.get_node_attr_from_input_af(self.weights[node5.input[1]])
+                affine_S = self.get_node_attr_from_input_af(
+                    self.weights[node4.input[1]]
+                )
+                affine_B = self.get_node_attr_from_input_af(
+                    self.weights[node5.input[1]]
+                )
                 if affine_S.size != channels and affine_B != channels:
                     continue  # only per-channel affine allowed
 
@@ -1052,7 +1079,9 @@ class Onnx2NcnnConverter:
                 attr_groups = onnx.AttributeProto(name="groups", i=groups, type=APT.INT)
                 node5.attribute.append(attr_groups)
 
-                attr_channels = onnx.AttributeProto(name="channels", i=channels, type=APT.INT)
+                attr_channels = onnx.AttributeProto(
+                    name="channels", i=channels, type=APT.INT
+                )
                 node5.attribute.append(attr_channels)
 
                 attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
@@ -1081,7 +1110,9 @@ class Onnx2NcnnConverter:
                 # -2 -1
                 if axes.size != 1 and axes.size != 2:
                     continue
-                if (axes.size == 1 and axes[0] != -1) or (axes.size == 2 and (axes[0] != -2 or axes[1] != -1)):
+                if (axes.size == 1 and axes[0] != -1) or (
+                    axes.size == 2 and (axes[0] != -2 or axes[1] != -1)
+                ):
                     continue
                 if i + 6 >= node_count:
                     continue
@@ -1095,15 +1126,33 @@ class Onnx2NcnnConverter:
 
                 if node2.op_type != "Sub" or node3.op_type != "Pow":
                     continue
-                if self.node_reference[node2.output[0]] != 2 or self.node_reference[node3.output[0]] != 1 or self.node_reference[node4.output[0]] != 1 or self.node_reference[node5.output[0]] != 1 or self.node_reference[node6.output[0]] != 1:
+                if (
+                    self.node_reference[node2.output[0]] != 2
+                    or self.node_reference[node3.output[0]] != 1
+                    or self.node_reference[node4.output[0]] != 1
+                    or self.node_reference[node5.output[0]] != 1
+                    or self.node_reference[node6.output[0]] != 1
+                ):
                     continue
-                if node2.input[0] != node.input[0] or node2.input[1] != node.output[0] or node3.input[0] != node2.output[0] or node4.input[0] != node3.output[0] or node5.input[0] != node4.output[0] or node6.input[0] != node5.output[0] or node7.input[0] != node2.output[0] or node7.input[1] != node6.output[0]:
+                if (
+                    node2.input[0] != node.output[0]
+                    or node2.input[1] != node.output[0]
+                    or node3.input[0] != node2.output[0]
+                    or node4.input[0] != node3.output[0]
+                    or node5.input[0] != node4.output[0]
+                    or node6.input[0] != node5.output[0]
+                    or node7.input[0] != node2.output[0]
+                    or node7.input[1] != node6.output[0]
+                ):
                     continue
                 if node3.input[1] not in self.weights:
                     continue
 
                 pow_two = self.weights[node3.input[1]]
-                if len(pow_two.dims) != 0 or self.get_tensor_proto_data_size(pow_two) != 1:
+                if (
+                    len(pow_two.dims) != 0
+                    or self.get_tensor_proto_data_size(pow_two) != 1
+                ):
                     continue
 
                 constant_pow_two = self.get_node_attr_from_input_f(pow_two)
@@ -1116,13 +1165,18 @@ class Onnx2NcnnConverter:
                 # -2 -1
                 if axes4.size != axes.size:
                     continue
-                if (axes.size == 1 and axes[4] != -1) or (axes.size == 2 and (axes4[0] != -2 or axes4[1] != -1)):
+                if (axes.size == 1 and axes[4] != -1) or (
+                    axes.size == 2 and (axes4[0] != -2 or axes4[1] != -1)
+                ):
                     continue
                 if node5.input[1] not in self.weights:
                     continue
 
                 add_eps = self.weights[node5.input[1]]
-                if len(add_eps.dims) != 0 or self.get_tensor_proto_data_size(add_eps) != 1:
+                if (
+                    len(add_eps.dims) != 0
+                    or self.get_tensor_proto_data_size(add_eps) != 1
+                ):
                     continue
 
                 eps = self.get_node_attr_from_input_f(add_eps)
@@ -1134,14 +1188,24 @@ class Onnx2NcnnConverter:
 
                     if node8.op_type != "Mul" or node9.op_type != "Add":
                         break
-                    if self.node_reference[node7.output[0]] != 1 or self.node_reference[node8.output[0]] != 1:
+                    if (
+                        self.node_reference[node7.output[0]] != 1
+                        or self.node_reference[node8.output[0]] != 1
+                    ):
                         break
-                    if node8.input[0] != node7.output[0] or node9.input[0] != node8.output[0]:
+                    if (
+                        node8.input[0] != node7.output[0]
+                        or node9.input[0] != node8.output[0]
+                    ):
                         break
 
                     # affine
-                    affine_S = self.get_node_attr_from_input_af(self.weights[node8.input[1]])
-                    affine_B = self.get_node_attr_from_input_af(self.weights[node9.input[1]])
+                    affine_S = self.get_node_attr_from_input_af(
+                        self.weights[node8.input[1]]
+                    )
+                    affine_B = self.get_node_attr_from_input_af(
+                        self.weights[node9.input[1]]
+                    )
                     if affine_S.size != affine_B.size:
                         break
 
@@ -1214,6 +1278,120 @@ class Onnx2NcnnConverter:
 
                     reduced_node_count[0] += 8
                     i += 8
+
+    def fuse_flatten(self, reduced_node_count: [int]) -> None:
+        node_count = len(self.mutable_graph_nodes)
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # Flatten <= X - Shape - Gather - Constant - Unsqueeze - Unsqueeze - Concat - Reshape
+            if node.op_type == "Shape":
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+                if i + 6 >= node_count:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+                node4 = self.mutable_graph_nodes[i + 3]
+                node5 = self.mutable_graph_nodes[i + 4]
+                node6 = self.mutable_graph_nodes[i + 5]
+                node7 = self.mutable_graph_nodes[i + 6]
+
+                if (
+                    node2.op_type != "Gather"
+                    or node3.op_type != "Constant"
+                    or node4.op_type != "Unsqueeze"
+                    or node5.op_type != "Unsqueeze"
+                    or node6.op_type != "Concat"
+                    or node7.op_type != "Reshape"
+                ):
+                    continue
+                if (
+                    self.node_reference[node2.output[0]] != 1
+                    or self.node_reference[node4.output[0]] != 1
+                    or self.node_reference[node5.output[0]] != 1
+                    or self.node_reference[node6.output[0]] != 1
+                ):
+                    continue
+
+                if (
+                    node2.input[0] != node.output[0]
+                    or node4.input[0] != node2.output[0]
+                    or node5.input[0] != node3.output[0]
+                    or node6.input[0] != node4.output[0]
+                    or node6.input[1] != node5.output[0]
+                    or node7.input[0] != node.input[0]
+                    or node7.input[1] != node6.output[0]
+                ):
+                    continue
+
+                # axis = 0
+                gather_axis = self.get_node_attr_i(node2, "axis")
+                if gather_axis != 0:
+                    continue
+
+                # indices = 0
+                if node2.input[1] not in self.weights:
+                    continue
+
+                gather_indices = self.get_node_attr_from_input_ai(
+                    self.weights[node2.input[1]]
+                )
+                if gather_indices.size != 1 or gather_indices[0] != 0:
+                    continue
+
+                # axes = (0)
+                unsqueeze_axes = self.get_node_attr_ai(node4, "axes")
+                if unsqueeze_axes.size != 1 or unsqueeze_axes[0] != 0:
+                    continue
+                unsqueeze_axes2 = self.get_node_attr_ai(node5, "axes")
+                if unsqueeze_axes2.size != 1 or unsqueeze_axes2[0] != 0:
+                    continue
+
+                # data = -1
+                if node5.input[0] not in self.weights:
+                    continue
+
+                unsqueeze2_data = self.get_node_attr_from_input_ai(
+                    self.weights[node5.input[0]]
+                )
+                if unsqueeze2_data.size != 1 or unsqueeze2_data[0] != -1:
+                    continue
+
+                # axis = 0
+                concat_axis = self.get_node_attr_i(node6, "axis")
+                if concat_axis != 0:
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+                node4.op_type = "noop_reducedncnn"
+                node5.op_type = "noop_reducedncnn"
+                node6.op_type = "noop_reducedncnn"
+
+                self.node_reference[node.input[0]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.input[1]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                self.node_reference[node4.output[0]] -= 1
+                self.node_reference[node5.input[0]] -= 1
+                self.node_reference[node5.output[0]] -= 1
+                self.node_reference[node.output[0]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+                del self.blob_names[node4.output[0]]
+                del self.blob_names[node5.output[0]]
+                del self.blob_names[node6.output[0]]
+
+                node7.op_type = "Flatten"
+                node7.ClearField("input")
+                node7.input.append(node.input[0])
+
+                reduced_node_count[0] += 5
+                i += 5
 
     def convert(self):
         # Topological sort
