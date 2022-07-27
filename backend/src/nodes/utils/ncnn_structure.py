@@ -1,3 +1,6 @@
-class NcnnObject:
+class NcnnModel:
+    MAGIC = "7767517"
+
     def __init__(self):
-        self.magic = "7767517"
+        self.node_count: int = 0
+        self.blob_count: int = 0

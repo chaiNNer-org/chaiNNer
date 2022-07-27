@@ -1,3 +1,4 @@
+from operator import length_hint
 from typing import Union, List, Dict
 
 import numpy as np
@@ -9,28 +10,10 @@ from google.protobuf.internal.containers import (
 )
 from sanic.log import logger
 
-from .ncnn_structure import NcnnObject
+from ncnn_structure import NcnnModel
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
 FLOAT32_MAX = np.finfo(np.float32).max
-"""TENSOR_TO_NP_DTYPE = {
-    0: None,
-    1: np.float32,
-    2: np.uint8,
-    3: np.int8,
-    4: np.uint16,
-    5: np.int16,
-    6: np.int32,
-    7: np.int64,
-    8: np.str_,
-    9: np.bool_,
-    10: np.float16,
-    11: np.double,
-    12: np.uint32,
-    13: np.uint64,
-    14: np.complex64,
-    15: np.complex128,
-}"""
 
 
 class AttributeProtoTypes:
@@ -168,10 +151,11 @@ class Onnx2NcnnConverter:
     @staticmethod
     def get_node_attr_from_input_f(tp: onnx.TensorProto) -> float:
         shape_data = onph.to_array(tp)
+
         if tp.data_type in (TPT.FLOAT, TPT.DOUBLE, TPT.INT32):
-            f = shape_data[0]
+            f = shape_data.item(0)
         elif tp.data_type == TPT.INT64:
-            f = max(min(shape_data[0], INT64_MAX), INT64_MIN)
+            f = max(min(shape_data.item(0), INT64_MAX), INT64_MIN)
         else:
             raise TypeError(f"Unknown data type {tp.data_type}")
 
@@ -214,7 +198,7 @@ class Onnx2NcnnConverter:
 
         return 0
 
-    def fwrite_tensor_proto_data(self, tp: onnx.TensorProto, ncnno: NcnnObject):
+    def fwrite_tensor_proto_data(self, tp: onnx.TensorProto, ncnno: NcnnModel):
         # TODO: Figure out ncnn structure to decide how to write to it
         size = self.get_tensor_proto_data_size(tp)
 
@@ -227,23 +211,28 @@ class Onnx2NcnnConverter:
         node_count = len(self.mutable_graph_nodes)
         for i in range(node_count):
             gather = self.mutable_graph_nodes[i]
-            indices = self.get_node_attr_from_input_ai(self.weights[gather.input[1]])
-            if gather.op_type == "Gather" and len(indices) == 1:
-                # Reconstruct node connections
-                self.node_reference[gather.input[1]] -= 1
-                origin_inp = gather.input[0]
-                gather.ClearField("input")
-                gather.input.append(origin_inp)
+            if gather.op_type == "Gather":
+                indices = self.get_node_attr_from_input_ai(
+                    self.weights[gather.input[1]]
+                )
+                if len(indices) == 1:
+                    # Reconstruct node connections
+                    self.node_reference[gather.input[1]] -= 1
+                    origin_inp = gather.input[0]
+                    gather.ClearField("input")
+                    gather.input.append(origin_inp)
 
-                # Update axis, starts and ends
-                axis = self.get_node_attr_i(gather, "axis", 1)
-                gather.op_type = "Crop"
-                gather.ClearField("attribute")
+                    # Update axis, starts and ends
+                    axis = self.get_node_attr_i(gather, "axis", 1)
+                    gather.op_type = "Crop"
+                    gather.ClearField("attribute")
 
-                index = indices[0]
-                self.set_node_attr_ai(gather, "starts", np.array([index], np.int32))
-                self.set_node_attr_ai(gather, "ends", np.array([index + 1], np.int32))
-                self.set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
+                    index = indices[0]
+                    self.set_node_attr_ai(gather, "starts", np.array([index], np.int32))
+                    self.set_node_attr_ai(
+                        gather, "ends", np.array([index + 1], np.int32)
+                    )
+                    self.set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
 
     def fuse_weight_reshape(self, reduced_node_count: [int]) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -406,8 +395,8 @@ class Onnx2NcnnConverter:
                     if len(node3.input) == 2:
                         self.node_reference[node3.input[1]] -= 1
 
-                    del self.blob_names[node.output[0]]
-                    del self.blob_names[node2.output[0]]
+                    self.blob_names.pop(node.output[0], None)
+                    self.blob_names.pop(node2.output[0], None)
 
                     node3.op_type = "ShuffleChannel"
                     node3.input[0] = node.input[0]
@@ -505,94 +494,97 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-            add_three = self.weights[node.input[1]]
-            if (
-                len(add_three.dims) != 0
-                or self.get_tensor_proto_data_size(add_three) != 1
-            ):
-                continue
-
-            constant_add_three = self.get_node_attr_from_input_f(add_three)
-            if constant_add_three != 3:
-                continue
-
-            node2 = self.mutable_graph_nodes[i + 1]
-            node3 = self.mutable_graph_nodes[i + 2]
-            node4 = self.mutable_graph_nodes[i + 3]
-
-            if node4.op_type == "Constant":
-                if i + 4 >= node_count:
+                add_three = self.weights[node.input[1]]
+                if (
+                    len(add_three.dims) != 0
+                    or self.get_tensor_proto_data_size(add_three) != 1
+                ):
                     continue
-                node4 = self.mutable_graph_nodes[i + 4]
-            if (
-                node2.op_type != "Clip"
-                or node3.op_type != "Mul"
-                or node4.op_type != "Div"
-                or node4.op_type != "Mul"
-            ):
-                continue
-            if self.node_reference[node2.output[0]] != 1:
-                continue
 
-            if len(node2.input) == 1:
-                relu6_min = self.get_node_attr_f(node2, "min", -FLOAT32_MAX)
-                relu6_max = self.get_node_attr_f(node2, "max", FLOAT32_MAX)
-            else:
-                min_tp = self.weights[node2.input[1]]
-                max_tp = self.weights[node2.input[2]]
-                relu6_min = self.get_node_attr_from_input_f(min_tp)
-                relu6_max = self.get_node_attr_from_input_f(max_tp)
+                constant_add_three = self.get_node_attr_from_input_f(add_three)
+                if constant_add_three != 3:
+                    continue
 
-            if relu6_min != 0 or relu6_max != 6:
-                continue
-            if self.node_reference[node3.output[0]] != 1:
-                continue
-            if node3.input[0] != node.input[0] or node3.input[1] != node2.output[0]:
-                continue
-            if node4.input[1] not in self.weights:
-                continue
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+                node4 = self.mutable_graph_nodes[i + 3]
 
-            div_six = self.weights[node4.input[1]]
-            if len(div_six.dims) != 0 or self.get_tensor_proto_data_size(div_six) != 1:
-                continue
+                if node4.op_type == "Constant":
+                    if i + 4 >= node_count:
+                        continue
+                    node4 = self.mutable_graph_nodes[i + 4]
+                if (
+                    node2.op_type != "Clip"
+                    or node3.op_type != "Mul"
+                    or node4.op_type != "Div"
+                    or node4.op_type != "Mul"
+                ):
+                    continue
+                if self.node_reference[node2.output[0]] != 1:
+                    continue
 
-            constant_div_six = self.get_node_attr_from_input_f(div_six)
-            if (node4.op_type == "Div" and constant_div_six != 6) or (
-                node4.op_type == "Mul" and constant_div_six != 1 / 6
-            ):
-                continue
+                if len(node2.input) == 1:
+                    relu6_min = self.get_node_attr_f(node2, "min", -FLOAT32_MAX)
+                    relu6_max = self.get_node_attr_f(node2, "max", FLOAT32_MAX)
+                else:
+                    min_tp = self.weights[node2.input[1]]
+                    max_tp = self.weights[node2.input[2]]
+                    relu6_min = self.get_node_attr_from_input_f(min_tp)
+                    relu6_max = self.get_node_attr_from_input_f(max_tp)
 
-            # reduce
-            node.op_type = "noop_reducedncnn"
-            node2.op_type = "noop_reducedncnn"
-            node3.op_type = "noop_reducedncnn"
+                if relu6_min != 0 or relu6_max != 6:
+                    continue
+                if self.node_reference[node3.output[0]] != 1:
+                    continue
+                if node3.input[0] != node.input[0] or node3.input[1] != node2.output[0]:
+                    continue
+                if node4.input[1] not in self.weights:
+                    continue
 
-            self.node_reference[node.input[0]] -= 1
-            self.node_reference[node.input[1]] -= 1
-            self.node_reference[node.output[0]] -= 1
-            if len(node2.input) == 3:
-                self.node_reference[node2.input[1]] -= 1
-                self.node_reference[node2.input[2]] -= 1
-            self.node_reference[node2.output[0]] -= 1
-            self.node_reference[node3.output[0]] -= 1
-            self.node_reference[node4.input[1]] -= 1
+                div_six = self.weights[node4.input[1]]
+                if (
+                    len(div_six.dims) != 0
+                    or self.get_tensor_proto_data_size(div_six) != 1
+                ):
+                    continue
 
-            del self.blob_names[node.output[0]]
-            del self.blob_names[node2.output[0]]
-            del self.blob_names[node3.output[0]]
+                constant_div_six = self.get_node_attr_from_input_f(div_six)
+                if (node4.op_type == "Div" and constant_div_six != 6) or (
+                    node4.op_type == "Mul" and constant_div_six != 1 / 6
+                ):
+                    continue
 
-            node4.op_type = "HardSwish"
-            node4.ClearField("input")
-            node4.input.append(node.input[0])
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+                node3.op_type = "noop_reducedncnn"
 
-            attr_alpha = onnx.AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
-            node4.attribute.append(attr_alpha)
+                self.node_reference[node.input[0]] -= 1
+                self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                if len(node2.input) == 3:
+                    self.node_reference[node2.input[1]] -= 1
+                    self.node_reference[node2.input[2]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                self.node_reference[node3.output[0]] -= 1
+                self.node_reference[node4.input[1]] -= 1
 
-            attr_beta = onnx.AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
-            node4.attribute.append(attr_beta)
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
 
-            reduced_node_count[0] += 3
-            i += 3
+                node4.op_type = "HardSwish"
+                node4.ClearField("input")
+                node4.input.append(node.input[0])
+
+                attr_alpha = onnx.AttributeProto(name="alpha", f=1 / 6, type=APT.FLOAT)
+                node4.attribute.append(attr_alpha)
+
+                attr_beta = onnx.AttributeProto(name="beta", f=0.5, type=APT.FLOAT)
+                node4.attribute.append(attr_beta)
+
+                reduced_node_count[0] += 3
+                i += 3
 
         for i in range(node_count):
             node = self.mutable_graph_nodes[i]
@@ -622,7 +614,7 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[0]] -= 1
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 node2.op_type = "HardSwish"
                 node2.ClearField("input")
@@ -723,8 +715,8 @@ class Onnx2NcnnConverter:
                 self.node_reference[node2.output[0]] -= 1
                 self.node_reference[node3.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
 
                 node3.op_type = "HardSigmoid"
                 node3.ClearField("input")
@@ -763,7 +755,7 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[0]] -= 1
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 node2.op_type = "Swish"
                 node2.ClearField("input")
@@ -782,31 +774,34 @@ class Onnx2NcnnConverter:
                 if self.node_reference[node.output[0]] != 1 or i + 2 >= node_count:
                     continue
 
-            node2 = self.mutable_graph_nodes[i + 1]
-            node3 = self.mutable_graph_nodes[i + 2]
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
 
-            if node2.op_type != "BatchNormalization" or node3.op_type != "Squeeze":
-                continue
-            if self.node_reference[node2.output[0]] != 1:
-                continue
-            if node2.input[0] != node.output[0] or node3.input[0] != node2.output[0]:
-                continue
+                if node2.op_type != "BatchNormalization" or node3.op_type != "Squeeze":
+                    continue
+                if self.node_reference[node2.output[0]] != 1:
+                    continue
+                if (
+                    node2.input[0] != node.output[0]
+                    or node3.input[0] != node2.output[0]
+                ):
+                    continue
 
-            # reduce
-            node.op_type = "noop_reducedncnn"
-            node3.op_type = "noop_reducedncnn"
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node3.op_type = "noop_reducedncnn"
 
-            self.node_reference[node.output[0]] -= 1
-            self.node_reference[node2.output[0]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.output[0]] -= 1
 
-            del self.blob_names[node.output[0]]
-            del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
 
-            node2.input[0] = node.input[0]
-            node2.output[0] = node3.output[0]
+                node2.input[0] = node.input[0]
+                node2.output[0] = node3.output[0]
 
-            reduced_node_count[0] += 2
-            i += 2
+                reduced_node_count[0] += 2
+                i += 2
 
     def fuse_unsqueeze_prelu(self, reduced_node_count: [int]) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -842,7 +837,7 @@ class Onnx2NcnnConverter:
 
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 node2.input[1] = node.input[0]
 
@@ -926,11 +921,11 @@ class Onnx2NcnnConverter:
                 if len(node3.input) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
                 if has_shape_node:
-                    del self.blob_names[node_shape.output[0]]
-                del self.blob_names[node3.output[0]]
+                    self.blob_names.pop(node_shape.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
 
                 node4.op_type = "Normalize"
                 node4.ClearField("input")
@@ -1062,10 +1057,10 @@ class Onnx2NcnnConverter:
                 self.node_reference[node3.output[0]] -= 1
                 self.node_reference[node4.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
-                del self.blob_names[node3.output[0]]
-                del self.blob_names[node4.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
+                self.blob_names.pop(node4.output[0], None)
 
                 affine_scale = node4.input[1]
                 affine_bias = node5.input[1]
@@ -1231,12 +1226,12 @@ class Onnx2NcnnConverter:
                 self.node_reference[node7.input[0]] -= 1
                 self.node_reference[node7.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
-                del self.blob_names[node3.output[0]]
-                del self.blob_names[node4.output[0]]
-                del self.blob_names[node5.output[0]]
-                del self.blob_names[node6.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
+                self.blob_names.pop(node4.output[0], None)
+                self.blob_names.pop(node5.output[0], None)
+                self.blob_names.pop(node6.output[0], None)
 
                 attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
                 attr_affine = onnx.AttributeProto(name="affine", i=affine, type=APT.INT)
@@ -1261,8 +1256,8 @@ class Onnx2NcnnConverter:
                     self.node_reference[node8.input[0]] -= 1
                     self.node_reference[node9.input[0]] -= 1
 
-                    del self.blob_names[node7.output[0]]
-                    del self.blob_names[node8.output[0]]
+                    self.blob_names.pop(node7.output[0], None)
+                    self.blob_names.pop(node8.output[0], None)
 
                     affine_scale = node8.input[1]
                     affine_bias = node9.input[1]
@@ -1380,11 +1375,11 @@ class Onnx2NcnnConverter:
                 self.node_reference[node5.output[0]] -= 1
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
-                del self.blob_names[node4.output[0]]
-                del self.blob_names[node5.output[0]]
-                del self.blob_names[node6.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node4.output[0], None)
+                self.blob_names.pop(node5.output[0], None)
+                self.blob_names.pop(node6.output[0], None)
 
                 node7.op_type = "Flatten"
                 node7.ClearField("input")
@@ -1482,8 +1477,8 @@ class Onnx2NcnnConverter:
                 if len(node3) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
 
                 node3.op_type = "PixelShuffle"
                 node3.input[0] = node.input[0]
@@ -1584,8 +1579,8 @@ class Onnx2NcnnConverter:
                 if len(node3) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
 
                 node3.op_type = "Reorg"
                 node3.input[0] = node.input[0]
@@ -1625,7 +1620,7 @@ class Onnx2NcnnConverter:
                 if len(node.input) == 2:
                     self.node_reference[node.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 if node2.input[0] == node.output[0]:
                     node2.input[0] = node.input[0]
@@ -1641,7 +1636,7 @@ class Onnx2NcnnConverter:
             node = self.mutable_graph_nodes[i]
 
             # LSTM(bi) <= LSTM(bi) - Transpose - Reshape - Transpose
-            if node.op_type not in ["LSTM", "GRU", "RNN"]:
+            if node.op_type in ["LSTM", "GRU", "RNN"]:
                 if self.node_reference[node.output[0]] != 1:
                     continue
                 if i + 2 >= node_count:
@@ -1698,8 +1693,8 @@ class Onnx2NcnnConverter:
                 if len(node3.input) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
 
                 node.output[0] = node3.output[0]
 
@@ -1732,7 +1727,7 @@ class Onnx2NcnnConverter:
 
                     self.node_reference[node.output[0]] -= 1
 
-                    del self.blob_names[node.output[0]]
+                    self.blob_names.pop(node.output[0], None)
 
                     node.output[0] = node4.output[0]
 
@@ -1769,7 +1764,7 @@ class Onnx2NcnnConverter:
 
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 node.output[0] = node2.output[0]
 
@@ -1803,7 +1798,7 @@ class Onnx2NcnnConverter:
 
                     self.node_reference[node.output[0]] -= 1
 
-                    del self.blob_names[node.output[0]]
+                    self.blob_names.pop(node.output[0], None)
 
                     node.output[0] = node3.output[0]
 
@@ -1835,7 +1830,7 @@ class Onnx2NcnnConverter:
 
                 self.node_reference[node.output[0]] -= 1
 
-                del self.blob_names[node.output[0]]
+                self.blob_names.pop(node.output[0], None)
 
                 node2.input[0] = node.input[0]
 
@@ -2101,25 +2096,25 @@ class Onnx2NcnnConverter:
                 self.node_reference[node19.input[0]] -= 1
                 self.node_reference[node20.input[0]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
-                del self.blob_names[node3.output[0]]
-                del self.blob_names[node4.output[0]]
-                del self.blob_names[node5.output[0]]
-                del self.blob_names[node6.output[0]]
-                del self.blob_names[node7.output[0]]
-                del self.blob_names[node8.output[0]]
-                del self.blob_names[node9.output[0]]
-                del self.blob_names[node10.output[0]]
-                del self.blob_names[node11.output[0]]
-                del self.blob_names[node12.output[0]]
-                del self.blob_names[node13.output[0]]
-                del self.blob_names[node14.output[0]]
-                del self.blob_names[node15.output[0]]
-                del self.blob_names[node16.output[0]]
-                del self.blob_names[node17.output[0]]
-                del self.blob_names[node18.output[0]]
-                del self.blob_names[node19.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
+                self.blob_names.pop(node4.output[0], None)
+                self.blob_names.pop(node5.output[0], None)
+                self.blob_names.pop(node6.output[0], None)
+                self.blob_names.pop(node7.output[0], None)
+                self.blob_names.pop(node8.output[0], None)
+                self.blob_names.pop(node9.output[0], None)
+                self.blob_names.pop(node10.output[0], None)
+                self.blob_names.pop(node11.output[0], None)
+                self.blob_names.pop(node12.output[0], None)
+                self.blob_names.pop(node13.output[0], None)
+                self.blob_names.pop(node14.output[0], None)
+                self.blob_names.pop(node15.output[0], None)
+                self.blob_names.pop(node16.output[0], None)
+                self.blob_names.pop(node17.output[0], None)
+                self.blob_names.pop(node18.output[0], None)
+                self.blob_names.pop(node19.output[0], None)
 
                 qw = node.input[1]
                 qb = node2.input[1]
@@ -2392,24 +2387,24 @@ class Onnx2NcnnConverter:
                 self.node_reference[node16.input[0]] -= 1
                 self.node_reference[node17.input[0]] -= 1
 
-                del self.blob_names[node.output[0]]
-                del self.blob_names[node2.output[0]]
-                del self.blob_names[node3.output[0]]
-                del self.blob_names[node3.output[1]]
-                del self.blob_names[node3.output[2]]
-                del self.blob_names[node4.output[0]]
-                del self.blob_names[node5.output[0]]
-                del self.blob_names[node6.output[0]]
-                del self.blob_names[node7.output[0]]
-                del self.blob_names[node8.output[0]]
-                del self.blob_names[node9.output[0]]
-                del self.blob_names[node10.output[0]]
-                del self.blob_names[node11.output[0]]
-                del self.blob_names[node12.output[0]]
-                del self.blob_names[node13.output[0]]
-                del self.blob_names[node14.output[0]]
-                del self.blob_names[node15.output[0]]
-                del self.blob_names[node16.output[0]]
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+                self.blob_names.pop(node3.output[0], None)
+                self.blob_names.pop(node3.output[1], None)
+                self.blob_names.pop(node3.output[2], None)
+                self.blob_names.pop(node4.output[0], None)
+                self.blob_names.pop(node5.output[0], None)
+                self.blob_names.pop(node6.output[0], None)
+                self.blob_names.pop(node7.output[0], None)
+                self.blob_names.pop(node8.output[0], None)
+                self.blob_names.pop(node9.output[0], None)
+                self.blob_names.pop(node10.output[0], None)
+                self.blob_names.pop(node11.output[0], None)
+                self.blob_names.pop(node12.output[0], None)
+                self.blob_names.pop(node13.output[0], None)
+                self.blob_names.pop(node14.output[0], None)
+                self.blob_names.pop(node15.output[0], None)
+                self.blob_names.pop(node16.output[0], None)
 
                 qkvw = node.input[1]
                 qkvb = node2.input[1]
@@ -2478,31 +2473,33 @@ class Onnx2NcnnConverter:
         for i in range(node_count):
             node = self.mutable_graph_nodes[i]
 
-            if node.input[1] not in self.weights:
-                continue
+            # Add/Sub/Mul/Div/Min/Max/Pow(x, b)
+            if node.op_type in ["Add", "Sub", "Mul", "Div", "Min", "Max", "Pow"]:
+                if node.input[1] not in self.weights:
+                    continue
 
-            scalar_b = self.weights[node.input[1]]
-            if (
-                len(scalar_b.dims) != 0
-                or self.get_tensor_proto_data_size(scalar_b) != 1
-            ):
-                continue
+                scalar_b = self.weights[node.input[1]]
+                if (
+                    len(scalar_b.dims) != 0
+                    or self.get_tensor_proto_data_size(scalar_b) != 1
+                ):
+                    continue
 
-            b = self.get_node_attr_from_input_f(scalar_b)
+                b = self.get_node_attr_from_input_f(scalar_b)
 
-            self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.input[1]] -= 1
 
-            inpt = node.input[0]
-            node.ClearField("input")
-            node.input.append(inpt)
+                inpt = node.input[0]
+                node.ClearField("input")
+                node.input.append(inpt)
 
-            attr_with_scalar = onnx.AttributeProto(
-                name="with_scalar", i=1, type=APT.INT
-            )
-            node.attribute.append(attr_with_scalar)
+                attr_with_scalar = onnx.AttributeProto(
+                    name="with_scalar", i=1, type=APT.INT
+                )
+                node.attribute.append(attr_with_scalar)
 
-            attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
-            node.attribute.append(attr_b)
+                attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
+                node.attribute.append(attr_b)
 
     def convert(self):
         # Topological sort
@@ -2582,7 +2579,8 @@ class Onnx2NcnnConverter:
             if input_name not in self.weights:
                 self.blob_names[input_name] = None
                 input_node_count += 1
-
+        print(self.node_count)
+        print(len(self.blob_names))
         # op chain fusion
         reduced_node_count = [0]
         self.fuse_weight_reshape(reduced_node_count)
@@ -2633,11 +2631,156 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[4]] -= 1
                 self.node_reference[node.input[5]] -= 1
                 self.node_reference[node.input[6]] -= 1
+            elif op == "Gemm":
+                alpha = self.get_node_attr_f(node, "alpha", 1)
+                beta = self.get_node_attr_f(node, "beta", 1)
+                transA = self.get_node_attr_i(node, "transA", 0)
+                transB = self.get_node_attr_i(node, "transB", 0)
+
+                if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
+                    # InnerProduct-like A * B + C
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "GroupNorm":
+                affine = self.get_node_attr_i(node, "affine", 1)
+                if affine:
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "GRU":
+                for inpt in node.input:
+                    self.node_reference[inpt] -= 1
+            elif op == "InstanceNormalization":
+                self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.input[2]] -= 1
+            elif op == "LayerNorm":
+                affine = self.get_node_attr_i(node, "affine", 1)
+                if affine:
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "LSTM":
+                for inpt in node.input:
+                    self.node_reference[inpt] -= 1
+            elif op == "MatMul":
+                if (
+                    node.input[1] in self.weights
+                    and len(self.weights[node.input[1]].dims) == 2
+                ):
+                    # InnerProduct
+                    self.node_reference[node.input[1]] -= 1
+            elif op == "MultiHeadAttention":
+                if len(node.input) == 5:
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+                    self.node_reference[node.input[3]] -= 1
+                    self.node_reference[node.input[4]] -= 1
+                else:
+                    self.node_reference[node.input[3]] -= 1
+                    self.node_reference[node.input[4]] -= 1
+                    self.node_reference[node.input[5]] -= 1
+                    self.node_reference[node.input[6]] -= 1
+                    self.node_reference[node.input[7]] -= 1
+                    self.node_reference[node.input[8]] -= 1
+                    self.node_reference[node.input[9]] -= 1
+                    self.node_reference[node.input[10]] -= 1
+            elif op == "Pad":
+                if len(node.input) >= 2:
+                    self.node_reference[node.input[1]] -= 1
+            elif op == "PRelu":
+                self.node_reference[node.input[1]] -= 1
+            elif op == "Reshape":
+                if len(node.input) >= 2:
+                    self.node_reference[node.input[1]] -= 1
+            elif op == "Resize":
+                if len(node.input) >= 2:
+                    # opset 10
+                    self.node_reference[node.input[1]] -= 1
+                else:
+                    # opset 11+
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+                    if len(node.input) >= 4:
+                        self.node_reference[node.input[3]] -= 1
+            elif op == "RNN":
+                for inpt in node.input:
+                    self.node_reference[inpt] -= 1
+            elif op == "Slice":
+                if len(node.input) >= 2:
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+                    if len(node.input) >= 4:
+                        self.node_reference[node.input[3]] -= 1
+                    if len(node.input) >= 5:
+                        self.node_reference[node.input[4]] -= 1
+            elif op == "Upsample":
+                if len(node.input) >= 2:
+                    self.node_reference[node.input[1]] -= 1
+            elif op == "adaptive_avg_pool2d" or op == "adaptive_max_pool2d":
+                if len(node.input) >= 2:
+                    self.node_reference[node.input[1]] -= 1
+
+        # count all weight node with zero reference
+        zero_reference_weight_node_count = 0
+        for input_name, tp in self.weights.items():
+            # there may be some weight nodes in initializer but none of the graph nodes use them
+            # add them to blob_names so we could get proper blob count later
+            self.blob_names[input_name] = None
+
+            refcount = self.node_reference[input_name]
+            if refcount == 0:
+                zero_reference_weight_node_count += 1
+
+        # we always treat constant nodes as weights or binaryop_weights
+        # do not count it twice for layer_count
+        constant_node_count_moved_to_weight = 0
+        for node in self.onnx_graph.node:
+            op = node.op_type
+            if op == "Constant":
+                constant_node_count_moved_to_weight += 1
+
+        # some op may have anonymous input
+        # LSTM sequence_lens
+        self.blob_names.pop("", None)
+        self.node_reference.pop("", None)
+
+        # remove node_reference entry with references equal to one
+        split_layer_count = 0
+        splitncnn_blob_count = 0
+
+        # split node reference
+        split_node_reference = {}
+        for ref, count in self.node_reference.items():
+            if count > 1:
+                split_layer_count += 1
+                splitncnn_blob_count += count
+                split_node_reference[ref] = count
+        print(f"moved_to_weight: {constant_node_count_moved_to_weight}")
+        print(f"num weights: {len(self.weights)}")
+        print(f"zero ref: {zero_reference_weight_node_count}")
+        print(f"reduced count: {reduced_node_count[0]}")
+        print(f"input count: {input_node_count}")
+        print(f"split layer: {split_layer_count}")
+        print(f"num blobs: {len(self.blob_names)}")
+        print(f"split blob: {splitncnn_blob_count}")
+        ncnn_model = NcnnModel()
+        ncnn_model.node_count = (
+            self.node_count
+            - constant_node_count_moved_to_weight
+            + len(self.weights)
+            - zero_reference_weight_node_count
+            - reduced_node_count[0]
+            + input_node_count
+            + split_layer_count
+        )
+        ncnn_model.blob_count = (
+            len(self.blob_names)
+            - zero_reference_weight_node_count
+            + splitncnn_blob_count
+        )
+        print(f"node count: {ncnn_model.node_count}")
+        print(f"blob count: {ncnn_model.blob_count}")
 
 
 if __name__ == "__main__":
-    model = onnx.load_model(
-        "D:/Scripts/Python/chaiNNer/onnx_test_models/super-resolution-10.onnx"
-    )
+    model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
     converter.convert()
