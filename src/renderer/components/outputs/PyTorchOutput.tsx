@@ -39,15 +39,6 @@ const getColorMode = (channels: number) => {
     }
 };
 
-const convertToInternalModelType = (modelType: string) => {
-    switch (modelType) {
-        case 'RealESRGAN':
-            return 'ESRGAN';
-        default:
-            return modelType;
-    }
-};
-
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
         const value = useOutputData(outputId) as PyTorchModelData | undefined;
@@ -74,7 +65,7 @@ export const PyTorchOutput = memo(
                             ),
                             new NamedExpressionField(
                                 'modelType',
-                                new StringLiteralType(convertToInternalModelType(value.modelType))
+                                new StringLiteralType(value.modelType)
                             ),
                             new NamedExpressionField(
                                 'size',

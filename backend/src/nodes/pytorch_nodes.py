@@ -73,7 +73,7 @@ class LoadModelNode(NodeBase):
             Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
         self.inputs = [PthFileInput()]
         self.outputs = [
-            ModelOutput(kind="PyTorchModel", should_broadcast=True),
+            ModelOutput(kind="pytorch", should_broadcast=True),
             TextOutput("Model Name"),
         ]
 
