@@ -267,7 +267,8 @@ class Executor:
         # await all broadcasts
         tasks = self.__broadcast_tasks
         self.__broadcast_tasks = []
-        await asyncio.gather(*tasks, loop=self.loop)
+        for task in tasks:
+            await task
 
     async def run(self):
         """Run the executor"""
