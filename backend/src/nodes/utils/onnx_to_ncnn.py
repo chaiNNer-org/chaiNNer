@@ -2437,10 +2437,72 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 16
                 i += 16
 
-    def fuse_binaryop_with_scalar(self, reduced_node_count: [int]) -> None:
+    def fuse_binaryop_with_scalar(self) -> None:
         node_count = len(self.mutable_graph_nodes)
         for i in range(node_count):
             node = self.mutable_graph_nodes[i]
+
+            # Add/Sub/Mul/Div/Min/Max/Pow(a, x)
+            if node.op_type in ["Add", "Sub", "Mul", "Div", "Min", "Max", "Pow"]:
+                if node.input[0] not in self.weights:
+                    continue
+
+                scalar_b = self.weights[node.input[0]]
+                if (
+                    len(scalar_b.dims) != 0
+                    or self.get_tensor_proto_data_size(scalar_b) != 1
+                ):
+                    continue
+
+                if node.op_type == "Sub":
+                    node.op_type = "RSub"
+                elif node.op_type == "Div":
+                    node.op_type = "RDiv"
+
+                b = self.get_node_attr_from_input_f(scalar_b)
+
+                self.node_reference[node.input[0]] -= 1
+
+                inpt = node.input[1]
+                node.ClearField("input")
+                node.input.append(inpt)
+
+                attr_with_scalar = onnx.AttributeProto(
+                    name="with_scalar", i=1, type=APT.INT
+                )
+                node.attribute.append(attr_with_scalar)
+
+                attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
+                node.attribute.append(attr_b)
+
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            if node.input[1] not in self.weights:
+                continue
+
+            scalar_b = self.weights[node.input[1]]
+            if (
+                len(scalar_b.dims) != 0
+                or self.get_tensor_proto_data_size(scalar_b) != 1
+            ):
+                continue
+
+            b = self.get_node_attr_from_input_f(scalar_b)
+
+            self.node_reference[node.input[1]] -= 1
+
+            inpt = node.input[0]
+            node.ClearField("input")
+            node.input.append(inpt)
+
+            attr_with_scalar = onnx.AttributeProto(
+                name="with_scalar", i=1, type=APT.INT
+            )
+            node.attribute.append(attr_with_scalar)
+
+            attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
+            node.attribute.append(attr_b)
 
     def convert(self):
         # Topological sort
@@ -2541,7 +2603,7 @@ class Onnx2NcnnConverter:
         self.fuse_expand_broadcast(reduced_node_count)
         self.fuse_lstm_gru_rnn(reduced_node_count)
         self.fuse_multiheadattention(reduced_node_count)
-        self.fuse_binaryop_with_scalar(reduced_node_count)
+        self.fuse_binaryop_with_scalar()
         self.fuse_rewrite_gather()
 
         # reduce common const weight node_reference
