@@ -263,7 +263,7 @@ async def sse(request: Request):
 
 @app.after_server_start
 async def setup_queue(sanic_app: Sanic, _):
-    AppContext.get(sanic_app).queue = asyncio.Queue()
+    AppContext.get(sanic_app).queue = EventQueue()
 
 
 @app.route("/pause", methods=["POST"])

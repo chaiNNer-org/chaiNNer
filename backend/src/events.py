@@ -72,4 +72,14 @@ Event = Union[
     IteratorProgressUpdateEvent,
     NodeOutputDataEvent,
 ]
-EventQueue = asyncio.Queue[Event]
+
+
+class EventQueue:
+    def __init__(self):
+        self.queue = asyncio.Queue()
+
+    async def get(self) -> Event:
+        return await self.queue.get()
+
+    async def put(self, event: Event) -> None:
+        await self.queue.put(event)
