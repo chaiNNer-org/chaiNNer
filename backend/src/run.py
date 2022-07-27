@@ -267,7 +267,7 @@ async def setup_queue(sanic_app: Sanic, _):
 
 
 @app.route("/pause", methods=["POST"])
-async def pause(request):
+async def pause(request: Request):
     """Pauses the current execution"""
     ctx = AppContext.get(request.app)
     try:
@@ -286,7 +286,7 @@ async def pause(request):
 
 
 @app.route("/kill", methods=["POST"])
-async def kill(request):
+async def kill(request: Request):
     """Kills the current execution"""
     ctx = AppContext.get(request.app)
     try:
