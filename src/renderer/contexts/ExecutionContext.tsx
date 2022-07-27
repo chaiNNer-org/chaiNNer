@@ -1,6 +1,6 @@
 import isDeepEqual from 'fast-deep-equal/react';
 import { memo, useCallback, useEffect, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -19,6 +19,7 @@ import {
     ParsedHandle,
     assertNever,
     getInputValues,
+    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -93,6 +94,10 @@ const convertToUsableFormat = (
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
     });
 
+    // Necessary to get around TS mutability warning
+    const nodesCopy = [...nodes];
+    const edgesCopy = [...edges];
+
     // Set up each node in the result
     nodes.forEach((element) => {
         const { id, data, type: nodeType } = element;
@@ -103,6 +108,25 @@ const convertToUsableFormat = (
             throw new Error(
                 `Expected all nodes to have a node type, but ${schema.name} (id: ${schemaId}) node did not.`
             );
+        }
+
+        const cacheOptions = {
+            shouldCache: false,
+            maxCacheHits: 0,
+        };
+
+        const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
+        const isConnectedToIterator = currentChildren.some((child) => child.parentNode);
+        const outputLength = Object.keys(outputHandles[id] ?? []).length;
+        const isStartNode = isStartingNode(schema);
+
+        if (outputLength > 1 || isConnectedToIterator || isStartNode) {
+            cacheOptions.shouldCache = true;
+            cacheOptions.maxCacheHits =
+                isConnectedToIterator || isStartNode
+                    ? Infinity
+                    : // Max cache hits is the number of outputs - 1 since the first output is what sets it
+                      Object.keys(outputHandles[id] ?? []).length - 1;
         }
 
         // Node
@@ -116,6 +140,7 @@ const convertToUsableFormat = (
             child: false,
             nodeType,
             hasSideEffects: schema.hasSideEffects,
+            cacheOptions,
         };
         if (nodeType === 'iterator') {
             result[id].children = [];
