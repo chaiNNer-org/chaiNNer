@@ -24,7 +24,7 @@ export interface BackendEventMap {
         exception: string;
     };
     'node-finish': { finished: string[] };
-    'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] };
+    'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] | null };
     'node-output-data': { nodeId: string; data: OutputData };
 }
 

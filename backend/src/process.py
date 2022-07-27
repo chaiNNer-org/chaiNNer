@@ -7,6 +7,7 @@ import uuid
 from typing import Any, Dict, List, Optional, TypedDict
 
 from sanic.log import logger
+from events import EventQueue, Event
 
 from nodes.node_base import NodeBase
 from nodes.node_factory import NodeFactory
@@ -34,19 +35,30 @@ class ExecutionContext:
         self,
         nodes: Dict[str, UsableData],
         loop: asyncio.AbstractEventLoop,
-        queue: asyncio.Queue,
+        queue: EventQueue,
         cache: Dict[str, Any],
         iterator_id: str,
         executor: Executor,
         percent: float,
     ):
         self.nodes = nodes
+
         self.loop = loop
         self.queue = queue
+
         self.cache = cache
         self.iterator_id = iterator_id
         self.executor = executor
         self.percent = percent
+
+    def create_iterator_executor(self) -> Executor:
+        return Executor(
+            self.nodes,
+            self.loop,
+            self.queue,
+            self.cache.copy(),
+            self.executor,
+        )
 
 
 class Executor:
@@ -58,7 +70,7 @@ class Executor:
         self,
         nodes: Dict[str, UsableData],
         loop: asyncio.AbstractEventLoop,
-        queue: asyncio.Queue,
+        queue: EventQueue,
         existing_cache: Dict[str, Any],
         parent_executor: Optional[Executor] = None,
     ):
@@ -154,17 +166,18 @@ class Executor:
                             self.output_cache[next_node_id] = output
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
+            context = ExecutionContext(
+                sub_nodes,
+                self.loop,
+                self.queue,
+                self.output_cache,
+                node["id"],
+                self,
+                node["percent"] if self.resumed else 0,
+            )
             output = await node_instance.run(
                 *enforced_inputs,
-                context=ExecutionContext(  # type: ignore
-                    sub_nodes,
-                    self.loop,
-                    self.queue,
-                    self.output_cache,
-                    node["id"],
-                    self,
-                    node["percent"] if self.resumed else 0,
-                ),
+                context=context,  # type: ignore
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
@@ -208,7 +221,7 @@ class Executor:
                 }
             )
 
-    def __create_node_finish(self):
+    def __create_node_finish(self) -> Event:
         cached_ids = [key for key in self.output_cache.keys()]
         return {
             "event": "node-finish",
@@ -217,16 +230,19 @@ class Executor:
             },
         }
 
-    async def process_nodes(self):
-        # Create a list of all output nodes
-        output_nodes = []
+    def get_output_nodes(self) -> List[UsableData]:
+        output_nodes: List[UsableData] = []
         for node in self.nodes.values():
-            if self.killed:
-                break
             if (node["hasSideEffects"]) and not node["child"]:
                 output_nodes.append(node)
+        return output_nodes
+
+    async def process_nodes(self):
+        if self.killed:
+            return
+
         # Run each of the output nodes through processing
-        for output_node in output_nodes:
+        for output_node in self.get_output_nodes():
             if self.killed:
                 break
             await self.process(output_node)
