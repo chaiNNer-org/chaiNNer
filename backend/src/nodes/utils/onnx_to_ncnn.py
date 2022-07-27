@@ -1640,10 +1640,802 @@ class Onnx2NcnnConverter:
         for i in range(node_count):
             node = self.mutable_graph_nodes[i]
 
+            # LSTM(bi) <= LSTM(bi) - Transpose - Reshape - Transpose
+            if node.op_type not in ["LSTM", "GRU", "RNN"]:
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+                if i + 2 >= node_count:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+
+                if node2.op_type != "Transpose" or node3.op_type != "Reshape":
+                    continue
+                if self.node_reference[node2.output[0]] != 1:
+                    continue
+                if (
+                    node2.input[0] != node.output[0]
+                    or node3.input[0] != node2.output[0]
+                ):
+                    continue
+
+                direction = self.get_node_attr_s(node, "direction")
+                if direction != "bidirectional":
+                    continue
+
+                # 0 2 1 3
+                perm = self.get_node_attr_ai(node2, "perm")
+                if (
+                    perm.size != 4
+                    or perm[0] != 0
+                    or perm[1] != 2
+                    or perm[2] != 1
+                    or perm[3] != 3
+                ):
+                    continue
+
+                if len(node3.input) == 1:
+                    shape = self.get_node_attr_ai(node3, "shape")
+                else:
+                    if node3.input[1] not in self.weights:
+                        continue
+
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node3.input[1]]
+                    )
+
+                # 0 0 -1
+                if shape.size != 3 or shape[0] != 0 or shape[1] != 0 or shape[2] != -1:
+                    continue
+
+                # reduce
+                node2.op_type = "noop_reducedncnn"
+                node3.op_type = "noop_reducedncnn"
+
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                if len(node3.input) == 2:
+                    self.node_reference[node3.input[1]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+
+                node.output[0] = node3.output[0]
+
+                reduced_node_count[0] += 2
+                i += 2
+
+                if i + 1 < node_count:
+                    if self.node_reference[node3.output[0]] != 1:
+                        continue
+
+                    node4 = self.mutable_graph_nodes[i + 1]
+
+                    if node4.op_type != "Transpose":
+                        continue
+                    if node4.input[0] != node.output[0]:
+                        continue
+
+                    # 1 0 2
+                    perm4 = self.get_node_attr_ai(node4, "perm")
+                    if (
+                        perm4.size != 3
+                        or perm4[0] != 1
+                        or perm4[1] != 0
+                        or perm4[2] != 2
+                    ):
+                        continue
+
+                    # reduce
+                    node4.op_type = "noop_reducedncnn"
+
+                    self.node_reference[node.output[0]] -= 1
+
+                    del self.blob_names[node.output[0]]
+
+                    node.output[0] = node4.output[0]
+
+                    reduced_node_count[0] += 1
+                    i += 1
+
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # LSTM(uni) <= LSTM(uni) - Squeeze - Transpose
+            if node.op_type in ["LSTM", "GRU", "RNN"]:
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+                if i + 1 >= node_count:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+
+                if node2.op_type != "Squeeze":
+                    continue
+                if node2.input[0] != node.output[0]:
+                    continue
+
+                direction = self.get_node_attr_s(node, "direction")
+                if direction == "bidirectional":
+                    continue
+
+                axes = self.get_node_attr_ai(node2, "axes")
+                if axes.size != 1 or axes[0] != 1:
+                    continue
+
+                # reduce
+                node2.op_type = "noop_reducedncnn"
+
+                self.node_reference[node.output[0]] -= 1
+
+                del self.blob_names[node.output[0]]
+
+                node.output[0] = node2.output[0]
+
+                reduced_node_count[0] += 1
+                i += 1
+
+                if i + 1 < node_count:
+                    if self.node_reference[node2.output[0]] != 1:
+                        continue
+
+                    node3 = self.mutable_graph_nodes[i + 1]
+
+                    if node3.op_type != "Transpose":
+                        continue
+
+                    if node3.input[0] != node.output[0]:
+                        continue
+
+                    # 1 0 2
+                    perm4 = self.get_node_attr_ai(node3, "perm")
+                    if (
+                        perm4.size != 3
+                        or perm4[0] != 1
+                        or perm4[1] != 0
+                        or perm4[2] != 2
+                    ):
+                        continue
+
+                    # reduce
+                    node3.op_type = "noop_reducedncnn"
+
+                    self.node_reference[node.output[0]] -= 1
+
+                    del self.blob_names[node.output[0]]
+
+                    node.output[0] = node3.output[0]
+
+                    reduced_node_count[0] += 1
+                    i += 1
+
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # LSTM <= Transpose - LSTM
+            if node.op_type == "Transpose":
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+
+                # 1 0 2
+                perm = self.get_node_attr_ai(node, "perm")
+                if perm.size != 3 or perm[0] != 1 or perm[1] != 0 or perm[2] != 2:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+
+                if node2.op_type not in ["LSTM", "GRU", "RNN"]:
+                    continue
+                if node2.input[0] != node.output[0]:
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+
+                self.node_reference[node.output[0]] -= 1
+
+                del self.blob_names[node.output[0]]
+
+                node2.input[0] = node.input[0]
+
+                reduced_node_count[0] += 1
+                i += 1
+
     def fuse_multiheadattention(self, reduced_node_count: [int]) -> None:
         node_count = len(self.mutable_graph_nodes)
         for i in range(node_count):
             node = self.mutable_graph_nodes[i]
+
+            # MultiHeadAttention <= MatMul(q) - Add
+            #                      - MatMul(k) - Add
+            #                      - MatMul(v) - Add
+            #                      - Mul
+            #                      - Reshape - Transpose
+            #                      - Reshape - Reshape - Transpose - Transpose
+            #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
+            if node.op_type == "MatMul":
+                if i + 19 >= node_count:
+                    continue
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+                node4 = self.mutable_graph_nodes[i + 3]
+                node5 = self.mutable_graph_nodes[i + 4]
+                node6 = self.mutable_graph_nodes[i + 5]
+                node7 = self.mutable_graph_nodes[i + 6]
+                node8 = self.mutable_graph_nodes[i + 7]
+                node9 = self.mutable_graph_nodes[i + 8]
+                node10 = self.mutable_graph_nodes[i + 9]
+                node11 = self.mutable_graph_nodes[i + 10]
+                node12 = self.mutable_graph_nodes[i + 11]
+                node13 = self.mutable_graph_nodes[i + 12]
+                node14 = self.mutable_graph_nodes[i + 13]
+                node15 = self.mutable_graph_nodes[i + 14]
+                node16 = self.mutable_graph_nodes[i + 15]
+                node17 = self.mutable_graph_nodes[i + 16]
+                node18 = self.mutable_graph_nodes[i + 17]
+                node19 = self.mutable_graph_nodes[i + 18]
+                node20 = self.mutable_graph_nodes[i + 19]
+
+                if (
+                    node2.op_type != "Add"
+                    or node3.op_type != "MatMul"
+                    or node4.op_type != "Add"
+                    or node5.op_type != "MatMul"
+                    or node6.op_type != "Add"
+                    or node7.op_type != "Mul"
+                    or node8.op_type != "Reshape"
+                    or node9.op_type != "Transpose"
+                    or node10.op_type != "Reshape"
+                    or node11.op_type != "Reshape"
+                    or node12.op_type != "Transpose"
+                    or node13.op_type != "Transpose"
+                    or node14.op_type != "MatMul"
+                    or node15.op_type != "Softmax"
+                    or node16.op_type != "MatMul"
+                    or node17.op_type != "Transpose"
+                    or node18.op_type != "Reshape"
+                    or node19.op_type != "MatMul"
+                    or node20.op_type != "Add"
+                ):
+                    continue
+                if (
+                    self.node_reference[node2.output[0]] != 1
+                    or self.node_reference[node3.output[0]] != 1
+                    or self.node_reference[node4.output[0]] != 1
+                    or self.node_reference[node5.output[0]] != 1
+                    or self.node_reference[node6.output[0]] != 1
+                    or self.node_reference[node7.output[0]] != 1
+                    or self.node_reference[node8.output[0]] != 1
+                    or self.node_reference[node9.output[0]] != 1
+                    or self.node_reference[node10.output[0]] != 1
+                    or self.node_reference[node11.output[0]] != 1
+                    or self.node_reference[node12.output[0]] != 1
+                    or self.node_reference[node13.output[0]] != 1
+                    or self.node_reference[node14.output[0]] != 1
+                    or self.node_reference[node15.output[0]] != 1
+                    or self.node_reference[node16.output[0]] != 1
+                    or self.node_reference[node17.output[0]] != 1
+                    or self.node_reference[node18.output[0]] != 1
+                    or self.node_reference[node19.output[0]] != 1
+                ):
+                    continue
+                if (
+                    node2.input[0] != node.output[0]
+                    or node4.input[0] != node3.output[0]
+                    or node6.input[0] != node5.output[0]
+                    or node7.input[0] != node2.output[0]
+                    or node8.input[0] != node7.output[0]
+                    or node9.input[0] != node8.output[0]
+                    or node10.input[0] != node4.output[0]
+                    or node11.input[0] != node6.output[0]
+                    or node12.input[0] != node11.output[0]
+                    or node13.input[0] != node10.output[0]
+                    or node14.input[0] != node9.output[0]
+                    or node14.input[1] != node13.output[0]
+                    or node15.input[0] != node14.output[0]
+                    or node16.input[0] != node15.output[0]
+                    or node16.input[1] != node12.output[0]
+                    or node17.input[0] != node16.output[0]
+                    or node18.input[0] != node17.output[0]
+                    or node19.input[0] != node18.output[0]
+                    or node20.input[0] != node19.output[0]
+                ):
+                    continue
+
+                q_B = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
+                k_B = self.get_node_attr_from_input_af(self.weights[node4.input[1]])
+                v_B = self.get_node_attr_from_input_af(self.weights[node6.input[1]])
+                o_B = self.get_node_attr_from_input_af(self.weights[node20.input[1]])
+
+                if q_B.size != k_B.size or q_B.size != v_B.size or q_B.size != o_B.size:
+                    continue
+
+                embed_dim = q_B.size
+
+                # 1 0 2
+                perm9 = self.get_node_attr_ai(node9, "perm")
+                perm12 = self.get_node_attr_ai(node12, "perm")
+                if perm9.size != 3 or perm9[0] != 1 or perm9[1] != 0 or perm9[2] != 2:
+                    continue
+                if (
+                    perm12.size != 3
+                    or perm12[0] != 1
+                    or perm12[1] != 0
+                    or perm12[2] != 2
+                ):
+                    continue
+
+                # 1 2 0
+                perm13 = self.get_node_attr_ai(node13, "perm")
+                if (
+                    perm13.size != 3
+                    or perm13[0] != 1
+                    or perm13[1] != 2
+                    or perm13[2] != 0
+                ):
+                    continue
+
+                # 1 0 2
+                perm17 = self.get_node_attr_ai(node17, "perm")
+                if (
+                    perm17.size != 3
+                    or perm17[0] != 1
+                    or perm17[1] != 0
+                    or perm17[2] != 2
+                ):
+                    continue
+
+                softmax_axis = self.get_node_attr_i(node15, "axis")
+                if softmax_axis != 2:
+                    continue
+
+                # 1/-1 seqlen * num_heads, embed_dim / num_heads
+                if len(node8.input) == 1:
+                    shape8 = self.get_node_attr_ai(node8, "shape")
+                else:
+                    if node8.input[1] not in self.weights:
+                        continue
+
+                    shape8 = self.get_node_attr_from_input_ai(
+                        self.weights[node8.input[1]]
+                    )
+                if len(node10.input) == 1:
+                    shape10 = self.get_node_attr_ai(node10, "shape")
+                else:
+                    if node10.input[1] not in self.weights:
+                        continue
+
+                    shape10 = self.get_node_attr_from_input_ai(
+                        self.weights[node10.input[1]]
+                    )
+                if len(node11.input) == 1:
+                    shape11 = self.get_node_attr_ai(node11, "shape")
+                else:
+                    if node11.input[1] not in self.weights:
+                        continue
+
+                    shape11 = self.get_node_attr_from_input_ai(
+                        self.weights[node11.input[1]]
+                    )
+
+                if shape8.size != 3 or shape10.size != 3 or shape11.size != 3:
+                    continue
+                if (
+                    shape8[1] != shape10[1]
+                    or shape8[1] != shape11[1]
+                    or shape8[2] != shape10[2]
+                    or shape8[2] != shape11[2]
+                ):
+                    continue
+
+                num_heads = embed_dim / shape8[2]
+
+                if len(node18.input) == 1:
+                    shape18 = self.get_node_attr_ai(node18, "shape")
+                else:
+                    if node18.input[1] not in self.weights:
+                        continue
+
+                    shape18 = self.get_node_attr_from_input_ai(
+                        self.weights[node18.input[1]]
+                    )
+
+                if (
+                    shape18.size != 3
+                    or shape18[2] != embed_dim
+                    or shape18[1] * num_heads != shape8[1]
+                ):
+                    continue
+
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+                node3.op_type = "noop_reducedncnn"
+                node4.op_type = "noop_reducedncnn"
+                node5.op_type = "noop_reducedncnn"
+                node6.op_type = "noop_reducedncnn"
+                node7.op_type = "noop_reducedncnn"
+                node8.op_type = "noop_reducedncnn"
+                node9.op_type = "noop_reducedncnn"
+                node10.op_type = "noop_reducedncnn"
+                node11.op_type = "noop_reducedncnn"
+                node12.op_type = "noop_reducedncnn"
+                node13.op_type = "noop_reducedncnn"
+                node14.op_type = "noop_reducedncnn"
+                node15.op_type = "noop_reducedncnn"
+                node16.op_type = "noop_reducedncnn"
+                node17.op_type = "noop_reducedncnn"
+                node18.op_type = "noop_reducedncnn"
+                node19.op_type = "noop_reducedncnn"
+
+                self.node_reference[node2.input[0]] -= 1
+                self.node_reference[node4.input[0]] -= 1
+                self.node_reference[node6.input[0]] -= 1
+                self.node_reference[node7.input[0]] -= 1
+                self.node_reference[node7.input[1]] -= 1
+                self.node_reference[node8.input[0]] -= 1
+
+                if len(node8.input) == 2:
+                    self.node_reference[node8.input[1]] -= 1
+                self.node_reference[node9.input[0]] -= 1
+                self.node_reference[node10.input[0]] -= 1
+                if len(node10.input) == 2:
+                    self.node_reference[node10.input[1]] -= 1
+                self.node_reference[node11.input[0]] -= 1
+                if len(node11.input) == 2:
+                    self.node_reference[node11.input[1]] -= 1
+                self.node_reference[node12.input[0]] -= 1
+                self.node_reference[node13.input[0]] -= 1
+                self.node_reference[node14.input[0]] -= 1
+                self.node_reference[node14.input[1]] -= 1
+                self.node_reference[node15.input[0]] -= 1
+                self.node_reference[node16.input[0]] -= 1
+                self.node_reference[node16.input[1]] -= 1
+                self.node_reference[node17.input[0]] -= 1
+                self.node_reference[node18.input[0]] -= 1
+                if len(node18.input) == 2:
+                    self.node_reference[node18.input[1]] -= 1
+                self.node_reference[node19.input[0]] -= 1
+                self.node_reference[node20.input[0]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+                del self.blob_names[node3.output[0]]
+                del self.blob_names[node4.output[0]]
+                del self.blob_names[node5.output[0]]
+                del self.blob_names[node6.output[0]]
+                del self.blob_names[node7.output[0]]
+                del self.blob_names[node8.output[0]]
+                del self.blob_names[node9.output[0]]
+                del self.blob_names[node10.output[0]]
+                del self.blob_names[node11.output[0]]
+                del self.blob_names[node12.output[0]]
+                del self.blob_names[node13.output[0]]
+                del self.blob_names[node14.output[0]]
+                del self.blob_names[node15.output[0]]
+                del self.blob_names[node16.output[0]]
+                del self.blob_names[node17.output[0]]
+                del self.blob_names[node18.output[0]]
+                del self.blob_names[node19.output[0]]
+
+                qw = node.input[1]
+                qb = node2.input[1]
+                kw = node3.input[1]
+                kb = node4.input[1]
+                vw = node5.input[1]
+                vb = node6.input[1]
+                ow = node19.input[1]
+                ob = node20.input[1]
+
+                node20.op_type = "MultiHeadAttention"
+                node20.ClearField("input")
+                node20.input.append(node.input[0])
+                node20.input.append(node3.input[0])
+                node20.input.append(node5.input[0])
+                node20.input.append(qw)
+                node20.input.append(qb)
+                node20.input.append(kw)
+                node20.input.append(kb)
+                node20.input.append(vw)
+                node20.input.append(vb)
+                node20.input.append(ow)
+                node20.input.append(ob)
+
+                attr_embed_dim = onnx.AttributeProto(
+                    name="embed_dim", i=embed_dim, type=APT.INT
+                )
+                node20.attribute.append(attr_embed_dim)
+
+                attr_num_heads = onnx.AttributeProto(
+                    name="num_heads", i=num_heads, type=APT.INT
+                )
+                node20.attribute.append(attr_num_heads)
+
+                reduced_node_count[0] += 19
+                i += 19
+
+        for i in range(node_count):
+            node = self.mutable_graph_nodes[i]
+
+            # MultiHeadAttention <= MatMul(qkv) - Add - Split
+            #                      - Mul
+            #                      - Reshape - Transpose
+            #                      - Reshape - Reshape - Transpose - Transpose
+            #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
+            if node.op_type == "MatMul":
+                if i + 16 >= node_count:
+                    continue
+                if self.node_reference[node.output[0]] != 1:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+                node4 = self.mutable_graph_nodes[i + 3]
+                node5 = self.mutable_graph_nodes[i + 4]
+                node6 = self.mutable_graph_nodes[i + 5]
+                node7 = self.mutable_graph_nodes[i + 6]
+                node8 = self.mutable_graph_nodes[i + 7]
+                node9 = self.mutable_graph_nodes[i + 8]
+                node10 = self.mutable_graph_nodes[i + 9]
+                node11 = self.mutable_graph_nodes[i + 10]
+                node12 = self.mutable_graph_nodes[i + 11]
+                node13 = self.mutable_graph_nodes[i + 12]
+                node14 = self.mutable_graph_nodes[i + 13]
+                node15 = self.mutable_graph_nodes[i + 14]
+                node16 = self.mutable_graph_nodes[i + 15]
+                node17 = self.mutable_graph_nodes[i + 16]
+
+                if (
+                    node2.op_type != "Add"
+                    or node3.op_type != "Split"
+                    or node4.op_type != "Mul"
+                    or node5.op_type != "Reshape"
+                    or node6.op_type != "Transpose"
+                    or node7.op_type != "Reshape"
+                    or node8.op_type != "Reshape"
+                    or node9.op_type != "Transpose"
+                    or node10.op_type != "Transpose"
+                    or node11.op_type != "MatMul"
+                    or node12.op_type != "Softmax"
+                    or node13.op_type != "MatMul"
+                    or node14.op_type != "Transpose"
+                    or node15.op_type != "Reshape"
+                    or node16.op_type != "MatMul"
+                    or node17.op_type != "Add"
+                ):
+                    continue
+                if (
+                    self.node_reference[node2.output[0]] != 1
+                    or self.node_reference[node3.output[0]] != 1
+                    or self.node_reference[node3.output[1]] != 1
+                    or self.node_reference[node3.output[2]] != 1
+                    or self.node_reference[node4.output[0]] != 1
+                    or self.node_reference[node5.output[0]] != 1
+                    or self.node_reference[node6.output[0]] != 1
+                    or self.node_reference[node7.output[0]] != 1
+                    or self.node_reference[node8.output[0]] != 1
+                    or self.node_reference[node9.output[0]] != 1
+                    or self.node_reference[node10.output[0]] != 1
+                    or self.node_reference[node11.output[0]] != 1
+                    or self.node_reference[node12.output[0]] != 1
+                    or self.node_reference[node13.output[0]] != 1
+                    or self.node_reference[node14.output[0]] != 1
+                    or self.node_reference[node15.output[0]] != 1
+                    or self.node_reference[node16.output[0]] != 1
+                ):
+                    continue
+                if (
+                    node2.input[0] != node.output[0]
+                    or node3.input[0] != node2.output[0]
+                    or node4.input[0] != node3.output[0]
+                    or node5.input[0] != node4.output[0]
+                    or node6.input[0] != node5.output[0]
+                    or node7.input[0] != node3.output[1]
+                    or node8.input[0] != node3.output[2]
+                    or node9.input[0] != node8.output[0]
+                    or node10.input[0] != node7.output[0]
+                    or node11.input[0] != node6.output[0]
+                    or node11.input[1] != node10.output[0]
+                    or node12.input[0] != node11.output[0]
+                    or node13.input[0] != node12.output[0]
+                    or node13.input[1] != node9.output[0]
+                    or node14.input[0] != node13.output[0]
+                    or node15.input[0] != node14.output[0]
+                    or node16.input[0] != node15.output[0]
+                    or node17.input[0] != node16.output[0]
+                ):
+                    continue
+
+                qkv_B = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
+                o_B = self.get_node_attr_from_input_af(self.weights[node17.input[1]])
+
+                if qkv_B.size != o_B.size * 3:
+                    continue
+
+                embed_dim = o_B.size
+
+                # 1 0 2
+                perm6 = self.get_node_attr_ai(node6, "perm")
+                perm9 = self.get_node_attr_ai(node9, "perm")
+                if perm6.size != 3 or perm6[0] != 1 or perm6[1] != 0 or perm6[2] != 2:
+                    continue
+                if perm9.size != 3 or perm9[0] != 1 or perm9[1] != 0 or perm9[2] != 2:
+                    continue
+
+                # 1 2 0
+                perm10 = self.get_node_attr_ai(node10, "perm")
+                if (
+                    perm10.size != 3
+                    or perm10[0] != 1
+                    or perm10[1] != 2
+                    or perm10[2] != 0
+                ):
+                    continue
+
+                # 1 0 2
+                perm14 = self.get_node_attr_ai(node14, "perm")
+                if (
+                    perm14.size != 3
+                    or perm14[0] != 1
+                    or perm14[1] != 0
+                    or perm14[2] != 2
+                ):
+                    continue
+
+                softmax_axis = self.get_node_attr_i(node12, "axis")
+                if softmax_axis != 2:
+                    continue
+
+                # 1/-1, seqlen * num_heads, embed_dim / num_heads
+                if len(node5.input) == 1:
+                    shape5 = self.get_node_attr_ai(node5, "shape")
+                else:
+                    if node5.input[1] not in self.weights:
+                        continue
+
+                    shape5 = self.get_node_attr_from_input_ai(
+                        self.weights[node5.input[1]]
+                    )
+                if len(node7.input) == 1:
+                    shape7 = self.get_node_attr_ai(node7, "shape")
+                else:
+                    if node7.input[1] not in self.weights:
+                        continue
+
+                    shape7 = self.get_node_attr_from_input_ai(
+                        self.weights[node7.input[1]]
+                    )
+                if len(node8.input) == 1:
+                    shape8 = self.get_node_attr_ai(node8, "shape")
+                else:
+                    if node8.input[1] not in self.weights:
+                        continue
+
+                    shape8 = self.get_node_attr_from_input_ai(
+                        self.weights[node8.input[1]]
+                    )
+
+                if (
+                    shape5[1] != shape7[1]
+                    or shape5[1] != shape8[1]
+                    or shape5[2] != shape7[2]
+                    or shape5[2] != shape8[2]
+                ):
+                    continue
+
+                num_heads = embed_dim / shape5[2]
+
+                # 1, seqlen, embed_dim
+                if len(node15.input) == 1:
+                    shape15 = self.get_node_attr_ai(node15, "shape")
+                else:
+                    if node15.input[1] not in self.weights:
+                        continue
+
+                    shape15 = self.get_node_attr_from_input_ai(
+                        self.weights[node15.input[1]]
+                    )
+
+                if (
+                    shape15.size != 3
+                    or shape15[2] != embed_dim
+                    or shape15[1] * num_heads != shape8[1]
+                ):
+                    continue
+
+                # reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+                node3.op_type = "noop_reducedncnn"
+                node4.op_type = "noop_reducedncnn"
+                node5.op_type = "noop_reducedncnn"
+                node6.op_type = "noop_reducedncnn"
+                node7.op_type = "noop_reducedncnn"
+                node8.op_type = "noop_reducedncnn"
+                node9.op_type = "noop_reducedncnn"
+                node10.op_type = "noop_reducedncnn"
+                node11.op_type = "noop_reducedncnn"
+                node12.op_type = "noop_reducedncnn"
+                node13.op_type = "noop_reducedncnn"
+                node14.op_type = "noop_reducedncnn"
+                node15.op_type = "noop_reducedncnn"
+                node16.op_type = "noop_reducedncnn"
+
+                self.node_reference[node2.input[0]] -= 1
+                self.node_reference[node3.input[0]] -= 1
+                self.node_reference[node4.input[0]] -= 1
+                self.node_reference[node4.input[1]] -= 1
+                self.node_reference[node5.input[0]] -= 1
+                if len(node5.input) == 2:
+                    self.node_reference[node5.input[1]] -= 1
+                self.node_reference[node6.input[0]] -= 1
+                self.node_reference[node7.input[0]] -= 1
+                if len(node7.input) == 2:
+                    self.node_reference[node7.input[1]] -= 1
+                self.node_reference[node8.input[0]] -= 1
+                if len(node8.input) == 2:
+                    self.node_reference[node8.input[1]] -= 1
+                self.node_reference[node9.input[0]] -= 1
+                self.node_reference[node10.input[0]] -= 1
+                self.node_reference[node11.input[0]] -= 1
+                self.node_reference[node11.input[1]] -= 1
+                self.node_reference[node12.input[0]] -= 1
+                self.node_reference[node13.input[0]] -= 1
+                self.node_reference[node13.input[1]] -= 1
+                self.node_reference[node14.input[0]] -= 1
+                self.node_reference[node15.input[0]] -= 1
+                if len(node15.input) == 2:
+                    self.node_reference[node15.input[1]] -= 1
+                self.node_reference[node16.input[0]] -= 1
+                self.node_reference[node17.input[0]] -= 1
+
+                del self.blob_names[node.output[0]]
+                del self.blob_names[node2.output[0]]
+                del self.blob_names[node3.output[0]]
+                del self.blob_names[node3.output[1]]
+                del self.blob_names[node3.output[2]]
+                del self.blob_names[node4.output[0]]
+                del self.blob_names[node5.output[0]]
+                del self.blob_names[node6.output[0]]
+                del self.blob_names[node7.output[0]]
+                del self.blob_names[node8.output[0]]
+                del self.blob_names[node9.output[0]]
+                del self.blob_names[node10.output[0]]
+                del self.blob_names[node11.output[0]]
+                del self.blob_names[node12.output[0]]
+                del self.blob_names[node13.output[0]]
+                del self.blob_names[node14.output[0]]
+                del self.blob_names[node15.output[0]]
+                del self.blob_names[node16.output[0]]
+
+                qkvw = node.input[1]
+                qkvb = node2.input[1]
+                ow = node16.input[1]
+                ob = node17.input[1]
+
+                node17.op_type = "MultiHeadAttention"
+                node17.ClearField("input")
+                node17.input.append(node.input[0])
+                node17.input.append(qkvw)
+                node17.input.append(qkvb)
+                node17.input.append(ow)
+                node17.input.append(ob)
+
+                attr_embed_dim = onnx.AttributeProto(
+                    name="embed_dim", i=embed_dim, type=APT.INT
+                )
+                node17.attribute.append(attr_embed_dim)
+
+                attr_num_heads = onnx.AttributeProto(
+                    name="num_heads", i=num_heads, type=APT.INT
+                )
+                node17.attribute.append(attr_num_heads)
+
+                reduced_node_count[0] += 16
+                i += 16
 
     def fuse_binaryop_with_scalar(self, reduced_node_count: [int]) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -1751,6 +2543,34 @@ class Onnx2NcnnConverter:
         self.fuse_multiheadattention(reduced_node_count)
         self.fuse_binaryop_with_scalar(reduced_node_count)
         self.fuse_rewrite_gather()
+
+        # reduce common const weight node_reference
+        for node in self.onnx_graph.node:
+            op = node.op_type
+            if op == "BatchNormalization":
+                self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.input[2]] -= 1
+                self.node_reference[node.input[3]] -= 1
+                self.node_reference[node.input[4]] -= 1
+            elif op == "Clip":
+                if len(node.input) == 3:
+                    self.node_reference[node.input[1]] -= 1
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "Conv":
+                self.node_reference[node.input[1]] -= 1
+                if len(node.input) == 3:
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "ConvTranspose":
+                self.node_reference[node.input[1]] -= 1
+                if len(node.input) == 3:
+                    self.node_reference[node.input[2]] -= 1
+            elif op == "EmbedLayerNormalization":
+                self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.input[2]] -= 1
+                self.node_reference[node.input[3]] -= 1
+                self.node_reference[node.input[4]] -= 1
+                self.node_reference[node.input[5]] -= 1
+                self.node_reference[node.input[6]] -= 1
 
 
 if __name__ == "__main__":
