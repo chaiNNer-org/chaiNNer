@@ -1,4 +1,4 @@
-import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
 import logging
@@ -77,6 +77,7 @@ class AppContext:
         # This will be initialized by setup_queue.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
+        self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
     def get(app: Sanic) -> "AppContext":
@@ -159,7 +160,13 @@ async def run(request: Request):
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
             os.environ["isFp16"] = str(full_data["isFp16"])
             logger.info(f"Using device: {os.environ['device']}")
-            executor = Executor(nodes_list, app.loop, ctx.queue, ctx.cache.copy())
+            executor = Executor(
+                nodes_list,
+                app.loop,
+                ctx.queue,
+                ctx.pool,
+                ctx.cache.copy(),
+            )
             ctx.executor = executor
             await executor.run()
         if not executor.paused:
