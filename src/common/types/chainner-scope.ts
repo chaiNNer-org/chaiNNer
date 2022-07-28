@@ -29,6 +29,8 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
+    modelType: string,
+    size: string,
 }
 
 struct NcnnBinFile;

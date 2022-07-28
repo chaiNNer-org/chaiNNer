@@ -224,7 +224,9 @@ class InterpolateNode(NodeBase):
             ),
         ]
         self.outputs = [
-            ModelOutput(model_type="Input0 & Input1"),
+            ModelOutput(model_type="Input0 & Input1").with_never_reason(
+                "Models must be of the same type and have the same parameters to be interpolated."
+            ),
             NumberOutput("Amount A", "subtract(100, Input2)"),
             NumberOutput("Amount B", "Input2"),
         ]

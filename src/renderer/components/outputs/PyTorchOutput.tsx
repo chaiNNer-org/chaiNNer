@@ -13,13 +13,13 @@ import {
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
+import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
-    modelType?: string;
+    modelType: string;
     inNc: number;
     outNc: number;
     size: string[];
@@ -63,6 +63,14 @@ export const PyTorchOutput = memo(
                                 'outputChannels',
                                 new NumericLiteralType(value.outNc)
                             ),
+                            new NamedExpressionField(
+                                'modelType',
+                                new StringLiteralType(value.modelType)
+                            ),
+                            new NamedExpressionField(
+                                'size',
+                                new StringLiteralType(value.size.join('x'))
+                            ),
                         ])
                     );
                 } else {
@@ -94,7 +102,7 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.modelType ?? '?'}
+                                    {value.modelType}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
