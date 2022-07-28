@@ -2,12 +2,14 @@ import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/
 import { memo } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
-import { useContextSelector } from 'use-context-selector';
-import { InputId, SchemaId } from '../../../common/common-types';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
 import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTag } from '../TypeTag';
 import { OutputProps } from './props';
+
+const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
 export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
@@ -17,10 +19,12 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const createConnection = useContextSelector(GlobalVolatileContext, (c) => c.createConnection);
 
+    const { selectNode } = useContext(GlobalContext);
+
     const imgBgColor = useColorModeValue('gray.400', 'gray.750');
     const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
 
-    const { getNode } = useReactFlow();
+    const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     return (
         <Flex
@@ -34,7 +38,20 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                 h="2rem"
                 w="2rem"
                 onClick={() => {
-                    const containingNode = getNode(id);
+                    const byId = new Map(getNodes().map((n) => [n.id, n]));
+
+                    // check whether there already is a view node
+                    const viewId = getEdges()
+                        .filter((e) => e.source === id)
+                        .map((e) => e.target)
+                        .find((i) => byId.get(i)?.data.schemaId === VIEW_SCHEMA_ID);
+                    if (viewId !== undefined) {
+                        // select view node
+                        selectNode(viewId);
+                        return;
+                    }
+
+                    const containingNode = byId.get(id);
                     if (containingNode) {
                         const nodeId = createUniqueId();
                         // TODO: This is a bit of hardcoding, but it works
@@ -46,7 +63,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                                     y: containingNode.position.y,
                                 },
                                 data: {
-                                    schemaId: 'chainner:image:view' as SchemaId,
+                                    schemaId: VIEW_SCHEMA_ID,
                                 },
                                 nodeType: 'regularNode',
                             },
