@@ -368,14 +368,12 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             ImageInput("Spritesheet"),
             NumberInput(
                 "Number of rows (vertical)",
-                step=1,
                 controls_step=1,
                 minimum=1,
                 default=1,
             ),
             NumberInput(
                 "Number of columns (horizontal)",
-                step=1,
                 controls_step=1,
                 minimum=1,
                 default=1,
