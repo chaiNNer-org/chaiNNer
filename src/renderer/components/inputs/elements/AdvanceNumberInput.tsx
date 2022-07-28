@@ -30,8 +30,7 @@ interface AdvancedNumberInputProps {
     unit?: string | null;
     max: number;
     min: number;
-    offset: number;
-    step: number;
+    precision: number;
     controlsStep: number;
     hideTrailingZeros: boolean;
 
@@ -49,8 +48,7 @@ export const AdvancedNumberInput = memo(
         unit,
         max,
         min,
-        offset,
-        step,
+        precision,
         controlsStep,
         hideTrailingZeros,
 
@@ -62,8 +60,6 @@ export const AdvancedNumberInput = memo(
         setInputString,
         setInput,
     }: AdvancedNumberInputProps) => {
-        const precision = Math.max(getPrecision(offset), getPrecision(step));
-
         const onBlur = () => {
             const valAsNumber =
                 precision > 0
@@ -71,8 +67,7 @@ export const AdvancedNumberInput = memo(
                     : Math.round(parseFloat(inputString || String(defaultValue)));
 
             if (!Number.isNaN(valAsNumber)) {
-                const roundedVal = Math.round((valAsNumber - offset) / step) * step + offset;
-                const value = Number(clamp(roundedVal, min, max).toFixed(precision));
+                const value = Number(clamp(valAsNumber, min, max).toFixed(precision));
 
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
                 setImmediate(() => {

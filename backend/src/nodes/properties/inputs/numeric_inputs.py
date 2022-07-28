@@ -6,19 +6,12 @@ from .. import expression
 
 def clampNumber(
     value: Union[float, int],
-    offset: Union[float, int],
-    step: Union[float, int],
+    precision: int,
     min_value: Union[float, int, None],
     max_value: Union[float, int, None],
 ) -> Union[float, int]:
     # Convert proper number type
-    if offset % 1 == 0 and step % 1 == 0:
-        value = round(value)
-    else:
-        value = float(value)
-
-    # Ensure value adheres to step and offset
-    value = round((value - offset) / step) * step + offset
+    value = round(value, precision)
 
     # Clamp to max and min, correcting for max/min not aligning with offset + n * step
     if max_value is not None:
@@ -32,16 +25,11 @@ def clampNumber(
 def get_number_type(
     min: Union[float, int, None],
     max: Union[float, int, None],
-    step: Union[float, int],
+    precision: int,
 ) -> expression.ExpressionJson:
-    if step == 0 or step != int(step):
+    if precision > 0:
         # step is not an integer
         return expression.interval(min, max)
-
-    if (min is not None and min != int(min)) or (max is not None and max != int(max)):
-        # min or max is not an integer
-        return expression.interval(min, max)
-
     return expression.int_interval(min, max)
 
 
@@ -51,7 +39,7 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
-        step: Union[float, int] = 1,
+        precision: int = 0,
         controls_step: Union[float, int, None] = None,
         default: Union[float, int] = 0,
         minimum: Union[float, int, None] = 0,
@@ -62,11 +50,11 @@ class NumberInput(BaseInput):
         hide_trailing_zeros: bool = True,
     ):
         super().__init__("number", label, kind=kind, has_handle=True)
-        # Step is for the actual increment.
+        self.precision = precision
         # controls_step is for increment/decrement arrows.
-        self.step = step
-        self.controls_step = step if controls_step is None else controls_step
-        self.offset = minimum % step if minimum is not None else 0
+        self.controls_step = (
+            controls_step if controls_step is not None else 10**-precision
+        )
         self.default = default
         self.minimum = minimum
         self.maximum = maximum
@@ -77,9 +65,9 @@ class NumberInput(BaseInput):
         self.input_type = get_number_type(
             self.minimum,
             self.maximum,
-            self.step,
+            self.precision,
         )
-        if self.step == 1 and self.offset == 0:
+        if self.precision == 0:
             self.input_conversion = """
                 match Input {
                     number as i => round(i),
@@ -94,8 +82,7 @@ class NumberInput(BaseInput):
             "max": self.maximum,
             "noteExpression": self.note_expression,
             "def": self.default,
-            "offset": self.offset,
-            "step": self.step,
+            "precision": self.precision,
             "controlsStep": self.controls_step,
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
@@ -105,7 +92,7 @@ class NumberInput(BaseInput):
         raise ValueError("NumberInput and SliderInput cannot be made optional")
 
     def enforce(self, value):
-        return clampNumber(value, self.offset, self.step, self.minimum, self.maximum)
+        return clampNumber(value, self.precision, self.minimum, self.maximum)
 
 
 class SliderInput(NumberInput):
@@ -114,7 +101,7 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
-        step: Union[float, int] = 1,
+        precision: int = 0,
         controls_step: Union[float, int, None] = None,
         slider_step: Union[float, int, None] = None,
         minimum: Union[float, int] = 0,
@@ -127,7 +114,7 @@ class SliderInput(NumberInput):
     ):
         super().__init__(
             label,
-            step=step,
+            precision=precision,
             controls_step=controls_step,
             default=default,
             minimum=minimum,
@@ -141,7 +128,7 @@ class SliderInput(NumberInput):
         self.slider_step = (
             slider_step
             if slider_step is not None
-            else (controls_step if controls_step is not None else step)
+            else (controls_step if controls_step is not None else 10**-precision)
         )
 
     def toDict(self):

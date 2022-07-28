@@ -25,8 +25,8 @@ class BlurNode(NodeBase):
         self.description = "Apply box/average blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", step=0.1, controls_step=1),
-            NumberInput("Amount Y", step=0.1, controls_step=1),
+            NumberInput("Amount X", precision=1, controls_step=1),
+            NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
@@ -73,8 +73,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian Blur to an image"
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", step=0.1, controls_step=1),
-            NumberInput("Amount Y", step=0.1, controls_step=1),
+            NumberInput("Amount X", precision=1, controls_step=1),
+            NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = IMAGE_FILTER
@@ -175,7 +175,7 @@ class AverageColorFixNode(NodeBase):
             ImageInput("Reference Image", image_type=expression.Image(channels=[3, 4])),
             NumberInput(
                 "Reference Image Scale Factor",
-                step=0.0001,
+                precision=4,
                 controls_step=12.5,
                 maximum=100.0,
                 default=12.5,

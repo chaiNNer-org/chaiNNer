@@ -43,7 +43,7 @@ class MathNode(NodeBase):
                 "Operand A",
                 minimum=None,
                 maximum=None,
-                step=1e-100,
+                precision=100,
                 controls_step=1,
             ),
             MathOpsDropdown(),
@@ -51,7 +51,7 @@ class MathNode(NodeBase):
                 "Operand B",
                 minimum=None,
                 maximum=None,
-                step=1e-100,
+                precision=100,
                 controls_step=1,
             ),
         ]
