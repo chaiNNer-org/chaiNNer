@@ -1,5 +1,6 @@
 from operator import length_hint
 from typing import Union, List, Dict
+from matplotlib.pyplot import sca
 
 import numpy as np
 import onnx
@@ -9,9 +10,14 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer,
 )
 from sanic.log import logger
-from backend.src.nodes.utils.ncnn_structure import NcnnLayer
 
-from ncnn_structure import NcnnModel
+from ncnn_structure import (
+    NcnnModel,
+    NcnnLayer,
+    UnaryOpTypes,
+    BinaryOpTypes,
+    EltwiseOpTypes,
+)
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
 FLOAT32_MAX = np.finfo(np.float32).max
@@ -47,44 +53,6 @@ class TensorProtoTypes:
     UINT64 = 13
     COMPLEX64_VALUE = 14
     COMPLEX128_VALUE = 15
-
-
-class UnaryOpTypes:
-    ABS = 0
-    NEG = 1
-    FLOOR = 2
-    CEIL = 3
-    SQUARE = 4
-    SQRT = 5
-    RSQ = 6
-    EXP = 7
-    LOG = 8
-    SIN = 9
-    COS = 10
-    TAN = 11
-    ASIN = 12
-    ACOS = 13
-    ATAN = 14
-    RECIPROCAL = 15
-    TANH = 16
-
-
-class BinaryOpTypes:
-    ADD = 0
-    SUB = 1
-    MUL = 2
-    DIV = 3
-    MAX = 4
-    MIN = 5
-    POW = 6
-    RSUB = 7
-    RDIV = 8
-
-
-class EltwiseOpTypes:
-    PROD = 0
-    SUM = 1
-    MAX = 2
 
 
 APT = AttributeProtoTypes
@@ -241,14 +209,15 @@ class Onnx2NcnnConverter:
 
         return 0
 
-    def fwrite_tensor_proto_data(self, tp: onnx.TensorProto, ncnno: NcnnModel):
+    def write_tensor_proto_data(self, tp: onnx.TensorProto, layer: NcnnLayer) -> None:
         # TODO: Figure out ncnn structure to decide how to write to it
         size = self.get_tensor_proto_data_size(tp)
 
         if tp.raw_data:
-            raw_data = tp.raw_data
+            layer.weight_data = tp.raw_data
         elif tp.data_type == TPT.FLOAT:
-            pass
+            weight_array = onph.to_array(tp)
+            layer.weight_data = weight_array.tobytes()
 
     def fuse_rewrite_gather(self) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -2823,12 +2792,12 @@ class Onnx2NcnnConverter:
         print(f"blob count: {ncnn_model.blob_count}")
 
         internal_split = 0
-        for i, input_name in enumerate(self.onnx_graph.input):
+        for i, inpt in enumerate(self.onnx_graph.input):
+            input_name = inpt.name
+
             # Make sure input is not in weights
             if input_name not in self.weights:
-                ncnn_model.layer_list.append(
-                    NcnnLayer("Input", input_name, 0, 1, [input_name])
-                )
+                ncnn_model.add_layer(NcnnLayer("Input", input_name, 0, 1, [input_name]))
 
                 refcount = self.node_reference[input_name]
                 if refcount <= 1:
@@ -2837,7 +2806,7 @@ class Onnx2NcnnConverter:
                 layer_input_list = [
                     f"{input_name}_splitncnn_{j}" for j in range(refcount)
                 ]
-                ncnn_model.layer_list.append(
+                ncnn_model.add_layer(
                     NcnnLayer(
                         "Split", f"splitncnn_input{i}", 1, refcount, layer_input_list
                     )
@@ -3066,6 +3035,229 @@ class Onnx2NcnnConverter:
                     layer.params[2] = b
             elif op == "Asin":
                 layer.params[0] = UOT.ASIN
+            elif op == "Atan":
+                layer.params[0] = UOT.ATAN
+            elif op == "AveragePool" or op == "MaxPool":
+                auto_pad = self.get_node_attr_s(node, "auto_pad")
+                ceil_mode = self.get_node_attr_i(node, "ceil_mode", 0)
+                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                strides = self.get_node_attr_ai(node, "strides")
+                pads = self.get_node_attr_ai(node, "pads")
+
+                pool = int(op == "AveragePool")
+
+                if ceil_mode == 1:
+                    pad_mode = 0
+                elif auto_pad == "SAME_UPPER":
+                    pad_mode = 2
+                elif auto_pad == "SAME_LOWER":
+                    pad_mode = 3
+                else:
+                    pad_mode = 1
+
+                layer.params[0] = pool
+
+                if kernel_shape.size == 1:
+                    layer.params[1] = kernel_shape[0]
+                elif kernel_shape.size == 2:
+                    layer.params[1] = kernel_shape[1]
+                    layer.params[11] = kernel_shape[0]
+
+                if strides.size == 1:
+                    layer.params[2] = strides[0]
+                elif strides.size == 2:
+                    layer.params[2] = strides[1]
+                    layer.params[12] = strides[0]
+
+                if pads.size == 1:
+                    layer.params[3] = pads[0]
+                elif pads.size == 2 or pads.size == 4:
+                    layer.params[3] = pads[1]
+                    layer.params[13] = pads[0]
+                elif pads.size == 4:
+                    layer.params[3] = pads[1]
+                    layer.params[13] = pads[0]
+                    layer.params[14] = pads[3]
+                    layer.params[15] = pads[2]
+
+                layer.params[5] = pad_mode
+
+                if op == "AveragePool":
+                    avgpool_count_include_pad = self.get_node_attr_i(
+                        node, "count_include_pad", 0
+                    )
+                    layer.params[6] = avgpool_count_include_pad
+                # TODO: add in skipped ops
+            elif op == "Concat":
+                axis = self.get_node_attr_i(node, "axis", 1)
+                layer.params[0] = axis - 1 if axis > 0 else axis
+            elif op == "Constant":
+                logger.error("Code should not have reached here.")
+            elif op == "Conv":
+                W = self.weights[node.input[1]]
+
+                num_filter = W.dims
+                has_bias = int(len(node.input) == 3)
+
+                auto_pad = self.get_node_attr_s(node, "auto_pad")
+                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                dilations = self.get_node_attr_ai(node, "dilations")
+                strides = self.get_node_attr_ai(node, "strides")
+                pads = self.get_node_attr_ai(node, "pads")
+                group = self.get_node_attr_i(node, "group", 1)
+
+                layer.params[0] = num_filter
+
+                if kernel_shape.size == 1:
+                    layer.params[1] = kernel_shape[0]
+                elif kernel_shape.size == 2:
+                    layer.params[1] = kernel_shape[1]
+                    layer.params[11] = kernel_shape[0]
+
+                if dilations.size == 1:
+                    layer.params[2] = dilations[0]
+                elif dilations.size == 2:
+                    layer.params[2] = dilations[1]
+                    layer.params[12] = dilations[0]
+
+                if strides.size == 1:
+                    layer.params[3] = strides[0]
+                elif strides.size == 2:
+                    layer.params[3] = strides[1]
+                    layer.params[13] = strides[0]
+
+                if auto_pad == "SAME_UPPER":
+                    layer.params[4] = -233
+                elif auto_pad == "SAME_LOWER":
+                    layer.params[4] = -234
+                else:
+                    if pads.size == 1:
+                        layer.params[4] = pads[0]
+                    elif pads.size == 2 or pads.size == 4:
+                        layer.params[4] = pads[1]
+                        layer.params[14] = pads[0]
+                    elif pads.size == 4:
+                        layer.params[4] = pads[1]
+                        layer.params[14] = pads[0]
+                        layer.params[15] = pads[3]
+                        layer.params[16] = pads[2]
+
+                layer.params[5] = has_bias
+
+                layer.params[6] = self.get_tensor_proto_data_size(W)
+
+                if group > 1:
+                    layer.params[7] = group
+
+                layer.quantize_tag = b"\x00\x00\x00\x00"
+                layer.weight_data = self.write_tensor_proto_data(W, layer)
+
+                if has_bias:
+                    B = self.weights[node.input[2]]
+                    self.write_tensor_proto_data(B, layer)
+            elif op == "LeakyRelu":
+                alpha = self.get_node_attr_f(node, "alpha", 0.01)
+                layer.params[0] = alpha
+            elif op == "Mul":
+                layer.params[0] = BOT.MUL
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.params[1] = with_scalar
+                    layer.params[2] = B
+            elif op == "Resize":
+                mode = self.get_node_attr_s(node, "mode")
+                align = self.get_node_attr_s(node, "coordinate_transformation_mode")
+
+                if len(node.input) == 2:
+                    # opset 10
+                    scales = self.get_node_attr_from_input_af(
+                        self.weights[node.input[1]]
+                    )
+                    sizes = np.empty(0, np.float32)
+                else:
+                    # opset 11+
+                    scales = self.get_node_attr_from_input_af(
+                        self.weights[node.input[2]]
+                    )
+                    if len(node.input) >= 4:
+                        sizes = self.get_node_attr_from_input_ai(
+                            self.weights[node.input[3]]
+                        )
+                    else:
+                        sizes = np.empty(0, np.float32)
+
+                if mode == "linear":
+                    resize_type = 2
+                elif mode == "cubic":
+                    resize_type = 3
+                else:
+                    resize_type = 1
+
+                if scales.size == 0 and sizes.size == 0:
+                    raise TypeError(
+                        "Unsupported Resize scales and sizes are all empty."
+                    )
+
+                if scales.size == 2:
+                    w_scale = scales[1]
+                elif scales.size == 3:
+                    h_scale = scales[1]
+                    w_scale = scales[2]
+                elif scales.size == 4:
+                    if scales[1] != 1:
+                        raise TypeError("Unsupported Resize scales.")
+                    h_scale = scales[2]
+                    w_scale = scales[3]
+                else:
+                    h_scale = 1
+                    w_scale = 1
+
+                if sizes.size == 2:
+                    output_width = sizes[1]
+                elif sizes.size == 3:
+                    output_height = sizes[1]
+                    output_width = sizes[2]
+                elif sizes.size == 4:
+                    output_height = sizes[2]
+                    output_width = sizes[3]
+                else:
+                    output_height = 0
+                    output_width = 0
+
+                align_corner = int(align == "align_corners")
+
+                layer.params[0] = resize_type
+                layer.params[1] = h_scale
+                layer.params[2] = w_scale
+                layer.params[3] = output_height
+                layer.params[4] = output_width
+                layer.params[6] = align_corner
+
+            ncnn_model.add_layer(layer)
+
+            for output_name in node.output:
+                if output_name in self.node_reference:
+                    refcount = self.node_reference[output_name]
+                    if refcount > 1:
+                        ncnn_model.add_layer(
+                            NcnnLayer(
+                                "Split",
+                                f"splitncnn_{internal_split}",
+                                1,
+                                refcount,
+                                outputs=[
+                                    output_name,
+                                    *[
+                                        f"{output_name}_splitncnn_{j}"
+                                        for j in range(refcount)
+                                    ],
+                                ],
+                            )
+                        )
+
+                        internal_split += 1
 
 
 if __name__ == "__main__":
