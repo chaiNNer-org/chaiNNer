@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
 import {
     EdgeData,
@@ -238,7 +239,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 }
             }
         },
-        350,
+        500,
         [unAnimate, setOutputDataMap]
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
