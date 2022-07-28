@@ -31,10 +31,12 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = ImReadNode().get_outputs()
-        self.outputs.insert(
-            2, TextOutput("Relative Path")
-        )  # Add relative path to outputs outside ImReadNode
+        self.outputs = [
+            ImageOutput(),
+            DirectoryOutput(),
+            TextOutput("Relative Path"),
+            TextOutput("Image Name"),
+        ]
 
         self.category = IMAGE
         self.name = "Load Image (Iterator)"
@@ -150,7 +152,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [LargeImageOutput("Frame Image"), TextOutput("Frame Index")]
+        self.outputs = [ImageOutput("Frame Image"), TextOutput("Frame Index")]
 
         self.category = IMAGE
         self.name = "Load Frame As Image"
@@ -321,7 +323,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [LargeImageOutput()]
+        self.outputs = [ImageOutput()]
 
         self.category = IMAGE
         self.name = "Load Image (Iterator)"
