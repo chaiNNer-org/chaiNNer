@@ -7,7 +7,7 @@ import platform
 import sys
 import traceback
 from json import dumps as stringify
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 # pylint: disable=unused-import
 import cv2
@@ -67,7 +67,7 @@ except Exception as e:
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
-from process import Executor, NodeExecutionError
+from process import Executor, NodeExecutionError, UsableData
 
 
 class AppContext:
@@ -141,6 +141,12 @@ async def nodes(_):
     return json(node_list)
 
 
+class RunRequest(TypedDict):
+    data: Dict[str, UsableData]
+    isCpu: bool
+    isFp16: bool
+
+
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
     """Runs the provided nodes"""
@@ -154,7 +160,7 @@ async def run(request: Request):
             await executor.resume()
         else:
             logger.info("Running new executor...")
-            full_data = dict(request.json)  # type: ignore
+            full_data: RunRequest = dict(request.json)  # type: ignore
             logger.info(full_data)
             nodes_list = full_data["data"]
             os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
@@ -198,12 +204,20 @@ async def run(request: Request):
         return json(error, status=500)
 
 
+class RunIndividualRequest(TypedDict):
+    id: str
+    inputs: List[Any]
+    isCpu: bool
+    isFp16: bool
+    schemaId: str
+
+
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
     ctx = AppContext.get(request.app)
     try:
-        full_data = dict(request.json)  # type: ignore
+        full_data: RunIndividualRequest = dict(request.json)  # type: ignore
         logger.info(full_data)
         os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
         os.environ["isFp16"] = str(full_data["isFp16"])
