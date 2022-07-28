@@ -31,6 +31,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
@@ -217,7 +218,9 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setStatus, unAnimate, schemata]
     );
 
-    const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
+    const updateNodeFinish = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'node-finish'>>
+    >(
         (eventData) => {
             if (eventData) {
                 const { finished, nodeId, data } = eventData;
@@ -236,11 +239,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 }
             }
         },
-        350
+        500,
+        [unAnimate, setOutputDataMap]
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
-        unAnimate,
-        setOutputDataMap,
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        {},
         updateNodeFinish,
     ]);
 
