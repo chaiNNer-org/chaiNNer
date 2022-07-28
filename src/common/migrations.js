@@ -666,6 +666,17 @@ const removeEmptyStrings = (data) => {
     return data;
 };
 
+const blockSizeToRadius = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:threshold_adaptive') {
+            const size = node.data.inputData[4] ?? 3;
+            node.data.inputData[4] = Math.floor((size - 1) / 2);
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -702,6 +713,7 @@ const migrations = [
     fixDropDownNumberValues,
     onnxConvertUpdate,
     removeEmptyStrings,
+    blockSizeToRadius,
 ];
 
 export const currentMigration = migrations.length;
