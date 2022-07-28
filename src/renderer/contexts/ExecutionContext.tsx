@@ -247,26 +247,21 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         updateNodeFinish,
     ]);
 
-    const updateIteratorProgress = useBatchedCallback<
-        Parameters<BackendEventSourceListener<'iterator-progress-update'>>
-    >(
-        (data) => {
-            if (data) {
-                const { percent, iteratorId, running: runningNodes } = data;
-                if (runningNodes && status === ExecutionStatus.RUNNING) {
-                    animate(runningNodes);
-                } else if (status !== ExecutionStatus.RUNNING) {
-                    unAnimate();
-                }
-                setIteratorPercent(iteratorId, percent);
+    const updateIteratorProgress = useThrottledCallback<
+        BackendEventSourceListener<'iterator-progress-update'>
+    >((data) => {
+        if (data) {
+            const { percent, iteratorId, running: runningNodes } = data;
+            if (runningNodes && status === ExecutionStatus.RUNNING) {
+                animate(runningNodes);
+            } else if (status !== ExecutionStatus.RUNNING) {
+                unAnimate();
             }
-        },
-        350,
-        [animate, unAnimate, setIteratorPercent]
-    );
+            setIteratorPercent(iteratorId, percent);
+        }
+    }, 350);
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress, [
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        {},
+        animate,
         updateIteratorProgress,
     ]);
 
