@@ -217,34 +217,30 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setStatus, unAnimate, schemata]
     );
 
-    useBackendEventSourceListener(
-        eventSource,
-        'node-output-data',
-        (data) => {
-            if (data) {
-                setOutputDataMap((prev) => {
-                    const existingData = prev.get(data.nodeId);
-                    if (!existingData || !isDeepEqual(existingData, data.data)) {
-                        return new Map([...prev, [data.nodeId, data.data]]);
-                    }
-                    return prev;
-                });
-            }
-        },
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        [{}, setOutputDataMap]
-    );
-
     const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
-        (data) => {
-            if (data) {
-                unAnimate(data.finished);
+        (eventData) => {
+            if (eventData) {
+                const { finished, nodeId, data } = eventData;
+                if (finished.length > 0) {
+                    unAnimate(finished);
+                }
+
+                if (data) {
+                    setOutputDataMap((prev) => {
+                        const existingData = prev.get(nodeId);
+                        if (!existingData || !isDeepEqual(existingData, data)) {
+                            return new Map([...prev, [nodeId, data]]);
+                        }
+                        return prev;
+                    });
+                }
             }
         },
         350
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
         unAnimate,
+        setOutputDataMap,
         updateNodeFinish,
     ]);
 

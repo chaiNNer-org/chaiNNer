@@ -110,7 +110,7 @@ class Executor:
         logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
-            await self.queue.put(self.__create_node_finish())
+            await self.queue.put(self.__create_node_finish(node_id))
             return self.output_cache[node_id]
 
         inputs = []
@@ -189,7 +189,7 @@ class Executor:
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
-            await self.queue.put(self.__create_node_finish())
+            await self.queue.put(self.__create_node_finish(node_id))
             del node_instance
             return output
         else:
@@ -199,7 +199,6 @@ class Executor:
             await self.__broadcast_data(node_instance, node_id, output)
             # Cache the output of the node
             self.output_cache[node_id] = output
-            await self.queue.put(self.__create_node_finish())
             del node_instance, run_func
             return output
 
@@ -210,6 +209,9 @@ class Executor:
         output: Any,
     ):
         node_outputs = node_instance.get_outputs()
+        finished = [key for key in self.output_cache.keys()]
+        if not node_id in finished:
+            finished.append(node_id)
 
         def compute_broadcast_data():
             broadcast_data: Dict[int, Any] = dict()
@@ -228,8 +230,8 @@ class Executor:
             data = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
             await self.queue.put(
                 {
-                    "event": "node-output-data",
-                    "data": {"nodeId": node_id, "data": data},
+                    "event": "node-finish",
+                    "data": {"finished": finished, "nodeId": node_id, "data": data},
                 }
             )
 
@@ -237,14 +239,22 @@ class Executor:
         if len(node_outputs) > 0 and self.output_cache.get(node_id, None) is None:
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
+        else:
+            await self.queue.put(
+                {
+                    "event": "node-finish",
+                    "data": {"finished": finished, "nodeId": node_id, "data": None},
+                }
+            )
 
-    def __create_node_finish(self) -> Event:
-        cached_ids = [key for key in self.output_cache.keys()]
+    def __create_node_finish(self, node_id: str) -> Event:
+        finished = [key for key in self.output_cache.keys()]
+        if not node_id in finished:
+            finished.append(node_id)
+
         return {
             "event": "node-finish",
-            "data": {
-                "finished": cached_ids,
-            },
+            "data": {"finished": finished, "nodeId": node_id, "data": None},
         }
 
     def get_output_nodes(self) -> List[UsableData]:

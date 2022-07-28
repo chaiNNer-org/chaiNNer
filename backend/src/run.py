@@ -257,8 +257,12 @@ async def run_individual(request: Request):
                     logger.error(f"Error broadcasting output: {error}")
             await ctx.queue.put(
                 {
-                    "event": "node-output-data",
-                    "data": {"nodeId": full_data["id"], "data": broadcast_data},
+                    "event": "node-finish",
+                    "data": {
+                        "finished": [],
+                        "nodeId": full_data["id"],
+                        "data": broadcast_data,
+                    },
                 }
             )
         # Cache the output of the node
