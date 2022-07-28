@@ -215,10 +215,10 @@ class AdaptiveThresholdNode(NodeBase):
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
             NumberInput(
-                "Block Size",
-                step=2,
-                default=3,
-                minimum=3,
+                "Block Radius",
+                step=1,
+                default=1,
+                minimum=1,
             ),
             NumberInput("Mean Subtraction"),
         ]
@@ -234,7 +234,7 @@ class AdaptiveThresholdNode(NodeBase):
         maxval: float,
         adaptive_method: int,
         thresh_type: int,
-        block_size: int,
+        block_radius: int,
         c: int,
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
@@ -253,7 +253,7 @@ class AdaptiveThresholdNode(NodeBase):
             real_maxval,
             adaptive_method,
             thresh_type,
-            block_size,
+            block_radius * 2 + 1,
             c,
         )
 
