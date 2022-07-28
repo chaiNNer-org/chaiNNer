@@ -13,21 +13,30 @@ const getBatchedCallback = <T extends unknown[]>(
     wait: number
 ): ((...arg: T) => void) => {
     let queue: T[] = [];
+    let lastCall = Date.now();
     let isFirst = true;
     return (...args: T) => {
         if (isFirst) {
             isFirst = false;
             setTimeout(() => {
                 isFirst = true;
+                if (queue.length === 0) return;
                 const consumedQueue = queue;
                 queue = [];
 
                 for (const item of consumedQueue) {
                     fn(...item);
                 }
+                lastCall = Date.now();
             }, wait);
 
-            fn(...args);
+            const current = Date.now();
+            if (current - lastCall > wait) {
+                lastCall = current;
+                fn(...args);
+            } else {
+                queue.push(args);
+            }
         } else {
             queue.push(args);
         }
