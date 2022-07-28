@@ -9,6 +9,7 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer,
 )
 from sanic.log import logger
+from backend.src.nodes.utils.ncnn_structure import NcnnLayer
 
 from ncnn_structure import NcnnModel
 
@@ -48,8 +49,49 @@ class TensorProtoTypes:
     COMPLEX128_VALUE = 15
 
 
+class UnaryOpTypes:
+    ABS = 0
+    NEG = 1
+    FLOOR = 2
+    CEIL = 3
+    SQUARE = 4
+    SQRT = 5
+    RSQ = 6
+    EXP = 7
+    LOG = 8
+    SIN = 9
+    COS = 10
+    TAN = 11
+    ASIN = 12
+    ACOS = 13
+    ATAN = 14
+    RECIPROCAL = 15
+    TANH = 16
+
+
+class BinaryOpTypes:
+    ADD = 0
+    SUB = 1
+    MUL = 2
+    DIV = 3
+    MAX = 4
+    MIN = 5
+    POW = 6
+    RSUB = 7
+    RDIV = 8
+
+
+class EltwiseOpTypes:
+    PROD = 0
+    SUM = 1
+    MAX = 2
+
+
 APT = AttributeProtoTypes
 TPT = TensorProtoTypes
+UOT = UnaryOpTypes
+BOT = BinaryOpTypes
+EOT = EltwiseOpTypes
 
 
 class Onnx2NcnnConverter:
@@ -62,6 +104,7 @@ class Onnx2NcnnConverter:
         self.weights: Dict[str, onnx.TensorProto] = {
             initializer.name: initializer for initializer in self.onnx_graph.initializer
         }
+        print(f"weights: {len(self.weights)}")
         self.producers: Dict[str, None] = {i.name: None for i in self.onnx_graph.input}
         self.node_reference: Dict[str, int] = {}
         self.blob_names: Dict[str, None] = {}
@@ -2742,7 +2785,7 @@ class Onnx2NcnnConverter:
         self.blob_names.pop("", None)
         self.node_reference.pop("", None)
 
-        # remove node_reference entry with references equal to one
+        # remove node_reference entries with references equal to one
         split_layer_count = 0
         splitncnn_blob_count = 0
 
@@ -2778,6 +2821,251 @@ class Onnx2NcnnConverter:
         )
         print(f"node count: {ncnn_model.node_count}")
         print(f"blob count: {ncnn_model.blob_count}")
+
+        internal_split = 0
+        for i, input_name in enumerate(self.onnx_graph.input):
+            # Make sure input is not in weights
+            if input_name not in self.weights:
+                ncnn_model.layer_list.append(
+                    NcnnLayer("Input", input_name, 0, 1, [input_name])
+                )
+
+                refcount = self.node_reference[input_name]
+                if refcount <= 1:
+                    continue
+
+                layer_input_list = [
+                    f"{input_name}_splitncnn_{j}" for j in range(refcount)
+                ]
+                ncnn_model.layer_list.append(
+                    NcnnLayer(
+                        "Split", f"splitncnn_input{i}", 1, refcount, layer_input_list
+                    )
+                )
+
+        # This is where the memory data stuff goes, but we don't want it
+        for i, input_name in enumerate(self.weights.keys()):
+            if self.node_reference[input_name] > 1:
+                internal_split += 1
+
+        for node in self.onnx_graph.node:
+            op = node.op_type
+
+            if op == "noop_reducedncnn":
+                continue
+
+            name = node.name
+            if not name:
+                name = node.output[0]
+
+            input_size = len(node.input)
+            output_size = len(node.output)
+
+            for input_name in node.input:
+                # check weight
+                if not input_name or input_name not in self.weights:
+                    input_size -= 1
+
+            layer = NcnnLayer()
+            if op in [
+                "Abs",
+                "Acos",
+                "Asin",
+                "Atan",
+                "Ceil",
+                "Cos",
+                "Exp",
+                "Floor",
+                "Log",
+                "Neg",
+                "Reciprocal",
+                "Sin",
+                "Sqrt",
+                "Tan",
+                "Tanh",
+            ]:
+                layer.layer_type = "UnaryOp"
+            elif op in ["Add", "Div", "Max", "Min", "Mul", "Pow" "RDiv", "RSub", "Sub"]:
+                layer.layer_type = "BinaryOp"
+            elif op == "AveragePool" or op == "MaxPool":
+                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                if kernel_shape.size == 1:
+                    layer.layer_type = "Pooling1D"
+                else:
+                    layer.layer_type = "Pooling"
+            elif op == "BatchNormalization":
+                layer.layer_type = "BatchNorm"
+            elif op == "BiasGelu":
+                layer.layer_type = "BiasGelu"
+            elif op == "Clip":
+                layer.layer_type = "Clip"
+            elif op == "Concat":
+                layer.layer_type = "Concat"
+            elif op == "Constant":
+                continue
+            elif op == "Conv":
+                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                if kernel_shape.size == 1:
+                    layer.layer_type = "Convolution1D"
+                else:
+                    group = self.get_node_attr_i(node, "group", 1)
+                    if group > 1:
+                        layer.layer_type = "ConvolutionDepthWise"
+                    else:
+                        layer.layer_type = "Convolution"
+            elif op == "ConvTranspose":
+                group = self.get_node_attr_i(node, "group", 1)
+                if group > 1:
+                    layer.layer_type = "DeconvolutionDepthWise"
+                else:
+                    layer.layer_type = "Deconvolution"
+            elif op == "Crop" or op == "Slice":
+                layer.layer_type = "Crop"
+            elif op == "DepthToSpace" or op == "PixelShuffle":
+                layer.layer_type = "PixelShuffle"
+            elif op == "Dropout":
+                layer.layer_type = "Dropout"
+                output_size = 1
+            elif op == "Elu":
+                layer.layer_type = "ELU"
+            elif "EmbedLayerNormalization":
+                layer.layer_type = "EmbedLayerNormalization"
+            elif op == "Flatten":
+                layer.layer_type = "Flatten"
+            elif op == "Gelu":
+                layer.layer_type = "GELU"
+            elif op == "Gemm":
+                alpha = self.get_node_attr_f(node, "alpha", 1)
+                beta = self.get_node_attr_f(node, "beta", 1)
+                transA = self.get_node_attr_i(node, "transA", 0)
+                transB = self.get_node_attr_i(node, "transB", 0)
+
+                if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
+                    # InnerProduct-like A * B + C
+                    layer.layer_type = "InnerProduct"
+                else:
+                    layer.layer_type = "Gemm"
+            elif op in [
+                "GlobalAveragePool",
+                "GlobalMaxPool",
+                "adaptive_avg_pool2d",
+                "adaptive_max_pool2d",
+            ]:
+                layer.layer_type = "Pooling"
+            elif op == "GroupNorm":
+                layer.layer_type = "GroupNorm"
+            elif op == "GRU":
+                layer.layer_type = "GRU"
+            elif op == "HardSigmoid":
+                layer.layer_type = "HardSigmoid"
+            elif op == "HardSwish":
+                layer.layer_type = "HardSwish"
+            elif op == "ImageScaler":
+                layer.layer_type = "Scale"
+            elif op == "InstanceNormalization":
+                layer.layer_type = "InstanceNorm"
+            elif op == "LayerNorm":
+                layer.layer_type = "LayerNorm"
+            elif op == "LeakyRelu" or op == "Relu":
+                layer.layer_type = "ReLU"
+            elif op == "LRN":
+                layer.layer_type = "LRN"
+            elif op == "LSTM":
+                layer.layer_type = "LSTM"
+            elif op == "MatMul":
+                if node.input[1] in self.weights:
+                    layer.layer_type = "InnerProduct"
+                else:
+                    layer.layer_type = "Gemm"
+            elif op == "MultiHeadAttention":
+                layer.layer_type = "MultiHeadAttention"
+            elif op == "Normalize":
+                layer.layer_type = "Normalize"
+            elif op == "Pad":
+                layer.layer_type = "Padding"
+            elif op == "PRelu":
+                layer.layer_type = "PReLU"
+            elif op in [
+                "ReduceMax",
+                "ReduceMin",
+                "ReduceMean",
+                "ReduceProd",
+                "ReduceSum",
+                "ReduceSumSquare",
+                "ReduceL1",
+                "ReduceL2",
+                "ReduceLogSum",
+                "ReduceLogSumExp",
+            ]:
+                layer.layer_type = "Reduction"
+            elif op == "Reorg":
+                layer.layer_type = "Reorg"
+            elif op == "Reshape":
+                layer.layer_type = "Reshape"
+            elif op == "RNN":
+                layer.layer_type = "RNN"
+            elif op == "ShuffleChannel":
+                layer.layer_type == "ShuffleChannel"
+            elif op == "Sigmoid":
+                layer.layer_type == "Sigmoid"
+            elif op == "SkipLayerNormalization":
+                layer.layer_type == "SkipLayerNormalization"
+            elif op == "Softmax":
+                layer.layer_type = "Softmax"
+            elif op == "Softplus":
+                layer.layer_type = "Softplus"
+            elif op == "Split":
+                layer.layer_type = "Slice"
+            elif op == "Squeeze":
+                layer.layer_type = "Squeeze"
+            elif op == "Sum":
+                layer.layer_type = "Eltwise"
+            elif op == "Swish":
+                layer.layer_type = "Swish"
+            elif op == "Transpose":
+                layer.layer_type = "Permute"
+            elif op == "Upsample" or op == "Resize":
+                layer.layer_type = "Interp"
+            elif op == "Unsqueeze":
+                layer.layer_type = "ExpandDims"
+            else:
+                raise TypeError(f"{op} not currently supported by NCNN.")
+
+            layer.layer_name = name
+            layer.num_inputs = input_size
+            layer.num_outputs = output_size
+
+            for input_name in node.input:
+                # check weight
+                if not input_name or (
+                    input_name in self.weights and self.node_reference[input_name] == 0
+                ):
+                    continue
+
+                if input_name in split_node_reference:
+                    refidx = split_node_reference[input_name] - 1
+                    split_node_reference[input_name] = refidx
+                    input_name = f"{input_name}_splitncnn_{refidx}"
+
+                layer.inputs.append(input_name)
+
+            for output_name in node.output:
+                layer.outputs.append(output_name)
+
+            if op == "Abs":
+                layer.params[0] = UOT.ABS
+            elif op == "Acos":
+                layer.params[0] = UOT.ACOS
+            elif op == "Add":
+                layer.params[0] = BOT.ADD
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.params[1] = with_scalar
+                    layer.params[2] = b
+            elif op == "Asin":
+                layer.params[0] = UOT.ASIN
 
 
 if __name__ == "__main__":
