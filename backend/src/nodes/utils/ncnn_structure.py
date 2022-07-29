@@ -52,8 +52,8 @@ class NcnnLayer:
         outputs: Union[List[str], None] = None,
         params: Union[Dict[int, Union[float, int]], None] = None,
         quantize_tag: bytes = b"",
-        weight_data: bytes = b"",
-        bias_data: bytes = b"",
+        weight_data: np.ndarray = np.empty(0),
+        bias_data: np.ndarray = np.empty(0),
     ):
         self.layer_type: str = layer_type
         self.layer_name: str = layer_name
@@ -63,8 +63,8 @@ class NcnnLayer:
         self.outputs: List[str] = [] if outputs is None else outputs
         self.params: Dict[int, Union[float, int]] = {} if params is None else params
         self.quantize_tag: bytes = quantize_tag
-        self.weight_data: bytes = weight_data
-        self.bias_data: bytes = bias_data
+        self.weight_data: np.ndarray = weight_data
+        self.bias_data: np.ndarray = bias_data
 
 
 class NcnnModel:
@@ -79,7 +79,7 @@ class NcnnModel:
     def unpack_dict(a: Dict[int, Union[float, int]]) -> str:
         b = {}
         for k, v in a.items():
-            if isinstance(v, float) or (isinstance(v, np.float32)):
+            if isinstance(v, float) or (isinstance(v, np.float32)):  # type: ignore
                 v = np.format_float_scientific(v, 6, False, exp_digits=2)
             else:
                 v = str(v)
@@ -111,6 +111,5 @@ class NcnnModel:
             for layer in self.layer_list:
                 if layer.quantize_tag != b"":
                     f.write(layer.quantize_tag)
-                    f.write(layer.weight_data)
-                    f.write(layer.bias_data)
-                    f.flush()
+                    f.write(layer.weight_data.tobytes())
+                    f.write(layer.bias_data.tobytes())

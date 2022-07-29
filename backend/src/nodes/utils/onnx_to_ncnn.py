@@ -214,20 +214,14 @@ class Onnx2NcnnConverter:
         is_bias: bool = False,
         is_fp16: bool = False,
     ) -> None:
-        # TODO: Need to convert data to fp16
-        size = self.get_tensor_proto_data_size(tp)
+        data_array = onph.to_array(tp)
 
-        if tp.raw_data:
-            if is_bias:
-                layer.bias_data = tp.raw_data
-            else:
-                layer.weight_data = tp.raw_data
-        elif tp.data_type == TPT.FLOAT:
-            data_array = onph.to_array(tp)
-            if is_bias:
-                layer.bias_data = data_array.tobytes()
-            else:
-                layer.weight_data = data_array.tobytes()
+        if is_bias:
+            layer.bias_data = data_array
+        else:
+            if is_fp16:
+                data_array = data_array.astype(np.float16)
+            layer.weight_data = data_array
 
     def fuse_rewrite_gather(self) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -3165,7 +3159,7 @@ class Onnx2NcnnConverter:
                     layer.params[7] = group
 
                 layer.quantize_tag = dtype_flag
-                self.write_tensor_proto_data(W, layer)
+                self.write_tensor_proto_data(W, layer, is_fp16=is_fp16)
 
                 if has_bias:
                     B = self.weights[node.input[2]]
