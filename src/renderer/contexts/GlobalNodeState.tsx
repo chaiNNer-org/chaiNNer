@@ -22,7 +22,6 @@ import {
     IteratorSize,
     Mutable,
     NodeData,
-    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -36,7 +35,6 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
-    EMPTY_MAP,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -63,9 +61,15 @@ import {
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
+import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 import { useOpenRecent } from '../hooks/useOpenRecent';
+import {
+    OutputDataActions,
+    OutputDataEntry,
+    useOutputDataStore,
+} from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
@@ -83,15 +87,11 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
-    inputDataChanges: ChangeCounter;
-    lastInputDataUpdatedId: string | undefined;
+    inputHashes: ReadonlyMap<string, string>;
+    outputDataMap: ReadonlyMap<string, OutputDataEntry>;
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
-    ];
-    useOutputDataMap: readonly [
-        ReadonlyMap<string, OutputData>,
-        SetState<ReadonlyMap<string, OutputData>>
     ];
 }
 interface Global {
@@ -138,6 +138,8 @@ interface Global {
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
+    outputDataActions: OutputDataActions;
+    getInputHash: (nodeId: string) => string;
 }
 
 // TODO: Find default
@@ -236,8 +238,7 @@ export const GlobalProvider = memo(
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
 
-        const [outputDataMap, setOutputDataMap] =
-            useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+        const [outputDataMap, outputDataActions] = useOutputDataStore();
 
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
@@ -702,14 +703,15 @@ export const GlobalProvider = memo(
             [getNode, getNodes, getEdges, typeState]
         );
 
-        const [inputDataChanges, addInputDataChangesCounter] = useChangeCounter();
-        const [lastInputDataUpdatedId, setLastInputDataUpdatedId] = useState<string | undefined>();
-        const addInputDataChanges = useCallback(
-            (id: string) => {
-                addInputDataChangesCounter();
-                setLastInputDataUpdatedId(id);
-            },
-            [addInputDataChangesCounter, setLastInputDataUpdatedId]
+        const [inputDataChanges, addInputDataChanges] = useChangeCounter();
+        const inputHashesRef = useInputHashes(schemata, [
+            nodeChanges,
+            edgeChanges,
+            inputDataChanges,
+        ]);
+        const getInputHash = useCallback(
+            (nodeId: string): string => inputHashesRef.current.get(nodeId) ?? 'invalid node',
+            [inputHashesRef]
         );
 
         const useInputData = useCallback(
@@ -734,7 +736,7 @@ export const GlobalProvider = memo(
                         };
                         return nodeCopy;
                     });
-                    addInputDataChanges(id);
+                    addInputDataChanges();
                 };
                 const resetInputData = () => setInputData(undefined);
                 return [currentInput, setInputData, resetInputData] as const;
@@ -952,16 +954,10 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
-                if (outputDataMap.get(id)) {
-                    setOutputDataMap((prev) => {
-                        const tempPrev = prev as Map<string, OutputData>;
-                        tempPrev.delete(id);
-                        return new Map([...(tempPrev as ReadonlyMap<string, OutputData>)]);
-                    });
-                }
-                addInputDataChanges(id);
+                outputDataActions.delete(id);
+                addInputDataChanges();
             },
-            [modifyNode, addInputDataChanges, outputDataMap, setOutputDataMap]
+            [modifyNode, addInputDataChanges, outputDataActions]
         );
 
         const setNodeDisabled = useCallback(
@@ -1001,7 +997,7 @@ export const GlobalProvider = memo(
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
-        const globalChainValue = useMemoObject<GlobalVolatile>({
+        const globalVolatileValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
             edgeChanges,
             typeState,
@@ -1012,10 +1008,9 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
-            inputDataChanges,
-            lastInputDataUpdatedId,
+            inputHashes: inputHashesRef.current,
+            outputDataMap,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
-            useOutputDataMap: useMemoArray([outputDataMap, setOutputDataMap] as const),
         });
 
         const globalValue = useMemoObject<Global>({
@@ -1047,10 +1042,12 @@ export const GlobalProvider = memo(
             functionDefinitions,
             typeStateRef,
             releaseNodeFromParent,
+            outputDataActions,
+            getInputHash,
         });
 
         return (
-            <GlobalVolatileContext.Provider value={globalChainValue}>
+            <GlobalVolatileContext.Provider value={globalVolatileValue}>
                 <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
                 <div style={{ display: 'none' }}>
                     {nodeChanges};{edgeChanges}

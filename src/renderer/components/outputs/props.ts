@@ -8,7 +8,9 @@ export interface OutputProps {
     readonly schemaId: SchemaId;
     readonly definitionType: Type;
     readonly hasHandle: boolean;
-    readonly useOutputData: (outputId: OutputId) => unknown;
+    readonly useOutputData: <T>(
+        outputId: OutputId
+    ) => readonly [value: T | undefined, inputHash: string];
     readonly animated: boolean;
     readonly kind: OutputKind;
 }

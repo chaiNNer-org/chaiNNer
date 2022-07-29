@@ -1,8 +1,7 @@
-import isDeepEqual from 'fast-deep-equal/react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { getBackend } from '../../common/Backend';
 import {
@@ -34,7 +33,7 @@ import {
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
+import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
@@ -50,7 +49,6 @@ interface ExecutionContextValue {
     status: ExecutionStatus;
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
-    useOutputData: (id: string, outputId: OutputId) => unknown;
 }
 
 const convertToUsableFormat = (
@@ -141,8 +139,14 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimate, setIteratorPercent, typeStateRef } = useContext(GlobalContext);
-    const useOutputDataMap = useContextSelector(GlobalVolatileContext, (c) => c.useOutputDataMap);
+    const {
+        schemata,
+        useAnimate,
+        setIteratorPercent,
+        typeStateRef,
+        outputDataActions,
+        getInputHash,
+    } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
@@ -157,12 +161,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const backend = getBackend(port);
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
-
-    const [outputDataMap, setOutputDataMap] = useOutputDataMap;
-    const useOutputData = useCallback(
-        (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
-        [outputDataMap]
-    );
 
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
@@ -229,18 +227,18 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 }
 
                 if (data) {
-                    setOutputDataMap((prev) => {
-                        const existingData = prev.get(nodeId);
-                        if (!existingData || !isDeepEqual(existingData, data)) {
-                            return new Map([...prev, [nodeId, data]]);
-                        }
-                        return prev;
-                    });
+                    // TODO: This is incorrect. The inputs of the node might have changed since
+                    // the chain started running. However, sending the then current input hashes
+                    // of the chain to the backend along with the rest of its data and then making
+                    // the backend send us those hashes is incorrect too because of iterators, I
+                    // think.
+                    const inputHash = getInputHash(nodeId);
+                    outputDataActions.set(nodeId, inputHash, data);
                 }
             }
         },
         500,
-        [unAnimate, setOutputDataMap]
+        [unAnimate, outputDataActions, getInputHash]
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
         // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
@@ -450,7 +448,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         status,
         isBackendKilled,
         setIsBackendKilled,
-        useOutputData,
     });
 
     return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
