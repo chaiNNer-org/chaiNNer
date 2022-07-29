@@ -6,3 +6,10 @@ class NcnnNetInput(BaseInput):
 
     def __init__(self, label: str = "Model"):
         super().__init__("NcnnNetwork", label)
+
+
+class NcnnModelInput(BaseInput):
+    """Input for NcnnModel"""
+
+    def __init__(self, label: str = "Model"):
+        super().__init__("NcnnNetwork", label)

@@ -20,6 +20,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
+from .utils.ncnn_structure import NcnnModel
 from .utils.utils import get_h_w_c, convenient_upscale
 
 
@@ -115,7 +116,7 @@ class NcnnSaveNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Save an NCNN model to specified directory."
-        self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
+        self.inputs = [NcnnModelInput(), DirectoryInput(), TextInput("Param/Bin Name")]
         self.outputs = []
 
         self.category = NCNN
@@ -125,22 +126,15 @@ class NcnnSaveNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, net: NcnnNetData, directory: str, name: str) -> bool:
+    def run(self, net: NcnnModel, directory: str, name: str) -> bool:
         full_bin = f"{name}.bin"
         full_param = f"{name}.param"
         full_bin_path = os.path.join(directory, full_bin)
         full_param_path = os.path.join(directory, full_param)
 
         logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        is_fp16 = net.bin_data.dtype == np.float16
-        flag = FLAG_FLOAT_16 if is_fp16 else FLAG_FLOAT_32
-        dtype = np.float16 if is_fp16 else np.float32
-        packed = struct.pack("<I", flag) + net.bin_data.astype(dtype).tobytes("F")
-        with open(full_bin_path, "wb") as binary_file:
-            binary_file.write(packed)
-        with open(full_param_path, "w", encoding="utf-8") as param_file:
-            with open(net.param_path, "r", encoding="utf-8") as original_param_file:
-                param_file.write(original_param_file.read())
+        net.write_bin(full_bin_path)
+        net.write_param(full_param_path)
 
         return True
 

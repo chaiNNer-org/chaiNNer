@@ -9,11 +9,11 @@ import onnxruntime as ort
 from sanic.log import logger
 
 from .categories import ONNX
-from .ncnn_nodes import NcnnNetData
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .utils.ncnn_structure import NcnnModel
 from .utils.onnx_auto_split import onnx_auto_split_process
 from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
@@ -182,7 +182,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         super().__init__()
         self.description = """Convert an ONNX model to NCNN."""
         self.inputs = [OnnxModelInput("ONNX Model")]
-        self.outputs = [NcnnNetOutput("NCNN Model")]
+        self.outputs = [NcnnModelOutput("NCNN Model")]
 
         self.category = "ONNX"
         self.name = "Convert To NCNN"
@@ -190,7 +190,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.sub = "Utility"
         self.side_effects = True
 
-    def run(self, onnx_model: bytes) -> NcnnNetData:
-        converter = Onnx2NcnnConverter(onnx_model)
-        converter.convert()
-        return NcnnNetData("", np.zeros((1, 1)), "", "")
+    def run(self, onnx_model: bytes) -> NcnnModel:
+        converter = Onnx2NcnnConverter(onnx.load_model_from_string(onnx_model))
+        ncnn_model = converter.convert()
+        return ncnn_model
