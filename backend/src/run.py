@@ -1,3 +1,4 @@
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
@@ -99,6 +100,24 @@ class SSEFilter(logging.Filter):
         return not (record.request.endswith("/sse") and record.status == 200)  # type: ignore
 
 
+class ZeroCounter:
+    def __init__(self) -> None:
+        self.count = 0
+
+    async def wait_zero(self) -> None:
+        while self.count != 0:
+            await asyncio.sleep(0.01)
+
+    def __enter__(self):
+        self.count += 1
+
+    def __exit__(self, _exc_type, _exc_value, _exc_traceback):
+        self.count -= 1
+
+
+runIndividualCounter = ZeroCounter()
+
+
 access_logger.addFilter(SSEFilter())
 
 
@@ -153,6 +172,9 @@ async def run(request: Request):
     ctx = AppContext.get(request.app)
 
     try:
+        # wait until all previews are done
+        await runIndividualCounter.wait_zero()
+
         os.environ["killed"] = "False"
         if ctx.executor:
             logger.info("Resuming existing executor...")
@@ -238,15 +260,13 @@ async def run_individual(request: Request):
                 else:
                     enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
-        # Delete previously cached output
-        ctx.cache[full_data["id"]] = None
+        with runIndividualCounter:
+            # Run the node and pass in inputs as args
+            run_func = functools.partial(node_instance.run, *full_data["inputs"])
+            output = await app.loop.run_in_executor(None, run_func)
 
-        # Run the node and pass in inputs as args
-        run_func = functools.partial(node_instance.run, *full_data["inputs"])
-        output = await app.loop.run_in_executor(None, run_func)
-
-        # Cache the output of the node
-        ctx.cache[full_data["id"]] = output
+            # Cache the output of the node
+            ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
         broadcast_data: Dict[int, Any] = dict()
