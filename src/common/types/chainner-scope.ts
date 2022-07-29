@@ -51,6 +51,7 @@ struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
 struct FillMethod;
 struct FlipAxis;
+struct FpMode;
 struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
