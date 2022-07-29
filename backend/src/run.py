@@ -240,7 +240,7 @@ async def run_individual(request: Request):
 
         # Run the node and pass in inputs as args
         run_func = functools.partial(node_instance.run, *full_data["inputs"])
-        output = await app.loop.run_in_executor(None, run_func)
+        output = await app.loop.run_in_executor(ctx.pool, run_func)
 
         # Broadcast the output from the individual run
         broadcast_data: Dict[int, Any] = dict()
