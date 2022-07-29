@@ -28,6 +28,7 @@ def get_opencv_formats():
         # PNG, WebP, Tiff
         ".png",
         ".webp",
+        ".tif",
         ".tiff",
         # Portable image format
         ".pbm",

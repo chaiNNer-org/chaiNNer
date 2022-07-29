@@ -28,7 +28,7 @@ class ImResizeByFactorNode(NodeBase):
             ImageInput(),
             NumberInput(
                 "Scale Factor",
-                step=0.0001,
+                precision=4,
                 controls_step=25.0,
                 default=100.0,
                 unit="%",
@@ -267,7 +267,11 @@ class ContentCropNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput(
-                "Threshold", step=0.1, controls_step=1, slider_step=1, default=0
+                "Threshold",
+                precision=1,
+                controls_step=1,
+                slider_step=1,
+                default=0,
             ),
         ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]

@@ -104,6 +104,7 @@ interface Global {
     addEdgeChanges: () => void;
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
+    selectNode: (nodeId: string) => void;
     useAnimate: () => readonly [
         (nodeIdsToAnimate?: readonly string[] | undefined) => void,
         (nodeIdsToUnAnimate?: readonly string[] | undefined) => void
@@ -566,6 +567,20 @@ export const GlobalProvider = memo(
             [changeEdges]
         );
 
+        const selectNode = useCallback(
+            (id: string) => {
+                changeNodes((nodes) =>
+                    nodes.map((n) => {
+                        if (n.id === id) {
+                            return !n.selected ? { ...n, selected: true } : n;
+                        }
+                        return n.selected ? { ...n, selected: false } : n;
+                    })
+                );
+            },
+            [changeNodes]
+        );
+
         const createNode = useCallback(
             (proto: NodeProto, parentId?: string): void => {
                 changeNodes((nodes) => {
@@ -1013,6 +1028,7 @@ export const GlobalProvider = memo(
             addEdgeChanges,
             changeNodes,
             changeEdges,
+            selectNode,
             useAnimate,
             useInputData,
             useInputSize,

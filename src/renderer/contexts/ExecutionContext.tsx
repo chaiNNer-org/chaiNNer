@@ -31,6 +31,7 @@ import {
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
@@ -113,7 +114,6 @@ const convertToUsableFormat = (
                 schema,
                 (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
             ),
-            outputs: schema.outputs.map((output) => outputHandles[id]?.[output.id] ?? null),
             child: false,
             nodeType,
             hasSideEffects: schema.hasSideEffects,
@@ -218,34 +218,33 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setStatus, unAnimate, schemata]
     );
 
-    useBackendEventSourceListener(
-        eventSource,
-        'node-output-data',
-        (data) => {
-            if (data) {
-                setOutputDataMap((prev) => {
-                    const existingData = prev.get(data.nodeId);
-                    if (!existingData || !isDeepEqual(existingData, data.data)) {
-                        return new Map([...prev, [data.nodeId, data.data]]);
-                    }
-                    return prev;
-                });
-            }
-        },
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        [{}, setOutputDataMap]
-    );
+    const updateNodeFinish = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'node-finish'>>
+    >(
+        (eventData) => {
+            if (eventData) {
+                const { finished, nodeId, data } = eventData;
+                if (finished.length > 0) {
+                    unAnimate(finished);
+                }
 
-    const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
-        (data) => {
-            if (data) {
-                unAnimate(data.finished);
+                if (data) {
+                    setOutputDataMap((prev) => {
+                        const existingData = prev.get(nodeId);
+                        if (!existingData || !isDeepEqual(existingData, data)) {
+                            return new Map([...prev, [nodeId, data]]);
+                        }
+                        return prev;
+                    });
+                }
             }
         },
-        350
+        500,
+        [unAnimate, setOutputDataMap]
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
-        unAnimate,
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        {},
         updateNodeFinish,
     ]);
 

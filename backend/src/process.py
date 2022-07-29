@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import functools
 import os
 import uuid
 from typing import Any, Dict, List, Optional, TypedDict
 
 from sanic.log import logger
+from events import EventQueue, Event
 
+from nodes.node_base import NodeBase
 from nodes.node_factory import NodeFactory
 
 
@@ -15,7 +18,6 @@ class UsableData(TypedDict):
     id: str
     schemaId: str
     inputs: list
-    outputs: list
     child: bool
     children: List[str]
     nodeType: str
@@ -34,19 +36,33 @@ class ExecutionContext:
         self,
         nodes: Dict[str, UsableData],
         loop: asyncio.AbstractEventLoop,
-        queue: asyncio.Queue,
+        queue: EventQueue,
+        pool: ThreadPoolExecutor,
         cache: Dict[str, Any],
         iterator_id: str,
         executor: Executor,
         percent: float,
     ):
         self.nodes = nodes
+
         self.loop = loop
         self.queue = queue
+        self.pool = pool
+
         self.cache = cache
         self.iterator_id = iterator_id
         self.executor = executor
         self.percent = percent
+
+    def create_iterator_executor(self) -> Executor:
+        return Executor(
+            self.nodes,
+            self.loop,
+            self.queue,
+            self.pool,
+            self.cache.copy(),
+            self.executor,
+        )
 
 
 class Executor:
@@ -58,13 +74,15 @@ class Executor:
         self,
         nodes: Dict[str, UsableData],
         loop: asyncio.AbstractEventLoop,
-        queue: asyncio.Queue,
+        queue: EventQueue,
+        pool: ThreadPoolExecutor,
         existing_cache: Dict[str, Any],
         parent_executor: Optional[Executor] = None,
     ):
         self.execution_id = uuid.uuid4().hex
         self.nodes = nodes
         self.output_cache = existing_cache
+        self.__broadcast_tasks: List[asyncio.Task[None]] = []
 
         self.process_task = None
         self.killed = False
@@ -73,6 +91,7 @@ class Executor:
 
         self.loop = loop
         self.queue = queue
+        self.pool = pool
 
         self.parent_executor = parent_executor
 
@@ -91,10 +110,7 @@ class Executor:
         logger.debug(f"Running node {node_id}")
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
-            finish_data = {
-                "finished": [key for key in self.output_cache.keys()],
-            }
-            await self.queue.put({"event": "node-finish", "data": finish_data})
+            await self.queue.put(self.__create_node_finish(node_id))
             return self.output_cache[node_id]
 
         inputs = []
@@ -111,7 +127,7 @@ class Executor:
                 processed_input = await self.process(next_input)
                 # Split the output if necessary and grab the right index from the output
                 if type(processed_input) in [list, tuple]:
-                    index = next_index  # next_input["outputs"].index({"id": node_id})
+                    index = next_index
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
                 if self.should_stop_running():
@@ -157,71 +173,112 @@ class Executor:
                             self.output_cache[next_node_id] = output
                             # Add this to the sub node dict as well so it knows it exists
                             sub_nodes[next_node_id] = self.nodes[next_node_id]
+            context = ExecutionContext(
+                sub_nodes,
+                self.loop,
+                self.queue,
+                self.pool,
+                self.output_cache,
+                node["id"],
+                self,
+                node["percent"] if self.resumed else 0,
+            )
             output = await node_instance.run(
                 *enforced_inputs,
-                context=ExecutionContext(  # type: ignore
-                    sub_nodes,
-                    self.loop,
-                    self.queue,
-                    self.output_cache,
-                    node["id"],
-                    self,
-                    node["percent"] if self.resumed else 0,
-                ),
+                context=context,  # type: ignore
             )
             # Cache the output of the node
             self.output_cache[node_id] = output
-            finish_data = await self.check()
-            await self.queue.put({"event": "node-finish", "data": finish_data})
-            del node_instance, finish_data
+            await self.queue.put(self.__create_node_finish(node_id))
+            del node_instance
             return output
         else:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *enforced_inputs)
-            output = await self.loop.run_in_executor(None, run_func)
-            node_outputs = node_instance.get_outputs()
-            broadcast_data: Dict[int, Any] = dict()
-            # Only broadcast the output if the node has outputs and the output is not cached
-            if len(node_outputs) > 0 and self.output_cache.get(node_id, None) is None:
-                output_idxable = [output] if len(node_outputs) == 1 else output
-                for idx, node_output in enumerate(node_outputs):
-                    try:
-                        output_id = (
-                            node_output.id if node_output.id is not None else idx
-                        )
-                        broadcast_data[output_id] = node_output.get_broadcast_data(
-                            output_idxable[idx]
-                        )
-                    except Exception as e:
-                        logger.error(f"Error broadcasting output: {e}")
-                await self.queue.put(
-                    {
-                        "event": "node-output-data",
-                        "data": {"nodeId": node_id, "data": broadcast_data},
-                    }
-                )
+            output = await self.loop.run_in_executor(self.pool, run_func)
+            await self.__broadcast_data(node_instance, node_id, output)
             # Cache the output of the node
             self.output_cache[node_id] = output
-            finish_data = {
-                "finished": [key for key in self.output_cache.keys()],
-            }
-            await self.queue.put({"event": "node-finish", "data": finish_data})
-            del node_instance, run_func, finish_data
+            del node_instance, run_func
             return output
 
-    async def process_nodes(self):
-        # Create a list of all output nodes
-        output_nodes = []
+    async def __broadcast_data(
+        self,
+        node_instance: NodeBase,
+        node_id: str,
+        output: Any,
+    ):
+        node_outputs = node_instance.get_outputs()
+        finished = [key for key in self.output_cache.keys()]
+        if not node_id in finished:
+            finished.append(node_id)
+
+        def compute_broadcast_data():
+            broadcast_data: Dict[int, Any] = dict()
+            output_list: List[Any] = [output] if len(node_outputs) == 1 else output
+            for index, node_output in enumerate(node_outputs):
+                try:
+                    output_id = node_output.id if node_output.id is not None else index
+                    broadcast_data[output_id] = node_output.get_broadcast_data(
+                        output_list[index]
+                    )
+                except Exception as e:
+                    logger.error(f"Error broadcasting output: {e}")
+            return broadcast_data
+
+        async def send_broadcast():
+            data = await self.loop.run_in_executor(self.pool, compute_broadcast_data)
+            await self.queue.put(
+                {
+                    "event": "node-finish",
+                    "data": {"finished": finished, "nodeId": node_id, "data": data},
+                }
+            )
+
+        # Only broadcast the output if the node has outputs and the output is not cached
+        if len(node_outputs) > 0 and self.output_cache.get(node_id, None) is None:
+            # broadcasts are done is parallel, so don't wait
+            self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
+        else:
+            await self.queue.put(
+                {
+                    "event": "node-finish",
+                    "data": {"finished": finished, "nodeId": node_id, "data": None},
+                }
+            )
+
+    def __create_node_finish(self, node_id: str) -> Event:
+        finished = [key for key in self.output_cache.keys()]
+        if not node_id in finished:
+            finished.append(node_id)
+
+        return {
+            "event": "node-finish",
+            "data": {"finished": finished, "nodeId": node_id, "data": None},
+        }
+
+    def get_output_nodes(self) -> List[UsableData]:
+        output_nodes: List[UsableData] = []
         for node in self.nodes.values():
-            if self.killed:
-                break
             if (node["hasSideEffects"]) and not node["child"]:
                 output_nodes.append(node)
+        return output_nodes
+
+    async def process_nodes(self):
+        if self.killed:
+            return
+
         # Run each of the output nodes through processing
-        for output_node in output_nodes:
+        for output_node in self.get_output_nodes():
             if self.killed:
                 break
             await self.process(output_node)
+
+        # await all broadcasts
+        tasks = self.__broadcast_tasks
+        self.__broadcast_tasks = []
+        for task in tasks:
+            await task
 
     async def run(self):
         """Run the executor"""
@@ -235,13 +292,6 @@ class Executor:
         self.resumed = True
         os.environ["killed"] = "False"
         await self.process_nodes()
-
-    async def check(self):
-        """Check the executor"""
-        cached_ids = [key for key in self.output_cache.keys()]
-        return {
-            "finished": cached_ids,
-        }
 
     async def pause(self):
         """Pause the executor"""

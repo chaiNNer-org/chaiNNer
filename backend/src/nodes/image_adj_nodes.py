@@ -25,7 +25,7 @@ class HueAndSaturationNode(NodeBase):
                 minimum=-180,
                 maximum=180,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
@@ -33,7 +33,7 @@ class HueAndSaturationNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
         ]
@@ -93,7 +93,7 @@ class BrightnessAndContrastNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
@@ -101,7 +101,7 @@ class BrightnessAndContrastNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
         ]
@@ -163,14 +163,14 @@ class ThresholdNode(NodeBase):
                 "Threshold",
                 maximum=100,
                 default=50,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
                 "Maximum Value",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             ThresholdInput(),
@@ -209,17 +209,12 @@ class AdaptiveThresholdNode(NodeBase):
                 "Maximum Value",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
-            NumberInput(
-                "Block Size",
-                step=2,
-                default=3,
-                minimum=3,
-            ),
+            NumberInput("Block Radius", default=1, minimum=1),
             NumberInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
@@ -234,7 +229,7 @@ class AdaptiveThresholdNode(NodeBase):
         maxval: float,
         adaptive_method: int,
         thresh_type: int,
-        block_size: int,
+        block_radius: int,
         c: int,
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
@@ -253,7 +248,7 @@ class AdaptiveThresholdNode(NodeBase):
             real_maxval,
             adaptive_method,
             thresh_type,
-            block_size,
+            block_radius * 2 + 1,
             c,
         )
 
@@ -271,7 +266,7 @@ class OpacityNode(NodeBase):
                 "Opacity",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
                 unit="%",
             ),
@@ -311,7 +306,7 @@ class GammaNode(NodeBase):
                 minimum=0.01,
                 maximum=100,
                 default=1,
-                step=0.0001,
+                precision=4,
                 controls_step=0.1,
             ),
             GammaOptionInput(),

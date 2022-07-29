@@ -139,7 +139,6 @@ export interface UsableData {
     id: string;
     schemaId: SchemaId;
     inputs: (InputValue | EdgeHandle | null)[];
-    outputs: (InputValue | EdgeHandle | null)[];
     child: boolean;
     children?: string[];
     nodeType: string;

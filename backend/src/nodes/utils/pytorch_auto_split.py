@@ -61,6 +61,7 @@ def auto_split_process(
         try:
             device = torch.device(os.environ["device"])
             d_img = lr_img.to(device)
+            model = model.to(device)
             if os.environ["isFp16"] == "True":
                 model = model.half()
                 d_img = d_img.half()

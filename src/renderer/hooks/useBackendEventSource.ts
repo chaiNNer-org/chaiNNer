@@ -23,9 +23,8 @@ export interface BackendEventMap {
         source?: BackendExceptionSource | null;
         exception: string;
     };
-    'node-finish': { finished: string[] };
-    'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] };
-    'node-output-data': { nodeId: string; data: OutputData };
+    'node-finish': { finished: string[]; nodeId: string; data?: OutputData | null };
+    'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] | null };
 }
 
 export type BackendEventSourceListener<T extends keyof BackendEventMap> = (

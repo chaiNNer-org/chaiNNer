@@ -416,7 +416,7 @@ class RotateNode(NodeBase):
                 "Rotation Angle",
                 default=0,
                 maximum=360,
-                step=0.1,
+                precision=1,
                 controls_step=45,
                 slider_step=1,
                 unit="°",
