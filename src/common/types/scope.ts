@@ -8,7 +8,7 @@ import {
 } from './expression';
 import { assertValidFunctionName, assertValidStructName } from './names';
 import { isSubsetOf } from './relation';
-import { NeverType, StructType, Type } from './types';
+import { AnyType, NeverType, StructType, Type } from './types';
 
 export class BuiltinFunctionDefinition {
     readonly type = 'builtin-function';
@@ -66,7 +66,7 @@ export class ParameterDefinition {
 
     readonly value: Type;
 
-    constructor(name: string, value: Type) {
+    constructor(name: string, value: Type = AnyType.instance) {
         assertValidStructName(name);
         this.name = name;
         this.value = value;

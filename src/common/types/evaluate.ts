@@ -465,7 +465,7 @@ const evaluateScope = (expression: ScopeExpression, parentScope: ReadonlyScope):
  *
  * @throws {@link EvaluationError}
  */
-export const evaluate = (expression: Expression, scope: ReadonlyScope): Type => {
+export const evaluate = (expression: Expression, scope: Scope): Type => {
     if (expression.underlying !== 'expression') {
         // type
         return expression;
