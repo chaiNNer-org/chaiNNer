@@ -238,9 +238,15 @@ async def run_individual(request: Request):
                 else:
                     enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
+        # Delete previously cached output
+        ctx.cache[full_data["id"]] = None
+
         # Run the node and pass in inputs as args
         run_func = functools.partial(node_instance.run, *full_data["inputs"])
         output = await app.loop.run_in_executor(None, run_func)
+
+        # Cache the output of the node
+        ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
         broadcast_data: Dict[int, Any] = dict()
@@ -265,8 +271,6 @@ async def run_individual(request: Request):
                     },
                 }
             )
-        # Cache the output of the node
-        ctx.cache[full_data["id"]] = output
         del node_instance, run_func
         return json({"success": True, "data": None})
     except Exception as exception:
