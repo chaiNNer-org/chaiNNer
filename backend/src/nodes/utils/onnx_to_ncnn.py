@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Union, List, Dict
 
 import numpy as np
@@ -208,15 +207,27 @@ class Onnx2NcnnConverter:
 
         return 0
 
-    def write_tensor_proto_data(self, tp: onnx.TensorProto, layer: NcnnLayer) -> None:
-        # TODO: Figure out ncnn structure to decide how to write to it
+    def write_tensor_proto_data(
+        self,
+        tp: onnx.TensorProto,
+        layer: NcnnLayer,
+        is_bias: bool = False,
+        is_fp16: bool = False,
+    ) -> None:
+        # TODO: Need to convert data to fp16
         size = self.get_tensor_proto_data_size(tp)
 
         if tp.raw_data:
-            layer.weight_data = tp.raw_data
+            if is_bias:
+                layer.bias_data = tp.raw_data
+            else:
+                layer.weight_data = tp.raw_data
         elif tp.data_type == TPT.FLOAT:
-            weight_array = onph.to_array(tp)
-            layer.weight_data = weight_array.tobytes()
+            data_array = onph.to_array(tp)
+            if is_bias:
+                layer.bias_data = data_array.tobytes()
+            else:
+                layer.weight_data = data_array.tobytes()
 
     def fuse_rewrite_gather(self) -> None:
         node_count = len(self.mutable_graph_nodes)
@@ -2512,7 +2523,12 @@ class Onnx2NcnnConverter:
                 attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
-    def convert(self):
+    def convert(self, is_fp16: bool = False):
+        if is_fp16:
+            dtype_flag = b"\x47\x6b\x30\x01"
+        else:
+            dtype_flag = b"\x00\x00\x00\x00"
+
         # Topological sort
         for i, node in enumerate(self.mutable_graph_nodes):
             swapnode = False
@@ -3148,12 +3164,12 @@ class Onnx2NcnnConverter:
                 if group > 1:
                     layer.params[7] = group
 
-                layer.quantize_tag = b"\x00\x00\x00\x00"
-                layer.weight_data = self.write_tensor_proto_data(W, layer)
+                layer.quantize_tag = dtype_flag
+                self.write_tensor_proto_data(W, layer)
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    self.write_tensor_proto_data(B, layer)
+                    self.write_tensor_proto_data(B, layer, True)
             elif op == "LeakyRelu":
                 alpha = self.get_node_attr_f(node, "alpha", 0.01)
                 layer.params[0] = alpha

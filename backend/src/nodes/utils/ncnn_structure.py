@@ -109,8 +109,6 @@ class NcnnModel:
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
             for layer in self.layer_list:
-                if layer.bias_data != b"":
-                    print(f"{layer.layer_name}: {layer.bias_data}")
                 if layer.quantize_tag != b"":
                     f.write(layer.quantize_tag)
                     f.write(layer.weight_data)
