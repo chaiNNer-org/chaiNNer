@@ -1,6 +1,5 @@
-from operator import length_hint
+from copy import deepcopy
 from typing import Union, List, Dict
-from matplotlib.pyplot import sca
 
 import numpy as np
 import onnx
@@ -105,8 +104,8 @@ class Onnx2NcnnConverter:
         for attr in node.attribute:
             if attr.name == key:
                 v = np.empty((len(attr.ints),), np.int64)
-                for i in range(len(attr.ints)):
-                    v[i] = max(min(attr.ints[i], INT64_MAX), INT64_MAX)
+                for idx, i in enumerate(attr.ints):
+                    v[idx] = max(min(i, INT64_MAX), INT64_MIN)
                 return v
 
         return np.empty(0, np.int32)
@@ -2703,7 +2702,7 @@ class Onnx2NcnnConverter:
                 if len(node.input) >= 2:
                     self.node_reference[node.input[1]] -= 1
             elif op == "Resize":
-                if len(node.input) >= 2:
+                if len(node.input) == 2:
                     # opset 10
                     self.node_reference[node.input[1]] -= 1
                 else:
@@ -2832,7 +2831,7 @@ class Onnx2NcnnConverter:
 
             for input_name in node.input:
                 # check weight
-                if not input_name or input_name not in self.weights:
+                if not input_name or input_name in self.weights:
                     input_size -= 1
 
             layer = NcnnLayer()
@@ -2897,7 +2896,7 @@ class Onnx2NcnnConverter:
                 output_size = 1
             elif op == "Elu":
                 layer.layer_type = "ELU"
-            elif "EmbedLayerNormalization":
+            elif op == "EmbedLayerNormalization":
                 layer.layer_type = "EmbedLayerNormalization"
             elif op == "Flatten":
                 layer.layer_type = "Flatten"
@@ -3096,7 +3095,7 @@ class Onnx2NcnnConverter:
             elif op == "Conv":
                 W = self.weights[node.input[1]]
 
-                num_filter = W.dims
+                num_filter = W.dims[0]
                 has_bias = int(len(node.input) == 3)
 
                 auto_pad = self.get_node_attr_s(node, "auto_pad")
@@ -3133,7 +3132,7 @@ class Onnx2NcnnConverter:
                 else:
                     if pads.size == 1:
                         layer.params[4] = pads[0]
-                    elif pads.size == 2 or pads.size == 4:
+                    elif pads.size == 2:
                         layer.params[4] = pads[1]
                         layer.params[14] = pads[0]
                     elif pads.size == 4:
@@ -3165,7 +3164,7 @@ class Onnx2NcnnConverter:
                 b = self.get_node_attr_f(node, "b", 0)
                 if with_scalar:
                     layer.params[1] = with_scalar
-                    layer.params[2] = B
+                    layer.params[2] = b
             elif op == "Resize":
                 mode = self.get_node_attr_s(node, "mode")
                 align = self.get_node_attr_s(node, "coordinate_transformation_mode")
@@ -3175,7 +3174,7 @@ class Onnx2NcnnConverter:
                     scales = self.get_node_attr_from_input_af(
                         self.weights[node.input[1]]
                     )
-                    sizes = np.empty(0, np.float32)
+                    sizes = np.empty(0, np.int32)
                 else:
                     # opset 11+
                     scales = self.get_node_attr_from_input_af(
@@ -3186,7 +3185,7 @@ class Onnx2NcnnConverter:
                             self.weights[node.input[3]]
                         )
                     else:
-                        sizes = np.empty(0, np.float32)
+                        sizes = np.empty(0, np.int32)
 
                 if mode == "linear":
                     resize_type = 2
@@ -3259,8 +3258,12 @@ class Onnx2NcnnConverter:
 
                         internal_split += 1
 
+        return ncnn_model
+
 
 if __name__ == "__main__":
     model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
-    converter.convert()
+    model = converter.convert()
+    model.write_param("D:/Upscaling/ncnn_output.param")
+    model.write_bin("D:/Upscaling/ncnn_output.bin")
