@@ -275,7 +275,7 @@ export class Scope {
                 `${name} refers to a ${p.type} and not a parameter in scope ${this.name}`
             );
         }
-        if (isSubsetOf(value, p.definition.value)) {
+        if (!isSubsetOf(value, p.definition.value)) {
             throw new ParameterAssignmentError(
                 `Type cannot be assigned to parameter ${name} in scope ${
                     this.name
