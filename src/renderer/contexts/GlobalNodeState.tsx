@@ -87,6 +87,7 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
+    isAnimated: (nodeId: string) => boolean;
     inputHashes: ReadonlyMap<string, string>;
     outputDataMap: ReadonlyMap<string, OutputDataEntry>;
     useConnectingFrom: readonly [
@@ -105,10 +106,8 @@ interface Global {
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
     selectNode: (nodeId: string) => void;
-    useAnimate: () => readonly [
-        (nodeIdsToAnimate?: readonly string[] | undefined) => void,
-        (nodeIdsToUnAnimate?: readonly string[] | undefined) => void
-    ];
+    animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
+    unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         inputId: InputId,
@@ -766,43 +765,54 @@ export const GlobalProvider = memo(
             [modifyNode, schemata]
         );
 
-        const useAnimate = useCallback(() => {
-            const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
-                setNodes((nodes) => {
-                    if (nodeIdsToAnimate) {
-                        const nodesToAnimate = nodes.filter((n) => nodeIdsToAnimate.includes(n.id));
-                        const animatedNodes = nodesToAnimate.map((node: Node<NodeData>) => ({
-                            ...node,
-                            data: { ...node.data, animated },
-                        }));
-                        const otherNodes = nodes.filter((n) => !nodeIdsToAnimate.includes(n.id));
-                        return [...otherNodes, ...animatedNodes];
+        const [animatedNodes, setAnimated] = useState<ReadonlySet<string>>(EMPTY_SET);
+        const animate = useCallback(
+            (nodes: Iterable<string>, animateEdges = true): void => {
+                const ids = new Set(nodes);
+                setAnimated((prev) => {
+                    const newSet = new Set(prev);
+                    for (const id of ids) {
+                        newSet.add(id);
                     }
-                    return nodes.map((node) => ({ ...node, data: { ...node.data, animated } }));
+                    return newSet;
                 });
-                setEdges((edges) => {
-                    if (nodeIdsToAnimate) {
-                        const edgesToAnimate = edges.filter((e) =>
-                            nodeIdsToAnimate.includes(e.source)
-                        );
-                        const animatedEdges = edgesToAnimate.map((edge) => ({ ...edge, animated }));
-                        const otherEdges = edges.filter(
-                            (e) => !nodeIdsToAnimate.includes(e.source)
-                        );
-                        return [...otherEdges, ...animatedEdges];
-                    }
-                    return edges.map((edge) => ({ ...edge, animated }));
-                });
-            };
-
-            const animate = (nodeIdsToAnimate?: readonly string[]) =>
-                setAnimated(true, nodeIdsToAnimate);
-
-            const unAnimate = (nodeIdsToUnAnimate?: readonly string[]) =>
-                setAnimated(false, nodeIdsToUnAnimate);
-
-            return [animate, unAnimate] as const;
-        }, [setEdges, setNodes]);
+                if (animateEdges) {
+                    setEdges((edges) => {
+                        return edges.map((e) => {
+                            if (!ids.has(e.source)) return e;
+                            return e.animated ? e : { ...e, animated: true };
+                        });
+                    });
+                }
+            },
+            [setAnimated, setEdges]
+        );
+        const unAnimate = useCallback(
+            (nodes?: Iterable<string>): void => {
+                if (nodes) {
+                    const ids = new Set(nodes);
+                    setAnimated((prev) => {
+                        const newSet = new Set(prev);
+                        for (const id of ids) {
+                            newSet.delete(id);
+                        }
+                        return newSet;
+                    });
+                    setEdges((edges) => {
+                        return edges.map((e) => {
+                            if (!ids.has(e.source)) return e;
+                            return e.animated ? { ...e, animated: false } : e;
+                        });
+                    });
+                } else {
+                    setAnimated(EMPTY_SET);
+                    setEdges((edges) =>
+                        edges.map((e) => (e.animated ? { ...e, animated: false } : e))
+                    );
+                }
+            },
+            [setAnimated, setEdges]
+        );
 
         const toggleNodeLock = useCallback(
             (id: string) => {
@@ -1008,6 +1018,7 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
+            isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
             inputHashes: inputHashesRef.current,
             outputDataMap,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
@@ -1024,7 +1035,8 @@ export const GlobalProvider = memo(
             changeNodes,
             changeEdges,
             selectNode,
-            useAnimate,
+            animate,
+            unAnimate,
             useInputData,
             useInputSize,
             toggleNodeLock,

@@ -43,8 +43,8 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
         minWidth,
         minHeight,
         percentComplete,
-        animated = false,
     } = data;
+    const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file

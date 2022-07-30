@@ -141,7 +141,8 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
         schemata,
-        useAnimate,
+        animate,
+        unAnimate,
         setIteratorPercent,
         typeStateRef,
         outputDataActions,
@@ -152,8 +153,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
-
-    const [animate, unAnimate] = useAnimate();
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
