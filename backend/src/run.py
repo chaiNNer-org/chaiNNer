@@ -254,11 +254,7 @@ async def run_individual(request: Request):
         else:
             node_inputs = node_instance.get_inputs(with_implicit_ids=True)
             for idx, node_input in enumerate(full_data["inputs"]):
-                # TODO: remove this when all the inputs are transitioned to classes
-                if isinstance(node_inputs[idx], dict):
-                    enforced_inputs.append(node_input)
-                else:
-                    enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
         with runIndividualCounter:
             # Run the node and pass in inputs as args
