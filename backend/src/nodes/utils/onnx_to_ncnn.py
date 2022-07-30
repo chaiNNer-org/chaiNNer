@@ -8,10 +8,12 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer,
 )
 from sanic.log import logger
+from torch import dtype, maximum
 
 from .ncnn_structure import (
     NcnnModel,
     NcnnLayer,
+    NcnnWeight,
     UnaryOpTypes,
     BinaryOpTypes,
     EltwiseOpTypes,
@@ -19,6 +21,8 @@ from .ncnn_structure import (
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
 FLOAT32_MAX = np.finfo(np.float32).max
+DTYPE_FP32 = b"\x00\x00\x00\x00"
+DTYPE_FP16 = b"\x47\x6b\x30\x01"
 
 
 class AttributeProtoTypes:
@@ -207,25 +211,25 @@ class Onnx2NcnnConverter:
 
         return 0
 
+    @staticmethod
     def write_tensor_proto_data(
-        self,
         tp: onnx.TensorProto,
         layer: NcnnLayer,
-        is_bias: bool = False,
+        weight_name: str,
+        quantize_tag: bytes = b"",
+        can_be_fp16: bool = False,
         is_fp16: bool = False,
     ) -> None:
         data_array = onph.to_array(tp)
 
-        if is_bias:
-            layer.bias_data = data_array
-        else:
-            if is_fp16:
-                data_array = data_array.astype(np.float16)
-            layer.weight_data = data_array
+        if is_fp16:
+            data_array = data_array.astype(np.float16)
+        layer.weight_data[weight_name] = NcnnWeight(
+            data_array, quantize_tag, can_be_fp16
+        )
 
     def fuse_rewrite_gather(self) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             gather = self.mutable_graph_nodes[i]
             if gather.op_type == "Gather":
                 indices = self.get_node_attr_from_input_ai(
@@ -251,8 +255,7 @@ class Onnx2NcnnConverter:
                     self.set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
 
     def fuse_weight_reshape(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Reshape":
                 if node.input[0] in self.weights:
@@ -280,8 +283,7 @@ class Onnx2NcnnConverter:
                     i += 1
 
     def fuse_weight_transpose(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Transpose":
                 if node.input[0] in self.weights and len(node.input[0].dims) == 2:
@@ -318,8 +320,7 @@ class Onnx2NcnnConverter:
                         i += 1
 
     def fuse_shufflechannel(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # ShuffleChannel <= Reshape - Transpose - Reshape
@@ -431,8 +432,7 @@ class Onnx2NcnnConverter:
                     i += 2
 
     def fuse_shufflechannel_split(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Split <= ShuffleChannel(reverse type) - Gather(0) - Gather(1)
@@ -493,8 +493,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_hardswish(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # HardSwish <= Add(+3) - Clip(0, 6) - Mul(X, ) - Div( / 6)
@@ -646,8 +645,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_hardsigmoid(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # HardSigmoid <= Add(+3) - Clip(0, 6) - Div( / 6)
@@ -748,8 +746,7 @@ class Onnx2NcnnConverter:
                 i += 2
 
     def fuse_swish(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Swish <= Sigmoid - Mul
@@ -781,8 +778,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_batchnorm1d_squeeze_unsqueeze(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # BatchNormalization <= Unsqueeze - BatchNormalization - Squeeze
@@ -820,8 +816,7 @@ class Onnx2NcnnConverter:
                 i += 2
 
     def fuse_unsqueeze_prelu(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # PReLU <= Unsqueeze - PReLU
@@ -861,8 +856,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_normalize(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Normalize <= X - ReduceL2 - Clip - Expand - Div
@@ -954,8 +948,7 @@ class Onnx2NcnnConverter:
                 i += 4 if has_shape_node else 3
 
     def fuse_groupnorm(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # GroupNorm <= X - Reshape - InstanceNormalization - Reshape - Mul - Add
@@ -1105,8 +1098,7 @@ class Onnx2NcnnConverter:
                 i += 4
 
     def fuse_layernorm(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # LayerNorm <= X - ReduceMean - Sub - Pow - ReduceMean - Add - Sqrt - Div
@@ -1291,8 +1283,7 @@ class Onnx2NcnnConverter:
                     i += 8
 
     def fuse_flatten(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Flatten <= X - Shape - Gather - Constant - Unsqueeze - Unsqueeze - Concat - Reshape
@@ -1405,8 +1396,7 @@ class Onnx2NcnnConverter:
                 i += 5
 
     def fuse_pixelshuffle(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # PixelShuffle <= Reshape - Transpose - Reshape
@@ -1508,8 +1498,7 @@ class Onnx2NcnnConverter:
                 i += 2
 
     def fuse_reorg(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # PixelShuffle <= Reshape - Transpose - Reshape
@@ -1610,8 +1599,7 @@ class Onnx2NcnnConverter:
                 i += 2
 
     def fuse_expand_broadcast(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Add/Sub/Mul/Div/Min/Max <= Expand - Add/Sub/Mul/Div/Min/Max
@@ -1647,8 +1635,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_lstm_gru_rnn(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # LSTM(bi) <= LSTM(bi) - Transpose - Reshape - Transpose
@@ -1854,8 +1841,7 @@ class Onnx2NcnnConverter:
                 i += 1
 
     def fuse_multiheadattention(self, reduced_node_count: List[int]) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # MultiHeadAttention <= MatMul(q) - Add
@@ -2449,8 +2435,7 @@ class Onnx2NcnnConverter:
                 i += 16
 
     def fuse_binaryop_with_scalar(self) -> None:
-        node_count = len(self.mutable_graph_nodes)
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Add/Sub/Mul/Div/Min/Max/Pow(a, x)
@@ -2518,11 +2503,6 @@ class Onnx2NcnnConverter:
                 node.attribute.append(attr_b)
 
     def convert(self, is_fp16: bool = False):
-        if is_fp16:
-            dtype_flag = b"\x47\x6b\x30\x01"
-        else:
-            dtype_flag = b"\x00\x00\x00\x00"
-
         # Topological sort
         for i, node in enumerate(self.mutable_graph_nodes):
             swapnode = False
@@ -2862,56 +2842,56 @@ class Onnx2NcnnConverter:
                 "Tan",
                 "Tanh",
             ]:
-                layer.layer_type = "UnaryOp"
+                layer.type = "UnaryOp"
             elif op in ["Add", "Div", "Max", "Min", "Mul", "Pow" "RDiv", "RSub", "Sub"]:
-                layer.layer_type = "BinaryOp"
+                layer.type = "BinaryOp"
             elif op == "AveragePool" or op == "MaxPool":
                 kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
-                    layer.layer_type = "Pooling1D"
+                    layer.type = "Pooling1D"
                 else:
-                    layer.layer_type = "Pooling"
+                    layer.type = "Pooling"
             elif op == "BatchNormalization":
-                layer.layer_type = "BatchNorm"
+                layer.type = "BatchNorm"
             elif op == "BiasGelu":
-                layer.layer_type = "BiasGelu"
+                layer.type = "BiasGelu"
             elif op == "Clip":
-                layer.layer_type = "Clip"
+                layer.type = "Clip"
             elif op == "Concat":
-                layer.layer_type = "Concat"
+                layer.type = "Concat"
             elif op == "Constant":
                 continue
             elif op == "Conv":
                 kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
-                    layer.layer_type = "Convolution1D"
+                    layer.type = "Convolution1D"
                 else:
                     group = self.get_node_attr_i(node, "group", 1)
                     if group > 1:
-                        layer.layer_type = "ConvolutionDepthWise"
+                        layer.type = "ConvolutionDepthWise"
                     else:
-                        layer.layer_type = "Convolution"
+                        layer.type = "Convolution"
             elif op == "ConvTranspose":
                 group = self.get_node_attr_i(node, "group", 1)
                 if group > 1:
-                    layer.layer_type = "DeconvolutionDepthWise"
+                    layer.type = "DeconvolutionDepthWise"
                 else:
-                    layer.layer_type = "Deconvolution"
+                    layer.type = "Deconvolution"
             elif op == "Crop" or op == "Slice":
-                layer.layer_type = "Crop"
+                layer.type = "Crop"
             elif op == "DepthToSpace" or op == "PixelShuffle":
-                layer.layer_type = "PixelShuffle"
+                layer.type = "PixelShuffle"
             elif op == "Dropout":
-                layer.layer_type = "Dropout"
+                layer.type = "Dropout"
                 output_size = 1
             elif op == "Elu":
-                layer.layer_type = "ELU"
+                layer.type = "ELU"
             elif op == "EmbedLayerNormalization":
-                layer.layer_type = "EmbedLayerNormalization"
+                layer.type = "EmbedLayerNormalization"
             elif op == "Flatten":
-                layer.layer_type = "Flatten"
+                layer.type = "Flatten"
             elif op == "Gelu":
-                layer.layer_type = "GELU"
+                layer.type = "GELU"
             elif op == "Gemm":
                 alpha = self.get_node_attr_f(node, "alpha", 1)
                 beta = self.get_node_attr_f(node, "beta", 1)
@@ -2920,49 +2900,49 @@ class Onnx2NcnnConverter:
 
                 if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
                     # InnerProduct-like A * B + C
-                    layer.layer_type = "InnerProduct"
+                    layer.type = "InnerProduct"
                 else:
-                    layer.layer_type = "Gemm"
+                    layer.type = "Gemm"
             elif op in [
                 "GlobalAveragePool",
                 "GlobalMaxPool",
                 "adaptive_avg_pool2d",
                 "adaptive_max_pool2d",
             ]:
-                layer.layer_type = "Pooling"
+                layer.type = "Pooling"
             elif op == "GroupNorm":
-                layer.layer_type = "GroupNorm"
+                layer.type = "GroupNorm"
             elif op == "GRU":
-                layer.layer_type = "GRU"
+                layer.type = "GRU"
             elif op == "HardSigmoid":
-                layer.layer_type = "HardSigmoid"
+                layer.type = "HardSigmoid"
             elif op == "HardSwish":
-                layer.layer_type = "HardSwish"
+                layer.type = "HardSwish"
             elif op == "ImageScaler":
-                layer.layer_type = "Scale"
+                layer.type = "Scale"
             elif op == "InstanceNormalization":
-                layer.layer_type = "InstanceNorm"
+                layer.type = "InstanceNorm"
             elif op == "LayerNorm":
-                layer.layer_type = "LayerNorm"
+                layer.type = "LayerNorm"
             elif op == "LeakyRelu" or op == "Relu":
-                layer.layer_type = "ReLU"
+                layer.type = "ReLU"
             elif op == "LRN":
-                layer.layer_type = "LRN"
+                layer.type = "LRN"
             elif op == "LSTM":
-                layer.layer_type = "LSTM"
+                layer.type = "LSTM"
             elif op == "MatMul":
                 if node.input[1] in self.weights:
-                    layer.layer_type = "InnerProduct"
+                    layer.type = "InnerProduct"
                 else:
-                    layer.layer_type = "Gemm"
+                    layer.type = "Gemm"
             elif op == "MultiHeadAttention":
-                layer.layer_type = "MultiHeadAttention"
+                layer.type = "MultiHeadAttention"
             elif op == "Normalize":
-                layer.layer_type = "Normalize"
+                layer.type = "Normalize"
             elif op == "Pad":
-                layer.layer_type = "Padding"
+                layer.type = "Padding"
             elif op == "PRelu":
-                layer.layer_type = "PReLU"
+                layer.type = "PReLU"
             elif op in [
                 "ReduceMax",
                 "ReduceMin",
@@ -2975,41 +2955,41 @@ class Onnx2NcnnConverter:
                 "ReduceLogSum",
                 "ReduceLogSumExp",
             ]:
-                layer.layer_type = "Reduction"
+                layer.type = "Reduction"
             elif op == "Reorg":
-                layer.layer_type = "Reorg"
+                layer.type = "Reorg"
             elif op == "Reshape":
-                layer.layer_type = "Reshape"
+                layer.type = "Reshape"
             elif op == "RNN":
-                layer.layer_type = "RNN"
+                layer.type = "RNN"
             elif op == "ShuffleChannel":
-                layer.layer_type == "ShuffleChannel"
+                layer.type == "ShuffleChannel"
             elif op == "Sigmoid":
-                layer.layer_type == "Sigmoid"
+                layer.type == "Sigmoid"
             elif op == "SkipLayerNormalization":
-                layer.layer_type == "SkipLayerNormalization"
+                layer.type == "SkipLayerNormalization"
             elif op == "Softmax":
-                layer.layer_type = "Softmax"
+                layer.type = "Softmax"
             elif op == "Softplus":
-                layer.layer_type = "Softplus"
+                layer.type = "Softplus"
             elif op == "Split":
-                layer.layer_type = "Slice"
+                layer.type = "Slice"
             elif op == "Squeeze":
-                layer.layer_type = "Squeeze"
+                layer.type = "Squeeze"
             elif op == "Sum":
-                layer.layer_type = "Eltwise"
+                layer.type = "Eltwise"
             elif op == "Swish":
-                layer.layer_type = "Swish"
+                layer.type = "Swish"
             elif op == "Transpose":
-                layer.layer_type = "Permute"
+                layer.type = "Permute"
             elif op == "Upsample" or op == "Resize":
-                layer.layer_type = "Interp"
+                layer.type = "Interp"
             elif op == "Unsqueeze":
-                layer.layer_type = "ExpandDims"
+                layer.type = "ExpandDims"
             else:
                 raise TypeError(f"{op} not currently supported by NCNN.")
 
-            layer.layer_name = name
+            layer.name = name
             layer.num_inputs = input_size
             layer.num_outputs = output_size
 
@@ -3096,7 +3076,53 @@ class Onnx2NcnnConverter:
                         node, "count_include_pad", 0
                     )
                     layer.params[6] = avgpool_count_include_pad
-                # TODO: add in skipped ops
+            elif op == "BatchNormalization":
+                epsilon = self.get_node_attr_f(node, "epsilon", 0.00001)
+                scale = self.weights[node.input[1]]
+                B = self.weights[node.input[2]]
+                mean = self.weights[node.input[3]]
+                var = self.weights[node.input[4]]
+
+                channels = self.get_tensor_proto_data_size(scale)
+
+                layer.params[0] = channels
+
+                self.write_tensor_proto_data(scale, layer, "scale")
+                self.write_tensor_proto_data(mean, layer, "mean")
+                # apply epsilon to var
+                v = onph.to_array(var)
+                for i in range(channels):
+                    ve = v[i] + epsilon
+                    layer.weight_data[f"vareps{j}"] = NcnnWeight(
+                        np.array(ve, np.float32)
+                    )
+                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+            elif op == "BiasGelu":
+                B = self.weights[node.input[1]]
+
+                layer.params[0] = self.get_tensor_proto_data_size(B)
+
+                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+            elif op == "Ceil":
+                layer.params[0] = UOT.CEIL
+            elif op == "Clip":
+                if len(node.input) == 1:
+                    minimum = self.get_node_attr_f(node, "min", -FLOAT32_MAX)
+                    maximum = self.get_node_attr_f(node, "max", FLOAT32_MAX)
+                else:
+                    minimum = (
+                        self.get_node_attr_from_input_f(self.weights[node.input[1]])
+                        if node.input[1] in self.weights
+                        else -FLOAT32_MAX
+                    )
+                    maximum = (
+                        self.get_node_attr_from_input_f(self.weights[node.input[2]])
+                        if node.input[2] in self.weights
+                        else FLOAT32_MAX
+                    )
+
+                layer.params[0] = minimum
+                layer.params[1] = maximum
             elif op == "Concat":
                 axis = self.get_node_attr_i(node, "axis", 1)
                 layer.params[0] = axis - 1 if axis > 0 else axis
@@ -3158,12 +3184,162 @@ class Onnx2NcnnConverter:
                 if group > 1:
                     layer.params[7] = group
 
-                layer.quantize_tag = dtype_flag
-                self.write_tensor_proto_data(W, layer, is_fp16=is_fp16)
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                self.write_tensor_proto_data(
+                    W, layer, "weight", quantize_tag, True, is_fp16
+                )
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    self.write_tensor_proto_data(B, layer, True)
+                    self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP16)
+            elif op == "ConvTranspose":
+                raise RuntimeError(
+                    "ConvTranspose not implemented yet, please report issue"
+                )
+                """W = self.weights[node.input[1]]
+
+                has_bias = int(len(node.input) == 3)
+
+                auto_pad = self.get_node_attr_s(node, "auto_pad")
+                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                dilations = self.get_node_attr_ai(node, "dilations")
+                strides = self.get_node_attr_ai(node, "strides")
+                output_padding = self.get_node_attr_ai(node, "output_padding")
+                output_shape = self.get_node_attr_ai(node, "output_shape")
+                pads = self.get_node_attr_ai(node, "pads")
+                group = self.get_node_attr_i(node, "group", 1)
+                num_filter = W.dims[1] * group
+
+                layer.params[0] = num_filter
+
+                if kernel_shape.size == 1:
+                    layer.params[1] = kernel_shape[0]
+                elif kernel_shape.size == 2:
+                    layer.params[1] = kernel_shape[1]
+                    layer.params[11] = kernel_shape[0]
+
+                if dilations.size == 1:
+                    layer.params[2] = dilations[0]
+                elif dilations.size == 2:
+                    layer.params[2] = dilations[1]
+                    layer.params[12] = dilations[0]
+
+                if strides.size == 1:
+                    layer.params[3] = strides[0]
+                elif strides.size == 2:
+                    layer.params[3] = strides[1]
+                    layer.params[13] = strides[0]
+
+                if auto_pad == "SAME_UPPER":
+                    layer.params[4] = -233
+                elif auto_pad == "SAME_LOWER":
+                    layer.params[4] = -234
+                else:
+                    if pads.size == 1:
+                        layer.params[4] = pads[0]
+                    elif pads.size == 2:
+                        layer.params[4] = pads[1]
+                        layer.params[14] = pads[0]
+                    elif pads.size == 4:
+                        layer.params[4] = pads[1]
+                        layer.params[14] = pads[0]
+                        layer.params[15] = pads[3]
+                        layer.params[16] = pads[2]
+
+                if output_padding.size == 1:
+                    layer.params[18] = output_padding[0]
+                elif output_padding.size == 2:
+                    layer.params[18] = output_padding[1]
+                    layer.params[19] = output_padding[0]
+
+                if output_shape.size == 1:
+                    layer.params[20] = output_shape[0]
+                elif output_shape == 2:
+                    layer.params[20] = output_shape[1]
+                    layer.params[21] = output_shape[0]
+
+                layer.params[5] = has_bias
+
+                weight_data_size = self.get_tensor_proto_data_size(W)
+                layer.params[6] = weight_data_size
+
+                if group > 1:
+                    layer.params[7] = group
+
+                layer.quantize_tag = dtype_flag
+
+                if kernel_shape.size == 2:
+                    maxk = kernel_shape[1] * kernel_shape[0]
+                else:
+                    maxk = kernel_shape[0] ** 2
+
+                weight_data = onph.to_array(W)"""
+
+                # TODO: weight_data_t = weight_data.transpose()
+
+                """if has_bias:
+                    B = self.weights[node.input[2]]
+                    self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)"""
+            elif op == "Cos":
+                layer.params[0] = UOT.COS
+            elif op == "Crop":
+                starts = self.get_node_attr_ai(node, "starts")
+                layer.params[9] = [starts.size, *starts]
+
+                ends = self.get_node_attr_ai(node, "ends")
+                layer.params[10] = [ends.size, *ends]
+
+                axes = self.get_node_attr_ai(node, "axis")
+                layer.params[11] = [axes.size, *axes]
+            elif op == "DepthToSpace":
+                # pixelshuffle
+                scale_factor = self.get_node_attr_i(node, "blocksize", 1)
+                mode = self.get_node_attr_s(node, "mode")
+                layer.params[0] = scale_factor
+                if mode == "CRD":
+                    layer.params[1] = 0
+                elif mode == "DCR":
+                    layer.params[1] = 1
+            elif op == "Div":
+                layer.params[0] = BOT.DIV
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.params[1] = with_scalar
+                    layer.params[2] = b
+            elif op == "Dropout":
+                pass
+            elif op == "Elu":
+                alpha = self.get_node_attr_f(node, "alpha", 1)
+                layer.params[0] = alpha
+            elif op == "EmbedLayerNormalization":
+                words = self.weights[node.input[2]]
+                positions = self.weights[node.input[3]]
+                W = self.weights[node.input[5]]
+                B = self.weights[node.input[6]]
+
+                layer.params[0] = self.get_tensor_proto_data_size(B)
+                layer.params[1] = self.get_tensor_proto_data_size(words)
+                layer.params[2] = self.get_tensor_proto_data_size(positions)
+
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                self.write_tensor_proto_data(words, layer, "words", DTYPE_FP32)
+                self.write_tensor_proto_data(positions, layer, "positions", DTYPE_FP32)
+                self.write_tensor_proto_data(
+                    W, layer, "weight", quantize_tag, True, is_fp16
+                )
+                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+            elif op == "Exp":
+                layer.params[0] = UOT.EXP
+            elif op == "Flatten":
+                axis = self.get_node_attr_i(node, "axis", 1)
+                if axis != 1:
+                    raise ValueError(f"Unsupported Flatten axis {axis}.")
+            elif op == "Floor":
+                layer.params[0] = UOT.FLOOR
+            elif op == "Gelu":
+                layer.params[0] = 1
             elif op == "LeakyRelu":
                 alpha = self.get_node_attr_f(node, "alpha", 0.01)
                 layer.params[0] = alpha
