@@ -68,7 +68,7 @@ except Exception as e:
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
-from process import Executor, NodeExecutionError, UsableData
+from process import Executor, NodeExecutionError, UsableData, timed_supplier
 
 
 class AppContext:
@@ -263,7 +263,9 @@ async def run_individual(request: Request):
         with runIndividualCounter:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *full_data["inputs"])
-            output = await app.loop.run_in_executor(None, run_func)
+            output, execution_time = await app.loop.run_in_executor(
+                None, timed_supplier(run_func)
+            )
 
             # Cache the output of the node
             ctx.cache[full_data["id"]] = output
@@ -287,6 +289,7 @@ async def run_individual(request: Request):
                     "data": {
                         "finished": [],
                         "nodeId": full_data["id"],
+                        "executionTime": execution_time,
                         "data": broadcast_data,
                     },
                 }

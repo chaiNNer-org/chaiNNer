@@ -221,20 +221,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     >(
         (eventData) => {
             if (eventData) {
-                const { finished, nodeId, data } = eventData;
+                const { finished, nodeId, executionTime, data } = eventData;
                 if (finished.length > 0) {
                     unAnimate(finished);
                 }
 
-                if (data) {
-                    // TODO: This is incorrect. The inputs of the node might have changed since
-                    // the chain started running. However, sending the then current input hashes
-                    // of the chain to the backend along with the rest of its data and then making
-                    // the backend send us those hashes is incorrect too because of iterators, I
-                    // think.
-                    const inputHash = getInputHash(nodeId);
-                    outputDataActions.set(nodeId, inputHash, data);
-                }
+                // TODO: This is incorrect. The inputs of the node might have changed since
+                // the chain started running. However, sending the then current input hashes
+                // of the chain to the backend along with the rest of its data and then making
+                // the backend send us those hashes is incorrect too because of iterators, I
+                // think.
+                const inputHash = getInputHash(nodeId);
+                outputDataActions.set(
+                    nodeId,
+                    executionTime ?? undefined,
+                    inputHash,
+                    data ?? undefined
+                );
             }
         },
         500,

@@ -28,6 +28,7 @@ class ExecutionErrorData(TypedDict):
 class NodeFinishData(TypedDict):
     finished: List[str]
     nodeId: str
+    executionTime: Optional[float]
     data: Optional[Dict[int, Any]]
 
 

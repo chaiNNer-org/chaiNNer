@@ -6,11 +6,17 @@ import { useMemoObject } from './useMemo';
 
 export interface OutputDataEntry {
     inputHash: string;
-    data: OutputData;
+    executionTime: number | undefined;
+    data: OutputData | undefined;
 }
 
 export interface OutputDataActions {
-    set(nodeId: string, nodeInputHash: string, data: OutputData): void;
+    set(
+        nodeId: string,
+        executionTime: number | undefined,
+        nodeInputHash: string,
+        data: OutputData | undefined
+    ): void;
     delete(nodeId: string): void;
 }
 
@@ -19,12 +25,20 @@ export const useOutputDataStore = () => {
 
     const actions: OutputDataActions = {
         set: useCallback(
-            (nodeId, inputHash, data) => {
+            (nodeId, executionTime, inputHash, data) => {
                 setMap((prev) => {
-                    const existingData = prev.get(nodeId);
-                    if (!existingData || !isDeepEqual(existingData, data)) {
+                    const existingEntry = prev.get(nodeId);
+
+                    const useExistingData = existingEntry?.data && !data;
+                    const entry: OutputDataEntry = {
+                        data: useExistingData ? existingEntry.data : data,
+                        inputHash: useExistingData ? existingEntry.inputHash : inputHash,
+                        executionTime: executionTime ?? existingEntry?.executionTime,
+                    };
+
+                    if (!existingEntry || !isDeepEqual(existingEntry, entry)) {
                         const newMap = new Map(prev);
-                        newMap.set(nodeId, { data, inputHash });
+                        newMap.set(nodeId, entry);
                         return newMap;
                     }
                     return prev;
