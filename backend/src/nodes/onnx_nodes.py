@@ -85,12 +85,11 @@ class OnnxImageUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales an image using an ONNX Super-Resolution model. \
             ONNX does not support automatic out-of-memory handling via automatic tiling. \
-            Therefore, you must set a tile size target yourself. If you get an out-of-memory error, try decreasing this number by a large amount. \
-            Setting it to 0 will disable tiling."
+            Therefore, you must set a Smart Tiling Mode manually. If you get an out-of-memory error, try picking a setting further down the list."
         self.inputs = [
             OnnxModelInput(),
             ImageInput(),
-            NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
+            TileModeDropdown(has_auto=False),
         ]
         self.outputs = [
             ImageOutput(
@@ -110,7 +109,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        split_factor: int,
+        tile_mode: int,
         change_shape: bool,
     ) -> np.ndarray:
         logger.info("Upscaling image")
@@ -120,7 +119,7 @@ class OnnxImageUpscaleNode(NodeBase):
         out, _ = onnx_auto_split_process(
             img.astype(np.float16) if is_fp16_model else img,
             session,
-            max_depth=split_factor,
+            max_depth=tile_mode,
             change_shape=change_shape,
         )
         logger.info(out.shape)
@@ -129,9 +128,7 @@ class OnnxImageUpscaleNode(NodeBase):
         logger.info("Done upscaling")
         return out
 
-    def run(
-        self, onnx_model: bytes, img: np.ndarray, tile_size_target: int
-    ) -> np.ndarray:
+    def run(self, onnx_model: bytes, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
@@ -156,19 +153,8 @@ class OnnxImageUpscaleNode(NodeBase):
         h, w, c = get_h_w_c(img)
         logger.debug(f"Image is {h}x{w}x{c}")
 
-        if tile_size_target > 0:
-            # Calculate split factor using a tile size target
-            # Example: w == 1280, tile_size_target == 512
-            # 1280 / 512 = 2.5, ceil makes that 3, so split_factor == 3
-            # This effectively makes the tile size for the image 426
-            w_split_factor = int(np.ceil(w / tile_size_target))
-            h_split_factor = int(np.ceil(h / tile_size_target))
-            split_factor = max(w_split_factor, h_split_factor, 1)
-        else:
-            split_factor = 1
-
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, session, split_factor, change_shape),
+            lambda i: self.upscale(i, session, tile_mode, change_shape),
         )

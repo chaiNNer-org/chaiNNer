@@ -285,3 +285,22 @@ def FillColorDropdown() -> DropDownInput:
             },
         ],
     )
+
+
+def TileModeDropdown(has_auto=True) -> DropDownInput:
+    options = [
+        {"option": "None", "value": 1},
+        {"option": "Fewest", "value": 2},
+        {"option": "Less", "value": 3},
+        {"option": "Medium", "value": 4},
+        {"option": "More", "value": 5},
+        {"option": "Extreme", "value": 6},
+        {"option": "Ultra", "value": 7},
+    ]
+    if has_auto:
+        options.insert(0, {"option": "Auto", "value": 0})
+    return DropDownInput(
+        input_type="TileMode",
+        label="Smart Tiling Mode",
+        options=options,
+    )

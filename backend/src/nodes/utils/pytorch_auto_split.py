@@ -45,7 +45,7 @@ def auto_split_process(
     #     gc.collect()
     #     raise RuntimeError("Upscaling killed mid-processing")
 
-    logger.debug(
+    logger.info(
         f"auto_split_process: scale={scale}, overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
     )
 
@@ -84,6 +84,10 @@ def auto_split_process(
             # Re-raise the exception if not an OOM error
             else:
                 raise
+    elif max_depth < current_depth:
+        raise ValueError(
+            "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+        )
 
     b, c, h, w = lr_img.shape
 

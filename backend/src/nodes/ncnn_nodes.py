@@ -153,7 +153,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self.inputs = [
             NcnnNetInput(),
             ImageInput(),
-            NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
+            TileModeDropdown(),
         ]
         self.outputs = [
             ImageOutput(
@@ -173,7 +173,7 @@ class NcnnUpscaleImageNode(NodeBase):
         net,
         input_name: str,
         output_name: str,
-        split_factor: Union[int, None],
+        tile_mode: int,
     ):
         # Try/except block to catch errors
         try:
@@ -187,33 +187,20 @@ class NcnnUpscaleImageNode(NodeBase):
                 output_name=output_name,
                 blob_vkallocator=blob_vkallocator,
                 staging_vkallocator=staging_vkallocator,
-                max_depth=split_factor,
+                max_depth=tile_mode if tile_mode > 0 else None,
             )
             # blob_vkallocator.clear() # this slows stuff down
             # staging_vkallocator.clear() # as does this
             # net.clear() # don't do this, it makes chaining break
             return output
+        except ValueError as e:
+            raise e
         except Exception as e:
             logger.error(e)
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(
-        self, net_data: NcnnNetData, img: np.ndarray, tile_size_target: int
-    ) -> np.ndarray:
-        h, w, _ = get_h_w_c(img)
-
-        if tile_size_target > 0:
-            # Calculate split factor using a tile size target
-            # Example: w == 1280, tile_size_target == 512
-            # 1280 / 512 = 2.5, ceil makes that 3, so split_factor == 3
-            # This effectively makes the tile size for the image 426
-            w_split_factor = int(np.ceil(w / tile_size_target))
-            h_split_factor = int(np.ceil(h / tile_size_target))
-            split_factor = max(w_split_factor, h_split_factor, 1)
-        else:
-            split_factor = None
-
+    def run(self, net_data: NcnnNetData, img: np.ndarray, tile_mode: int) -> np.ndarray:
         net = ncnn.Net()
 
         # Use vulkan compute
@@ -238,7 +225,7 @@ class NcnnUpscaleImageNode(NodeBase):
         def upscale(i: np.ndarray) -> np.ndarray:
             i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
             i = self.upscale(
-                i, net, net_data.input_name, net_data.output_name, split_factor
+                i, net, net_data.input_name, net_data.output_name, tile_mode
             )
             assert (
                 get_h_w_c(i)[2] == 3

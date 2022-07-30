@@ -120,7 +120,7 @@ class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model."
-        self.inputs = [ModelInput(), ImageInput()]
+        self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
@@ -139,7 +139,9 @@ class ImageUpscaleNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Processing"
 
-    def upscale(self, img: np.ndarray, model: torch.nn.Module, scale: int):
+    def upscale(
+        self, img: np.ndarray, model: torch.nn.Module, scale: int, tile_mode: int
+    ):
         with torch.no_grad():
             # Borrowed from iNNfer
             logger.info("Converting image to tensor")
@@ -167,6 +169,7 @@ class ImageUpscaleNode(NodeBase):
                 img_tensor,
                 model,
                 scale,
+                max_depth=tile_mode if tile_mode > 0 else None,
             )
             if os.environ["device"] == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
@@ -179,7 +182,7 @@ class ImageUpscaleNode(NodeBase):
             del t_out
             return img_out
 
-    def run(self, model: PyTorchModel, img: np.ndarray) -> np.ndarray:
+    def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         check_env()
@@ -198,7 +201,7 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, model, model.scale),
+            lambda i: self.upscale(i, model, model.scale, tile_mode),
         )
 
 
