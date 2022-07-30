@@ -19,11 +19,12 @@ import { isSubsetOf } from './relation';
 import {
     BuiltinFunctionDefinition,
     NameResolutionError,
-    ReadonlyScope,
     ResolvedName,
     Scope,
+    ScopeBuilder,
     ScopeBuiltinFunctionDefinition,
     ScopeFunctionDefinition,
+    ScopeParameterDefinition,
     ScopeStructDefinition,
     ScopeVariableDefinition,
 } from './scope';
@@ -122,10 +123,7 @@ export class EvaluationError extends Error {
     }
 }
 
-const evaluateStructDefinition = (
-    def: StructDefinition,
-    scope: ReadonlyScope
-): StructType | NeverType => {
+const evaluateStructDefinition = (def: StructDefinition, scope: Scope): StructType | NeverType => {
     const fields: StructTypeField[] = [];
     for (const f of def.fields) {
         let type;
@@ -149,9 +147,9 @@ const evaluateStructDefinition = (
 };
 const evaluateStruct = (
     expression: NamedExpression,
-    scope: ReadonlyScope,
+    scope: Scope,
     definition: ScopeStructDefinition,
-    definitionScope: ReadonlyScope
+    definitionScope: Scope
 ): Type => {
     // eslint-disable-next-line no-param-reassign
     definition.default ??= evaluateStructDefinition(definition.definition, definitionScope);
@@ -208,8 +206,8 @@ const evaluateStruct = (
 
 const resolveNamed = (
     expression: NamedExpression,
-    currentScope: ReadonlyScope
-): ResolvedName<ScopeStructDefinition | ScopeVariableDefinition> => {
+    currentScope: Scope
+): ResolvedName<ScopeStructDefinition | ScopeVariableDefinition | ScopeParameterDefinition> => {
     let resolved;
     try {
         resolved = currentScope.get(expression.name);
@@ -236,8 +234,13 @@ const resolveNamed = (
 
     return { definition, scope };
 };
-const evaluateNamed = (expression: NamedExpression, scope: ReadonlyScope): Type => {
+const evaluateNamed = (expression: NamedExpression, scope: Scope): Type => {
     const { definition, scope: definitionScope } = resolveNamed(expression, scope);
+
+    // parameter
+    if (definition.type === 'parameter') {
+        return definition.value;
+    }
 
     // variable
     if (definition.type === 'variable') {
@@ -260,7 +263,7 @@ const evaluateNamed = (expression: NamedExpression, scope: ReadonlyScope): Type 
     return evaluateStruct(expression, scope, definition, definitionScope);
 };
 
-const evaluateFieldAccess = (expression: FieldAccessExpression, scope: ReadonlyScope): Type => {
+const evaluateFieldAccess = (expression: FieldAccessExpression, scope: Scope): Type => {
     const type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
     if (type.type === 'any') {
@@ -304,7 +307,7 @@ const evaluateFieldAccess = (expression: FieldAccessExpression, scope: ReadonlyS
 
 const resolveFunction = (
     expression: FunctionCallExpression,
-    currentScope: ReadonlyScope
+    currentScope: Scope
 ): ResolvedName<ScopeFunctionDefinition | ScopeBuiltinFunctionDefinition> => {
     let resolved;
     try {
@@ -332,7 +335,7 @@ const resolveFunction = (
         message: `The name ${expression.functionName} resolves to a ${resolved.definition.type} and not a function.`,
     });
 };
-const evaluateFunctionCall = (expression: FunctionCallExpression, scope: ReadonlyScope): Type => {
+const evaluateFunctionCall = (expression: FunctionCallExpression, scope: Scope): Type => {
     const { definition, scope: definitionScope } = resolveFunction(expression, scope);
 
     // check argument number
@@ -411,25 +414,25 @@ const evaluateFunctionCall = (expression: FunctionCallExpression, scope: Readonl
 
     // run function
     if (definition.type === 'function') {
-        const functionScope = new Scope('function scope', definitionScope);
+        const functionScope = new ScopeBuilder('function scope', definitionScope);
         definition.definition.parameters.forEach(({ name }, i) => {
             functionScope.add(new VariableDefinition(name, args[i]));
         });
-        return evaluate(definition.definition.value, functionScope);
+        return evaluate(definition.definition.value, functionScope.createScope());
     }
     return definition.definition.fn(...args);
 };
 
-const evaluateMatch = (expression: MatchExpression, scope: ReadonlyScope): Type => {
+const evaluateMatch = (expression: MatchExpression, scope: Scope): Type => {
     let type = evaluate(expression.of, scope);
     if (type.type === 'never') return NeverType.instance;
 
-    const withBinding = (arm: MatchArm, armType: Type): ReadonlyScope => {
+    const withBinding = (arm: MatchArm, armType: Type): Scope => {
         if (arm.binding === undefined) return scope;
 
-        const armScope = new Scope(`match arm`, scope);
+        const armScope = new ScopeBuilder(`match arm`, scope);
         armScope.add(new VariableDefinition(arm.binding, armType));
-        return armScope;
+        return armScope.createScope();
     };
 
     const matchTypes: Type[] = [];
@@ -445,19 +448,19 @@ const evaluateMatch = (expression: MatchExpression, scope: ReadonlyScope): Type 
     return union(...matchTypes);
 };
 
-const evaluateScope = (expression: ScopeExpression, parentScope: ReadonlyScope): Type => {
+const evaluateScope = (expression: ScopeExpression, parentScope: Scope): Type => {
     let name = 'scope expression';
     if (expression.source) {
         const { document, span } = expression.source;
         name += ` at ${document.name}:${span[0]}`;
     }
-    const scope = new Scope(name, parentScope);
 
+    const scope = new ScopeBuilder(name, parentScope);
     for (const def of expression.definitions) {
         scope.add(def);
     }
 
-    return evaluate(expression.expression, scope);
+    return evaluate(expression.expression, scope.createScope());
 };
 
 /**
@@ -465,7 +468,7 @@ const evaluateScope = (expression: ScopeExpression, parentScope: ReadonlyScope):
  *
  * @throws {@link EvaluationError}
  */
-export const evaluate = (expression: Expression, scope: ReadonlyScope): Type => {
+export const evaluate = (expression: Expression, scope: Scope): Type => {
     if (expression.underlying !== 'expression') {
         // type
         return expression;

@@ -18,7 +18,7 @@ export const GenericOutput = memo(
 
         const schema = schemata.get(schemaId);
 
-        const value = useOutputData(outputId);
+        const [value] = useOutputData(outputId);
 
         useEffect(() => {
             if (isStartingNode(schema)) {

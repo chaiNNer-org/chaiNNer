@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
@@ -18,36 +18,14 @@ interface LargeImageBroadcastData {
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const inputDataChanges = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.inputDataChanges
-        );
-        const lastInputDataUpdatedId = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.lastInputDataUpdatedId
-        );
-
-        const [stale, setStale] = useState(false);
-
-        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-
-        const value = useOutputData(outputId) as LargeImageBroadcastData | undefined;
-
         const { setManualOutputType, schemata } = useContext(GlobalContext);
-
         const schema = schemata.get(schemaId);
 
-        useEffect(() => {
-            if (value) {
-                setStale(false);
-            }
-        }, [value]);
+        const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
+        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        useEffect(() => {
-            if (value && lastInputDataUpdatedId !== id) {
-                setStale(true);
-            }
-        }, [inputDataChanges]);
+        const [value, valueInputHash] = useOutputData<LargeImageBroadcastData>(outputId);
+        const stale = value !== undefined && valueInputHash !== inputHash;
 
         useEffect(() => {
             if (isStartingNode(schema)) {
@@ -90,7 +68,7 @@ export const LargeImageOutput = memo(
                     w="200px"
                 >
                     <Box
-                        display={stale ? 'block' : 'none'}
+                        display={stale && !animated ? 'block' : 'none'}
                         h="200px"
                         marginRight="-200px"
                         w="200px"
