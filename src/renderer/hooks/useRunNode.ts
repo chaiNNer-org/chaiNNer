@@ -10,7 +10,7 @@ import { useAsyncEffect } from './useAsyncEffect';
 
 export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { changeNodes, schemata } = useContext(GlobalContext);
+    const { animate, unAnimate, schemata } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -18,23 +18,6 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const [isFp16] = useIsFp16;
 
     const schema = schemata.get(schemaId);
-
-    const setAnimated = (nodeAnimated: boolean) => {
-        changeNodes((nodes) =>
-            nodes.map((n) => {
-                if (n.id === id) {
-                    return {
-                        ...n,
-                        data: {
-                            ...n.data,
-                            animated: nodeAnimated,
-                        },
-                    };
-                }
-                return n;
-            })
-        );
-    };
 
     const inputs = useMemo(
         () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
@@ -50,11 +33,11 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 token.checkCanceled();
 
                 lastRunInputHash.current = inputHash;
-                setAnimated(true);
+                animate([id], false);
 
                 const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
-                setAnimated(false);
+                unAnimate([id]);
 
                 if (!result.success) {
                     sendToast({
