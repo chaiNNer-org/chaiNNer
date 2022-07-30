@@ -6,7 +6,7 @@ from .. import expression
 
 def clampNumber(
     value: Union[float, int],
-    precision: int,
+    precision: Union[int, None],
     min_value: Union[float, int, None],
     max_value: Union[float, int, None],
 ) -> Union[float, int]:
@@ -25,9 +25,9 @@ def clampNumber(
 def get_number_type(
     min: Union[float, int, None],
     max: Union[float, int, None],
-    precision: int,
+    precision: Union[int, None],
 ) -> expression.ExpressionJson:
-    if precision > 0:
+    if precision is not None and precision > 0:
         # step is not an integer
         return expression.interval(min, max)
     return expression.int_interval(min, max)
@@ -39,7 +39,7 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
-        precision: int = 0,
+        precision: Union[int, None] = None,
         controls_step: Union[float, int, None] = None,
         default: Union[float, int] = 0,
         minimum: Union[float, int, None] = 0,
@@ -53,7 +53,7 @@ class NumberInput(BaseInput):
         self.precision = precision
         # controls_step is for increment/decrement arrows.
         self.controls_step = (
-            controls_step if controls_step is not None else 10**-precision
+            controls_step if controls_step is not None else 10 ** -(precision or 0)
         )
         self.default = default
         self.minimum = minimum
