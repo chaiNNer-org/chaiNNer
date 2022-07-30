@@ -6,7 +6,7 @@ import { useMemoObject } from './useMemo';
 
 export interface OutputDataEntry {
     inputHash: string;
-    executionTime: number | undefined;
+    lastExecutionTime: number | undefined;
     data: OutputData | undefined;
 }
 
@@ -33,7 +33,7 @@ export const useOutputDataStore = () => {
                     const entry: OutputDataEntry = {
                         data: useExistingData ? existingEntry.data : data,
                         inputHash: useExistingData ? existingEntry.inputHash : inputHash,
-                        executionTime: executionTime ?? existingEntry?.executionTime,
+                        lastExecutionTime: executionTime ?? existingEntry?.lastExecutionTime,
                     };
 
                     if (!existingEntry || !isDeepEqual(existingEntry, entry)) {
