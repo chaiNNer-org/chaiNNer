@@ -130,7 +130,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated && animateChain ? 1 : 0,
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
@@ -153,7 +153,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated && animateChain ? 1 : 0,
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
