@@ -74,7 +74,10 @@ export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: No
         // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
         function <T>(outputId: OutputId): readonly [value: T | undefined, inputHash: string] {
             if (outputDataEntry) {
-                return [outputDataEntry.data[outputId] as T | undefined, outputDataEntry.inputHash];
+                return [
+                    outputDataEntry.data?.[outputId] as T | undefined,
+                    outputDataEntry.inputHash,
+                ];
             }
             return [undefined, getInputHash(id)];
         },
