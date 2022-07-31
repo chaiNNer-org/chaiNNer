@@ -74,10 +74,6 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 -   Apple M1 laptops are mostly untested, though they are theoretically supported.
 
-## Building chaiNNer Yourself
-
-I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` (make sure that you have at least npm v7 installed) to install all the nodejs dependencies, and `npm run make` to build the application.
-
 ## GPU Support
 
 For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only support's Nvidia's CUDA. MacOS also does not support CUDA at all, so PyTorch will only work in CPU mode on MacOS.
@@ -104,6 +100,10 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 ### ONNX
 
 -   Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
+
+## Building chaiNNer Yourself
+
+I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` (make sure that you have at least npm v7 installed) to install all the nodejs dependencies, and `npm run make` to build the application.
 
 ## Planned Features
 
