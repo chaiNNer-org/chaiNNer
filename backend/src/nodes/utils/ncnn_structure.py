@@ -1,12 +1,13 @@
 import os
 import os
+from pathlib import PureWindowsPath
 from typing import Dict, List, Union
 
 from json import load as jload
 import numpy as np
 
 param_schema_file = os.path.join(
-    os.path.realpath(__file__), "ncnn_param_schema_converted.json"
+    os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema_converted.json"
 )
 with open(param_schema_file) as f:
     param_schema = jload(f)
@@ -95,7 +96,7 @@ class NcnnParamCollection:
         return self.param_dict[key]
 
     def __setitem__(self, pid: int, value: Union[float, int]) -> None:
-        idstr = str(id)
+        idstr = str(pid)
         param_dict = param_schema[self.op]
         param = param_dict[idstr]
         name = param["paramPhase"]
@@ -114,14 +115,16 @@ class NcnnParamCollection:
         output = ""
         for v in self.param_dict.values():
             if isinstance(v.value, list):
-                output += "-233"
-            output += f"{v.id:02}="
+                output += "-233" + v.id.zfill(2) + "="
+            else:
+                output += v.id + "="
+
             if isinstance(v.value, float) or (isinstance(v.value, np.float32)):  # type: ignore
                 v_str = np.format_float_scientific(v.value, 6, False, exp_digits=2)
             elif isinstance(v.value, list):
                 v_str = ",".join(str(v.value))
             else:
-                v_str = str(v)
+                v_str = str(v.value)
 
             output += v_str + " "
 
@@ -190,6 +193,6 @@ class NcnnModel:
         with open(filename, "wb") as f:
             for layer in self.layer_list:
                 for w in layer.weight_data.values():
-                    if w.quantize_tag != b"":
+                    if w.quantize_tag:
                         f.write(w.quantize_tag)
                     f.write(w.weight.tobytes())

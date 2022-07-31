@@ -934,6 +934,18 @@
       "paramPhase": "output_width",
       "defaultValue": 0,
       "weightOrder": ""
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "dynamic_taget_size",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "align_corner",
+      "defaultValue": 0,
+      "weightOrder": ""
     }
   },
   "Log": {

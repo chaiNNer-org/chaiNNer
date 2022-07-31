@@ -342,7 +342,7 @@ class Onnx2NcnnConverter:
                     if (
                         (shape.size != 5 and shape.size != 3)
                         or (shape.size == 5 and shape[0] != 1)
-                        or (i + 2 >= node_count)
+                        or (i + 2 >= self.node_count)
                     ):
                         continue
 
@@ -350,7 +350,7 @@ class Onnx2NcnnConverter:
                     node3 = self.mutable_graph_nodes[i + 2]
 
                     if node3.op_type == "Constant":
-                        if i + 3 >= node_count:
+                        if i + 3 >= self.node_count:
                             continue
                         node3 = self.mutable_graph_nodes[i + 3]
                     if (node2.op_type != "Transpose" or node3.op_type != "Reshape") or (
@@ -439,7 +439,7 @@ class Onnx2NcnnConverter:
             if node.op_type == "ShuffleChannel":
                 # reverse = 1
                 reverse = self.get_node_attr_i(node, "reverse")
-                if reverse != 1 or (i + 2 >= node_count):
+                if reverse != 1 or (i + 2 >= self.node_count):
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -504,7 +504,7 @@ class Onnx2NcnnConverter:
             if node.op_type == "Add":
                 if (
                     self.node_reference[node.output[0]] != 1
-                    or i + 3 >= node_count
+                    or i + 3 >= self.node_count
                     or node.input[1] not in self.weights
                 ):
                     continue
@@ -525,7 +525,7 @@ class Onnx2NcnnConverter:
                 node4 = self.mutable_graph_nodes[i + 3]
 
                 if node4.op_type == "Constant":
-                    if i + 4 >= node_count:
+                    if i + 4 >= self.node_count:
                         continue
                     node4 = self.mutable_graph_nodes[i + 4]
                 if (
@@ -601,7 +601,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 3
                 i += 3
 
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # HardSwish <= HardSigmoid - Mul
@@ -613,7 +613,7 @@ class Onnx2NcnnConverter:
                 alpha = self.get_node_attr_f(node, "alpha", 0.2)
                 beta = self.get_node_attr_f(node, "beta", 0.5)
 
-                if i + 1 >= node_count:
+                if i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -656,7 +656,7 @@ class Onnx2NcnnConverter:
             if node.op_type == "Add":
                 if (
                     self.node_reference[node.output[0]] != 1
-                    or i + 2 >= node_count
+                    or i + 2 >= self.node_count
                     or node.input[1] not in self.weights
                 ):
                     continue
@@ -676,7 +676,7 @@ class Onnx2NcnnConverter:
                 node3 = self.mutable_graph_nodes[i + 2]
 
                 if node3.op_type == "Constant":
-                    if i + 3 >= node_count:
+                    if i + 3 >= self.node_count:
                         continue
                     node3 = self.mutable_graph_nodes[i + 3]
 
@@ -752,7 +752,7 @@ class Onnx2NcnnConverter:
             # Swish <= Sigmoid - Mul
             # x * torch.sigmoid(x)
             if node.op_type == "Sigmoid":
-                if self.node_reference[node.output[0]] != 1 or i + 1 >= node_count:
+                if self.node_reference[node.output[0]] != 1 or i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -783,7 +783,7 @@ class Onnx2NcnnConverter:
 
             # BatchNormalization <= Unsqueeze - BatchNormalization - Squeeze
             if node.op_type == "Unsqueeze":
-                if self.node_reference[node.output[0]] != 1 or i + 2 >= node_count:
+                if self.node_reference[node.output[0]] != 1 or i + 2 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -835,7 +835,7 @@ class Onnx2NcnnConverter:
                 axes = self.get_node_attr_ai(node, "axes")
                 if axes.size != 2 or axes[0] != 1 or axes[1] != 2:
                     continue
-                if i + 1 >= node_count:
+                if i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -867,7 +867,7 @@ class Onnx2NcnnConverter:
 
                 # axes = (1)
                 axes = self.get_node_attr_ai(node, "axes")
-                if len(axes) != 1 or axes[0] != 1 or i + 3 >= node_count:
+                if len(axes) != 1 or axes[0] != 1 or i + 3 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -876,7 +876,7 @@ class Onnx2NcnnConverter:
 
                 has_shape_node = node3.op_type == "Shape"
                 if has_shape_node:
-                    if i + 4 >= node_count:
+                    if i + 4 >= self.node_count:
                         continue
 
                     node_shape = node3
@@ -972,7 +972,7 @@ class Onnx2NcnnConverter:
                     shape.size != 3
                     or shape[0] != 0
                     or shape[2] != -1
-                    or i + 4 >= node_count
+                    or i + 4 >= self.node_count
                 ):
                     continue
 
@@ -1117,7 +1117,7 @@ class Onnx2NcnnConverter:
                     axes.size == 2 and (axes[0] != -2 or axes[1] != -1)
                 ):
                     continue
-                if i + 6 >= node_count:
+                if i + 6 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1290,7 +1290,7 @@ class Onnx2NcnnConverter:
             if node.op_type == "Shape":
                 if self.node_reference[node.output[0]] != 1:
                     continue
-                if i + 6 >= node_count:
+                if i + 6 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1421,7 +1421,7 @@ class Onnx2NcnnConverter:
                     shape.size != 6
                     or (shape[0] != 1 and shape[0] != -1)
                     or shape[2] != shape[3]
-                    or i + 2 >= node_count
+                    or i + 2 >= self.node_count
                 ):
                     continue
 
@@ -1429,7 +1429,7 @@ class Onnx2NcnnConverter:
                 node3 = self.mutable_graph_nodes[i + 2]
 
                 if node3.op_type == "Constant":
-                    if i + 3 >= node_count:
+                    if i + 3 >= self.node_count:
                         continue
 
                     node3 = self.mutable_graph_nodes[i + 3]
@@ -1522,7 +1522,7 @@ class Onnx2NcnnConverter:
                     shape.size != 6
                     or (shape[0] != 1 and shape[0] != -1)
                     or shape[3] != shape[5]
-                    or i + 2 >= node_count
+                    or i + 2 >= self.node_count
                 ):
                     continue
 
@@ -1530,7 +1530,7 @@ class Onnx2NcnnConverter:
                 node3 = self.mutable_graph_nodes[i + 2]
 
                 if node3.op_type == "Constant":
-                    if i + 3 >= node_count:
+                    if i + 3 >= self.node_count:
                         continue
 
                     node3 = self.mutable_graph_nodes[i + 3]
@@ -1604,7 +1604,7 @@ class Onnx2NcnnConverter:
 
             # Add/Sub/Mul/Div/Min/Max <= Expand - Add/Sub/Mul/Div/Min/Max
             if node.op_type == "Expand":
-                if self.node_reference[node.output[0]] != 1 or i + 1 >= node_count:
+                if self.node_reference[node.output[0]] != 1 or i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1642,7 +1642,7 @@ class Onnx2NcnnConverter:
             if node.op_type in ["LSTM", "GRU", "RNN"]:
                 if self.node_reference[node.output[0]] != 1:
                     continue
-                if i + 2 >= node_count:
+                if i + 2 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1737,14 +1737,14 @@ class Onnx2NcnnConverter:
                     reduced_node_count[0] += 1
                     i += 1
 
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # LSTM(uni) <= LSTM(uni) - Squeeze - Transpose
             if node.op_type in ["LSTM", "GRU", "RNN"]:
                 if self.node_reference[node.output[0]] != 1:
                     continue
-                if i + 1 >= node_count:
+                if i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1808,7 +1808,7 @@ class Onnx2NcnnConverter:
                     reduced_node_count[0] += 1
                     i += 1
 
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # LSTM <= Transpose - LSTM
@@ -1852,7 +1852,7 @@ class Onnx2NcnnConverter:
             #                      - Reshape - Reshape - Transpose - Transpose
             #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
             if node.op_type == "MatMul":
-                if i + 19 >= node_count:
+                if i + 19 >= self.node_count:
                     continue
                 if self.node_reference[node.output[0]] != 1:
                     continue
@@ -2154,7 +2154,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 19
                 i += 19
 
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # MultiHeadAttention <= MatMul(qkv) - Add - Split
@@ -2163,7 +2163,7 @@ class Onnx2NcnnConverter:
             #                      - Reshape - Reshape - Transpose - Transpose
             #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
             if node.op_type == "MatMul":
-                if i + 16 >= node_count:
+                if i + 16 >= self.node_count:
                     continue
                 if self.node_reference[node.output[0]] != 1:
                     continue
@@ -2471,7 +2471,7 @@ class Onnx2NcnnConverter:
                 attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
-        for i in range(node_count):
+        for i in range(self.node_count):
             node = self.mutable_graph_nodes[i]
 
             # Add/Sub/Mul/Div/Min/Max/Pow(x, b)
@@ -2992,6 +2992,7 @@ class Onnx2NcnnConverter:
             layer.name = name
             layer.num_inputs = input_size
             layer.num_outputs = output_size
+            layer.params.op = layer.type
 
             for input_name in node.input:
                 # check weight
@@ -3096,13 +3097,13 @@ class Onnx2NcnnConverter:
                     layer.weight_data[f"vareps{j}"] = NcnnWeight(
                         np.array(ve, np.float32)
                     )
-                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+                self.write_tensor_proto_data(B, layer, "bias")
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
                 layer.params[0] = self.get_tensor_proto_data_size(B)
 
-                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+                self.write_tensor_proto_data(B, layer, "bias")
             elif op == "Ceil":
                 layer.params[0] = UOT.CEIL
             elif op == "Clip":
@@ -3191,7 +3192,7 @@ class Onnx2NcnnConverter:
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP16)
+                    self.write_tensor_proto_data(B, layer, "bias")
             elif op == "ConvTranspose":
                 raise RuntimeError(
                     "ConvTranspose not implemented yet, please report issue"
@@ -3329,7 +3330,7 @@ class Onnx2NcnnConverter:
                 self.write_tensor_proto_data(
                     W, layer, "weight", quantize_tag, True, is_fp16
                 )
-                self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)
+                self.write_tensor_proto_data(B, layer, "bias")
             elif op == "Exp":
                 layer.params[0] = UOT.EXP
             elif op == "Flatten":
