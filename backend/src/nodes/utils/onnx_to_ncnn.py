@@ -10,6 +10,7 @@ from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer,
     RepeatedScalarFieldContainer,
 )
+from pyparsing import Opt
 from sanic.log import logger
 from torch import dtype, maximum
 
@@ -19,10 +20,13 @@ from .ncnn_structure import (
     NcnnModel,
     NcnnLayer,
     NcnnWeight,
+    PaddingTypes,
+    ReductionOpTypes,
     UnaryOpTypes,
     BinaryOpTypes,
     EltwiseOpTypes,
     GruDirectionFlags,
+    NormalizeEpsModes,
 )
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
@@ -69,6 +73,9 @@ UOT = UnaryOpTypes
 BOT = BinaryOpTypes
 EOT = EltwiseOpTypes
 GRU = GruDirectionFlags
+NEM = NormalizeEpsModes
+PT = PaddingTypes
+ROT = ReductionOpTypes
 
 
 class Onnx2NcnnConverter:
@@ -3626,6 +3633,191 @@ class Onnx2NcnnConverter:
                 if with_scalar:
                     layer.add_param(1, with_scalar)
                     layer.add_param(2, b)
+            elif op == "MultiHeadAttention":
+                raise RuntimeError(
+                    "MultiHeadAttention not implemented, please report issue"
+                )
+                """embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
+                num_heads = self.get_node_attr_i(node, "num_heads", 0)
+
+                layer.add_param(0, embed_dim)
+                layer.add_param(1, num_heads)
+
+                if len(node.input) == 5:
+                    qkvw = self.weights[node.input[1]]
+                    qkvb = self.weights[node.input[2]]
+                    ow = self.weights[node.input[3]]
+                    ob = self.weights[node.input[4]]
+
+                    weight_data_size = self.get_tensor_proto_data_size(ow)
+
+                    layer.add_param(2, weight_data_size)
+
+                    quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32"""
+            elif op == "Neg":
+                layer.add_param(0, UOT.NEG)
+            elif op == "Normalize":
+                eps = self.get_node_attr_f(node, "eps", 0)
+
+                layer.add_param(1, 1)  # channel_shared
+                layer.add_param(2, eps)
+                layer.add_param(3, 1)  # scale_data_size
+                layer.add_param(9, NEM.PYTORCH)
+
+                layer.add_weight(1, "scale")
+            elif op == "Pad":
+                mode = self.get_node_attr_s(node, "mode")
+                value = self.get_node_attr_f(node, "value", 0)
+
+                if len(node.input) == 1:
+                    pads = self.get_node_attr_ai(node, "pads")
+                else:
+                    pads = self.get_node_attr_from_input_ai(self.weights[node.input[1]])
+
+                if mode == "constant":
+                    ptype = PT.CONSTANT
+                elif mode == "edge":
+                    ptype = PT.REPLICATE
+                elif mode == "reflect":
+                    ptype = PT.REFLECT
+
+                pad_size = pads.size
+                top = bottom = front = behind = 0
+                if pad_size == 8:
+                    # NCHW
+                    top = pads[2]
+                    bottom = pads[6]
+                    left = pads[3]
+                    right = pads[7]
+                    front = pads[1]
+                    behind = pads[5]
+                elif pad_size == 6:
+                    # NHW
+                    top = pads[1]
+                    bottom = pads[4]
+                    left = pads[2]
+                    right = pads[5]
+                else:
+                    # NW
+                    left = pads[1]
+                    right = pads[3]
+
+                layer.add_param(0, top)
+                layer.add_param(1, bottom)
+                layer.add_param(2, left)
+                layer.add_param(3, right)
+                layer.add_param(4, ptype)
+                layer.add_param(5, value)
+                layer.add_param(7, front)
+                layer.add_param(8, behind)
+            elif op == "Pow":
+                layer.add_param(0, BOT.POW)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
+            elif op == "PixelShuffle":
+                layer.add_param(0, self.get_node_attr_i(node, "scale_factor", 1))
+            elif op == "PRelu":
+                slope = self.weights[node.input[1]]
+                num_slope = self.get_tensor_proto_data_size(slope)
+
+                layer.add_param(0, num_slope)
+
+                layer.add_weight(slope, "slope")
+            elif op == "Reciprocal":
+                layer.add_param(0, UOT.RECIPROCAL)
+            elif op in [
+                "ReduceMax",
+                "ReduceMin",
+                "ReduceMean",
+                "ReduceProd",
+                "ReduceSum",
+                "ReduceSumSquare",
+                "ReduceL1",
+                "ReduceL2",
+                "ReduceLogSum",
+                "ReduceLogSumExp",
+            ]:
+                if op == "ReduceSum":
+                    op_type = ROT.SUM
+                elif op == "ReduceSumSquare":
+                    op_type = ROT.SUMSQ
+                elif op == "ReduceMean":
+                    op_type = ROT.MEAN
+                elif op == "ReduceMax":
+                    op_type = ROT.MAX
+                elif op == "ReduceMin":
+                    op_type = ROT.MIN
+                elif op == "ReduceProd":
+                    op_type = ROT.PROD
+                elif op == "ReduceL1":
+                    op_type = ROT.L1
+                elif op == "ReduceL2":
+                    op_type = ROT.L2
+                elif op == "ReduceLogSum":
+                    op_type = ROT.LOGSUM
+                elif op == "ReduceLogSumExp":
+                    op_type == ROT.LOGSUMEXP
+                else:
+                    op_type = -233
+
+                layer.add_param(0, op_type)
+
+                axes = self.get_node_attr_ai(node, "axes")
+                keepdims = self.get_node_attr_i(node, "keepdims", 1)
+
+                if axes.size > 0:
+                    # if axes set, reduce according to axes
+                    layer.add_param(1, 0)
+
+                    for axis in axes:
+                        if axis == 0 or axis > 4 or axis < -3:
+                            raise ValueError("Unsupported reduction axes in Reduction")
+                    layer.add_param(
+                        3,
+                        [
+                            axis - 1 if axis > 0 else axis
+                            for axis in onph.to_array(axes)
+                        ],
+                    )
+                else:
+                    # if axes not set, reduce all axes by default
+                    layer.add_param(1, 1)
+
+                layer.add_param(4, keepdims)
+                layer.add_param(
+                    5, 1
+                )  # This will cause an error, but there is no info on param 5
+            elif op == "Reorg":
+                layer.add_param(0, self.get_node_attr_i(node, "stride", 1))
+            elif op == "Reshape":
+                if len(node.input) == 1:
+                    shape = self.get_node_attr_ai(node, "shape")
+                else:
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
+                    )
+
+                shape_size = shape.size
+                if shape_size == 1:
+                    logger.error("Should never reach shape.size == 1 in Reshape")
+                    layer.add_param(0, shape[0])
+                elif shape_size == 2:
+                    layer.add_param(0, shape[1])
+                elif shape_size == 3:
+                    layer.add_param(0, shape[2])
+                    layer.add_param(1, shape[1])
+                elif shape_size == 4:
+                    layer.add_param(0, shape[3])
+                    layer.add_param(1, shape[2])
+                    layer.add_param(2, shape[1])
+                elif shape_size == 5:
+                    layer.add_param(0, shape[3] * shape[3])
+                    layer.add_param(1, shape[2])
+                    layer.add_param(2, shape[1])
             elif op == "Resize":
                 mode = self.get_node_attr_s(node, "mode")
                 align = self.get_node_attr_s(node, "coordinate_transformation_mode")

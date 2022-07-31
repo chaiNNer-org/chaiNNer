@@ -57,6 +57,32 @@ class GruDirectionFlags:
     BIDIRECTIONAL = 2
 
 
+class NormalizeEpsModes:
+    CAFFE = 0
+    PYTORCH = 1
+    TENSORFLOW = 2
+
+
+class PaddingTypes:
+    CONSTANT = 0
+    REPLICATE = 1
+    REFLECT = 2
+
+
+class ReductionOpTypes:
+    SUM = 0
+    ASUM = 1
+    SUMSQ = 2
+    MEAN = 3
+    MAX = 4
+    MIN = 5
+    PROD = 6
+    L1 = 7
+    L2 = 8
+    LOGSUM = 9
+    LOGSUMEXP = 10
+
+
 class NcnnWeight:
     def __init__(
         self, weight: np.ndarray, quantize_tag: bytes = b"", can_be_fp16: bool = False
