@@ -269,6 +269,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         const allDepPackageVersionsString = dep.packages
                                             .map((p) => pipList[p.packageName])
                                             .join('/');
+                                        const outdatedPackages = dep.packages.filter(
+                                            (p) => !checkSemver(p.version, pipList[p.packageName])
+                                        );
                                         return (
                                             <VStack
                                                 key={dep.name}
@@ -316,16 +319,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                                 onClick={() => installPackage(dep)}
                                                             >
                                                                 {`Update${
-                                                                    dep.packages.some(
-                                                                        (p) =>
-                                                                            !checkSemver(
-                                                                                p.version,
-                                                                                pipList[
-                                                                                    p.packageName
-                                                                                ]
-                                                                            )
-                                                                    )
-                                                                        ? ` (${allDepPackageVersionsString})`
+                                                                    outdatedPackages.length > 0
+                                                                        ? ` (${outdatedPackages
+                                                                              .map((p) => p.version)
+                                                                              .join('/')})`
                                                                         : ''
                                                                 }`}
                                                             </Button>
