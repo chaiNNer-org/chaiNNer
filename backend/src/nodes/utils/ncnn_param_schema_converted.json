@@ -804,6 +804,26 @@
     }
   },
   "Flatten": {},
+  "GRU": {
+    "0": {
+      "paramId": "0",
+      "paramPhase": "num_output",
+      "defaultValue": 0,
+      "weightOrder": "weight_xc bias weight_hc"
+    },
+    "1": {
+      "paramId": "1",
+      "paramPhase": "weight_data_size",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
+    "2": {
+      "paramId": "2",
+      "paramPhase": "direction",
+      "defaultValue": 0,
+      "weightOrder": ""
+    }
+  },
   "HardSigmoid": {
     "0": {
       "paramId": "0",

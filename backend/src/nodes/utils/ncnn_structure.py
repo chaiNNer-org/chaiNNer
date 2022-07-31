@@ -1,10 +1,10 @@
 import os
-import os
-from pathlib import PureWindowsPath
 from typing import Dict, List, Union
 
 from json import load as jload
 import numpy as np
+from onnx import TensorProto
+import onnx.numpy_helper as onph
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema_converted.json"
@@ -51,6 +51,12 @@ class EltwiseOpTypes:
     MAX = 2
 
 
+class GruDirectionFlags:
+    FORWARD = 0
+    REVERSE = 1
+    BIDIRECTIONAL = 2
+
+
 class NcnnWeight:
     def __init__(
         self, weight: np.ndarray, quantize_tag: bytes = b"", can_be_fp16: bool = False
@@ -87,7 +93,7 @@ class NcnnParam:
             raise ValueError(f"Value of param {self.id} is not list.")
 
 
-class NcnnParamCollection:
+class NcnnParamCollection(Dict):
     def __init__(self, op: str) -> None:
         self.op: str = op
         self.param_dict: Dict[int, NcnnParam] = {}
@@ -95,7 +101,9 @@ class NcnnParamCollection:
     def __getitem__(self, key: int) -> NcnnParam:
         return self.param_dict[key]
 
-    def __setitem__(self, pid: int, value: Union[float, int]) -> None:
+    def __setitem__(
+        self, pid: int, value: Union[float, int, List[Union[float, int]]]
+    ) -> None:
         idstr = str(pid)
         param_dict = param_schema[self.op]
         param = param_dict[idstr]
@@ -155,6 +163,30 @@ class NcnnLayer:
         self.weight_data: Dict[str, NcnnWeight] = (
             {} if weight_data is None else weight_data
         )
+
+    def add_param(
+        self, pid: int, value: Union[float, int, List[Union[float, int]]]
+    ) -> None:
+        self.params[pid] = value
+
+    def add_weight(
+        self,
+        data: Union[float, int, np.ndarray, TensorProto],
+        weight_name: str,
+        quantize_tag: bytes = b"",
+        can_be_fp16: bool = False,
+        is_fp16: bool = False,
+    ) -> None:
+        if isinstance(data, TensorProto):
+            data = onph.to_array(data)
+        elif isinstance(data, float):
+            data = np.array(data, np.float32)
+        elif isinstance(data, int):
+            data = np.array(data, np.int32)
+
+        if is_fp16:
+            data = data.astype(np.float16)
+        self.weight_data[weight_name] = NcnnWeight(data, quantize_tag, can_be_fp16)
 
 
 class NcnnModel:

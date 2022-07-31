@@ -1,4 +1,7 @@
-from typing import Union, List, Dict
+from ast import NodeTransformer
+from re import L
+from tarfile import DIRTYPE
+from typing import Tuple, Union, List, Dict
 
 import numpy as np
 import onnx
@@ -10,6 +13,8 @@ from google.protobuf.internal.containers import (
 from sanic.log import logger
 from torch import dtype, maximum
 
+from backend.src.nodes.node_base import NodeBase
+
 from .ncnn_structure import (
     NcnnModel,
     NcnnLayer,
@@ -17,6 +22,7 @@ from .ncnn_structure import (
     UnaryOpTypes,
     BinaryOpTypes,
     EltwiseOpTypes,
+    GruDirectionFlags,
 )
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
@@ -62,6 +68,7 @@ TPT = TensorProtoTypes
 UOT = UnaryOpTypes
 BOT = BinaryOpTypes
 EOT = EltwiseOpTypes
+GRU = GruDirectionFlags
 
 
 class Onnx2NcnnConverter:
@@ -210,23 +217,6 @@ class Onnx2NcnnConverter:
             return len(tp.float_data)
 
         return 0
-
-    @staticmethod
-    def write_tensor_proto_data(
-        tp: onnx.TensorProto,
-        layer: NcnnLayer,
-        weight_name: str,
-        quantize_tag: bytes = b"",
-        can_be_fp16: bool = False,
-        is_fp16: bool = False,
-    ) -> None:
-        data_array = onph.to_array(tp)
-
-        if is_fp16:
-            data_array = data_array.astype(np.float16)
-        layer.weight_data[weight_name] = NcnnWeight(
-            data_array, quantize_tag, can_be_fp16
-        )
 
     def fuse_rewrite_gather(self) -> None:
         for i in range(self.node_count):
@@ -2503,6 +2493,11 @@ class Onnx2NcnnConverter:
                 node.attribute.append(attr_b)
 
     def convert(self, is_fp16: bool = False):
+        if is_fp16:
+            dtype = np.float16
+        else:
+            dtype = np.float32
+
         # Topological sort
         for i, node in enumerate(self.mutable_graph_nodes):
             swapnode = False
@@ -3012,21 +3007,21 @@ class Onnx2NcnnConverter:
                 layer.outputs.append(output_name)
 
             if op == "Abs":
-                layer.params[0] = UOT.ABS
+                layer.add_param(0, UOT.ABS)
             elif op == "Acos":
-                layer.params[0] = UOT.ACOS
+                layer.add_param(0, UOT.ACOS)
             elif op == "Add":
-                layer.params[0] = BOT.ADD
+                layer.add_param(0, BOT.ADD)
 
                 with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
                 b = self.get_node_attr_f(node, "b", 0)
                 if with_scalar:
-                    layer.params[1] = with_scalar
-                    layer.params[2] = b
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
             elif op == "Asin":
-                layer.params[0] = UOT.ASIN
+                layer.add_param(0, UOT.ASIN)
             elif op == "Atan":
-                layer.params[0] = UOT.ATAN
+                layer.add_param(0, UOT.ATAN)
             elif op == "AveragePool" or op == "MaxPool":
                 auto_pad = self.get_node_attr_s(node, "auto_pad")
                 ceil_mode = self.get_node_attr_i(node, "ceil_mode", 0)
@@ -3045,38 +3040,38 @@ class Onnx2NcnnConverter:
                 else:
                     pad_mode = 1
 
-                layer.params[0] = pool
+                layer.add_param(0, pool)
 
                 if kernel_shape.size == 1:
-                    layer.params[1] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[0])
                 elif kernel_shape.size == 2:
-                    layer.params[1] = kernel_shape[1]
-                    layer.params[11] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[1])
+                    layer.add_param(11, kernel_shape[0])
 
                 if strides.size == 1:
-                    layer.params[2] = strides[0]
+                    layer.add_param(2, strides[0])
                 elif strides.size == 2:
-                    layer.params[2] = strides[1]
-                    layer.params[12] = strides[0]
+                    layer.add_param(2, strides[1])
+                    layer.add_param(12, strides[0])
 
                 if pads.size == 1:
-                    layer.params[3] = pads[0]
+                    layer.add_param(3, pads[0])
                 elif pads.size == 2 or pads.size == 4:
-                    layer.params[3] = pads[1]
-                    layer.params[13] = pads[0]
+                    layer.add_param(3, pads[1])
+                    layer.add_param(13, pads[0])
                 elif pads.size == 4:
-                    layer.params[3] = pads[1]
-                    layer.params[13] = pads[0]
-                    layer.params[14] = pads[3]
-                    layer.params[15] = pads[2]
+                    layer.add_param(3, pads[1])
+                    layer.add_param(13, pads[0])
+                    layer.add_param(14, pads[3])
+                    layer.add_param(15, pads[2])
 
-                layer.params[5] = pad_mode
+                layer.add_param(5, pad_mode)
 
                 if op == "AveragePool":
                     avgpool_count_include_pad = self.get_node_attr_i(
                         node, "count_include_pad", 0
                     )
-                    layer.params[6] = avgpool_count_include_pad
+                    layer.add_param(6, avgpool_count_include_pad)
             elif op == "BatchNormalization":
                 epsilon = self.get_node_attr_f(node, "epsilon", 0.00001)
                 scale = self.weights[node.input[1]]
@@ -3086,26 +3081,24 @@ class Onnx2NcnnConverter:
 
                 channels = self.get_tensor_proto_data_size(scale)
 
-                layer.params[0] = channels
+                layer.add_param(0, channels)
 
-                self.write_tensor_proto_data(scale, layer, "scale")
-                self.write_tensor_proto_data(mean, layer, "mean")
+                layer.add_weight(scale, "scale")
+                layer.add_weight(mean, "mean")
                 # apply epsilon to var
                 v = onph.to_array(var)
                 for i in range(channels):
                     ve = v[i] + epsilon
-                    layer.weight_data[f"vareps{j}"] = NcnnWeight(
-                        np.array(ve, np.float32)
-                    )
-                self.write_tensor_proto_data(B, layer, "bias")
+                    layer.add_weight(ve, f"vareps{j}")
+                layer.add_weight(B, "bias")
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
-                layer.params[0] = self.get_tensor_proto_data_size(B)
+                layer.add_param(0, self.get_tensor_proto_data_size(B))
 
-                self.write_tensor_proto_data(B, layer, "bias")
+                layer.add_weight(B, "bias")
             elif op == "Ceil":
-                layer.params[0] = UOT.CEIL
+                layer.add_param(0, UOT.CEIL)
             elif op == "Clip":
                 if len(node.input) == 1:
                     minimum = self.get_node_attr_f(node, "min", -FLOAT32_MAX)
@@ -3122,11 +3115,11 @@ class Onnx2NcnnConverter:
                         else FLOAT32_MAX
                     )
 
-                layer.params[0] = minimum
-                layer.params[1] = maximum
+                layer.add_param(0, minimum)
+                layer.add_param(1, maximum)
             elif op == "Concat":
                 axis = self.get_node_attr_i(node, "axis", 1)
-                layer.params[0] = axis - 1 if axis > 0 else axis
+                layer.add_param(0, axis) - 1 if axis > 0 else axis
             elif op == "Constant":
                 logger.error("Code should not have reached here.")
             elif op == "Conv":
@@ -3142,57 +3135,55 @@ class Onnx2NcnnConverter:
                 pads = self.get_node_attr_ai(node, "pads")
                 group = self.get_node_attr_i(node, "group", 1)
 
-                layer.params[0] = num_filter
+                layer.add_param(0, num_filter)
 
                 if kernel_shape.size == 1:
-                    layer.params[1] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[0])
                 elif kernel_shape.size == 2:
-                    layer.params[1] = kernel_shape[1]
-                    layer.params[11] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[1])
+                    layer.add_param(11, kernel_shape[0])
 
                 if dilations.size == 1:
-                    layer.params[2] = dilations[0]
+                    layer.add_param(2, dilations[0])
                 elif dilations.size == 2:
-                    layer.params[2] = dilations[1]
-                    layer.params[12] = dilations[0]
+                    layer.add_param(2, dilations[1])
+                    layer.add_param(12, dilations[0])
 
                 if strides.size == 1:
-                    layer.params[3] = strides[0]
+                    layer.add_param(3, strides[0])
                 elif strides.size == 2:
-                    layer.params[3] = strides[1]
-                    layer.params[13] = strides[0]
+                    layer.add_param(3, strides[1])
+                    layer.add_param(13, strides[0])
 
                 if auto_pad == "SAME_UPPER":
-                    layer.params[4] = -233
+                    layer.add_param(4, -233)
                 elif auto_pad == "SAME_LOWER":
-                    layer.params[4] = -234
+                    layer.add_param(4, -234)
                 else:
                     if pads.size == 1:
-                        layer.params[4] = pads[0]
+                        layer.add_param(4, pads[0])
                     elif pads.size == 2:
-                        layer.params[4] = pads[1]
-                        layer.params[14] = pads[0]
+                        layer.add_param(4, pads[1])
+                        layer.add_param(14, pads[0])
                     elif pads.size == 4:
-                        layer.params[4] = pads[1]
-                        layer.params[14] = pads[0]
-                        layer.params[15] = pads[3]
-                        layer.params[16] = pads[2]
+                        layer.add_param(4, pads[1])
+                        layer.add_param(14, pads[0])
+                        layer.add_param(15, pads[3])
+                        layer.add_param(16, pads[2])
 
-                layer.params[5] = has_bias
+                layer.add_param(5, has_bias)
 
-                layer.params[6] = self.get_tensor_proto_data_size(W)
+                layer.add_param(6, self.get_tensor_proto_data_size)(W)
 
                 if group > 1:
-                    layer.params[7] = group
+                    layer.add_param(7, group)
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                self.write_tensor_proto_data(
-                    W, layer, "weight", quantize_tag, True, is_fp16
-                )
+                layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    self.write_tensor_proto_data(B, layer, "bias")
+                    layer.add_weight(B, "bias")
             elif op == "ConvTranspose":
                 raise RuntimeError(
                     "ConvTranspose not implemented yet, please report issue"
@@ -3211,61 +3202,61 @@ class Onnx2NcnnConverter:
                 group = self.get_node_attr_i(node, "group", 1)
                 num_filter = W.dims[1] * group
 
-                layer.params[0] = num_filter
+                layer.add_param(0, num_filter)
 
                 if kernel_shape.size == 1:
-                    layer.params[1] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[0])
                 elif kernel_shape.size == 2:
-                    layer.params[1] = kernel_shape[1]
-                    layer.params[11] = kernel_shape[0]
+                    layer.add_param(1, kernel_shape[1])
+                    layer.add_param(11, kernel_shape[0])
 
                 if dilations.size == 1:
-                    layer.params[2] = dilations[0]
+                    layer.add_param(2, dilations[0])
                 elif dilations.size == 2:
-                    layer.params[2] = dilations[1]
-                    layer.params[12] = dilations[0]
+                    layer.add_param(2, dilations[1])
+                    layer.add_param(12, dilations[0])
 
                 if strides.size == 1:
-                    layer.params[3] = strides[0]
+                    layer.add_param(3, strides[0])
                 elif strides.size == 2:
-                    layer.params[3] = strides[1]
-                    layer.params[13] = strides[0]
+                    layer.add_param(3, strides[1])
+                    layer.add_param(13, strides[0])
 
                 if auto_pad == "SAME_UPPER":
-                    layer.params[4] = -233
+                    layer.add_param(4, -233)
                 elif auto_pad == "SAME_LOWER":
-                    layer.params[4] = -234
+                    layer.add_param(4, -234)
                 else:
                     if pads.size == 1:
-                        layer.params[4] = pads[0]
+                        layer.add_param(4, pads[0])
                     elif pads.size == 2:
-                        layer.params[4] = pads[1]
-                        layer.params[14] = pads[0]
+                        layer.add_param(4, pads[1])
+                        layer.add_param(14, pads[0])
                     elif pads.size == 4:
-                        layer.params[4] = pads[1]
-                        layer.params[14] = pads[0]
-                        layer.params[15] = pads[3]
-                        layer.params[16] = pads[2]
+                        layer.add_param(4, pads[1])
+                        layer.add_param(14, pads[0])
+                        layer.add_param(15, pads[3])
+                        layer.add_param(16, pads[2])
 
                 if output_padding.size == 1:
-                    layer.params[18] = output_padding[0]
+                    layer.add_param(18, output_padding[0])
                 elif output_padding.size == 2:
-                    layer.params[18] = output_padding[1]
-                    layer.params[19] = output_padding[0]
+                    layer.add_param(18, output_padding[1])
+                    layer.add_param(19, output_padding[0])
 
                 if output_shape.size == 1:
-                    layer.params[20] = output_shape[0]
+                    layer.add_param(20, output_shape[0])
                 elif output_shape == 2:
-                    layer.params[20] = output_shape[1]
-                    layer.params[21] = output_shape[0]
+                    layer.add_param(20, output_shape[1])
+                    layer.add_param(21, output_shape[0])
 
-                layer.params[5] = has_bias
+                layer.add_param(5, has_bias)
 
                 weight_data_size = self.get_tensor_proto_data_size(W)
-                layer.params[6] = weight_data_size
+                layer.add_param(6, weight_data_size)
 
                 if group > 1:
-                    layer.params[7] = group
+                    layer.add_param(7, group)
 
                 layer.quantize_tag = dtype_flag
 
@@ -3280,78 +3271,361 @@ class Onnx2NcnnConverter:
 
                 """if has_bias:
                     B = self.weights[node.input[2]]
-                    self.write_tensor_proto_data(B, layer, "bias", DTYPE_FP32)"""
+                    layer.add_weight(B, "bias", DTYPE_FP32)"""
             elif op == "Cos":
-                layer.params[0] = UOT.COS
+                layer.add_param(0, UOT.COS)
             elif op == "Crop":
                 starts = self.get_node_attr_ai(node, "starts")
-                layer.params[9] = [starts.size, *starts]
+                layer.add_param(9, [starts.size, *starts])
 
                 ends = self.get_node_attr_ai(node, "ends")
-                layer.params[10] = [ends.size, *ends]
+                layer.add_param(10, [ends.size, *ends])
 
                 axes = self.get_node_attr_ai(node, "axis")
-                layer.params[11] = [axes.size, *axes]
+                layer.add_param(11, [axes.size, *axes])
             elif op == "DepthToSpace":
                 # pixelshuffle
                 scale_factor = self.get_node_attr_i(node, "blocksize", 1)
                 mode = self.get_node_attr_s(node, "mode")
-                layer.params[0] = scale_factor
+                layer.add_param(0, scale_factor)
                 if mode == "CRD":
-                    layer.params[1] = 0
+                    layer.add_param(1, 0)
                 elif mode == "DCR":
-                    layer.params[1] = 1
+                    layer.add_param(1, 1)
             elif op == "Div":
-                layer.params[0] = BOT.DIV
+                layer.add_param(0, BOT.DIV)
 
                 with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
                 b = self.get_node_attr_f(node, "b", 0)
                 if with_scalar:
-                    layer.params[1] = with_scalar
-                    layer.params[2] = b
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
             elif op == "Dropout":
                 pass
             elif op == "Elu":
                 alpha = self.get_node_attr_f(node, "alpha", 1)
-                layer.params[0] = alpha
+                layer.add_param(0, alpha)
             elif op == "EmbedLayerNormalization":
                 words = self.weights[node.input[2]]
                 positions = self.weights[node.input[3]]
                 W = self.weights[node.input[5]]
                 B = self.weights[node.input[6]]
 
-                layer.params[0] = self.get_tensor_proto_data_size(B)
-                layer.params[1] = self.get_tensor_proto_data_size(words)
-                layer.params[2] = self.get_tensor_proto_data_size(positions)
+                layer.add_param(0, self.get_tensor_proto_data_size)(B)
+                layer.add_param(1, self.get_tensor_proto_data_size)(words)
+                layer.add_param(2, self.get_tensor_proto_data_size)(positions)
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                self.write_tensor_proto_data(words, layer, "words", DTYPE_FP32)
-                self.write_tensor_proto_data(positions, layer, "positions", DTYPE_FP32)
-                self.write_tensor_proto_data(
-                    W, layer, "weight", quantize_tag, True, is_fp16
-                )
-                self.write_tensor_proto_data(B, layer, "bias")
+                layer.add_weight(words, "words", DTYPE_FP32)
+                layer.add_weight(positions, "positions", DTYPE_FP32)
+                layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                layer.add_weight(B, "bias")
             elif op == "Exp":
-                layer.params[0] = UOT.EXP
+                layer.add_param(0, UOT.EXP)
             elif op == "Flatten":
                 axis = self.get_node_attr_i(node, "axis", 1)
                 if axis != 1:
                     raise ValueError(f"Unsupported Flatten axis {axis}.")
             elif op == "Floor":
-                layer.params[0] = UOT.FLOOR
+                layer.add_param(0, UOT.FLOOR)
             elif op == "Gelu":
-                layer.params[0] = 1
+                layer.add_param(0, 1)
+            elif op == "Gemm":
+                alpha = self.get_node_attr_f(node, "alpha", 1)
+                beta = self.get_node_attr_f(node, "beta", 1)
+                transA = self.get_node_attr_i(node, "transA", 0)
+                transB = self.get_node_attr_i(node, "transB", 0)
+
+                if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
+                    # InnerProduct-like A * B * C
+                    B = self.weights[node.input[1]]
+                    C = self.weights[node.input[2]]
+
+                    layer.add_param(0, self.get_tensor_proto_data_size)(C)
+                    layer.add_param(1, 1)
+                    layer.add_param(2, self.get_tensor_proto_data_size)(B)
+
+                    layer.add_weight(B, "B", DTYPE_FP32)
+                    layer.add_weight(C, "C")
+                else:
+                    # gemm
+                    layer.add_param(0, alpha)
+                    layer.add_param(1, beta)
+                    layer.add_param(2, transA)
+                    layer.add_param(3, transB)
+            elif op == "GlobalAveragePool" or op == "GlobalMaxPool":
+                layer.add_param(0, int)(op == "GlobalAveragePool")
+                layer.add_param(4, 1)
+            elif op == "adaptive_avg_pool2d" or op == "adaptive_max_pool2d":
+                out_shape_tp = self.weights[node.input[1]]
+                out_shape = self.get_node_attr_from_input_ai(out_shape_tp)
+
+                layer.add_param(0, int)(op == "adaptive_avg_pool2d")
+                layer.add_param(7, 1)
+                if out_shape.size == 1:
+                    layer.add_param(8, out_shape[0])
+                elif out_shape.size == 2:
+                    layer.add_param(8, out_shape[1])  # out_w
+                    layer.add_param(18, out_shape[0])  # out_h
+            elif op == "GroupNorm":
+                groups = self.get_node_attr_i(node, "groups", 1)
+                channels = self.get_node_attr_i(node, "channels", 1)
+                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
+                affine = self.get_node_attr_i(node, "affine", 1)
+
+                if affine:
+                    # discard affine-less S=1 B=0
+                    affine_S = self.get_node_attr_from_input_af(
+                        self.weights[node.input[1]]
+                    )
+                    affine_B = self.get_node_attr_from_input_af(
+                        self.weights[node.input[2]]
+                    )
+                    if (
+                        affine_S.size == 1
+                        and affine_S[0] == 1
+                        and affine_B.size == 1
+                        and affine_B[0] == 0
+                    ):
+                        affine = 0
+                    else:
+                        for i in range(channels):
+                            if affine_S[i] != 1 or affine_B[i] != 0:
+                                affine = 1
+                                break
+                        else:
+                            affine = 0
+
+                layer.add_param(0, groups)
+                layer.add_param(1, channels)
+                layer.add_param(2, eps)
+                layer.add_param(3, affine)
+                if affine:
+                    scale = self.weights[node.input[1]]
+                    B = self.weights[node.input[2]]
+
+                    layer.add_weight(scale, "scale")
+                    layer.add_weight(B, "bias")
+            elif op == "GRU":
+                raise RuntimeError("GRU not implemented yet, please report issue")
+                """W = self.weights[node.input[1]]
+                R = self.weights[node.input[2]]
+                B = self.weights[node.input[3]]
+
+                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
+                direction = self.get_node_attr_s(node, "direction")
+
+                if direction == "forward":
+                    direction_type = GRU.FORWARD
+                elif direction == "reverse":
+                    direction_type = GRU.REVERSE
+                elif direction == "bidirectional":
+                    direction_type = GRU.BIDIRECTIONAL
+
+                weight_data_size = self.get_tensor_proto_data_size(W)
+
+                layer.add_param(0, hidden_size)
+                layer.add_param(1, weight_data_size)
+                layer.add_param(2, direction_type)
+
+                num_directions = 2 if direction_type == GRU.BIDIRECTIONAL else 1
+
+                # reorder num_directions-URN-hidden_size to num_directions-RUN-hidden_size
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+
+                W_array = onph.to_array(W)
+                W_array = np.hstack()
+                x = W_array.t
+                weight_data_size_g = W_array.size / 3 / num_directions
+                layer.add_weight(
+                    W_array[weight_data_size_g : weight_data_size_g * 2],
+                    "rptr",
+                    quantize_tag,
+                    True,
+                    is_fp16,
+                )
+                layer.add_weight(
+                    W_array[:weight_data_size_g],
+                    "uptr",
+                    quantize_tag,
+                    True,
+                    is_fp16,
+                )
+                layer.add_weight(
+                    W_array[weight_data_size_g * 2 : weight_data_size_g * 3],
+                    "nptr",
+                    quantize_tag,
+                    True,
+                    is_fp16,
+                )
+
+                if direction_type == GRU.BIDIRECTIONAL:
+                    layer.add_weight(
+                        W_array[weight_data_size_g * 3 : weight_data_size_g * 4],
+                        "rptr",
+                        quantize_tag,
+                        True,
+                        is_fp16,
+                    )
+                    layer.add_weight(
+                        W_array[weight_data_size_g * 4 : weight_data_size_g * 5],
+                        "uptr",
+                        quantize_tag,
+                        True,
+                        is_fp16,
+                    )
+                    layer.add_weight(
+                        W_array[weight_data_size_g * 5 : weight_data_size_g * 6],
+                        "nptr",
+                        quantize_tag,
+                        True,
+                        is_fp16,
+                    )
+
+                # reduce U and R bias except N
+                # reorder num_directions-URN-hideen to num_directions-RUN-hidden
+                B_array = onph.to_array(B)
+                bias_data_size_g = B_array.size / 6 / num_directions
+                for i in range(bias_data_size_g)[1:]:
+                    pass"""
+            elif op == "HardSigmoid" or op == "Hard Swish":
+                alpha = self.get_node_attr_f(node, "alpha", 0.2)
+                beta = self.get_node_attr_f(node, "beta", 0.5)
+
+                layer.add_param(0, alpha)
+                layer.add_param(1, beta)
+            elif op == "ImageScaler":
+                bias = self.get_node_attr_af(node, "bias")
+                scale = self.get_node_attr_f(node, "scale", 1)
+                channels = bias.size
+
+                layer.add_param(0, channels)
+                layer.add_param(1, 1)
+
+                layer.add_weight(np.array((scale,) * 3), "scale")
+                layer.add_weight(bias, "bias")
+            elif op == "InstanceNormalization":
+                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
+
+                # Discard affine-less S=1 B=0
+                affine_S = self.get_node_attr_from_input_af(self.weights[node.input[1]])
+                affine_B = self.get_node_attr_from_input_af(self.weights[node.input[2]])
+                channels = affine_S.size
+
+                for i in range(channels):
+                    if affine_S[i] != 1 or affine_B[i] != 0:
+                        affine = 1
+                        break
+                else:
+                    affine = 0
+
+                layer.add_param(0, channels)
+                layer.add_param(1, eps)
+                layer.add_param(2, affine)
+                if affine:
+                    scale = self.weights[node.input[1]]
+                    B = self.weights[node.input[2]]
+
+                    layer.add_weight(scale, "scale")
+                    layer.add_weight(B, "bias")
+            elif op == "LayerNorm":
+                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
+                affine = self.get_node_attr_i(node, "affine", 1)
+
+                if affine:
+                    # discard affine-less S=1 B=0
+                    affine_S = self.get_node_attr_from_input_af(
+                        self.weights[node.input[1]]
+                    )
+                    affine_B = self.get_node_attr_from_input_af(
+                        self.weights[node.input[2]]
+                    )
+                    affine_size = affine_S.size
+
+                    for i in range(affine_size):
+                        if affine_S[i] != 1 or affine_B[i] != 0:
+                            affine = 1
+                            break
+                    else:
+                        affine = 0
+
+                    if affine:
+                        layer.add_param(0, affine_size)
+
+                layer.add_param(1, eps)
+                layer.add_param(2, affine)
+
+                if affine:
+                    scale = self.weights[node.input[1]]
+                    B = self.weights[node.input[2]]
+
+                    layer.add_weight(scale, "scale")
+                    layer.add_weight(B, "bias")
             elif op == "LeakyRelu":
                 alpha = self.get_node_attr_f(node, "alpha", 0.01)
-                layer.params[0] = alpha
-            elif op == "Mul":
-                layer.params[0] = BOT.MUL
+                layer.add_param(0, alpha)
+            elif op == "Log":
+                layer.add_param(0, UOT.LOG)
+            elif op == "LRN":
+                layer.add_param(0, 0)
+                layer.add_param(1, self.get_node_attr_i(node, "size", 1))
+                layer.add_param(2, self.get_node_attr_f(node, "alpha", 1))
+                layer.add_param(3, self.get_node_attr_f(node, "beta", 0.5))
+                layer.add_param(4, self.get_node_attr_f(node, "bias", 1))
+            elif op == "LSTM":
+                raise RuntimeError("LSTM not implemented yet, please report issue")
+                """W = self.weights[node.input[1]]
+                R = self.weights[node.input[2]]
+                B = self.weights[node.input[3]]
+
+                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
+                direction = self.get_node_attr_s(node, "direction")
+
+                if direction == "forward":
+                    direction_type = GRU.FORWARD
+                elif direction == "reverse":
+                    direction_type = GRU.REVERSE
+                elif direction  == "bidirectional":
+                    direction_type = GRU.BIDIRECTIONAL"""
+            elif op == "MatMul":
+                if node.input[1] in self.weights:
+                    # InnerProduct
+                    B = self.weights[node.input[1]]
+                    weight_data_size = self.get_tensor_proto_data_size(B)
+                    num_output = B.dims[-1]
+                    num_input = weight_data_size / num_output
+
+                    layer.add_param(0, num_output)
+                    layer.add_param(1, 0)
+                    layer.add_param(2, weight_data_size)
+
+                    B_array = onph.to_array(B).ravel()
+                    layer.add_weight(B_array.T, "bias", DTYPE_FP32)
+                # There is a dead else here, not sure if this was incomplete code
+            elif op == "Max":
+                layer.add_param(0, BOT.MAX)
 
                 with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
                 b = self.get_node_attr_f(node, "b", 0)
                 if with_scalar:
-                    layer.params[1] = with_scalar
-                    layer.params[2] = b
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
+            elif op == "Min":
+                layer.add_param(0, BOT.MIN)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
+            elif op == "Mul":
+                layer.add_param(0, BOT.MUL)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
             elif op == "Resize":
                 mode = self.get_node_attr_s(node, "mode")
                 align = self.get_node_attr_s(node, "coordinate_transformation_mode")
@@ -3414,12 +3688,12 @@ class Onnx2NcnnConverter:
 
                 align_corner = int(align == "align_corners")
 
-                layer.params[0] = resize_type
-                layer.params[1] = h_scale
-                layer.params[2] = w_scale
-                layer.params[3] = output_height
-                layer.params[4] = output_width
-                layer.params[6] = align_corner
+                layer.add_param(0, resize_type)
+                layer.add_param(1, h_scale)
+                layer.add_param(2, w_scale)
+                layer.add_param(3, output_height)
+                layer.add_param(4, output_width)
+                layer.add_param(6, align_corner)
 
             ncnn_model.add_layer(layer)
 
