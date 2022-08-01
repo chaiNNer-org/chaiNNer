@@ -17,7 +17,7 @@ from .utils.utils import get_h_w_c
 class HueAndSaturationNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Adjust the hue and saturation of an image."
+        self.description = "Adjust the HSV hue and saturation of an image."
         self.inputs = [
             ImageInput(image_type=expression.Image(channels=[1, 3, 4])),
             SliderInput(
