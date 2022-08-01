@@ -17,6 +17,7 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputKind,
     InputSize,
     InputValue,
     IteratorSize,
