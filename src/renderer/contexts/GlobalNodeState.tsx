@@ -442,7 +442,7 @@ export const GlobalProvider = memo(
             changeEdges([]);
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
-            outputDataActions.clearAll();
+            outputDataActions.clear();
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
@@ -502,7 +502,7 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             async (event, result) => {
                 if (result.kind === 'Success') {
-                    outputDataActions.clearAll();
+                    outputDataActions.clear();
                     await setStateFromJSON(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);

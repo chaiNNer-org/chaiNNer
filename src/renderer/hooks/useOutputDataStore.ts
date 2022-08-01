@@ -18,7 +18,7 @@ export interface OutputDataActions {
         data: OutputData | undefined
     ): void;
     delete(nodeId: string): void;
-    clearAll(): void;
+    clear(): void;
 }
 
 export const useOutputDataStore = () => {
