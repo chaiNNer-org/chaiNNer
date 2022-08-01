@@ -37,9 +37,8 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
 
                 const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
-                unAnimate([id]);
-
                 if (!result.success) {
+                    unAnimate([id]);
                     sendToast({
                         status: 'error',
                         title: 'Error',

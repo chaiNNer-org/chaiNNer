@@ -221,9 +221,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         (eventData) => {
             if (eventData) {
                 const { finished, nodeId, executionTime, data } = eventData;
-                if (finished.length > 0) {
-                    unAnimate(finished);
-                }
 
                 // TODO: This is incorrect. The inputs of the node might have changed since
                 // the chain started running. However, sending the then current input hashes
@@ -237,6 +234,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     inputHash,
                     data ?? undefined
                 );
+
+                if (finished.length > 0) {
+                    unAnimate(finished);
+                } else if (nodeId) {
+                    unAnimate([nodeId]);
+                }
             }
         },
         500,
