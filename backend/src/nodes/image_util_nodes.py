@@ -62,37 +62,38 @@ class ImBlend(NodeBase):
 
         if (b_w, b_h) == (o_w, o_h):
             # we don't have to do any size adjustments
-            blend_images(ov, base, blend_mode)
+            result = blend_images(ov, base, blend_mode)
+        else:
+            # Pad base image with transparency if necessary to match size with overlay
+            top = bottom = left = right = 0
+            if b_h < max_h:
+                top = (max_h - b_h) // 2
+                bottom = max_h - b_h - top
+            if b_w < max_w:
+                left = (max_w - b_w) // 2
+                right = max_w - b_w - left
+            base = cv2.copyMakeBorder(
+                base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+            )
 
-        # Pad base image with transparency if necessary to match size with overlay
-        top = bottom = left = right = 0
-        if b_h < max_h:
-            top = (max_h - b_h) // 2
-            bottom = max_h - b_h - top
-        if b_w < max_w:
-            left = (max_w - b_w) // 2
-            right = max_w - b_w - left
-        base = cv2.copyMakeBorder(
-            base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
-        )
+            # Center overlay
+            center_x = base.shape[1] // 2
+            center_y = base.shape[0] // 2
+            x_offset = center_x - (o_w // 2)
+            y_offset = center_y - (o_h // 2)
 
-        # Center overlay
-        center_x = base.shape[1] // 2
-        center_y = base.shape[0] // 2
-        x_offset = center_x - (o_w // 2)
-        y_offset = center_y - (o_h // 2)
+            blended_img = blend_images(
+                ov,
+                base[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
+                blend_mode,
+            )
 
-        blended_img = blend_images(
-            ov,
-            base[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
-            blend_mode,
-        )
+            result = base.copy()
+            result[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
 
-        imgout = base.copy()
-        imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
-        imgout = np.clip(imgout, 0, 1)
+        result = np.clip(result, 0, 1)
 
-        return imgout
+        return result
 
 
 @NodeFactory.register("chainner:image:stack")
