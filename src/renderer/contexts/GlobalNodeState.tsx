@@ -445,11 +445,11 @@ export const GlobalProvider = memo(
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
-            (saveAs: boolean, clearInputData = false, saveSeparately = false) => {
+            (saveAs: boolean, isTemplate = false) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
-                        if (clearInputData) {
+                        if (isTemplate) {
                             saveData.nodes = saveData.nodes.map((n) => {
                                 const inputData = { ...n.data.inputData } as Mutable<InputData>;
                                 const nodeSchema = schemata.get(n.data.schemaId);
@@ -473,16 +473,16 @@ export const GlobalProvider = memo(
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                saveSeparately
+                                isTemplate
                                     ? undefined
                                     : savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            if (!saveSeparately) {
+                            if (!isTemplate) {
                                 setSavePath(result.path);
                             }
                         }
-                        if (!saveSeparately) {
+                        if (!isTemplate) {
                             setHasUnsavedChanges(false);
                         }
                     } catch (error) {
@@ -539,7 +539,7 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
-        useIpcRendererListener('file-export-template', () => performSave(true, true, true), [
+        useIpcRendererListener('file-export-template', () => performSave(true, true), [
             performSave,
         ]);
 
