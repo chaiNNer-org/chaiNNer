@@ -471,8 +471,9 @@ export const GlobalProvider = memo(
                                 setSavePath(result.path);
                             }
                         }
-
-                        setHasUnsavedChanges(false);
+                        if (updateSavePath) {
+                            setHasUnsavedChanges(false);
+                        }
                     } catch (error) {
                         log.error(error);
 
