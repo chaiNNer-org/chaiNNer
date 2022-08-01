@@ -450,13 +450,22 @@ export const GlobalProvider = memo(
                     try {
                         const saveData = dumpState();
                         if (clearInputData) {
-                            saveData.nodes = saveData.nodes.map((n) => ({
-                                ...n,
-                                data: {
-                                    ...n.data,
-                                    inputData: {},
-                                },
-                            }));
+                            saveData.nodes = saveData.nodes.map((n) => {
+                                const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                                const nodeSchema = schemata.get(n.data.schemaId);
+                                nodeSchema.inputs.forEach((input) => {
+                                    if (input.fileKind) {
+                                        delete inputData[input.id];
+                                    }
+                                });
+                                return {
+                                    ...n,
+                                    data: {
+                                        ...n.data,
+                                        inputData,
+                                    },
+                                };
+                            });
                         }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
