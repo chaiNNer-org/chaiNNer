@@ -502,6 +502,7 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             async (event, result) => {
                 if (result.kind === 'Success') {
+                    outputDataActions.clearAll();
                     await setStateFromJSON(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);
