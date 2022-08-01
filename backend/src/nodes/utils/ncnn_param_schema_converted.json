@@ -1267,6 +1267,24 @@
       "defaultValue": 0,
       "weightOrder": ""
     },
+    "6": {
+      "paramId": "6",
+      "paramPhase": "avgpool_count_include_pad",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
+    "7": {
+      "paramId": "7",
+      "paramPhase": "adaptive_pooling",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
+    "8": {
+      "paramId": "8",
+      "paramPhase": "out_w",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
     "11": {
       "paramId": "11",
       "paramPhase": "kernel_h",
@@ -1295,6 +1313,12 @@
       "paramId": "15",
       "paramPhase": "pad_bottom",
       "defaultValue": "pad_top",
+      "weightOrder": ""
+    },
+    "18": {
+      "paramId": "18",
+      "paramPhase": "out_h",
+      "defaultValue": "out_w",
       "weightOrder": ""
     }
   },
@@ -1777,6 +1801,12 @@
     "0": {
       "paramId": "0",
       "paramPhase": "axis",
+      "defaultValue": 0,
+      "weightOrder": ""
+    },
+    "1": {
+      "paramID": "1",
+      "paramPhase": "fixbug0",
       "defaultValue": 0,
       "weightOrder": ""
     }

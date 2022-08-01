@@ -1,6 +1,3 @@
-from ast import NodeTransformer
-from re import L
-from tarfile import DIRTYPE
 from typing import Tuple, Union, List, Dict
 
 import numpy as np
@@ -14,13 +11,12 @@ from pyparsing import Opt
 from sanic.log import logger
 from torch import dtype, maximum
 
-from backend.src.nodes.node_base import NodeBase
-
-from .ncnn_structure import (
+from ncnn_structure import (
     NcnnModel,
     NcnnLayer,
     NcnnWeight,
     PaddingTypes,
+    PadModes,
     ReductionOpTypes,
     UnaryOpTypes,
     BinaryOpTypes,
@@ -74,7 +70,8 @@ BOT = BinaryOpTypes
 EOT = EltwiseOpTypes
 GRU = GruDirectionFlags
 NEM = NormalizeEpsModes
-PT = PaddingTypes
+PAM = PadModes
+PAT = PaddingTypes
 ROT = ReductionOpTypes
 
 
@@ -1431,7 +1428,7 @@ class Onnx2NcnnConverter:
 
                     node3 = self.mutable_graph_nodes[i + 3]
 
-                if node.op_type != "Transpose" or node3.op_type != "Reshape":
+                if node2.op_type != "Transpose" or node3.op_type != "Reshape":
                     continue
                 if self.node_reference[node2.output[0]] != 1:
                     continue
@@ -1477,7 +1474,7 @@ class Onnx2NcnnConverter:
                     self.node_reference[node.input[1]] -= 1
                 self.node_reference[node.output[0]] -= 1
                 self.node_reference[node2.output[0]] -= 1
-                if len(node3) == 2:
+                if len(node3.input) == 2:
                     self.node_reference[node3.input[1]] -= 1
 
                 self.blob_names.pop(node.output[0], None)
@@ -2582,8 +2579,7 @@ class Onnx2NcnnConverter:
             if input_name not in self.weights:
                 self.blob_names[input_name] = None
                 input_node_count += 1
-        print(self.node_count)
-        print(len(self.blob_names))
+
         # op chain fusion
         reduced_node_count = [0]
         self.fuse_weight_reshape(reduced_node_count)
@@ -2756,14 +2752,7 @@ class Onnx2NcnnConverter:
                 split_layer_count += 1
                 splitncnn_blob_count += count
                 split_node_reference[ref] = count
-        print(f"moved_to_weight: {constant_node_count_moved_to_weight}")
-        print(f"num weights: {len(self.weights)}")
-        print(f"zero ref: {zero_reference_weight_node_count}")
-        print(f"reduced count: {reduced_node_count[0]}")
-        print(f"input count: {input_node_count}")
-        print(f"split layer: {split_layer_count}")
-        print(f"num blobs: {len(self.blob_names)}")
-        print(f"split blob: {splitncnn_blob_count}")
+
         ncnn_model = NcnnModel()
         ncnn_model.node_count = (
             self.node_count
@@ -2823,7 +2812,9 @@ class Onnx2NcnnConverter:
 
             for input_name in node.input:
                 # check weight
-                if not input_name or input_name in self.weights:
+                if not input_name or (
+                    input_name in self.weights and self.node_reference[input_name] == 0
+                ):
                     input_size -= 1
 
             layer = NcnnLayer()
@@ -3039,13 +3030,13 @@ class Onnx2NcnnConverter:
                 pool = int(op == "AveragePool")
 
                 if ceil_mode == 1:
-                    pad_mode = 0
+                    pad_mode = PAM.FULL
                 elif auto_pad == "SAME_UPPER":
-                    pad_mode = 2
+                    pad_mode = PAM.SAMEUPPER
                 elif auto_pad == "SAME_LOWER":
-                    pad_mode = 3
+                    pad_mode = PAM.SAMELOWER
                 else:
-                    pad_mode = 1
+                    pad_mode = PAM.VALID
 
                 layer.add_param(0, pool)
 
@@ -3063,7 +3054,7 @@ class Onnx2NcnnConverter:
 
                 if pads.size == 1:
                     layer.add_param(3, pads[0])
-                elif pads.size == 2 or pads.size == 4:
+                elif pads.size == 2:
                     layer.add_param(3, pads[1])
                     layer.add_param(13, pads[0])
                 elif pads.size == 4:
@@ -3096,7 +3087,7 @@ class Onnx2NcnnConverter:
                 v = onph.to_array(var)
                 for i in range(channels):
                     ve = v[i] + epsilon
-                    layer.add_weight(ve, f"vareps{j}")
+                    layer.add_weight(ve, f"vareps{i}")
                 layer.add_weight(B, "bias")
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
@@ -3126,9 +3117,9 @@ class Onnx2NcnnConverter:
                 layer.add_param(1, maximum)
             elif op == "Concat":
                 axis = self.get_node_attr_i(node, "axis", 1)
-                layer.add_param(0, axis) - 1 if axis > 0 else axis
+                layer.add_param(0, axis - 1 if axis > 0 else axis)
             elif op == "Constant":
-                logger.error("Code should not have reached here.")
+                logger.error("Code should not have reached inside Constant.")
             elif op == "Conv":
                 W = self.weights[node.input[1]]
 
@@ -3180,7 +3171,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, has_bias)
 
-                layer.add_param(6, self.get_tensor_proto_data_size)(W)
+                layer.add_param(6, self.get_tensor_proto_data_size(W))
 
                 if group > 1:
                     layer.add_param(7, group)
@@ -3318,9 +3309,9 @@ class Onnx2NcnnConverter:
                 W = self.weights[node.input[5]]
                 B = self.weights[node.input[6]]
 
-                layer.add_param(0, self.get_tensor_proto_data_size)(B)
-                layer.add_param(1, self.get_tensor_proto_data_size)(words)
-                layer.add_param(2, self.get_tensor_proto_data_size)(positions)
+                layer.add_param(0, self.get_tensor_proto_data_size(B))
+                layer.add_param(1, self.get_tensor_proto_data_size(words))
+                layer.add_param(2, self.get_tensor_proto_data_size(positions))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 layer.add_weight(words, "words", DTYPE_FP32)
@@ -3348,9 +3339,9 @@ class Onnx2NcnnConverter:
                     B = self.weights[node.input[1]]
                     C = self.weights[node.input[2]]
 
-                    layer.add_param(0, self.get_tensor_proto_data_size)(C)
+                    layer.add_param(0, self.get_tensor_proto_data_size(C))
                     layer.add_param(1, 1)
-                    layer.add_param(2, self.get_tensor_proto_data_size)(B)
+                    layer.add_param(2, self.get_tensor_proto_data_size(B))
 
                     layer.add_weight(B, "B", DTYPE_FP32)
                     layer.add_weight(C, "C")
@@ -3675,11 +3666,11 @@ class Onnx2NcnnConverter:
                     pads = self.get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 if mode == "constant":
-                    ptype = PT.CONSTANT
+                    ptype = PAT.CONSTANT
                 elif mode == "edge":
-                    ptype = PT.REPLICATE
+                    ptype = PAT.REPLICATE
                 elif mode == "reflect":
-                    ptype = PT.REFLECT
+                    ptype = PAT.REFLECT
 
                 pad_size = pads.size
                 top = bottom = front = behind = 0
@@ -3775,7 +3766,7 @@ class Onnx2NcnnConverter:
 
                     for axis in axes:
                         if axis == 0 or axis > 4 or axis < -3:
-                            raise ValueError("Unsupported reduction axes in Reduction")
+                            raise ValueError(f"Unsupported axis {axis} in Reduction")
                     layer.add_param(
                         3,
                         [
@@ -3886,6 +3877,19 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, output_height)
                 layer.add_param(4, output_width)
                 layer.add_param(6, align_corner)
+            elif op == "Softmax":
+                axis = self.get_node_attr_i(node, "axis", 1)
+                layer.add_param(0, axis - 1)
+                layer.add_param(1, 1)
+            elif op == "Unsqueeze":
+                axes = self.get_node_attr_ai(node, "axes")
+
+                for axis in axes:
+                    if axis == 0 or axis > 4 or axis < -4:
+                        raise ValueError(f"Unsupport axis {axis} in Unsqueeze")
+                layer.add_param(
+                    3, [axes.size, *[axis - 1 if axis > 0 else axis for axis in axes]]
+                )
 
             ncnn_model.add_layer(layer)
 
@@ -3915,7 +3919,8 @@ class Onnx2NcnnConverter:
 
 
 if __name__ == "__main__":
-    model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
+    model = onnx.load_model("D:/Desktop/onnx_test_models/inception-v2-9.onnx")
+    # model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
     model = converter.convert()
     model.write_param("D:/Upscaling/ncnn_output.param")

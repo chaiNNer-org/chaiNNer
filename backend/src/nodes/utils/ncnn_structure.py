@@ -69,6 +69,13 @@ class PaddingTypes:
     REFLECT = 2
 
 
+class PadModes:
+    FULL = 0
+    VALID = 1
+    SAMEUPPER = 2
+    SAMELOWER = 3
+
+
 class ReductionOpTypes:
     SUM = 0
     ASUM = 1
@@ -156,7 +163,7 @@ class NcnnParamCollection(Dict):
             if isinstance(v.value, float) or (isinstance(v.value, np.float32)):  # type: ignore
                 v_str = np.format_float_scientific(v.value, 6, False, exp_digits=2)
             elif isinstance(v.value, list):
-                v_str = ",".join(str(v.value))
+                v_str = ",".join([str(n) for n in v.value])
             else:
                 v_str = str(v.value)
 
@@ -236,7 +243,7 @@ class NcnnModel:
             f.write(f"{self.node_count} {self.blob_count}\n")
 
             for layer in self.layer_list:
-                f.write(
+                layer_str = (
                     f"{layer.type:<16} "
                     f"{layer.name:<24} "
                     f"{layer.num_inputs} "
@@ -245,7 +252,7 @@ class NcnnModel:
                     f"{self.stringify_list(layer.outputs)}"
                     f"{str(layer.params)}".rstrip()
                 )
-                f.write("\n")
+                f.write(layer_str + "\n")
 
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
