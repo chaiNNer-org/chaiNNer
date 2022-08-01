@@ -58,7 +58,7 @@ export const useOutputDataStore = () => {
             },
             [setMap]
         ),
-        clearAll: useCallback(() => {
+        clear: useCallback(() => {
             setMap(EMPTY_MAP);
         }, [setMap]),
     };
