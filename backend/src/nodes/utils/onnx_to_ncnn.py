@@ -1,3 +1,4 @@
+from re import L
 from typing import Tuple, Union, List, Dict
 
 import numpy as np
@@ -2496,7 +2497,7 @@ class Onnx2NcnnConverter:
                 attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
-    def convert(self, is_fp16: bool = False):
+    def convert(self, is_fp16: bool = False, include_mem_data: bool = True):
         if is_fp16:
             dtype = np.float16
         else:
@@ -2792,10 +2793,56 @@ class Onnx2NcnnConverter:
                     )
                 )
 
-        # This is where the memory data stuff goes, but we don't want it
-        for i, input_name in enumerate(self.weights.keys()):
-            if self.node_reference[input_name] > 1:
-                internal_split += 1
+        # place MemoryData next if it is being included
+        if include_mem_data:
+            for i, input_name in enumerate(self.weights.keys()):
+                refcount = self.node_reference[input_name]
+                if refcount == 0:
+                    continue
+
+                layer = NcnnLayer("MemoryData", input_name, 0, 1, [input_name])
+
+                M = self.weights[input_name]
+
+                M_dims_size = len(M.dims)
+                if M_dims_size == 0:
+                    layer.add_param(0, self.get_tensor_proto_data_size(M))
+                elif M_dims_size == 1:
+                    layer.add_param(0, M.dims[0])
+                elif M_dims_size == 2:
+                    layer.add_param(0, M.dims[1])
+                    if M.dims[0] != 1:
+                        layer.add_param(1, M.dims[0])
+                elif M_dims_size == 3:
+                    layer.add_param(0, M.dims[2])
+                    layer.add_param(1, M.dims[1])
+                    if M.dims[0] != 1:
+                        layer.add_param(2, M.dims[0])
+                elif M_dims_size == 4:
+                    layer.add_param(0, M.dims[3])
+                    layer.add_param(1, M.dims[2])
+                    layer.add_param(2, M.dims[1])
+
+                layer.add_weight(M, "MemoryData")
+
+                ncnn_model.add_layer(layer)
+
+                if refcount > 1:
+                    layer_output_list = [
+                        f"{input_name}_splitncnn_{j}" for j in range(refcount)
+                    ]
+                    ncnn_model.add_layer(
+                        NcnnLayer(
+                            "Split",
+                            f"splitncnn_{internal_split}",
+                            1,
+                            refcount,
+                            [input_name],
+                            layer_output_list,
+                        )
+                    )
+
+                    internal_split += 1
 
         for node in self.onnx_graph.node:
             op = node.op_type
@@ -3076,7 +3123,6 @@ class Onnx2NcnnConverter:
                 B = self.weights[node.input[2]]
                 mean = self.weights[node.input[3]]
                 var = self.weights[node.input[4]]
-
                 channels = self.get_tensor_proto_data_size(scale)
 
                 layer.add_param(0, channels)
