@@ -442,6 +442,7 @@ export const GlobalProvider = memo(
             changeEdges([]);
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
+            outputDataActions.clearAll();
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
