@@ -248,8 +248,8 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
     final_a = 1 - (1 - o_a) * (1 - b_a)
 
     blend_strength = o_a * b_a
-    o_strength = o_a - blend_strength
-    b_strength = b_a - blend_strength
+    o_strength = o_a - blend_strength  # type: ignore
+    b_strength = b_a - blend_strength  # type: ignore
 
     blend_rgb = blender.apply_blend(o_rgb, b_rgb, blend_mode)
 
@@ -258,7 +258,7 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
         + (np.dstack((b_strength,) * 3) * b_rgb)
         + (np.dstack((blend_strength,) * 3) * blend_rgb)
     )
-    final_rgb /= np.maximum(np.dstack((final_a,) * 3), 0.0001)
+    final_rgb /= np.maximum(np.dstack((final_a,) * 3), 0.0001)  # type: ignore
 
     return np.concatenate([final_rgb, np.expand_dims(final_a, axis=2)], axis=2)
 
