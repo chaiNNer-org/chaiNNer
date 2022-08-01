@@ -161,7 +161,7 @@ class Onnx2NcnnConverter:
     def get_node_attr_s(node: onnx.NodeProto, key: str, default: str = ""):
         for attr in node.attribute:
             if attr.name == key:
-                return attr.s
+                return attr.s.decode("ascii")
 
         return default
 
@@ -363,7 +363,7 @@ class Onnx2NcnnConverter:
                         or perm[1] != 2
                         or perm[2] != 1
                         or perm[3] != 3
-                        or perm[3] != 4
+                        or perm[4] != 4
                     ):
                         continue
                     if perm.size == 3 and (
@@ -2795,14 +2795,12 @@ class Onnx2NcnnConverter:
 
         # place MemoryData next if it is being included
         if include_mem_data:
-            for i, input_name in enumerate(self.weights.keys()):
+            for input_name, M in self.weights.items():
                 refcount = self.node_reference[input_name]
                 if refcount == 0:
                     continue
 
                 layer = NcnnLayer("MemoryData", input_name, 0, 1, [input_name])
-
-                M = self.weights[input_name]
 
                 M_dims_size = len(M.dims)
                 if M_dims_size == 0:
@@ -3003,11 +3001,11 @@ class Onnx2NcnnConverter:
             elif op == "RNN":
                 layer.type = "RNN"
             elif op == "ShuffleChannel":
-                layer.type == "ShuffleChannel"
+                layer.type = "ShuffleChannel"
             elif op == "Sigmoid":
-                layer.type == "Sigmoid"
+                layer.type = "Sigmoid"
             elif op == "SkipLayerNormalization":
-                layer.type == "SkipLayerNormalization"
+                layer.type = "SkipLayerNormalization"
             elif op == "Softmax":
                 layer.type = "Softmax"
             elif op == "Softplus":
@@ -3027,7 +3025,8 @@ class Onnx2NcnnConverter:
             elif op == "Unsqueeze":
                 layer.type = "ExpandDims"
             else:
-                raise TypeError(f"{op} not currently supported by NCNN.")
+                error_msg = f"{op} not currently supported by NCNN."
+                raise TypeError(error_msg)
 
             layer.name = name
             layer.num_inputs = input_size
@@ -3048,8 +3047,8 @@ class Onnx2NcnnConverter:
 
                 layer.inputs.append(input_name)
 
-            for output_name in node.output:
-                layer.outputs.append(output_name)
+            for o in range(output_size):
+                layer.outputs.append(node.output[o])
 
             if op == "Abs":
                 layer.add_param(0, UOT.ABS)
@@ -3815,19 +3814,15 @@ class Onnx2NcnnConverter:
                             raise ValueError(f"Unsupported axis {axis} in Reduction")
                     layer.add_param(
                         3,
-                        [
-                            axis - 1 if axis > 0 else axis
-                            for axis in onph.to_array(axes)
-                        ],
+                        [axes.size, *[a - 1 if a > 0 else a for a in axes]],
                     )
                 else:
                     # if axes not set, reduce all axes by default
                     layer.add_param(1, 1)
 
                 layer.add_param(4, keepdims)
-                layer.add_param(
-                    5, 1
-                )  # This will cause an error, but there is no info on param 5
+                logger.error("No NCNN documentation for Reduction param 5")
+                layer.add_param(5, 1)
             elif op == "Reorg":
                 layer.add_param(0, self.get_node_attr_i(node, "stride", 1))
             elif op == "Reshape":
@@ -3923,10 +3918,112 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, output_height)
                 layer.add_param(4, output_width)
                 layer.add_param(6, align_corner)
+            elif op == "ShuffleChannel":
+                layer.add_param(0, self.get_node_attr_i(node, "group", 1))
+                layer.add_param(1, self.get_node_attr_i(node, "reverse", 0))
+            elif op == "Sigmoid":
+                pass
+            elif op == "Sin":
+                layer.add_param(0, UOT.SIN)
+            elif op == "SkipLayerNormalization":
+                logger.error(f"No NCNN documentation for {op} yet, will not function")
+                W = self.weights[node.input[2]]
+                B = self.weights[node.input[3]]
+                B2 = self.weights[node.input[4]]
+
+                layer.add_param(0, self.get_tensor_proto_data_size(B))
+
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                layer.add_weight(B, "bias1", DTYPE_FP32)
+                layer.add_weight(B2, "bias2", DTYPE_FP32)
+            elif op == "Slice":
+                input_size = len(node.input)
+                if input_size == 1:
+                    starts = self.get_node_attr_ai(node, "starts")
+                    ends = self.get_node_attr_ai(node, "ends")
+                    axes = self.get_node_attr_ai(node, "axes")
+                    steps = self.get_node_attr_ai(node, "steps")
+                else:
+                    starts = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
+                    )
+                    ends = self.get_node_attr_from_input_ai(self.weights[node.input[2]])
+                    if input_size >= 4:
+                        axes = self.get_node_attr_from_input_ai(
+                            self.weights[node.input[3]]
+                        )
+                    else:
+                        axes = np.empty(0, np.int32)
+                    if input_size >= 5:
+                        steps = self.get_node_attr_from_input_ai(
+                            self.weights[node.input[4]]
+                        )
+                    else:
+                        steps = np.empty(0, np.int32)
+
+                assert np.all(steps != 1), "Unsupported Slice step"
+
+                # Filter out N-dim axis
+                if axes.size:
+                    for i, axis in enumerate(axes):
+                        if axis == 0:
+                            np.delete(starts, i)
+                            np.delete(ends, i)
+                            np.delete(axes, i)
+                            break
+
+                layer.add_param(9, [starts.size, *[s for s in starts]])
+                layer.add_param(10, [ends.size, *[e for e in ends]])
+                if axes.size:
+                    assert np.all(
+                        axes != 0 and axes <= 3 and axes >= -3
+                    ), "Unsupported Slice axes"
+                    layer.add_param(
+                        11, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
+                    )
             elif op == "Softmax":
                 axis = self.get_node_attr_i(node, "axis", 1)
                 layer.add_param(0, axis - 1)
                 layer.add_param(1, 1)
+            elif op == "Split":
+                axis = self.get_node_attr_i(node, "axis", 0)
+                splits = self.get_node_attr_ai(node, "split")
+
+                assert axis >= 1, f"Unsupported axis {axis} in Split"
+
+                if splits.size:
+                    layer.add_param(0, [output_size, *[s for s in splits[:-1]], -233])
+                else:
+                    layer.add_param(
+                        0, [output_size, *[-233 for _ in range(output_size)]]
+                    )
+                layer.add_param(1, axis - 1)
+            elif op == "Sqrt":
+                layer.add_param(0, UOT.SQRT)
+            elif op == "Squeeze":
+                axes = self.get_node_attr_ai(node, "axes")
+
+                if axes.size:
+                    assert np.all(
+                        axes != 0 and axes <= 4 and axes >= -3
+                    ), f"Unsupported Squeeze axes"
+
+                    layer.add_param(
+                        3, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
+                    )
+                else:
+                    layer.add_param(0, 1)
+                    layer.add_param(1, 1)
+                    layer.add_param(2, 1)
+            elif op == "Sub":
+                layer.add_param(0, BOT.SUB)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
             elif op == "Unsqueeze":
                 axes = self.get_node_attr_ai(node, "axes")
 
@@ -3939,7 +4036,8 @@ class Onnx2NcnnConverter:
 
             ncnn_model.add_layer(layer)
 
-            for output_name in node.output:
+            for o in range(output_size):
+                output_name = node.output[o]
                 if output_name in self.node_reference:
                     refcount = self.node_reference[output_name]
                     if refcount > 1:
@@ -3965,7 +4063,7 @@ class Onnx2NcnnConverter:
 
 
 if __name__ == "__main__":
-    model = onnx.load_model("D:/Desktop/onnx_test_models/inception-v2-9.onnx")
+    model = onnx.load_model("D:/Desktop/onnx_test_models/shufflenet-v2-12.onnx")
     # model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
     model = converter.convert()

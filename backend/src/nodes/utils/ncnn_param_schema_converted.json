@@ -1612,6 +1612,12 @@
       "paramPhase": "keepdims",
       "defaultValue": 0,
       "weightOrder": ""
+    },
+    "5": {
+      "paramId": "5",
+      "paramPhase": "UNKNOWN",
+      "defaultValue": 0,
+      "weightOrder": ""
     }
   },
   "ReLU": {
@@ -1779,6 +1785,12 @@
       "paramId": "0",
       "paramPhase": "group",
       "defaultValue": 1,
+      "weightOrder": ""
+    },
+    "1": {
+      "paramID": "1",
+      "paramPhase": "reverse",
+      "defaultValue": 0,
       "weightOrder": ""
     }
   },
