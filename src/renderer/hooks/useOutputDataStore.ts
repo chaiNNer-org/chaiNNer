@@ -18,6 +18,7 @@ export interface OutputDataActions {
         data: OutputData | undefined
     ): void;
     delete(nodeId: string): void;
+    clear(): void;
 }
 
 export const useOutputDataStore = () => {
@@ -57,6 +58,9 @@ export const useOutputDataStore = () => {
             },
             [setMap]
         ),
+        clear: useCallback(() => {
+            setMap(EMPTY_MAP);
+        }, [setMap]),
     };
 
     return [map, useMemoObject(actions)] as const;
