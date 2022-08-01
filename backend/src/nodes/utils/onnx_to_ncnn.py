@@ -18,11 +18,13 @@ from ncnn_structure import (
     NcnnWeight,
     PaddingTypes,
     PadModes,
+    PermuteOrderTypes,
     ReductionOpTypes,
     UnaryOpTypes,
     BinaryOpTypes,
     EltwiseOpTypes,
     GruDirectionFlags,
+    InterpResizeTypes,
     NormalizeEpsModes,
 )
 
@@ -70,9 +72,11 @@ UOT = UnaryOpTypes
 BOT = BinaryOpTypes
 EOT = EltwiseOpTypes
 GRU = GruDirectionFlags
+IRT = InterpResizeTypes
 NEM = NormalizeEpsModes
 PAM = PadModes
 PAT = PaddingTypes
+POT = PermuteOrderTypes
 ROT = ReductionOpTypes
 
 
@@ -3873,11 +3877,11 @@ class Onnx2NcnnConverter:
                         sizes = np.empty(0, np.int32)
 
                 if mode == "linear":
-                    resize_type = 2
+                    resize_type = IRT.BILINEAR
                 elif mode == "cubic":
-                    resize_type = 3
+                    resize_type = IRT.BICUBIC
                 else:
-                    resize_type = 1
+                    resize_type = IRT.NEAREST
 
                 if scales.size == 0 and sizes.size == 0:
                     raise TypeError(
@@ -3918,6 +3922,56 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, output_height)
                 layer.add_param(4, output_width)
                 layer.add_param(6, align_corner)
+            elif op == "RNN":
+                W = self.weights[node.input[1]]
+                R = self.weights[node.input[2]]
+                B = self.weights[node.input[3]]
+
+                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
+                direction = self.get_node_attr_s(node, "direction")
+
+                if direction == "forward":
+                    direction_type = GRU.FORWARD
+                if direction == "reverse":
+                    direction_type = GRU.REVERSE
+                elif direction == "bidirectional":
+                    direction_type = GRU.BIDIRECTIONAL
+
+                weight_data_size = self.get_tensor_proto_data_size(W)
+
+                layer.add_param(0, hidden_size)
+                layer.add_param(1, weight_data_size)
+                layer.add_param(2, direction_type)
+
+                num_directions = 2 if direction_type == 2 else 1
+
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+
+                # reduce xc and hc bias
+                B_array = onph.to_array(B)
+                half_size = B_array.shape[0] / 2
+                reduced_B_arrary = B_array[:half_size] + B_array[half_size:]
+                layer.add_weight(B, "bias", quantize_tag, True, is_fp16)
+
+                layer.add_weight(R, "R", quantize_tag, True, is_fp16)
+            elif op == "RDiv":
+                layer.add_param(0, BOT.RDIV)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
+            elif op == "RSub":
+                layer.add_param(0, BOT.RSUB)
+
+                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
+                b = self.get_node_attr_f(node, "b", 0)
+                if with_scalar:
+                    layer.add_param(1, with_scalar)
+                    layer.add_param(2, b)
+
             elif op == "ShuffleChannel":
                 layer.add_param(0, self.get_node_attr_i(node, "group", 1))
                 layer.add_param(1, self.get_node_attr_i(node, "reverse", 0))
@@ -4024,6 +4078,105 @@ class Onnx2NcnnConverter:
                 if with_scalar:
                     layer.add_param(1, with_scalar)
                     layer.add_param(2, b)
+            elif op == "Sum":
+                layer.add_param(0, EOT.SUM)
+            elif op == "Swish":
+                pass
+            elif op == "Tan":
+                layer.add_param(0, UOT.TAN)
+            elif op == "Tanh":
+                layer.add_param(0, UOT.TANH)
+            elif op == "Transpose":
+                perm = self.get_node_attr_ai(node, "perm")
+                if perm.size == 3:
+                    if (perm[1] == 1 and perm[2] == 2) or (
+                        perm[0] == 1 and perm[1] == 0 and perm[2] == 2
+                    ):
+                        layer.add_param(0, POT.WH_WHC_WHDC)
+                    elif (perm[1] == 2 and perm[2] == 1) or (
+                        perm[0] == 2 and perm[1] == 0 and perm[2] == 1
+                    ):
+                        layer.add_param(0, POT.HW_HWC_HWDC)
+                elif perm.size == 4:
+                    if perm[1] == 1 and perm[2] == 2 and perm[3] == 3:
+                        layer.add_param(0, POT.WH_WHC_WHDC)
+                    elif perm[1] == 1 and perm[2] == 3 and perm[3] == 2:
+                        layer.add_param(0, POT.HW_HWC_HWDC)
+                    elif perm[1] == 2 and perm[2] == 1 and perm[3] == 3:
+                        layer.add_param(0, POT.WCH_WDHC)
+                    elif perm[1] == 2 and perm[2] == 3 and perm[3] == 1:
+                        layer.add_param(0, POT.CWH_DWHC)
+                    elif perm[1] == 3 and per[2] == 1 and perm[3] == 2:
+                        layer.add_param(0, POT.HCW_HDWC)
+                    elif perm[1] == 3 and per[2] == 2 and perm[3] == 1:
+                        layer.add_param(0, POT.CHW_DHWC)
+                elif perm.size == 5:
+                    if perm[1] == 1 and perm[2] == 2 and perm[3] == 3 and perm[4] == 4:
+                        layer.add_param(0, POT.WH_WHC_WHDC)
+                    elif (
+                        perm[1] == 1 and perm[2] == 3 and perm[3] == 4 and perm[4] == 2
+                    ):
+                        layer.add_param(0, POT.HW_HWC_HWDC)
+                    elif (
+                        perm[1] == 2 and perm[2] == 1 and perm[3] == 3 and perm[4] == 4
+                    ):
+                        layer.add_param(0, POT.WCH_WDHC)
+                    elif (
+                        perm[1] == 2 and perm[2] == 3 and perm[3] == 4 and perm[4] == 1
+                    ):
+                        layer.add_param(0, POT.CWH_DWHC)
+                    elif (
+                        perm[1] == 3 and perm[2] == 4 and perm[3] == 1 and perm[4] == 2
+                    ):
+                        layer.add_param(0, POT.HCW_HDWC)
+                    elif (
+                        perm[1] == 3 and perm[2] == 4 and perm[3] == 2 and perm[4] == 1
+                    ):
+                        layer.add_param(0, POT.CHW_DHWC)
+                    else:
+                        error_msg = f"Unsupported Transpose type {perm}"
+                        raise ValueError(error_msg)
+            elif op == "Upsample":
+                mode = self.get_node_attr_s(node, "mode")
+                align = self.get_node_attr_s(node, "coordinate_transformation_mode")
+
+                if len(node.input) == 1:
+                    scales = self.get_node_attr_af(node, "scales")
+                else:
+                    scales = self.get_node_attr_from_input_af(
+                        self.weights[node.input[1]]
+                    )
+
+                if mode == "nearest":
+                    resize_type = IRT.NEAREST
+                elif mode == "bilinear" or mode == "linear":
+                    resize_type = IRT.BILINEAR
+                elif mode == "trilinear":
+                    raise ValueError("Upsample does not support trilinear mode")
+
+                if scales.size == 2:
+                    h_scale = 1
+                    w_scale = scales[1]
+                elif scales.size == 3:
+                    h_scale = scales[1]
+                    w_scale = scales[2]
+                elif scales.size == 4:
+                    h_scale = scales[2]
+                    w_scale = scales[3]
+
+                    if scales[1] != 1:
+                        error_msg = f"Unsupported Upsample scales {scales}"
+                        raise ValueError(error_msg)
+                else:
+                    error_msg = f"Unsupported Upsample scales {scales}"
+                    raise ValueError(error_msg)
+
+                align = int(align == "align_corners")
+
+                layer.add_param(0, resize_type)
+                layer.add_param(1, h_scale)
+                layer.add_param(2, w_scale)
+                layer.add_param(6, align_corner)
             elif op == "Unsqueeze":
                 axes = self.get_node_attr_ai(node, "axes")
 
@@ -4033,6 +4186,20 @@ class Onnx2NcnnConverter:
                 layer.add_param(
                     3, [axes.size, *[axis - 1 if axis > 0 else axis for axis in axes]]
                 )
+            else:
+                # NCNN TODO: op specific param
+                # This is presumably to catch anything they haven't written an op for yet
+                for attr in node.attribute:
+                    if attr.type == 1:
+                        error_msg = f"Op does not exist yet; {attr.name}={attr.f}"
+                    elif attr.type == 2:
+                        error_msg = f"Op does not exist yet; {attr.name}={attr.i}"
+                    elif attr.type == 3:
+                        error_msg = f"Op does not exist yet; {attr.name}={attr.s}"
+                    else:
+                        error_msg = f"Op does not exist yet; {attr.name}={attr.type}"
+
+                    raise ValueError(error_msg)
 
             ncnn_model.add_layer(layer)
 

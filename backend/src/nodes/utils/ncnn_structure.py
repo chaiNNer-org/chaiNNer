@@ -57,6 +57,12 @@ class GruDirectionFlags:
     BIDIRECTIONAL = 2
 
 
+class InterpResizeTypes:
+    NEAREST = 1
+    BILINEAR = 2
+    BICUBIC = 3
+
+
 class NormalizeEpsModes:
     CAFFE = 0
     PYTORCH = 1
@@ -74,6 +80,33 @@ class PadModes:
     VALID = 1
     SAMEUPPER = 2
     SAMELOWER = 3
+
+
+class PermuteOrderTypes:
+    WH_WHC_WHDC = 0
+    HW_HWC_HWDC = 1
+    WCH_WDHC = 2
+    CWH_DWHC = 3
+    HCW_HDWC = 4
+    CHW_DHWC = 5
+    WHCD = 6
+    HWCD = 7
+    WCHD = 8
+    CWHD = 9
+    HCWD = 10
+    CHWD = 11
+    WDCH = 12
+    DWCH = 13
+    WCDH = 14
+    CWDH = 15
+    DCWH = 16
+    CDWH = 17
+    HDCW = 18
+    DHCW = 19
+    HCDW = 20
+    CHDW = 21
+    DCHW = 22
+    CDHW = 23
 
 
 class ReductionOpTypes:
