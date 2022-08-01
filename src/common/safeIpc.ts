@@ -60,6 +60,7 @@ export interface SendChannels {
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
     'file-save-as': SendChannelInfo;
     'file-save': SendChannelInfo;
+    'file-export-template': SendChannelInfo;
     'finish-loading': SendChannelInfo;
     'installing-deps': SendChannelInfo;
     'installing-main-deps': SendChannelInfo;

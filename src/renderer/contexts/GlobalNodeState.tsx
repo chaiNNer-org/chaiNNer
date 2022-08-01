@@ -445,10 +445,19 @@ export const GlobalProvider = memo(
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
-            (saveAs: boolean) => {
+            (saveAs: boolean, clearInputData = false, updateSavePath = true) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
+                        if (clearInputData) {
+                            saveData.nodes = saveData.nodes.map((n) => ({
+                                ...n,
+                                data: {
+                                    ...n.data,
+                                    inputData: {},
+                                },
+                            }));
+                        }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
                         } else {
@@ -458,7 +467,9 @@ export const GlobalProvider = memo(
                                 savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            setSavePath(result.path);
+                            if (updateSavePath) {
+                                setSavePath(result.path);
+                            }
                         }
 
                         setHasUnsavedChanges(false);
@@ -516,6 +527,9 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
+        useIpcRendererListener('file-export-template', () => performSave(true, true, false), [
+            performSave,
+        ]);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
