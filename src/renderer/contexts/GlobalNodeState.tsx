@@ -17,6 +17,7 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputKind,
     InputSize,
     InputValue,
     IteratorSize,
@@ -445,23 +446,47 @@ export const GlobalProvider = memo(
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
-            (saveAs: boolean) => {
+            (saveAs: boolean, isTemplate = false) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
+                        if (isTemplate) {
+                            saveData.nodes = saveData.nodes.map((n) => {
+                                const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                                const nodeSchema = schemata.get(n.data.schemaId);
+                                nodeSchema.inputs.forEach((input) => {
+                                    const clearKinds = new Set<InputKind>(['file', 'directory']);
+                                    if (clearKinds.has(input.kind)) {
+                                        delete inputData[input.id];
+                                    }
+                                });
+                                return {
+                                    ...n,
+                                    data: {
+                                        ...n.data,
+                                        inputData,
+                                    },
+                                };
+                            });
+                        }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
                         } else {
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                savePath || (openRecent[0] && dirname(openRecent[0]))
+                                isTemplate
+                                    ? undefined
+                                    : savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            setSavePath(result.path);
+                            if (!isTemplate) {
+                                setSavePath(result.path);
+                            }
                         }
-
-                        setHasUnsavedChanges(false);
+                        if (!isTemplate) {
+                            setHasUnsavedChanges(false);
+                        }
                     } catch (error) {
                         log.error(error);
 
@@ -516,6 +541,9 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
+        useIpcRendererListener('file-export-template', () => performSave(true, true), [
+            performSave,
+        ]);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
