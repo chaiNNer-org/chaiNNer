@@ -253,7 +253,7 @@ class CaptionNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type="""
-                // this value is defined by
+                // this value is defined by `add_caption`
                 let captionHeight = 42;
                 Image {
                     width: Input0.width,
