@@ -445,7 +445,7 @@ export const GlobalProvider = memo(
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
-            (saveAs: boolean, clearInputData = false, updateSavePath = true) => {
+            (saveAs: boolean, clearInputData = false, saveSeparately = false) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
@@ -473,14 +473,16 @@ export const GlobalProvider = memo(
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                savePath || (openRecent[0] && dirname(openRecent[0]))
+                                saveSeparately
+                                    ? undefined
+                                    : savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            if (updateSavePath) {
+                            if (!saveSeparately) {
                                 setSavePath(result.path);
                             }
                         }
-                        if (updateSavePath) {
+                        if (!saveSeparately) {
                             setHasUnsavedChanges(false);
                         }
                     } catch (error) {
@@ -537,7 +539,7 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
-        useIpcRendererListener('file-export-template', () => performSave(true, true, false), [
+        useIpcRendererListener('file-export-template', () => performSave(true, true, true), [
             performSave,
         ]);
 
