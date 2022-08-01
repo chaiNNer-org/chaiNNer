@@ -1,4 +1,3 @@
-from re import L
 from typing import Tuple, Union, List, Dict
 
 import numpy as np
@@ -8,11 +7,9 @@ from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer,
     RepeatedScalarFieldContainer,
 )
-from pyparsing import Opt
 from sanic.log import logger
-from torch import dtype, maximum
 
-from ncnn_structure import (
+from .ncnn_structure import (
     NcnnModel,
     NcnnLayer,
     NcnnWeight,
@@ -194,6 +191,8 @@ class Onnx2NcnnConverter:
     def get_node_attr_from_input_ai(tp: onnx.TensorProto) -> np.ndarray:
         if tp.data_type == TPT.INT32 or tp.data_type == TPT.INT64:
             shape_data = onph.to_array(tp)
+            if shape_data.size == 1:
+                shape_data = np.array([shape_data.item(0)], shape_data.dtype)
             return np.array(
                 [
                     max(min(val, INT64_MAX), INT64_MIN)
@@ -228,8 +227,7 @@ class Onnx2NcnnConverter:
         return 0
 
     def fuse_rewrite_gather(self) -> None:
-        for i in range(self.node_count):
-            gather = self.mutable_graph_nodes[i]
+        for gather in self.mutable_graph_nodes:
             if gather.op_type == "Gather":
                 indices = self.get_node_attr_from_input_ai(
                     self.weights[gather.input[1]]
@@ -4230,7 +4228,7 @@ class Onnx2NcnnConverter:
 
 
 if __name__ == "__main__":
-    model = onnx.load_model("D:/Desktop/onnx_test_models/shufflenet-v2-12.onnx")
+    model = onnx.load_model("D:/Desktop/onnx_test_models/ssd-12.onnx")
     # model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
     model = converter.convert()
