@@ -19,6 +19,10 @@ def clampNumber(
     if min_value is not None:
         value = max(value, min_value)
 
+    # guarantee integers
+    if precision <= 0:
+        value = int(value)
+
     return value
 
 

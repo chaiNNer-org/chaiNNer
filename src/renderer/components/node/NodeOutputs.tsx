@@ -5,8 +5,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
-import { ExecutionContext } from '../../contexts/ExecutionContext';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
@@ -66,13 +65,23 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: NodeOutputProps) => {
-    const { functionDefinitions } = useContext(GlobalContext);
-    const useOutputDataContext = useContextSelector(ExecutionContext, (c) => c.useOutputData);
+    const { functionDefinitions, getInputHash } = useContext(GlobalContext);
+    const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
+        c.outputDataMap.get(id)
+    );
 
     const useOutputData = useCallback(
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        (outputId: OutputId) => useOutputDataContext(id, outputId),
-        [useOutputDataContext, id]
+        // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
+        function <T>(outputId: OutputId): readonly [value: T | undefined, inputHash: string] {
+            if (outputDataEntry) {
+                return [
+                    outputDataEntry.data?.[outputId] as T | undefined,
+                    outputDataEntry.inputHash,
+                ];
+            }
+            return [undefined, getInputHash(id)];
+        },
+        [outputDataEntry]
     );
 
     const functions = functionDefinitions.get(schemaId)!.outputDefaults;

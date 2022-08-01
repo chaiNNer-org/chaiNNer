@@ -1,3 +1,4 @@
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
@@ -67,7 +68,7 @@ except Exception as e:
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
-from process import Executor, NodeExecutionError, UsableData
+from process import Executor, NodeExecutionError, UsableData, timed_supplier
 
 
 class AppContext:
@@ -97,6 +98,24 @@ from sanic.log import access_logger
 class SSEFilter(logging.Filter):
     def filter(self, record):
         return not (record.request.endswith("/sse") and record.status == 200)  # type: ignore
+
+
+class ZeroCounter:
+    def __init__(self) -> None:
+        self.count = 0
+
+    async def wait_zero(self) -> None:
+        while self.count != 0:
+            await asyncio.sleep(0.01)
+
+    def __enter__(self):
+        self.count += 1
+
+    def __exit__(self, _exc_type, _exc_value, _exc_traceback):
+        self.count -= 1
+
+
+runIndividualCounter = ZeroCounter()
 
 
 access_logger.addFilter(SSEFilter())
@@ -153,6 +172,9 @@ async def run(request: Request):
     ctx = AppContext.get(request.app)
 
     try:
+        # wait until all previews are done
+        await runIndividualCounter.wait_zero()
+
         os.environ["killed"] = "False"
         if ctx.executor:
             logger.info("Resuming existing executor...")
@@ -232,15 +254,17 @@ async def run_individual(request: Request):
         else:
             node_inputs = node_instance.get_inputs(with_implicit_ids=True)
             for idx, node_input in enumerate(full_data["inputs"]):
-                # TODO: remove this when all the inputs are transitioned to classes
-                if isinstance(node_inputs[idx], dict):
-                    enforced_inputs.append(node_input)
-                else:
-                    enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
-        # Run the node and pass in inputs as args
-        run_func = functools.partial(node_instance.run, *full_data["inputs"])
-        output = await app.loop.run_in_executor(None, run_func)
+        with runIndividualCounter:
+            # Run the node and pass in inputs as args
+            run_func = functools.partial(node_instance.run, *full_data["inputs"])
+            output, execution_time = await app.loop.run_in_executor(
+                None, timed_supplier(run_func)
+            )
+
+            # Cache the output of the node
+            ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
         broadcast_data: Dict[int, Any] = dict()
@@ -261,12 +285,11 @@ async def run_individual(request: Request):
                     "data": {
                         "finished": [],
                         "nodeId": full_data["id"],
+                        "executionTime": execution_time,
                         "data": broadcast_data,
                     },
                 }
             )
-        # Cache the output of the node
-        ctx.cache[full_data["id"]] = output
         del node_instance, run_func
         return json({"success": True, "data": None})
     except Exception as exception:

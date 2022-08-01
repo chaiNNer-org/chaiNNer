@@ -5,7 +5,8 @@ from concurrent.futures import ThreadPoolExecutor
 import functools
 import os
 import uuid
-from typing import Any, Dict, List, Optional, TypedDict
+import time
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 from sanic.log import logger
 from events import EventQueue, Event
@@ -63,6 +64,16 @@ class ExecutionContext:
             self.cache.copy(),
             self.executor,
         )
+
+
+def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float]]:
+    def wrapper():
+        start = time.time()
+        result = supplier()
+        duration = time.time() - start
+        return result, duration
+
+    return wrapper
 
 
 class Executor:
@@ -147,11 +158,7 @@ class Executor:
         else:
             node_inputs = node_instance.get_inputs()
             for idx, node_input in enumerate(inputs):
-                # TODO: remove this when all the inputs are transitioned to classes
-                if isinstance(node_inputs[idx], dict):
-                    enforced_inputs.append(node_input)
-                else:
-                    enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
         if node["nodeType"] == "iterator":
             logger.info("this is where an iterator would run")
@@ -195,8 +202,10 @@ class Executor:
         else:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *enforced_inputs)
-            output = await self.loop.run_in_executor(self.pool, run_func)
-            await self.__broadcast_data(node_instance, node_id, output)
+            output, execution_time = await self.loop.run_in_executor(
+                self.pool, timed_supplier(run_func)
+            )
+            await self.__broadcast_data(node_instance, node_id, execution_time, output)
             # Cache the output of the node
             self.output_cache[node_id] = output
             del node_instance, run_func
@@ -206,6 +215,7 @@ class Executor:
         self,
         node_instance: NodeBase,
         node_id: str,
+        execution_time: float,
         output: Any,
     ):
         node_outputs = node_instance.get_outputs()
@@ -231,7 +241,12 @@ class Executor:
             await self.queue.put(
                 {
                     "event": "node-finish",
-                    "data": {"finished": finished, "nodeId": node_id, "data": data},
+                    "data": {
+                        "finished": finished,
+                        "nodeId": node_id,
+                        "executionTime": execution_time,
+                        "data": data,
+                    },
                 }
             )
 
@@ -243,7 +258,12 @@ class Executor:
             await self.queue.put(
                 {
                     "event": "node-finish",
-                    "data": {"finished": finished, "nodeId": node_id, "data": None},
+                    "data": {
+                        "finished": finished,
+                        "nodeId": node_id,
+                        "executionTime": execution_time,
+                        "data": None,
+                    },
                 }
             )
 
@@ -254,7 +274,12 @@ class Executor:
 
         return {
             "event": "node-finish",
-            "data": {"finished": finished, "nodeId": node_id, "data": None},
+            "data": {
+                "finished": finished,
+                "nodeId": node_id,
+                "executionTime": None,
+                "data": None,
+            },
         }
 
     def get_output_nodes(self) -> List[UsableData]:

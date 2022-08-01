@@ -23,7 +23,12 @@ export interface BackendEventMap {
         source?: BackendExceptionSource | null;
         exception: string;
     };
-    'node-finish': { finished: string[]; nodeId: string; data?: OutputData | null };
+    'node-finish': {
+        finished: string[];
+        nodeId: string;
+        executionTime?: number | null;
+        data?: OutputData | null;
+    };
     'iterator-progress-update': { percent: number; iteratorId: string; running?: string[] | null };
 }
 

@@ -321,7 +321,7 @@ class NormalizeNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Normalizes the given normal map.
-            Only the R and G channels of the input image will be used."""
+            Only the R and G channels of the input image will be used to compute the unit vectors."""
         self.inputs = [
             ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]

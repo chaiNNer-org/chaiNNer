@@ -1,3 +1,4 @@
+import { assertNever } from '../util';
 import {
     Definition,
     Expression,
@@ -5,37 +6,9 @@ import {
     StructDefinition,
     VariableDefinition,
 } from './expression';
-import { assertValidFunctionName } from './names';
-import { NeverType, StructType, Type } from './types';
-
-type ScopeDefinition =
-    | ScopeStructDefinition
-    | ScopeFunctionDefinition
-    | ScopeVariableDefinition
-    | ScopeBuiltinFunctionDefinition;
-
-export interface ScopeStructDefinition {
-    readonly type: 'struct';
-    readonly definition: StructDefinition;
-    default?: StructType | NeverType;
-}
-export interface ScopeFunctionDefinition {
-    readonly type: 'function';
-    readonly definition: FunctionDefinition;
-    parameters?: readonly Type[];
-    varArgs?: undefined;
-}
-export interface ScopeVariableDefinition {
-    readonly type: 'variable';
-    readonly definition: VariableDefinition;
-    value?: Type;
-}
-export interface ScopeBuiltinFunctionDefinition {
-    readonly type: 'builtin-function';
-    readonly definition: BuiltinFunctionDefinition;
-    parameters?: readonly Type[];
-    varArgs?: Type;
-}
+import { assertValidFunctionName, assertValidStructName } from './names';
+import { isSubsetOf } from './relation';
+import { AnyType, NeverType, StructType, Type } from './types';
 
 export class BuiltinFunctionDefinition {
     readonly type = 'builtin-function';
@@ -86,6 +59,89 @@ export class BuiltinFunctionDefinition {
         return new BuiltinFunctionDefinition(name, fn as (..._: Type[]) => Type, [], arg);
     }
 }
+export class ParameterDefinition {
+    readonly type = 'parameter';
+
+    readonly name: string;
+
+    readonly value: Type;
+
+    constructor(name: string, value: Type = AnyType.instance) {
+        assertValidStructName(name);
+        this.name = name;
+        this.value = value;
+    }
+}
+
+export type ScopeBuilderDefinition = Definition | BuiltinFunctionDefinition | ParameterDefinition;
+
+export class ScopeBuilder {
+    name: string;
+
+    parent: Scope | undefined;
+
+    private readonly definitions = new Map<string, ScopeBuilderDefinition>();
+
+    constructor(name: string, parent?: Scope) {
+        this.name = name;
+        this.parent = parent;
+    }
+
+    private assertNameAvailable(name: string): void {
+        const current = this.definitions.get(name);
+        if (current) {
+            throw new Error(
+                `The name "${name}" is already defined by a ${current.type} in ${this.name}.`
+            );
+        }
+    }
+
+    add(definition: ScopeBuilderDefinition): void {
+        const { name } = definition;
+        this.assertNameAvailable(name);
+        this.definitions.set(name, definition);
+    }
+
+    createScope(): Scope {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        return new Scope(this.name, this.parent, this.definitions.values());
+    }
+}
+
+type ScopeDefinition =
+    | ScopeStructDefinition
+    | ScopeFunctionDefinition
+    | ScopeVariableDefinition
+    | ScopeBuiltinFunctionDefinition
+    | ScopeParameterDefinition;
+
+export interface ScopeStructDefinition {
+    readonly type: 'struct';
+    readonly definition: StructDefinition;
+    default?: StructType | NeverType;
+}
+export interface ScopeFunctionDefinition {
+    readonly type: 'function';
+    readonly definition: FunctionDefinition;
+    parameters?: readonly Type[];
+    varArgs?: undefined;
+}
+export interface ScopeVariableDefinition {
+    readonly type: 'variable';
+    readonly definition: VariableDefinition;
+    value?: Type;
+}
+export interface ScopeParameterDefinition {
+    readonly type: 'parameter';
+    readonly definition: ParameterDefinition;
+    value: Type;
+}
+export interface ScopeBuiltinFunctionDefinition {
+    readonly type: 'builtin-function';
+    readonly definition: BuiltinFunctionDefinition;
+    parameters?: readonly Type[];
+    varArgs?: Type;
+}
 
 /**
  * Implements an F1 score based on bi-grams.
@@ -126,51 +182,55 @@ export class NameResolutionError extends Error {
         this.similar = similar;
     }
 }
+export class ParameterAssignmentError extends Error {}
 
 export interface ResolvedName<D extends ScopeDefinition = ScopeDefinition> {
     definition: D;
-    scope: ReadonlyScope;
+    scope: Scope;
 }
-export interface ReadonlyScope {
-    readonly name: string;
-    readonly parent: ReadonlyScope | undefined;
-    readonly definitions: ReadonlyMap<string, ScopeDefinition>;
-    has(name: string): boolean;
-    get(name: string): ResolvedName;
-}
-
-export class Scope implements ReadonlyScope {
+export class Scope {
     readonly name: string;
 
-    readonly parent: ReadonlyScope | undefined;
+    readonly parent: Scope | undefined;
 
-    readonly definitions = new Map<string, ScopeDefinition>();
+    private readonly definitions: ReadonlyMap<string, ScopeDefinition>;
 
-    constructor(name: string, parent?: ReadonlyScope) {
+    constructor(
+        name: string,
+        parent: Scope | undefined,
+        definitions: Iterable<ScopeBuilderDefinition>
+    ) {
         this.name = name;
         this.parent = parent;
-    }
 
-    private assertNameAvailable(name: string): void {
-        const current = this.definitions.get(name);
-        if (current) {
-            throw new Error(
-                `The name "${name}" is already defined by a ${current.type} in ${this.name}.`
-            );
+        const defs = new Map<string, ScopeDefinition>();
+        for (const definition of definitions) {
+            defs.set(definition.name, Scope.toScopeDefinition(definition));
         }
+        this.definitions = defs;
     }
 
-    add(definition: Definition | BuiltinFunctionDefinition): void {
-        const { name, type } = definition;
-        this.assertNameAvailable(name);
-
-        const scopeType: ScopeDefinition['type'] = type;
-        this.definitions.set(name, { type: scopeType, definition } as ScopeDefinition);
+    static toScopeDefinition(definition: ScopeBuilderDefinition): ScopeDefinition {
+        const { type } = definition;
+        switch (type) {
+            case 'builtin-function':
+                return { type, definition };
+            case 'function':
+                return { type, definition };
+            case 'struct':
+                return { type, definition };
+            case 'variable':
+                return { type, definition };
+            case 'parameter':
+                return { type, definition, value: definition.value };
+            default:
+                return assertNever(definition);
+        }
     }
 
     private getOptional(name: string): ResolvedName | undefined {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        for (let scope: ReadonlyScope | undefined = this; scope; scope = scope.parent) {
+        for (let scope: Scope | undefined = this; scope; scope = scope.parent) {
             const definition = scope.definitions.get(name);
             if (definition) {
                 return { definition, scope };
@@ -190,7 +250,7 @@ export class Scope implements ReadonlyScope {
         // Find similar names for the name resolution error
         const allNames = new Set<string>();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        for (let s: ReadonlyScope | undefined = this; s; s = s.parent) {
+        for (let s: Scope | undefined = this; s; s = s.parent) {
             for (const n of s.definitions.keys()) {
                 allNames.add(n);
             }
@@ -201,5 +261,28 @@ export class Scope implements ReadonlyScope {
             `Unable to resolve name '${name}'. Did you mean: ${similar.join(', ')}?`,
             similar
         );
+    }
+
+    assignParameter(name: string, value: Type) {
+        const p = this.definitions.get(name);
+        if (!p) {
+            throw new ParameterAssignmentError(
+                `There is no parameter ${name} in scope ${this.name}`
+            );
+        }
+        if (p.type !== 'parameter') {
+            throw new ParameterAssignmentError(
+                `${name} refers to a ${p.type} and not a parameter in scope ${this.name}`
+            );
+        }
+        if (!isSubsetOf(value, p.definition.value)) {
+            throw new ParameterAssignmentError(
+                `Type cannot be assigned to parameter ${name} in scope ${
+                    this.name
+                }. The type ${value.toString()} is not a subset of ${p.definition.value.toString()}`
+            );
+        }
+
+        p.value = value;
     }
 }

@@ -104,7 +104,6 @@ export interface NodeData {
     readonly percentComplete?: number;
     readonly minWidth?: number;
     readonly minHeight?: number;
-    readonly animated?: boolean;
 }
 export interface EdgeData {
     readonly complete?: boolean;

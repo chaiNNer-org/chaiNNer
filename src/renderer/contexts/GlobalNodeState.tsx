@@ -17,12 +17,12 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputKind,
     InputSize,
     InputValue,
     IteratorSize,
     Mutable,
     NodeData,
-    OutputData,
     OutputId,
     SchemaId,
     Size,
@@ -36,7 +36,6 @@ import { Expression } from '../../common/types/expression';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
-    EMPTY_MAP,
     EMPTY_SET,
     createUniqueId,
     deepCopy,
@@ -63,9 +62,15 @@ import {
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
+import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 import { useOpenRecent } from '../hooks/useOpenRecent';
+import {
+    OutputDataActions,
+    OutputDataEntry,
+    useOutputDataStore,
+} from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { SettingsContext } from './SettingsContext';
@@ -83,15 +88,12 @@ interface GlobalVolatile {
     effectivelyDisabledNodes: ReadonlySet<string>;
     zoom: number;
     hoveredNode: string | null | undefined;
-    inputDataChanges: ChangeCounter;
-    lastInputDataUpdatedId: string | undefined;
+    isAnimated: (nodeId: string) => boolean;
+    inputHashes: ReadonlyMap<string, string>;
+    outputDataMap: ReadonlyMap<string, OutputDataEntry>;
     useConnectingFrom: readonly [
         OnConnectStartParams | null,
         SetState<OnConnectStartParams | null>
-    ];
-    useOutputDataMap: readonly [
-        ReadonlyMap<string, OutputData>,
-        SetState<ReadonlyMap<string, OutputData>>
     ];
 }
 interface Global {
@@ -105,10 +107,8 @@ interface Global {
     changeNodes: SetState<Node<NodeData>[]>;
     changeEdges: SetState<Edge<EdgeData>[]>;
     selectNode: (nodeId: string) => void;
-    useAnimate: () => readonly [
-        (nodeIdsToAnimate?: readonly string[] | undefined) => void,
-        (nodeIdsToUnAnimate?: readonly string[] | undefined) => void
-    ];
+    animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
+    unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         inputId: InputId,
@@ -138,6 +138,8 @@ interface Global {
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
+    outputDataActions: OutputDataActions;
+    getInputHash: (nodeId: string) => string;
 }
 
 // TODO: Find default
@@ -236,8 +238,7 @@ export const GlobalProvider = memo(
             return () => clearTimeout(timerId);
         }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
 
-        const [outputDataMap, setOutputDataMap] =
-            useState<ReadonlyMap<string, OutputData>>(EMPTY_MAP);
+        const [outputDataMap, outputDataActions] = useOutputDataStore();
 
         // Cache node state to avoid clearing state when refreshing
         useEffect(() => {
@@ -442,26 +443,51 @@ export const GlobalProvider = memo(
             changeEdges([]);
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
+            outputDataActions.clear();
         }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
 
         const performSave = useCallback(
-            (saveAs: boolean) => {
+            (saveAs: boolean, isTemplate = false) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
+                        if (isTemplate) {
+                            saveData.nodes = saveData.nodes.map((n) => {
+                                const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                                const nodeSchema = schemata.get(n.data.schemaId);
+                                nodeSchema.inputs.forEach((input) => {
+                                    const clearKinds = new Set<InputKind>(['file', 'directory']);
+                                    if (clearKinds.has(input.kind)) {
+                                        delete inputData[input.id];
+                                    }
+                                });
+                                return {
+                                    ...n,
+                                    data: {
+                                        ...n.data,
+                                        inputData,
+                                    },
+                                };
+                            });
+                        }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
                         } else {
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                savePath || (openRecent[0] && dirname(openRecent[0]))
+                                isTemplate
+                                    ? undefined
+                                    : savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            setSavePath(result.path);
+                            if (!isTemplate) {
+                                setSavePath(result.path);
+                            }
                         }
-
-                        setHasUnsavedChanges(false);
+                        if (!isTemplate) {
+                            setHasUnsavedChanges(false);
+                        }
                     } catch (error) {
                         log.error(error);
 
@@ -501,6 +527,7 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             async (event, result) => {
                 if (result.kind === 'Success') {
+                    outputDataActions.clear();
                     await setStateFromJSON(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);
@@ -516,6 +543,9 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
+        useIpcRendererListener('file-export-template', () => performSave(true, true), [
+            performSave,
+        ]);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
@@ -702,14 +732,15 @@ export const GlobalProvider = memo(
             [getNode, getNodes, getEdges, typeState]
         );
 
-        const [inputDataChanges, addInputDataChangesCounter] = useChangeCounter();
-        const [lastInputDataUpdatedId, setLastInputDataUpdatedId] = useState<string | undefined>();
-        const addInputDataChanges = useCallback(
-            (id: string) => {
-                addInputDataChangesCounter();
-                setLastInputDataUpdatedId(id);
-            },
-            [addInputDataChangesCounter, setLastInputDataUpdatedId]
+        const [inputDataChanges, addInputDataChanges] = useChangeCounter();
+        const inputHashesRef = useInputHashes(schemata, [
+            nodeChanges,
+            edgeChanges,
+            inputDataChanges,
+        ]);
+        const getInputHash = useCallback(
+            (nodeId: string): string => inputHashesRef.current.get(nodeId) ?? 'invalid node',
+            [inputHashesRef]
         );
 
         const useInputData = useCallback(
@@ -734,7 +765,7 @@ export const GlobalProvider = memo(
                         };
                         return nodeCopy;
                     });
-                    addInputDataChanges(id);
+                    addInputDataChanges();
                 };
                 const resetInputData = () => setInputData(undefined);
                 return [currentInput, setInputData, resetInputData] as const;
@@ -764,43 +795,54 @@ export const GlobalProvider = memo(
             [modifyNode, schemata]
         );
 
-        const useAnimate = useCallback(() => {
-            const setAnimated = (animated: boolean, nodeIdsToAnimate?: readonly string[]) => {
-                setNodes((nodes) => {
-                    if (nodeIdsToAnimate) {
-                        const nodesToAnimate = nodes.filter((n) => nodeIdsToAnimate.includes(n.id));
-                        const animatedNodes = nodesToAnimate.map((node: Node<NodeData>) => ({
-                            ...node,
-                            data: { ...node.data, animated },
-                        }));
-                        const otherNodes = nodes.filter((n) => !nodeIdsToAnimate.includes(n.id));
-                        return [...otherNodes, ...animatedNodes];
+        const [animatedNodes, setAnimated] = useState<ReadonlySet<string>>(EMPTY_SET);
+        const animate = useCallback(
+            (nodes: Iterable<string>, animateEdges = true): void => {
+                const ids = new Set(nodes);
+                setAnimated((prev) => {
+                    const newSet = new Set(prev);
+                    for (const id of ids) {
+                        newSet.add(id);
                     }
-                    return nodes.map((node) => ({ ...node, data: { ...node.data, animated } }));
+                    return newSet;
                 });
-                setEdges((edges) => {
-                    if (nodeIdsToAnimate) {
-                        const edgesToAnimate = edges.filter((e) =>
-                            nodeIdsToAnimate.includes(e.source)
-                        );
-                        const animatedEdges = edgesToAnimate.map((edge) => ({ ...edge, animated }));
-                        const otherEdges = edges.filter(
-                            (e) => !nodeIdsToAnimate.includes(e.source)
-                        );
-                        return [...otherEdges, ...animatedEdges];
-                    }
-                    return edges.map((edge) => ({ ...edge, animated }));
-                });
-            };
-
-            const animate = (nodeIdsToAnimate?: readonly string[]) =>
-                setAnimated(true, nodeIdsToAnimate);
-
-            const unAnimate = (nodeIdsToUnAnimate?: readonly string[]) =>
-                setAnimated(false, nodeIdsToUnAnimate);
-
-            return [animate, unAnimate] as const;
-        }, [setEdges, setNodes]);
+                if (animateEdges) {
+                    setEdges((edges) => {
+                        return edges.map((e) => {
+                            if (!ids.has(e.source)) return e;
+                            return e.animated ? e : { ...e, animated: true };
+                        });
+                    });
+                }
+            },
+            [setAnimated, setEdges]
+        );
+        const unAnimate = useCallback(
+            (nodes?: Iterable<string>): void => {
+                if (nodes) {
+                    const ids = new Set(nodes);
+                    setAnimated((prev) => {
+                        const newSet = new Set(prev);
+                        for (const id of ids) {
+                            newSet.delete(id);
+                        }
+                        return newSet;
+                    });
+                    setEdges((edges) => {
+                        return edges.map((e) => {
+                            if (!ids.has(e.source)) return e;
+                            return e.animated ? { ...e, animated: false } : e;
+                        });
+                    });
+                } else {
+                    setAnimated(EMPTY_SET);
+                    setEdges((edges) =>
+                        edges.map((e) => (e.animated ? { ...e, animated: false } : e))
+                    );
+                }
+            },
+            [setAnimated, setEdges]
+        );
 
         const toggleNodeLock = useCallback(
             (id: string) => {
@@ -952,16 +994,10 @@ export const GlobalProvider = memo(
                     newNode.data.inputData = schemata.getDefaultInput(old.data.schemaId);
                     return newNode;
                 });
-                if (outputDataMap.get(id)) {
-                    setOutputDataMap((prev) => {
-                        const tempPrev = prev as Map<string, OutputData>;
-                        tempPrev.delete(id);
-                        return new Map([...(tempPrev as ReadonlyMap<string, OutputData>)]);
-                    });
-                }
-                addInputDataChanges(id);
+                outputDataActions.delete(id);
+                addInputDataChanges();
             },
-            [modifyNode, addInputDataChanges, outputDataMap, setOutputDataMap]
+            [modifyNode, addInputDataChanges, outputDataActions]
         );
 
         const setNodeDisabled = useCallback(
@@ -1001,7 +1037,7 @@ export const GlobalProvider = memo(
 
         const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
 
-        const globalChainValue = useMemoObject<GlobalVolatile>({
+        const globalVolatileValue = useMemoObject<GlobalVolatile>({
             nodeChanges,
             edgeChanges,
             typeState,
@@ -1012,10 +1048,10 @@ export const GlobalProvider = memo(
             isValidConnection,
             zoom,
             hoveredNode,
-            inputDataChanges,
-            lastInputDataUpdatedId,
+            isAnimated: useCallback((nodeId) => animatedNodes.has(nodeId), [animatedNodes]),
+            inputHashes: inputHashesRef.current,
+            outputDataMap,
             useConnectingFrom: useMemoArray([connectingFrom, setConnectingFrom] as const),
-            useOutputDataMap: useMemoArray([outputDataMap, setOutputDataMap] as const),
         });
 
         const globalValue = useMemoObject<Global>({
@@ -1029,7 +1065,8 @@ export const GlobalProvider = memo(
             changeNodes,
             changeEdges,
             selectNode,
-            useAnimate,
+            animate,
+            unAnimate,
             useInputData,
             useInputSize,
             toggleNodeLock,
@@ -1047,10 +1084,12 @@ export const GlobalProvider = memo(
             functionDefinitions,
             typeStateRef,
             releaseNodeFromParent,
+            outputDataActions,
+            getInputHash,
         });
 
         return (
-            <GlobalVolatileContext.Provider value={globalChainValue}>
+            <GlobalVolatileContext.Provider value={globalVolatileValue}>
                 <GlobalContext.Provider value={globalValue}>{children}</GlobalContext.Provider>
                 <div style={{ display: 'none' }}>
                     {nodeChanges};{edgeChanges}
