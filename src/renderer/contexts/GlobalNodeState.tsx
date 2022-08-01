@@ -454,7 +454,8 @@ export const GlobalProvider = memo(
                                 const inputData = { ...n.data.inputData } as Mutable<InputData>;
                                 const nodeSchema = schemata.get(n.data.schemaId);
                                 nodeSchema.inputs.forEach((input) => {
-                                    if (['file', 'directory'].includes(input.kind)) {
+                                    const clearKinds = new Set<InputKind>(['file', 'directory']);
+                                    if (clearKinds.has(input.kind)) {
                                         delete inputData[input.id];
                                     }
                                 });
