@@ -235,11 +235,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     data ?? undefined
                 );
 
-                if (finished.length > 0) {
-                    unAnimate(finished);
-                } else if (nodeId) {
-                    unAnimate([nodeId]);
-                }
+                unAnimate([nodeId, ...finished]);
             }
         },
         500,
