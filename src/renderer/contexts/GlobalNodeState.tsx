@@ -418,6 +418,8 @@ export const GlobalProvider = memo(
                         message: `This file contains the following deprecated node(s):\n\n${list}\n\nThis chain will still work right now, but these nodes will stop working in future versions of Chainner.`,
                     });
                 }
+
+                outputDataActions.clear();
                 changeNodes(validNodes);
                 changeEdges(validEdges);
                 if (loadPosition) {
@@ -427,7 +429,7 @@ export const GlobalProvider = memo(
                 pushOpenPath(path);
                 setHasUnsavedChanges(false);
             },
-            [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges]
+            [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges, outputDataActions]
         );
 
         const clearState = useCallback(async () => {
@@ -444,7 +446,14 @@ export const GlobalProvider = memo(
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
             outputDataActions.clear();
-        }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
+        }, [
+            hasRelevantUnsavedChanges,
+            changeNodes,
+            changeEdges,
+            setSavePath,
+            setViewport,
+            outputDataActions,
+        ]);
 
         const performSave = useCallback(
             (saveAs: boolean, isTemplate = false) => {
@@ -527,7 +536,6 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             async (event, result) => {
                 if (result.kind === 'Success') {
-                    outputDataActions.clear();
                     await setStateFromJSON(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);
@@ -570,7 +578,7 @@ export const GlobalProvider = memo(
                 }
                 setFirstLoad(false);
             }
-        }, [firstLoad]);
+        }, [firstLoad, setStateFromJSON]);
 
         const removeNodeById = useCallback(
             (id: string) => {
