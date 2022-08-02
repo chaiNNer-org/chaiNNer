@@ -3230,10 +3230,7 @@ class Onnx2NcnnConverter:
                     B = self.weights[node.input[2]]
                     layer.add_weight(B, "bias")
             elif op == "ConvTranspose":
-                raise RuntimeError(
-                    "ConvTranspose not implemented yet, please report issue"
-                )
-                """W = self.weights[node.input[1]]
+                W = self.weights[node.input[1]]
 
                 has_bias = int(len(node.input) == 3)
 
@@ -3303,20 +3300,15 @@ class Onnx2NcnnConverter:
                 if group > 1:
                     layer.add_param(7, group)
 
-                layer.quantize_tag = dtype_flag
+                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                weight_data = onph.to_array(W)
+                layer.add_weight(
+                    W.swapaxes(2, 3), "weight", quantize_tag, True, is_fp16
+                )
 
-                if kernel_shape.size == 2:
-                    maxk = kernel_shape[1] * kernel_shape[0]
-                else:
-                    maxk = kernel_shape[0] ** 2
-
-                weight_data = onph.to_array(W)"""
-
-                # TODO: weight_data_t = weight_data.transpose()
-
-                """if has_bias:
+                if has_bias:
                     B = self.weights[node.input[2]]
-                    layer.add_weight(B, "bias", DTYPE_FP32)"""
+                    layer.add_weight(B, "bias")
             elif op == "Cos":
                 layer.add_param(0, UOT.COS)
             elif op == "Crop":
@@ -3453,7 +3445,7 @@ class Onnx2NcnnConverter:
                     layer.add_weight(B, "bias")
             elif op == "GRU":
                 raise RuntimeError("GRU not implemented yet, please report issue")
-                """W = self.weights[node.input[1]]
+                W = self.weights[node.input[1]]
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
 
@@ -3478,61 +3470,24 @@ class Onnx2NcnnConverter:
                 # reorder num_directions-URN-hidden_size to num_directions-RUN-hidden_size
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
 
-                W_array = onph.to_array(W)
-                W_array = np.hstack()
-                x = W_array.t
-                weight_data_size_g = W_array.size / 3 / num_directions
-                layer.add_weight(
-                    W_array[weight_data_size_g : weight_data_size_g * 2],
-                    "rptr",
-                    quantize_tag,
-                    True,
-                    is_fp16,
-                )
-                layer.add_weight(
-                    W_array[:weight_data_size_g],
-                    "uptr",
-                    quantize_tag,
-                    True,
-                    is_fp16,
-                )
-                layer.add_weight(
-                    W_array[weight_data_size_g * 2 : weight_data_size_g * 3],
-                    "nptr",
-                    quantize_tag,
-                    True,
-                    is_fp16,
+                logger.error(
+                    "Not sure GRU weight reordering is accurate, "
+                    "docs and code comments appear to give different shape orders"
                 )
 
-                if direction_type == GRU.BIDIRECTIONAL:
-                    layer.add_weight(
-                        W_array[weight_data_size_g * 3 : weight_data_size_g * 4],
-                        "rptr",
-                        quantize_tag,
-                        True,
-                        is_fp16,
-                    )
-                    layer.add_weight(
-                        W_array[weight_data_size_g * 4 : weight_data_size_g * 5],
-                        "uptr",
-                        quantize_tag,
-                        True,
-                        is_fp16,
-                    )
-                    layer.add_weight(
-                        W_array[weight_data_size_g * 5 : weight_data_size_g * 6],
-                        "nptr",
-                        quantize_tag,
-                        True,
-                        is_fp16,
-                    )
+                W_array = onph.to_array(W)
+                W_array = np.stack(
+                    (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
+                )
+                layer.add_weight(W_array, "weight_xc_data", quantize_tag, True, is_fp16)
 
                 # reduce U and R bias except N
-                # reorder num_directions-URN-hideen to num_directions-RUN-hidden
+                # reorder num_directions-URN-hidden to num_directions-RUN-hidden
                 B_array = onph.to_array(B)
+
                 bias_data_size_g = B_array.size / 6 / num_directions
                 for i in range(bias_data_size_g)[1:]:
-                    pass"""
+                    pass
             elif op == "HardSigmoid" or op == "Hard Swish":
                 alpha = self.get_node_attr_f(node, "alpha", 0.2)
                 beta = self.get_node_attr_f(node, "beta", 0.5)
@@ -4228,7 +4183,7 @@ class Onnx2NcnnConverter:
 
 
 if __name__ == "__main__":
-    model = onnx.load_model("D:/Desktop/onnx_test_models/ssd-12.onnx")
+    model = onnx.load_model("D:/Desktop/onnx_test_models/udnie-9.onnx")
     # model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
     converter = Onnx2NcnnConverter(model)
     model = converter.convert()
