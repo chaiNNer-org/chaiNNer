@@ -330,7 +330,7 @@ class FillAlphaNode(NodeBase):
         """Fills transparent holes in the given image"""
 
         _, _, c = get_h_w_c(img)
-        assert c == 4, "The image has to be an RGBA image to fill its alpha"
+        assert c == 4, "The image has to be an RGBA image to fill its alpha."
 
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha
