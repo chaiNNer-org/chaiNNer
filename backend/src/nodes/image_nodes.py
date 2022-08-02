@@ -34,7 +34,7 @@ from .utils.utils import get_h_w_c
 class ImReadNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Load image from file."
+        self.description = "Load image from specified file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
             LargeImageOutput(),

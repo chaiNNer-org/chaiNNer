@@ -22,7 +22,7 @@ from .utils.utils import get_h_w_c
 class BlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply box/average blur to an image"
+        self.description = "Apply box/average blur to an image."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount X", precision=1, controls_step=1),
@@ -70,7 +70,7 @@ class BlurNode(NodeBase):
 class GaussianBlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply Gaussian Blur to an image"
+        self.description = "Apply Gaussian blur to an image."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount X", precision=1, controls_step=1),
@@ -102,7 +102,7 @@ class GaussianBlurNode(NodeBase):
 class MedianBlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply median blur to an image"
+        self.description = "Apply median blur to an image."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount"),
@@ -136,7 +136,7 @@ class MedianBlurNode(NodeBase):
 class SharpenNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply sharpening to an image"
+        self.description = "Apply sharpening to an image using an unsharp mask."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount"),

@@ -17,7 +17,7 @@ from .utils.utils import get_h_w_c
 class HueAndSaturationNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Adjust the HSV hue and saturation of an image."
+        self.description = "Adjust the hue and saturation of an image. This is performed in the HSV color-space."
         self.inputs = [
             ImageInput(image_type=expression.Image(channels=[1, 3, 4])),
             SliderInput(
@@ -156,7 +156,7 @@ class BrightnessAndContrastNode(NodeBase):
 class ThresholdNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Perform a threshold on an image."
+        self.description = "Replaces pixels based on the threshold value. If the pixel value is smaller than the threshold, it is set to 0, otherwise it is set to the maximum value."
         self.inputs = [
             ImageInput(),
             SliderInput(
@@ -202,7 +202,7 @@ class ThresholdNode(NodeBase):
 class AdaptiveThresholdNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Perform an adaptive threshold on an image."
+        self.description = "Similar to regular threshold, but determines the threshold for a pixel based on a small region around it."
         self.inputs = [
             ImageInput(image_type=expression.Image(channels=1)),
             SliderInput(
@@ -259,7 +259,7 @@ class AdaptiveThresholdNode(NodeBase):
 class OpacityNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Adjusts the opacity of an image."
+        self.description = "Adjusts the opacity of an image. The higher the opacity value, the more opaque the image is."
         self.inputs = [
             ImageInput(),
             SliderInput(

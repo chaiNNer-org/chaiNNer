@@ -102,7 +102,7 @@ class StackNode(NodeBase):
 
     def __init__(self):
         super().__init__()
-        self.description = "Concatenate multiple images horizontally."
+        self.description = "Concatenate multiple images horizontally or vertically."
         self.inputs = [
             ImageInput("Image A"),
             ImageInput("Image B").make_optional(),
@@ -169,7 +169,6 @@ class StackNode(NodeBase):
         im4: np.ndarray | None,
         orientation: str,
     ) -> np.ndarray:
-        """Concatenate multiple images horizontally"""
         img = im1
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
@@ -243,7 +242,7 @@ class StackNode(NodeBase):
 class CaptionNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Add a caption to an image."
+        self.description = "Add a caption to the bottom of an image."
         self.inputs = [
             ImageInput(),
             TextInput("Caption", allow_numbers=True),
