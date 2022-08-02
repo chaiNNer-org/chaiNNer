@@ -252,7 +252,7 @@ class NcnnUpscaleImageNode(NodeBase):
 class NcnnInterpolateModelsNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Interpolate two NCNN models of the same type together. Note: models must share a common 'pretrained model' ancestor"
+        self.description = """Interpolate two NCNN models of the same type together. Note: models must share a common 'pretrained model' ancestor
              in order to be interpolatable."""
         self.inputs = [
             NcnnNetInput("Model A"),
