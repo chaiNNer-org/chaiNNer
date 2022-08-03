@@ -238,8 +238,9 @@ class RunIndividualRequest(TypedDict):
 async def run_individual(request: Request):
     """Runs a single node"""
     ctx = AppContext.get(request.app)
-    full_data: RunIndividualRequest = dict(request.json)  # type: ignore
     try:
+        full_data: RunIndividualRequest = dict(request.json)  # type: ignore
+        del ctx.cache[full_data["id"]]
         logger.info(full_data)
         os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
         os.environ["isFp16"] = str(full_data["isFp16"])
@@ -294,7 +295,6 @@ async def run_individual(request: Request):
         return json({"success": True, "data": None})
     except Exception as exception:
         logger.error(exception, exc_info=True)
-        del ctx.cache[full_data["id"]]
         return json({"success": False, "error": str(exception)})
 
 
