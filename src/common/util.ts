@@ -181,7 +181,7 @@ export const topologicalSort = <T>(
 };
 
 export const isStartingNode = (schema: NodeSchema) => {
-    return !schema.inputs.some((i) => i.hasHandle);
+    return !schema.inputs.some((i) => i.hasHandle) && schema.outputs.length > 0;
 };
 
 export const delay = (ms: number): Promise<void> => {
