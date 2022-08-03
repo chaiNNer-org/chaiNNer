@@ -1,4 +1,4 @@
-import { Box, Center, HStack, Tag, Text, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -9,6 +9,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
+import { TypeTag } from '../TypeTag';
 
 interface InputContainerProps {
     id: string;
@@ -185,8 +186,6 @@ export const InputContainer = memo(
         }
 
         const bgColor = useColorModeValue('gray.300', 'gray.700');
-        const tagColor = useColorModeValue('gray.400', 'gray.750');
-        const tagFontColor = useColorModeValue('gray.700', 'gray.400');
 
         return (
             <Box
@@ -216,22 +215,7 @@ export const InputContainer = memo(
                                 h="1rem"
                                 verticalAlign="middle"
                             >
-                                <Tag
-                                    bgColor={tagColor}
-                                    color={tagFontColor}
-                                    fontSize="xx-small"
-                                    fontStyle="italic"
-                                    height="0.9rem"
-                                    lineHeight="auto"
-                                    minHeight="0.9rem"
-                                    ml={1}
-                                    px={1}
-                                    size="sm"
-                                    variant="subtle"
-                                    verticalAlign="middle"
-                                >
-                                    optional
-                                </Tag>
+                                <TypeTag isOptional>optional</TypeTag>
                             </Center>
                         )}
                     </Center>
