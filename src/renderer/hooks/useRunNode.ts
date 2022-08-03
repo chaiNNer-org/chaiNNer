@@ -1,16 +1,21 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useContext } from 'use-context-selector';
 import { getBackend } from '../../common/Backend';
-import { NodeData } from '../../common/common-types';
+import { InputData, NodeData } from '../../common/common-types';
 import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
 
+interface PreviousInputData {
+    previous: InputData;
+    current: InputData;
+}
+
 export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { animate, unAnimate, schemata } = useContext(GlobalContext);
+    const { animate, unAnimate, schemata, resetNodeInputData } = useContext(GlobalContext);
     const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
     const backend = getBackend(port);
 
@@ -25,6 +30,19 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     );
     const inputHash = useMemo(() => JSON.stringify(inputs), [inputData]);
     const lastRunInputHash = useRef<string>();
+
+    const [previousInputData, setPreviousInputData] = useState<PreviousInputData>({
+        previous: {},
+        current: {},
+    });
+
+    useEffect(() => {
+        setPreviousInputData({
+            previous: previousInputData.current,
+            current: inputData,
+        });
+    }, [inputs]);
+
     useAsyncEffect(
         async (token) => {
             if (shouldRun && inputHash !== lastRunInputHash.current) {
@@ -38,6 +56,7 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
                 if (!result.success) {
+                    resetNodeInputData(id, previousInputData.previous);
                     unAnimate([id]);
                     sendToast({
                         status: 'error',
@@ -49,6 +68,6 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 }
             }
         },
-        [shouldRun, inputHash]
+        [shouldRun, inputHash, previousInputData]
     );
 };

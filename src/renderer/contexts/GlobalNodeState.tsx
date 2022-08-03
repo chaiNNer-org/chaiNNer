@@ -140,6 +140,7 @@ interface Global {
     releaseNodeFromParent: (id: string) => void;
     outputDataActions: OutputDataActions;
     getInputHash: (nodeId: string) => string;
+    resetNodeInputData: (nodeId: string, previousInputData: InputData) => void;
 }
 
 // TODO: Find default
@@ -781,6 +782,17 @@ export const GlobalProvider = memo(
             [modifyNode, schemata, addInputDataChanges]
         );
 
+        const resetNodeInputData = useCallback(
+            (id: string, previousInputData: InputData) => {
+                modifyNode(id, (old) => {
+                    const nodeCopy = copyNode(old);
+                    nodeCopy.data.inputData = previousInputData;
+                    return nodeCopy;
+                });
+            },
+            [modifyNode]
+        );
+
         const useInputSize = useCallback(
             (
                 id: string,
@@ -1094,6 +1106,7 @@ export const GlobalProvider = memo(
             releaseNodeFromParent,
             outputDataActions,
             getInputHash,
+            resetNodeInputData,
         });
 
         return (
