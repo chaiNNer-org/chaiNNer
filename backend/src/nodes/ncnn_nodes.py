@@ -20,7 +20,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_parsers import FLAG_FLOAT_16, FLAG_FLOAT_32, parse_ncnn_bin_from_buffer
-from .utils.ncnn_structure import NcnnModel
+from .utils.ncnn_structure import NcnnModel, interpolate_ncnn
 from .utils.utils import get_h_w_c, convenient_upscale
 
 
@@ -248,8 +248,8 @@ class NcnnInterpolateModelsNode(NodeBase):
         super().__init__()
         self.description = "Interpolate two NCNN models of the same type together."
         self.inputs = [
-            NcnnNetInput("Model A"),
-            NcnnNetInput("Model B"),
+            NcnnModelInput("Model A"),
+            NcnnModelInput("Model B"),
             SliderInput(
                 "Weights",
                 controls_step=5,
@@ -262,7 +262,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NcnnNetOutput(),
+            NcnnModelOutput(),
             NumberOutput("Amount A", "subtract(100, Input2)"),
             NumberOutput("Amount B", "Input2"),
         ]
@@ -272,7 +272,13 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.icon = "BsTornado"
         self.sub = "Utility"
 
-    def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
+    def run(
+        self, a: NcnnModel, b: NcnnModel, amount: int
+    ) -> Tuple[NcnnModel, int, int]:
+        f_amount = 1 - amount / 100
+        return (interpolate_ncnn(a, b, f_amount), 100 - amount, amount)
+
+    """def perform_interp(self, bin_a: np.ndarray, bin_b: np.ndarray, amount: int):
         is_fp16 = bin_a.dtype == np.float16
         try:
             amount_b = amount / 100
@@ -325,4 +331,4 @@ class NcnnInterpolateModelsNode(NodeBase):
             NcnnNetData(a.param_path, interp_bin_data, a.input_name, a.output_name),
             100 - amount,
             amount,
-        )
+        )"""

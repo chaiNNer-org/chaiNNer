@@ -1,10 +1,14 @@
+from copy import deepcopy
 import os
 from typing import Dict, List, Union
 
 from json import load as jload
+from typing_extensions import Self
+from weakref import KeyedRef
 import numpy as np
 from onnx import TensorProto
 import onnx.numpy_helper as onph
+from sanic.log import logger
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema_converted.json"
@@ -130,6 +134,10 @@ class NcnnWeight:
         self.quantize_tag = quantize_tag
         self.weight = weight
         self.can_be_fp16 = can_be_fp16
+
+    @property
+    def size(self) -> int:
+        return self.weight.size
 
 
 class NcnnParam:
@@ -258,14 +266,57 @@ class NcnnLayer:
 class NcnnModel:
     MAGIC = "7767517"
 
-    def __init__(self):
-        self.node_count: int = 0
-        self.blob_count: int = 0
+    def __init__(self, node_count: int = 0, blob_count: int = 0):
+        self.node_count: int = node_count
+        self.blob_count: int = blob_count
         self.layer_list: List[NcnnLayer] = []
 
     @staticmethod
     def stringify_list(a: List[str]) -> str:
         return "".join(i + " " for i in a)
+
+    @staticmethod
+    def interp_layers(a: NcnnLayer, b: NcnnLayer, alpha_a: float) -> NcnnLayer:
+        weights_a = a.weight_data
+        weights_b = b.weight_data
+        weights_interp: Dict[str, NcnnWeight] = {}
+
+        if weights_a:
+            assert len(weights_a) == len(
+                weights_b
+            ), "All corresponding nodes must have same number of weights"
+
+            for weight_name, weight_a in weights_a.items():
+                try:
+                    weight_b = weights_b[weight_name]
+                except KeyError as e:
+                    logger.error(
+                        f"Weights in node {a.name} and {b.name} do not correspond"
+                    )
+                    raise e
+
+                assert (
+                    weight_a.size == weight_b.size
+                ), "Corresponding weights must have the same size"
+
+                weight_c = NcnnWeight(
+                    (weight_a.weight * alpha_a + weight_b.weight * (1 - alpha_a)),
+                    weight_a.quantize_tag,
+                    weight_a.can_be_fp16,
+                )
+
+                weights_interp[weight_name] = weight_c
+
+        return NcnnLayer(
+            a.type,
+            a.name,
+            a.num_inputs,
+            a.num_outputs,
+            a.inputs,
+            a.outputs,
+            a.params,
+            weights_interp,
+        )
 
     def add_layer(self, layer: NcnnLayer) -> None:
         self.layer_list.append(layer)
@@ -294,3 +345,16 @@ class NcnnModel:
                     if w.quantize_tag:
                         f.write(w.quantize_tag)
                     f.write(w.weight.tobytes())
+
+
+def interpolate_ncnn(model_a: NcnnModel, model_b: NcnnModel, alpha: float) -> NcnnModel:
+    assert len(model_a.layer_list) == len(model_b.layer_list) and [
+        l.type for l in model_a.layer_list
+    ] == [l.type for l in model_b.layer_list], "Models must have same layers in param."
+
+    interpolation = NcnnModel(model_a.node_count, model_a.blob_count)
+
+    for layer_a, layer_b in zip(model_a.layer_list, model_b.layer_list):
+        interpolation.add_layer(NcnnModel.interp_layers(layer_a, layer_b, alpha))
+
+    return interpolation
