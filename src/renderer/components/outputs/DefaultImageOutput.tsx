@@ -6,7 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
 import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { TypeTag } from '../TypeTag';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
@@ -102,7 +102,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                     h="2rem"
                     verticalAlign="middle"
                 >
-                    <TypeTag type={type} />
+                    <TypeTags type={type} />
                 </Center>
             )}
             <Text

@@ -9,7 +9,7 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
-import { TypeTag } from '../TypeTag';
+import { TypeTags } from '../TypeTag';
 
 interface OutputContainerProps {
     hasHandle: boolean;
@@ -164,7 +164,7 @@ export const OutputContainer = memo(
                                 mr={1}
                                 verticalAlign="middle"
                             >
-                                <TypeTag type={type} />
+                                <TypeTags type={type} />
                             </Center>
                         )}
                         <Text

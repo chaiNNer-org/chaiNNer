@@ -1,12 +1,11 @@
-import { Box, Center, Tag, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
+import { TypeTags } from '../TypeTag';
 import { InputProps } from './props';
 
 type GenericInputProps = InputProps;
 
-export const GenericInput = memo(({ label, optional, hasHandle }: GenericInputProps) => {
-    const tagColor = useColorModeValue('gray.400', 'gray.750');
-    const tagFontColor = useColorModeValue('gray.700', 'gray.400');
+export const GenericInput = memo(({ label, definitionType }: GenericInputProps) => {
     return (
         // These both need to have -1 margins to thin it out... I don't know why
         <Box
@@ -24,29 +23,12 @@ export const GenericInput = memo(({ label, optional, hasHandle }: GenericInputPr
             >
                 {label}
             </Text>
-            {label && optional && hasHandle && (
-                <Center
-                    h="2rem"
-                    verticalAlign="middle"
-                >
-                    <Tag
-                        bgColor={tagColor}
-                        color={tagFontColor}
-                        fontSize="xx-small"
-                        fontStyle="italic"
-                        height="14px"
-                        lineHeight="auto"
-                        minHeight="14px"
-                        ml={1}
-                        px={1}
-                        size="sm"
-                        variant="subtle"
-                        verticalAlign="middle"
-                    >
-                        optional
-                    </Tag>
-                </Center>
-            )}
+            <Center
+                h="2rem"
+                verticalAlign="middle"
+            >
+                <TypeTags type={definitionType} />
+            </Center>
         </Box>
     );
 });

@@ -5,7 +5,7 @@ import { NamedExpression, NamedExpressionField } from '../../../common/types/exp
 import { StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { TypeTag } from '../TypeTag';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 export const GenericOutput = memo(
@@ -56,7 +56,7 @@ export const GenericOutput = memo(
                         h="2rem"
                         verticalAlign="middle"
                     >
-                        <TypeTag type={type} />
+                        <TypeTags type={type} />
                     </Center>
                 )}
                 <Text
