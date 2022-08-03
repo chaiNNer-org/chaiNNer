@@ -16,6 +16,9 @@ param_schema_file = os.path.join(
 with open(param_schema_file) as f:
     param_schema = jload(f)
 
+DTYPE_FP32 = b"\x00\x00\x00\x00"
+DTYPE_FP16 = b"\x47\x6b\x30\x01"
+
 
 class UnaryOpTypes:
     ABS = 0
@@ -155,17 +158,6 @@ class NcnnParam:
         self.default: Union[float, int] = default
         self.weight_order = weight_order
 
-    def extend(self, value: Union[float, int, List[Union[float, int]]]) -> None:
-        # May be unecessary
-        if isinstance(self.value, list) and isinstance(value, list):
-            self.value.extend(value)
-        elif isinstance(self.value, list) and (
-            isinstance(value, float) or isinstance(value, int)
-        ):
-            self.value.append(value)
-        else:
-            raise ValueError(f"Value of param {self.id} is not list.")
-
 
 class NcnnParamCollection(Dict):
     def __init__(self, op: str) -> None:
@@ -299,6 +291,23 @@ class NcnnModel:
                     weight_a.size == weight_b.size
                 ), "Corresponding weights must have the same size"
 
+                assert len(weight_a.quantize_tag) == len(
+                    weight_b.quantize_tag
+                ), "Weights must either both have or both not have a quantize tag"
+
+                if (
+                    weight_a.quantize_tag == DTYPE_FP16
+                    and weight_b.quantize_tag == DTYPE_FP32
+                ):
+                    weight_b.quantize_tag = DTYPE_FP16
+                    weight_b.weight = weight_b.weight.astype(np.float16)
+                elif (
+                    weight_a.quantize_tag == DTYPE_FP32
+                    and weight_b.quantize_tag == DTYPE_FP16
+                ):
+                    weight_a.quantize_tag = DTYPE_FP16
+                    weight_a.weight = weight_a.weight.astype(np.float16)
+
                 weight_c = NcnnWeight(
                     (weight_a.weight * alpha_a + weight_b.weight * (1 - alpha_a)),
                     weight_a.quantize_tag,
@@ -348,13 +357,9 @@ class NcnnModel:
 
 
 def interpolate_ncnn(model_a: NcnnModel, model_b: NcnnModel, alpha: float) -> NcnnModel:
-    assert len(model_a.layer_list) == len(model_b.layer_list) and [
-        l.type for l in model_a.layer_list
-    ] == [l.type for l in model_b.layer_list], "Models must have same layers in param."
-
-    interpolation = NcnnModel(model_a.node_count, model_a.blob_count)
+    interp_model = NcnnModel(model_a.node_count, model_a.blob_count)
 
     for layer_a, layer_b in zip(model_a.layer_list, model_b.layer_list):
-        interpolation.add_layer(NcnnModel.interp_layers(layer_a, layer_b, alpha))
+        interp_model.add_layer(NcnnModel.interp_layers(layer_a, layer_b, alpha))
 
-    return interpolation
+    return interp_model

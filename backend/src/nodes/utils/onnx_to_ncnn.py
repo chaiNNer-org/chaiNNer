@@ -10,6 +10,8 @@ from google.protobuf.internal.containers import (
 from sanic.log import logger
 
 from .ncnn_structure import (
+    DTYPE_FP16,
+    DTYPE_FP32,
     NcnnModel,
     NcnnLayer,
     NcnnWeight,
@@ -27,8 +29,6 @@ from .ncnn_structure import (
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
 FLOAT32_MAX = np.finfo(np.float32).max
-DTYPE_FP32 = b"\x00\x00\x00\x00"
-DTYPE_FP16 = b"\x47\x6b\x30\x01"
 
 
 class AttributeProtoTypes:
