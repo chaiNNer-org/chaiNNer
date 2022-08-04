@@ -185,7 +185,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         eventSource,
         'finish',
         () => {
-            unAnimate();
             setStatus(ExecutionStatus.READY);
         },
         [setStatus, unAnimate]
