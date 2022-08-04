@@ -240,6 +240,8 @@ async def run_individual(request: Request):
     ctx = AppContext.get(request.app)
     try:
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
+        if ctx.cache.get(full_data["id"], None) is not None:
+            del ctx.cache[full_data["id"]]
         logger.info(full_data)
         os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
         os.environ["isFp16"] = str(full_data["isFp16"])
