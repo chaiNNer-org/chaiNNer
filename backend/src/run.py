@@ -69,7 +69,7 @@ from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, UsableData, timed_supplier
-from nodes.utils.exec_options import get_execution_options
+from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
 
 class AppContext:
@@ -185,9 +185,11 @@ async def run(request: Request):
             full_data: RunRequest = dict(request.json)  # type: ignore
             logger.info(full_data)
             nodes_list = full_data["data"]
-            exec_opts = get_execution_options()
-            exec_opts.device = "cpu" if full_data["isCpu"] else "cuda"
-            exec_opts.fp16 = full_data["isFp16"]
+            exec_opts = ExecutionOptions(
+                device="cpu" if full_data["isCpu"] else "cuda",
+                fp16=full_data["isFp16"],
+            )
+            set_execution_options(exec_opts)
             logger.info(f"Using device: {exec_opts.device}")
             executor = Executor(
                 nodes_list,
@@ -244,9 +246,11 @@ async def run_individual(request: Request):
         if ctx.cache.get(full_data["id"], None) is not None:
             del ctx.cache[full_data["id"]]
         logger.info(full_data)
-        exec_opts = get_execution_options()
-        exec_opts.device = "cpu" if full_data["isCpu"] else "cuda"
-        exec_opts.fp16 = full_data["isFp16"]
+        exec_opts = ExecutionOptions(
+            device="cpu" if full_data["isCpu"] else "cuda",
+            fp16=full_data["isFp16"],
+        )
+        set_execution_options(exec_opts)
         logger.info(f"Using device: {exec_opts.device}")
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(full_data["schemaId"])
