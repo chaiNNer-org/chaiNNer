@@ -6,8 +6,16 @@ DeviceType = Literal["cpu", "cuda"]
 
 class ExecutionOptions:
     def __init__(self, device: DeviceType, fp16: bool) -> None:
-        self.device: DeviceType = device
-        self.fp16 = fp16
+        self.__device: DeviceType = device
+        self.__fp16 = fp16
+
+    @property
+    def device(self) -> DeviceType:
+        return self.__device
+
+    @property
+    def fp16(self):
+        return self.__fp16
 
 
 __global_exec_options = ExecutionOptions("cpu", False)
