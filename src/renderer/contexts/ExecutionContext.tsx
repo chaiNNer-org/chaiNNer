@@ -187,7 +187,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         () => {
             setStatus(ExecutionStatus.READY);
         },
-        [setStatus, unAnimate]
+        [setStatus]
     );
 
     useBackendEventSourceListener(
