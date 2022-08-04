@@ -175,7 +175,6 @@ async def run(request: Request):
         # wait until all previews are done
         await runIndividualCounter.wait_zero()
 
-        os.environ["killed"] = "False"
         if ctx.executor:
             logger.info("Resuming existing executor...")
             executor = ctx.executor
