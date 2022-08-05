@@ -27,14 +27,14 @@ def clampNumber(
 
 
 def get_number_type(
-    min: Union[float, int, None],
-    max: Union[float, int, None],
+    min_value: Union[float, int, None],
+    max_value: Union[float, int, None],
     precision: int,
 ) -> expression.ExpressionJson:
     if precision > 0:
         # step is not an integer
-        return expression.interval(min, max)
-    return expression.int_interval(min, max)
+        return expression.interval(min_value, max_value)
+    return expression.int_interval(min_value, max_value)
 
 
 class NumberInput(BaseInput):
