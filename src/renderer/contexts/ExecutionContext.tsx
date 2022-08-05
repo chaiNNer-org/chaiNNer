@@ -187,7 +187,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         () => {
             setStatus(ExecutionStatus.READY);
         },
-        [setStatus]
+        [
+            // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+            // status isn't actually used
+            status,
+            setStatus,
+        ]
     );
 
     useBackendEventSourceListener(
