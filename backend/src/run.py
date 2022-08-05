@@ -82,9 +82,9 @@ class AppContext:
         self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
-    def get(app: Sanic) -> "AppContext":
-        assert isinstance(app.ctx, AppContext)
-        return app.ctx
+    def get(app_instance: Sanic) -> "AppContext":
+        assert isinstance(app_instance.ctx, AppContext)
+        return app_instance.ctx
 
 
 app = Sanic("chaiNNer", ctx=AppContext())
