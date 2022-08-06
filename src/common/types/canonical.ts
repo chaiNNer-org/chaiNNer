@@ -7,7 +7,11 @@ const numberOrder: readonly WithUnderlying<'number'>['type'][] = [
     'interval',
     'number',
 ];
-const stringOrder: readonly WithUnderlying<'string'>['type'][] = ['literal', 'string'];
+const stringOrder: readonly WithUnderlying<'string'>['type'][] = [
+    'literal',
+    'string',
+    'inverted-set',
+];
 const underlyingOrder: readonly Type['underlying'][] = [
     'never',
     'any',
@@ -30,6 +34,14 @@ const stringComparators: {
 } = {
     string: () => 0,
     literal: (a, b) => binaryCompare(a.value, b.value),
+    'inverted-set': (a, b) => {
+        if (a.excluded.size !== b.excluded.size) return a.excluded.size - b.excluded.size;
+        return compareSequences(
+            [...a.excluded].sort(binaryCompare),
+            [...b.excluded].sort(binaryCompare),
+            binaryCompare
+        );
+    },
 };
 const comparators: {
     [key in Type['underlying']]: Comparator<WithUnderlying<key>>;
