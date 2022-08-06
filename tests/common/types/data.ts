@@ -8,6 +8,7 @@ import {
     AnyType,
     IntIntervalType,
     IntervalType,
+    InvertedStringSetType,
     NeverType,
     NumberType,
     StringLiteralType,
@@ -92,6 +93,9 @@ export const strings: readonly Type[] = [
     new StringLiteralType('bar'),
     union(new StringLiteralType('foo'), new StringLiteralType('bar')),
     union(new StringLiteralType('foo'), new StringLiteralType('baz')),
+    new InvertedStringSetType(new Set(['foo'])),
+    new InvertedStringSetType(new Set(['foo', 'bar'])),
+    new InvertedStringSetType(new Set(['bar'])),
 ];
 export const structs: readonly Type[] = [
     new StructType('null'),

@@ -27,7 +27,27 @@ const valueIsSubsetOf = (left: ValueType, right: ValueType): boolean => {
     if (left.underlying === 'string' && right.underlying === 'string') {
         if (right.type === 'string') return true;
         if (left.type === 'string') return false;
-        return left.value === right.value;
+
+        if (left.type === 'literal') {
+            if (right.type === 'literal') {
+                return left.value === right.value;
+            }
+            return right.has(left.value);
+        }
+
+        if (right.type === 'literal') return false;
+
+        // Both left and right are inverted string set:
+        //   L ⊆ R
+        // = comp(L.excluded) ⊆ comp(R.excluded)
+        // = L.excluded ⊇ R.excluded
+
+        // I wanted to write `right.excluded.every(v => left.excluded.has(v))`,
+        // but set methods suck
+        for (const rValue of right.excluded) {
+            if (!left.excluded.has(rValue)) return false;
+        }
+        return true;
     }
 
     if (left.underlying === 'struct' && right.underlying === 'struct') {
