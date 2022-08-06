@@ -1,9 +1,11 @@
 import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
+import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
+import { NumericLiteralType } from '../../../common/types/types';
 import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
@@ -11,7 +13,13 @@ import { OutputProps } from './props';
 
 const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
-export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) => {
+interface ImageBroadcastData {
+    width: number;
+    height: number;
+    channels: number;
+}
+
+export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)?.outputs.get(outputId)
     );
@@ -19,7 +27,25 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const createConnection = useContextSelector(GlobalVolatileContext, (c) => c.createConnection);
 
-    const { selectNode } = useContext(GlobalContext);
+    const { selectNode, setManualOutputType } = useContext(GlobalContext);
+
+    const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
+    const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
+    useEffect(() => {
+        if (value && valueInputHash === inputHash) {
+            setManualOutputType(
+                id,
+                outputId,
+                new NamedExpression('Image', [
+                    new NamedExpressionField('width', new NumericLiteralType(value.width)),
+                    new NamedExpressionField('height', new NumericLiteralType(value.height)),
+                    new NamedExpressionField('channels', new NumericLiteralType(value.channels)),
+                ])
+            );
+        } else {
+            setManualOutputType(id, outputId, undefined);
+        }
+    }, [id, outputId, value]);
 
     const imgBgColor = useColorModeValue('gray.400', 'gray.750');
     const eyeIconColor = useColorModeValue('gray.700', 'gray.400');

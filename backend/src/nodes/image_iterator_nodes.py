@@ -32,7 +32,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
-            ImageOutput(),
+            ImageOutput(broadcast_type=True),
             DirectoryOutput(),
             TextOutput("Relative Path"),
             TextOutput("Image Name"),
@@ -152,7 +152,10 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput("Frame Image"), TextOutput("Frame Index")]
+        self.outputs = [
+            ImageOutput("Frame Image", broadcast_type=True),
+            TextOutput("Frame Index"),
+        ]
 
         self.category = IMAGE
         self.name = "Load Frame As Image"
@@ -323,7 +326,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput()]
+        self.outputs = [ImageOutput(broadcast_type=True)]
 
         self.category = IMAGE
         self.name = "Load Image (Iterator)"

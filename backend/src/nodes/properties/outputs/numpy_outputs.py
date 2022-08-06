@@ -31,6 +31,7 @@ class ImageOutput(NumPyOutput):
         image_type: expression.ExpressionJson = "Image",
         kind: str = "image",
         has_handle: bool = True,
+        broadcast_type: bool = False,
     ):
         super().__init__(
             expression.intersect(image_type, "Image"),
@@ -38,10 +39,20 @@ class ImageOutput(NumPyOutput):
             kind=kind,
             has_handle=has_handle,
         )
+        self.broadcast_type = broadcast_type
 
-    # Maybe someday we'll bring this back, but not today.
-    def get_broadcast_data(self, _value: np.ndarray):
-        return None
+    def get_broadcast_data(self, value: np.ndarray):
+        if not self.broadcast_type:
+            return None
+
+        img = value
+        h, w, c = get_h_w_c(img)
+
+        return {
+            "height": h,
+            "width": w,
+            "channels": c,
+        }
 
 
 class LargeImageOutput(ImageOutput):
