@@ -8,10 +8,8 @@ from onnx import TensorProto
 import onnx.numpy_helper as onph
 from sanic.log import logger
 
-from backend.src.nodes.properties.inputs import numpy_inputs
-
 param_schema_file = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema_converted.json"
+    os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
 )
 with open(param_schema_file) as f:
     param_schema = jload(f)
@@ -269,7 +267,7 @@ class NcnnLayer:
         quantize_tag: bytes = b"",
         can_be_fp16: bool = False,
         is_fp16: bool = False,
-    ) -> None:
+    ) -> bytes:
         if isinstance(data, TensorProto):
             data = onph.to_array(data)
         elif isinstance(data, float):
@@ -281,6 +279,8 @@ class NcnnLayer:
             data = data.astype(np.float16)
         self.weight_data[weight_name] = NcnnWeight(data, quantize_tag, can_be_fp16)
 
+        return quantize_tag + data.tobytes()
+
 
 class NcnnModel:
     MAGIC = "7767517"
@@ -289,22 +289,27 @@ class NcnnModel:
         self.node_count: int = node_count
         self.blob_count: int = blob_count
         self.layer_list: List[NcnnLayer] = []
+        self.weights_bin: bytes = b""
 
     @staticmethod
     def stringify_list(a: List[str]) -> str:
         return "".join(i + " " for i in a)
 
     @staticmethod
-    def interp_layers(a: NcnnLayer, b: NcnnLayer, alpha_a: float) -> NcnnLayer:
+    def interp_layers(
+        a: NcnnLayer, b: NcnnLayer, alpha_a: float
+    ) -> Tuple[NcnnLayer, bytes]:
         weights_a = a.weight_data
         weights_b = b.weight_data
         weights_interp: Dict[str, NcnnWeight] = {}
+        layer_bytes = b""
 
         if weights_a:
             assert len(weights_a) == len(
                 weights_b
             ), "All corresponding nodes must have same number of weights"
 
+            layer_bytes_list = []
             for weight_name, weight_a in weights_a.items():
                 try:
                     weight_b = weights_b[weight_name]
@@ -340,18 +345,26 @@ class NcnnModel:
                     weight_a.quantize_tag,
                     weight_a.can_be_fp16,
                 )
+                layer_bytes_list.append(
+                    weight_c.quantize_tag + weight_c.weight.tobytes()
+                )
 
                 weights_interp[weight_name] = weight_c
 
-        return NcnnLayer(
-            a.op_type,
-            a.name,
-            a.num_inputs,
-            a.num_outputs,
-            a.inputs,
-            a.outputs,
-            a.params,
-            weights_interp,
+            layer_bytes = b"".join(layer_bytes_list)
+
+        return (
+            NcnnLayer(
+                a.op_type,
+                a.name,
+                a.num_inputs,
+                a.num_outputs,
+                a.inputs,
+                a.outputs,
+                a.params,
+                weights_interp,
+            ),
+            layer_bytes,
         )
 
     def add_layer(self, layer: NcnnLayer) -> None:
@@ -380,6 +393,7 @@ class NcnnModel:
                     vi = float(vi) if "." in vi or "e" in vi else int(vi)
                     v.append(vi)
                 k = abs(k + 23300)
+                ks = str(k)
             elif "." in vs or "e" in vs:
                 v = float(vs)
             else:
@@ -434,10 +448,6 @@ class NcnnModel:
                 bias_data_size = num_filters * 4
                 bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
                 weight_dict["bias"] = NcnnWeight(bias_data)
-
-        logger.info(
-            "Currently, only loading Convolution weights is supported by chaiNNer"
-        )
 
         return weight_dict
 
@@ -495,27 +505,18 @@ class NcnnModel:
 
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
-            for layer in self.layer_list:
-                for w in layer.weight_data.values():
-                    if w.quantize_tag:
-                        f.write(w.quantize_tag)
-                    f.write(w.weight.tobytes())
+            f.write(self.weights_bin)
 
-    def write_bin_to_mem(self) -> bytes:
-        model_bytes = b""
-        for layer in self.layer_list:
-            for w in layer.weight_data.values():
-                if w.quantize_tag:
-                    model_bytes += w.quantize_tag
-                model_bytes += w.weight.tobytes()
-
-        return model_bytes
-
-    def interpolate_ncnn(self, model_b: NcnnModel, alpha: float) -> NcnnModel:  # type: ignore
+    def interpolate_ncnn(self, model_b, alpha):
         interp_model = NcnnModel(self.node_count, self.blob_count)
 
+        weight_bytes_list = []
         for layer_a, layer_b in zip(self.layer_list, model_b.layer_list):
-            interp_model.add_layer(NcnnModel.interp_layers(layer_a, layer_b, alpha))
+            interp_layer, layer_bytes = NcnnModel.interp_layers(layer_a, layer_b, alpha)
+            interp_model.add_layer(interp_layer)
+            weight_bytes_list.append(layer_bytes)
+
+        interp_model.weights_bin = b"".join(weight_bytes_list)
 
         return interp_model
 

@@ -4,7 +4,6 @@ Nodes that provide NCNN support
 from __future__ import annotations
 
 import os
-import re
 from typing import Tuple
 
 import numpy as np
@@ -47,6 +46,8 @@ class NcnnLoadModelNode(NodeBase):
 
         model = NcnnModel()
         model.load_model(param_path, bin_path)
+        with open(bin_path, "rb") as f:
+            model.weights_bin = f.read()
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         return model, model_name
@@ -102,6 +103,25 @@ class NcnnUpscaleImageNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Processing"
 
+    def get_model_channels(self, model: NcnnModel) -> int:
+        out_nc = model.layer_list[-1].params[0].value
+        kernel_w = model.layer_list[1].params[1].value
+        try:
+            kernel_h = model.layer_list[1].params[11].value
+        except KeyError:
+            kernel_h = kernel_w
+        weight_data_size = model.layer_list[1].params[6].value
+
+        assert (
+            isinstance(out_nc, int)
+            and isinstance(kernel_w, int)
+            and isinstance(kernel_h, int)
+            and isinstance(weight_data_size, int)
+        ), "Out nc, kernel width and height, and weight data size must all be ints"
+        in_nc = weight_data_size // out_nc // kernel_w // kernel_h
+
+        return in_nc
+
     def upscale(
         self,
         img: np.ndarray,
@@ -137,6 +157,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self, model: NcnnModel, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         h, w, _ = get_h_w_c(img)
+        model_c = self.get_model_channels(model)
 
         if tile_size_target > 0:
             # Calculate split factor using a tile size target
@@ -157,10 +178,12 @@ class NcnnUpscaleImageNode(NodeBase):
 
         # Load model param and bin
         net.load_param_mem(model.write_param_to_mem())
-        net.load_model_mem(model.write_bin_to_mem())
+        net.load_model_mem(model.weights_bin)
 
         def upscale(i: np.ndarray) -> np.ndarray:
-            i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
+            ic = get_h_w_c(i)[2]
+            if ic == 3:
+                i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
             i = self.upscale(
                 i,
                 net,
@@ -168,12 +191,11 @@ class NcnnUpscaleImageNode(NodeBase):
                 model.layer_list[-1].outputs[0],
                 split_factor,
             )
-            assert (
-                get_h_w_c(i)[2] == 3
-            ), "Chainner only supports upscaling with NCNN models that output RGB images."
-            return cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
+            if ic == 3:
+                i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
+            return i
 
-        return convenient_upscale(img, 3, upscale)
+        return convenient_upscale(img, model_c, upscale)
 
 
 @NodeFactory.register("chainner:ncnn:interpolate_models")
@@ -206,8 +228,23 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.icon = "BsTornado"
         self.sub = "Utility"
 
+    def check_will_upscale(self, interp: NcnnModel):
+        fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
+        result = NcnnUpscaleImageNode().run(interp, fake_img, 0)
+
+        mean_color = np.mean(result)
+        del result
+        return mean_color > 0.5
+
     def run(
         self, a: NcnnModel, b: NcnnModel, amount: int
     ) -> Tuple[NcnnModel, int, int]:
         f_amount = 1 - amount / 100
-        return (a.interpolate_ncnn(b, f_amount), 100 - amount, amount)
+        interp_model = a.interpolate_ncnn(b, f_amount)
+
+        if not self.check_will_upscale(interp_model):
+            raise ValueError(
+                "These NCNN models are not compatible and not able to be interpolated together"
+            )
+
+        return interp_model, 100 - amount, amount

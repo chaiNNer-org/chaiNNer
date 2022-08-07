@@ -2,7 +2,7 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
-from typing import Callable, Tuple, Type, Union
+from typing import Callable, Tuple, Type
 
 import numpy as np
 from sanic.log import logger
@@ -358,7 +358,7 @@ def convenient_upscale(
     else:
         # Add extra channels if not enough (i.e single channel img, three channel model)
         gray = False
-        if img.ndim == 2:
+        if input_channels > 1 and img.ndim == 2:
             gray = True
             logger.debug("Expanding image channels")
             img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3)))
