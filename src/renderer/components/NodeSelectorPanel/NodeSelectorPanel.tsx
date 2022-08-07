@@ -90,7 +90,6 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
-                overflowX="hidden"
             >
                 <motion.div
                     animate={{ width: collapsed ? '76px' : '300px' }}
