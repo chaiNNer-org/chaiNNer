@@ -92,16 +92,6 @@ class Onnx2NcnnConverter:
         self.node_reference: Dict[str, int] = {}
         self.blob_names: Dict[str, None] = {}
 
-    '''def __repr__(self) -> str:
-        return f"""Graph (Node count: {self.node_count}):\n
-            \t{self.mutable_graph}\n\n
-            Producers:\n
-            \t{self.producers}\n\n
-            Node Reference:\n
-            \t{self.node_reference}\n\n
-            Blob Names:\n
-            \t{self.blob_names}\n"""'''
-
     def swap_nodes(self, a: int, b: int) -> None:
         self.mutable_graph_nodes[a], self.mutable_graph_nodes[b] = (
             self.mutable_graph_nodes[b],
@@ -2780,7 +2770,9 @@ class Onnx2NcnnConverter:
 
             # Make sure input is not in weights
             if input_name not in self.weights:
-                ncnn_model.add_layer(NcnnLayer("Input", input_name, 0, 1, [input_name]))
+                ncnn_model.add_layer(
+                    NcnnLayer("Input", input_name, 0, 1, outputs=[input_name])
+                )
 
                 refcount = self.node_reference[input_name]
                 if refcount <= 1:
@@ -2882,56 +2874,56 @@ class Onnx2NcnnConverter:
                 "Tan",
                 "Tanh",
             ]:
-                layer.type = "UnaryOp"
+                layer.op_type = "UnaryOp"
             elif op in ["Add", "Div", "Max", "Min", "Mul", "Pow" "RDiv", "RSub", "Sub"]:
-                layer.type = "BinaryOp"
+                layer.op_type = "BinaryOp"
             elif op == "AveragePool" or op == "MaxPool":
                 kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
-                    layer.type = "Pooling1D"
+                    layer.op_type = "Pooling1D"
                 else:
-                    layer.type = "Pooling"
+                    layer.op_type = "Pooling"
             elif op == "BatchNormalization":
-                layer.type = "BatchNorm"
+                layer.op_type = "BatchNorm"
             elif op == "BiasGelu":
-                layer.type = "BiasGelu"
+                layer.op_type = "BiasGelu"
             elif op == "Clip":
-                layer.type = "Clip"
+                layer.op_type = "Clip"
             elif op == "Concat":
-                layer.type = "Concat"
+                layer.op_type = "Concat"
             elif op == "Constant":
                 continue
             elif op == "Conv":
                 kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
-                    layer.type = "Convolution1D"
+                    layer.op_type = "Convolution1D"
                 else:
                     group = self.get_node_attr_i(node, "group", 1)
                     if group > 1:
-                        layer.type = "ConvolutionDepthWise"
+                        layer.op_type = "ConvolutionDepthWise"
                     else:
-                        layer.type = "Convolution"
+                        layer.op_type = "Convolution"
             elif op == "ConvTranspose":
                 group = self.get_node_attr_i(node, "group", 1)
                 if group > 1:
-                    layer.type = "DeconvolutionDepthWise"
+                    layer.op_type = "DeconvolutionDepthWise"
                 else:
-                    layer.type = "Deconvolution"
+                    layer.op_type = "Deconvolution"
             elif op == "Crop" or op == "Slice":
-                layer.type = "Crop"
+                layer.op_type = "Crop"
             elif op == "DepthToSpace" or op == "PixelShuffle":
-                layer.type = "PixelShuffle"
+                layer.op_type = "PixelShuffle"
             elif op == "Dropout":
-                layer.type = "Dropout"
+                layer.op_type = "Dropout"
                 output_size = 1
             elif op == "Elu":
-                layer.type = "ELU"
+                layer.op_type = "ELU"
             elif op == "EmbedLayerNormalization":
-                layer.type = "EmbedLayerNormalization"
+                layer.op_type = "EmbedLayerNormalization"
             elif op == "Flatten":
-                layer.type = "Flatten"
+                layer.op_type = "Flatten"
             elif op == "Gelu":
-                layer.type = "GELU"
+                layer.op_type = "GELU"
             elif op == "Gemm":
                 alpha = self.get_node_attr_f(node, "alpha", 1)
                 beta = self.get_node_attr_f(node, "beta", 1)
@@ -2940,49 +2932,49 @@ class Onnx2NcnnConverter:
 
                 if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
                     # InnerProduct-like A * B + C
-                    layer.type = "InnerProduct"
+                    layer.op_type = "InnerProduct"
                 else:
-                    layer.type = "Gemm"
+                    layer.op_type = "Gemm"
             elif op in [
                 "GlobalAveragePool",
                 "GlobalMaxPool",
                 "adaptive_avg_pool2d",
                 "adaptive_max_pool2d",
             ]:
-                layer.type = "Pooling"
+                layer.op_type = "Pooling"
             elif op == "GroupNorm":
-                layer.type = "GroupNorm"
+                layer.op_type = "GroupNorm"
             elif op == "GRU":
-                layer.type = "GRU"
+                layer.op_type = "GRU"
             elif op == "HardSigmoid":
-                layer.type = "HardSigmoid"
+                layer.op_type = "HardSigmoid"
             elif op == "HardSwish":
-                layer.type = "HardSwish"
+                layer.op_type = "HardSwish"
             elif op == "ImageScaler":
-                layer.type = "Scale"
+                layer.op_type = "Scale"
             elif op == "InstanceNormalization":
-                layer.type = "InstanceNorm"
+                layer.op_type = "InstanceNorm"
             elif op == "LayerNorm":
-                layer.type = "LayerNorm"
+                layer.op_type = "LayerNorm"
             elif op == "LeakyRelu" or op == "Relu":
-                layer.type = "ReLU"
+                layer.op_type = "ReLU"
             elif op == "LRN":
-                layer.type = "LRN"
+                layer.op_type = "LRN"
             elif op == "LSTM":
-                layer.type = "LSTM"
+                layer.op_type = "LSTM"
             elif op == "MatMul":
                 if node.input[1] in self.weights:
-                    layer.type = "InnerProduct"
+                    layer.op_type = "InnerProduct"
                 else:
-                    layer.type = "Gemm"
+                    layer.op_type = "Gemm"
             elif op == "MultiHeadAttention":
-                layer.type = "MultiHeadAttention"
+                layer.op_type = "MultiHeadAttention"
             elif op == "Normalize":
-                layer.type = "Normalize"
+                layer.op_type = "Normalize"
             elif op == "Pad":
-                layer.type = "Padding"
+                layer.op_type = "Padding"
             elif op == "PRelu":
-                layer.type = "PReLU"
+                layer.op_type = "PReLU"
             elif op in [
                 "ReduceMax",
                 "ReduceMin",
@@ -2995,45 +2987,45 @@ class Onnx2NcnnConverter:
                 "ReduceLogSum",
                 "ReduceLogSumExp",
             ]:
-                layer.type = "Reduction"
+                layer.op_type = "Reduction"
             elif op == "Reorg":
-                layer.type = "Reorg"
+                layer.op_type = "Reorg"
             elif op == "Reshape":
-                layer.type = "Reshape"
+                layer.op_type = "Reshape"
             elif op == "RNN":
-                layer.type = "RNN"
+                layer.op_type = "RNN"
             elif op == "ShuffleChannel":
-                layer.type = "ShuffleChannel"
+                layer.op_type = "ShuffleChannel"
             elif op == "Sigmoid":
-                layer.type = "Sigmoid"
+                layer.op_type = "Sigmoid"
             elif op == "SkipLayerNormalization":
-                layer.type = "SkipLayerNormalization"
+                layer.op_type = "SkipLayerNormalization"
             elif op == "Softmax":
-                layer.type = "Softmax"
+                layer.op_type = "Softmax"
             elif op == "Softplus":
-                layer.type = "Softplus"
+                layer.op_type = "Softplus"
             elif op == "Split":
-                layer.type = "Slice"
+                layer.op_type = "Slice"
             elif op == "Squeeze":
-                layer.type = "Squeeze"
+                layer.op_type = "Squeeze"
             elif op == "Sum":
-                layer.type = "Eltwise"
+                layer.op_type = "Eltwise"
             elif op == "Swish":
-                layer.type = "Swish"
+                layer.op_type = "Swish"
             elif op == "Transpose":
-                layer.type = "Permute"
+                layer.op_type = "Permute"
             elif op == "Upsample" or op == "Resize":
-                layer.type = "Interp"
+                layer.op_type = "Interp"
             elif op == "Unsqueeze":
-                layer.type = "ExpandDims"
+                layer.op_type = "ExpandDims"
             else:
                 error_msg = f"{op} not currently supported by NCNN."
                 raise TypeError(error_msg)
 
             layer.name = name
-            layer.num_inputs = input_size
-            layer.num_outputs = output_size
-            layer.params.op = layer.type
+            layer.num_input = input_size
+            layer.num_output = output_size
+            layer.params.set_op(layer.op_type)
 
             for input_name in node.input:
                 # check weight
@@ -3128,13 +3120,13 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, channels)
 
-                layer.add_weight(scale, "scale")
+                layer.add_weight(scale, "slope")
                 layer.add_weight(mean, "mean")
+
                 # apply epsilon to var
                 v = onph.to_array(var)
-                for i in range(channels):
-                    ve = v[i] + epsilon
-                    layer.add_weight(ve, f"vareps{i}")
+                ve = np.array([v[i] + epsilon for i in range(channels)], np.float32)
+                layer.add_weight(ve, f"variance")
                 layer.add_weight(B, "bias")
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
@@ -4183,9 +4175,15 @@ class Onnx2NcnnConverter:
 
 
 if __name__ == "__main__":
-    model = onnx.load_model("D:/Desktop/onnx_test_models/udnie-9.onnx")
-    # model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN.onnx")
+    # model = onnx.load_model("D:/Desktop/onnx_test_models/udnie-9.onnx")
+    model = onnx.load_model(
+        "D:/Upscaling/models/LoD/New folder/4x_BSRGAN_old_arch.onnx"
+    )
     converter = Onnx2NcnnConverter(model)
     model = converter.convert()
-    model.write_param("D:/Upscaling/ncnn_output.param")
-    model.write_bin("D:/Upscaling/ncnn_output.bin")
+    model2 = NcnnModel()
+    model2.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN_old_arch.param")
+    for layer1, layer2 in zip(model.layer_list, model2.layer_list):
+        print(layer1 == layer2)
+    # model.write_param("D:/Upscaling/ncnn_output.param")
+    # model.write_bin("D:/Upscaling/ncnn_output.bin")
