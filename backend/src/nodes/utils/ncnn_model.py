@@ -1,3 +1,4 @@
+from copy import deepcopy
 from io import BufferedReader
 import os
 from typing import Dict, List, Tuple, Union
@@ -508,12 +509,26 @@ class NcnnModel:
             f.write(self.weights_bin)
 
     def interpolate_ncnn(self, model_b, alpha):
-        interp_model = NcnnModel(self.node_count, self.blob_count)
+        interp_model = deepcopy(self)
+        interp_model.weights_bin = b""
+
+        layer_a_weights = [
+            (i, l) for i, l in enumerate(self.layer_list) if l.weight_data
+        ]
+        layer_b_weights = [
+            (i, l) for i, l in enumerate(model_b.layer_list) if l.weight_data
+        ]
+
+        assert len(layer_a_weights) == len(
+            layer_b_weights
+        ), "Models must have same number of layers containing weights"
 
         weight_bytes_list = []
-        for layer_a, layer_b in zip(self.layer_list, model_b.layer_list):
-            interp_layer, layer_bytes = NcnnModel.interp_layers(layer_a, layer_b, alpha)
-            interp_model.add_layer(interp_layer)
+        for layer_a, layer_b in zip(layer_a_weights, layer_b_weights):
+            interp_layer, layer_bytes = NcnnModel.interp_layers(
+                layer_a[1], layer_b[1], alpha
+            )
+            interp_model.layer_list[layer_a[0]] = interp_layer
             weight_bytes_list.append(layer_bytes)
 
         interp_model.weights_bin = b"".join(weight_bytes_list)
