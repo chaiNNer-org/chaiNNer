@@ -13,7 +13,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.ncnn_structure import NcnnModel
+from .utils.ncnn_model import NcnnModel
 from .utils.onnx_auto_split import onnx_auto_split_process
 from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale

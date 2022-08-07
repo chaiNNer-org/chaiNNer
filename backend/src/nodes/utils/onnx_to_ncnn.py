@@ -9,7 +9,7 @@ from google.protobuf.internal.containers import (
 )
 from sanic.log import logger
 
-from .ncnn_structure import (
+from .ncnn_model import (
     DTYPE_FP16,
     DTYPE_FP32,
     NcnnModel,
