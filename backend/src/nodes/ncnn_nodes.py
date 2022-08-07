@@ -104,7 +104,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self.sub = "Processing"
 
     def get_model_channels(self, model: NcnnModel) -> int:
-        out_nc = model.layer_list[-1].params[0].value
+        num_filters = model.layer_list[1].params[0].value
         kernel_w = model.layer_list[1].params[1].value
         try:
             kernel_h = model.layer_list[1].params[11].value
@@ -113,12 +113,12 @@ class NcnnUpscaleImageNode(NodeBase):
         weight_data_size = model.layer_list[1].params[6].value
 
         assert (
-            isinstance(out_nc, int)
+            isinstance(num_filters, int)
             and isinstance(kernel_w, int)
             and isinstance(kernel_h, int)
             and isinstance(weight_data_size, int)
         ), "Out nc, kernel width and height, and weight data size must all be ints"
-        in_nc = weight_data_size // out_nc // kernel_w // kernel_h
+        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
 
         return in_nc
 
