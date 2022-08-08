@@ -17,10 +17,11 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
+    Text,
     useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { memo, useMemo, useState } from 'react';
+import React, { ReactNode, memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -34,11 +35,44 @@ import {
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
-import { RegularAccordionItem } from './RegularAccordionItem';
+import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
+const packageHints: Partial<Record<string, () => ReactNode>> = {
+    PyTorch: () => (
+        <>
+            <Text>
+                PyTorch uses .pth models to upscale images. It is the most widely-used upscaling
+                architecture. However, it does not support AMD GPUs.
+            </Text>
+            <Text>
+                <em>Click</em> to open the dependency manager to install PyTorch.
+            </Text>
+        </>
+    ),
+    ONNX: () => (
+        <>
+            <Text>ONNX uses .onnx models to upscale images.</Text>
+            <Text>
+                <em>Click</em> to open the dependency manager to install ONNX.
+            </Text>
+        </>
+    ),
+    NCNN: () => (
+        <>
+            <Text>
+                NCNN uses .bin/.param models to upscale images. It is recommended for AMD users
+                because it supports both AMD and Nvidia GPUs.
+            </Text>
+            <Text>
+                <em>Click</em> to open the dependency manager to install NCNN.
+            </Text>
+        </>
+    ),
+};
+
 export const NodeSelector = memo(() => {
-    const { schemata } = useContext(BackendContext);
+    const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -191,17 +225,45 @@ export const NodeSelector = memo(() => {
                                             favoriteNodes={favoriteNodes}
                                             noFavorites={favorites.size === 0}
                                         />
-                                        {[...byCategories].map(([category, categoryNodes]) => {
-                                            const subcategoryMap = getSubcategories(categoryNodes);
+                                        {categories.map((category) => {
+                                            const categoryNodes = byCategories.get(category);
 
-                                            return (
-                                                <RegularAccordionItem
-                                                    category={category}
-                                                    collapsed={collapsed}
-                                                    key={category}
-                                                    subcategoryMap={subcategoryMap}
-                                                />
-                                            );
+                                            if (categoryNodes) {
+                                                const subcategoryMap =
+                                                    getSubcategories(categoryNodes);
+
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category}
+                                                    >
+                                                        <Subcategories
+                                                            collapsed={collapsed}
+                                                            subcategoryMap={subcategoryMap}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            const hint = packageHints[category];
+                                            if (hint) {
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category}
+                                                    >
+                                                        <PackageHint
+                                                            collapsed={collapsed}
+                                                            description={hint}
+                                                            onClick={openDependencyManager}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            return <React.Fragment key={category} />;
                                         })}
                                         <AccordionItem>
                                             <Box p={4}>
