@@ -13,6 +13,7 @@ import {
 } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from '../inputs/DirectoryInput';
 import { DropDownInput } from '../inputs/DropDownInput';
@@ -101,11 +102,9 @@ interface NodeInputsProps {
 
 export const NodeInputs = memo(
     ({ inputs, id, inputData, inputSize, isLocked, schemaId, accentColor }: NodeInputsProps) => {
-        const {
-            useInputData: useInputDataContext,
-            useInputSize: useInputSizeContext,
-            functionDefinitions,
-        } = useContext(GlobalContext);
+        const { useInputData: useInputDataContext, useInputSize: useInputSizeContext } =
+            useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: InputId) =>

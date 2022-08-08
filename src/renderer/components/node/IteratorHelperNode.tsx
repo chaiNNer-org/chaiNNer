@@ -2,6 +2,7 @@ import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
 import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
@@ -22,7 +23,8 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
     const { id, inputData, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));

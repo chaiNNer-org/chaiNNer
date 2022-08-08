@@ -5,6 +5,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { assertNever } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
@@ -65,7 +66,8 @@ interface NodeOutputProps {
 }
 
 export const NodeOutputs = memo(({ outputs, id, schemaId, animated = false }: NodeOutputProps) => {
-    const { functionDefinitions, getInputHash } = useContext(GlobalContext);
+    const { getInputHash } = useContext(GlobalContext);
+    const { functionDefinitions } = useContext(BackendContext);
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
     );

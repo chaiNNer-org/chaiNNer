@@ -27,70 +27,62 @@ interface Settings {
         React.Dispatch<React.SetStateAction<readonly SchemaId[]>>
     ];
     useNodeSelectorCollapsed: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-
-    // Port
-    port: number;
 }
 
 // TODO: create context requires default values
 export const SettingsContext = createContext<Readonly<Settings>>({} as Settings);
 
-export const SettingsProvider = memo(
-    ({ children, port }: React.PropsWithChildren<{ port: number }>) => {
-        // Global Settings
-        const useIsCpu = useMemoArray(useLocalStorage('is-cpu', false));
-        const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
-        const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
-        const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
-        const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
+export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
+    // Global Settings
+    const useIsCpu = useMemoArray(useLocalStorage('is-cpu', false));
+    const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
+    const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
+    const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
+    const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
-        const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
+    const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
 
-        const { setColorMode } = useColorMode();
-        const [isDarkMode] = useIsDarkMode;
-        useEffect(() => {
-            setColorMode(isDarkMode ? 'dark' : 'light');
-        }, [setColorMode, isDarkMode]);
+    const { setColorMode } = useColorMode();
+    const [isDarkMode] = useIsDarkMode;
+    useEffect(() => {
+        setColorMode(isDarkMode ? 'dark' : 'light');
+    }, [setColorMode, isDarkMode]);
 
-        const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
+    const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
 
-        // Snap to grid
-        const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
-        const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
-        const useSnapToGrid = useMemoArray([
-            isSnapToGrid,
-            setIsSnapToGrid,
-            snapToGridAmount || 1,
-            setSnapToGridAmount,
-        ] as const);
+    // Snap to grid
+    const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
+    const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
+    const useSnapToGrid = useMemoArray([
+        isSnapToGrid,
+        setIsSnapToGrid,
+        snapToGridAmount || 1,
+        setSnapToGridAmount,
+    ] as const);
 
-        // Node Settings
-        const useNodeFavorites = useMemoArray(
-            useLocalStorage<readonly SchemaId[]>('node-favorites', [])
-        );
-        const useNodeSelectorCollapsed = useMemoArray(
-            useLocalStorage('node-selector-collapsed', false)
-        );
+    // Node Settings
+    const useNodeFavorites = useMemoArray(
+        useLocalStorage<readonly SchemaId[]>('node-favorites', [])
+    );
+    const useNodeSelectorCollapsed = useMemoArray(
+        useLocalStorage('node-selector-collapsed', false)
+    );
 
-        const contextValue = useMemoObject<Settings>({
-            // Globals
-            useIsCpu,
-            useIsFp16,
-            useIsSystemPython,
-            useSnapToGrid,
-            useDisHwAccel,
-            useStartupTemplate,
-            useIsDarkMode,
-            useAnimateChain,
+    const contextValue = useMemoObject<Settings>({
+        // Globals
+        useIsCpu,
+        useIsFp16,
+        useIsSystemPython,
+        useSnapToGrid,
+        useDisHwAccel,
+        useStartupTemplate,
+        useIsDarkMode,
+        useAnimateChain,
 
-            // Node
-            useNodeFavorites,
-            useNodeSelectorCollapsed,
+        // Node
+        useNodeFavorites,
+        useNodeSelectorCollapsed,
+    });
 
-            // Port
-            port,
-        });
-
-        return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
-    }
-);
+    return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
+});

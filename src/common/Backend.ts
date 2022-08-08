@@ -14,7 +14,10 @@ export interface BackendExceptionResponse {
     source?: BackendExceptionSource | null;
     exception: string;
 }
-export type BackendNodesResponse = NodeSchema[];
+export interface BackendNodesResponse {
+    nodes: NodeSchema[];
+    categories: string[];
+}
 export interface BackendRunRequest {
     data: Record<string, UsableData>;
     isCpu: boolean;
