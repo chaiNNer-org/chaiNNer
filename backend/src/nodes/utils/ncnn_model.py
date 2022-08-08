@@ -17,12 +17,6 @@ with open(param_schema_file) as f:
 
 DTYPE_FP32 = b"\x00\x00\x00\x00"
 DTYPE_FP16 = b"\x47\x6b\x30\x01"
-DTYPES = {0: np.float32, 1: np.float16, 2: np.int8}
-
-
-class WeightDtype:
-    FP32 = 0
-    FP32_FP16 = 1
 
 
 class UnaryOpTypes:
@@ -144,12 +138,9 @@ class ReductionOpTypes:
 
 
 class NcnnWeight:
-    def __init__(
-        self, weight: np.ndarray, quantize_tag: bytes = b"", can_be_fp16: bool = False
-    ):
+    def __init__(self, weight: np.ndarray, quantize_tag: bytes = b""):
         self.quantize_tag = quantize_tag
         self.weight = weight
-        self.can_be_fp16 = can_be_fp16
 
     @property
     def size(self) -> int:
@@ -266,7 +257,6 @@ class NcnnLayer:
         data: Union[float, int, np.ndarray, TensorProto],
         weight_name: str,
         quantize_tag: bytes = b"",
-        can_be_fp16: bool = False,
         is_fp16: bool = False,
     ) -> bytes:
         if isinstance(data, TensorProto):
@@ -278,7 +268,7 @@ class NcnnLayer:
 
         if is_fp16:
             data = data.astype(np.float16)
-        self.weight_data[weight_name] = NcnnWeight(data, quantize_tag, can_be_fp16)
+        self.weight_data[weight_name] = NcnnWeight(data, quantize_tag)
 
         return quantize_tag + data.tobytes()
 
@@ -344,7 +334,6 @@ class NcnnModel:
                 weight_c = NcnnWeight(
                     (weight_a.weight * alpha_a + weight_b.weight * (1 - alpha_a)),
                     weight_a.quantize_tag,
-                    weight_a.can_be_fp16,
                 )
                 layer_bytes_list.append(
                     weight_c.quantize_tag + weight_c.weight.tobytes()

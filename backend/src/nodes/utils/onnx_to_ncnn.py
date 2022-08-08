@@ -3221,7 +3221,7 @@ class Onnx2NcnnConverter:
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_bytes_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
                 )
 
                 if has_bias:
@@ -3301,9 +3301,7 @@ class Onnx2NcnnConverter:
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_data = onph.to_array(W)
                 weight_layer_list.append(
-                    layer.add_weight(
-                        W.swapaxes(2, 3), "weight", quantize_tag, True, is_fp16
-                    )
+                    layer.add_weight(W.swapaxes(2, 3), "weight", quantize_tag, is_fp16)
                 )
 
                 if has_bias:
@@ -3358,7 +3356,7 @@ class Onnx2NcnnConverter:
                     layer.add_weight(positions, "positions", DTYPE_FP32)
                 )
                 weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
                 )
                 weight_layer_list.append(layer.add_weight(B, "bias"))
             elif op == "Exp":
@@ -3484,9 +3482,7 @@ class Onnx2NcnnConverter:
                     (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
                 )
                 weight_layer_list.append(
-                    layer.add_weight(
-                        W_array, "weight_xc_data", quantize_tag, True, is_fp16
-                    )
+                    layer.add_weight(W_array, "weight_xc_data", quantize_tag, is_fp16)
                 )
 
                 # reduce U and R bias except N
@@ -3911,7 +3907,7 @@ class Onnx2NcnnConverter:
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
                 )
 
                 # reduce xc and hc bias
@@ -3919,11 +3915,11 @@ class Onnx2NcnnConverter:
                 half_size = B_array.shape[0] / 2
                 reduced_B_arrary = B_array[:half_size] + B_array[half_size:]
                 weight_layer_list.append(
-                    layer.add_weight(B, "bias", quantize_tag, True, is_fp16)
+                    layer.add_weight(B, "bias", quantize_tag, is_fp16)
                 )
 
                 weight_layer_list.append(
-                    layer.add_weight(R, "R", quantize_tag, True, is_fp16)
+                    layer.add_weight(R, "R", quantize_tag, is_fp16)
                 )
             elif op == "RDiv":
                 layer.add_param(0, BOT.RDIV)
@@ -3959,7 +3955,7 @@ class Onnx2NcnnConverter:
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, True, is_fp16)
+                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
                 )
                 weight_layer_list.append(layer.add_weight(B, "bias1", DTYPE_FP32))
                 weight_layer_list.append(layer.add_weight(B2, "bias2", DTYPE_FP32))
