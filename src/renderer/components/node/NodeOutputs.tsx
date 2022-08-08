@@ -4,7 +4,6 @@ import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
-import { assertNever } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
@@ -18,35 +17,32 @@ interface FullOutputProps extends Omit<Output, 'id' | 'type'>, OutputProps {
     definitionType: Type;
 }
 
-// TODO: perhaps make this an object instead of a switch statement
-const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
+const OutputComponents: Readonly<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let OutputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericOutput;
-    let isGenericType = true;
-    switch (kind) {
-        case 'image':
-            OutputType = DefaultImageOutput;
-            break;
-        case 'large-image':
-            OutputType = LargeImageOutput;
-            isGenericType = false;
-            break;
-        case 'pytorch':
-            OutputType = PyTorchOutput;
-            isGenericType = false;
-            break;
-        case 'directory':
-        case 'text':
-        case 'generic':
-            OutputType = GenericOutput;
-            break;
-        default:
-            return assertNever(kind);
-    }
+    Record<OutputKind, React.MemoExoticComponent<(props: any) => JSX.Element>>
+> = {
+    image: DefaultImageOutput,
+    'large-image': LargeImageOutput,
+    pytorch: PyTorchOutput,
+    directory: GenericOutput,
+    text: GenericOutput,
+    generic: GenericOutput,
+};
+const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
+    image: true,
+    'large-image': false,
+    pytorch: false,
+    directory: true,
+    text: true,
+    generic: true,
+};
+
+const pickOutput = (kind: OutputKind, props: FullOutputProps) => {
+    const OutputType = OutputComponents[kind];
     return (
         <OutputContainer
             definitionType={props.definitionType}
-            generic={isGenericType}
+            generic={OutputIsGeneric[kind]}
             hasHandle={props.hasHandle}
             id={props.id}
             key={`${props.id}-${props.outputId}`}
