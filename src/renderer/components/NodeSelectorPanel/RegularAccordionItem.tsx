@@ -9,21 +9,21 @@ import {
     Heading,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import React, { ReactNode, memo } from 'react';
 import { NodeSchema } from '../../../common/common-types';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
+import { TextBox } from './TextBox';
 
 interface RegularAccordionItemProps {
-    subcategoryMap: Map<string, NodeSchema[]>;
     category: string;
     collapsed: boolean;
 }
 
 export const RegularAccordionItem = memo(
-    ({ subcategoryMap, category, collapsed }: RegularAccordionItemProps) => {
+    ({ children, category, collapsed }: React.PropsWithChildren<RegularAccordionItemProps>) => {
         return (
             <AccordionItem key={category}>
                 <Tooltip
@@ -67,27 +67,61 @@ export const RegularAccordionItem = memo(
                     pb={2.5}
                     pt={0}
                 >
-                    {[...subcategoryMap].map(([subcategory, nodes]) => (
-                        <Box key={subcategory}>
-                            <Center>
-                                <SubcategoryHeading
-                                    collapsed={collapsed}
-                                    subcategory={subcategory}
-                                />
-                            </Center>
-                            <Box>
-                                {nodes.map((node) => (
-                                    <RepresentativeNodeWrapper
-                                        collapsed={collapsed}
-                                        key={node.name}
-                                        node={node}
-                                    />
-                                ))}
-                            </Box>
-                        </Box>
-                    ))}
+                    {children}
                 </AccordionPanel>
             </AccordionItem>
         );
     }
 );
+
+interface SubcategoriesProps {
+    collapsed: boolean;
+    subcategoryMap: Map<string, NodeSchema[]>;
+}
+
+export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
+    return (
+        <>
+            {[...subcategoryMap].map(([subcategory, nodes]) => (
+                <Box key={subcategory}>
+                    <Center>
+                        <SubcategoryHeading
+                            collapsed={collapsed}
+                            subcategory={subcategory}
+                        />
+                    </Center>
+                    <Box>
+                        {nodes.map((node) => (
+                            <RepresentativeNodeWrapper
+                                collapsed={collapsed}
+                                key={node.name}
+                                node={node}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            ))}
+        </>
+    );
+});
+
+interface PackageHintProps {
+    collapsed: boolean;
+    onClick: () => void;
+    description: () => ReactNode;
+}
+
+export const PackageHint = memo(({ collapsed, onClick, description }: PackageHintProps) => {
+    return (
+        <Box pt={1}>
+            <TextBox
+                noWrap
+                collapsed={collapsed}
+                height="1.5rem"
+                text="Not installed."
+                toolTip={description()}
+                onClick={onClick}
+            />
+        </Box>
+    );
+});
