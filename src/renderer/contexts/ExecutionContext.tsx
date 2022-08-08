@@ -185,10 +185,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         eventSource,
         'finish',
         () => {
-            unAnimate();
             setStatus(ExecutionStatus.READY);
         },
-        [setStatus, unAnimate]
+        [
+            // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+            // status isn't actually used
+            status,
+            setStatus,
+        ]
     );
 
     useBackendEventSourceListener(
@@ -221,9 +225,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         (eventData) => {
             if (eventData) {
                 const { finished, nodeId, executionTime, data } = eventData;
-                if (finished.length > 0) {
-                    unAnimate(finished);
-                }
 
                 // TODO: This is incorrect. The inputs of the node might have changed since
                 // the chain started running. However, sending the then current input hashes
@@ -237,6 +238,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     inputHash,
                     data ?? undefined
                 );
+
+                unAnimate([nodeId, ...finished]);
             }
         },
         500,

@@ -90,7 +90,6 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
-                overflowX="hidden"
             >
                 <motion.div
                     animate={{ width: collapsed ? '76px' : '300px' }}
@@ -113,6 +112,7 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                         <TabPanels>
                             <TabPanel
                                 m={0}
+                                overflowX="hidden"
                                 p={0}
                             >
                                 <InputGroup borderRadius={0}>
@@ -124,13 +124,16 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                                     </InputLeftElement>
                                     <Input
                                         borderRadius={0}
-                                        disabled={collapsed}
                                         placeholder="Search..."
                                         spellCheck={false}
                                         type="text"
                                         value={searchQuery}
                                         variant="filled"
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCollapsed(false);
+                                        }}
+                                        onClick={() => setCollapsed(false)}
                                     />
                                     <InputRightElement
                                         _hover={{ color: useColorModeValue('black', 'white') }}

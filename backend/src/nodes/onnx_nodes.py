@@ -17,6 +17,7 @@ from .utils.ncnn_model import NcnnModel
 from .utils.onnx_auto_split import onnx_auto_split_process
 from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
+from .utils.exec_options import get_execution_options
 
 
 class TensorOrders:
@@ -142,7 +143,7 @@ class OnnxImageUpscaleNode(NodeBase):
             onnx_model,
             providers=[
                 "CPUExecutionProvider"
-                if os.environ["device"] == "cpu"
+                if get_execution_options().device == "cpu"
                 else "CUDAExecutionProvider"
             ],
         )

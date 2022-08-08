@@ -1,15 +1,14 @@
 import { Center, Text, VStack, useColorModeValue } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData } from '../../../common/common-types';
+import { NodeData } from '../../../common/common-types';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
+import { useValidity } from '../../hooks/useValidity';
 import { IteratorNodeBody } from './IteratorNodeBody';
 import { IteratorNodeHeader } from './IteratorNodeHeader';
 import { NodeFooter } from './NodeFooter/NodeFooter';
@@ -30,9 +29,7 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
-    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const { schemata } = useContext(GlobalContext);
-    const { getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const {
         id,
@@ -51,10 +48,6 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
-    );
-
     const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
@@ -62,20 +55,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState(VALID);
-    useEffect(() => {
-        if (inputs.length) {
-            setValidity(
-                checkNodeValidity({
-                    id,
-                    schema,
-                    inputData,
-                    edges: getEdges(),
-                    functionInstance,
-                })
-            );
-        }
-    }, [inputData, edgeChanges, functionInstance]);
+    const { validity } = useValidity(id, schema, inputData);
 
     const iteratorBoxRef = useRef<HTMLDivElement | null>(null);
 

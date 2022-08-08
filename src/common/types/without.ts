@@ -4,12 +4,13 @@ import {
     AnyType,
     IntIntervalType,
     IntervalType,
+    InvertedStringSetType,
     NeverType,
     NumberPrimitive,
     NumberType,
     NumericLiteralType,
+    StringLiteralType,
     StringPrimitive,
-    StringType,
     StructType,
     StructTypeField,
     Type,
@@ -135,12 +136,38 @@ const withoutStringPrimitive = (
     right: StringPrimitive
 ): WithoutResult<StringPrimitive> => {
     if (right.type === 'string') return NeverType.instance;
-    if (left.type === 'string') return StringType.instance;
+    if (left.type === 'string') {
+        if (right.type === 'literal') return new InvertedStringSetType(new Set([right.value]));
 
-    if (left.value === right.value) return NeverType.instance;
+        return union(...[...right.excluded].map((value) => new StringLiteralType(value)));
+    }
 
-    // disjoint
-    return left;
+    if (left.type === 'literal') {
+        if (right.type === 'literal') {
+            return left.value === right.value ? NeverType.instance : left;
+        }
+        return right.has(left.value) ? NeverType.instance : left;
+    }
+
+    if (right.type === 'literal') {
+        if (!left.has(right.value)) return left;
+        const excluded = new Set(left.excluded);
+        excluded.add(right.value);
+        return new InvertedStringSetType(excluded);
+    }
+
+    // Both left and right are inverted string sets:
+    //   L \ R
+    // = comp(L.excluded) \ comp(R.excluded)
+    // = comp(L.excluded) ∩ R.excluded
+    // = R.excluded \ L.excluded
+    const remaining: string[] = [];
+    for (const rValue of right.excluded) {
+        if (!left.excluded.has(rValue)) {
+            remaining.push(rValue);
+        }
+    }
+    return union(...remaining.map((value) => new StringLiteralType(value)));
 };
 
 const withoutStruct = (left: StructType, right: StructType): StructType | NeverType => {

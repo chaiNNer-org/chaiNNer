@@ -11,13 +11,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import (
-    blend_images,
-    calculate_ssim,
-    convert_from_BGRA,
-    convert_to_BGRA,
-    shift,
-)
+from .utils.image_utils import blend_images, calculate_ssim, shift
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -29,8 +23,14 @@ class ImBlend(NodeBase):
         self.description = """Blends overlay image onto base image using
             specified mode."""
         self.inputs = [
-            ImageInput("Base Layer"),
-            ImageInput("Overlay Layer"),
+            ImageInput(
+                "Base Layer",
+                image_type=expression.Image(channels=[1, 3, 4]),
+            ),
+            ImageInput(
+                "Overlay Layer",
+                image_type=expression.Image(channels=[1, 3, 4]),
+            ),
             BlendModeDropdown(),
         ]
         self.outputs = [
@@ -55,47 +55,45 @@ class ImBlend(NodeBase):
     ) -> np.ndarray:
         """Blend images together"""
 
-        b_h, b_w, b_c = get_h_w_c(base)
-        o_h, o_w, o_c = get_h_w_c(ov)
+        b_h, b_w, _ = get_h_w_c(base)
+        o_h, o_w, _ = get_h_w_c(ov)
         max_h = max(b_h, o_h)
         max_w = max(b_w, o_w)
-        max_c = max(b_c, o_c)
 
-        # All inputs must be BGRA for alpha compositing to work
-        imgout = convert_to_BGRA(base, b_c)
-        ov_img = convert_to_BGRA(ov, o_c)
+        if (b_w, b_h) == (o_w, o_h):
+            # we don't have to do any size adjustments
+            result = blend_images(ov, base, blend_mode)
+        else:
+            # Pad base image with transparency if necessary to match size with overlay
+            top = bottom = left = right = 0
+            if b_h < max_h:
+                top = (max_h - b_h) // 2
+                bottom = max_h - b_h - top
+            if b_w < max_w:
+                left = (max_w - b_w) // 2
+                right = max_w - b_w - left
+            base = cv2.copyMakeBorder(
+                base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+            )
 
-        # Pad base image with transparency if necessary to match size with overlay
-        top = bottom = left = right = 0
-        if b_h < max_h:
-            top = (max_h - b_h) // 2
-            bottom = max_h - b_h - top
-        if b_w < max_w:
-            left = (max_w - b_w) // 2
-            right = max_w - b_w - left
-        imgout = cv2.copyMakeBorder(
-            imgout, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
-        )
+            # Center overlay
+            center_x = base.shape[1] // 2
+            center_y = base.shape[0] // 2
+            x_offset = center_x - (o_w // 2)
+            y_offset = center_y - (o_h // 2)
 
-        # Center overlay
-        center_x = imgout.shape[1] // 2
-        center_y = imgout.shape[0] // 2
-        x_offset = center_x - (o_w // 2)
-        y_offset = center_y - (o_h // 2)
+            blended_img = blend_images(
+                ov,
+                base[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
+                blend_mode,
+            )
 
-        blended_img = blend_images(
-            ov_img,
-            imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
-            blend_mode,
-        )
+            result = base.copy()
+            result[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
 
-        imgout[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
-        imgout = np.clip(imgout, 0, 1)
+        result = np.clip(result, 0, 1)
 
-        if max_c < 4:
-            imgout = convert_from_BGRA(imgout, max_c)
-
-        return imgout
+        return result
 
 
 @NodeFactory.register("chainner:image:stack")
@@ -104,7 +102,7 @@ class StackNode(NodeBase):
 
     def __init__(self):
         super().__init__()
-        self.description = "Concatenate multiple images horizontally."
+        self.description = "Concatenate multiple images horizontally or vertically."
         self.inputs = [
             ImageInput("Image A"),
             ImageInput("Image B").make_optional(),
@@ -171,7 +169,6 @@ class StackNode(NodeBase):
         im4: np.ndarray | None,
         orientation: str,
     ) -> np.ndarray:
-        """Concatenate multiple images horizontally"""
         img = im1
         imgs = []
         max_h, max_w, max_c = 0, 0, 1
@@ -245,7 +242,7 @@ class StackNode(NodeBase):
 class CaptionNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Add a caption to an image."
+        self.description = "Add a caption to the bottom of an image."
         self.inputs = [
             ImageInput(),
             TextInput("Caption", allow_numbers=True),

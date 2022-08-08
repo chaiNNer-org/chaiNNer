@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import functools
-import os
 import uuid
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
@@ -315,7 +314,6 @@ class Executor:
         logger.info(f"Resuming executor {self.execution_id}")
         self.paused = False
         self.resumed = True
-        os.environ["killed"] = "False"
         await self.process_nodes()
 
     async def pause(self):
@@ -327,7 +325,6 @@ class Executor:
         """Kill the executor"""
         logger.info(f"Killing executor {self.execution_id}")
         self.killed = True
-        os.environ["killed"] = "True"
 
     def is_killed(self):
         """Return if the executor is killed"""

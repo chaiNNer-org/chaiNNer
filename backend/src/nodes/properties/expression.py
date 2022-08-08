@@ -119,24 +119,24 @@ def literal(value: Union[str, int, float]) -> ExpressionJson:
 
 
 def interval(
-    min: Union[int, float, None] = None,
-    max: Union[int, float, None] = None,
+    min_value: Union[int, float, None] = None,
+    max_value: Union[int, float, None] = None,
 ) -> ExpressionJson:
     return {
         "type": "interval",
-        "min": to_number_json(min if min is not None else float("-inf")),
-        "max": to_number_json(max if max is not None else float("inf")),
+        "min": to_number_json(min_value if min_value is not None else float("-inf")),
+        "max": to_number_json(max_value if max_value is not None else float("inf")),
     }
 
 
 def int_interval(
-    min: Union[int, float, None] = None,
-    max: Union[int, float, None] = None,
+    min_value: Union[int, float, None] = None,
+    max_value: Union[int, float, None] = None,
 ) -> ExpressionJson:
     return {
         "type": "int-interval",
-        "min": to_number_json(min if min is not None else float("-inf")),
-        "max": to_number_json(max if max is not None else float("inf")),
+        "min": to_number_json(min_value if min_value is not None else float("-inf")),
+        "max": to_number_json(max_value if max_value is not None else float("inf")),
     }
 
 
@@ -152,8 +152,8 @@ def named(name: str, fields: Dict[str, ExpressionJson] | None = None) -> Express
     return {"type": "named", "name": name, "fields": fields}
 
 
-def field(of: ExpressionJson, field: str) -> ExpressionJson:
-    return {"type": "field-access", "of": of, "field": field}
+def field(of: ExpressionJson, field_name: str) -> ExpressionJson:
+    return {"type": "field-access", "of": of, "field": field_name}
 
 
 def fn(name: str, *args: ExpressionJson) -> ExpressionJson:
