@@ -5,7 +5,8 @@ import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { BackendContext } from '../../contexts/BackendContext';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
@@ -86,7 +87,7 @@ export const InputContainer = memo(
             });
         }, [connectingFrom, definitionType, id, inputId]);
 
-        const { functionDefinitions } = useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
         const { useIsDarkMode } = useContext(SettingsContext);
         const [isDarkMode] = useIsDarkMode;
 

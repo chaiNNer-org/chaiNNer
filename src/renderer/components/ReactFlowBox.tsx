@@ -21,6 +21,7 @@ import ReactFlow, {
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
+import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -156,7 +157,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
-        schemata,
         setZoom,
         setHoveredNode,
         addNodeChanges,
@@ -167,6 +167,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         setSetEdges,
         updateIteratorBounds,
     } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);

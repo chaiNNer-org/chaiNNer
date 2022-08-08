@@ -158,7 +158,7 @@ async def nodes(_):
         if node_object.get_type() == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
-    return json(node_list)
+    return json({"nodes": node_list, "categories": category_order})
 
 
 class RunRequest(TypedDict):

@@ -3,7 +3,6 @@ import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
-import { getBackend } from '../../common/Backend';
 import {
     EdgeData,
     EdgeHandle,
@@ -33,6 +32,7 @@ import {
 import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
@@ -140,7 +140,6 @@ export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
-        schemata,
         animate,
         unAnimate,
         setIteratorPercent,
@@ -148,7 +147,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
     } = useContext(GlobalContext);
-    const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
+    const { schemata, port, backend } = useContext(BackendContext);
+    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [isCpu] = useIsCpu;
@@ -157,7 +157,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
-    const backend = getBackend(port);
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 

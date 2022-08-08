@@ -23,7 +23,7 @@ import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { SchemaMap } from '../../../common/SchemaMap';
+import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import {
@@ -37,11 +37,8 @@ import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { RegularAccordionItem } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
-interface NodeSelectorProps {
-    schemata: SchemaMap;
-}
-
-export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
+export const NodeSelector = memo(() => {
+    const { schemata } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
     const [searchQuery, setSearchQuery] = useState('');

@@ -2,7 +2,8 @@ import { Center, Text, VStack, useColorModeValue } from '@chakra-ui/react';
 import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { BackendContext } from '../../contexts/BackendContext';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
@@ -29,7 +30,7 @@ export const IteratorNode = memo(({ data, selected }: IteratorNodeProps) => (
 ));
 
 const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
-    const { schemata } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
     const {
         id,

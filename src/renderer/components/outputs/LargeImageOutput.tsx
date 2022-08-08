@@ -6,6 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
@@ -18,7 +19,8 @@ interface LargeImageBroadcastData {
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
 
         const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));

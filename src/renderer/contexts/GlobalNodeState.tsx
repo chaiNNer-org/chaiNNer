@@ -24,16 +24,13 @@ import {
     Mutable,
     NodeData,
     OutputId,
-    SchemaId,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
-import { SchemaMap } from '../../common/SchemaMap';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';
 import { Expression } from '../../common/types/expression';
-import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
     EMPTY_SET,
@@ -73,6 +70,7 @@ import {
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { BackendContext } from './BackendContext';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -97,7 +95,6 @@ interface GlobalVolatile {
     ];
 }
 interface Global {
-    schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     defaultIteratorSize: Readonly<Size>;
     setSetNodes: SetState<SetState<Node<NodeData>[]>>;
@@ -135,7 +132,6 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
-    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
     outputDataActions: OutputDataActions;
@@ -147,19 +143,13 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 interface GlobalProviderProps {
-    schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
 export const GlobalProvider = memo(
-    ({
-        children,
-        schemata,
-        reactFlowWrapper,
-        functionDefinitions,
-    }: React.PropsWithChildren<GlobalProviderProps>) => {
+    ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
+        const { schemata, functionDefinitions } = useContext(BackendContext);
         const { useStartupTemplate } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges] = useChangeCounter();
@@ -1063,7 +1053,6 @@ export const GlobalProvider = memo(
         });
 
         const globalValue = useMemoObject<Global>({
-            schemata,
             reactFlowWrapper,
             defaultIteratorSize,
             setSetNodes,
@@ -1089,7 +1078,6 @@ export const GlobalProvider = memo(
             setNodeDisabled,
             setZoom,
             setManualOutputType,
-            functionDefinitions,
             typeStateRef,
             releaseNodeFromParent,
             outputDataActions,
