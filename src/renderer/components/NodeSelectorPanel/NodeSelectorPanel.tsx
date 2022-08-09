@@ -17,11 +17,10 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    Text,
     useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import React, { ReactNode, memo, useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -37,39 +36,6 @@ import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
-
-const packageHints: Partial<Record<string, () => ReactNode>> = {
-    PyTorch: () => (
-        <>
-            <Text>
-                PyTorch uses .pth models to upscale images. It is the most widely-used upscaling
-                architecture. However, it does not support AMD GPUs.
-            </Text>
-            <Text>
-                <em>Click</em> to open the dependency manager to install PyTorch.
-            </Text>
-        </>
-    ),
-    ONNX: () => (
-        <>
-            <Text>ONNX uses .onnx models to upscale images.</Text>
-            <Text>
-                <em>Click</em> to open the dependency manager to install ONNX.
-            </Text>
-        </>
-    ),
-    NCNN: () => (
-        <>
-            <Text>
-                NCNN uses .bin/.param models to upscale images. It is recommended for AMD users
-                because it supports both AMD and Nvidia GPUs.
-            </Text>
-            <Text>
-                <em>Click</em> to open the dependency manager to install NCNN.
-            </Text>
-        </>
-    ),
-};
 
 export const NodeSelector = memo(() => {
     const { schemata, categories } = useContext(BackendContext);
@@ -226,7 +192,7 @@ export const NodeSelector = memo(() => {
                                             noFavorites={favorites.size === 0}
                                         />
                                         {categories.map((category) => {
-                                            const categoryNodes = byCategories.get(category);
+                                            const categoryNodes = byCategories.get(category.name);
 
                                             if (categoryNodes) {
                                                 const subcategoryMap =
@@ -236,7 +202,7 @@ export const NodeSelector = memo(() => {
                                                     <RegularAccordionItem
                                                         category={category}
                                                         collapsed={collapsed}
-                                                        key={category}
+                                                        key={category.name}
                                                     >
                                                         <Subcategories
                                                             collapsed={collapsed}
@@ -246,24 +212,25 @@ export const NodeSelector = memo(() => {
                                                 );
                                             }
 
-                                            const hint = packageHints[category];
-                                            if (hint) {
+                                            if (category.installHint) {
                                                 return (
                                                     <RegularAccordionItem
                                                         category={category}
                                                         collapsed={collapsed}
-                                                        key={category}
+                                                        key={category.name}
                                                     >
                                                         <PackageHint
                                                             collapsed={collapsed}
-                                                            description={hint}
+                                                            hint={category.installHint}
+                                                            // TODO: Somehow link categories to deps
+                                                            packageName={category.name}
                                                             onClick={openDependencyManager}
                                                         />
                                                     </RegularAccordionItem>
                                                 );
                                             }
 
-                                            return <React.Fragment key={category} />;
+                                            return <React.Fragment key={category.name} />;
                                         })}
                                         <AccordionItem>
                                             <Box p={4}>

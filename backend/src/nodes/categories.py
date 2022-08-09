@@ -18,19 +18,6 @@ NCNN = "NCNN"
 # Utility
 UTILITY = "Utility"
 
-category_order = [
-    IMAGE,
-    IMAGE_DIMENSION,
-    IMAGE_ADJUSTMENT,
-    IMAGE_FILTER,
-    IMAGE_UTILITY,
-    IMAGE_CHANNEL,
-    PYTORCH,
-    ONNX,
-    NCNN,
-    UTILITY,
-]
-
 
 class Category:
     def __init__(
@@ -94,21 +81,21 @@ ImageChannelCategory = Category(
 PyTorchCategory = Category(
     name=PYTORCH,
     description="Nodes for using the PyTorch Neural Network Framework with images.",
-    icon="PyTorchIcon",
+    icon="PyTorch",
     color="#DD6B20",
     install_hint="PyTorch uses .pth models to upscale images. It is the most widely-used upscaling architecture. However, it does not support AMD GPUs.",
 )
 ONNXCategory = Category(
     name=ONNX,
     description="Nodes for using the ONNX Neural Network Framework with images.",
-    icon="ONNXIcon",
+    icon="ONNX",
     color="#63B3ED",
     install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
 )
 NCNNCategory = Category(
     name=NCNN,
     description="Nodes for using the NCNN Neural Network Framework with images.",
-    icon="NCNNIcon",
+    icon="NCNN",
     color="#ED64A6",
     install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
 )
@@ -131,3 +118,5 @@ categories = [
     NCNNCategory,
     UtilityCategory,
 ]
+
+category_order = [x.name for x in categories]

@@ -18,7 +18,7 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.categories import category_order
+from nodes.categories import categories, category_order
 
 # Remove broken QT env var
 if platform.system() == "Linux":
@@ -126,7 +126,7 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    logger.debug(category_order)
+    logger.debug(categories)
 
     # sort nodes in category order
     sorted_registry = sorted(
@@ -158,7 +158,7 @@ async def nodes(_):
         if node_object.get_type() == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
-    return json({"nodes": node_list, "categories": category_order})
+    return json({"nodes": node_list, "categories": [x.toDict() for x in categories]})
 
 
 class RunRequest(TypedDict):
