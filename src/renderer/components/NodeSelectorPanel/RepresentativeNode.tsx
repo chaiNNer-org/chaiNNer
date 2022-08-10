@@ -46,12 +46,13 @@ export const RepresentativeNode = memo(
             <Center
                 _active={{ outlineColor: accentColor }}
                 _focus={{ outlineColor: accentColor }}
-                _hover={{ outlineColor: accentColor }}
+                _hover={{ outlineColor: accentColor, cursor: 'grab' }}
                 bgGradient={bgGradient}
                 borderColor={bgColor}
                 borderRadius="lg"
                 borderWidth="0px"
                 boxShadow="lg"
+                className="representative-node"
                 outline="1px solid"
                 outlineColor={bgColor}
                 overflow="hidden"
@@ -67,8 +68,10 @@ export const RepresentativeNode = memo(
                 onMouseLeave={() => setHover(false)}
             >
                 <Box
+                    _hover={{ cursor: 'grab' }}
                     bg={bgColor}
                     borderRadius="8px 0 0 8px"
+                    className="representative-node"
                     h="auto"
                     ml="5px"
                     overflow="hidden"
@@ -77,14 +80,18 @@ export const RepresentativeNode = memo(
                     w="full"
                 >
                     <HStack
+                        _hover={{ cursor: 'grab' }}
+                        className="representative-node"
                         overflow="hidden"
                         pl={2}
                         textOverflow="ellipsis"
                         verticalAlign="middle"
                     >
                         <Center
+                            _hover={{ cursor: 'grab' }}
                             alignContent="center"
                             alignItems="center"
+                            className="representative-node"
                             h={4}
                             py={3}
                             verticalAlign="middle"
@@ -97,17 +104,23 @@ export const RepresentativeNode = memo(
                         </Center>
                         {!collapsed && (
                             <Flex
+                                _hover={{ cursor: 'grab' }}
+                                className="representative-node"
                                 overflow="hidden"
                                 w="300px"
                             >
                                 <Box
+                                    _hover={{ cursor: 'grab' }}
+                                    className="representative-node"
                                     overflow="hidden"
                                     textOverflow="ellipsis"
                                     verticalAlign="middle"
                                 >
                                     <Heading
+                                        _hover={{ cursor: 'grab' }}
                                         alignContent="center"
                                         as="h5"
+                                        className="representative-node"
                                         fontWeight={700}
                                         h="20px"
                                         lineHeight="20px"
@@ -124,7 +137,10 @@ export const RepresentativeNode = memo(
                                         {name.toUpperCase()}
                                     </Heading>
                                 </Box>
-                                <Spacer />
+                                <Spacer
+                                    _hover={{ cursor: 'grab' }}
+                                    className="representative-node"
+                                />
                                 <HStack
                                     overflow="hidden"
                                     px={2}

@@ -2,9 +2,9 @@
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle) */
 
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span),
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span)::after,
-:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span)::before {
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.representative-node),
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.representative-node)::after,
+:not(input):not(textarea):not(button):not(svg):not(path):not(g):not(span):not(.representative-node)::before {
     -webkit-user-select: none;
     user-select: none;
     cursor: default;

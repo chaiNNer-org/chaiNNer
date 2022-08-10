@@ -102,7 +102,7 @@ export const RepresentativeNodeWrapper = memo(
                     py={1}
                     onClose={onClose}
                 >
-                    <Box>
+                    <Box _hover={{ cursor: 'grab' }}>
                         <Tooltip
                             closeOnMouseDown
                             hasArrow
@@ -119,7 +119,9 @@ export const RepresentativeNodeWrapper = memo(
                         >
                             <Center
                                 draggable
+                                _hover={{ cursor: 'grab' }}
                                 boxSizing="content-box"
+                                className="representative-node"
                                 display="block"
                                 onClick={() => {
                                     setDidSingleClick(true);
