@@ -48,6 +48,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
     }, [id, outputId, value]);
 
     const imgBgColor = useColorModeValue('gray.400', 'gray.750');
+    const imgBgHoverColor = useColorModeValue('gray.500', 'gray.600');
     const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
@@ -60,7 +61,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
             w="full"
         >
             <Center
-                cursor="zoom-in"
+                cursor="pointer"
                 h="2rem"
                 w="2rem"
                 onClick={() => {
@@ -105,15 +106,19 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                 }}
             >
                 <Center
+                    _hover={{
+                        backgroundColor: imgBgHoverColor,
+                    }}
                     bgColor={imgBgColor}
                     borderRadius="md"
-                    cursor="zoom-in"
+                    cursor="pointer"
                     h="1.75rem"
                     maxH="1.75rem"
                     maxW="1.75rem"
                     minH="1.75rem"
                     minW="1.75rem"
                     overflow="hidden"
+                    transition="0.15s ease-in-out"
                     w="1.75rem"
                 >
                     <Icon
