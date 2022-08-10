@@ -1,6 +1,14 @@
+from typing import Union
+
+
 class Category:
     def __init__(
-        self, name: str, description: str, icon: str, color: str, install_hint: str = ""
+        self,
+        name: str,
+        description: str,
+        icon: str,
+        color: str,
+        install_hint: Union[str, None] = None,
     ):
         self.name = name
         self.description = description
@@ -23,9 +31,13 @@ class Category:
     def __iter__(self):
         yield from self.toDict().items()
 
+
 # Image Categories
 ImageCategory = Category(
-    name="Image", description="Base image nodes.", icon="BsFillImageFill", color="#C53030"
+    name="Image",
+    description="Base image nodes.",
+    icon="BsFillImageFill",
+    color="#C53030",
 )
 ImageDimensionCategory = Category(
     name="Image (Dimensions)",

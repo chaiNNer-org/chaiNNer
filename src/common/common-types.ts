@@ -156,5 +156,5 @@ export interface Category {
     description: string;
     icon: string;
     color: string;
-    installHint: string;
+    installHint?: string;
 }
