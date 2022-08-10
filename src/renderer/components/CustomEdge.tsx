@@ -6,10 +6,10 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseSourceHandle } from '../../common/util';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
-import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import { getTypeAccentColors } from '../helpers/getTypeAccentColors';
 
 export const CustomEdge = memo(
@@ -50,12 +50,10 @@ export const CustomEdge = memo(
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const parentNode = useMemo(() => getNode(source)!, [source]);
-        const disabledStatus = useMemo(
-            () => getDisabledStatus(parentNode.data, effectivelyDisabledNodes),
-            [parentNode.data, effectivelyDisabledNodes]
-        );
+        const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById, setHoveredNode, functionDefinitions } = useContext(GlobalContext);
+        const { removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
@@ -86,7 +84,7 @@ export const CustomEdge = memo(
                 className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
-                    opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
+                    opacity: isSourceEnabled ? 1 : 0.5,
                 }}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}

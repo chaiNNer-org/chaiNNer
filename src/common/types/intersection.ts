@@ -4,9 +4,11 @@ import {
     AnyType,
     IntIntervalType,
     IntervalType,
+    InvertedStringSetType,
     NeverType,
     NumberPrimitive,
     NumericLiteralType,
+    StringLiteralType,
     StringPrimitive,
     StructType,
     StructTypeField,
@@ -70,9 +72,28 @@ const intersectNumber = (a: NumberPrimitive, b: NumberPrimitive): NumberPrimitiv
     return intersectInterval(a, b);
 };
 
+const intersectInvertedStringSet = (
+    a: InvertedStringSetType,
+    b: InvertedStringSetType | StringLiteralType
+): StringPrimitive | NeverType => {
+    if (b.type === 'literal') {
+        if (!a.has(b.value)) return NeverType.instance;
+        return b;
+    }
+
+    // to find the intersection of 2 inverted sets, we have to compute their union
+    const union = new Set<string>([...a.excluded, ...b.excluded]);
+    if (union.size === a.excluded.size) return a;
+    if (union.size === b.excluded.size) return b;
+    return new InvertedStringSetType(union);
+};
+
 const intersectString = (a: StringPrimitive, b: StringPrimitive): StringPrimitive | NeverType => {
     if (a.type === 'string') return b;
     if (b.type === 'string') return a;
+
+    if (a.type === 'inverted-set') return intersectInvertedStringSet(a, b);
+    if (b.type === 'inverted-set') return intersectInvertedStringSet(b, a);
 
     if (a.value === b.value) return a;
     return NeverType.instance;

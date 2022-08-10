@@ -1,18 +1,18 @@
 import { useMemo, useRef } from 'react';
 import { useContext } from 'use-context-selector';
-import { getBackend } from '../../common/Backend';
 import { NodeData } from '../../common/common-types';
 import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
 
 export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { animate, unAnimate, schemata } = useContext(GlobalContext);
-    const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
-    const backend = getBackend(port);
+    const { animate, unAnimate } = useContext(GlobalContext);
+    const { schemata, backend } = useContext(BackendContext);
+    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
@@ -37,9 +37,8 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
 
                 const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
-                unAnimate([id]);
-
                 if (!result.success) {
+                    unAnimate([id]);
                     sendToast({
                         status: 'error',
                         title: 'Error',

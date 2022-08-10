@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
+import { Category, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
     message: string;
@@ -14,7 +14,10 @@ export interface BackendExceptionResponse {
     source?: BackendExceptionSource | null;
     exception: string;
 }
-export type BackendNodesResponse = NodeSchema[];
+export interface BackendNodesResponse {
+    nodes: NodeSchema[];
+    categories: Category[];
+}
 export interface BackendRunRequest {
     data: Record<string, UsableData>;
     isCpu: boolean;

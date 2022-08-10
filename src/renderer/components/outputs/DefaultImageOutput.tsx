@@ -1,17 +1,25 @@
 import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
+import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
+import { NumericLiteralType } from '../../../common/types/types';
 import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { TypeTag } from '../TypeTag';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
 
-export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) => {
+interface ImageBroadcastData {
+    width: number;
+    height: number;
+    channels: number;
+}
+
+export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)?.outputs.get(outputId)
     );
@@ -19,9 +27,28 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const createConnection = useContextSelector(GlobalVolatileContext, (c) => c.createConnection);
 
-    const { selectNode } = useContext(GlobalContext);
+    const { selectNode, setManualOutputType } = useContext(GlobalContext);
+
+    const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
+    const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
+    useEffect(() => {
+        if (value && valueInputHash === inputHash) {
+            setManualOutputType(
+                id,
+                outputId,
+                new NamedExpression('Image', [
+                    new NamedExpressionField('width', new NumericLiteralType(value.width)),
+                    new NamedExpressionField('height', new NumericLiteralType(value.height)),
+                    new NamedExpressionField('channels', new NumericLiteralType(value.channels)),
+                ])
+            );
+        } else {
+            setManualOutputType(id, outputId, undefined);
+        }
+    }, [id, outputId, value]);
 
     const imgBgColor = useColorModeValue('gray.400', 'gray.750');
+    const imgBgHoverColor = useColorModeValue('gray.500', 'gray.600');
     const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
@@ -34,7 +61,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
             w="full"
         >
             <Center
-                cursor="zoom-in"
+                cursor="pointer"
                 h="2rem"
                 w="2rem"
                 onClick={() => {
@@ -79,15 +106,19 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                 }}
             >
                 <Center
+                    _hover={{
+                        backgroundColor: imgBgHoverColor,
+                    }}
                     bgColor={imgBgColor}
                     borderRadius="md"
-                    cursor="zoom-in"
+                    cursor="pointer"
                     h="1.75rem"
                     maxH="1.75rem"
                     maxW="1.75rem"
                     minH="1.75rem"
                     minW="1.75rem"
                     overflow="hidden"
+                    transition="0.15s ease-in-out"
                     w="1.75rem"
                 >
                     <Icon
@@ -102,7 +133,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                     h="2rem"
                     verticalAlign="middle"
                 >
-                    <TypeTag type={type} />
+                    <TypeTags type={type} />
                 </Center>
             )}
             <Text

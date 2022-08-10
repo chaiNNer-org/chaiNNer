@@ -15,6 +15,7 @@ import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
@@ -43,7 +44,8 @@ export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
         const [value] = useOutputData<PyTorchModelData>(outputId);
 
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
 
         const schema = schemata.get(schemaId);
 

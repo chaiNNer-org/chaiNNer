@@ -6,13 +6,13 @@ from __future__ import annotations
 
 from io import BytesIO
 import os
-from typing import Any, OrderedDict, Union
+from typing import Any, OrderedDict
 
 import numpy as np
 import torch
 from sanic.log import logger
 
-from .categories import PYTORCH
+from .categories import PyTorchCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -23,14 +23,14 @@ from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
-
-
+from .utils.exec_options import get_execution_options, ExecutionOptions
 from .utils.torch_types import PyTorchModel
 
 
-def check_env():
-    os.environ["device"] = (
-        "cuda" if torch.cuda.is_available() and os.environ["device"] != "cpu" else "cpu"
+def to_pytorch_execution_options(options: ExecutionOptions):
+    return ExecutionOptions(
+        "cuda" if torch.cuda.is_available() and options.device != "cpu" else "cpu",
+        options.fp16,
     )
 
 
@@ -77,7 +77,7 @@ class LoadModelNode(NodeBase):
             TextOutput("Model Name"),
         ]
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Load Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
@@ -90,19 +90,19 @@ class LoadModelNode(NodeBase):
 
         assert os.path.isfile(path), f"Path {path} is not a file"
 
-        check_env()
+        exec_options = to_pytorch_execution_options(get_execution_options())
 
         try:
             logger.info(f"Reading state dict from path: {path}")
             state_dict = torch.load(
-                path, map_location=torch.device(os.environ["device"])
+                path, map_location=torch.device(exec_options.device)
             )
             model = load_state_dict(state_dict)
 
             for _, v in model.named_parameters():
                 v.requires_grad = False
             model.eval()
-            model = model.to(torch.device(os.environ["device"]))
+            model = model.to(torch.device(exec_options.device))
         except ValueError as e:
             raise e
         except Exception:
@@ -134,13 +134,18 @@ class ImageUpscaleNode(NodeBase):
             )
         ]
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Upscale Image"
         self.icon = "PyTorch"
         self.sub = "Processing"
 
     def upscale(
-        self, img: np.ndarray, model: torch.nn.Module, scale: int, tile_mode: int
+        self,
+        img: np.ndarray,
+        model: torch.nn.Module,
+        scale: int,
+        tile_mode: int,
+        options: ExecutionOptions,
     ):
         with torch.no_grad():
             # Borrowed from iNNfer
@@ -148,7 +153,7 @@ class ImageUpscaleNode(NodeBase):
             img_tensor = np2tensor(img, change_range=True)
             logger.info("Upscaling image")
 
-            if os.environ["device"] == "cuda":
+            if options.device == "cuda":
                 GB_AMT = 1024**3
                 free, total = torch.cuda.mem_get_info(0)  # type: ignore
                 img_bytes = img_tensor.numel() * img_tensor.element_size()
@@ -166,12 +171,13 @@ class ImageUpscaleNode(NodeBase):
                 )
 
             t_out, depth = auto_split_process(
+                options,
                 img_tensor,
                 model,
                 scale,
                 max_depth=tile_mode if tile_mode > 0 else None,
             )
-            if os.environ["device"] == "cuda":
+            if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
             del img_tensor, model
             logger.info("Converting tensor to image")
@@ -185,7 +191,7 @@ class ImageUpscaleNode(NodeBase):
     def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
-        check_env()
+        exec_options = to_pytorch_execution_options(get_execution_options())
 
         logger.info(f"Upscaling image...")
 
@@ -201,7 +207,7 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, model, model.scale, tile_mode),
+            lambda i: self.upscale(i, model, model.scale, tile_mode, exec_options),
         )
 
 
@@ -234,7 +240,7 @@ class InterpolateNode(NodeBase):
             NumberOutput("Amount B", "Input2"),
         ]
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Interpolate Models"
         self.icon = "BsTornado"
         self.sub = "Utility"
@@ -300,7 +306,7 @@ class PthSaveNode(NodeBase):
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Save Model"
         self.icon = "MdSave"
         self.sub = "Input & Output"
@@ -413,14 +419,16 @@ class ConvertTorchToONNXNode(NodeBase):
         self.inputs = [ModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput("ONNX Model")]
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
 
     def run(self, model: torch.nn.Module) -> bytes:
+        exec_options = get_execution_options()
+
         model = model.eval()
-        if os.environ["device"] == "cuda":
+        if exec_options.device == "cuda":
             model = model.cuda()
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
@@ -428,7 +436,7 @@ class ConvertTorchToONNXNode(NodeBase):
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
-        if os.environ["device"] == "cuda":
+        if exec_options.device == "cuda":
             dummy_input = dummy_input.cuda()
 
         with BytesIO() as f:
@@ -456,7 +464,7 @@ class GetModelDimensions(NodeBase):
         self.inputs = [ModelInput()]
         self.outputs = [NumberOutput("Scale", output_type="Input0.scale")]
 
-        self.category = PYTORCH
+        self.category = PyTorchCategory
         self.name = "Get Model Scale"
         self.icon = "BsRulers"
         self.sub = "Utility"

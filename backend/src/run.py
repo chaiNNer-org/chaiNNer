@@ -18,7 +18,7 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.categories import category_order
+from nodes.categories import categories, category_order
 
 # Remove broken QT env var
 if platform.system() == "Linux":
@@ -69,6 +69,7 @@ from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, UsableData, timed_supplier
+from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
 
 class AppContext:
@@ -81,9 +82,9 @@ class AppContext:
         self.pool = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
-    def get(app: Sanic) -> "AppContext":
-        assert isinstance(app.ctx, AppContext)
-        return app.ctx
+    def get(app_instance: Sanic) -> "AppContext":
+        assert isinstance(app_instance.ctx, AppContext)
+        return app_instance.ctx
 
 
 app = Sanic("chaiNNer", ctx=AppContext())
@@ -125,39 +126,37 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    logger.debug(category_order)
+    logger.debug(categories)
 
     # sort nodes in category order
     sorted_registry = sorted(
         registry.items(),
-        key=lambda x: category_order.index(
-            NodeFactory.create_node(x[0]).get_category()
-        ),
+        key=lambda x: category_order.index(NodeFactory.create_node(x[0]).category.name),
     )
     node_list = []
     for schema_id, _node_class in sorted_registry:
         node_object = NodeFactory.create_node(schema_id)
         node_dict = {
             "schemaId": schema_id,
-            "name": node_object.get_name(),
-            "category": node_object.get_category(),
+            "name": node_object.name,
+            "category": node_object.category.name,
             "inputs": [
                 x.toDict() for x in node_object.get_inputs(with_implicit_ids=True)
             ],
             "outputs": [
                 x.toDict() for x in node_object.get_outputs(with_implicit_ids=True)
             ],
-            "description": node_object.get_description(),
-            "icon": node_object.get_icon(),
-            "subcategory": node_object.get_sub_category(),
-            "nodeType": node_object.get_type(),
-            "hasSideEffects": node_object.get_has_side_effects(),
-            "deprecated": node_object.is_deprecated(),
+            "description": node_object.description,
+            "icon": node_object.icon,
+            "subcategory": node_object.sub,
+            "nodeType": node_object.type,
+            "hasSideEffects": node_object.side_effects,
+            "deprecated": node_object.deprecated,
         }
-        if node_object.get_type() == "iterator":
+        if node_object.type == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
-    return json(node_list)
+    return json({"nodes": node_list, "categories": [x.toDict() for x in categories]})
 
 
 class RunRequest(TypedDict):
@@ -175,7 +174,6 @@ async def run(request: Request):
         # wait until all previews are done
         await runIndividualCounter.wait_zero()
 
-        os.environ["killed"] = "False"
         if ctx.executor:
             logger.info("Resuming existing executor...")
             executor = ctx.executor
@@ -185,9 +183,12 @@ async def run(request: Request):
             full_data: RunRequest = dict(request.json)  # type: ignore
             logger.info(full_data)
             nodes_list = full_data["data"]
-            os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-            os.environ["isFp16"] = str(full_data["isFp16"])
-            logger.info(f"Using device: {os.environ['device']}")
+            exec_opts = ExecutionOptions(
+                device="cpu" if full_data["isCpu"] else "cuda",
+                fp16=full_data["isFp16"],
+            )
+            set_execution_options(exec_opts)
+            logger.info(f"Using device: {exec_opts.device}")
             executor = Executor(
                 nodes_list,
                 app.loop,
@@ -240,10 +241,15 @@ async def run_individual(request: Request):
     ctx = AppContext.get(request.app)
     try:
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
+        if ctx.cache.get(full_data["id"], None) is not None:
+            del ctx.cache[full_data["id"]]
         logger.info(full_data)
-        os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-        os.environ["isFp16"] = str(full_data["isFp16"])
-        logger.info(f"Using device: {os.environ['device']}")
+        exec_opts = ExecutionOptions(
+            device="cpu" if full_data["isCpu"] else "cuda",
+            fp16=full_data["isFp16"],
+        )
+        set_execution_options(exec_opts)
+        logger.info(f"Using device: {exec_opts.device}")
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(full_data["schemaId"])
 

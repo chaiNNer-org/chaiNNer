@@ -28,8 +28,9 @@ import {
     stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
+import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
@@ -265,7 +266,7 @@ export const usePaneNodeSearchMenu = (
     const { createNode, createConnection, typeState, useConnectingFrom } =
         useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { schemata, functionDefinitions } = useContext(GlobalContext);
+    const { schemata, functionDefinitions } = useContext(BackendContext);
 
     const { favorites } = useNodeFavorites();
 

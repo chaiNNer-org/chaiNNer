@@ -98,6 +98,14 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }:
                     },
                     enabled,
                 },
+                {
+                    label: 'Export for Sharing',
+                    accelerator: 'CmdOrCtrl+Shift+E',
+                    click: () => {
+                        mainWindow.webContents.send('file-export-template');
+                    },
+                    enabled,
+                },
                 { type: 'separator' },
                 isMac ? { role: 'close', enabled } : { role: 'quit', enabled },
             ],

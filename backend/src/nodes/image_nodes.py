@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from .categories import IMAGE
+from .categories import ImageCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -34,7 +34,7 @@ from .utils.utils import get_h_w_c
 class ImReadNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Load image from file."
+        self.description = "Load image from specified file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
             LargeImageOutput(),
@@ -42,7 +42,7 @@ class ImReadNode(NodeBase):
             TextOutput("Image Name"),
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
@@ -104,7 +104,7 @@ class ImWriteNode(NodeBase):
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Save Image"
         self.outputs = []
         self.icon = "MdSave"
@@ -149,7 +149,7 @@ class ImOpenNode(NodeBase):
         self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]
         self.outputs = []
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "View Image (external)"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
@@ -189,7 +189,7 @@ class ImViewNode(NodeBase):
         self.outputs = [
             LargeImageOutput("Preview", image_type="Input0", has_handle=False)
         ]
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "View Image"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"

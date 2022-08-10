@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable class-methods-use-this */
 
+import { binaryCompare } from '../util';
 import { assertValidStructFieldName, assertValidStructName } from './names';
 
 export type Type = PrimitiveType | NeverType | AnyType | UnionType | StructType;
 export type ValueType = PrimitiveType | StructType;
 export type PrimitiveType = NumberPrimitive | StringPrimitive;
 export type NumberPrimitive = NumberType | NumericLiteralType | IntervalType | IntIntervalType;
-export type StringPrimitive = StringType | StringLiteralType;
+export type StringPrimitive = StringType | StringLiteralType | InvertedStringSetType;
 
 /**
  * A de-duplicated and sorted array of types.
@@ -200,7 +201,40 @@ export class StringLiteralType implements TypeBase {
         return this.getTypeId();
     }
 }
-// TODO: RegexType
+export class InvertedStringSetType implements TypeBase {
+    readonly type = 'inverted-set';
+
+    readonly underlying = 'string';
+
+    readonly excluded: ReadonlySet<string>;
+
+    private cachedTypeId: string | undefined;
+
+    constructor(excluded: ReadonlySet<string>) {
+        if (excluded.size === 0)
+            throw new Error('An inverted string set must exclude at least one string.');
+        this.excluded = excluded;
+    }
+
+    has(s: string): boolean {
+        return !this.excluded.has(s);
+    }
+
+    getTypeId(): string {
+        if (this.cachedTypeId === undefined) {
+            const union = [...this.excluded]
+                .sort(binaryCompare)
+                .map((s) => JSON.stringify(s))
+                .join(' | ');
+            this.cachedTypeId = `invStrSet(${union})`;
+        }
+        return this.cachedTypeId;
+    }
+
+    toString(): string {
+        return this.getTypeId();
+    }
+}
 
 export class AnyType implements TypeBase {
     readonly type = 'any';

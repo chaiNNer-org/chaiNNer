@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import gc
-import os
-from functools import reduce
-from operator import mul
 from typing import Tuple, Union
 
 import torch
 from sanic.log import logger
 from torch import Tensor
+
+from .exec_options import ExecutionOptions
 
 
 def torch_center_crop(tensor, crop_x, crop_y):
@@ -28,9 +27,10 @@ def torch_center_replace(tensor, crop_x, crop_y, replacement):
 
 @torch.inference_mode()
 def auto_split_process(
+    exec_options: ExecutionOptions,
     lr_img: Tensor,
     model: torch.nn.Module,
-    scale: int = 4,
+    scale: int,
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
@@ -59,10 +59,10 @@ def auto_split_process(
     if max_depth is None or max_depth == current_depth:
         d_img = None
         try:
-            device = torch.device(os.environ["device"])
+            device = torch.device(exec_options.device)
             d_img = lr_img.to(device)
             model = model.to(device)
-            if os.environ["isFp16"] == "True":
+            if exec_options.fp16:
                 model = model.half()
                 d_img = d_img.half()
             else:
@@ -100,6 +100,7 @@ def auto_split_process(
     # Recursively upscale the quadrants
     # After we go through the top left quadrant, we know the maximum depth and no longer need to test for out-of-memory
     top_left_rlt, depth = auto_split_process(
+        exec_options,
         top_left,
         model,
         scale=scale,
@@ -108,6 +109,7 @@ def auto_split_process(
         current_depth=current_depth + 1,
     )
     top_right_rlt, _ = auto_split_process(
+        exec_options,
         top_right,
         model,
         scale=scale,
@@ -116,6 +118,7 @@ def auto_split_process(
         current_depth=current_depth + 1,
     )
     bottom_left_rlt, _ = auto_split_process(
+        exec_options,
         bottom_left,
         model,
         scale=scale,
@@ -124,6 +127,7 @@ def auto_split_process(
         current_depth=current_depth + 1,
     )
     bottom_right_rlt, _ = auto_split_process(
+        exec_options,
         bottom_right,
         model,
         scale=scale,

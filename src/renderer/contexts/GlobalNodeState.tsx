@@ -17,22 +17,20 @@ import {
     EdgeData,
     InputData,
     InputId,
+    InputKind,
     InputSize,
     InputValue,
     IteratorSize,
     Mutable,
     NodeData,
     OutputId,
-    SchemaId,
     Size,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
-import { SchemaMap } from '../../common/SchemaMap';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';
 import { Expression } from '../../common/types/expression';
-import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
     EMPTY_SET,
@@ -72,6 +70,7 @@ import {
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { BackendContext } from './BackendContext';
 import { SettingsContext } from './SettingsContext';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -96,7 +95,6 @@ interface GlobalVolatile {
     ];
 }
 interface Global {
-    schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
     defaultIteratorSize: Readonly<Size>;
     setSetNodes: SetState<SetState<Node<NodeData>[]>>;
@@ -134,7 +132,6 @@ interface Global {
     setHoveredNode: SetState<string | null | undefined>;
     setZoom: SetState<number>;
     setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
-    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     releaseNodeFromParent: (id: string) => void;
     outputDataActions: OutputDataActions;
@@ -146,19 +143,13 @@ export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} 
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
 
 interface GlobalProviderProps {
-    schemata: SchemaMap;
     reactFlowWrapper: React.RefObject<Element>;
-    functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
 export const GlobalProvider = memo(
-    ({
-        children,
-        schemata,
-        reactFlowWrapper,
-        functionDefinitions,
-    }: React.PropsWithChildren<GlobalProviderProps>) => {
+    ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
+        const { schemata, functionDefinitions } = useContext(BackendContext);
         const { useStartupTemplate } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges] = useChangeCounter();
@@ -417,6 +408,8 @@ export const GlobalProvider = memo(
                         message: `This file contains the following deprecated node(s):\n\n${list}\n\nThis chain will still work right now, but these nodes will stop working in future versions of Chainner.`,
                     });
                 }
+
+                outputDataActions.clear();
                 changeNodes(validNodes);
                 changeEdges(validEdges);
                 if (loadPosition) {
@@ -426,7 +419,7 @@ export const GlobalProvider = memo(
                 pushOpenPath(path);
                 setHasUnsavedChanges(false);
             },
-            [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges]
+            [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges, outputDataActions]
         );
 
         const clearState = useCallback(async () => {
@@ -442,26 +435,58 @@ export const GlobalProvider = memo(
             changeEdges([]);
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
-        }, [hasRelevantUnsavedChanges, changeNodes, changeEdges, setSavePath, setViewport]);
+            outputDataActions.clear();
+        }, [
+            hasRelevantUnsavedChanges,
+            changeNodes,
+            changeEdges,
+            setSavePath,
+            setViewport,
+            outputDataActions,
+        ]);
 
         const performSave = useCallback(
-            (saveAs: boolean) => {
+            (saveAs: boolean, isTemplate = false) => {
                 (async () => {
                     try {
                         const saveData = dumpState();
+                        if (isTemplate) {
+                            saveData.nodes = saveData.nodes.map((n) => {
+                                const inputData = { ...n.data.inputData } as Mutable<InputData>;
+                                const nodeSchema = schemata.get(n.data.schemaId);
+                                nodeSchema.inputs.forEach((input) => {
+                                    const clearKinds = new Set<InputKind>(['file', 'directory']);
+                                    if (clearKinds.has(input.kind)) {
+                                        delete inputData[input.id];
+                                    }
+                                });
+                                return {
+                                    ...n,
+                                    data: {
+                                        ...n.data,
+                                        inputData,
+                                    },
+                                };
+                            });
+                        }
                         if (!saveAs && savePath) {
                             await ipcRenderer.invoke('file-save-json', saveData, savePath);
                         } else {
                             const result = await ipcRenderer.invoke(
                                 'file-save-as-json',
                                 saveData,
-                                savePath || (openRecent[0] && dirname(openRecent[0]))
+                                isTemplate
+                                    ? undefined
+                                    : savePath || (openRecent[0] && dirname(openRecent[0]))
                             );
                             if (result.kind === 'Canceled') return;
-                            setSavePath(result.path);
+                            if (!isTemplate) {
+                                setSavePath(result.path);
+                            }
                         }
-
-                        setHasUnsavedChanges(false);
+                        if (!isTemplate) {
+                            setHasUnsavedChanges(false);
+                        }
                     } catch (error) {
                         log.error(error);
 
@@ -516,6 +541,9 @@ export const GlobalProvider = memo(
         // Register Save/Save-As event handlers
         useIpcRendererListener('file-save-as', () => performSave(true), [performSave]);
         useIpcRendererListener('file-save', () => performSave(false), [performSave]);
+        useIpcRendererListener('file-export-template', () => performSave(true, true), [
+            performSave,
+        ]);
 
         const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
         const [startupTemplate] = useStartupTemplate;
@@ -540,7 +568,7 @@ export const GlobalProvider = memo(
                 }
                 setFirstLoad(false);
             }
-        }, [firstLoad]);
+        }, [firstLoad, setStateFromJSON]);
 
         const removeNodeById = useCallback(
             (id: string) => {
@@ -1025,7 +1053,6 @@ export const GlobalProvider = memo(
         });
 
         const globalValue = useMemoObject<Global>({
-            schemata,
             reactFlowWrapper,
             defaultIteratorSize,
             setSetNodes,
@@ -1051,7 +1078,6 @@ export const GlobalProvider = memo(
             setNodeDisabled,
             setZoom,
             setManualOutputType,
-            functionDefinitions,
             typeStateRef,
             releaseNodeFromParent,
             outputDataActions,

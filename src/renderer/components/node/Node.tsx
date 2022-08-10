@@ -1,13 +1,12 @@
 import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, Input, NodeData } from '../../../common/common-types';
+import { Input, NodeData } from '../../../common/common-types';
 import { isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { Validity, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
@@ -15,6 +14,7 @@ import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
+import { useValidity } from '../../hooks/useValidity';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -50,10 +50,8 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
-        useContext(GlobalContext);
-    const { getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { updateIteratorBounds, setHoveredNode, useInputData } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
     const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
@@ -63,9 +61,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
-    );
+    const { validity } = useValidity(id, schema, inputData);
 
     const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
     const accentColor = getNodeAccentColor(category);
@@ -73,24 +69,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
     );
-
-    const [validity, setValidity] = useState<Validity>({
-        isValid: false,
-        reason: 'Validating nodes...',
-    });
-    useEffect(() => {
-        if (inputs.length) {
-            setValidity(
-                checkNodeValidity({
-                    id,
-                    schema,
-                    inputData,
-                    edges: getEdges(),
-                    functionInstance,
-                })
-            );
-        }
-    }, [inputData, edgeChanges, functionInstance]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);

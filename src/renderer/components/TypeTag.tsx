@@ -1,7 +1,9 @@
 import { Tag, useColorModeValue } from '@chakra-ui/react';
-import { memo } from 'react';
-import { Type } from '../../common/types/types';
+import React, { memo } from 'react';
+import { isSubsetOf } from '../../common/types/relation';
+import { StructType, Type } from '../../common/types/types';
 import { isImage, isNumericLiteral } from '../../common/types/util';
+import { without } from '../../common/types/without';
 
 const getColorMode = (channels: number) => {
     switch (channels) {
@@ -15,6 +17,8 @@ const getColorMode = (channels: number) => {
             return undefined;
     }
 };
+
+const nullType = new StructType('null');
 
 const getTypeText = (type: Type): string[] => {
     if (isNumericLiteral(type)) return [type.toString()];
@@ -45,35 +49,47 @@ const getTypeText = (type: Type): string[] => {
 };
 
 export interface TypeTagProps {
-    type: Type;
+    isOptional?: boolean;
 }
 
-export const TypeTag = memo(({ type }: TypeTagProps) => {
-    const tags = getTypeText(type);
-
+export const TypeTag = memo(({ children, isOptional }: React.PropsWithChildren<TypeTagProps>) => {
     const tagColor = useColorModeValue('gray.400', 'gray.750');
     const tagFontColor = useColorModeValue('gray.700', 'gray.400');
 
     return (
+        <Tag
+            bgColor={tagColor}
+            color={tagFontColor}
+            fontSize="x-small"
+            fontStyle={isOptional ? 'italic' : undefined}
+            height="15px"
+            lineHeight="auto"
+            minHeight="15px"
+            minWidth={0}
+            ml={1}
+            px={1}
+            size="sm"
+            variant="subtle"
+        >
+            {children}
+        </Tag>
+    );
+});
+
+export interface TypeTagsProps {
+    type: Type;
+}
+
+export const TypeTags = memo(({ type }: TypeTagsProps) => {
+    const isOptional = isSubsetOf(nullType, type);
+    const tags = getTypeText(without(type, nullType));
+
+    return (
         <>
             {tags.map((text) => (
-                <Tag
-                    bgColor={tagColor}
-                    color={tagFontColor}
-                    fontSize="x-small"
-                    height="15px"
-                    key={text}
-                    lineHeight="auto"
-                    minHeight="15px"
-                    minWidth={0}
-                    ml={1}
-                    px={1}
-                    size="sm"
-                    variant="subtle"
-                >
-                    {text}
-                </Tag>
+                <TypeTag key={text}>{text}</TypeTag>
             ))}
+            {isOptional && <TypeTag isOptional>optional</TypeTag>}
         </>
     );
 });

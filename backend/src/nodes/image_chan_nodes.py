@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .categories import IMAGE_CHANNEL
+from .categories import ImageChannelCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -36,7 +36,7 @@ class SeparateRgbaNode(NodeBase):
             ).with_id(0),
             ImageOutput("A Channel", expression.Image(size_as="Input0", channels=1)),
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Separate RGBA"
         self.icon = "MdCallSplit"
         self.sub = "All"
@@ -88,7 +88,7 @@ class CombineRgbaNode(NodeBase):
                 "The input channels have different sizes but must all be the same size."
             )
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Combine RGBA"
         self.icon = "MdCallMerge"
         self.sub = "All"
@@ -165,7 +165,7 @@ class ChannelMergeRGBANode(NodeBase):
                 )
             )
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Merge Channels"
         self.icon = "MdCallMerge"
         self.sub = "All"
@@ -224,7 +224,7 @@ class TransparencySplitNode(NodeBase):
                 "Alpha Channel", expression.Image(size_as="Input0", channels=1)
             ),
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Split Transparency"
         self.icon = "MdCallSplit"
         self.sub = "Transparency"
@@ -266,7 +266,7 @@ class TransparencyMergeNode(NodeBase):
                 "The RGB and alpha channels have different sizes but must have the same size."
             )
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Merge Transparency"
         self.icon = "MdCallMerge"
         self.sub = "Transparency"
@@ -278,11 +278,10 @@ class TransparencyMergeNode(NodeBase):
         logger.info(start_shape)
 
         for im in rgb, a:
-            if im is not None:
-                logger.info(im.shape[:2])
-                assert (
-                    im.shape[:2] == start_shape
-                ), "All images to be merged must be the same resolution"
+            logger.info(im.shape[:2])
+            assert (
+                im.shape[:2] == start_shape
+            ), "All images to be merged must be the same resolution"
 
         if rgb.ndim == 2:
             rgb = cv2.merge((rgb, rgb, rgb))
@@ -322,7 +321,7 @@ class FillAlphaNode(NodeBase):
                 expression.Image(size_as="Input0", channels=3),
             ),
         ]
-        self.category = IMAGE_CHANNEL
+        self.category = ImageChannelCategory
         self.name = "Fill Alpha"
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"
@@ -331,7 +330,7 @@ class FillAlphaNode(NodeBase):
         """Fills transparent holes in the given image"""
 
         _, _, c = get_h_w_c(img)
-        assert c == 4, "The image has to be an RGBA image to fill its alpha"
+        assert c == 4, "The image has to be an RGBA image to fill its alpha."
 
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha
