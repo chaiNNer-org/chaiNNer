@@ -7,7 +7,7 @@ import numpy as np
 from process import ExecutionContext
 from sanic.log import logger
 
-from .categories import IMAGE
+from .categories import ImageCategory
 from .image_nodes import ImReadNode
 from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
@@ -38,7 +38,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
             TextOutput("Image Name"),
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Load Image (Iterator)"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -69,7 +69,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
             DirectoryInput(),
         ]
         self.outputs = []
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Image File Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this
@@ -157,7 +157,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
             TextOutput("Frame Index"),
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Load Frame As Image"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -183,7 +183,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         ]
         self.outputs = []
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Write Output Frame"
         self.icon = "MdVideoCameraBack"
         self.sub = "Iteration"
@@ -247,7 +247,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             },
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Video Frame Iterator"
         self.icon = "MdVideoCameraBack"
 
@@ -328,7 +328,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [ImageOutput(broadcast_type=True)]
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Load Image (Iterator)"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -349,7 +349,7 @@ class ImageSpriteSheetIteratorAppendImageNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = []
 
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Append Image"
         self.icon = "CgExtensionAdd"
         self.sub = "Iteration"
@@ -383,7 +383,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             ),
         ]
         self.outputs = [ImageOutput()]
-        self.category = IMAGE
+        self.category = ImageCategory.name
         self.name = "Spritesheet Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this

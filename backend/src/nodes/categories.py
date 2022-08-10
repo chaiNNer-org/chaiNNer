@@ -1,24 +1,3 @@
-# Image
-IMAGE = "Image"
-IMAGE_DIMENSION = "Image (Dimensions)"
-IMAGE_ADJUSTMENT = "Image (Adjustments)"
-IMAGE_FILTER = "Image (Filters)"
-IMAGE_UTILITY = "Image (Utilities)"
-IMAGE_CHANNEL = "Image (Channels)"
-
-# PyTorch
-PYTORCH = "PyTorch"
-
-# ONNX
-ONNX = "ONNX"
-
-# NCNN
-NCNN = "NCNN"
-
-# Utility
-UTILITY = "Utility"
-
-
 class Category:
     def __init__(
         self, name: str, description: str, icon: str, color: str, install_hint: str = ""
@@ -44,63 +23,67 @@ class Category:
     def __iter__(self):
         yield from self.toDict().items()
 
-
+# Image Categories
 ImageCategory = Category(
-    name=IMAGE, description="Base image nodes.", icon="BsFillImageFill", color="#C53030"
+    name="Image", description="Base image nodes.", icon="BsFillImageFill", color="#C53030"
 )
 ImageDimensionCategory = Category(
-    name=IMAGE_DIMENSION,
+    name="Image (Dimensions)",
     description="Nodes that deal with changing the dimensions/resolution of images.",
     icon="MdOutlinePhotoSizeSelectLarge",
     color="#3182CE",
 )
 ImageAdjustmentCategory = Category(
-    name=IMAGE_ADJUSTMENT,
+    name="Image (Adjustments)",
     description="Nodes that deal with adjusting properties of images.",
     icon="BsSliders",
     color="#319795",
 )
 ImageFilterCategory = Category(
-    name=IMAGE_FILTER,
+    name="Image (Filters)",
     description="Nodes that deal with filtering images.",
     icon="MdFilterAlt",
     color="#38A169",
 )
 ImageUtilityCategory = Category(
-    name=IMAGE_UTILITY,
+    name="Image (Utilities)",
     description="Various utility nodes for images.",
     icon="BsGear",
     color="#00A3C4",
 )
 ImageChannelCategory = Category(
-    name=IMAGE_CHANNEL,
+    name="Image (Channels)",
     description="Nodes that deal with manipulating channels of images.",
     icon="MdAllOut",
     color="#D69E2E",
 )
+
+# NN Categories
 PyTorchCategory = Category(
-    name=PYTORCH,
+    name="PyTorch",
     description="Nodes for using the PyTorch Neural Network Framework with images.",
     icon="PyTorch",
     color="#DD6B20",
     install_hint="PyTorch uses .pth models to upscale images. It is the most widely-used upscaling architecture. However, it does not support AMD GPUs.",
 )
 ONNXCategory = Category(
-    name=ONNX,
+    name="ONNX",
     description="Nodes for using the ONNX Neural Network Framework with images.",
     icon="ONNX",
     color="#63B3ED",
     install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
 )
 NCNNCategory = Category(
-    name=NCNN,
+    name="NCNN",
     description="Nodes for using the NCNN Neural Network Framework with images.",
     icon="NCNN",
     color="#ED64A6",
     install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
 )
+
+# Etc
 UtilityCategory = Category(
-    name=UTILITY,
+    name="Utility",
     description="Various utility nodes.",
     icon="BsGearFill",
     color="#718096",

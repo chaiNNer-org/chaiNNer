@@ -13,7 +13,7 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from .categories import NCNN
+from .categories import NCNNCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -45,7 +45,7 @@ class NcnnLoadModelNode(NodeBase):
         self.inputs = [ParamFileInput(), BinFileInput()]
         self.outputs = [NcnnNetOutput(), TextOutput("Model Name")]
 
-        self.category = NCNN
+        self.category = NCNNCategory.name
         self.name = "Load Model"
         self.icon = "NCNN"
         self.sub = "Input & Output"
@@ -118,7 +118,7 @@ class NcnnSaveNode(NodeBase):
         self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
         self.outputs = []
 
-        self.category = NCNN
+        self.category = NCNNCategory.name
         self.name = "Save Model"
         self.icon = "MdSave"
         self.sub = "Input & Output"
@@ -162,7 +162,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 )
             )
         ]
-        self.category = NCNN
+        self.category = NCNNCategory.name
         self.name = "Upscale Image"
         self.icon = "NCNN"
         self.sub = "Processing"
@@ -274,7 +274,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             NumberOutput("Amount B", "Input2"),
         ]
 
-        self.category = NCNN
+        self.category = NCNNCategory.name
         self.name = "Interpolate Models"
         self.icon = "BsTornado"
         self.sub = "Utility"

@@ -5,7 +5,7 @@ Nodes that provide various generic utility
 from __future__ import annotations
 from typing import Union
 
-from .categories import UTILITY
+from .categories import UtilityCategory
 
 from .node_base import NodeBase
 from .utils.replacement import ReplacementString
@@ -24,7 +24,7 @@ class NoteNode(NodeBase):
         ]
         self.outputs = []
 
-        self.category = UTILITY
+        self.category = UtilityCategory.name
         self.name = "Note"
         self.icon = "MdOutlineStickyNote2"
         self.sub = "Text"
@@ -72,7 +72,7 @@ class MathNode(NodeBase):
             )
         ]
 
-        self.category = UTILITY
+        self.category = UtilityCategory.name
         self.name = "Math"
         self.icon = "MdCalculate"
         self.sub = "Math"
@@ -125,7 +125,7 @@ class TextAppendNode(NodeBase):
             )
         ]
 
-        self.category = UTILITY
+        self.category = UtilityCategory.name
         self.name = "Text Append"
         self.icon = "MdTextFields"
         self.sub = "Text"
@@ -156,7 +156,7 @@ class TextPatternNode(NodeBase):
         ]
         self.outputs = [TextOutput("Output Text")]
 
-        self.category = UTILITY
+        self.category = UtilityCategory.name
         self.name = "Text Pattern"
         self.icon = "MdTextFields"
         self.sub = "Text"

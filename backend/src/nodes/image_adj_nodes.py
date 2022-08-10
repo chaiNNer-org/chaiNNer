@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .categories import IMAGE_ADJUSTMENT
+from .categories import ImageAdjustmentCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -38,7 +38,7 @@ class HueAndSaturationNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Hue & Saturation"
         self.icon = "MdOutlineColorLens"
         self.sub = "Adjustments"
@@ -106,7 +106,7 @@ class BrightnessAndContrastNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Brightness & Contrast"
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
@@ -176,7 +176,7 @@ class ThresholdNode(NodeBase):
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Threshold"
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
@@ -218,7 +218,7 @@ class AdaptiveThresholdNode(NodeBase):
             NumberInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Threshold (Adaptive)"
         self.icon = "MdAutoGraph"
         self.sub = "Adjustments"
@@ -274,7 +274,7 @@ class OpacityNode(NodeBase):
         self.outputs = [
             ImageOutput(image_type=expression.Image(size_as="Input0", channels=4))
         ]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Opacity"
         self.icon = "MdOutlineOpacity"
         self.sub = "Adjustments"
@@ -312,7 +312,7 @@ class GammaNode(NodeBase):
             GammaOptionInput(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Gamma"
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
@@ -347,7 +347,7 @@ class InvertNode(NodeBase):
         self.description = "Inverts all colors in an image."
         self.inputs = [ImageInput()]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory.name
         self.name = "Invert Color"
         self.icon = "MdInvertColors"
         self.sub = "Adjustments"
