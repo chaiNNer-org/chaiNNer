@@ -36,7 +36,7 @@ class SeparateRgbaNode(NodeBase):
             ).with_id(0),
             ImageOutput("A Channel", expression.Image(size_as="Input0", channels=1)),
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Separate RGBA"
         self.icon = "MdCallSplit"
         self.sub = "All"
@@ -88,7 +88,7 @@ class CombineRgbaNode(NodeBase):
                 "The input channels have different sizes but must all be the same size."
             )
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Combine RGBA"
         self.icon = "MdCallMerge"
         self.sub = "All"
@@ -165,7 +165,7 @@ class ChannelMergeRGBANode(NodeBase):
                 )
             )
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Merge Channels"
         self.icon = "MdCallMerge"
         self.sub = "All"
@@ -224,7 +224,7 @@ class TransparencySplitNode(NodeBase):
                 "Alpha Channel", expression.Image(size_as="Input0", channels=1)
             ),
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Split Transparency"
         self.icon = "MdCallSplit"
         self.sub = "Transparency"
@@ -266,7 +266,7 @@ class TransparencyMergeNode(NodeBase):
                 "The RGB and alpha channels have different sizes but must have the same size."
             )
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Merge Transparency"
         self.icon = "MdCallMerge"
         self.sub = "Transparency"
@@ -321,7 +321,7 @@ class FillAlphaNode(NodeBase):
                 expression.Image(size_as="Input0", channels=3),
             ),
         ]
-        self.category = ImageChannelCategory.name
+        self.category = ImageChannelCategory
         self.name = "Fill Alpha"
         self.icon = "MdOutlineFormatColorFill"
         self.sub = "Miscellaneous"

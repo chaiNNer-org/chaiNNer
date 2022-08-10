@@ -131,31 +131,29 @@ async def nodes(_):
     # sort nodes in category order
     sorted_registry = sorted(
         registry.items(),
-        key=lambda x: category_order.index(
-            NodeFactory.create_node(x[0]).get_category()
-        ),
+        key=lambda x: category_order.index(NodeFactory.create_node(x[0]).category.name),
     )
     node_list = []
     for schema_id, _node_class in sorted_registry:
         node_object = NodeFactory.create_node(schema_id)
         node_dict = {
             "schemaId": schema_id,
-            "name": node_object.get_name(),
-            "category": node_object.get_category(),
+            "name": node_object.name,
+            "category": node_object.category.name,
             "inputs": [
                 x.toDict() for x in node_object.get_inputs(with_implicit_ids=True)
             ],
             "outputs": [
                 x.toDict() for x in node_object.get_outputs(with_implicit_ids=True)
             ],
-            "description": node_object.get_description(),
-            "icon": node_object.get_icon(),
-            "subcategory": node_object.get_sub_category(),
-            "nodeType": node_object.get_type(),
-            "hasSideEffects": node_object.get_has_side_effects(),
-            "deprecated": node_object.is_deprecated(),
+            "description": node_object.description,
+            "icon": node_object.icon,
+            "subcategory": node_object.sub,
+            "nodeType": node_object.type,
+            "hasSideEffects": node_object.side_effects,
+            "deprecated": node_object.deprecated,
         }
-        if node_object.get_type() == "iterator":
+        if node_object.type == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
     return json({"nodes": node_list, "categories": [x.toDict() for x in categories]})

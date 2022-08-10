@@ -24,7 +24,7 @@ class NoteNode(NodeBase):
         ]
         self.outputs = []
 
-        self.category = UtilityCategory.name
+        self.category = UtilityCategory
         self.name = "Note"
         self.icon = "MdOutlineStickyNote2"
         self.sub = "Text"
@@ -72,7 +72,7 @@ class MathNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory.name
+        self.category = UtilityCategory
         self.name = "Math"
         self.icon = "MdCalculate"
         self.sub = "Math"
@@ -125,7 +125,7 @@ class TextAppendNode(NodeBase):
             )
         ]
 
-        self.category = UtilityCategory.name
+        self.category = UtilityCategory
         self.name = "Text Append"
         self.icon = "MdTextFields"
         self.sub = "Text"
@@ -156,7 +156,7 @@ class TextPatternNode(NodeBase):
         ]
         self.outputs = [TextOutput("Output Text")]
 
-        self.category = UtilityCategory.name
+        self.category = UtilityCategory
         self.name = "Text Pattern"
         self.icon = "MdTextFields"
         self.sub = "Text"

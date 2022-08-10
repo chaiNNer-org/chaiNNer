@@ -33,7 +33,7 @@ class OnnxLoadModelNode(NodeBase):
         self.inputs = [OnnxFileInput()]
         self.outputs = [OnnxModelOutput(), TextOutput("Model Name")]
 
-        self.category = ONNXCategory.name
+        self.category = ONNXCategory
         self.name = "Load Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
@@ -67,7 +67,7 @@ class OnnxSaveModelNode(NodeBase):
         self.description = """Save ONNX model to file (.onnx)."""
         self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
-        self.category = ONNXCategory.name
+        self.category = ONNXCategory
         self.name = "Save Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
@@ -102,7 +102,7 @@ class OnnxImageUpscaleNode(NodeBase):
             )
         ]
 
-        self.category = ONNXCategory.name
+        self.category = ONNXCategory
         self.name = "Upscale Image"
         self.icon = "ONNX"
         self.sub = "Processing"

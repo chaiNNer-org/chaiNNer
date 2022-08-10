@@ -77,7 +77,7 @@ class LoadModelNode(NodeBase):
             TextOutput("Model Name"),
         ]
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Load Model"
         self.icon = "PyTorch"
         self.sub = "Input & Output"
@@ -134,7 +134,7 @@ class ImageUpscaleNode(NodeBase):
             )
         ]
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Upscale Image"
         self.icon = "PyTorch"
         self.sub = "Processing"
@@ -238,7 +238,7 @@ class InterpolateNode(NodeBase):
             NumberOutput("Amount B", "Input2"),
         ]
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Interpolate Models"
         self.icon = "BsTornado"
         self.sub = "Utility"
@@ -304,7 +304,7 @@ class PthSaveNode(NodeBase):
         self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Save Model"
         self.icon = "MdSave"
         self.sub = "Input & Output"
@@ -417,7 +417,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.inputs = [ModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput("ONNX Model")]
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
@@ -462,7 +462,7 @@ class GetModelDimensions(NodeBase):
         self.inputs = [ModelInput()]
         self.outputs = [NumberOutput("Scale", output_type="Input0.scale")]
 
-        self.category = PyTorchCategory.name
+        self.category = PyTorchCategory
         self.name = "Get Model Scale"
         self.icon = "BsRulers"
         self.sub = "Utility"

@@ -29,7 +29,7 @@ class BlurNode(NodeBase):
             NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Box Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -77,7 +77,7 @@ class GaussianBlurNode(NodeBase):
             NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -108,7 +108,7 @@ class MedianBlurNode(NodeBase):
             NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Median Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -142,7 +142,7 @@ class SharpenNode(NodeBase):
             NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Sharpen"
         self.icon = "MdBlurOff"
         self.sub = "Blur/Sharpen"
@@ -183,7 +183,7 @@ class AverageColorFixNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Average Color Fix"
         self.icon = "MdAutoFixHigh"
         self.sub = "Correction"
@@ -275,7 +275,7 @@ class ColorTransferNode(NodeBase):
             ReciprocalScalingFactorInput(),
         ]
         self.outputs = [ImageOutput("Image", image_type="Input0")]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Color Transfer"
         self.icon = "MdInput"
         self.sub = "Correction"
@@ -328,7 +328,7 @@ class NormalizeNode(NodeBase):
         self.outputs = [
             ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
         ]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
@@ -377,7 +377,7 @@ class NormalAdditionNode(NodeBase):
                 "The given normal maps have different sizes but must be the same size."
             ),
         ]
-        self.category = ImageFilterCategory.name
+        self.category = ImageFilterCategory
         self.name = "Add Normals"
         self.icon = "MdAddCircleOutline"
         self.sub = "Normal Map"
