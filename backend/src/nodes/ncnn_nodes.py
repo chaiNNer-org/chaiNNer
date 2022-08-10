@@ -149,7 +149,8 @@ class NcnnSaveNode(NodeBase):
 class NcnnUpscaleImageNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
+        self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
+            Select a manual number of tiles if you are having issues with the automatic mode."
         self.inputs = [
             NcnnNetInput(),
             ImageInput(),

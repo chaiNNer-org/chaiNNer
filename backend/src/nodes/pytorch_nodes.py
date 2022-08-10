@@ -119,7 +119,8 @@ class LoadModelNode(NodeBase):
 class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscales an image using a PyTorch Super-Resolution model."
+        self.description = "Upscales an image using a PyTorch Super-Resolution model. \
+            Select a manual number of tiles if you are having issues with the automatic mode. "
         self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
         self.outputs = [
             ImageOutput(
