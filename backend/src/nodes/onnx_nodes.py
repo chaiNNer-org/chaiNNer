@@ -203,5 +203,5 @@ class ConvertOnnxToNcnnNode(NodeBase):
 
     def run(self, onnx_model: bytes, is_fp16: bool) -> NcnnModel:
         converter = Onnx2NcnnConverter(onnx.load_model_from_string(onnx_model))
-        ncnn_model = converter.convert(is_fp16)
+        ncnn_model = converter.convert(is_fp16, False)
         return ncnn_model

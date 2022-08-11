@@ -257,7 +257,6 @@ class NcnnLayer:
         data: Union[float, int, np.ndarray, TensorProto],
         weight_name: str,
         quantize_tag: bytes = b"",
-        is_fp16: bool = False,
     ) -> bytes:
         if isinstance(data, TensorProto):
             data = onph.to_array(data)
@@ -266,7 +265,7 @@ class NcnnLayer:
         elif isinstance(data, int):
             data = np.array(data, np.int32)
 
-        if is_fp16:
+        if quantize_tag == DTYPE_FP16:
             data = data.astype(np.float16)
         self.weight_data[weight_name] = NcnnWeight(data, quantize_tag)
 

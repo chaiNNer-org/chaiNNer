@@ -1,4 +1,4 @@
-from typing import Tuple, Union, List, Dict
+from typing import Union, List, Dict
 
 import numpy as np
 import onnx
@@ -109,19 +109,15 @@ class Onnx2NcnnConverter:
     def get_node_attr_ai(node: onnx.NodeProto, key: str) -> np.ndarray:
         for attr in node.attribute:
             if attr.name == key:
-                v = np.empty((len(attr.ints),), np.int64)
-                for idx, i in enumerate(attr.ints):
-                    v[idx] = max(min(i, INT64_MAX), INT64_MIN)
-                return v
+                return np.array(
+                    [max(min(i, INT64_MAX), INT64_MIN) for i in attr.ints], np.int64
+                )
 
         return np.empty(0, np.int32)
 
     @staticmethod
     def set_node_attr_ai(node: onnx.NodeProto, key: str, value: np.ndarray) -> None:
-        attr_group = onnx.AttributeProto(name=key, type=APT.INTS)
-        for v in value:
-            attr_group.ints.append(v)
-
+        attr_group = onnx.AttributeProto(name=key, floats=value, type=APT.INTS)
         node.attribute.append(attr_group)
 
     @staticmethod
@@ -275,36 +271,32 @@ class Onnx2NcnnConverter:
             if node.op_type == "Transpose":
                 if node.input[0] in self.weights and len(node.input[0].dims) == 2:
                     perm = self.get_node_attr_ai(node, "perm")
-                    if perm.size == 2 and perm[0] == 1 and perm[1] == 0:
-                        self.weights[node.output[0]] = self.weights[node.input[0]]
+                    if perm.size != 2 or perm[0] != 1 or perm[1] != 0:
+                        continue
 
-                        # Permute weight
-                        B = self.weights[node.output[0]]
+                    self.weights[node.output[0]] = self.weights[node.input[0]]
 
-                        h, w = B.dims[:2]
+                    # Permute weight
+                    B = self.weights[node.output[0]]
 
-                        bptr = onph.to_array(B)
+                    h, w = B.dims[:2]
 
-                        permuted_data = np.array(
-                            [bptr[k * w + j] for j in range(w) for k in range(h)],
-                            np.float32,
-                        )
+                    permuted_data = onph.to_array(B).T
 
-                        B.dims[0] = w
-                        B.dims[1] = h
+                    B.dims[:2] = (w, h)
 
-                        if B.raw_data:
-                            B.raw_data = permuted_data.tobytes()
-                        else:
-                            for idx, val in enumerate(permuted_data):
-                                B.float_data[idx] = val
+                    if B.raw_data:
+                        B.raw_data = permuted_data.tobytes()
+                    else:
+                        self.clear_container(B.float_data)
+                        B.float_data.extend(permuted_data)
 
-                        # Reduce
-                        node.op_type = "noop_reducednccn"
-                        self.node_reference[node.input[0]] -= 1
+                    # Reduce
+                    node.op_type = "noop_reducednccn"
+                    self.node_reference[node.input[0]] -= 1
 
-                        reduced_node_count[0] += 1
-                        i += 1
+                    reduced_node_count[0] += 1
+                    i += 1
 
     def fuse_shufflechannel(self, reduced_node_count: List[int]) -> None:
         for i in range(self.node_count):
@@ -313,110 +305,108 @@ class Onnx2NcnnConverter:
             # ShuffleChannel <= Reshape - Transpose - Reshape
             # ShuffleChannel <= Reshape - Transpose - Constant - Reshape
             if node.op_type == "Reshape":
-                if self.node_reference[node.output[0]] == 1:
-                    if len(node.input) == 1:
-                        shape = self.get_node_attr_ai(node, "shape")
-                    else:
-                        # Skip weight reshape
-                        if node.input[1] not in self.weights:
-                            continue
-                        shape = self.get_node_attr_from_input_ai(
-                            self.weights[node.input[1]]
-                        )
+                if self.node_reference[node.output[0]] != 1:
+                    continue
 
-                    # 1 groups channels_per_group, height, width
-                    # reverse style = channels_per_group, groups, height * width
-                    if (
-                        (shape.size != 5 and shape.size != 3)
-                        or (shape.size == 5 and shape[0] != 1)
-                        or (i + 2 >= self.node_count)
-                    ):
+                if len(node.input) == 1:
+                    shape = self.get_node_attr_ai(node, "shape")
+                else:
+                    # Skip weight reshape
+                    if node.input[1] not in self.weights:
                         continue
-
-                    node2 = self.mutable_graph_nodes[i + 1]
-                    node3 = self.mutable_graph_nodes[i + 2]
-
-                    if node3.op_type == "Constant":
-                        if i + 3 >= self.node_count:
-                            continue
-                        node3 = self.mutable_graph_nodes[i + 3]
-                    if (node2.op_type != "Transpose" or node3.op_type != "Reshape") or (
-                        self.node_reference[node2.output[0]] != 1
-                    ):
-                        continue
-
-                    # 0 2 1 3 4
-                    # reverse style = 1 0 2
-                    perm = self.get_node_attr_ai(node2, "perm")
-                    if perm.size != 5 and perm.size != 3:
-                        continue
-                    if perm.size == 5 and (
-                        perm[0] != 0
-                        or perm[1] != 2
-                        or perm[2] != 1
-                        or perm[3] != 3
-                        or perm[4] != 4
-                    ):
-                        continue
-                    if perm.size == 3 and (
-                        perm[0] != 1 or perm[1] != 0 or perm[2] != 2
-                    ):
-                        continue
-
-                    if len(node3.input) == 1:
-                        shape3 = self.get_node_attr_ai(node3, "shape")
-                    else:
-                        if node3.input[1] not in self.weights:
-                            continue
-                        shape3 = self.get_node_attr_from_input_ai(
-                            self.weights[node3.input[1]]
-                        )
-
-                    # 1, -1, height, width
-                    # reverse style = group, -1, channels_per_group, height, width
-                    if shape3.size != 4 and shape3.size != 5:
-                        continue
-                    if shape3.size == 4 and (
-                        shape3[0] != 1
-                        or (shape3[1] != -1 and shape3[1] != shape[1] * shape[2])
-                    ):
-                        continue
-                    if shape3.size == 5 and (
-                        shape3[0] != shape[1]
-                        or shape3[2] != shape[0]
-                        or shape3[3] * shape3[4] != shape[2]
-                    ):
-                        continue
-
-                    # Reduce
-                    node.op_type = "noop_reducedncnn"
-                    node2.op_type = "noop_reducedncnn"
-
-                    if len(node.input) == 2:
-                        self.node_reference[node.input[1]] -= 1
-                    self.node_reference[node.output[0]] -= 1
-                    self.node_reference[node2.output[0]] -= 1
-                    if len(node3.input) == 2:
-                        self.node_reference[node3.input[1]] -= 1
-
-                    self.blob_names.pop(node.output[0], None)
-                    self.blob_names.pop(node2.output[0], None)
-
-                    node3.op_type = "ShuffleChannel"
-                    node3.input[0] = node.input[0]
-
-                    attr_group = onnx.AttributeProto(
-                        name="group", i=shape[1], type=APT.INT
+                    shape = self.get_node_attr_from_input_ai(
+                        self.weights[node.input[1]]
                     )
-                    node3.attribute.append(attr_group)
 
-                    attr_reverse = onnx.AttributeProto(
-                        name="reverse", i=int(shape.size == 3), type=APT.INT
+                # 1 groups channels_per_group, height, width
+                # reverse style = channels_per_group, groups, height * width
+                if (shape.size != 5 and shape.size != 3) or (
+                    shape.size == 5 and shape[0] != 1
+                ):
+                    continue
+                if i + 2 >= self.node_count:
+                    continue
+
+                node2 = self.mutable_graph_nodes[i + 1]
+                node3 = self.mutable_graph_nodes[i + 2]
+
+                if node3.op_type == "Constant":
+                    if i + 3 >= self.node_count:
+                        continue
+                    node3 = self.mutable_graph_nodes[i + 3]
+                if (node2.op_type != "Transpose" or node3.op_type != "Reshape") or (
+                    self.node_reference[node2.output[0]] != 1
+                ):
+                    continue
+
+                # 0 2 1 3 4
+                # reverse style = 1 0 2
+                perm = self.get_node_attr_ai(node2, "perm")
+                if perm.size != 5 and perm.size != 3:
+                    continue
+                if perm.size == 5 and (
+                    perm[0] != 0
+                    or perm[1] != 2
+                    or perm[2] != 1
+                    or perm[3] != 3
+                    or perm[4] != 4
+                ):
+                    continue
+                if perm.size == 3 and (perm[0] != 1 or perm[1] != 0 or perm[2] != 2):
+                    continue
+
+                if len(node3.input) == 1:
+                    shape3 = self.get_node_attr_ai(node3, "shape")
+                else:
+                    if node3.input[1] not in self.weights:
+                        continue
+                    shape3 = self.get_node_attr_from_input_ai(
+                        self.weights[node3.input[1]]
                     )
-                    node3.attribute.append(attr_reverse)
 
-                    reduced_node_count[0] += 2
-                    i += 2
+                # 1, -1, height, width
+                # reverse style = group, -1, channels_per_group, height, width
+                if shape3.size != 4 and shape3.size != 5:
+                    continue
+                if shape3.size == 4 and (
+                    shape3[0] != 1
+                    or (shape3[1] != -1 and shape3[1] != shape[1] * shape[2])
+                ):
+                    continue
+                if shape3.size == 5 and (
+                    shape3[0] != shape[1]
+                    or shape3[2] != shape[0]
+                    or shape3[3] * shape3[4] != shape[2]
+                ):
+                    continue
+
+                # Reduce
+                node.op_type = "noop_reducedncnn"
+                node2.op_type = "noop_reducedncnn"
+
+                if len(node.input) == 2:
+                    self.node_reference[node.input[1]] -= 1
+                self.node_reference[node.output[0]] -= 1
+                self.node_reference[node2.output[0]] -= 1
+                if len(node3.input) == 2:
+                    self.node_reference[node3.input[1]] -= 1
+
+                self.blob_names.pop(node.output[0], None)
+                self.blob_names.pop(node2.output[0], None)
+
+                node3.op_type = "ShuffleChannel"
+                node3.input[0] = node.input[0]
+
+                attr_group = onnx.AttributeProto(name="group", i=shape[1], type=APT.INT)
+                node3.attribute.append(attr_group)
+
+                attr_reverse = onnx.AttributeProto(
+                    name="reverse", i=int(shape.size == 3), type=APT.INT
+                )
+                node3.attribute.append(attr_reverse)
+
+                reduced_node_count[0] += 2
+                i += 2
 
     def fuse_shufflechannel_split(self, reduced_node_count: List[int]) -> None:
         for i in range(self.node_count):
@@ -697,10 +687,8 @@ class Onnx2NcnnConverter:
                     continue
 
                 constant_div_six = self.get_node_attr_from_input_f(div_six)
-                if (
-                    (node3.op_type == "Div" and constant_div_six != 6)
-                    or node3.op_type == "Mul"
-                    and constant_div_six != 1 / 6
+                if (node3.op_type == "Div" and constant_div_six != 6) or (
+                    node3.op_type == "Mul" and constant_div_six != 1 / 6
                 ):
                     continue
 
@@ -991,22 +979,12 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                # +eps
-                eps = self.get_node_attr_f(node2, "epsilon", 0.00001)
-
                 # InstanceNormalization S=1 B=0
                 S = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
                 B = self.get_node_attr_from_input_af(self.weights[node2.input[2]])
                 if S.size != groups or B.size != groups:
                     continue
-
-                instancenorm_affine = False
-                for j in range(groups):
-                    if S[j] != 1 or B[j] != 0:
-                        instancenorm_affine = True
-                        break
-
-                if instancenorm_affine:
+                if np.any(S != 1) or np.any(B != 0):
                     continue
 
                 if len(node3.input) == 1:
@@ -1033,7 +1011,7 @@ class Onnx2NcnnConverter:
                 affine_B = self.get_node_attr_from_input_af(
                     self.weights[node5.input[1]]
                 )
-                if affine_S.size != channels and affine_B != channels:
+                if affine_S.size != channels and affine_B.size != channels:
                     continue  # only per-channel affine allowed
 
                 # reduce
@@ -1075,6 +1053,8 @@ class Onnx2NcnnConverter:
                 )
                 node5.attribute.append(attr_channels)
 
+                # +eps
+                eps = self.get_node_attr_f(node2, "epsilon", 0.00001)
                 attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
                 node5.attribute.append(attr_eps)
 
@@ -1303,7 +1283,6 @@ class Onnx2NcnnConverter:
                     or self.node_reference[node6.output[0]] != 1
                 ):
                     continue
-
                 if (
                     node2.input[0] != node.output[0]
                     or node4.input[0] != node2.output[0]
@@ -1627,9 +1606,7 @@ class Onnx2NcnnConverter:
 
             # LSTM(bi) <= LSTM(bi) - Transpose - Reshape - Transpose
             if node.op_type in ["LSTM", "GRU", "RNN"]:
-                if self.node_reference[node.output[0]] != 1:
-                    continue
-                if i + 2 >= self.node_count:
+                if self.node_reference[node.output[0]] != 1 or i + 2 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1729,9 +1706,7 @@ class Onnx2NcnnConverter:
 
             # LSTM(uni) <= LSTM(uni) - Squeeze - Transpose
             if node.op_type in ["LSTM", "GRU", "RNN"]:
-                if self.node_reference[node.output[0]] != 1:
-                    continue
-                if i + 1 >= self.node_count:
+                if self.node_reference[node.output[0]] != 1 or i + 1 >= self.node_count:
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -1839,9 +1814,10 @@ class Onnx2NcnnConverter:
             #                      - Reshape - Reshape - Transpose - Transpose
             #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
             if node.op_type == "MatMul":
-                if i + 19 >= self.node_count:
-                    continue
-                if self.node_reference[node.output[0]] != 1:
+                if (
+                    self.node_reference[node.output[0]] != 1
+                    or i + 19 >= self.node_count
+                ):
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -2061,7 +2037,6 @@ class Onnx2NcnnConverter:
                 self.node_reference[node7.input[0]] -= 1
                 self.node_reference[node7.input[1]] -= 1
                 self.node_reference[node8.input[0]] -= 1
-
                 if len(node8.input) == 2:
                     self.node_reference[node8.input[1]] -= 1
                 self.node_reference[node9.input[0]] -= 1
@@ -2150,9 +2125,10 @@ class Onnx2NcnnConverter:
             #                      - Reshape - Reshape - Transpose - Transpose
             #                      - Gemm - Softmax - Gemm - Transpose - Reshape - MatMul - Add
             if node.op_type == "MatMul":
-                if i + 16 >= self.node_count:
-                    continue
-                if self.node_reference[node.output[0]] != 1:
+                if (
+                    self.node_reference[node.output[0]] != 1
+                    or i + 16 >= self.node_count
+                ):
                     continue
 
                 node2 = self.mutable_graph_nodes[i + 1]
@@ -2446,9 +2422,9 @@ class Onnx2NcnnConverter:
 
                 self.node_reference[node.input[0]] -= 1
 
-                inpt = node.input[1]
+                node_input = node.input[1]
                 node.ClearField("input")
-                node.input.append(inpt)
+                node.input.append(node_input)
 
                 attr_with_scalar = onnx.AttributeProto(
                     name="with_scalar", i=1, type=APT.INT
@@ -2477,9 +2453,9 @@ class Onnx2NcnnConverter:
 
                 self.node_reference[node.input[1]] -= 1
 
-                inpt = node.input[0]
+                node_input = node.input[0]
                 node.ClearField("input")
-                node.input.append(inpt)
+                node.input.append(node_input)
 
                 attr_with_scalar = onnx.AttributeProto(
                     name="with_scalar", i=1, type=APT.INT
@@ -2491,14 +2467,14 @@ class Onnx2NcnnConverter:
 
     def convert(self, is_fp16: bool = False, include_mem_data: bool = True):
         if is_fp16:
-            dtype = np.float16
             logger.info("NCNN mode: fp16")
         else:
-            dtype = np.float32
             logger.info("NCNN mode: fp32")
 
         # Topological sort
-        for i, node in enumerate(self.mutable_graph_nodes):
+        i = 0
+        while i < self.node_count:
+            node = self.mutable_graph_nodes[i]
             swapnode = False
             missing_input_name = None
             for input_name in node.input:
@@ -2518,9 +2494,10 @@ class Onnx2NcnnConverter:
                     if output_name:
                         self.producers[output_name] = None
 
+                i += 1
                 continue
 
-            # find node that produce missing_input_name
+            # find node that produces missing_input_name
             for j, nodeq in enumerate(self.mutable_graph_nodes, i + 1):
                 found = False
                 for output_name in nodeq.output:
@@ -2540,9 +2517,10 @@ class Onnx2NcnnConverter:
 
         # global definition line
         # [layer count][blob count]
-        for i, node in enumerate(self.mutable_graph_nodes):
+        for node in self.onnx_graph:
             op = node.op_type
-            node.name = node.name if node.name else node.output[0]
+            if not node.name:
+                node.name = node.output[0]
 
             if op == "Constant":
                 self.weights[node.output[0]] = self.get_node_attr_tensor(node, "value")
@@ -2606,6 +2584,8 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[2]] -= 1
                 self.node_reference[node.input[3]] -= 1
                 self.node_reference[node.input[4]] -= 1
+            elif op == "BiasGelu":
+                self.node_reference[node.input[1]] -= 1
             elif op == "Clip":
                 if len(node.input) == 3:
                     self.node_reference[node.input[1]] -= 1
@@ -2641,8 +2621,8 @@ class Onnx2NcnnConverter:
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
             elif op == "GRU":
-                for inpt in node.input:
-                    self.node_reference[inpt] -= 1
+                for gru_input in node.input:
+                    self.node_reference[gru_input] -= 1
             elif op == "InstanceNormalization":
                 self.node_reference[node.input[1]] -= 1
                 self.node_reference[node.input[2]] -= 1
@@ -2652,8 +2632,8 @@ class Onnx2NcnnConverter:
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
             elif op == "LSTM":
-                for inpt in node.input:
-                    self.node_reference[inpt] -= 1
+                for lstm_input in node.input:
+                    self.node_reference[lstm_input] -= 1
             elif op == "MatMul":
                 if (
                     node.input[1] in self.weights
@@ -2695,8 +2675,12 @@ class Onnx2NcnnConverter:
                     if len(node.input) >= 4:
                         self.node_reference[node.input[3]] -= 1
             elif op == "RNN":
-                for inpt in node.input:
-                    self.node_reference[inpt] -= 1
+                for rnn_input in node.input:
+                    self.node_reference[rnn_input] -= 1
+            elif op == "SkipLayerNormalization":
+                self.node_reference[node.input[2]] -= 1
+                self.node_reference[node.input[3]] -= 1
+                self.node_reference[node.input[4]] -= 1
             elif op == "Slice":
                 if len(node.input) >= 2:
                     self.node_reference[node.input[1]] -= 1
@@ -2714,7 +2698,7 @@ class Onnx2NcnnConverter:
 
         # count all weight node with zero reference
         zero_reference_weight_node_count = 0
-        for input_name, tp in self.weights.items():
+        for input_name in self.weights.keys():
             # there may be some weight nodes in initializer but none of the graph nodes use them
             # add them to blob_names so we could get proper blob count later
             self.blob_names[input_name] = None
@@ -2727,11 +2711,10 @@ class Onnx2NcnnConverter:
         # do not count it twice for layer_count
         constant_node_count_moved_to_weight = 0
         for node in self.onnx_graph.node:
-            op = node.op_type
-            if op == "Constant":
+            if node.op_type == "Constant":
                 constant_node_count_moved_to_weight += 1
 
-        # some op may have anonymous input
+        # some ops may have anonymous input
         # LSTM sequence_lens
         self.blob_names.pop("", None)
         self.node_reference.pop("", None)
@@ -2768,9 +2751,8 @@ class Onnx2NcnnConverter:
         )
 
         weight_bytes_list = []
-        internal_split = 0
-        for i, inpt in enumerate(self.onnx_graph.input):
-            input_name = inpt.name
+        for i, graph_input in enumerate(self.onnx_graph.input):
+            input_name = graph_input.name
 
             # Make sure input is not in weights
             if input_name not in self.weights:
@@ -2779,66 +2761,67 @@ class Onnx2NcnnConverter:
                 )
 
                 refcount = self.node_reference[input_name]
-                if refcount <= 1:
-                    continue
-
-                layer_input_list = [
-                    f"{input_name}_splitncnn_{j}" for j in range(refcount)
-                ]
-                ncnn_model.add_layer(
-                    NcnnLayer(
-                        "Split", f"splitncnn_input{i}", 1, refcount, layer_input_list
-                    )
-                )
-
-        # place MemoryData next if it is being included
-        if include_mem_data:
-            for input_name, M in self.weights.items():
-                refcount = self.node_reference[input_name]
-                if refcount == 0:
-                    continue
-
-                layer = NcnnLayer("MemoryData", input_name, 0, 1, [input_name])
-
-                M_dims_size = len(M.dims)
-                if M_dims_size == 0:
-                    layer.add_param(0, self.get_tensor_proto_data_size(M))
-                elif M_dims_size == 1:
-                    layer.add_param(0, M.dims[0])
-                elif M_dims_size == 2:
-                    layer.add_param(0, M.dims[1])
-                    if M.dims[0] != 1:
-                        layer.add_param(1, M.dims[0])
-                elif M_dims_size == 3:
-                    layer.add_param(0, M.dims[2])
-                    layer.add_param(1, M.dims[1])
-                    if M.dims[0] != 1:
-                        layer.add_param(2, M.dims[0])
-                elif M_dims_size == 4:
-                    layer.add_param(0, M.dims[3])
-                    layer.add_param(1, M.dims[2])
-                    layer.add_param(2, M.dims[1])
-
-                weight_layer_list.append(layer.add_weight(M, "MemoryData"))
-
-                ncnn_model.add_layer(layer)
-
                 if refcount > 1:
-                    layer_output_list = [
+                    layer_input_list = [
                         f"{input_name}_splitncnn_{j}" for j in range(refcount)
                     ]
                     ncnn_model.add_layer(
                         NcnnLayer(
                             "Split",
-                            f"splitncnn_{internal_split}",
+                            f"splitncnn_input{i}",
                             1,
                             refcount,
-                            [input_name],
-                            layer_output_list,
+                            layer_input_list,
                         )
                     )
 
-                    internal_split += 1
+        # place MemoryData next if it is being included
+        internal_split = 0
+        if include_mem_data:
+            for input_name, M in self.weights.items():
+                refcount = self.node_reference[input_name]
+                if refcount != 0:
+                    layer = NcnnLayer("MemoryData", input_name, 0, 1, [input_name])
+
+                    M_dims_size = len(M.dims)
+                    if M_dims_size == 0:
+                        layer.add_param(0, self.get_tensor_proto_data_size(M))
+                    elif M_dims_size == 1:
+                        layer.add_param(0, M.dims[0])
+                    elif M_dims_size == 2:
+                        layer.add_param(0, M.dims[1])
+                        if M.dims[0] != 1:
+                            layer.add_param(1, M.dims[0])
+                    elif M_dims_size == 3:
+                        layer.add_param(0, M.dims[2])
+                        layer.add_param(1, M.dims[1])
+                        if M.dims[0] != 1:
+                            layer.add_param(2, M.dims[0])
+                    elif M_dims_size == 4:
+                        layer.add_param(0, M.dims[3])
+                        layer.add_param(1, M.dims[2])
+                        layer.add_param(2, M.dims[1])
+
+                    weight_layer_list.append(layer.add_weight(M, "MemoryData"))
+
+                    ncnn_model.add_layer(layer)
+
+                    if refcount > 1:
+                        layer_output_list = [
+                            f"{input_name}_splitncnn_{i}" for i in range(refcount)
+                        ]
+                        ncnn_model.add_layer(
+                            NcnnLayer(
+                                "Split",
+                                f"splitncnn_{internal_split}",
+                                1,
+                                refcount,
+                                [input_name],
+                                layer_output_list,
+                            )
+                        )
+
+                        internal_split += 1
 
         for node in self.onnx_graph.node:
             op = node.op_type
@@ -2967,7 +2950,10 @@ class Onnx2NcnnConverter:
             elif op == "LSTM":
                 layer.op_type = "LSTM"
             elif op == "MatMul":
-                if node.input[1] in self.weights:
+                if (
+                    node.input[1] in self.weights
+                    and len(self.weights[node.input[1]].dims) == 2
+                ):
                     layer.op_type = "InnerProduct"
                 else:
                     layer.op_type = "Gemm"
@@ -3024,7 +3010,7 @@ class Onnx2NcnnConverter:
                 layer.op_type = "ExpandDims"
             else:
                 error_msg = f"{op} not currently supported by NCNN."
-                raise TypeError(error_msg)
+                raise ValueError(error_msg)
 
             layer.name = name
             layer.num_inputs = input_size
@@ -3033,17 +3019,15 @@ class Onnx2NcnnConverter:
 
             for input_name in node.input:
                 # check weight
-                if not input_name or (
+                if input_name and not (
                     input_name in self.weights and self.node_reference[input_name] == 0
                 ):
-                    continue
+                    if input_name in split_node_reference:
+                        refidx = split_node_reference[input_name] - 1
+                        split_node_reference[input_name] = refidx
+                        input_name = f"{input_name}_splitncnn_{refidx}"
 
-                if input_name in split_node_reference:
-                    refidx = split_node_reference[input_name] - 1
-                    split_node_reference[input_name] = refidx
-                    input_name = f"{input_name}_splitncnn_{refidx}"
-
-                layer.inputs.append(input_name)
+                    layer.inputs.append(input_name)
 
             for o in range(output_size):
                 layer.outputs.append(node.output[o])
@@ -3052,8 +3036,25 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, UOT.ABS)
             elif op == "Acos":
                 layer.add_param(0, UOT.ACOS)
-            elif op == "Add":
-                layer.add_param(0, BOT.ADD)
+            elif layer.op_type == "BinaryOps":
+                if op == "Add":
+                    layer.add_param(0, BOT.ADD)
+                elif op == "Div":
+                    layer.add_param(0, BOT.DIV)
+                elif op == "Max":
+                    layer.add_param(0, BOT.MAX)
+                elif op == "Min":
+                    layer.add_param(0, BOT.MIN)
+                elif op == "Mul":
+                    layer.add_param(0, BOT.MUL)
+                elif op == "Pow":
+                    layer.add_param(0, BOT.POW)
+                elif op == "RDiv":
+                    layer.add_param(0, BOT.RDIV)
+                elif op == "RSub":
+                    layer.add_param(0, BOT.RSUB)
+                elif op == "Sub":
+                    layer.add_param(0, BOT.SUB)
 
                 with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
                 b = self.get_node_attr_f(node, "b", 0)
@@ -3109,7 +3110,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, pad_mode)
 
-                if op == "AveragePool":
+                if pool:
                     avgpool_count_include_pad = self.get_node_attr_i(
                         node, "count_include_pad", 0
                     )
@@ -3130,7 +3131,7 @@ class Onnx2NcnnConverter:
                 # apply epsilon to var
                 v = onph.to_array(var)
                 ve = np.array([v[i] + epsilon for i in range(channels)], np.float32)
-                weight_layer_list.append(layer.add_weight(ve, f"variance"))
+                weight_layer_list.append(layer.add_weight(ve, "variance"))
                 weight_layer_list.append(layer.add_weight(B, "bias"))
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
@@ -3220,9 +3221,7 @@ class Onnx2NcnnConverter:
                     layer.add_param(7, group)
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_bytes_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
-                )
+                weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
 
                 if has_bias:
                     B = self.weights[node.input[2]]
@@ -3301,7 +3300,7 @@ class Onnx2NcnnConverter:
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_data = onph.to_array(W)
                 weight_layer_list.append(
-                    layer.add_weight(W.swapaxes(2, 3), "weight", quantize_tag, is_fp16)
+                    layer.add_weight(W.swapaxes(0, 1), "weight", quantize_tag)
                 )
 
                 if has_bias:
@@ -3327,20 +3326,13 @@ class Onnx2NcnnConverter:
                     layer.add_param(1, 0)
                 elif mode == "DCR":
                     layer.add_param(1, 1)
-            elif op == "Div":
-                layer.add_param(0, BOT.DIV)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
             elif op == "Dropout":
                 pass
             elif op == "Elu":
                 alpha = self.get_node_attr_f(node, "alpha", 1)
                 layer.add_param(0, alpha)
             elif op == "EmbedLayerNormalization":
+                logger.error(f"No NCNN documentation for {op} yet, will not function")
                 words = self.weights[node.input[2]]
                 positions = self.weights[node.input[3]]
                 W = self.weights[node.input[5]]
@@ -3355,9 +3347,7 @@ class Onnx2NcnnConverter:
                 weight_layer_list.append(
                     layer.add_weight(positions, "positions", DTYPE_FP32)
                 )
-                weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
-                )
+                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
                 weight_layer_list.append(layer.add_weight(B, "bias"))
             elif op == "Exp":
                 layer.add_param(0, UOT.EXP)
@@ -3393,13 +3383,13 @@ class Onnx2NcnnConverter:
                     layer.add_param(2, transA)
                     layer.add_param(3, transB)
             elif op == "GlobalAveragePool" or op == "GlobalMaxPool":
-                layer.add_param(0, int)(op == "GlobalAveragePool")
+                layer.add_param(0, int(op == "GlobalAveragePool"))
                 layer.add_param(4, 1)
             elif op == "adaptive_avg_pool2d" or op == "adaptive_max_pool2d":
                 out_shape_tp = self.weights[node.input[1]]
                 out_shape = self.get_node_attr_from_input_ai(out_shape_tp)
 
-                layer.add_param(0, int)(op == "adaptive_avg_pool2d")
+                layer.add_param(0, int(op == "adaptive_avg_pool2d"))
                 layer.add_param(7, 1)
                 if out_shape.size == 1:
                     layer.add_param(8, out_shape[0])
@@ -3428,10 +3418,10 @@ class Onnx2NcnnConverter:
                     ):
                         affine = 0
                     else:
-                        for i in range(channels):
-                            if affine_S[i] != 1 or affine_B[i] != 0:
-                                affine = 1
-                                break
+                        if np.any(affine_S[:channels] != 1) or np.any(
+                            affine_B[:channels] != 0
+                        ):
+                            affine = 1
                         else:
                             affine = 0
 
@@ -3446,8 +3436,10 @@ class Onnx2NcnnConverter:
                     weight_layer_list.append(layer.add_weight(scale, "scale"))
                     weight_layer_list.append(layer.add_weight(B, "bias"))
             elif op == "GRU":
-                raise RuntimeError("GRU not implemented yet, please report issue")
-                W = self.weights[node.input[1]]
+                raise RuntimeError(
+                    "GRU not implemented yet, please report issue with model used"
+                )
+                """W = self.weights[node.input[1]]
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
 
@@ -3491,7 +3483,7 @@ class Onnx2NcnnConverter:
 
                 bias_data_size_g = B_array.size / 6 / num_directions
                 for i in range(bias_data_size_g)[1:]:
-                    pass
+                    pass"""
             elif op == "HardSigmoid" or op == "Hard Swish":
                 alpha = self.get_node_attr_f(node, "alpha", 0.2)
                 beta = self.get_node_attr_f(node, "beta", 0.5)
@@ -3518,10 +3510,8 @@ class Onnx2NcnnConverter:
                 affine_B = self.get_node_attr_from_input_af(self.weights[node.input[2]])
                 channels = affine_S.size
 
-                for i in range(channels):
-                    if affine_S[i] != 1 or affine_B[i] != 0:
-                        affine = 1
-                        break
+                if np.any(affine_S[:channels] != 1) or np.any(affine_B[:channels] != 0):
+                    affine = 1
                 else:
                     affine = 0
 
@@ -3548,10 +3538,10 @@ class Onnx2NcnnConverter:
                     )
                     affine_size = affine_S.size
 
-                    for i in range(affine_size):
-                        if affine_S[i] != 1 or affine_B[i] != 0:
-                            affine = 1
-                            break
+                    if np.any(affine_S[:affine_size] != 1) or np.any(
+                        affine_B[:affine_size]
+                    ):
+                        affine = 1
                     else:
                         affine = 0
 
@@ -3579,7 +3569,9 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, self.get_node_attr_f(node, "beta", 0.5))
                 layer.add_param(4, self.get_node_attr_f(node, "bias", 1))
             elif op == "LSTM":
-                raise RuntimeError("LSTM not implemented yet, please report issue")
+                raise RuntimeError(
+                    "LSTM not implemented yet, please report issue with model used"
+                )
                 """W = self.weights[node.input[1]]
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
@@ -3609,33 +3601,9 @@ class Onnx2NcnnConverter:
                         layer.add_weight(B_array.T, "bias", DTYPE_FP32)
                     )
                 # There is a dead else here, not sure if this was incomplete code
-            elif op == "Max":
-                layer.add_param(0, BOT.MAX)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
-            elif op == "Min":
-                layer.add_param(0, BOT.MIN)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
-            elif op == "Mul":
-                layer.add_param(0, BOT.MUL)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
             elif op == "MultiHeadAttention":
                 raise RuntimeError(
-                    "MultiHeadAttention not implemented, please report issue"
+                    "MultiHeadAttention not implemented, please report issue with model used"
                 )
                 """embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
                 num_heads = self.get_node_attr_i(node, "num_heads", 0)
@@ -3710,14 +3678,6 @@ class Onnx2NcnnConverter:
                 layer.add_param(5, value)
                 layer.add_param(7, front)
                 layer.add_param(8, behind)
-            elif op == "Pow":
-                layer.add_param(0, BOT.POW)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
             elif op == "PixelShuffle":
                 layer.add_param(0, self.get_node_attr_i(node, "scale_factor", 1))
             elif op == "PRelu":
@@ -3844,7 +3804,7 @@ class Onnx2NcnnConverter:
                     resize_type = IRT.NEAREST
 
                 if scales.size == 0 and sizes.size == 0:
-                    raise TypeError(
+                    raise ValueError(
                         "Unsupported Resize scales and sizes are all empty."
                     )
 
@@ -3855,7 +3815,7 @@ class Onnx2NcnnConverter:
                     w_scale = scales[2]
                 elif scales.size == 4:
                     if scales[1] != 1:
-                        raise TypeError("Unsupported Resize scales.")
+                        raise TypeError(f"Unsupported Resize scales {scales}.")
                     h_scale = scales[2]
                     w_scale = scales[3]
                 else:
@@ -3906,38 +3866,15 @@ class Onnx2NcnnConverter:
                 num_directions = 2 if direction_type == 2 else 1
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
-                )
+                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
 
                 # reduce xc and hc bias
-                B_array = onph.to_array(B)
-                half_size = B_array.shape[0] / 2
-                reduced_B_arrary = B_array[:half_size] + B_array[half_size:]
+                reduced_B = np.sum(onph.to_array(B), 1)
                 weight_layer_list.append(
-                    layer.add_weight(B, "bias", quantize_tag, is_fp16)
+                    layer.add_weight(reduced_B, "bias", quantize_tag)
                 )
 
-                weight_layer_list.append(
-                    layer.add_weight(R, "R", quantize_tag, is_fp16)
-                )
-            elif op == "RDiv":
-                layer.add_param(0, BOT.RDIV)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
-            elif op == "RSub":
-                layer.add_param(0, BOT.RSUB)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
-
+                weight_layer_list.append(layer.add_weight(R, "R", quantize_tag))
             elif op == "ShuffleChannel":
                 layer.add_param(0, self.get_node_attr_i(node, "group", 1))
                 layer.add_param(1, self.get_node_attr_i(node, "reverse", 0))
@@ -3954,9 +3891,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, self.get_tensor_proto_data_size(B))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_layer_list.append(
-                    layer.add_weight(W, "weight", quantize_tag, is_fp16)
-                )
+                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
                 weight_layer_list.append(layer.add_weight(B, "bias1", DTYPE_FP32))
                 weight_layer_list.append(layer.add_weight(B2, "bias2", DTYPE_FP32))
             elif op == "Slice":
@@ -3984,7 +3919,7 @@ class Onnx2NcnnConverter:
                     else:
                         steps = np.empty(0, np.int32)
 
-                assert np.all(steps != 1), "Unsupported Slice step"
+                assert np.all(steps != 1), f"Unsupported Slice step {steps}"
 
                 # Filter out N-dim axis
                 if axes.size:
@@ -4000,7 +3935,7 @@ class Onnx2NcnnConverter:
                 if axes.size:
                     assert np.all(
                         axes != 0 and axes <= 3 and axes >= -3
-                    ), "Unsupported Slice axes"
+                    ), f"Unsupported Slice axes {axes}"
                     layer.add_param(
                         11, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
                     )
@@ -4029,7 +3964,7 @@ class Onnx2NcnnConverter:
                 if axes.size:
                     assert np.all(
                         axes != 0 and axes <= 4 and axes >= -3
-                    ), f"Unsupported Squeeze axes"
+                    ), f"Unsupported Squeeze axes {axes}"
 
                     layer.add_param(
                         3, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
@@ -4038,14 +3973,6 @@ class Onnx2NcnnConverter:
                     layer.add_param(0, 1)
                     layer.add_param(1, 1)
                     layer.add_param(2, 1)
-            elif op == "Sub":
-                layer.add_param(0, BOT.SUB)
-
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
-                if with_scalar:
-                    layer.add_param(1, with_scalar)
-                    layer.add_param(2, b)
             elif op == "Sum":
                 layer.add_param(0, EOT.SUM)
             elif op == "Swish":
@@ -4139,7 +4066,7 @@ class Onnx2NcnnConverter:
                     error_msg = f"Unsupported Upsample scales {scales}"
                     raise ValueError(error_msg)
 
-                align = int(align == "align_corners")
+                align_corner = int(align == "align_corners")
 
                 layer.add_param(0, resize_type)
                 layer.add_param(1, h_scale)
@@ -4148,9 +4075,10 @@ class Onnx2NcnnConverter:
             elif op == "Unsqueeze":
                 axes = self.get_node_attr_ai(node, "axes")
 
-                for axis in axes:
-                    if axis == 0 or axis > 4 or axis < -4:
-                        raise ValueError(f"Unsupport axis {axis} in Unsqueeze")
+                assert np.all(
+                    axes != 0 and axis <= 4 and axes >= -4
+                ), f"Unsupported axis {axis} in Unsqueeze"
+
                 layer.add_param(
                     3, [axes.size, *[axis - 1 if axis > 0 else axis for axis in axes]]
                 )
