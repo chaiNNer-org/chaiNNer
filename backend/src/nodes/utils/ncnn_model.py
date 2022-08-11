@@ -522,14 +522,3 @@ class NcnnModel:
         interp_model.weights_bin = b"".join(weight_bytes_list)
 
         return interp_model
-
-
-if __name__ == "__main__":
-    model = NcnnModel()
-    model.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN_old_arch.param")
-    model2 = NcnnModel()
-    model2.load_model("D:/Upscaling/models/LoD/New folder/75.param")
-    model3 = model.interpolate_ncnn(model2, 0.4)
-    # model.load_model("D:/Desktop/onnx_test_models/4000_G.pth")
-    final_item = model.layer_list[-1]
-    print()

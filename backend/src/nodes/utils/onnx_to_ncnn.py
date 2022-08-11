@@ -4125,16 +4125,3 @@ class Onnx2NcnnConverter:
         ncnn_model.weights_bin = b"".join(weight_bytes_list)
 
         return ncnn_model
-
-
-if __name__ == "__main__":
-    # model = onnx.load_model("D:/Desktop/onnx_test_models/udnie-9.onnx")
-    model = onnx.load_model("D:/Upscaling/models/LoD/New folder/4x_Box.onnx")
-    converter = Onnx2NcnnConverter(model)
-    model = converter.convert()
-    """model2 = NcnnModel()
-    model2.load_model("D:/Upscaling/models/LoD/New folder/4x_BSRGAN_old_arch.param")
-    for layer1, layer2 in zip(model.layer_list, model2.layer_list):
-        print(layer1 == layer2)"""
-    model.write_param("D:/Upscaling/ncnn_output.param")
-    model.write_bin("D:/Upscaling/ncnn_output.bin")
