@@ -1,4 +1,4 @@
-import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
@@ -77,8 +77,6 @@ export const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
-        const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
-
         return (
             <g
                 className="edge-chain-group"
@@ -142,7 +140,7 @@ export const CustomEdge = memo(
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '3px',
-                        stroke: chainHoleColor,
+                        stroke: 'var(--chain-hole-color)',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',

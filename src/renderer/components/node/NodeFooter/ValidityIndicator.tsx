@@ -9,8 +9,6 @@ interface ValidityIndicatorProps {
 }
 
 export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) => {
-    const iconShade = useColorModeValue('gray.400', 'gray.800');
-    const validShade = useColorModeValue('gray.900', 'gray.100');
     const invalidShade = useColorModeValue('red.400', 'red.600');
 
     return animated ? (
@@ -39,7 +37,7 @@ export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicator
         >
             <Center className="nodrag">
                 <Center
-                    bgColor={validity.isValid ? iconShade : invalidShade}
+                    bgColor={validity.isValid ? 'var(--node-valid-bg)' : invalidShade}
                     borderRadius={100}
                     h="auto"
                     w="auto"
@@ -47,7 +45,7 @@ export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicator
                     <Icon
                         as={validity.isValid ? BsCheck : BsExclamation}
                         boxSize="1rem"
-                        color={validity.isValid ? validShade : iconShade}
+                        color={validity.isValid ? 'var(--node-valid-fg)' : 'var(--node-invalid-fg)'}
                         cursor="default"
                         m="auto"
                     />

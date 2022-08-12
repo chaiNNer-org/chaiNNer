@@ -1,4 +1,4 @@
-import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -128,8 +128,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
-    const shadowColor = useColorModeValue('gray.600', 'gray.900');
-
     useRunNode(data, validity.isValid && isStartingNode(schema));
 
     return (
@@ -138,9 +136,6 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
-            boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
-                selected ? 12 : 8
-            }px ${shadowColor}8F`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}

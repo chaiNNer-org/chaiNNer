@@ -19,13 +19,41 @@
     --bg-700: var(--gray-700);
     --bg-600: var(--gray-600);
 
+    /* font colors */
+    --fg-000: white;
+    --fg-300: var(--gray-300);
+
     /* node colors */
     --node-border-color: var(--gray-800);
     --node-bg-color: var(--gray-750);
     --node-icon-color: var(--gray-200);
 
+    --node-valid-bg: var(--gray-800);
+    --node-valid-fg: var(--gray-100);
+    /*--node-invalid-bg: var();*/
+    --node-invalid-fg: var(--gray-800);
+
+    --node-disable-bg: var(--gray-800);
+    --node-disable-fg: var(--gray-600);
+
+    --node-image-preview-bg: var(--node-bg-color);
+    --node-image-preview-color: var(--gray-400);
+
+    --node-image-preview-button-bg: var(--gray-750);
+    --node-image-preview-button-bg-hover: var(--gray-600);
+    --node-image-preview-button-fg: var(--gray-400);
+
     --tag-bg: var(--gray-750);
     --tag-fg: var(--gray-300);
+
+    --connection-color: #171923;
+    --chain-hole-color: #1a202c;
+
+    /* node selector colors */
+    --selector-node-bg: var(--gray-700);
+    --selector-icon: var(--gray-400);
+    --selector-text-bg: var(--gray-700);
+    --selector-text-bg-hover: var(--gray-600);
 
     /* specific colors */
     --window-bg: var(--gray-900);
@@ -40,13 +68,41 @@
     --bg-700: var(--gray-300);
     --bg-600: var(--gray-400);
 
+    /* font colors */
+    --fg-000: black;
+    --fg-300: var(--gray-500);
+
     /* node colors */
     --node-border-color: var(--gray-100);
     --node-bg-color: var(--gray-400);
     --node-icon-color: var(--gray-800);
 
+    --node-valid-bg: var(--gray-300);
+    --node-valid-fg: var(--gray-900);
+    /*--node-invalid-bg: var();*/
+    --node-invalid-fg: var(--gray-400);
+
+    --node-disable-bg: var(--gray-300);
+    --node-disable-fg: var(--gray-500);
+
+    --node-image-preview-bg: var(--node-bg-color);
+    --node-image-preview-color: var(--gray-700);
+
+    --node-image-preview-button-bg: var(--gray-400);
+    --node-image-preview-button-bg-hover: var(--gray-500);
+    --node-image-preview-button-fg: var(--gray-700);
+
     --tag-bg: var(--gray-400);
     --tag-fg: var(--gray-700);
+
+    --connection-color: #edf2f7;
+    --chain-hole-color: #edf2f7;
+
+    /* node selector colors */
+    --selector-node-bg: var(--gray-50);
+    --selector-icon: var(--gray-600);
+    --selector-text-bg: var(--gray-50);
+    --selector-text-bg-hover: var(--gray-100);
 
     /* specific colors */
     --window-bg: var(--gray-300);

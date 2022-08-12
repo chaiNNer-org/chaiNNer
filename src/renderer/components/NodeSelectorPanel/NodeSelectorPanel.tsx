@@ -18,7 +18,6 @@ import {
     TabPanels,
     Tabs,
     Text,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import React, { ReactNode, memo, useMemo, useState } from 'react';
@@ -148,7 +147,7 @@ export const NodeSelector = memo(() => {
                             >
                                 <InputGroup borderRadius={0}>
                                     <InputLeftElement
-                                        color={useColorModeValue('gray.500', 'gray.300')}
+                                        color="var(--fg-300)"
                                         pointerEvents="none"
                                     >
                                         <SearchIcon />
@@ -167,9 +166,9 @@ export const NodeSelector = memo(() => {
                                         onClick={() => setCollapsed(false)}
                                     />
                                     <InputRightElement
-                                        _hover={{ color: useColorModeValue('black', 'white') }}
+                                        _hover={{ color: 'var(--fg-000)' }}
                                         style={{
-                                            color: useColorModeValue('gray.500', 'gray.300'),
+                                            color: 'var(--fg-300)',
                                             cursor: 'pointer',
                                             display: searchQuery ? undefined : 'none',
                                             fontSize: '66%',

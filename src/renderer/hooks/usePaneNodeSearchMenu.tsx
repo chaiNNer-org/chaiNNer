@@ -10,7 +10,6 @@ import {
     MenuList,
     Spacer,
     Text,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
@@ -54,8 +53,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
 
     const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
-    const inputColor = useColorModeValue('gray.500', 'gray.300');
-    const hoverColor = useColorModeValue('black', 'white');
+    const inputColor = 'var(--fg-300)';
 
     return (
         <MenuList
@@ -86,7 +84,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <InputRightElement
-                    _hover={{ color: hoverColor }}
+                    _hover={{ color: 'var(--fg-000)' }}
                     style={{
                         color: inputColor,
                         cursor: 'pointer',

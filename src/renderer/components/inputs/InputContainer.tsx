@@ -1,4 +1,4 @@
-import { Box, Center, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -123,7 +123,7 @@ export const InputContainer = memo(
             })
             .join(', ');
         const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
-        const connectedColor = useColorModeValue('#EDF2F7', '#171923');
+        const connectedColor = 'var(--connection-color)';
         if (hasHandle) {
             contents = (
                 <HStack h="full">
