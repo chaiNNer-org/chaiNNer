@@ -2517,7 +2517,7 @@ class Onnx2NcnnConverter:
 
         # global definition line
         # [layer count][blob count]
-        for node in self.onnx_graph:
+        for node in self.onnx_graph.node:
             op = node.op_type
             if not node.name:
                 node.name = node.output[0]
@@ -3036,7 +3036,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, UOT.ABS)
             elif op == "Acos":
                 layer.add_param(0, UOT.ACOS)
-            elif layer.op_type == "BinaryOps":
+            elif layer.op_type == "BinaryOp":
                 if op == "Add":
                     layer.add_param(0, BOT.ADD)
                 elif op == "Div":
@@ -4087,13 +4087,15 @@ class Onnx2NcnnConverter:
                 # This is presumably to catch anything they haven't written an op for yet
                 for attr in node.attribute:
                     if attr.type == 1:
-                        error_msg = f"Op does not exist yet; {attr.name}={attr.f}"
+                        error_msg = f"Op {op} does not exist yet; {attr.name}={attr.f}"
                     elif attr.type == 2:
-                        error_msg = f"Op does not exist yet; {attr.name}={attr.i}"
+                        error_msg = f"Op {op} does not exist yet; {attr.name}={attr.i}"
                     elif attr.type == 3:
-                        error_msg = f"Op does not exist yet; {attr.name}={attr.s}"
+                        error_msg = f"Op {op} does not exist yet; {attr.name}={attr.s}"
                     else:
-                        error_msg = f"Op does not exist yet; {attr.name}={attr.type}"
+                        error_msg = (
+                            f"Op {op} does not exist yet; {attr.name}={attr.type}"
+                        )
 
                     raise ValueError(error_msg)
 
