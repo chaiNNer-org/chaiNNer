@@ -14,7 +14,6 @@ from .ncnn_model import (
     DTYPE_FP32,
     NcnnModel,
     NcnnLayer,
-    NcnnWeight,
     PaddingTypes,
     PadModes,
     PermuteOrderTypes,
@@ -3310,7 +3309,7 @@ class Onnx2NcnnConverter:
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_data = onph.to_array(W)
                 weight_bytes_list.append(
-                    layer.add_weight(W.swapaxes(0, 1), "weight", quantize_tag)
+                    layer.add_weight(weight_data.swapaxes(0, 1), "weight", quantize_tag)
                 )
 
                 if has_bias:
@@ -3730,7 +3729,7 @@ class Onnx2NcnnConverter:
                 elif op == "ReduceLogSum":
                     op_type = ROT.LOGSUM
                 elif op == "ReduceLogSumExp":
-                    op_type == ROT.LOGSUMEXP
+                    op_type = ROT.LOGSUMEXP
                 else:
                     op_type = -233
 
@@ -3873,8 +3872,6 @@ class Onnx2NcnnConverter:
                 layer.add_param(1, weight_data_size)
                 layer.add_param(2, direction_type)
 
-                num_directions = 2 if direction_type == 2 else 1
-
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
 
@@ -4011,9 +4008,9 @@ class Onnx2NcnnConverter:
                         layer.add_param(0, POT.WCH_WDHC)
                     elif perm[1] == 2 and perm[2] == 3 and perm[3] == 1:
                         layer.add_param(0, POT.CWH_DWHC)
-                    elif perm[1] == 3 and per[2] == 1 and perm[3] == 2:
+                    elif perm[1] == 3 and perm[2] == 1 and perm[3] == 2:
                         layer.add_param(0, POT.HCW_HDWC)
-                    elif perm[1] == 3 and per[2] == 2 and perm[3] == 1:
+                    elif perm[1] == 3 and perm[2] == 2 and perm[3] == 1:
                         layer.add_param(0, POT.CHW_DHWC)
                 elif perm.size == 5:
                     if perm[1] == 1 and perm[2] == 2 and perm[3] == 3 and perm[4] == 4:
