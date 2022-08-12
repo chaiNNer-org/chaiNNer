@@ -1,5 +1,7 @@
-from typing import Union
+from typing import Union, Literal
 from .. import expression
+
+OutputKind = Literal["image", "large-image", "text", "directory", "pytorch", "generic"]
 
 
 class BaseOutput:
@@ -7,15 +9,15 @@ class BaseOutput:
         self,
         output_type: expression.ExpressionJson,
         label: str,
-        kind: str = "generic",
+        kind: OutputKind = "generic",
         has_handle: bool = True,
     ):
-        self.output_type = output_type
-        self.label = label
+        self.output_type: expression.ExpressionJson = output_type
+        self.label: str = label
         self.id = None
         self.never_reason: Union[str, None] = None
-        self.kind = kind
-        self.has_handle = has_handle
+        self.kind: OutputKind = kind
+        self.has_handle: bool = has_handle
 
     def toDict(self):
         return {

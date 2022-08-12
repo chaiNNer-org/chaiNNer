@@ -19,18 +19,18 @@ class NodeBase(metaclass=ABCMeta):
     def __init__(self):
         self.inputs: List[BaseInput] = []
         self.outputs: List[BaseOutput] = []
-        self.description = ""
+        self.description: str = ""
 
-        self.category = Category(
+        self.category: Category = Category(
             "Unknown", "Unknown category", "BsQuestionDiamond", "#718096"
         )
-        self.name = ""
-        self.icon = ""
-        self.sub = "Miscellaneous"
-        self.type = "regularNode"
+        self.name: str = ""
+        self.icon: str = ""
+        self.sub: str = "Miscellaneous"
+        self.type: str = "regularNode"
 
-        self.side_effects = False
-        self.deprecated = False
+        self.side_effects: bool = False
+        self.deprecated: bool = False
 
     @abstractmethod
     def run(self) -> Any:
