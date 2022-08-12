@@ -150,3 +150,11 @@ export interface WindowSize {
     readonly width: number;
     readonly height: number;
 }
+
+export interface Category {
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    installHint?: string;
+}

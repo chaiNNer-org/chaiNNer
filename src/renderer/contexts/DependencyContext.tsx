@@ -52,12 +52,12 @@ export const DependencyContext = createContext<Readonly<DependencyContextValue>>
     availableUpdates: 0,
 });
 
-const checkSemver = (v1: string, v2: string) => {
+const checkSemverGt = (v1: string, v2: string) => {
     try {
-        return !semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
+        return semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
     } catch (error) {
         log.error(error);
-        return true;
+        return false;
     }
 };
 
@@ -194,10 +194,11 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 if (!pipList) {
                     return false;
                 }
-                if (!pipList[packageName]) {
+                const installedVersion = pipList[packageName];
+                if (!installedVersion) {
                     return true;
                 }
-                return !checkSemver(version, pipList[packageName]);
+                return checkSemverGt(version, installedVersion);
             })
         ).length;
     }, [pipList, availableDeps]);
@@ -269,9 +270,13 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         const allDepPackageVersionsString = dep.packages
                                             .map((p) => pipList[p.packageName])
                                             .join('/');
-                                        const outdatedPackages = dep.packages.filter(
-                                            (p) => !checkSemver(p.version, pipList[p.packageName])
-                                        );
+                                        const outdatedPackages = dep.packages.filter((p) => {
+                                            const installedVersion = pipList[p.packageName];
+                                            return (
+                                                installedVersion &&
+                                                checkSemverGt(p.version, installedVersion)
+                                            );
+                                        });
                                         return (
                                             <VStack
                                                 key={dep.name}
@@ -298,34 +303,25 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                                 : 'not installed'
                                                         })`}
                                                     </Text>
-                                                    {dep.packages.length ===
-                                                    dep.packages.filter(
-                                                        (p) => pipList[p.packageName]
-                                                    ).length ? (
+                                                    {allDepPackagesInstalled ? (
                                                         <HStack>
-                                                            <Button
-                                                                colorScheme="blue"
-                                                                disabled={
-                                                                    dep.packages.some((p) =>
-                                                                        checkSemver(
-                                                                            p.version,
-                                                                            pipList[p.packageName]
-                                                                        )
-                                                                    ) || isRunningShell
-                                                                }
-                                                                isLoading={isRunningShell}
-                                                                leftIcon={<DownloadIcon />}
-                                                                size="sm"
-                                                                onClick={() => installPackage(dep)}
-                                                            >
-                                                                {`Update${
-                                                                    outdatedPackages.length > 0
-                                                                        ? ` (${outdatedPackages
-                                                                              .map((p) => p.version)
-                                                                              .join('/')})`
-                                                                        : ''
-                                                                }`}
-                                                            </Button>
+                                                            {outdatedPackages.length > 0 && (
+                                                                <Button
+                                                                    colorScheme="blue"
+                                                                    disabled={isRunningShell}
+                                                                    isLoading={isRunningShell}
+                                                                    leftIcon={<DownloadIcon />}
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        installPackage(dep)
+                                                                    }
+                                                                >
+                                                                    {`Update (${outdatedPackages
+                                                                        .map((p) => p.version)
+                                                                        .join('/')})`}
+                                                                </Button>
+                                                            )}
+
                                                             <Button
                                                                 colorScheme="red"
                                                                 disabled={isRunningShell}

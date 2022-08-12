@@ -4,6 +4,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
@@ -14,7 +15,8 @@ export const GenericOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
 
         const schema = schemata.get(schemaId);
 

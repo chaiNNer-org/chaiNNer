@@ -8,7 +8,7 @@ import onnx
 import onnxruntime as ort
 from sanic.log import logger
 
-from .categories import ONNX
+from .categories import ONNXCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -35,7 +35,7 @@ class OnnxLoadModelNode(NodeBase):
         self.inputs = [OnnxFileInput()]
         self.outputs = [OnnxModelOutput(), TextOutput("Model Name")]
 
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Load Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
@@ -69,7 +69,7 @@ class OnnxSaveModelNode(NodeBase):
         self.description = """Save ONNX model to file (.onnx)."""
         self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
         self.outputs = []
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Save Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
@@ -104,7 +104,7 @@ class OnnxImageUpscaleNode(NodeBase):
             )
         ]
 
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Upscale Image"
         self.icon = "ONNX"
         self.sub = "Processing"

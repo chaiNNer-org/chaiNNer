@@ -20,10 +20,10 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { memo, useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { SchemaMap } from '../../../common/SchemaMap';
+import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import {
@@ -34,14 +34,11 @@ import {
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
-import { RegularAccordionItem } from './RegularAccordionItem';
+import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
-interface NodeSelectorProps {
-    schemata: SchemaMap;
-}
-
-export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
+export const NodeSelector = memo(() => {
+    const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -194,17 +191,46 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                                             favoriteNodes={favoriteNodes}
                                             noFavorites={favorites.size === 0}
                                         />
-                                        {[...byCategories].map(([category, categoryNodes]) => {
-                                            const subcategoryMap = getSubcategories(categoryNodes);
+                                        {categories.map((category) => {
+                                            const categoryNodes = byCategories.get(category.name);
 
-                                            return (
-                                                <RegularAccordionItem
-                                                    category={category}
-                                                    collapsed={collapsed}
-                                                    key={category}
-                                                    subcategoryMap={subcategoryMap}
-                                                />
-                                            );
+                                            if (categoryNodes) {
+                                                const subcategoryMap =
+                                                    getSubcategories(categoryNodes);
+
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                    >
+                                                        <Subcategories
+                                                            collapsed={collapsed}
+                                                            subcategoryMap={subcategoryMap}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            if (category.installHint) {
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                    >
+                                                        <PackageHint
+                                                            collapsed={collapsed}
+                                                            hint={category.installHint}
+                                                            // TODO: Somehow link categories to deps
+                                                            packageName={category.name}
+                                                            onClick={openDependencyManager}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            return <React.Fragment key={category.name} />;
                                         })}
                                         <AccordionItem>
                                             <Box p={4}>

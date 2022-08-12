@@ -7,32 +7,32 @@ import {
     Center,
     HStack,
     Heading,
+    Text,
     Tooltip,
 } from '@chakra-ui/react';
-import { memo } from 'react';
-import { NodeSchema } from '../../../common/common-types';
-import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
+import React, { memo } from 'react';
+import { Category, NodeSchema } from '../../../common/common-types';
 import { IconFactory } from '../CustomIcons';
 import { RepresentativeNodeWrapper } from './RepresentativeNodeWrapper';
 import { SubcategoryHeading } from './SubcategoryHeading';
+import { TextBox } from './TextBox';
 
 interface RegularAccordionItemProps {
-    subcategoryMap: Map<string, NodeSchema[]>;
-    category: string;
+    category: Category;
     collapsed: boolean;
 }
 
 export const RegularAccordionItem = memo(
-    ({ subcategoryMap, category, collapsed }: RegularAccordionItemProps) => {
+    ({ children, category, collapsed }: React.PropsWithChildren<RegularAccordionItemProps>) => {
         return (
-            <AccordionItem key={category}>
+            <AccordionItem key={category.name}>
                 <Tooltip
                     closeOnMouseDown
                     hasArrow
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<b>{category}</b>}
+                    label={<b>{category.name}</b>}
                     openDelay={500}
                     px={2}
                     py={1}
@@ -46,8 +46,8 @@ export const RegularAccordionItem = memo(
                         >
                             <Center>
                                 <IconFactory
-                                    accentColor={getNodeAccentColor(category)}
-                                    icon={category}
+                                    accentColor={category.color}
+                                    icon={category.icon}
                                 />
                             </Center>
                             {!collapsed && (
@@ -56,7 +56,7 @@ export const RegularAccordionItem = memo(
                                     textOverflow="clip"
                                     whiteSpace="nowrap"
                                 >
-                                    {category}
+                                    {category.name}
                                 </Heading>
                             )}
                         </HStack>
@@ -67,27 +67,78 @@ export const RegularAccordionItem = memo(
                     pb={2.5}
                     pt={0}
                 >
-                    {[...subcategoryMap].map(([subcategory, nodes]) => (
-                        <Box key={subcategory}>
-                            <Center>
-                                <SubcategoryHeading
-                                    collapsed={collapsed}
-                                    subcategory={subcategory}
-                                />
-                            </Center>
-                            <Box>
-                                {nodes.map((node) => (
-                                    <RepresentativeNodeWrapper
-                                        collapsed={collapsed}
-                                        key={node.name}
-                                        node={node}
-                                    />
-                                ))}
-                            </Box>
-                        </Box>
-                    ))}
+                    {children}
                 </AccordionPanel>
             </AccordionItem>
         );
     }
 );
+
+interface SubcategoriesProps {
+    collapsed: boolean;
+    subcategoryMap: Map<string, NodeSchema[]>;
+}
+
+export const Subcategories = memo(({ collapsed, subcategoryMap }: SubcategoriesProps) => {
+    return (
+        <>
+            {[...subcategoryMap].map(([subcategory, nodes]) => (
+                <Box key={subcategory}>
+                    <Center>
+                        <SubcategoryHeading
+                            collapsed={collapsed}
+                            subcategory={subcategory}
+                        />
+                    </Center>
+                    <Box>
+                        {nodes.map((node) => (
+                            <RepresentativeNodeWrapper
+                                collapsed={collapsed}
+                                key={node.name}
+                                node={node}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            ))}
+        </>
+    );
+});
+
+interface PackageHintProps {
+    collapsed: boolean;
+    onClick: () => void;
+    hint: string;
+    packageName: string;
+}
+
+export const PackageHintText = memo(
+    ({ hint, packageName }: { hint: string; packageName: string }) => (
+        <>
+            <Text>{hint}</Text>
+            <Text>
+                <em>Click</em> to open the dependency manager to install {packageName}.
+            </Text>
+        </>
+    )
+);
+
+export const PackageHint = memo(({ collapsed, onClick, hint, packageName }: PackageHintProps) => {
+    return (
+        <Box pt={1}>
+            <TextBox
+                noWrap
+                collapsed={collapsed}
+                height="1.5rem"
+                text="Not installed."
+                toolTip={
+                    <PackageHintText
+                        hint={hint}
+                        packageName={packageName}
+                    />
+                }
+                onClick={onClick}
+            />
+        </Box>
+    );
+});

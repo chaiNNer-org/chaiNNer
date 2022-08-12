@@ -12,7 +12,7 @@ import {
     SchemaId,
 } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
-import { assertNever } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from '../inputs/DirectoryInput';
 import { DropDownInput } from '../inputs/DropDownInput';
@@ -30,53 +30,26 @@ interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
     definitionType: Type;
 }
 
-// TODO: perhaps make this an object instead of a switch statement
-const pickInput = (kind: InputKind, props: FullInputProps) => {
+const InputComponents: Readonly<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let InputType: React.MemoExoticComponent<(props: any) => JSX.Element> = GenericInput;
-    switch (kind) {
-        case 'file':
-            InputType = FileInput;
-            break;
-        case 'directory':
-            InputType = DirectoryInput;
-            break;
-        case 'text-line':
-            InputType = TextInput;
-            break;
-        case 'text':
-            InputType = TextAreaInput;
-            break;
-        case 'dropdown':
-            InputType = DropDownInput;
-            break;
-        case 'number':
-            InputType = NumberInput;
-            break;
-        case 'slider':
-            InputType = SliderInput;
-            break;
-        case 'generic':
-            return (
-                <InputContainer
-                    generic
-                    definitionType={props.definitionType}
-                    hasHandle={props.hasHandle}
-                    id={props.id}
-                    inputId={props.inputId}
-                    key={`${props.id}-${props.inputId}`}
-                    optional={props.optional}
-                >
-                    <GenericInput {...props} />
-                </InputContainer>
-            );
-        default:
-            return assertNever(kind);
-    }
+    Record<InputKind, React.MemoExoticComponent<(props: any) => JSX.Element>>
+> = {
+    file: FileInput,
+    directory: DirectoryInput,
+    'text-line': TextInput,
+    text: TextAreaInput,
+    dropdown: DropDownInput,
+    number: NumberInput,
+    slider: SliderInput,
+    generic: GenericInput,
+};
+
+const pickInput = (kind: InputKind, props: FullInputProps) => {
+    const InputType = InputComponents[kind];
     return (
         <InputContainer
             definitionType={props.definitionType}
-            generic={false}
+            generic={kind === 'generic'}
             hasHandle={props.hasHandle}
             id={props.id}
             inputId={props.inputId}
@@ -101,11 +74,9 @@ interface NodeInputsProps {
 
 export const NodeInputs = memo(
     ({ inputs, id, inputData, inputSize, isLocked, schemaId, accentColor }: NodeInputsProps) => {
-        const {
-            useInputData: useInputDataContext,
-            useInputSize: useInputSizeContext,
-            functionDefinitions,
-        } = useContext(GlobalContext);
+        const { useInputData: useInputDataContext, useInputSize: useInputSizeContext } =
+            useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
 
         const useInputData = useCallback(
             <T extends InputSchemaValue>(inputId: InputId) =>

@@ -6,6 +6,7 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseSourceHandle } from '../../common/util';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
@@ -51,7 +52,8 @@ export const CustomEdge = memo(
         const parentNode = useMemo(() => getNode(source)!, [source]);
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById, setHoveredNode, functionDefinitions } = useContext(GlobalContext);
+        const { removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
