@@ -1,15 +1,15 @@
 from typing import Union, Literal
 from .. import expression
 
-InputKind = Union[
-    Literal["number"],
-    Literal["slider"],
-    Literal["dropdown"],
-    Literal["text"],
-    Literal["text-line"],
-    Literal["directory"],
-    Literal["file"],
-    Literal["generic"],
+InputKind = Literal[
+    "number",
+    "slider",
+    "dropdown",
+    "text",
+    "text-line",
+    "directory",
+    "file",
+    "generic",
 ]
 
 
@@ -21,12 +21,12 @@ class BaseInput:
         kind: InputKind = "generic",
         has_handle=True,
     ):
-        self.input_type = input_type
+        self.input_type: expression.ExpressionJson = input_type
         self.input_conversion: Union[expression.ExpressionJson, None] = None
-        self.kind = kind
-        self.label = label
+        self.kind: InputKind = kind
+        self.label: str = label
         self.optional: bool = False
-        self.has_handle = has_handle
+        self.has_handle: bool = has_handle
         self.id: Union[int, None] = None
 
     # This is the method that should be created by each input
