@@ -195,7 +195,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         ]
         self.outputs = [NcnnModelOutput("NCNN Model")]
 
-        self.category = "ONNX"
+        self.category = ONNXCategory
         self.name = "Convert To NCNN"
         self.icon = "NCNN"
         self.sub = "Utility"

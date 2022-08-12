@@ -12,8 +12,8 @@ from sanic.log import logger
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
 )
-with open(param_schema_file) as f:
-    param_schema = jload(f)
+with open(param_schema_file, encoding="utf-8") as schemaf:
+    param_schema = jload(schemaf)
 
 DTYPE_FP32 = b"\x00\x00\x00\x00"
 DTYPE_FP16 = b"\x47\x6b\x30\x01"
@@ -161,7 +161,7 @@ class NcnnParam:
         self.default: Union[float, int] = default
 
 
-class NcnnParamCollection(Dict):
+class NcnnParamCollection:
     def __init__(
         self,
         op: str,
@@ -447,7 +447,7 @@ class NcnnModel:
         assert os.path.exists(param_path), f"{param_path} does not exist"
         assert os.path.exists(bin_path), f"{bin_path} does not exist"
 
-        with open(param_path, "r") as paramf:
+        with open(param_path, "r", encoding="utf-8") as paramf:
             with open(bin_path, "rb") as binf:
                 paramf.readline()
                 counts = paramf.readline().strip().split(" ")

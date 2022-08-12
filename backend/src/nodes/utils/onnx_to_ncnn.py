@@ -3445,51 +3445,51 @@ class Onnx2NcnnConverter:
                     weight_bytes_list.append(layer.add_weight(scale, "scale"))
                     weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "GRU":
-                """W = self.weights[node.input[1]]
-                R = self.weights[node.input[2]]
-                B = self.weights[node.input[3]]
+                # W = self.weights[node.input[1]]
+                # R = self.weights[node.input[2]]
+                # B = self.weights[node.input[3]]
 
-                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
-                direction = self.get_node_attr_s(node, "direction")
+                # hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
+                # direction = self.get_node_attr_s(node, "direction")
 
-                if direction == "forward":
-                    direction_type = GRU.FORWARD
-                elif direction == "reverse":
-                    direction_type = GRU.REVERSE
-                elif direction == "bidirectional":
-                    direction_type = GRU.BIDIRECTIONAL
+                # if direction == "forward":
+                #    direction_type = GRU.FORWARD
+                # elif direction == "reverse":
+                #    direction_type = GRU.REVERSE
+                # elif direction == "bidirectional":
+                #    direction_type = GRU.BIDIRECTIONAL
 
-                weight_data_size = self.get_tensor_proto_data_size(W)
+                # weight_data_size = self.get_tensor_proto_data_size(W)
 
-                layer.add_param(0, hidden_size)
-                layer.add_param(1, weight_data_size)
-                layer.add_param(2, direction_type)
+                # layer.add_param(0, hidden_size)
+                # layer.add_param(1, weight_data_size)
+                # layer.add_param(2, direction_type)
 
-                num_directions = 2 if direction_type == GRU.BIDIRECTIONAL else 1
+                # num_directions = 2 if direction_type == GRU.BIDIRECTIONAL else 1
 
                 # reorder num_directions-URN-hidden_size to num_directions-RUN-hidden_size
-                quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
+                # quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
 
-                logger.error(
-                    "Not sure GRU weight reordering is accurate, "
-                    "docs and code comments appear to give different shape orders"
-                )
+                # logger.error(
+                #    "Not sure GRU weight reordering is accurate, "
+                #    "docs and code comments appear to give different shape orders"
+                # )
 
-                W_array = onph.to_array(W)
-                W_array = np.stack(
-                    (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
-                )
-                weight_bytes_list.append(
-                    layer.add_weight(W_array, "weight_xc_data", quantize_tag, is_fp16)
-                )
+                # W_array = onph.to_array(W)
+                # W_array = np.stack(
+                #    (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
+                # )
+                # weight_bytes_list.append(
+                #    layer.add_weight(W_array, "weight_xc_data", quantize_tag, is_fp16)
+                # )
 
                 # reduce U and R bias except N
                 # reorder num_directions-URN-hidden to num_directions-RUN-hidden
-                B_array = onph.to_array(B)
+                # B_array = onph.to_array(B)
 
-                bias_data_size_g = B_array.size / 6 / num_directions
-                for i in range(bias_data_size_g)[1:]:
-                    pass"""
+                # bias_data_size_g = B_array.size / 6 / num_directions
+                # for i in range(bias_data_size_g)[1:]:
+                #    pass
                 raise RuntimeError(
                     "GRU not implemented yet, please report issue with model used"
                 )
@@ -3578,19 +3578,19 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, self.get_node_attr_f(node, "beta", 0.5))
                 layer.add_param(4, self.get_node_attr_f(node, "bias", 1))
             elif op == "LSTM":
-                """W = self.weights[node.input[1]]
-                R = self.weights[node.input[2]]
-                B = self.weights[node.input[3]]
+                # W = self.weights[node.input[1]]
+                # R = self.weights[node.input[2]]
+                # B = self.weights[node.input[3]]
 
-                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
-                direction = self.get_node_attr_s(node, "direction")
+                # hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
+                # direction = self.get_node_attr_s(node, "direction")
 
-                if direction == "forward":
-                    direction_type = GRU.FORWARD
-                elif direction == "reverse":
-                    direction_type = GRU.REVERSE
-                elif direction  == "bidirectional":
-                    direction_type = GRU.BIDIRECTIONAL"""
+                # if direction == "forward":
+                #    direction_type = GRU.FORWARD
+                # elif direction == "reverse":
+                #    direction_type = GRU.REVERSE
+                # elif direction  == "bidirectional":
+                #    direction_type = GRU.BIDIRECTIONAL
                 raise RuntimeError(
                     "LSTM not implemented yet, please report issue with model used"
                 )
@@ -3611,23 +3611,23 @@ class Onnx2NcnnConverter:
                     )
                 # There is a dead else here, not sure if this was incomplete code
             elif op == "MultiHeadAttention":
-                """embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
-                num_heads = self.get_node_attr_i(node, "num_heads", 0)
+                # embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
+                # num_heads = self.get_node_attr_i(node, "num_heads", 0)
 
-                layer.add_param(0, embed_dim)
-                layer.add_param(1, num_heads)
+                # layer.add_param(0, embed_dim)
+                # layer.add_param(1, num_heads)
 
-                if len(node.input) == 5:
-                    qkvw = self.weights[node.input[1]]
-                    qkvb = self.weights[node.input[2]]
-                    ow = self.weights[node.input[3]]
-                    ob = self.weights[node.input[4]]
+                # if len(node.input) == 5:
+                #    qkvw = self.weights[node.input[1]]
+                #    qkvb = self.weights[node.input[2]]
+                #    ow = self.weights[node.input[3]]
+                #    ob = self.weights[node.input[4]]
 
-                    weight_data_size = self.get_tensor_proto_data_size(ow)
+                #    weight_data_size = self.get_tensor_proto_data_size(ow)
 
-                    layer.add_param(2, weight_data_size)
+                #    layer.add_param(2, weight_data_size)
 
-                    quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32"""
+                #    quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 raise RuntimeError(
                     "MultiHeadAttention not implemented, please report issue with model used"
                 )
