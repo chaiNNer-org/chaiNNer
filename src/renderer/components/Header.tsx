@@ -8,7 +8,6 @@ import {
     Spacer,
     Tag,
     Tooltip,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { IoPause, IoPlay, IoStop } from 'react-icons/io5';
@@ -35,7 +34,7 @@ export const Header = memo(() => {
 
     return (
         <Box
-            bg={useColorModeValue('gray.200', 'gray.800')}
+            bg="var(--header-bg)"
             borderRadius="lg"
             borderWidth="0px"
             h="56px"

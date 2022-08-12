@@ -141,11 +141,9 @@ export const OutputContainer = memo(
             );
         }
 
-        const bgColor = useColorModeValue('gray.300', 'gray.700');
-
         return (
             <Box
-                bg={bgColor}
+                bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
                 px={2}

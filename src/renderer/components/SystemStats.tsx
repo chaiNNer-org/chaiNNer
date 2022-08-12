@@ -1,17 +1,10 @@
-import {
-    Box,
-    CircularProgress,
-    CircularProgressLabel,
-    HStack,
-    Tooltip,
-    useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, CircularProgress, CircularProgressLabel, HStack, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { useSystemUsage } from '../hooks/useSystemUsage';
 
 export const SystemStats = memo(() => {
     const usage = useSystemUsage(2500);
-    const trackColor = useColorModeValue('gray.300', 'gray.700');
+    const trackColor = 'var(--bg-700)';
     return (
         <HStack>
             <Tooltip

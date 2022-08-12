@@ -63,7 +63,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const { validity } = useValidity(id, schema, inputData);
 
-    const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
+    const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
@@ -128,14 +128,13 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
-    const bgColor = useColorModeValue('gray.400', 'gray.750');
     const shadowColor = useColorModeValue('gray.600', 'gray.900');
 
     useRunNode(data, validity.isValid && isStartingNode(schema));
 
     return (
         <Center
-            bg={bgColor}
+            bg="var(--node-bg-color)"
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"

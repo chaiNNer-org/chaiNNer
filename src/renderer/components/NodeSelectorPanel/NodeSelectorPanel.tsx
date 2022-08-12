@@ -117,7 +117,7 @@ export const NodeSelector = memo(() => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.200', 'gray.800')}
+                bg="var(--node-selector-bg)"
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
@@ -187,11 +187,11 @@ export const NodeSelector = memo(() => {
                                     <Center>
                                         <Button
                                             _hover={{
-                                                bg: useColorModeValue('gray.400', 'gray.600'),
+                                                bg: 'var(--bg-600)',
                                                 opacity: 1,
                                             }}
                                             aria-label="Collapse/Expand Categories"
-                                            bg={useColorModeValue('gray.300', 'gray.700')}
+                                            bg="var(--bg-700)"
                                             borderRadius="0px 0px 8px 8px"
                                             h="0.5rem"
                                             opacity={showCollapseButtons ? 0.75 : 0}
@@ -288,11 +288,11 @@ export const NodeSelector = memo(() => {
             </Box>
             <Button
                 _hover={{
-                    bg: useColorModeValue('gray.400', 'gray.600'),
+                    bg: 'var(--bg-600)',
                     opacity: 1,
                 }}
                 aria-label="collapse"
-                bg={useColorModeValue('gray.300', 'gray.700')}
+                bg="var(--bg-700)"
                 borderRadius={0}
                 borderRightRadius="xl"
                 h="100px"

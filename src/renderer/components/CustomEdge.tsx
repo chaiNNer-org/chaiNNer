@@ -180,7 +180,7 @@ export const CustomEdge = memo(
                 >
                     <Center
                         backgroundColor={currentColor}
-                        borderColor={useColorModeValue('gray.100', 'gray.800')}
+                        borderColor="var(--node-border-color)"
                         borderRadius={100}
                         borderWidth={2}
                         h="full"
@@ -192,7 +192,7 @@ export const CustomEdge = memo(
                         <IconButton
                             isRound
                             aria-label="Remove edge button"
-                            borderColor={useColorModeValue('gray.100', 'gray.800')}
+                            borderColor="var(--node-border-color)"
                             borderRadius={100}
                             borderWidth={2}
                             className="edgebutton"

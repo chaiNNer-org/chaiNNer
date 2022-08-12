@@ -1,13 +1,4 @@
-import {
-    Box,
-    Center,
-    HStack,
-    Heading,
-    LayoutProps,
-    Tooltip,
-    VStack,
-    useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, Center, HStack, Heading, LayoutProps, Tooltip, VStack } from '@chakra-ui/react';
 import { memo } from 'react';
 import { DisabledStatus } from '../../helpers/disabled';
 import { IconFactory } from '../CustomIcons';
@@ -32,7 +23,6 @@ export const IteratorNodeHeader = memo(
         percentComplete,
         disabledStatus,
     }: IteratorNodeHeaderProps) => {
-        const shade = useColorModeValue('gray.600', 'gray.400');
         return (
             <VStack
                 spacing={0}
@@ -63,7 +53,7 @@ export const IteratorNodeHeader = memo(
                             w={4}
                         >
                             <IconFactory
-                                accentColor={selected ? accentColor : shade}
+                                accentColor={selected ? accentColor : 'var(--node-icon-color)'}
                                 icon={icon}
                             />
                         </Center>
