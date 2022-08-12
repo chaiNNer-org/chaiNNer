@@ -1152,7 +1152,7 @@ class Onnx2NcnnConverter:
                 eps = self.get_node_attr_from_input_f(add_eps)
 
                 affine = 0
-                while i + 8 < node_count:
+                while i + 8 < self.node_count:
                     node8 = self.mutable_graph_nodes[i + 7]
                     node9 = self.mutable_graph_nodes[i + 8]
 
@@ -1668,7 +1668,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 2
                 i += 2
 
-                if i + 1 < node_count:
+                if i + 1 < self.node_count:
                     if self.node_reference[node3.output[0]] != 1:
                         continue
 
@@ -1736,7 +1736,7 @@ class Onnx2NcnnConverter:
                 reduced_node_count[0] += 1
                 i += 1
 
-                if i + 1 < node_count:
+                if i + 1 < self.node_count:
                     if self.node_reference[node2.output[0]] != 1:
                         continue
 
@@ -2802,7 +2802,7 @@ class Onnx2NcnnConverter:
                         layer.add_param(1, M.dims[2])
                         layer.add_param(2, M.dims[1])
 
-                    weight_layer_list.append(layer.add_weight(M, "MemoryData"))
+                    weight_bytes_list.append(layer.add_weight(M, "MemoryData"))
 
                     ncnn_model.add_layer(layer)
 
@@ -2862,7 +2862,17 @@ class Onnx2NcnnConverter:
                 "Tanh",
             ]:
                 layer.op_type = "UnaryOp"
-            elif op in ["Add", "Div", "Max", "Min", "Mul", "Pow" "RDiv", "RSub", "Sub"]:
+            elif op in [
+                "Add",
+                "Div",
+                "Max",
+                "Min",
+                "Mul",
+                "Pow",
+                "RDiv",
+                "RSub",
+                "Sub",
+            ]:
                 layer.op_type = "BinaryOp"
             elif op == "AveragePool" or op == "MaxPool":
                 kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
@@ -3125,20 +3135,20 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, channels)
 
-                weight_layer_list.append(layer.add_weight(scale, "slope"))
-                weight_layer_list.append(layer.add_weight(mean, "mean"))
+                weight_bytes_list.append(layer.add_weight(scale, "slope"))
+                weight_bytes_list.append(layer.add_weight(mean, "mean"))
 
                 # apply epsilon to var
                 v = onph.to_array(var)
                 ve = np.array([v[i] + epsilon for i in range(channels)], np.float32)
-                weight_layer_list.append(layer.add_weight(ve, "variance"))
-                weight_layer_list.append(layer.add_weight(B, "bias"))
+                weight_bytes_list.append(layer.add_weight(ve, "variance"))
+                weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
                 layer.add_param(0, self.get_tensor_proto_data_size(B))
 
-                weight_layer_list.append(layer.add_weight(B, "bias"))
+                weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "Ceil":
                 layer.add_param(0, UOT.CEIL)
             elif op == "Clip":
@@ -3299,13 +3309,13 @@ class Onnx2NcnnConverter:
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_data = onph.to_array(W)
-                weight_layer_list.append(
+                weight_bytes_list.append(
                     layer.add_weight(W.swapaxes(0, 1), "weight", quantize_tag)
                 )
 
                 if has_bias:
                     B = self.weights[node.input[2]]
-                    weight_layer_list.append(layer.add_weight(B, "bias"))
+                    weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "Cos":
                 layer.add_param(0, UOT.COS)
             elif op == "Crop":
@@ -3343,12 +3353,12 @@ class Onnx2NcnnConverter:
                 layer.add_param(2, self.get_tensor_proto_data_size(positions))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_layer_list.append(layer.add_weight(words, "words", DTYPE_FP32))
-                weight_layer_list.append(
+                weight_bytes_list.append(layer.add_weight(words, "words", DTYPE_FP32))
+                weight_bytes_list.append(
                     layer.add_weight(positions, "positions", DTYPE_FP32)
                 )
-                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
-                weight_layer_list.append(layer.add_weight(B, "bias"))
+                weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
+                weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "Exp":
                 layer.add_param(0, UOT.EXP)
             elif op == "Flatten":
@@ -3374,8 +3384,8 @@ class Onnx2NcnnConverter:
                     layer.add_param(1, 1)
                     layer.add_param(2, self.get_tensor_proto_data_size(B))
 
-                    weight_layer_list.append(layer.add_weight(B, "B", DTYPE_FP32))
-                    weight_layer_list.append(layer.add_weight(C, "C"))
+                    weight_bytes_list.append(layer.add_weight(B, "B", DTYPE_FP32))
+                    weight_bytes_list.append(layer.add_weight(C, "C"))
                 else:
                     # gemm
                     layer.add_param(0, alpha)
@@ -3433,12 +3443,9 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    weight_layer_list.append(layer.add_weight(scale, "scale"))
-                    weight_layer_list.append(layer.add_weight(B, "bias"))
+                    weight_bytes_list.append(layer.add_weight(scale, "scale"))
+                    weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "GRU":
-                raise RuntimeError(
-                    "GRU not implemented yet, please report issue with model used"
-                )
                 """W = self.weights[node.input[1]]
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
@@ -3473,7 +3480,7 @@ class Onnx2NcnnConverter:
                 W_array = np.stack(
                     (W_array[:, 1, :], W_array[:, 0, :], W_array[:, 2, :]), axis=1
                 )
-                weight_layer_list.append(
+                weight_bytes_list.append(
                     layer.add_weight(W_array, "weight_xc_data", quantize_tag, is_fp16)
                 )
 
@@ -3484,6 +3491,9 @@ class Onnx2NcnnConverter:
                 bias_data_size_g = B_array.size / 6 / num_directions
                 for i in range(bias_data_size_g)[1:]:
                     pass"""
+                raise RuntimeError(
+                    "GRU not implemented yet, please report issue with model used"
+                )
             elif op == "HardSigmoid" or op == "Hard Swish":
                 alpha = self.get_node_attr_f(node, "alpha", 0.2)
                 beta = self.get_node_attr_f(node, "beta", 0.5)
@@ -3501,7 +3511,7 @@ class Onnx2NcnnConverter:
                 weight_bytes_list.append(
                     layer.add_weight(np.array((scale,) * 3), "scale")
                 )
-                weight_layer_list.append(layer.add_weight(bias, "bias"))
+                weight_bytes_list.append(layer.add_weight(bias, "bias"))
             elif op == "InstanceNormalization":
                 eps = self.get_node_attr_f(node, "epsilon", 0.00001)
 
@@ -3522,8 +3532,8 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    weight_layer_list.append(layer.add_weight(scale, "scale"))
-                    weight_layer_list.append(layer.add_weight(B, "bias"))
+                    weight_bytes_list.append(layer.add_weight(scale, "scale"))
+                    weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "LayerNorm":
                 eps = self.get_node_attr_f(node, "epsilon", 0.00001)
                 affine = self.get_node_attr_i(node, "affine", 1)
@@ -3555,8 +3565,8 @@ class Onnx2NcnnConverter:
                     scale = self.weights[node.input[1]]
                     B = self.weights[node.input[2]]
 
-                    weight_layer_list.append(layer.add_weight(scale, "scale"))
-                    weight_layer_list.append(layer.add_weight(B, "bias"))
+                    weight_bytes_list.append(layer.add_weight(scale, "scale"))
+                    weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "LeakyRelu":
                 alpha = self.get_node_attr_f(node, "alpha", 0.01)
                 layer.add_param(0, alpha)
@@ -3569,9 +3579,6 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, self.get_node_attr_f(node, "beta", 0.5))
                 layer.add_param(4, self.get_node_attr_f(node, "bias", 1))
             elif op == "LSTM":
-                raise RuntimeError(
-                    "LSTM not implemented yet, please report issue with model used"
-                )
                 """W = self.weights[node.input[1]]
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
@@ -3585,6 +3592,9 @@ class Onnx2NcnnConverter:
                     direction_type = GRU.REVERSE
                 elif direction  == "bidirectional":
                     direction_type = GRU.BIDIRECTIONAL"""
+                raise RuntimeError(
+                    "LSTM not implemented yet, please report issue with model used"
+                )
             elif op == "MatMul":
                 if node.input[1] in self.weights:
                     # InnerProduct
@@ -3597,14 +3607,11 @@ class Onnx2NcnnConverter:
                     layer.add_param(2, weight_data_size)
 
                     B_array = onph.to_array(B)
-                    weight_layer_list.append(
+                    weight_bytes_list.append(
                         layer.add_weight(B_array.T, "bias", DTYPE_FP32)
                     )
                 # There is a dead else here, not sure if this was incomplete code
             elif op == "MultiHeadAttention":
-                raise RuntimeError(
-                    "MultiHeadAttention not implemented, please report issue with model used"
-                )
                 """embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
                 num_heads = self.get_node_attr_i(node, "num_heads", 0)
 
@@ -3622,6 +3629,9 @@ class Onnx2NcnnConverter:
                     layer.add_param(2, weight_data_size)
 
                     quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32"""
+                raise RuntimeError(
+                    "MultiHeadAttention not implemented, please report issue with model used"
+                )
             elif op == "Neg":
                 layer.add_param(0, UOT.NEG)
             elif op == "Normalize":
@@ -3632,7 +3642,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(3, 1)  # scale_data_size
                 layer.add_param(9, NEM.PYTORCH)
 
-                weight_layer_list.append(layer.add_weight(1, "scale"))
+                weight_bytes_list.append(layer.add_weight(1, "scale"))
             elif op == "Pad":
                 mode = self.get_node_attr_s(node, "mode")
                 value = self.get_node_attr_f(node, "value", 0)
@@ -3686,7 +3696,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, num_slope)
 
-                weight_layer_list.append(layer.add_weight(slope, "slope"))
+                weight_bytes_list.append(layer.add_weight(slope, "slope"))
             elif op == "Reciprocal":
                 layer.add_param(0, UOT.RECIPROCAL)
             elif op in [
@@ -3866,15 +3876,15 @@ class Onnx2NcnnConverter:
                 num_directions = 2 if direction_type == 2 else 1
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
+                weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
 
                 # reduce xc and hc bias
                 reduced_B = np.sum(onph.to_array(B), 1)
-                weight_layer_list.append(
+                weight_bytes_list.append(
                     layer.add_weight(reduced_B, "bias", quantize_tag)
                 )
 
-                weight_layer_list.append(layer.add_weight(R, "R", quantize_tag))
+                weight_bytes_list.append(layer.add_weight(R, "R", quantize_tag))
             elif op == "ShuffleChannel":
                 layer.add_param(0, self.get_node_attr_i(node, "group", 1))
                 layer.add_param(1, self.get_node_attr_i(node, "reverse", 0))
@@ -3891,9 +3901,9 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, self.get_tensor_proto_data_size(B))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
-                weight_layer_list.append(layer.add_weight(W, "weight", quantize_tag))
-                weight_layer_list.append(layer.add_weight(B, "bias1", DTYPE_FP32))
-                weight_layer_list.append(layer.add_weight(B2, "bias2", DTYPE_FP32))
+                weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
+                weight_bytes_list.append(layer.add_weight(B, "bias1", DTYPE_FP32))
+                weight_bytes_list.append(layer.add_weight(B2, "bias2", DTYPE_FP32))
             elif op == "Slice":
                 input_size = len(node.input)
                 if input_size == 1:
