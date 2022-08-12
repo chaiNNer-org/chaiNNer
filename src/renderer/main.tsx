@@ -5,7 +5,7 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { SchemaId } from '../common/common-types';
+import { Category, SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -31,7 +31,7 @@ import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 interface NodesInfo {
     schemata: SchemaMap;
-    categories: string[];
+    categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 

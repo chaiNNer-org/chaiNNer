@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Union
 
+from .categories import Category
+
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
 
@@ -19,7 +21,9 @@ class NodeBase(metaclass=ABCMeta):
         self.outputs: List[BaseOutput] = []
         self.description = ""
 
-        self.category = ""
+        self.category = Category(
+            "Unknown", "Unknown category", "BsQuestionDiamond", "#718096"
+        )
         self.name = ""
         self.icon = ""
         self.sub = "Miscellaneous"
@@ -42,30 +46,6 @@ class NodeBase(metaclass=ABCMeta):
         if with_implicit_ids:
             assign_implicit_ids(self.outputs)
         return self.outputs
-
-    def get_description(self):
-        return self.description
-
-    def get_name(self):
-        return self.name
-
-    def get_category(self):
-        return self.category
-
-    def get_icon(self):
-        return self.icon
-
-    def get_sub_category(self):
-        return self.sub
-
-    def get_type(self):
-        return self.type
-
-    def get_has_side_effects(self):
-        return self.side_effects
-
-    def is_deprecated(self):
-        return self.deprecated
 
 
 # pylint: disable=abstract-method

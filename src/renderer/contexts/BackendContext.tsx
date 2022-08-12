@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { createContext } from 'use-context-selector';
 import { Backend, getBackend } from '../../common/Backend';
-import { SchemaId } from '../../common/common-types';
+import { Category, SchemaId } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { FunctionDefinition } from '../../common/types/function';
 import { useMemoObject } from '../hooks/useMemo';
@@ -15,7 +15,7 @@ interface BackendContextState {
      *
      * Some categories might be empty.
      */
-    categories: string[];
+    categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
@@ -26,7 +26,7 @@ export const BackendContext = createContext<Readonly<BackendContextState>>(
 interface BackendProviderProps {
     port: number;
     schemata: SchemaMap;
-    categories: string[];
+    categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 

@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
+import { Category, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
     message: string;
@@ -16,7 +16,7 @@ export interface BackendExceptionResponse {
 }
 export interface BackendNodesResponse {
     nodes: NodeSchema[];
-    categories: string[];
+    categories: Category[];
 }
 export interface BackendRunRequest {
     data: Record<string, UsableData>;
