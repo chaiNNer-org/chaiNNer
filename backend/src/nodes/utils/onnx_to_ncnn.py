@@ -850,7 +850,7 @@ class Onnx2NcnnConverter:
                 node4 = self.mutable_graph_nodes[i + 3]
 
                 has_shape_node = node3.op_type == "Shape"
-                node_shape = 0
+                node_shape = onnx.NodeProto()
                 if has_shape_node:
                     if i + 4 >= self.node_count:
                         continue
