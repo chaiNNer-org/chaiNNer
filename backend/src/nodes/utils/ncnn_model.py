@@ -1,12 +1,12 @@
+import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
-import os
+from json import load as jload
 from typing import Dict, List, Tuple, Union
 
-from json import load as jload
 import numpy as np
-from onnx import TensorProto
 import onnx.numpy_helper as onph
+from onnx import TensorProto
 from sanic.log import logger
 
 param_schema_file = os.path.join(
@@ -308,7 +308,7 @@ class NcnnModel:
                         self.add_layer(layer)
 
     @property
-    def magic(NcnnModel):
+    def magic(self):
         return "7767517"
 
     @staticmethod

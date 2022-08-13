@@ -1,5 +1,5 @@
 from sys import float_info
-from typing import Union, List, Dict
+from typing import Dict, List, Union
 
 import numpy as np
 import onnx
@@ -13,18 +13,18 @@ from sanic.log import logger
 from .ncnn_model import (
     DTYPE_FP16,
     DTYPE_FP32,
-    NcnnModel,
+    BinaryOpTypes,
+    EltwiseOpTypes,
+    GruDirectionFlags,
+    InterpResizeTypes,
     NcnnLayer,
+    NcnnModel,
+    NormalizeEpsModes,
     PaddingTypes,
     PadModes,
     PermuteOrderTypes,
     ReductionOpTypes,
     UnaryOpTypes,
-    BinaryOpTypes,
-    EltwiseOpTypes,
-    GruDirectionFlags,
-    InterpResizeTypes,
-    NormalizeEpsModes,
 )
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
