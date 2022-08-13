@@ -34,18 +34,7 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModel, str]:
-        assert os.path.exists(
-            param_path
-        ), f"Param file at location {param_path} does not exist"
-        assert os.path.exists(
-            bin_path
-        ), f"Bin file at location {bin_path} does not exist"
-
-        assert os.path.isfile(param_path), f"Path {param_path} is not a file"
-        assert os.path.isfile(bin_path), f"Path {bin_path} is not a file"
-
-        model = NcnnModel()
-        model.load_model(param_path, bin_path)
+        model = NcnnModel(param_path=param_path, bin_path=bin_path)
         with open(bin_path, "rb") as f:
             model.weights_bin = f.read()
         model_name = os.path.splitext(os.path.basename(param_path))[0]
@@ -103,25 +92,6 @@ class NcnnUpscaleImageNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Processing"
 
-    def get_model_channels(self, model: NcnnModel) -> int:
-        num_filters = model.layer_list[1].params[0].value
-        kernel_w = model.layer_list[1].params[1].value
-        try:
-            kernel_h = model.layer_list[1].params[11].value
-        except KeyError:
-            kernel_h = kernel_w
-        weight_data_size = model.layer_list[1].params[6].value
-
-        assert (
-            isinstance(num_filters, int)
-            and isinstance(kernel_w, int)
-            and isinstance(kernel_h, int)
-            and isinstance(weight_data_size, int)
-        ), "Out nc, kernel width and height, and weight data size must all be ints"
-        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
-
-        return in_nc
-
     def upscale(
         self,
         img: np.ndarray,
@@ -157,7 +127,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self, model: NcnnModel, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         h, w, _ = get_h_w_c(img)
-        model_c = self.get_model_channels(model)
+        model_c = model.get_model_channels()
 
         if tile_size_target > 0:
             # Calculate split factor using a tile size target
@@ -177,7 +147,7 @@ class NcnnUpscaleImageNode(NodeBase):
         net.set_vulkan_device(ncnn.get_default_gpu_index())
 
         # Load model param and bin
-        net.load_param_mem(model.write_param_to_mem())
+        net.load_param_mem(model.write_param())
         net.load_model_mem(model.weights_bin)
 
         def upscale(i: np.ndarray) -> np.ndarray:
@@ -241,7 +211,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         self, a: NcnnModel, b: NcnnModel, amount: int
     ) -> Tuple[NcnnModel, int, int]:
         f_amount = 1 - amount / 100
-        interp_model = a.interpolate_ncnn(b, f_amount)
+        interp_model = a.interpolate(b, f_amount)
 
         if not self.check_will_upscale(interp_model):
             raise ValueError(

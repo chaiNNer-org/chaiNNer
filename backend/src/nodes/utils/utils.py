@@ -358,7 +358,7 @@ def convenient_upscale(
     else:
         # Add extra channels if not enough (i.e single channel img, three channel model)
         gray = False
-        if input_channels > 1 and img.ndim == 2:
+        if img.ndim == 2:
             gray = True
             logger.debug("Expanding image channels")
             img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3)))

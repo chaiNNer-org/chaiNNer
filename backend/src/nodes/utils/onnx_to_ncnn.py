@@ -2466,7 +2466,7 @@ class Onnx2NcnnConverter:
                 attr_b = onnx.AttributeProto(name="b", f=b, type=APT.FLOAT)
                 node.attribute.append(attr_b)
 
-    def convert(self, is_fp16: bool = False, include_mem_data: bool = True):
+    def convert(self, is_fp16: int = 0, include_mem_data: bool = True):
         if is_fp16:
             logger.info("NCNN mode: fp16")
         else:

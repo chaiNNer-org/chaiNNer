@@ -1,5 +1,5 @@
 from copy import deepcopy
-from io import BufferedReader
+from io import BufferedReader, StringIO
 import os
 from typing import Dict, List, Tuple, Union
 
@@ -275,17 +275,41 @@ class NcnnLayer:
 
 
 class NcnnModel:
-    MAGIC = "7767517"
-
-    def __init__(self, node_count: int = 0, blob_count: int = 0):
-        self.node_count: int = node_count
-        self.blob_count: int = blob_count
+    def __init__(
+        self,
+        node_count: int = 0,
+        blob_count: int = 0,
+        param_path: str = "",
+        bin_path: str = "",
+    ) -> None:
         self.layer_list: List[NcnnLayer] = []
-        self.weights_bin: bytes = b""
+        if param_path == "" and bin_path == "":
+            self.node_count: int = node_count
+            self.blob_count: int = blob_count
+            self.weights_bin: bytes = b""
+        else:
+            if bin_path == "":
+                bin_path = param_path.replace(".param", ".bin")
+            elif param_path == "":
+                param_path = bin_path.replace(".bin", ".param")
 
-    @staticmethod
-    def stringify_list(a: List[str]) -> str:
-        return "".join(i + " " for i in a)
+            with open(param_path, "r", encoding="utf-8") as paramf:
+                with open(bin_path, "rb") as binf:
+                    paramf.readline()
+                    counts = paramf.readline().strip().split(" ")
+                    self.node_count = int(counts[0])
+                    self.blob_count = int(counts[1])
+
+                    for line in paramf:
+                        op_type, layer = self.parse_param_layer(line)
+                        layer.weight_data = self.load_layer_weights(
+                            binf, op_type, layer
+                        )
+                        self.add_layer(layer)
+
+    @property
+    def magic(NcnnModel):
+        return "7767517"
 
     @staticmethod
     def interp_layers(
@@ -357,6 +381,25 @@ class NcnnModel:
             ),
             layer_bytes,
         )
+
+    def get_model_channels(self) -> int:
+        num_filters = self.layer_list[1].params[0].value
+        kernel_w = self.layer_list[1].params[1].value
+        try:
+            kernel_h = self.layer_list[1].params[11].value
+        except KeyError:
+            kernel_h = kernel_w
+        weight_data_size = self.layer_list[1].params[6].value
+
+        assert (
+            isinstance(num_filters, int)
+            and isinstance(kernel_w, int)
+            and isinstance(kernel_h, int)
+            and isinstance(weight_data_size, int)
+        ), "Out nc, kernel width and height, and weight data size must all be ints"
+        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
+
+        return in_nc
 
     def add_layer(self, layer: NcnnLayer) -> None:
         self.layer_list.append(layer)
@@ -442,63 +485,34 @@ class NcnnModel:
 
         return weight_dict
 
-    def load_model(self, param_path: str, bin_path: Union[str, None] = None) -> None:
-        if bin_path is None:
-            bin_path = param_path.replace(".param", ".bin")
-
-        assert os.path.exists(param_path), f"{param_path} does not exist"
-        assert os.path.exists(bin_path), f"{bin_path} does not exist"
-
-        with open(param_path, "r", encoding="utf-8") as paramf:
-            with open(bin_path, "rb") as binf:
-                paramf.readline()
-                counts = paramf.readline().strip().split(" ")
-                self.node_count = int(counts[0])
-                self.blob_count = int(counts[1])
-
-                for line in paramf:
-                    op_type, layer = self.parse_param_layer(line)
-                    layer.weight_data = self.load_layer_weights(binf, op_type, layer)
-                    self.add_layer(layer)
-
-    def write_param(self, filename: str) -> None:
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(f"{self.MAGIC}\n")
-            f.write(f"{self.node_count} {self.blob_count}\n")
+    def write_param(self, filename: str = "") -> str:
+        with StringIO() as p:
+            p.write(f"{self.magic}\n{self.node_count} {self.blob_count}\n")
 
             for layer in self.layer_list:
-                layer_str = (
+                p.write(
                     f"{layer.op_type:<16} "
                     f"{layer.name:<24} "
                     f"{layer.num_inputs} "
                     f"{layer.num_outputs} "
-                    f"{self.stringify_list(layer.inputs)}"
-                    f"{self.stringify_list(layer.outputs)}"
+                    f"{' '.join(layer.inputs)} "
+                    f"{' '.join(layer.outputs)} "
                     f"{str(layer.params)}".rstrip()
                 )
-                f.write(layer_str + "\n")
+                p.write("\n")
 
-    def write_param_to_mem(self) -> str:
-        param_str = f"{self.MAGIC}\n{self.node_count} {self.blob_count}\n"
-        for layer in self.layer_list:
-            layer_str = (
-                f"{layer.op_type:<16} "
-                f"{layer.name:<24} "
-                f"{layer.num_inputs} "
-                f"{layer.num_outputs} "
-                f"{self.stringify_list(layer.inputs)}"
-                f"{self.stringify_list(layer.outputs)}"
-                f"{str(layer.params)}".rstrip()
-            )
-            param_str += layer_str + "\n"
-
-        return param_str
+            if filename:
+                with open(filename, "w", encoding="utf-8") as f:
+                    f.write(p.getvalue())
+                return ""
+            else:
+                return p.getvalue()
 
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
             f.write(self.weights_bin)
 
-    def interpolate_ncnn(self, model_b, alpha):
+    def interpolate(self, model_b: "NcnnModel", alpha: float) -> "NcnnModel":
         interp_model = deepcopy(self)
         interp_model.weights_bin = b""
 

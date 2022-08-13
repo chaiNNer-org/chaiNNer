@@ -182,26 +182,15 @@ class ConvertOnnxToNcnnNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert an ONNX model to NCNN."""
-        self.inputs = [
-            OnnxModelInput("ONNX Model"),
-            DropDownInput(
-                "FpMode",
-                "Data Type",
-                [
-                    {"option": "fp32", "value": 0},
-                    {"option": "fp16", "value": 1},
-                ],
-            ),
-        ]
+        self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
         self.outputs = [NcnnModelOutput("NCNN Model")]
 
         self.category = ONNXCategory
         self.name = "Convert To NCNN"
         self.icon = "NCNN"
         self.sub = "Utility"
-        self.side_effects = True
 
-    def run(self, onnx_model: bytes, is_fp16: bool) -> NcnnModel:
+    def run(self, onnx_model: bytes, is_fp16: int) -> NcnnModel:
         converter = Onnx2NcnnConverter(onnx.load_model_from_string(onnx_model))
         ncnn_model = converter.convert(is_fp16, False)
         return ncnn_model
