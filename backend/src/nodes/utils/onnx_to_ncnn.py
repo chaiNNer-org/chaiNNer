@@ -1,3 +1,4 @@
+from sys import float_info
 from typing import Union, List, Dict
 
 import numpy as np
@@ -27,7 +28,7 @@ from .ncnn_model import (
 )
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
-FLOAT32_MAX = np.finfo(np.float32).max
+FLOAT32_MAX = float_info.max
 
 
 class AttributeProtoTypes:
@@ -849,6 +850,7 @@ class Onnx2NcnnConverter:
                 node4 = self.mutable_graph_nodes[i + 3]
 
                 has_shape_node = node3.op_type == "Shape"
+                node_shape = 0
                 if has_shape_node:
                     if i + 4 >= self.node_count:
                         continue
@@ -3651,12 +3653,12 @@ class Onnx2NcnnConverter:
                 else:
                     pads = self.get_node_attr_from_input_ai(self.weights[node.input[1]])
 
-                if mode == "constant":
-                    ptype = PAT.CONSTANT
-                elif mode == "edge":
+                if mode == "edge":
                     ptype = PAT.REPLICATE
                 elif mode == "reflect":
                     ptype = PAT.REFLECT
+                else:
+                    ptype = PAT.CONSTANT
 
                 pad_size = pads.size
                 top = bottom = front = behind = 0
@@ -3818,6 +3820,7 @@ class Onnx2NcnnConverter:
                     )
 
                 if scales.size == 2:
+                    h_scale = 1
                     w_scale = scales[1]
                 elif scales.size == 3:
                     h_scale = scales[1]
@@ -3832,6 +3835,7 @@ class Onnx2NcnnConverter:
                     w_scale = 1
 
                 if sizes.size == 2:
+                    output_height = 0
                     output_width = sizes[1]
                 elif sizes.size == 3:
                     output_height = sizes[1]
@@ -3859,12 +3863,12 @@ class Onnx2NcnnConverter:
                 hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
                 direction = self.get_node_attr_s(node, "direction")
 
-                if direction == "forward":
-                    direction_type = GRU.FORWARD
                 if direction == "reverse":
                     direction_type = GRU.REVERSE
                 elif direction == "bidirectional":
                     direction_type = GRU.BIDIRECTIONAL
+                else:
+                    direction_type = GRU.FORWARD
 
                 weight_data_size = self.get_tensor_proto_data_size(W)
 
@@ -4049,12 +4053,12 @@ class Onnx2NcnnConverter:
                         self.weights[node.input[1]]
                     )
 
-                if mode == "nearest":
-                    resize_type = IRT.NEAREST
-                elif mode == "bilinear" or mode == "linear":
+                if mode == "bilinear" or mode == "linear":
                     resize_type = IRT.BILINEAR
                 elif mode == "trilinear":
                     raise ValueError("Upsample does not support trilinear mode")
+                else:
+                    resize_type = IRT.NEAREST
 
                 if scales.size == 2:
                     h_scale = 1
@@ -4083,8 +4087,8 @@ class Onnx2NcnnConverter:
                 axes = self.get_node_attr_ai(node, "axes")
 
                 assert np.all(
-                    axes != 0 and axis <= 4 and axes >= -4
-                ), f"Unsupported axis {axis} in Unsqueeze"
+                    axes != 0 and axes <= 4 and axes >= -4
+                ), f"Unsupported axes {axes} in Unsqueeze"
 
                 layer.add_param(
                     3, [axes.size, *[axis - 1 if axis > 0 else axis for axis in axes]]

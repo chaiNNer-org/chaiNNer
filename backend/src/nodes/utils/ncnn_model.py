@@ -259,17 +259,19 @@ class NcnnLayer:
         quantize_tag: bytes = b"",
     ) -> bytes:
         if isinstance(data, TensorProto):
-            data = onph.to_array(data)
+            data_array = onph.to_array(data)
         elif isinstance(data, float):
-            data = np.array(data, np.float32)
+            data_array = np.array(data, np.float32)
         elif isinstance(data, int):
-            data = np.array(data, np.int32)
+            data_array = np.array(data, np.int32)
+        else:
+            data_array = data
 
         if quantize_tag == DTYPE_FP16:
-            data = data.astype(np.float16)
-        self.weight_data[weight_name] = NcnnWeight(data, quantize_tag)
+            data_array = data_array.astype(np.float16)
+        self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
-        return quantize_tag + data.tobytes()
+        return quantize_tag + data_array.tobytes()
 
 
 class NcnnModel:
