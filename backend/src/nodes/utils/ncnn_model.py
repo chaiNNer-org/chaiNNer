@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
@@ -281,9 +280,9 @@ class NcnnModel:
         node_count: int = 0,
         blob_count: int = 0,
     ) -> None:
-        self.layer_list: List[NcnnLayer] = []
         self.node_count: int = node_count
         self.blob_count: int = blob_count
+        self.layer_list: List[NcnnLayer] = []
         self.weights_bin: bytes = b""
 
     @property
