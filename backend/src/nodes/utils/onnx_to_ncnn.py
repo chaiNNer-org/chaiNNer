@@ -2732,8 +2732,7 @@ class Onnx2NcnnConverter:
                 splitncnn_blob_count += count
                 split_node_reference[ref] = count
 
-        ncnn_model = NcnnModel()
-        ncnn_model.node_count = (
+        ncnn_node_count = (
             self.node_count
             - constant_node_count_moved_to_weight
             + len(self.weights)
@@ -2742,11 +2741,12 @@ class Onnx2NcnnConverter:
             + input_node_count
             + split_layer_count
         )
-        ncnn_model.blob_count = (
+        ncnn_blob_count = (
             len(self.blob_names)
             - zero_reference_weight_node_count
             + splitncnn_blob_count
         )
+        ncnn_model = NcnnModel(ncnn_node_count, ncnn_blob_count)
         logger.info(
             f"Node count: {ncnn_model.node_count}, Blob count: {ncnn_model.blob_count}"
         )

@@ -34,9 +34,8 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModel, str]:
-        model = NcnnModel(param_path=param_path, bin_path=bin_path)
-        with open(bin_path, "rb") as f:
-            model.weights_bin = f.read()
+        model = NcnnModel()
+        model.load_from_file(param_path, bin_path)
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         return model, model_name
@@ -127,7 +126,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self, model: NcnnModel, img: np.ndarray, tile_size_target: int
     ) -> np.ndarray:
         h, w, _ = get_h_w_c(img)
-        model_c = model.get_model_channels()
+        model_c = model.get_model_in_nc()
 
         if tile_size_target > 0:
             # Calculate split factor using a tile size target

@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
@@ -279,33 +280,11 @@ class NcnnModel:
         self,
         node_count: int = 0,
         blob_count: int = 0,
-        param_path: str = "",
-        bin_path: str = "",
     ) -> None:
         self.layer_list: List[NcnnLayer] = []
-        if param_path == "" and bin_path == "":
-            self.node_count: int = node_count
-            self.blob_count: int = blob_count
-            self.weights_bin: bytes = b""
-        else:
-            if bin_path == "":
-                bin_path = param_path.replace(".param", ".bin")
-            elif param_path == "":
-                param_path = bin_path.replace(".bin", ".param")
-
-            with open(param_path, "r", encoding="utf-8") as paramf:
-                with open(bin_path, "rb") as binf:
-                    paramf.readline()
-                    counts = paramf.readline().strip().split(" ")
-                    self.node_count = int(counts[0])
-                    self.blob_count = int(counts[1])
-
-                    for line in paramf:
-                        op_type, layer = self.parse_param_layer(line)
-                        layer.weight_data = self.load_layer_weights(
-                            binf, op_type, layer
-                        )
-                        self.add_layer(layer)
+        self.node_count: int = node_count
+        self.blob_count: int = blob_count
+        self.weights_bin: bytes = b""
 
     @property
     def magic(self):
@@ -382,7 +361,28 @@ class NcnnModel:
             layer_bytes,
         )
 
-    def get_model_channels(self) -> int:
+    def load_from_file(self, param_path: str = "", bin_path: str = "") -> None:
+        if bin_path == "":
+            bin_path = param_path.replace(".param", ".bin")
+        elif param_path == "":
+            param_path = bin_path.replace(".bin", ".param")
+
+        with open(param_path, "r", encoding="utf-8") as paramf:
+            with open(bin_path, "rb") as binf:
+                paramf.readline()
+                counts = paramf.readline().strip().split(" ")
+                self.node_count = int(counts[0])
+                self.blob_count = int(counts[1])
+
+                for line in paramf:
+                    op_type, layer = self.parse_param_layer(line)
+                    layer.weight_data = self.load_layer_weights(binf, op_type, layer)
+                    self.add_layer(layer)
+
+                binf.seek(0)
+                self.weights_bin = binf.read()
+
+    def get_model_in_nc(self) -> int:
         num_filters = self.layer_list[1].params[0].value
         kernel_w = self.layer_list[1].params[1].value
         try:
