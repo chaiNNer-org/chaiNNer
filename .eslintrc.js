@@ -68,6 +68,7 @@ module.exports = {
         'import/resolver': {
             typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
         },
+        'import/ignore': [/\.(?:css|scss|sass)$/i],
     },
 
     overrides: [

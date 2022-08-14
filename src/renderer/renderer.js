@@ -26,5 +26,5 @@
  * ```
  */
 
-import './global.css';
+import './global.scss';
 import './index';
