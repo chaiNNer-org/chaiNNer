@@ -58,7 +58,12 @@ import {
 } from '../helpers/reactFlowUtil';
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
+import {
+    ChangeCounter,
+    nextChangeCount,
+    useChangeCounter,
+    wrapChanges,
+} from '../hooks/useChangeCounter';
 import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
@@ -411,7 +416,10 @@ export const GlobalProvider = memo(
                 }
 
                 outputDataActions.clear();
-                setLastSavedChanges([nodeChangesRef.current + 1, edgeChangesRef.current + 1]);
+                setLastSavedChanges([
+                    nextChangeCount(nodeChangesRef.current),
+                    nextChangeCount(edgeChangesRef.current),
+                ]);
                 changeNodes(validNodes);
                 changeEdges(validEdges);
                 if (loadPosition) {
