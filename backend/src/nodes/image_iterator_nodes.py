@@ -108,7 +108,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
             if context.executor.should_stop_running():
                 return
 
-            for name in files:
+            for name in sorted(files):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
