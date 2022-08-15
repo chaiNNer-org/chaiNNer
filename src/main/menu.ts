@@ -213,12 +213,6 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }:
                         await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
                     },
                 },
-                {
-                    label: 'Convert ONNX models to NCNN',
-                    click: async () => {
-                        await shell.openExternal('https://convertmodel.com/');
-                    },
-                },
                 { type: 'separator' },
                 {
                     label: 'Collect system information',
