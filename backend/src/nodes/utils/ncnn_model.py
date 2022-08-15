@@ -290,6 +290,31 @@ class NcnnModel:
         return "7767517"
 
     @staticmethod
+    def load_from_file(param_path: str = "", bin_path: str = "") -> "NcnnModel":
+        if bin_path == "":
+            bin_path = param_path.replace(".param", ".bin")
+        elif param_path == "":
+            param_path = bin_path.replace(".bin", ".param")
+
+        model = NcnnModel()
+        with open(param_path, "r", encoding="utf-8") as paramf:
+            with open(bin_path, "rb") as binf:
+                paramf.readline()
+                counts = paramf.readline().strip().split(" ")
+                model.node_count = int(counts[0])
+                model.blob_count = int(counts[1])
+
+                for line in paramf:
+                    op_type, layer = model.parse_param_layer(line)
+                    layer.weight_data = model.load_layer_weights(binf, op_type, layer)
+                    model.add_layer(layer)
+
+                binf.seek(0)
+                model.weights_bin = binf.read()
+
+        return model
+
+    @staticmethod
     def interp_layers(
         a: NcnnLayer, b: NcnnLayer, alpha_a: float
     ) -> Tuple[NcnnLayer, bytes]:
@@ -359,27 +384,6 @@ class NcnnModel:
             ),
             layer_bytes,
         )
-
-    def load_from_file(self, param_path: str = "", bin_path: str = "") -> None:
-        if bin_path == "":
-            bin_path = param_path.replace(".param", ".bin")
-        elif param_path == "":
-            param_path = bin_path.replace(".bin", ".param")
-
-        with open(param_path, "r", encoding="utf-8") as paramf:
-            with open(bin_path, "rb") as binf:
-                paramf.readline()
-                counts = paramf.readline().strip().split(" ")
-                self.node_count = int(counts[0])
-                self.blob_count = int(counts[1])
-
-                for line in paramf:
-                    op_type, layer = self.parse_param_layer(line)
-                    layer.weight_data = self.load_layer_weights(binf, op_type, layer)
-                    self.add_layer(layer)
-
-                binf.seek(0)
-                self.weights_bin = binf.read()
 
     def get_model_in_nc(self) -> int:
         num_filters = self.layer_list[1].params[0].value
