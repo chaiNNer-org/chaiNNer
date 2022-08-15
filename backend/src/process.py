@@ -5,13 +5,15 @@ from concurrent.futures import ThreadPoolExecutor
 import functools
 import uuid
 import time
+import numpy as np
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 from sanic.log import logger
-from events import EventQueue, Event
+from events import EventQueue, Event, InputsDict
 
 from nodes.node_base import NodeBase
 from nodes.node_factory import NodeFactory
+from nodes.utils.image_utils import get_h_w_c
 
 
 class UsableData(TypedDict):
@@ -26,9 +28,15 @@ class UsableData(TypedDict):
 
 
 class NodeExecutionError(Exception):
-    def __init__(self, node: UsableData, cause: str):
+    def __init__(
+        self,
+        node: UsableData,
+        cause: str,
+        inputs: InputsDict,
+    ):
         super().__init__(cause)
         self.node: UsableData = node
+        self.inputs: InputsDict = inputs
 
 
 class ExecutionContext:
@@ -110,7 +118,7 @@ class Executor:
         except NodeExecutionError:
             raise
         except Exception as e:
-            raise NodeExecutionError(node, str(e)) from e
+            raise NodeExecutionError(node, str(e), {}) from e
 
     async def __process(self, node: UsableData) -> Any:
         """Process a single node"""
@@ -198,11 +206,28 @@ class Executor:
             del node_instance
             return output
         else:
-            # Run the node and pass in inputs as args
-            run_func = functools.partial(node_instance.run, *enforced_inputs)
-            output, execution_time = await self.loop.run_in_executor(
-                self.pool, timed_supplier(run_func)
-            )
+            try:
+                # Run the node and pass in inputs as args
+                run_func = functools.partial(node_instance.run, *enforced_inputs)
+                output, execution_time = await self.loop.run_in_executor(
+                    self.pool, timed_supplier(run_func)
+                )
+            except NodeExecutionError:
+                raise
+            except Exception as e:
+                input_dict: InputsDict = {}
+                for index, node_input in enumerate(node_instance.get_inputs()):
+                    input_id = index if node_input.id is None else node_input.id
+                    input_value = enforced_inputs[index]
+                    if input_value is None:
+                        input_dict[input_id] = None
+                    elif isinstance(input_value, (str, int, float)):
+                        input_dict[input_id] = input_value
+                    elif isinstance(input_value, np.ndarray):
+                        h, w, c = get_h_w_c(input_value)
+                        input_dict[input_id] = {"width": w, "height": h, "channels": c}
+                raise NodeExecutionError(node, str(e), input_dict) from e
+
             await self.__broadcast_data(node_instance, node_id, execution_time, output)
             # Cache the output of the node
             self.output_cache[node_id] = output
