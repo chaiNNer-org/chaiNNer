@@ -1,4 +1,4 @@
-import { Center, Icon, Spinner, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, Spinner, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { Validity } from '../../../helpers/checkNodeValidity';
@@ -9,8 +9,6 @@ interface ValidityIndicatorProps {
 }
 
 export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicatorProps) => {
-    const invalidShade = useColorModeValue('red.400', 'red.600');
-
     return animated ? (
         <Tooltip
             hasArrow
@@ -37,7 +35,7 @@ export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicator
         >
             <Center className="nodrag">
                 <Center
-                    bgColor={validity.isValid ? 'var(--node-valid-bg)' : invalidShade}
+                    bgColor={validity.isValid ? 'var(--node-valid-bg)' : 'var(--node-invalid-bg)'}
                     borderRadius={100}
                     h="auto"
                     w="auto"
