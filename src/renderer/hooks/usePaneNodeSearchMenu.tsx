@@ -16,7 +16,14 @@ import {
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
+import {
+    Category,
+    InputId,
+    NodeData,
+    NodeSchema,
+    OutputId,
+    SchemaId,
+} from '../../common/common-types';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
@@ -42,9 +49,10 @@ interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
+    categories: Category[];
 }
 
-const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
+const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
@@ -123,7 +131,10 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
                                     <IconFactory
                                         accentColor={accentColor}
                                         boxSize={3}
-                                        icon={category}
+                                        icon={
+                                            categories.find((c) => c.name === category)?.icon ??
+                                            'unknown'
+                                        }
                                     />
                                     <Text fontSize="xs">{category}</Text>
                                 </HStack>
@@ -266,7 +277,7 @@ export const usePaneNodeSearchMenu = (
     const { createNode, createConnection, typeState, useConnectingFrom } =
         useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { schemata, functionDefinitions } = useContext(BackendContext);
+    const { schemata, functionDefinitions, categories } = useContext(BackendContext);
 
     const { favorites } = useNodeFavorites();
 
@@ -364,6 +375,7 @@ export const usePaneNodeSearchMenu = (
         onSelect: onSchemaSelect,
         schemata: matchingSchemata,
         favorites,
+        categories,
     };
     // eslint-disable-next-line react/jsx-props-no-spreading
     const menu = useContextMenu(() => <Menu {...menuProps} />, Object.values(menuProps));
