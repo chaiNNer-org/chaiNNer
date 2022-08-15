@@ -174,14 +174,22 @@ class NcnnParamCollection:
         )
 
     def __getitem__(self, key: int) -> NcnnParam:
-        return self.param_dict[key]
+        try:
+            return self.param_dict[key]
+        except KeyError as e:
+            logger.error(f"Op {self.op} does not have param {key}, please report")
+            raise e
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]
     ) -> None:
         idstr = str(pid)
         param_dict = param_schema[self.op]
-        param = param_dict[idstr]
+        try:
+            param = param_dict[idstr]
+        except KeyError as e:
+            logger.error(f"Op {self.op} does not have param {idstr}, please report")
+            raise e
         name = param["paramPhase"]
         def_val = param["defaultValue"]
 
