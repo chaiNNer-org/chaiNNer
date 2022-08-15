@@ -87,7 +87,8 @@
       "paramId": "1",
       "paramPhase": "max",
       "defaultValue": "FLT_MAX"
-    }
+    },
+    "weightOrder": []
   },
   "Concat": {
     "0": {
@@ -1357,7 +1358,8 @@
       "paramId": "0",
       "paramPhase": "num_slope",
       "defaultValue": 0
-    }
+    },
+    "weightOrder": []
   },
   "PriorBox": {
     "0": {
