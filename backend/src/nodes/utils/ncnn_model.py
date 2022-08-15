@@ -386,13 +386,14 @@ class NcnnModel:
         )
 
     def get_model_in_nc(self) -> int:
-        num_filters = self.layer_list[1].params[0].value
-        kernel_w = self.layer_list[1].params[1].value
+        conv_layer = next(l for l in self.layer_list if l.op_type == "Convolution")
+        num_filters = conv_layer.params[0].value
+        kernel_w = conv_layer.params[1].value
         try:
-            kernel_h = self.layer_list[1].params[11].value
+            kernel_h = conv_layer.params[11].value
         except KeyError:
             kernel_h = kernel_w
-        weight_data_size = self.layer_list[1].params[6].value
+        weight_data_size = conv_layer.params[6].value
 
         assert (
             isinstance(num_filters, int)
@@ -485,6 +486,16 @@ class NcnnModel:
                 bias_data_size = num_filters * 4
                 bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
                 weight_dict["bias"] = NcnnWeight(bias_data)
+        elif op_type == "PReLU":
+            num_slope = layer.params[0].value
+            assert isinstance(num_slope, int), "Num slopes must be int"
+            slope_data_size = num_slope * 4
+            slope_data = np.frombuffer(binf.read(slope_data_size), np.float32)
+            weight_dict["slope"] = NcnnWeight(slope_data)
+        else:
+            if len(layer.params.weight_order) != 0:
+                error_msg = f"Load weights not added for {op_type} yet, please report"
+                raise ValueError(error_msg)
 
         return weight_dict
 
@@ -497,11 +508,14 @@ class NcnnModel:
                     f"{layer.op_type:<16} "
                     f"{layer.name:<24} "
                     f"{layer.num_inputs} "
-                    f"{layer.num_outputs} "
-                    f"{' '.join(layer.inputs)} "
-                    f"{' '.join(layer.outputs)} "
-                    f"{str(layer.params)}".rstrip()
+                    f"{layer.num_outputs}"
                 )
+                if layer.inputs:
+                    p.write(f" {' '.join(layer.inputs)}")
+                if layer.outputs:
+                    p.write(f" {' '.join(layer.outputs)}")
+                if layer.params:
+                    p.write(f" {str(layer.params)}")
                 p.write("\n")
 
             if filename:

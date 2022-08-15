@@ -1202,6 +1202,11 @@
       "paramPhase": "upscale_factor",
       "defaultValue": 1
     },
+    "1": {
+      "paramID": "1",
+      "paramPhase": "mode",
+      "defaultValue": 0
+    },
     "weightOrder": []
   },
   "Pooling": {
@@ -1359,7 +1364,9 @@
       "paramPhase": "num_slope",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": [
+      "slope"
+    ]
   },
   "PriorBox": {
     "0": {
