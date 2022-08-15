@@ -131,10 +131,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                     <IconFactory
                                         accentColor={accentColor}
                                         boxSize={3}
-                                        icon={
-                                            categories.find((c) => c.name === category)?.icon ??
-                                            'unknown'
-                                        }
+                                        icon={categories.find((c) => c.name === category)?.icon}
                                     />
                                     <Text fontSize="xs">{category}</Text>
                                 </HStack>
