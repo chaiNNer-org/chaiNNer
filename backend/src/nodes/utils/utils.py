@@ -355,8 +355,12 @@ def convenient_upscale(
                 img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
             if input_channels == 1:
-                img1 = np.average(img1, axis=2).astype(np.float32)
-                img2 = np.average(img2, axis=2).astype(np.float32)
+                img1 = np.expand_dims(
+                    np.average(img1, axis=2).astype(np.float32), axis=2
+                )
+                img2 = np.expand_dims(
+                    np.average(img2, axis=2).astype(np.float32), axis=2
+                )
             output1 = upscale(img1)
             output2 = upscale(img2)
             alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
@@ -377,14 +381,12 @@ def convenient_upscale(
                 img = np.tile(img, (1, 1, min(input_channels, 3)))
             if input_channels == 4:
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
-            # cv2.imshow("img", img)
-            # cv2.waitKey(0)
         # Remove extra channels if too many (i.e three channel image, single channel model)
         elif c in (3, 4) and input_channels == 1:
             logger.warning("Averaging image channels")
             if c == 4:
                 img = img[:, :, :3]
-            img = np.average(img, axis=2).astype(np.float32)
+            img = np.expand_dims(np.average(img, axis=2).astype(np.float32), axis=2)
         # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
         elif c == 3 and input_channels == 4:
             logger.debug("Expanding image channels")
