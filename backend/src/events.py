@@ -14,9 +14,19 @@ class FinishData(TypedDict):
     message: str
 
 
+class ImageInputInfo(TypedDict):
+    width: int
+    height: int
+    channels: int
+
+
+InputsDict = Dict[int, Union[str, int, float, ImageInputInfo, None]]
+
+
 class ExecutionErrorSource(TypedDict):
     nodeId: str
     schemaId: str
+    inputs: InputsDict
 
 
 class ExecutionErrorData(TypedDict):

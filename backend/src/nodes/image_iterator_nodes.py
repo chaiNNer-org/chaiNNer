@@ -47,15 +47,11 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
         self.side_effects = True
 
-    def run(
-        self, directory: str = "", root_dir: str = ""
-    ) -> Tuple[np.ndarray, str, str, str]:
-        imread = ImReadNode()
-        imread_output = imread.run(directory)
-        img, _, basename = imread_output
+    def run(self, path: str, root_dir: str) -> Tuple[np.ndarray, str, str, str]:
+        img, img_dir, basename = ImReadNode().run(path)
 
         # Get relative path from root directory passed by Iterator directory input
-        rel_path = os.path.relpath(imread_output[1], root_dir)
+        rel_path = os.path.relpath(img_dir, root_dir)
 
         return img, root_dir, rel_path, basename
 
@@ -101,14 +97,14 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 f"Exception occurred during walk: {exception_instance} Continuing..."
             )
 
-        just_image_files = []
+        just_image_files: List[str] = []
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
             if context.executor.should_stop_running():
                 return
 
-            for name in files:
+            for name in sorted(files):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:

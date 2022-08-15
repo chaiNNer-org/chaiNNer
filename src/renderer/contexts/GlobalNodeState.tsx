@@ -58,7 +58,12 @@ import {
 } from '../helpers/reactFlowUtil';
 import { TypeState } from '../helpers/TypeState';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { ChangeCounter, useChangeCounter, wrapChanges } from '../hooks/useChangeCounter';
+import {
+    ChangeCounter,
+    nextChangeCount,
+    useChangeCounter,
+    wrapChanges,
+} from '../hooks/useChangeCounter';
 import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
@@ -152,8 +157,8 @@ export const GlobalProvider = memo(
         const { schemata, functionDefinitions } = useContext(BackendContext);
         const { useStartupTemplate } = useContext(SettingsContext);
 
-        const [nodeChanges, addNodeChanges] = useChangeCounter();
-        const [edgeChanges, addEdgeChanges] = useChangeCounter();
+        const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
+        const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
         const {
             setViewport,
             getViewport,
@@ -282,7 +287,9 @@ export const GlobalProvider = memo(
 
         const [hoveredNode, setHoveredNode] = useState<string | null | undefined>(null);
 
-        const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+        const [lastSavedChanges, setLastSavedChanges] = useState<
+            readonly [nodeChanges: number, edgeChanges: number]
+        >([0, 0]);
         /**
          * Whether the current chain as *relevant* unsaved changes.
          *
@@ -290,14 +297,13 @@ export const GlobalProvider = memo(
          */
         const [hasRelevantUnsavedChanges, setHasRelevantUnsavedChanges] = useState(false);
         useEffect(() => {
+            const hasUnsavedChanges =
+                lastSavedChanges[0] !== nodeChanges || lastSavedChanges[1] !== edgeChanges;
             const value = hasUnsavedChanges && (getNodes().length > 0 || !!savePath);
             setHasRelevantUnsavedChanges(value);
             ipcRenderer.send('update-has-unsaved-changes', value);
-        }, [hasUnsavedChanges, savePath, nodeChanges]);
+        }, [lastSavedChanges, savePath, nodeChanges, edgeChanges]);
 
-        useEffect(() => {
-            setHasUnsavedChanges(true);
-        }, [nodeChanges, edgeChanges]);
         useEffect(() => {
             const id = setTimeout(() => {
                 const dot = hasRelevantUnsavedChanges ? ' •' : '';
@@ -410,6 +416,10 @@ export const GlobalProvider = memo(
                 }
 
                 outputDataActions.clear();
+                setLastSavedChanges([
+                    nextChangeCount(nodeChangesRef.current),
+                    nextChangeCount(edgeChangesRef.current),
+                ]);
                 changeNodes(validNodes);
                 changeEdges(validEdges);
                 if (loadPosition) {
@@ -417,7 +427,6 @@ export const GlobalProvider = memo(
                 }
                 setSavePath(path);
                 pushOpenPath(path);
-                setHasUnsavedChanges(false);
             },
             [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges, outputDataActions]
         );
@@ -485,7 +494,7 @@ export const GlobalProvider = memo(
                             }
                         }
                         if (!isTemplate) {
-                            setHasUnsavedChanges(false);
+                            setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
                         }
                     } catch (error) {
                         log.error(error);

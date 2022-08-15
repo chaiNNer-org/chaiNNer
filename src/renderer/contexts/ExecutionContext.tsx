@@ -25,6 +25,7 @@ import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
+    BackendEventMap,
     BackendEventSourceListener,
     useBackendEventSource,
     useBackendEventSourceListener,
@@ -133,6 +134,52 @@ const convertToUsableFormat = (
     return result;
 };
 
+const getExecutionErrorMessage = (
+    { exception, source }: BackendEventMap['execution-error'],
+    schemata: SchemaMap
+): string => {
+    if (!source) return exception;
+
+    const schema = schemata.get(source.schemaId);
+    let { name } = schema;
+    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
+        // make the name unique using the category of the schema
+        name = `${schema.category} ${schema.name}`;
+    }
+
+    const inputs = schema.inputs.flatMap((i) => {
+        const value = source.inputs[i.id];
+        if (value === undefined) return [];
+
+        let valueStr: string;
+        const option = i.options?.find((o) => o.value === value);
+        if (option) {
+            valueStr = option.option;
+        } else if (value === null) {
+            valueStr = 'None';
+        } else if (typeof value === 'number') {
+            valueStr = String(value);
+        } else if (typeof value === 'string') {
+            valueStr = JSON.stringify(value);
+        } else {
+            let type = 'Image';
+            if (value.channels === 1) type = 'Grayscale image';
+            if (value.channels === 3) type = 'RGB image';
+            if (value.channels === 4) type = 'RGBA image';
+            valueStr = `${type} ${value.width}x${value.height}`;
+        }
+
+        return [`• ${i.label}: ${valueStr}`];
+    });
+    const partial = inputs.length === schema.inputs.length;
+    const inputsInfo =
+        inputs.length === 0
+            ? ''
+            : `Input values${partial ? '' : ' (partial)'}:\n${inputs.join('\n')}`;
+
+    return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
+};
+
 export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
@@ -199,18 +246,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'execution-error',
         (data) => {
             if (data) {
-                let errorSource = '';
-                if (data.source) {
-                    const schema = schemata.get(data.source.schemaId);
-                    let { name } = schema;
-                    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
-                        // make the name unique using the category of the schema
-                        name = `${schema.category} ${schema.name}`;
-                    }
-                    errorSource = `An error occurred in a ${name} node:\n\n`;
-                }
-
-                sendAlert(AlertType.ERROR, null, errorSource + data.exception);
+                sendAlert(AlertType.ERROR, null, getExecutionErrorMessage(data, schemata));
                 unAnimate();
                 setStatus(ExecutionStatus.READY);
             }
