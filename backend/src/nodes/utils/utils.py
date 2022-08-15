@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Callable, Tuple, Type
+import cv2
 
 import numpy as np
 from sanic.log import logger
@@ -334,10 +335,10 @@ def convenient_upscale(
     `input_channels` number of channels.
     """
 
-    _, _, c = get_h_w_c(img)
+    c = get_h_w_c(img)[2]
 
     # Transparency hack (white/black background difference alpha)
-    if input_channels == 3 and c == 4:
+    if c == 4 and input_channels == 3:
         # Ignore single-color alpha
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
@@ -358,22 +359,35 @@ def convenient_upscale(
     else:
         # Add extra channels if not enough (i.e single channel img, three channel model)
         gray = False
-        if img.ndim == 2:
+        if c == 1:
             gray = True
-            logger.debug("Expanding image channels")
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3)))
+            logger.debug("Expanding image channels if necessary")
+            if img.ndim == 2:
+                img = np.tile(
+                    np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3))
+                )
+            else:
+                img = np.tile(img, (1, 1, min(input_channels, 3)))
+            if input_channels == 4:
+                img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
+            # cv2.imshow("img", img)
+            # cv2.waitKey(0)
         # Remove extra channels if too many (i.e three channel image, single channel model)
-        elif c > input_channels:
-            logger.warning("Truncating image channels")
-            img = img[:, :, :input_channels]
+        elif c in (3, 4) and input_channels == 1:
+            logger.warning("Averaging image channels")
+            if c == 4:
+                img = img[:, :, :3]
+            img = np.average(img, axis=2).astype(np.float32)
         # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
         elif c == 3 and input_channels == 4:
             logger.debug("Expanding image channels")
-            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
+            img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
 
         output = upscale(img)
 
         if gray:
+            if get_h_w_c(output)[2] == 4:
+                output = output[:, :, :3]
             output = np.average(output, axis=2).astype("float32")
 
     return np.clip(output, 0, 1)

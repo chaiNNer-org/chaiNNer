@@ -152,6 +152,8 @@ class NcnnUpscaleImageNode(NodeBase):
             ic = get_h_w_c(i)[2]
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
+            elif ic == 4:
+                i = cv2.cvtColor(i, cv2.COLOR_BGRA2RGBA)
             i = self.upscale(
                 i,
                 net,
@@ -161,6 +163,8 @@ class NcnnUpscaleImageNode(NodeBase):
             )
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
+            elif ic == 4:
+                i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
             return i
 
         return convenient_upscale(img, model_c, upscale)
