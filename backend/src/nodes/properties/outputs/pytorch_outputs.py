@@ -1,5 +1,5 @@
 from .. import expression
-from .base_output import BaseOutput
+from .base_output import BaseOutput, OutputKind
 
 from ...utils.torch_types import PyTorchModel
 
@@ -9,7 +9,7 @@ class ModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "PyTorchModel",
         label: str = "Model",
-        kind="generic",
+        kind: OutputKind = "generic",
         should_broadcast=False,
     ):
         super().__init__(model_type, label, kind=kind)

@@ -42,8 +42,10 @@ class FileInput(BaseInput):
             "fileKind": self.file_kind,
         }
 
-    def enforce(self, value):
+    def enforce(self, value) -> str:
+        assert isinstance(value, str)
         assert os.path.exists(value), f"File {value} does not exist"
+        assert os.path.isfile(value), f"The path {value} is not a file"
         return value
 
 

@@ -10,11 +10,11 @@ class Category:
         color: str,
         install_hint: Union[str, None] = None,
     ):
-        self.name = name
-        self.description = description
-        self.icon = icon
-        self.color = color
-        self.install_hint = install_hint
+        self.name: str = name
+        self.description: str = description
+        self.icon: str = icon
+        self.color: str = color
+        self.install_hint: Union[str, None] = install_hint
 
     def toDict(self):
         return {

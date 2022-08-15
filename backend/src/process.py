@@ -28,7 +28,7 @@ class UsableData(TypedDict):
 class NodeExecutionError(Exception):
     def __init__(self, node: UsableData, cause: str):
         super().__init__(cause)
-        self.node = node
+        self.node: UsableData = node
 
 
 class ExecutionContext:
@@ -43,16 +43,16 @@ class ExecutionContext:
         executor: Executor,
         percent: float,
     ):
-        self.nodes = nodes
+        self.nodes: Dict[str, UsableData] = nodes
 
-        self.loop = loop
-        self.queue = queue
-        self.pool = pool
+        self.loop: asyncio.AbstractEventLoop = loop
+        self.queue: EventQueue = queue
+        self.pool: ThreadPoolExecutor = pool
 
-        self.cache = cache
-        self.iterator_id = iterator_id
-        self.executor = executor
-        self.percent = percent
+        self.cache: Dict[str, Any] = cache
+        self.iterator_id: str = iterator_id
+        self.executor: Executor = executor
+        self.percent: float = percent
 
     def create_iterator_executor(self) -> Executor:
         return Executor(
@@ -89,19 +89,18 @@ class Executor:
         existing_cache: Dict[str, Any],
         parent_executor: Optional[Executor] = None,
     ):
-        self.execution_id = uuid.uuid4().hex
-        self.nodes = nodes
-        self.output_cache = existing_cache
+        self.execution_id: str = uuid.uuid4().hex
+        self.nodes: Dict[str, UsableData] = nodes
+        self.output_cache: Dict[str, Any] = existing_cache
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
 
-        self.process_task = None
-        self.killed = False
-        self.paused = False
-        self.resumed = False
+        self.killed: bool = False
+        self.paused: bool = False
+        self.resumed: bool = False
 
-        self.loop = loop
-        self.queue = queue
-        self.pool = pool
+        self.loop: asyncio.AbstractEventLoop = loop
+        self.queue: EventQueue = queue
+        self.pool: ThreadPoolExecutor = pool
 
         self.parent_executor = parent_executor
 
