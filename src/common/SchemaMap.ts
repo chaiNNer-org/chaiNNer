@@ -9,7 +9,7 @@ const BLANK_SCHEMA: NodeSchema = {
     subcategory: '',
     name: '',
     description: '',
-    nodeType: '',
+    nodeType: 'regularNode',
     schemaId: '' as SchemaId,
     hasSideEffects: false,
     deprecated: false,

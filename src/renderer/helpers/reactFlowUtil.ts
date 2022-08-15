@@ -1,6 +1,6 @@
 import { Size } from 'electron/common';
 import { Edge, Node, XYPosition } from 'react-flow-renderer';
-import { EdgeData, InputData, Mutable, NodeData } from '../../common/common-types';
+import { EdgeData, InputData, Mutable, NodeData, NodeType } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deepCopy } from '../../common/util';
 
@@ -10,7 +10,7 @@ export interface NodeProto {
     id?: string;
     position: Readonly<XYPosition>;
     data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
-    nodeType: string;
+    nodeType: NodeType;
 }
 
 export const createNode = (
