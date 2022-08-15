@@ -338,13 +338,15 @@ def convenient_upscale(
     c = get_h_w_c(img)[2]
 
     # Transparency hack (white/black background difference alpha)
-    if c == 4 and input_channels == 3:
+    if c == 4 and input_channels in (1, 3):
         # Ignore single-color alpha
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
             logger.info("Single color alpha channel, ignoring.")
             output = upscale(img[:, :, :3])
-            output = np.dstack((output, np.full(output.shape[:-1], unique[0])))
+            output = np.dstack(
+                (output, np.full(output.shape[:-1], unique[0], np.float32))
+            )
         else:
             img1 = np.copy(img[:, :, :3])
             img2 = np.copy(img[:, :, :3])
@@ -352,9 +354,14 @@ def convenient_upscale(
                 img1[:, :, c] *= img[:, :, 3]
                 img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
+            if input_channels == 1:
+                img1 = np.average(img1, axis=2).astype(np.float32)
+                img2 = np.average(img2, axis=2).astype(np.float32)
             output1 = upscale(img1)
             output2 = upscale(img2)
             alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
+            if input_channels == 1:
+                output1 = np.tile(output1, (1, 1, 3))
             output = np.dstack((output1, alpha))
     else:
         # Add extra channels if not enough (i.e single channel img, three channel model)
