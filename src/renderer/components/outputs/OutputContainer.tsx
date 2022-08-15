@@ -6,7 +6,6 @@ import { OutputId } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseSourceHandle, stringifySourceHandle } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTags } from '../TypeTag';
@@ -57,8 +56,6 @@ export const OutputContainer = memo(
     }: React.PropsWithChildren<OutputContainerProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom } =
             useContext(GlobalVolatileContext);
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
 
         const { getEdges } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
@@ -90,7 +87,7 @@ export const OutputContainer = memo(
         }, [connectingFrom, definitionType, id, outputId]);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(definitionType, isDarkMode);
+        const [handleColor] = getTypeAccentColors(definitionType);
         const connectedColor = 'var(--connection-color)';
         if (hasHandle) {
             contents = (

@@ -31,8 +31,7 @@ export const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
-        const { useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
+        const { useAnimateChain } = useContext(SettingsContext);
         const [animateChain] = useAnimateChain;
 
         const edgePath = useMemo(
@@ -62,7 +61,7 @@ export const CustomEdge = memo(
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
 
-        const [accentColor] = getTypeAccentColors(type, isDarkMode);
+        const [accentColor] = getTypeAccentColors(type);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(

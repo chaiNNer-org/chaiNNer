@@ -7,7 +7,6 @@ import { Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTag } from '../TypeTag';
@@ -88,11 +87,9 @@ export const InputContainer = memo(
         }, [connectingFrom, definitionType, id, inputId]);
 
         const { functionDefinitions } = useContext(BackendContext);
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const handleColors = getTypeAccentColors(definitionType, isDarkMode);
+        const handleColors = getTypeAccentColors(definitionType);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
@@ -107,12 +104,12 @@ export const InputContainer = memo(
                     if (!parentType) {
                         return defaultColor;
                     }
-                    return getTypeAccentColors(parentType, isDarkMode)[0];
+                    return getTypeAccentColors(parentType)[0];
                 }
                 return defaultColor;
             }
             return null;
-        }, [connectedEdge, functionDefinitions, getNode, isDarkMode]);
+        }, [connectedEdge, functionDefinitions, getNode]);
 
         // A conic gradient that uses all handle colors to give an even distribution of colors
         const handleColorString = handleColors
