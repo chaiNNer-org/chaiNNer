@@ -41,7 +41,10 @@ export const NodeSelector = memo(() => {
     const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
-    const nonEmptyCategories = new Set(schemata.schemata.map((s) => s.category));
+    const nonEmptyCategories = useMemo(
+        () => new Set(schemata.schemata.map((s) => s.category)),
+        [schemata]
+    );
 
     const [searchQuery, setSearchQuery] = useState('');
 
