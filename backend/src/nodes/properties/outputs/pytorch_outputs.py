@@ -21,6 +21,13 @@ class ModelOutput(BaseOutput):
 
         if "SRVGG" in value.model_type:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
+        elif "SwinIR" in value.model_type:  # type: ignore
+            size = [
+                f"{value.num_feat}nf",
+                f"{value.embed_dim}ed",
+                f"{value.mlp_ratio}mr",
+                f"{value.window_size}ws",
+            ]
         else:
             size = [
                 f"{value.num_filters}nf",

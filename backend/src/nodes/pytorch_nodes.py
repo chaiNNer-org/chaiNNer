@@ -21,6 +21,7 @@ from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
+from .utils.architecture.SwinIR import SwinIR
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
@@ -53,6 +54,21 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
+    # SwinIR # TODO: fix this garbage
+    elif (
+        ("layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys())
+        or (
+            "params-ema" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params-ema"].keys()
+        )
+        or (
+            "params" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params"].keys()
+        )
+    ):
+        model = SwinIR(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
