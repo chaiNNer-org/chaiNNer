@@ -221,6 +221,7 @@ async def run(request: Request):
             error["source"] = {
                 "nodeId": exception.node["id"],
                 "schemaId": exception.node["schemaId"],
+                "inputs": exception.inputs,
             }
 
         await ctx.queue.put({"event": "execution-error", "data": error})

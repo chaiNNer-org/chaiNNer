@@ -5,7 +5,7 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { Category, SchemaId } from '../common/common-types';
+import { Category, NodeType, SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -60,7 +60,7 @@ const processBackendResponse = ({ nodes, categories }: BackendNodesResponse): No
     return { schemata, categories, functionDefinitions };
 };
 
-const nodeTypes: NodeTypes = {
+const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
     regularNode: Node,
     iterator: IteratorNode,
     iteratorHelper: IteratorHelperNode,

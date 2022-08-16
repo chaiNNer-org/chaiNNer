@@ -20,12 +20,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import (
-    get_opencv_formats,
-    get_pil_formats,
-    normalize,
-    preview_encode,
-)
+from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -66,6 +61,11 @@ class ImReadNode(NodeBase):
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     ) from e
+                if img is None:
+                    logger.error("Error loading image.")
+                    raise RuntimeError(  # pylint: disable=raise-missing-from
+                        f'Error reading image image from path "{path}". Image may be corrupt.'
+                    )
         elif ext.lower() in get_pil_formats():
             im = Image.open(path)
             img = np.array(im)
@@ -76,7 +76,7 @@ class ImReadNode(NodeBase):
                 img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
         else:
             raise NotImplementedError(
-                "The image you are trying to read cannot be read by chaiNNer."
+                f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
             )
 
         # Uncomment if wild 2-channel image is encountered
@@ -86,6 +86,7 @@ class ImReadNode(NodeBase):
         #     alpha_channel = img[:, :, 1]
         #     img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)
 
+        assert img is not None, f'Internal error loading image "{path}".'
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
