@@ -2772,6 +2772,7 @@ class Onnx2NcnnConverter:
                             f"splitncnn_input{i}",
                             1,
                             refcount,
+                            [input_name],
                             layer_input_list,
                         )
                     )
@@ -4123,12 +4124,10 @@ class Onnx2NcnnConverter:
                                 f"splitncnn_{internal_split}",
                                 1,
                                 refcount,
-                                outputs=[
-                                    output_name,
-                                    *[
-                                        f"{output_name}_splitncnn_{j}"
-                                        for j in range(refcount)
-                                    ],
+                                [output_name],
+                                [
+                                    f"{output_name}_splitncnn_{j}"
+                                    for j in range(refcount)
                                 ],
                             )
                         )

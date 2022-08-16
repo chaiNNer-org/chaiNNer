@@ -5,10 +5,16 @@ const rules = require('./webpack.rules');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-rules.push({
-    test: /\.css$/,
-    use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
-});
+rules.push(
+    {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+    },
+    {
+        test: /\.s[ac]ss$/i,
+        use: ['style-loader', 'css-loader', 'sass-loader'],
+    }
+);
 
 /** @type {import("webpack").Configuration} */
 module.exports = {

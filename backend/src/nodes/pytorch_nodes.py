@@ -412,8 +412,7 @@ class PthSaveNode(NodeBase):
 class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX.
-            Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
+        self.description = """Convert a PyTorch model to ONNX."""
         self.inputs = [ModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput("ONNX Model")]
 

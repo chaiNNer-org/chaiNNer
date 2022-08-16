@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Union
+from typing import Any, List, Literal, Union
 
 from .categories import Category
 
@@ -11,6 +11,9 @@ def assign_implicit_ids(l: Union[List[BaseInput], List[BaseOutput]]):
     for i, inout in enumerate(l):
         if inout.id is None:
             inout.id = i
+
+
+NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 
 
 class NodeBase(metaclass=ABCMeta):
@@ -27,7 +30,7 @@ class NodeBase(metaclass=ABCMeta):
         self.name: str = ""
         self.icon: str = ""
         self.sub: str = "Miscellaneous"
-        self.type: str = "regularNode"
+        self.type: NodeType = "regularNode"
 
         self.side_effects: bool = False
         self.deprecated: bool = False

@@ -87,7 +87,8 @@
       "paramId": "1",
       "paramPhase": "max",
       "defaultValue": "FLT_MAX"
-    }
+    },
+    "weightOrder": []
   },
   "Concat": {
     "0": {
@@ -1201,6 +1202,11 @@
       "paramPhase": "upscale_factor",
       "defaultValue": 1
     },
+    "1": {
+      "paramID": "1",
+      "paramPhase": "mode",
+      "defaultValue": 0
+    },
     "weightOrder": []
   },
   "Pooling": {
@@ -1357,7 +1363,10 @@
       "paramId": "0",
       "paramPhase": "num_slope",
       "defaultValue": 0
-    }
+    },
+    "weightOrder": [
+      "slope"
+    ]
   },
   "PriorBox": {
     "0": {
