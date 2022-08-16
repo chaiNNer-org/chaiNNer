@@ -31,7 +31,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { createContext, useContext } from 'use-context-selector';
 import { PythonInfo } from '../../common/common-types';
-import { Dependency, getOptionalDependencies } from '../../common/dependencies';
+import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { getPythonInfo } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -60,6 +60,19 @@ const checkSemverGt = (v1: string, v2: string) => {
         return false;
     }
 };
+
+const formatBytes = (bytes: number): string => {
+    const KB = 1024 ** 1;
+    const MB = 1024 ** 2;
+    const GB = 1024 ** 3;
+
+    if (bytes < KB) return `${bytes}\u2009Byte`;
+    if (bytes < MB) return `${Number((bytes / KB).toPrecision(2))}\u2009KB`;
+    if (bytes < GB) return `${Number((bytes / MB).toPrecision(2))}\u2009MB`;
+    return `${Number((bytes / GB).toPrecision(2))}\u2009GB`;
+};
+const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
+    formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
 export const DependencyProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -316,9 +329,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                                         installPackage(dep)
                                                                     }
                                                                 >
-                                                                    {`Update (${outdatedPackages
+                                                                    Update to{' '}
+                                                                    {outdatedPackages
                                                                         .map((p) => p.version)
-                                                                        .join('/')})`}
+                                                                        .join('/')}{' '}
+                                                                    (
+                                                                    {formatSizeEstimate(
+                                                                        outdatedPackages
+                                                                    )}
+                                                                    )
                                                                 </Button>
                                                             )}
 
@@ -362,7 +381,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                             size="sm"
                                                             onClick={() => installPackage(dep)}
                                                         >
-                                                            Install
+                                                            Install (
+                                                            {formatSizeEstimate(dep.packages)})
                                                         </Button>
                                                     )}
                                                 </Flex>
