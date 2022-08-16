@@ -41,6 +41,8 @@ export const NodeSelector = memo(() => {
     const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
+    const nonEmptyCategories = new Set(schemata.schemata.map((s) => s.category));
+
     const [searchQuery, setSearchQuery] = useState('');
 
     const matchingNodes = getMatchingNodes(
@@ -212,7 +214,8 @@ export const NodeSelector = memo(() => {
                                                 );
                                             }
 
-                                            if (category.installHint) {
+                                            const noNodes = !nonEmptyCategories.has(category.name);
+                                            if (category.installHint && noNodes) {
                                                 return (
                                                     <RegularAccordionItem
                                                         category={category}
