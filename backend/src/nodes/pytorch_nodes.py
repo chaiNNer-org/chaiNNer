@@ -58,9 +58,9 @@ def load_state_dict(state_dict) -> PyTorchModel:
     elif (
         ("layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys())
         or (
-            "params-ema" in state_dict.keys()
+            "params_ema" in state_dict.keys()
             and "layers.0.residual_group.blocks.0.norm1.weight"
-            in state_dict["params-ema"].keys()
+            in state_dict["params_ema"].keys()
         )
         or (
             "params" in state_dict.keys()

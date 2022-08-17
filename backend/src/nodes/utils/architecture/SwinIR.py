@@ -188,6 +188,8 @@ class WindowAttention(nn.Module):
 
         attn = self.attn_drop(attn)
 
+        if v.dtype == torch.float16:
+            attn = attn.half()
         x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
@@ -859,13 +861,13 @@ class SwinIR(nn.Module):
 
         if "conv_before_upsample.0.weight" in state_keys:
             if "conv_up1.weight" in state_keys:
-                upscale_type = "nearest+conv"
+                upsampler = "nearest+conv"
             else:
-                upscale_type = "pixelshuffle"
+                upsampler = "pixelshuffle"
         elif "upsample.0.weight" in state_keys:
-            upscale_type = "pixelshuffledirect"
+            upsampler = "pixelshuffledirect"
         else:
-            upscale_type = ""
+            upsampler = ""
 
         num_feat = (
             self.state.get("conv_before_upsample.0.weight", None).shape[1]
@@ -880,14 +882,14 @@ class SwinIR(nn.Module):
             num_out_ch = num_in_ch
 
         upscale = 1
-        if upscale_type == "nearest+conv":
+        if upsampler == "nearest+conv":
             upsample_keys = [
                 x for x in state_keys if "conv_up" in x and "bias" not in x
             ]
 
             for upsample_key in upsample_keys:
                 upscale *= 2
-        elif upscale_type == "pixelshuffle":
+        elif upsampler == "pixelshuffle":
             upsample_keys = [
                 x
                 for x in state_keys
@@ -897,7 +899,7 @@ class SwinIR(nn.Module):
                 shape = self.state[upsample_key].shape[0]
                 upscale *= math.sqrt(shape // num_feat)
             upscale = int(upscale)
-        elif upscale_type == "pixelshuffledirect":
+        elif upsampler == "pixelshuffledirect":
             upscale = int(
                 math.sqrt(self.state["upsample.0.bias"].shape[0] // num_out_ch)
             )
@@ -913,10 +915,18 @@ class SwinIR(nn.Module):
                 max_layer_num = max(max_layer_num, int(layer_num))
                 max_block_num = max(max_block_num, int(block_num))
 
-        head_depth = [max_block_num + 1 for _ in range(max_layer_num + 1)]
+        depths = [max_block_num + 1 for _ in range(max_layer_num + 1)]
 
-        depths = head_depth
-        num_heads = head_depth
+        if (
+            "layers.0.residual_group.blocks.0.attn.relative_position_bias_table"
+            in state_keys
+        ):
+            num_heads_num = self.state[
+                "layers.0.residual_group.blocks.0.attn.relative_position_bias_table"
+            ].shape[-1]
+            num_heads = [num_heads_num for _ in range(max_layer_num + 1)]
+        else:
+            num_heads = depths
 
         embed_dim = self.state["conv_first.weight"].shape[0]
 
@@ -927,9 +937,9 @@ class SwinIR(nn.Module):
 
         # TODO: could actually count the layers, but this should do
         if "layers.0.conv.4.weight" in state_keys:
-            resi_connection = "conv3"
+            resi_connection = "3conv"
         else:
-            resi_connection = "conv1"
+            resi_connection = "1conv"
 
         window_size = int(
             math.sqrt(
@@ -938,6 +948,14 @@ class SwinIR(nn.Module):
                 ].shape[0]
             )
         )
+
+        if "layers.0.residual_group.blocks.1.attn_mask" in state_keys:
+            img_size = int(
+                math.sqrt(
+                    self.state["layers.0.residual_group.blocks.1.attn_mask"].shape[0]
+                )
+                * window_size
+            )
 
         self.in_nc = num_in_ch
         self.out_nc = num_out_ch
@@ -948,6 +966,8 @@ class SwinIR(nn.Module):
         self.window_size = window_size
         self.mlp_ratio = mlp_ratio
         self.scale = upscale
+        self.upsampler = upsampler
+        self.img_size = img_size
 
         self.img_range = img_range
         if in_chans == 3:
@@ -1080,6 +1100,7 @@ class SwinIR(nn.Module):
             self.conv_last = nn.Conv2d(embed_dim, num_out_ch, 3, 1, 1)
 
         self.apply(self._init_weights)
+        self.load_state_dict(self.state, strict=False)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
