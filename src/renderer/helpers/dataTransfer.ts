@@ -2,7 +2,7 @@ import log from 'electron-log';
 import { extname } from 'path';
 import { XYPosition } from 'react-flow-renderer';
 import { InputId, SchemaId } from '../../common/common-types';
-import { ipcRenderer } from '../../common/safeIpc';
+import { ipcRenderer, ipcRendererId } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { NodeProto } from './reactFlowUtil';
@@ -75,8 +75,7 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
 
             openSaveFile(file.path)
                 .then((result) => {
-                    // TODO: 1 is hard-coded. Find a better way
-                    ipcRenderer.sendTo(1, 'file-open', result);
+                    ipcRenderer.sendTo(ipcRendererId, 'file-open', result);
                 })
                 .catch((reason) => log.error(reason));
 

@@ -173,3 +173,6 @@ export interface BrowserWindowWithSafeIpc extends BrowserWindow {
 
 export const ipcMain = unsafeIpcMain as SafeIpcMain;
 export const ipcRenderer = unsafeIpcRenderer as SafeIpcRenderer;
+
+// TODO: 1 is hard-coded. Find a better way
+export const ipcRendererId = 1;

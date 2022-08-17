@@ -1,5 +1,5 @@
 import { HStack } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { areApproximatelyEqual } from '../../../common/util';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -39,6 +39,10 @@ export const NumberInput = memo(
         const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input ?? def));
 
+        const resetInputString = useCallback(() => {
+            setInputString(String(input ?? def));
+        }, [setInputString, input]);
+
         useEffect(() => {
             const asNumber = parseFloat(inputString);
             if (
@@ -68,6 +72,7 @@ export const NumberInput = memo(
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
                     precision={precision}
+                    resetInputString={resetInputString}
                     setInput={setInput}
                     setInputString={setInputString}
                     unit={unit}

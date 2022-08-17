@@ -7,7 +7,8 @@ import {
     NumberInputField,
     NumberInputStepper,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
+import { ipcRenderer, ipcRendererId } from '../../../../common/safeIpc';
 import { areApproximatelyEqual } from '../../../../common/util';
 
 const clamp = (value: number, min?: number | null, max?: number | null): number => {
@@ -40,6 +41,7 @@ interface AdvancedNumberInputProps {
 
     inputString: string;
     setInputString: (input: string) => void;
+    resetInputString: () => void;
     setInput: (value: number) => void;
 }
 
@@ -58,6 +60,7 @@ export const AdvancedNumberInput = memo(
 
         inputString,
         setInputString,
+        resetInputString,
         setInput,
     }: AdvancedNumberInputProps) => {
         const onBlur = () => {
@@ -76,6 +79,28 @@ export const AdvancedNumberInput = memo(
                 });
             }
         };
+
+        const disableBrowserShortcuts: React.KeyboardEventHandler = useCallback(
+            (e): void => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 'y':
+                            e.preventDefault();
+                            resetInputString();
+                            ipcRenderer.sendTo(ipcRendererId, 'history-redo');
+                            break;
+                        case 'z':
+                            e.preventDefault();
+                            resetInputString();
+                            ipcRenderer.sendTo(ipcRendererId, 'history-undo');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            },
+            [resetInputString]
+        );
 
         if (small) {
             return (
@@ -111,6 +136,7 @@ export const AdvancedNumberInput = memo(
                             p={1}
                             // dynamic width based on precision
                             w={`${3 + 0.5 * precision}rem`}
+                            onKeyDown={disableBrowserShortcuts}
                         />
                         <NumberInputStepper w={4}>
                             <NumberIncrementStepper />
@@ -146,6 +172,7 @@ export const AdvancedNumberInput = memo(
                     <NumberInputField
                         borderLeftRadius={unit ? 0 : 'md'}
                         px={unit ? 2 : 4}
+                        onKeyDown={disableBrowserShortcuts}
                     />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
