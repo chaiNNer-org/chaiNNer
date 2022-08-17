@@ -74,7 +74,8 @@ class LoadModelNode(NodeBase):
         self.inputs = [PthFileInput()]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
-            TextOutput("Model Name"),
+            DirectoryOutput().with_id(2),
+            TextOutput("Model Name").with_id(1),
         ]
 
         self.category = PyTorchCategory
@@ -82,7 +83,7 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> Tuple[PyTorchModel, str]:
+    def run(self, path: str) -> Tuple[PyTorchModel, str, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -109,9 +110,8 @@ class LoadModelNode(NodeBase):
             # pylint: disable=raise-missing-from
             raise ValueError("Model unsupported by chaiNNer. Please try another.")
 
-        basename = os.path.splitext(os.path.basename(path))[0]
-
-        return model, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        return model, dirname, basename
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
@@ -301,7 +301,11 @@ class PthSaveNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Save a PyTorch model to specified directory."
-        self.inputs = [ModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.inputs = [
+            ModelInput(),
+            DirectoryInput(has_handle=True),
+            TextInput("Model Name"),
+        ]
         self.outputs = []
 
         self.category = PyTorchCategory
