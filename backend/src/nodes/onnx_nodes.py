@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import onnx
+import onnxoptimizer
 import onnxruntime as ort
 from sanic.log import logger
 
@@ -193,7 +194,11 @@ class ConvertOnnxToNcnnNode(NodeBase):
     def run(self, onnx_model: bytes, is_fp16: int) -> Tuple[NcnnModel, str]:
         fp16 = bool(is_fp16)
 
-        converter = Onnx2NcnnConverter(onnx.load_model_from_string(onnx_model))
+        model_proto = onnx.load_model_from_string(onnx_model)
+        passes = onnxoptimizer.get_fuse_and_elimination_passes()
+        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+
+        converter = Onnx2NcnnConverter(opt_model)
         ncnn_model = converter.convert(fp16, False)
 
         fp_mode = "fp16" if fp16 else "fp32"
