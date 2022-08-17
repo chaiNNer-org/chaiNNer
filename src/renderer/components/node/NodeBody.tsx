@@ -30,7 +30,7 @@ export const NodeBody = memo(
     }: NodeBodyProps) => {
         return (
             <>
-                {inputs.length && (
+                {inputs.length > 0 && (
                     <Center>
                         <Text
                             fontSize="xs"
