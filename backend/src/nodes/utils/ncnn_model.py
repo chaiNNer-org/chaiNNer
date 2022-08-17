@@ -143,8 +143,8 @@ class NcnnWeight:
         self.weight = weight
 
     @property
-    def size(self) -> int:
-        return self.weight.size
+    def shape(self) -> tuple:
+        return self.weight.shape
 
 
 class NcnnParam:
@@ -347,8 +347,8 @@ class NcnnModel:
                     raise e
 
                 assert (
-                    weight_a.size == weight_b.size
-                ), "Corresponding weights must have the same size"
+                    weight_a.shape == weight_b.shape
+                ), "Corresponding weights must have the same size and shape"
 
                 assert len(weight_a.quantize_tag) == len(
                     weight_b.quantize_tag
