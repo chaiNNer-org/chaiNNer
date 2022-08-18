@@ -191,7 +191,16 @@ class ConvertOnnxToNcnnNode(NodeBase):
         super().__init__()
         self.description = """Convert an ONNX model to NCNN."""
         self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
-        self.outputs = [NcnnModelOutput("NCNN Model"), TextOutput("FP Mode")]
+        self.outputs = [
+            NcnnModelOutput("NCNN Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                        FpMode::fp32 => "fp32",
+                        FpMode::fp16 => "fp16",
+                }""",
+            ),
+        ]
 
         self.category = ONNXCategory
         self.name = "Convert To NCNN"
