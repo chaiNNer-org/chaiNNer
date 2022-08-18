@@ -80,6 +80,7 @@ export function* getReferences(expression: Expression | Definition): Iterable<st
                 }
                 break;
             case 'match':
+                yield* getReferences(expression.of);
                 for (const arm of expression.arms) {
                     yield* getReferences(arm.pattern);
                     yield* getReferences(arm.to);
