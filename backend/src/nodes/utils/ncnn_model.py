@@ -176,9 +176,9 @@ class NcnnParamCollection:
     def __getitem__(self, key: int) -> NcnnParam:
         try:
             return self.param_dict[key]
-        except KeyError as e:
+        except KeyError:
             logger.error(f"Op {self.op} does not have param {key}, please report")
-            raise e
+            raise
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]
@@ -187,9 +187,9 @@ class NcnnParamCollection:
         param_dict = param_schema[self.op]
         try:
             param = param_dict[idstr]
-        except KeyError as e:
+        except KeyError:
             logger.error(f"Op {self.op} does not have param {idstr}, please report")
-            raise e
+            raise
         name = param["paramPhase"]
         def_val = param["defaultValue"]
 
@@ -340,11 +340,11 @@ class NcnnModel:
             for weight_name, weight_a in weights_a.items():
                 try:
                     weight_b = weights_b[weight_name]
-                except KeyError as e:
+                except KeyError:
                     logger.error(
                         f"Weights in node {a.name} and {b.name} do not correspond"
                     )
-                    raise e
+                    raise
 
                 assert (
                     weight_a.shape == weight_b.shape
