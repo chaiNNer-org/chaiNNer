@@ -74,6 +74,109 @@ const formatBytes = (bytes: number): string => {
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
+const Package = memo(
+    ({
+        dep,
+        pipList,
+        isRunningShell,
+        progress,
+        onInstall,
+        onUninstall,
+        onUpdate,
+    }: {
+        dep: Dependency;
+        pipList: PipList;
+        isRunningShell: boolean;
+        progress?: number;
+        onInstall: () => void;
+        onUninstall: () => void;
+        onUpdate: () => void;
+    }) => {
+        const allDepPackagesInstalled = dep.packages.every((p) => pipList[p.packageName]);
+        const allDepPackageVersionsString = dep.packages
+            .map((p) => pipList[p.packageName])
+            .join('/');
+        const outdatedPackages = dep.packages.filter((p) => {
+            const installedVersion = pipList[p.packageName];
+            return installedVersion && checkSemverGt(p.version, installedVersion);
+        });
+
+        return (
+            <VStack
+                key={dep.name}
+                w="full"
+            >
+                <Flex
+                    align="center"
+                    key={dep.name}
+                    w="full"
+                >
+                    <Text
+                        color={allDepPackagesInstalled ? 'inherit' : 'red.500'}
+                        flex="1"
+                        textAlign="left"
+                    >
+                        {`${dep.name} (${
+                            allDepPackagesInstalled ? allDepPackageVersionsString : 'not installed'
+                        })`}
+                    </Text>
+                    {allDepPackagesInstalled ? (
+                        <HStack>
+                            {outdatedPackages.length > 0 && (
+                                <Button
+                                    colorScheme="blue"
+                                    disabled={isRunningShell}
+                                    isLoading={isRunningShell}
+                                    leftIcon={<DownloadIcon />}
+                                    size="sm"
+                                    onClick={onUpdate}
+                                >
+                                    Update to {outdatedPackages.map((p) => p.version).join('/')} (
+                                    {formatSizeEstimate(outdatedPackages)})
+                                </Button>
+                            )}
+
+                            <Button
+                                colorScheme="red"
+                                disabled={isRunningShell}
+                                leftIcon={<DeleteIcon />}
+                                size="sm"
+                                onClick={onUninstall}
+                            >
+                                Uninstall
+                            </Button>
+                        </HStack>
+                    ) : (
+                        <Button
+                            colorScheme="blue"
+                            disabled={isRunningShell}
+                            isLoading={isRunningShell}
+                            leftIcon={<DownloadIcon />}
+                            size="sm"
+                            onClick={onInstall}
+                        >
+                            Install ({formatSizeEstimate(dep.packages)})
+                        </Button>
+                    )}
+                </Flex>
+                {progress !== undefined && (
+                    <Center
+                        h={8}
+                        w="full"
+                    >
+                        <Progress
+                            hasStripe
+                            isAnimated
+                            value={progress}
+                            w="full"
+                        />
+                    </Center>
+                )}
+            </VStack>
+        );
+    }
+);
+
 export const DependencyProvider = memo(({ children }: React.PropsWithChildren<unknown>) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -277,131 +380,40 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                     <Spinner />
                                 ) : (
                                     availableDeps.map((dep) => {
-                                        const allDepPackagesInstalled = dep.packages.every(
-                                            (p) => pipList[p.packageName]
-                                        );
-                                        const allDepPackageVersionsString = dep.packages
-                                            .map((p) => pipList[p.packageName])
-                                            .join('/');
-                                        const outdatedPackages = dep.packages.filter((p) => {
-                                            const installedVersion = pipList[p.packageName];
-                                            return (
-                                                installedVersion &&
-                                                checkSemverGt(p.version, installedVersion)
-                                            );
-                                        });
-                                        return (
-                                            <VStack
-                                                key={dep.name}
-                                                w="full"
-                                            >
-                                                <Flex
-                                                    align="center"
-                                                    key={dep.name}
-                                                    w="full"
-                                                >
-                                                    {/* <Text>{`Installed version: ${dep.version ?? 'None'}`}</Text> */}
-                                                    <Text
-                                                        color={
-                                                            allDepPackagesInstalled
-                                                                ? 'inherit'
-                                                                : 'red.500'
-                                                        }
-                                                        flex="1"
-                                                        textAlign="left"
-                                                    >
-                                                        {`${dep.name} (${
-                                                            allDepPackagesInstalled
-                                                                ? allDepPackageVersionsString
-                                                                : 'not installed'
-                                                        })`}
-                                                    </Text>
-                                                    {allDepPackagesInstalled ? (
-                                                        <HStack>
-                                                            {outdatedPackages.length > 0 && (
-                                                                <Button
-                                                                    colorScheme="blue"
-                                                                    disabled={isRunningShell}
-                                                                    isLoading={isRunningShell}
-                                                                    leftIcon={<DownloadIcon />}
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        installPackage(dep)
-                                                                    }
-                                                                >
-                                                                    Update to{' '}
-                                                                    {outdatedPackages
-                                                                        .map((p) => p.version)
-                                                                        .join('/')}{' '}
-                                                                    (
-                                                                    {formatSizeEstimate(
-                                                                        outdatedPackages
-                                                                    )}
-                                                                    )
-                                                                </Button>
-                                                            )}
+                                        const install = () => installPackage(dep);
+                                        const uninstall = () => {
+                                            showAlert({
+                                                type: AlertType.WARN,
+                                                title: 'Uninstall',
+                                                message: `Are you sure you want to uninstall ${dep.name}?`,
+                                                buttons: ['Cancel', 'Uninstall'],
+                                                defaultButton: 0,
+                                            })
+                                                .then((button) => {
+                                                    if (button === 1) {
+                                                        uninstallPackage(dep);
+                                                    }
+                                                })
+                                                .catch((error) => log.error(error));
+                                        };
 
-                                                            <Button
-                                                                colorScheme="red"
-                                                                disabled={isRunningShell}
-                                                                leftIcon={<DeleteIcon />}
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    showAlert({
-                                                                        type: AlertType.WARN,
-                                                                        title: 'Uninstall',
-                                                                        message: `Are you sure you want to uninstall ${dep.name}?`,
-                                                                        buttons: [
-                                                                            'Cancel',
-                                                                            'Uninstall',
-                                                                        ],
-                                                                        defaultButton: 0,
-                                                                    })
-                                                                        .then((button) => {
-                                                                            if (button === 1) {
-                                                                                uninstallPackage(
-                                                                                    dep
-                                                                                );
-                                                                            }
-                                                                        })
-                                                                        .catch((error) =>
-                                                                            log.error(error)
-                                                                        );
-                                                                }}
-                                                            >
-                                                                Uninstall
-                                                            </Button>
-                                                        </HStack>
-                                                    ) : (
-                                                        <Button
-                                                            colorScheme="blue"
-                                                            disabled={isRunningShell}
-                                                            isLoading={isRunningShell}
-                                                            leftIcon={<DownloadIcon />}
-                                                            size="sm"
-                                                            onClick={() => installPackage(dep)}
-                                                        >
-                                                            Install (
-                                                            {formatSizeEstimate(dep.packages)})
-                                                        </Button>
-                                                    )}
-                                                </Flex>
-                                                {isRunningShell &&
+                                        return (
+                                            <Package
+                                                dep={dep}
+                                                isRunningShell={isRunningShell}
+                                                key={dep.name}
+                                                pipList={pipList}
+                                                progress={
+                                                    isRunningShell &&
                                                     (installingPackage || uninstallingPackage)
-                                                        ?.name === dep.name && (
-                                                        <Center
-                                                            h={8}
-                                                            w="full"
-                                                        >
-                                                            <Progress
-                                                                hasStripe
-                                                                isAnimated
-                                                                value={progress}
-                                                                w="full"
-                                                            />
-                                                        </Center>
-                                                    )}
-                                            </VStack>
+                                                        ?.name === dep.name
+                                                        ? progress
+                                                        : undefined
+                                                }
+                                                onInstall={install}
+                                                onUninstall={uninstall}
+                                                onUpdate={install}
+                                            />
                                         );
                                     })
                                 )}
