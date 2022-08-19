@@ -18,51 +18,46 @@ export interface Dependency {
     packages: PyPiPackage[];
 }
 
-const getTorchKind = (isNvidiaAvailable: boolean) => {
-    if (isMac) return '';
-    if (isNvidiaAvailable) return '+cu113';
-    return '+cpu';
+export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => {
+    const canCuda = isNvidiaAvailable && !isMac;
+    return [
+        {
+            name: 'PyTorch',
+            packages: [
+                {
+                    packageName: 'torch',
+                    version: `1.10.2${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * GB : 140 * MB,
+                },
+            ],
+        },
+        {
+            name: 'NCNN',
+            packages: [{ packageName: 'ncnn-vulkan', version: '2022.8.12', sizeEstimate: 4 * MB }],
+        },
+        {
+            name: 'ONNX',
+            packages: [
+                {
+                    packageName: 'onnx',
+                    version: '1.11.0',
+                    sizeEstimate: 12 * MB,
+                },
+                {
+                    packageName: isNvidiaAvailable ? 'onnxruntime-gpu' : 'onnxruntime',
+                    sizeEstimate: isNvidiaAvailable ? 110 * MB : 5 * MB,
+                    version: '1.11.1',
+                },
+                {
+                    packageName: 'protobuf',
+                    version: '3.16.0',
+                    sizeEstimate: 500 * KB,
+                },
+            ],
+        },
+    ];
 };
-
-export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => [
-    {
-        name: 'PyTorch',
-        packages: [
-            {
-                packageName: 'torch',
-                version: `1.10.2${getTorchKind(isNvidiaAvailable)}`,
-                findLink: `https://download.pytorch.org/whl/${
-                    isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'
-                }/torch_stable.html`,
-                sizeEstimate: isNvidiaAvailable && !isMac ? 2 * GB : 140 * MB,
-            },
-        ],
-    },
-    {
-        name: 'NCNN',
-        packages: [{ packageName: 'ncnn-vulkan', version: '2022.8.12', sizeEstimate: 4 * MB }],
-    },
-    {
-        name: 'ONNX',
-        packages: [
-            {
-                packageName: 'onnx',
-                version: '1.11.0',
-                sizeEstimate: 12 * MB,
-            },
-            {
-                packageName: isNvidiaAvailable ? 'onnxruntime-gpu' : 'onnxruntime',
-                sizeEstimate: isNvidiaAvailable ? 110 * MB : 5 * MB,
-                version: '1.11.1',
-            },
-            {
-                packageName: 'protobuf',
-                version: '3.16.0',
-                sizeEstimate: 500 * KB,
-            },
-        ],
-    },
-];
 
 export const requiredDependencies: Dependency[] = [
     {
