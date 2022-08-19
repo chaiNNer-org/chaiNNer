@@ -18,17 +18,19 @@ export interface Dependency {
     packages: PyPiPackage[];
 }
 
+const getTorchKind = (isNvidiaAvailable: boolean) => {
+    if (isMac) return '';
+    if (isNvidiaAvailable) return '+cu113';
+    return '+cpu';
+};
+
 export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => [
     {
         name: 'PyTorch',
         packages: [
             {
                 packageName: 'torch',
-                version: `1.10.2${(() => {
-                    if (isMac) return '';
-                    if (isNvidiaAvailable) return '+cu113';
-                    return '+cpu';
-                })()}}`,
+                version: `1.10.2${getTorchKind(isNvidiaAvailable)}`,
                 findLink: `https://download.pytorch.org/whl/${
                     isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'
                 }/torch_stable.html`,
