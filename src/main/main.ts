@@ -203,6 +203,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
         app.exit(1);
     }
     log.info(`Port found: ${port}`);
+    ipcMain.removeHandler('get-port');
     ipcMain.handle('get-port', () => {
         if (getArguments().noBackend) {
             return 8000;
