@@ -24,7 +24,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
         packages: [
             {
                 packageName: 'torch',
-                version: `1.10.2+${isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'}`,
+                version: `1.10.2${(() => {
+                    if (isMac) return '';
+                    if (isNvidiaAvailable) return '+cu113';
+                    return '+cpu';
+                })()}}`,
                 findLink: `https://download.pytorch.org/whl/${
                     isNvidiaAvailable && !isMac ? 'cu113' : 'cpu'
                 }/torch_stable.html`,
