@@ -115,7 +115,11 @@ class NcnnSaveNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Save an NCNN model to specified directory."
-        self.inputs = [NcnnNetInput(), DirectoryInput(), TextInput("Param/Bin Name")]
+        self.inputs = [
+            NcnnNetInput(),
+            DirectoryInput(has_handle=True),
+            TextInput("Param/Bin Name"),
+        ]
         self.outputs = []
 
         self.category = NCNNCategory
