@@ -2074,6 +2074,40 @@ Object {
 }
 `;
 
+exports[`Read save file onnx-interpolate.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+        "inputData": Object {
+          "2": 67,
+        },
+        "isDisabled": false,
+        "schemaId": "chainner:onnx:interpolate_models",
+      },
+      "height": 381,
+      "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+      "position": Object {
+        "x": 384,
+        "y": 144,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 247,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file opacity.chn 1`] = `
 Object {
   "edges": Array [],
@@ -4695,6 +4729,44 @@ Object {
         "selected": false,
         "type": "regularNode",
         "width": 257,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file onnx-interpolate.chn 1`] = `
+Object {
+  "checksum": "1826a1b882ec4c54636066932cdeafb1",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+          "inputData": Object {
+            "2": 67,
+          },
+          "isDisabled": false,
+          "schemaId": "chainner:onnx:interpolate_models",
+        },
+        "height": 381,
+        "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+        "position": Object {
+          "x": 384,
+          "y": 144,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 247,
         "zIndex": 50,
       },
     ],
