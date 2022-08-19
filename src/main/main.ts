@@ -213,7 +213,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
 };
 
 const getPythonVersion = async (pythonBin: string) => {
-    const { stdout } = await exec(`${pythonBin} --version`);
+    const { stdout } = await exec(`"${pythonBin}" --version`);
     log.info(`Python version (raw): ${stdout}`);
 
     const { version } = semver.coerce(stdout)!;
