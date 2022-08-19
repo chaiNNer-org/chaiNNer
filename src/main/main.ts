@@ -213,7 +213,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
 };
 
 const getPythonVersion = async (pythonBin: string) => {
-    const { stdout } = await exec(`${pythonBin} --version`);
+    const { stdout } = await exec(`"${pythonBin}" --version`);
     log.info(`Python version (raw): ${stdout}`);
 
     const { version } = semver.coerce(stdout)!;
@@ -549,30 +549,43 @@ const doSplashScreenChecks = async () =>
         // Send events to splash screen renderer as they happen
         // Added some sleep functions so I can see that this is doing what I want it to
         // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
-        splash.webContents.once('dom-ready', async () => {
-            splash.webContents.send('checking-port');
-            const port = await getValidPort(splash);
-            await sleep(250);
+        const trueOnce = (fn: () => void): (() => void) => {
+            let first = true;
+            return () => {
+                if (first) {
+                    first = false;
+                    fn();
+                }
+            };
+        };
 
-            splash.webContents.send('checking-python');
-            await checkPythonEnv(splash);
-            await sleep(250);
+        splash.webContents.once(
+            'dom-ready',
+            trueOnce(async () => {
+                splash.webContents.send('checking-port');
+                const port = await getValidPort(splash);
+                await sleep(250);
 
-            splash.webContents.send('checking-deps');
-            await checkPythonDeps(splash);
-            await checkNvidiaSmi();
-            await sleep(250);
+                splash.webContents.send('checking-python');
+                await checkPythonEnv(splash);
+                await sleep(250);
 
-            splash.webContents.send('spawning-backend');
-            await spawnBackend(port);
+                splash.webContents.send('checking-deps');
+                await checkPythonDeps(splash);
+                await checkNvidiaSmi();
+                await sleep(250);
 
-            registerEventHandlers();
+                splash.webContents.send('spawning-backend');
+                await spawnBackend(port);
 
-            splash.webContents.send('splash-finish');
-            await sleep(250);
+                registerEventHandlers();
 
-            resolve();
-        });
+                splash.webContents.send('splash-finish');
+                await sleep(250);
+
+                resolve();
+            })
+        );
 
         ipcMain.once('backend-ready', async () => {
             splash.webContents.send('finish-loading');
