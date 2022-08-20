@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import onnx
+import onnxoptimizer
 import onnxruntime as ort
 from sanic.log import logger
 
@@ -33,7 +34,11 @@ class OnnxLoadModelNode(NodeBase):
             """Load ONNX model file (.onnx). Theoretically supports any ONNX model."""
         )
         self.inputs = [OnnxFileInput()]
-        self.outputs = [OnnxModelOutput(), TextOutput("Model Name")]
+        self.outputs = [
+            OnnxModelOutput(),
+            DirectoryOutput().with_id(2),
+            TextOutput("Model Name").with_id(1),
+        ]
 
         self.category = ONNXCategory
         self.name = "Load Model"
@@ -42,7 +47,7 @@ class OnnxLoadModelNode(NodeBase):
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Tuple[bytes, str]:
+    def run(self, path: str) -> Tuple[bytes, str, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -55,9 +60,8 @@ class OnnxLoadModelNode(NodeBase):
 
         model_as_string = model.SerializeToString()  # type: ignore
 
-        basename = os.path.splitext(os.path.basename(path))[0]
-
-        return model_as_string, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        return model_as_string, dirname, basename
 
 
 @NodeFactory.register("chainner:onnx:save_model")
@@ -67,7 +71,11 @@ class OnnxSaveModelNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Save ONNX model to file (.onnx)."""
-        self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.inputs = [
+            OnnxModelInput(),
+            DirectoryInput(has_handle=True),
+            TextInput("Model Name"),
+        ]
         self.outputs = []
         self.category = ONNXCategory
         self.name = "Save Model"
@@ -183,7 +191,16 @@ class ConvertOnnxToNcnnNode(NodeBase):
         super().__init__()
         self.description = """Convert an ONNX model to NCNN."""
         self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
-        self.outputs = [NcnnModelOutput("NCNN Model"), TextOutput("FP Mode")]
+        self.outputs = [
+            NcnnModelOutput("NCNN Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                        FpMode::fp32 => "fp32",
+                        FpMode::fp16 => "fp16",
+                }""",
+            ),
+        ]
 
         self.category = ONNXCategory
         self.name = "Convert To NCNN"
@@ -193,7 +210,11 @@ class ConvertOnnxToNcnnNode(NodeBase):
     def run(self, onnx_model: bytes, is_fp16: int) -> Tuple[NcnnModel, str]:
         fp16 = bool(is_fp16)
 
-        converter = Onnx2NcnnConverter(onnx.load_model_from_string(onnx_model))
+        model_proto = onnx.load_model_from_string(onnx_model)
+        passes = onnxoptimizer.get_fuse_and_elimination_passes()
+        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+
+        converter = Onnx2NcnnConverter(opt_model)
         ncnn_model = converter.convert(fp16, False)
 
         fp_mode = "fp16" if fp16 else "fp32"

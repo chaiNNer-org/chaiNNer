@@ -51,7 +51,6 @@ struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
 struct FillMethod;
 struct FlipAxis;
-struct FpMode;
 struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
@@ -66,6 +65,7 @@ struct VideoType;
 enum Orientation { Horizontal, Vertical }
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
+enum FpMode { fp32, fp16 }
 
 // util function for upscaling nodes
 def getUpscaleChannels(

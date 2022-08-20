@@ -14,7 +14,15 @@ def OnnxFpDropdown() -> DropDownInput:
         input_type="FpMode",
         label="Data Type",
         options=[
-            {"option": "fp32", "value": 0},
-            {"option": "fp16", "value": 1},
+            {
+                "option": "fp32",
+                "value": 0,
+                "type": "FpMode::fp32",
+            },
+            {
+                "option": "fp16",
+                "value": 1,
+                "type": "FpMode::fp16",
+            },
         ],
     )
