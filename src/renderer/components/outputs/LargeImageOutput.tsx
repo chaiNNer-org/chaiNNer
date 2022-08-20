@@ -70,7 +70,7 @@ export const LargeImageOutput = memo(
                     w="200px"
                 >
                     <Box
-                        display={stale && !animated ? 'block' : 'none'}
+                        display={stale ? 'block' : 'none'}
                         h="200px"
                         marginRight="-200px"
                         w="200px"
@@ -114,7 +114,7 @@ export const LargeImageOutput = memo(
                         overflow="hidden"
                         w="200px"
                     >
-                        {value && !animated ? (
+                        {value ? (
                             <Center
                                 maxH="200px"
                                 maxW="200px"
