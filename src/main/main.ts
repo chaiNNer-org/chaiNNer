@@ -17,7 +17,7 @@ import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists } from '../common/util';
+import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
@@ -549,43 +549,30 @@ const doSplashScreenChecks = async () =>
         // Send events to splash screen renderer as they happen
         // Added some sleep functions so I can see that this is doing what I want it to
         // TODO: Remove the sleeps (or maybe not, since it feels more like something is happening here)
-        const trueOnce = (fn: () => void): (() => void) => {
-            let first = true;
-            return () => {
-                if (first) {
-                    first = false;
-                    fn();
-                }
-            };
-        };
+        splash.webContents.once('dom-ready', async () => {
+            splash.webContents.send('checking-port');
+            const port = await getValidPort(splash);
+            await sleep(250);
 
-        splash.webContents.once(
-            'dom-ready',
-            trueOnce(async () => {
-                splash.webContents.send('checking-port');
-                const port = await getValidPort(splash);
-                await sleep(250);
+            splash.webContents.send('checking-python');
+            await checkPythonEnv(splash);
+            await sleep(250);
 
-                splash.webContents.send('checking-python');
-                await checkPythonEnv(splash);
-                await sleep(250);
+            splash.webContents.send('checking-deps');
+            await checkPythonDeps(splash);
+            await checkNvidiaSmi();
+            await sleep(250);
 
-                splash.webContents.send('checking-deps');
-                await checkPythonDeps(splash);
-                await checkNvidiaSmi();
-                await sleep(250);
+            splash.webContents.send('spawning-backend');
+            await spawnBackend(port);
 
-                splash.webContents.send('spawning-backend');
-                await spawnBackend(port);
+            registerEventHandlers();
 
-                registerEventHandlers();
+            splash.webContents.send('splash-finish');
+            await sleep(250);
 
-                splash.webContents.send('splash-finish');
-                await sleep(250);
-
-                resolve();
-            })
-        );
+            resolve();
+        });
 
         ipcMain.once('backend-ready', async () => {
             splash.webContents.send('finish-loading');
@@ -599,7 +586,7 @@ const doSplashScreenChecks = async () =>
         });
     });
 
-const createWindow = async () => {
+const createWindow = lazy(async () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: lastWindowSize?.width ?? 1280,
@@ -672,7 +659,7 @@ const createWindow = async () => {
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
     }
-};
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
