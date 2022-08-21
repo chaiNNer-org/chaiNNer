@@ -42,8 +42,6 @@ export const FileInput = memo(
         const [filePath, setFilePath] = useInputData<string>(inputId);
 
         const updateFilePath = async (file: string) => {
-            setFilePath(file);
-
             // Handle case of NCNN model selection where param and bin files are named in pairs
             // Eventually, these should be combined into a single input type instead of using
             // the file inputs directly
@@ -65,6 +63,8 @@ export const FileInput = memo(
                     }
                 }
             }
+
+            setFilePath(file);
         };
 
         const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
