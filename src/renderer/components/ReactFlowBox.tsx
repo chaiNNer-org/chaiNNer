@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import log from 'electron-log';
 import { DragEvent, memo, useCallback, useMemo } from 'react';
 import ReactFlow, {
@@ -380,7 +380,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     return (
         <Box
-            bg={useColorModeValue('gray.200', 'gray.800')}
+            bg="var(--chain-editor-bg)"
             borderRadius="lg"
             borderWidth="0px"
             className={animateChain ? '' : 'no-chain-animation'}

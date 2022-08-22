@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
-import { Box, Center, HStack, Image, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
@@ -53,8 +53,8 @@ export const LargeImageOutput = memo(
             }
         }, [id, schemaId, value]);
 
-        const imgBgColor = useColorModeValue('gray.400', 'gray.750');
-        const fontColor = useColorModeValue('gray.700', 'gray.400');
+        const imgBgColor = 'var(--node-image-preview-bg)';
+        const fontColor = 'var(--node-image-preview-color)';
 
         return (
             <Center
