@@ -62,7 +62,7 @@ import {
     ChangeCounter,
     nextChangeCount,
     useChangeCounter,
-    wrapChanges,
+    wrapRefChanges,
 } from '../hooks/useChangeCounter';
 import { useInputHashes } from '../hooks/useInputHashes';
 import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
@@ -102,8 +102,8 @@ interface GlobalVolatile {
 interface Global {
     reactFlowWrapper: React.RefObject<Element>;
     defaultIteratorSize: Readonly<Size>;
-    setSetNodes: SetState<SetState<Node<NodeData>[]>>;
-    setSetEdges: SetState<SetState<Edge<EdgeData>[]>>;
+    setNodesRef: React.MutableRefObject<SetState<Node<NodeData>[]>>;
+    setEdgesRef: React.MutableRefObject<SetState<Edge<EdgeData>[]>>;
     addNodeChanges: () => void;
     addEdgeChanges: () => void;
     changeNodes: SetState<Node<NodeData>[]>;
@@ -171,16 +171,16 @@ export const GlobalProvider = memo(
 
         const currentViewport = useViewport();
 
-        const [setNodes, setSetNodes] = useState(() => rfSetNodes);
-        const [setEdges, setSetEdges] = useState(() => rfSetEdges);
+        const setNodesRef = useRef<SetState<Node<NodeData>[]>>(rfSetNodes);
+        const setEdgesRef = useRef<SetState<Edge<EdgeData>[]>>(rfSetEdges);
 
         const changeNodes = useMemo(
-            () => wrapChanges(setNodes, addNodeChanges),
-            [setNodes, addNodeChanges]
+            () => wrapRefChanges(setNodesRef, addNodeChanges),
+            [addNodeChanges]
         );
         const changeEdges = useMemo(
-            () => wrapChanges(setEdges, addEdgeChanges),
-            [setEdges, addEdgeChanges]
+            () => wrapRefChanges(setEdgesRef, addEdgeChanges),
+            [addEdgeChanges]
         );
 
         const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
@@ -430,6 +430,8 @@ export const GlobalProvider = memo(
             },
             [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges, outputDataActions]
         );
+        const setStateFromJSONRef = useRef(setStateFromJSON);
+        setStateFromJSONRef.current = setStateFromJSON;
 
         const clearState = useCallback(async () => {
             if (hasRelevantUnsavedChanges) {
@@ -518,7 +520,7 @@ export const GlobalProvider = memo(
             const result = await ipcRenderer.invoke('get-cli-open');
             if (result) {
                 if (result.kind === 'Success') {
-                    await setStateFromJSON(result.saveData, result.path, true);
+                    await setStateFromJSONRef.current(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);
                     sendAlert({
@@ -527,7 +529,7 @@ export const GlobalProvider = memo(
                     });
                 }
             }
-        }, [setStateFromJSON, removeRecentPath]);
+        }, [removeRecentPath]);
 
         // Register Open File event handler
         useIpcRendererListener(
@@ -535,7 +537,7 @@ export const GlobalProvider = memo(
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             async (event, result) => {
                 if (result.kind === 'Success') {
-                    await setStateFromJSON(result.saveData, result.path, true);
+                    await setStateFromJSONRef.current(result.saveData, result.path, true);
                 } else {
                     removeRecentPath(result.path);
                     sendAlert({
@@ -544,7 +546,7 @@ export const GlobalProvider = memo(
                     });
                 }
             },
-            [setStateFromJSON, removeRecentPath]
+            [removeRecentPath]
         );
 
         // Register Save/Save-As event handlers
@@ -561,7 +563,7 @@ export const GlobalProvider = memo(
                 try {
                     const saveFile = await openSaveFile(startupTemplate);
                     if (saveFile.kind === 'Success') {
-                        await setStateFromJSON(saveFile.saveData, '', true);
+                        await setStateFromJSONRef.current(saveFile.saveData, '', true);
                     } else {
                         sendAlert({
                             type: AlertType.ERROR,
@@ -577,7 +579,7 @@ export const GlobalProvider = memo(
                 }
                 setFirstLoad(false);
             }
-        }, [firstLoad, setStateFromJSON]);
+        }, [firstLoad]);
 
         const removeNodeById = useCallback(
             (id: string) => {
@@ -814,7 +816,7 @@ export const GlobalProvider = memo(
                     return newSet;
                 });
                 if (animateEdges) {
-                    setEdges((edges) => {
+                    setEdgesRef.current((edges) => {
                         return edges.map((e) => {
                             if (!ids.has(e.source)) return e;
                             return e.animated ? e : { ...e, animated: true };
@@ -822,7 +824,7 @@ export const GlobalProvider = memo(
                     });
                 }
             },
-            [setAnimated, setEdges]
+            [setAnimated]
         );
         const unAnimate = useCallback(
             (nodes?: Iterable<string>): void => {
@@ -835,7 +837,7 @@ export const GlobalProvider = memo(
                         }
                         return newSet;
                     });
-                    setEdges((edges) => {
+                    setEdgesRef.current((edges) => {
                         return edges.map((e) => {
                             if (!ids.has(e.source)) return e;
                             return e.animated ? { ...e, animated: false } : e;
@@ -843,12 +845,12 @@ export const GlobalProvider = memo(
                     });
                 } else {
                     setAnimated(EMPTY_SET);
-                    setEdges((edges) =>
+                    setEdgesRef.current((edges) =>
                         edges.map((e) => (e.animated ? { ...e, animated: false } : e))
                     );
                 }
             },
-            [setAnimated, setEdges]
+            [setAnimated]
         );
 
         const toggleNodeLock = useCallback(
@@ -1064,8 +1066,8 @@ export const GlobalProvider = memo(
         const globalValue = useMemoObject<Global>({
             reactFlowWrapper,
             defaultIteratorSize,
-            setSetNodes,
-            setSetEdges,
+            setNodesRef,
+            setEdgesRef,
             addNodeChanges,
             addEdgeChanges,
             changeNodes,
