@@ -70,14 +70,14 @@ export const requiredDependencies: Dependency[] = [
     },
     {
         name: 'OpenCV',
-        packages: [{ packageName: 'opencv-python', version: '4.5.5.64', sizeEstimate: 30 * MB }],
+        packages: [{ packageName: 'opencv-python', version: '4.6.0.66', sizeEstimate: 30 * MB }],
     },
     {
         name: 'NumPy',
-        packages: [{ packageName: 'numpy', version: '1.22.3', sizeEstimate: 15 * MB }],
+        packages: [{ packageName: 'numpy', version: '1.23.2', sizeEstimate: 15 * MB }],
     },
     {
         name: 'Pillow (PIL)',
-        packages: [{ packageName: 'Pillow', version: '9.1.0', sizeEstimate: 3 * MB }],
+        packages: [{ packageName: 'Pillow', version: '9.2.0', sizeEstimate: 3 * MB }],
     },
 ];

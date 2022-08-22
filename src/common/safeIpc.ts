@@ -63,6 +63,7 @@ export interface SendChannels {
     'file-export-template': SendChannelInfo;
     'finish-loading': SendChannelInfo;
     'installing-deps': SendChannelInfo;
+    'updating-deps': SendChannelInfo;
     'installing-main-deps': SendChannelInfo;
     progress: SendChannelInfo<[percentage: number]>;
     'spawning-backend': SendChannelInfo;

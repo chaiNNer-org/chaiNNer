@@ -344,11 +344,10 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 return true;
             });
         });
-        if (pending.length > 0) {
-            log.info(`Installing ${pending.length} missing dependencies...`);
-            splashWindow.webContents.send('installing-deps');
-            await runPipInstall(pending);
-        }
+        splashWindow.webContents.send(pending.length > 0 ? 'installing-deps' : 'updating-deps');
+        // Try to update/install deps no matter what
+        log.info('Installing/Updating dependencies...');
+        await runPipInstall(requiredDependencies);
     } catch (error) {
         log.error(error);
     }
