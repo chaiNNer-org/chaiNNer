@@ -536,7 +536,11 @@ const doSplashScreenChecks = async () =>
         });
 
         splash.on('close', () => {
-            mainWindow.destroy();
+            try {
+                mainWindow.destroy();
+            } catch (error) {
+                log.error(error);
+            }
         });
 
         // Look, I just wanna see the cool animation
