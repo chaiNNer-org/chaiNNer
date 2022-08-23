@@ -537,7 +537,9 @@ const doSplashScreenChecks = async () =>
 
         splash.on('close', () => {
             try {
-                mainWindow.destroy();
+                if (!mainWindow.isDestroyed()) {
+                    mainWindow.destroy();
+                }
             } catch (error) {
                 log.error(error);
             }
@@ -582,7 +584,9 @@ const doSplashScreenChecks = async () =>
             splash.on('close', () => {});
             await sleep(500);
             try {
-                splash.destroy();
+                if (!splash.isDestroyed()) {
+                    splash.destroy();
+                }
             } catch (error) {
                 log.error(error);
             }
