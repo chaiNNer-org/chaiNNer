@@ -528,7 +528,13 @@ const doSplashScreenChecks = async () =>
             // icon: `${__dirname}/public/icons/cross_platform/icon`,
             show: false,
         }) as BrowserWindowWithSafeIpc;
-        splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+        if (!splash.isDestroyed()) {
+            try {
+                splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+            } catch (error) {
+                log.error('Error loading splash window.', error);
+            }
+        }
 
         splash.once('ready-to-show', () => {
             splash.show();
@@ -536,13 +542,7 @@ const doSplashScreenChecks = async () =>
         });
 
         splash.on('close', () => {
-            try {
-                if (!mainWindow.isDestroyed()) {
-                    mainWindow.destroy();
-                }
-            } catch (error) {
-                log.error(error);
-            }
+            mainWindow.destroy();
         });
 
         // Look, I just wanna see the cool animation
@@ -583,13 +583,7 @@ const doSplashScreenChecks = async () =>
             splash.webContents.send('finish-loading');
             splash.on('close', () => {});
             await sleep(500);
-            try {
-                if (!splash.isDestroyed()) {
-                    splash.destroy();
-                }
-            } catch (error) {
-                log.error(error);
-            }
+            splash.destroy();
             mainWindow.show();
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
@@ -626,7 +620,13 @@ const createWindow = lazy(async () => {
     await doSplashScreenChecks();
 
     // and load the index.html of the app.
-    await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (!mainWindow.isDestroyed()) {
+        try {
+            await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+        } catch (error) {
+            log.error('Error loading main window.', error);
+        }
+    }
 
     // Open the DevTools.
     if (!app.isPackaged) {
