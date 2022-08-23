@@ -63,16 +63,16 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ### Helpful Resources
 
--   [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
-    -   A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
--   [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
-    -   A very nice collection of mostly ESRGAN models that have been trained for various tasks.
+- [Kim's chaiNNer Templates](https://github.com/kimberly990/kim-chaiNNer-Templates/)
+  - A collection of useful chain templates that can quickly get you started if you are still new to using chaiNNer.
+- [Upscale Wiki Model Database](https://upscale.wiki/wiki/Model_Database)
+  - A very nice collection of mostly ESRGAN models that have been trained for various tasks.
 
 ## Compatibility Notes
 
--   Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
+- Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
 
--   Apple M1 laptops are mostly untested, though they are theoretically supported.
+- Apple M1 laptops are mostly untested, though they are theoretically supported.
 
 ## GPU Support
 
@@ -88,18 +88,18 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### Pytorch
 
--   ESRGAN (RRDBNet)
-    -   This includes regular ESRGAN, ESRGAN+, "new-arch ESRGAN" (RealSR, BSRGAN), SPSR, and Real-ESRGAN
--   Real-ESRGAN Compact (SRVGGNet)
--   Swift-SRGAN
+- [ESRGAN](https://github.com/xinntao/ESRGAN) (RRDBNet)
+  - This includes regular [ESRGAN](https://github.com/xinntao/ESRGAN), [ESRGAN+](https://github.com/ncarraz/ESRGANplus), "new-arch ESRGAN" ([RealSR](https://github.com/jixiaozhong/RealSR), [BSRGAN](https://github.com/cszn/BSRGAN)), [SPSR](https://github.com/Maclory/SPSR), and [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
+- [Real-ESRGAN Compact](https://github.com/xinntao/Real-ESRGAN) (SRVGGNet)
+- [Swift-SRGAN](https://github.com/Koushik0901/Swift-SRGAN)
 
 ### NCNN
 
--   Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
+- Technically, almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN (and its variants) and with Waifu2x
 
 ### ONNX
 
--   Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
+- Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
 
 ## Building chaiNNer Yourself
 
@@ -107,24 +107,24 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## Planned Features
 
--   Check the Discord server for a list of planned features.
+- Check the Discord server for a list of planned features.
 
 ## FAQ
 
 **What does the name mean?**
 
--   chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
+- chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
 
 **Why not just use Cupscale/IEU/CLI?**
 
--   All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
 
--   This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like converting PyTorch models to NCNN without jumping through hoops. (That's pretty much it though)
+- This all being said however, Cupscale, IEU, CLI, or other tools are still useful for things chaiNNer currently cannot do, like converting PyTorch models to NCNN without jumping through hoops. (That's pretty much it though)
 
 **Wouldn't this make it more difficult to do things?**
 
--   In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
--   Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality. M1 MacBooks also are not very well tested, but should work now.
+- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality. M1 MacBooks also are not very well tested, but should work now.
