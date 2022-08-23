@@ -630,7 +630,7 @@ const createWindow = lazy(async () => {
     }
 
     // Open the DevTools.
-    if (!app.isPackaged) {
+    if (!app.isPackaged && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
 
