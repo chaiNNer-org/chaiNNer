@@ -581,7 +581,11 @@ const doSplashScreenChecks = async () =>
             splash.webContents.send('finish-loading');
             splash.on('close', () => {});
             await sleep(500);
-            splash.destroy();
+            try {
+                splash.destroy();
+            } catch (error) {
+                log.error(error);
+            }
             mainWindow.show();
             if (lastWindowSize?.maximized) {
                 mainWindow.maximize();
