@@ -1,6 +1,7 @@
-import torch
 import math
 import warnings
+import torch
+
 
 from torch.nn.init import _calculate_fan_in_and_fan_out
 
@@ -43,8 +44,9 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return tensor
 
 
-def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
-    # type: (Tensor, float, float, float, float) -> Tensor
+def trunc_normal_(
+    tensor: torch.Tensor, mean=0.0, std=1.0, a=-2.0, b=2.0
+) -> torch.Tensor:
     r"""Fills the input Tensor with values drawn from a truncated
     normal distribution. The values are effectively drawn from the
     normal distribution :math:`\mathcal{N}(\text{mean}, \text{std}^2)`
@@ -69,8 +71,9 @@ def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
 
-def trunc_normal_tf_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
-    # type: (Tensor, float, float, float, float) -> Tensor
+def trunc_normal_tf_(
+    tensor: torch.Tensor, mean=0.0, std=1.0, a=-2.0, b=2.0
+) -> torch.Tensor:
     r"""Fills the input Tensor with values drawn from a truncated
     normal distribution. The values are effectively drawn from the
     normal distribution :math:`\mathcal{N}(\text{mean}, \text{std}^2)`
@@ -107,7 +110,7 @@ def variance_scaling_(tensor, scale=1.0, mode="fan_in", distribution="normal"):
     elif mode == "fan_avg":
         denom = (fan_in + fan_out) / 2
 
-    variance = scale / denom
+    variance = scale / denom  # type: ignore
 
     if distribution == "truncated_normal":
         # constant is stddev of standard normal truncated to (-2, 2)
@@ -116,6 +119,7 @@ def variance_scaling_(tensor, scale=1.0, mode="fan_in", distribution="normal"):
         tensor.normal_(std=math.sqrt(variance))
     elif distribution == "uniform":
         bound = math.sqrt(3 * variance)
+        # pylint: disable=invalid-unary-operand-type
         tensor.uniform_(-bound, bound)
     else:
         raise ValueError(f"invalid distribution {distribution}")
