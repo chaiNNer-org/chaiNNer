@@ -344,7 +344,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 return true;
             });
         });
-        splashWindow.webContents.send(pending.length > 0 ? 'installing-deps' : 'updating-deps');
+        splashWindow.webContents.send('installing-deps', pending.length === 0);
         // Try to update/install deps no matter what
         log.info('Installing/Updating dependencies...');
         await runPipInstall(requiredDependencies);
