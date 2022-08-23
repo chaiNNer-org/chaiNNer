@@ -23,7 +23,6 @@ import {
     Text,
     Textarea,
     VStack,
-    useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
 import log from 'electron-log';
@@ -455,10 +454,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 },
                                                 '&::-webkit-scrollbar-thumb': {
                                                     borderRadius: '8px',
-                                                    backgroundColor: useColorModeValue(
-                                                        'gray.300',
-                                                        'gray.600'
-                                                    ),
+                                                    backgroundColor: 'var(--bg-600)',
                                                 },
                                             }}
                                             value={shellOutput}

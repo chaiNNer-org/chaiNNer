@@ -10,8 +10,6 @@ import {
     MenuList,
     Spacer,
     Text,
-    useColorModeValue,
-    useToken,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
@@ -44,6 +42,7 @@ import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/n
 import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
+import { useThemeColor } from './useThemeColor';
 
 interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
@@ -60,12 +59,9 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
         [searchQuery, schemata]
     );
 
-    const [gray200, gray800] = useToken('colors', ['gray.200', 'gray.800']) as string[];
-    const menuBgColor = useColorModeValue(gray200, gray800);
-    const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
-    const bgColor = useColorModeValue(gray300, gray700);
-    const inputColor = useColorModeValue('gray.500', 'gray.300');
-    const hoverColor = useColorModeValue('black', 'white');
+    const bgColor = useThemeColor('--bg-700');
+    const menuBgColor = useThemeColor('--bg-800');
+    const inputColor = 'var(--fg-300)';
 
     return (
         <MenuList
@@ -96,7 +92,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <InputRightElement
-                    _hover={{ color: hoverColor }}
+                    _hover={{ color: 'var(--fg-000)' }}
                     style={{
                         color: inputColor,
                         cursor: 'pointer',

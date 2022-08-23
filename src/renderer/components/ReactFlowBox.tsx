@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -163,8 +163,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         addEdgeChanges,
         changeNodes,
         changeEdges,
-        setSetNodes,
-        setSetEdges,
+        setNodesRef,
+        setEdgesRef,
         updateIteratorBounds,
     } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
@@ -177,6 +177,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
+    setNodesRef.current = setNodes;
+    setEdgesRef.current = setEdges;
 
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => {
@@ -192,11 +194,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         },
         [internalOnEdgesChange]
     );
-
-    useEffect(() => {
-        setSetNodes(() => setNodes);
-        setSetEdges(() => setEdges);
-    }, [setNodes, setEdges]);
 
     const [displayNodes, displayEdges] = useMemo(() => {
         const displayNodes = nodes.map<Node<NodeData>>((n) => ({ ...n })).sort(compareById);
@@ -383,7 +380,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     return (
         <Box
-            bg={useColorModeValue('gray.200', 'gray.800')}
+            bg="var(--chain-editor-bg)"
             borderRadius="lg"
             borderWidth="0px"
             className={animateChain ? '' : 'no-chain-animation'}

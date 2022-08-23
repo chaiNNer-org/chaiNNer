@@ -1,4 +1,4 @@
-import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
@@ -31,8 +31,7 @@ export const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
-        const { useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
+        const { useAnimateChain } = useContext(SettingsContext);
         const [animateChain] = useAnimateChain;
 
         const edgePath = useMemo(
@@ -62,7 +61,7 @@ export const CustomEdge = memo(
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
 
-        const [accentColor] = getTypeAccentColors(type, isDarkMode);
+        const [accentColor] = getTypeAccentColors(type);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
@@ -76,8 +75,6 @@ export const CustomEdge = memo(
         const hoverTimeout = useDebouncedCallback(() => {
             setIsHovered(false);
         }, 7500);
-
-        const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
 
         return (
             <g
@@ -142,7 +139,7 @@ export const CustomEdge = memo(
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '3px',
-                        stroke: chainHoleColor,
+                        stroke: 'var(--chain-hole-color)',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
@@ -180,7 +177,7 @@ export const CustomEdge = memo(
                 >
                     <Center
                         backgroundColor={currentColor}
-                        borderColor={useColorModeValue('gray.100', 'gray.800')}
+                        borderColor="var(--node-border-color)"
                         borderRadius={100}
                         borderWidth={2}
                         h="full"
@@ -192,7 +189,7 @@ export const CustomEdge = memo(
                         <IconButton
                             isRound
                             aria-label="Remove edge button"
-                            borderColor={useColorModeValue('gray.100', 'gray.800')}
+                            borderColor="var(--node-border-color)"
                             borderRadius={100}
                             borderWidth={2}
                             className="edgebutton"

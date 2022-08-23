@@ -1,15 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon } from '@chakra-ui/icons';
-import {
-    Center,
-    HStack,
-    Spinner,
-    Tag,
-    Text,
-    Wrap,
-    WrapItem,
-    useColorModeValue,
-} from '@chakra-ui/react';
+import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
@@ -81,8 +72,8 @@ export const PyTorchOutput = memo(
             }
         }, [id, schemaId, value]);
 
-        const tagColor = useColorModeValue('gray.400', 'gray.750');
-        const fontColor = useColorModeValue('gray.700', 'gray.400');
+        const tagColor = 'var(--tag-bg)';
+        const fontColor = 'var(--tag-fg)';
 
         return (
             <Center
