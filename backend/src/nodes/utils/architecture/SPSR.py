@@ -62,6 +62,9 @@ class SPSRNet(nn.Module):
         print(self.scale)
         self.num_filters: int = self.state["model.0.weight"].shape[0]
 
+        self.supports_fp16 = True
+        self.supports_bfp16 = True
+
         n_upscale = int(math.log(self.scale, 2))
         if self.scale == 3:
             n_upscale = 1
