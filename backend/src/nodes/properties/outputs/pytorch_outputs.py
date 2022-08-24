@@ -21,6 +21,19 @@ class ModelOutput(BaseOutput):
 
         if "SRVGG" in value.model_type:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
+        elif "SwinIR" in value.model_type:  # type: ignore
+            head_length = len(value.depths)  # type: ignore
+            if head_length <= 4:
+                size_tag = "small"
+            elif head_length < 9:
+                size_tag = "medium"
+            else:
+                size_tag = "large"
+            size = [
+                size_tag,
+                f"s{value.img_size}w{value.window_size}",
+                f"{value.num_feat}nf",
+            ]
         else:
             size = [
                 f"{value.num_filters}nf",
