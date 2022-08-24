@@ -204,7 +204,7 @@
     "re-resizable": "^6.9.9",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "react-flow-renderer": "^10.3.10",
+    "react-flow-renderer": "^10.3.16",
     "react-hotkeys-hook": "^3.4.6",
     "react-icons": "^4.4.0",
     "react-markdown": "^8.0.3",
