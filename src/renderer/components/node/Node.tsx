@@ -1,4 +1,4 @@
-import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
 import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -63,7 +63,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
     const { validity } = useValidity(id, schema, inputData);
 
-    const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
+    const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
@@ -128,20 +128,14 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
-    const bgColor = useColorModeValue('gray.400', 'gray.750');
-    const shadowColor = useColorModeValue('gray.600', 'gray.900');
-
     useRunNode(data, validity.isValid && isStartingNode(schema));
 
     return (
         <Center
-            bg={bgColor}
+            bg="var(--node-bg-color)"
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
-            boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
-                selected ? 12 : 8
-            }px ${shadowColor}8F`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}

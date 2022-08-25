@@ -122,6 +122,9 @@ class Generator(nn.Module):
         num_blocks = self.num_blocks
         upscale_factor = self.scale
 
+        self.supports_fp16 = True
+        self.supports_bfp16 = True
+
         self.initial = ConvBlock(
             in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False
         )
