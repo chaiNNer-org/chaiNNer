@@ -92,6 +92,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
   - This includes regular [ESRGAN](https://github.com/xinntao/ESRGAN), [ESRGAN+](https://github.com/ncarraz/ESRGANplus), "new-arch ESRGAN" ([RealSR](https://github.com/jixiaozhong/RealSR), [BSRGAN](https://github.com/cszn/BSRGAN)), [SPSR](https://github.com/Maclory/SPSR), and [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 - [Real-ESRGAN Compact](https://github.com/xinntao/Real-ESRGAN) (SRVGGNet)
 - [Swift-SRGAN](https://github.com/Koushik0901/Swift-SRGAN)
+- [SwinIR](https://github.com/JingyunLiang/SwinIR)
 
 ### NCNN
 
@@ -121,7 +122,7 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 **Wouldn't this make it more difficult to do things?**
 
-- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+-   In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
