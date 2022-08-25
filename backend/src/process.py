@@ -138,7 +138,7 @@ class Executor:
             temp = self.output_cache[node_id]
             self.cache_hit_state[node_id] += 1
             logger.info(
-                f"Cache hit for node {node_id}: {self.cache_hit_state[node_id]}"
+                f"Cache hit for node {node_id}: {self.cache_hit_state[node_id]} | max: {node['cacheOptions']['maxCacheHits']}"
             )
             if (
                 self.cache_hit_state[node_id] is not None

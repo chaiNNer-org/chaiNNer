@@ -1,5 +1,5 @@
-import isDeepEqual from 'fast-deep-equal/react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import log from 'electron-log';
+import { memo, useEffect, useState } from 'react';
 import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
@@ -94,6 +94,8 @@ const convertToUsableFormat = (
         (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
     });
+    log.info('inputHandles', inputHandles);
+    log.info('outputHandles', outputHandles);
 
     // Necessary to get around TS mutability warning
     const nodesCopy = [...nodes];
@@ -112,23 +114,37 @@ const convertToUsableFormat = (
         }
 
         const cacheOptions = {
-            shouldCache: false,
+            shouldCache: true,
             maxCacheHits: 0,
         };
 
         const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
         const isConnectedToIterator = currentChildren.some((child) => child.parentNode);
-        const outputLength = Object.keys(outputHandles[id] ?? []).length;
         const isStartNode = isStartingNode(schema);
 
-        if (outputLength > 1 || isConnectedToIterator || isStartNode) {
-            cacheOptions.shouldCache = true;
+        let totalOutputs = 0;
+        Object.values(inputHandles).forEach((value) => {
+            if (value) {
+                Object.values(value).forEach((v) => {
+                    if (v?.id === id) {
+                        totalOutputs += 1;
+                    }
+                });
+            }
+        });
+
+        if (totalOutputs > 1 || isConnectedToIterator || isStartNode) {
             cacheOptions.maxCacheHits =
                 isConnectedToIterator || isStartNode
                     ? Infinity
                     : // Max cache hits is the number of outputs - 1 since the first output is what sets it
-                      Object.keys(outputHandles[id] ?? []).length - 1;
+                      totalOutputs - 1;
         }
+        log.info(
+            `${schema.name} (id: ${schemaId}) is ${
+                cacheOptions.shouldCache ? '' : 'not'
+            } caching. Max cache hits: ${cacheOptions.maxCacheHits}`
+        );
 
         // Node
         result[id] = {
