@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Callable, Tuple, Type
-import cv2
 
 import numpy as np
 from sanic.log import logger
