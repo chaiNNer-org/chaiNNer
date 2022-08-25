@@ -44,6 +44,9 @@ class SRVGGNetCompact(nn.Module):
         self.pixelshuffle_shape = None  # Defined in get_scale()
         self.scale = self.get_scale()
 
+        self.supports_fp16 = True
+        self.supports_bfp16 = True
+
         self.body = nn.ModuleList()
         # the first conv
         self.body.append(nn.Conv2d(self.in_nc, self.num_feat, 3, 1, 1))

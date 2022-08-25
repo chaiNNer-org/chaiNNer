@@ -65,19 +65,7 @@ struct VideoType;
 enum Orientation { Horizontal, Vertical }
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
-
-// util function for upscaling nodes
-def getUpscaleChannels(
-    imageChannels: int(1..),
-    inputChannels: int(1..),
-    outputChannels: int(1..),
-) {
-    match imageChannels {
-        1 => 1,
-        4 => match inputChannels { 3 => add(outputChannels, 1), _ => outputChannels },
-        _ => outputChannels
-    }
-}
+enum FpMode { fp32, fp16 }
 `;
 
 export const getChainnerScope = lazy((): Scope => {

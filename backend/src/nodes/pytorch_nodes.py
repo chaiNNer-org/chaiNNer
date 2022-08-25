@@ -21,6 +21,7 @@ from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
+from .utils.architecture.SwinIR import SwinIR
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
@@ -35,7 +36,7 @@ def to_pytorch_execution_options(options: ExecutionOptions):
 
 
 def load_state_dict(state_dict) -> PyTorchModel:
-    logger.info(f"Loading state dict into ESRGAN model")
+    logger.info(f"Loading state dict into model arch")
 
     # SRVGGNet Real-ESRGAN (v2)
     if (
@@ -53,6 +54,21 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
+    # SwinIR # TODO: fix this garbage
+    elif (
+        ("layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys())
+        or (
+            "params_ema" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params_ema"].keys()
+        )
+        or (
+            "params" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params"].keys()
+        )
+    ):
+        model = SwinIR(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
@@ -70,7 +86,7 @@ class LoadModelNode(NodeBase):
         self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
-            Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
+            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, and SwinIR."""
         self.inputs = [PthFileInput()]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
@@ -129,7 +145,7 @@ class ImageUpscaleNode(NodeBase):
                 Image {
                     width: multiply(Input0.scale, Input1.width),
                     height: multiply(Input0.scale, Input1.height),
-                    channels: getUpscaleChannels(Input1.channels, Input0.inputChannels, Input0.outputChannels)
+                    channels: Input1.channels
                 }
                 """,
             )
@@ -419,8 +435,7 @@ class PthSaveNode(NodeBase):
 class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX.
-            Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
+        self.description = """Convert a PyTorch model to ONNX."""
         self.inputs = [ModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput("ONNX Model")]
 
