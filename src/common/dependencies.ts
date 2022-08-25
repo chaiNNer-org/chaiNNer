@@ -51,6 +51,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: 12 * MB,
                 },
                 {
+                    packageName: 'onnxoptimizer',
+                    version: '0.3.0',
+                    sizeEstimate: 300 * KB,
+                },
+                {
                     packageName: isNvidiaAvailable ? 'onnxruntime-gpu' : 'onnxruntime',
                     sizeEstimate: isNvidiaAvailable ? 110 * MB : 5 * MB,
                     version: '1.11.1',

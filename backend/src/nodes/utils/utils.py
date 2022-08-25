@@ -2,7 +2,7 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
-from typing import Callable, Tuple, Type, Union
+from typing import Callable, Tuple, Type
 
 import numpy as np
 from sanic.log import logger

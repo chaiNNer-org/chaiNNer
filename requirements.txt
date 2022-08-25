@@ -2,6 +2,7 @@ black
 ncnn_vulkan
 numpy
 onnx
+onnxoptimizer
 onnxruntime
 opencv-python
 Pillow
