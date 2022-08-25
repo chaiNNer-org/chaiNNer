@@ -291,12 +291,12 @@ def FillColorDropdown() -> DropDownInput:
 def TileModeDropdown(has_auto=True) -> DropDownInput:
     options = [
         {"option": "None", "value": 1},
-        {"option": "4", "value": 2},
-        {"option": "16", "value": 3},
-        {"option": "64", "value": 4},
-        {"option": "256", "value": 5},
-        {"option": "512", "value": 6},
-        {"option": "1024", "value": 7},
+        {"option": 4**1, "value": 2},
+        {"option": 4**2, "value": 3},
+        {"option": 4**3, "value": 4},
+        {"option": 4**4, "value": 5},
+        {"option": 4**5, "value": 6},
+        {"option": 4**6, "value": 7},
     ]
     if has_auto:
         options.insert(0, {"option": "Auto", "value": 0})
