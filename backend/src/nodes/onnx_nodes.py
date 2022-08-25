@@ -259,11 +259,11 @@ class OnnxInterpolateModelsNode(NodeBase):
         # Just to be sure there is no mismatch from opt/un-opt models
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
 
-        model_proto_a = onnx._deserialize(model_a, onnx.ModelProto())  # type:ignore
+        model_proto_a = onnx.load_from_string(model_a)  # type:ignore
         model_proto_a = onnxoptimizer.optimize(model_proto_a, passes)
         model_a_weights = model_proto_a.graph.initializer  # type: ignore
 
-        model_proto_b = onnx._deserialize(model_b, onnx.ModelProto())  # type:ignore
+        model_proto_b = onnx.load_from_string(model_b)  # type:ignore
         model_proto_b = onnxoptimizer.optimize(model_proto_b, passes)
         model_b_weights = model_proto_b.graph.initializer  # type: ignore
 
@@ -281,7 +281,7 @@ class OnnxInterpolateModelsNode(NodeBase):
             # Assigning a new value or assigning to field index do not seem to work
             model_proto_interp.graph.initializer.pop()  # type: ignore
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
-        model_interp = onnx._serialize(model_proto_interp)  # type: ignore
+        model_interp = model_proto_interp.SerializeToString()  # type: ignore
 
         if not self.check_will_upscale(model_interp):
             raise ValueError(
