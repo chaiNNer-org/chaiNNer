@@ -65,6 +65,7 @@ struct VideoType;
 enum Orientation { Horizontal, Vertical }
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
+enum FpMode { fp32, fp16 }
 
 // util function for upscaling nodes
 def getUpscaleChannels(
