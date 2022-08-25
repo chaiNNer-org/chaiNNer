@@ -17,9 +17,11 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.exec_options import get_execution_options
+from .utils.ncnn_model import NcnnModel
 from .utils.onnx_auto_split import onnx_auto_split_process
-from .utils.utils import convenient_upscale, get_h_w_c, np2nptensor, nptensor2np
+from .utils.onnx_to_ncnn import Onnx2NcnnConverter
+from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
+from .utils.exec_options import get_execution_options
 
 
 class TensorOrders:
@@ -287,3 +289,40 @@ class OnnxInterpolateModelsNode(NodeBase):
             )
 
         return model_interp
+
+
+@NodeFactory.register("chainner:onnx:convert_to_ncnn")
+class ConvertOnnxToNcnnNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = """Convert an ONNX model to NCNN."""
+        self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
+        self.outputs = [
+            NcnnModelOutput("NCNN Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                        FpMode::fp32 => "fp32",
+                        FpMode::fp16 => "fp16",
+                }""",
+            ),
+        ]
+
+        self.category = ONNXCategory
+        self.name = "Convert To NCNN"
+        self.icon = "NCNN"
+        self.sub = "Utility"
+
+    def run(self, onnx_model: bytes, is_fp16: int) -> Tuple[NcnnModel, str]:
+        fp16 = bool(is_fp16)
+
+        model_proto = onnx.load_model_from_string(onnx_model)
+        passes = onnxoptimizer.get_fuse_and_elimination_passes()
+        opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
+
+        converter = Onnx2NcnnConverter(opt_model)
+        ncnn_model = converter.convert(fp16, False)
+
+        fp_mode = "fp16" if fp16 else "fp32"
+
+        return ncnn_model, fp_mode

@@ -1,4 +1,4 @@
-import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
+import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
@@ -46,10 +46,6 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
             setManualOutputType(id, outputId, undefined);
         }
     }, [id, outputId, value]);
-
-    const imgBgColor = useColorModeValue('gray.400', 'gray.750');
-    const imgBgHoverColor = useColorModeValue('gray.500', 'gray.600');
-    const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -107,9 +103,9 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
             >
                 <Center
                     _hover={{
-                        backgroundColor: imgBgHoverColor,
+                        backgroundColor: 'var(--node-image-preview-button-bg-hover)',
                     }}
-                    bgColor={imgBgColor}
+                    bgColor="var(--node-image-preview-button-bg)"
                     borderRadius="md"
                     cursor="pointer"
                     h="1.75rem"
@@ -123,7 +119,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                 >
                     <Icon
                         as={BsEyeFill}
-                        color={eyeIconColor}
+                        color="var(--node-image-preview-button-fg)"
                     />
                 </Center>
             </Center>

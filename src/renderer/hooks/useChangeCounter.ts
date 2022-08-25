@@ -29,3 +29,12 @@ export const wrapChanges = <T>(
         addChange();
     };
 };
+export const wrapRefChanges = <T>(
+    setter: Readonly<React.MutableRefObject<React.Dispatch<React.SetStateAction<T>>>>,
+    addChange: () => void
+): React.Dispatch<React.SetStateAction<T>> => {
+    return (value) => {
+        setter.current(value);
+        addChange();
+    };
+};

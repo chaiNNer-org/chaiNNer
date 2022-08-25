@@ -1,4 +1,4 @@
-import { Center, Text, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, Text, VStack } from '@chakra-ui/react';
 import { memo, useMemo, useRef } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../../common/common-types';
@@ -49,7 +49,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
+    const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
@@ -65,7 +65,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
 
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.750')}
+            bg="var(--node-bg-color)"
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"

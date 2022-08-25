@@ -1,14 +1,8 @@
-import {
-    Center,
-    HStack,
-    Heading,
-    LayoutProps,
-    useColorModeValue,
-    useToken,
-} from '@chakra-ui/react';
+import { Center, HStack, Heading, LayoutProps } from '@chakra-ui/react';
 import { memo } from 'react';
 import { interpolateColor } from '../../helpers/colorTools';
 import { DisabledStatus } from '../../helpers/disabled';
+import { useThemeColor } from '../../hooks/useThemeColor';
 import { IconFactory } from '../CustomIcons';
 
 interface NodeHeaderProps {
@@ -23,14 +17,11 @@ interface NodeHeaderProps {
 
 export const NodeHeader = memo(
     ({ name, width, icon, accentColor, selected, parentNode, disabledStatus }: NodeHeaderProps) => {
-        const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
-        const bgColor = useColorModeValue(gray300, gray700);
-        const iconAltColor = useColorModeValue('gray.800', 'gray.200');
+        const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
         return (
             <Center
-                // bg={interpolateColor(accentColor, useColorModeValue('#CBD5E0', '#2D3748'), 0.875)}
                 bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                 borderBottomColor={accentColor}
                 borderBottomStyle={parentNode ? 'dashed' : undefined}
@@ -56,7 +47,7 @@ export const NodeHeader = memo(
                         w={4}
                     >
                         <IconFactory
-                            accentColor={selected ? accentColor : iconAltColor}
+                            accentColor={selected ? accentColor : 'var(--node-icon-color)'}
                             icon={icon}
                         />
                     </Center>

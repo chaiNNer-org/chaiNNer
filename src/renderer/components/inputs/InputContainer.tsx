@@ -1,4 +1,4 @@
-import { Box, Center, HStack, Text, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -7,7 +7,6 @@ import { Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTag } from '../TypeTag';
@@ -88,11 +87,9 @@ export const InputContainer = memo(
         }, [connectingFrom, definitionType, id, inputId]);
 
         const { functionDefinitions } = useContext(BackendContext);
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
 
         let contents = children;
-        const handleColors = getTypeAccentColors(definitionType, isDarkMode);
+        const handleColors = getTypeAccentColors(definitionType);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
@@ -107,12 +104,12 @@ export const InputContainer = memo(
                     if (!parentType) {
                         return defaultColor;
                     }
-                    return getTypeAccentColors(parentType, isDarkMode)[0];
+                    return getTypeAccentColors(parentType)[0];
                 }
                 return defaultColor;
             }
             return null;
-        }, [connectedEdge, functionDefinitions, getNode, isDarkMode]);
+        }, [connectedEdge, functionDefinitions, getNode]);
 
         // A conic gradient that uses all handle colors to give an even distribution of colors
         const handleColorString = handleColors
@@ -123,7 +120,7 @@ export const InputContainer = memo(
             })
             .join(', ');
         const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
-        const connectedColor = useColorModeValue('#EDF2F7', '#171923');
+        const connectedColor = 'var(--connection-color)';
         if (hasHandle) {
             contents = (
                 <HStack h="full">
@@ -186,11 +183,9 @@ export const InputContainer = memo(
             );
         }
 
-        const bgColor = useColorModeValue('gray.300', 'gray.700');
-
         return (
             <Box
-                bg={bgColor}
+                bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
                 px={2}

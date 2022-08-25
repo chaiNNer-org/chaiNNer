@@ -1,4 +1,4 @@
-import { Tag, useColorModeValue } from '@chakra-ui/react';
+import { Tag } from '@chakra-ui/react';
 import React, { memo } from 'react';
 import { isSubsetOf } from '../../common/types/relation';
 import { StructType, Type } from '../../common/types/types';
@@ -53,13 +53,10 @@ export interface TypeTagProps {
 }
 
 export const TypeTag = memo(({ children, isOptional }: React.PropsWithChildren<TypeTagProps>) => {
-    const tagColor = useColorModeValue('gray.400', 'gray.750');
-    const tagFontColor = useColorModeValue('gray.700', 'gray.400');
-
     return (
         <Tag
-            bgColor={tagColor}
-            color={tagFontColor}
+            bgColor="var(--tag-bg)"
+            color="var(--tag-fg)"
             fontSize="x-small"
             fontStyle={isOptional ? 'italic' : undefined}
             height="15px"

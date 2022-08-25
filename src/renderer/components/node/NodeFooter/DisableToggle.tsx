@@ -1,4 +1,4 @@
-import { Center, Icon, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { UseDisabled } from '../../../hooks/useDisabled';
@@ -8,9 +8,6 @@ interface DisableToggleProps {
 }
 
 export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
-    const switchShade = useColorModeValue('gray.500', 'gray.600');
-    const iconShade = useColorModeValue('gray.400', 'gray.800');
-
     const { isDirectlyDisabled, toggleDirectlyDisabled } = useDisable;
 
     return (
@@ -33,7 +30,7 @@ export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
                     onClick={toggleDirectlyDisabled}
                 >
                     <Center
-                        bgColor={iconShade}
+                        bgColor="var(--node-disable-bg)"
                         borderRadius="lg"
                         cursor="pointer"
                         h="1rem"
@@ -42,7 +39,7 @@ export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
                         w={7}
                     >
                         <Center
-                            bgColor={switchShade}
+                            bgColor="var(--node-disable-fg)"
                             borderRadius="100%"
                             cursor="pointer"
                             h="auto"
@@ -54,7 +51,7 @@ export const DisableToggle = memo(({ useDisable }: DisableToggleProps) => {
                             <Icon
                                 as={isDirectlyDisabled ? MdPlayDisabled : MdPlayArrow}
                                 boxSize="0.9rem"
-                                color={iconShade}
+                                color="var(--node-disable-bg)"
                             />
                         </Center>
                     </Center>

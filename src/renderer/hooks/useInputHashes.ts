@@ -30,7 +30,7 @@ const computeInputHashes = (
         if (hash) return hash;
 
         const schema = schemata.get(node.data.schemaId);
-        const inputs: string[] = [];
+        const inputs: string[] = [node.data.schemaId];
         for (const { id: inputId } of schema.inputs) {
             const connectedEdge = byTargetHandle.get(stringifyTargetHandle(node.id, inputId));
             if (connectedEdge) {
@@ -52,15 +52,7 @@ const computeInputHashes = (
             }
         }
 
-        if (inputs.length === 0) {
-            hash = EMPTY;
-        } else if (inputs.length === 1) {
-            // eslint-disable-next-line prefer-destructuring
-            hash = inputs[0];
-        } else {
-            hash = deriveUniqueId(inputs.join(';'));
-        }
-
+        hash = deriveUniqueId(inputs.join(';'));
         hashes.set(node.id, hash);
         return hash;
     };

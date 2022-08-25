@@ -9,9 +9,8 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
@@ -63,9 +62,6 @@ export const SliderInput = memo(
             inputId
         );
 
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
-
         const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
@@ -91,7 +87,7 @@ export const SliderInput = memo(
             setSliderValue(Number(numberAsString));
         };
 
-        const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
+        const [typeAccentColor] = getTypeAccentColors(definitionType);
 
         const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
             const type = c.typeState.functions.get(id)?.inputs.get(inputId);

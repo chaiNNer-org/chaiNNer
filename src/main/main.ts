@@ -17,7 +17,7 @@ import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists } from '../common/util';
+import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
@@ -213,7 +213,7 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
 };
 
 const getPythonVersion = async (pythonBin: string) => {
-    const { stdout } = await exec(`${pythonBin} --version`);
+    const { stdout } = await exec(`"${pythonBin}" --version`);
     log.info(`Python version (raw): ${stdout}`);
 
     const { version } = semver.coerce(stdout)!;
@@ -344,11 +344,10 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 return true;
             });
         });
-        if (pending.length > 0) {
-            log.info(`Installing ${pending.length} missing dependencies...`);
-            splashWindow.webContents.send('installing-deps');
-            await runPipInstall(pending);
-        }
+        splashWindow.webContents.send('installing-deps', pending.length === 0);
+        // Try to update/install deps no matter what
+        log.info('Installing/Updating dependencies...');
+        await runPipInstall(requiredDependencies);
     } catch (error) {
         log.error(error);
     }
@@ -529,7 +528,13 @@ const doSplashScreenChecks = async () =>
             // icon: `${__dirname}/public/icons/cross_platform/icon`,
             show: false,
         }) as BrowserWindowWithSafeIpc;
-        splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+        if (!splash.isDestroyed()) {
+            try {
+                splash.loadURL(SPLASH_SCREEN_WEBPACK_ENTRY);
+            } catch (error) {
+                log.error('Error loading splash window.', error);
+            }
+        }
 
         splash.once('ready-to-show', () => {
             splash.show();
@@ -538,6 +543,7 @@ const doSplashScreenChecks = async () =>
 
         splash.on('close', () => {
             mainWindow.destroy();
+            resolve();
         });
 
         // Look, I just wanna see the cool animation
@@ -586,7 +592,7 @@ const doSplashScreenChecks = async () =>
         });
     });
 
-const createWindow = async () => {
+const createWindow = lazy(async () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: lastWindowSize?.width ?? 1280,
@@ -615,10 +621,16 @@ const createWindow = async () => {
     await doSplashScreenChecks();
 
     // and load the index.html of the app.
-    await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (!mainWindow.isDestroyed()) {
+        try {
+            await mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+        } catch (error) {
+            log.error('Error loading main window.', error);
+        }
+    }
 
     // Open the DevTools.
-    if (!app.isPackaged) {
+    if (!app.isPackaged && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
 
@@ -659,7 +671,7 @@ const createWindow = async () => {
     } else {
         ipcMain.handle('get-cli-open', () => undefined);
     }
-};
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

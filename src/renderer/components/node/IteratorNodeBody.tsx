@@ -1,4 +1,4 @@
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { memo, useLayoutEffect, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -89,7 +89,7 @@ export const IteratorNodeBody = memo(
             }
         }, [resizeRef?.resizable, setIteratorSize, updateIteratorBounds]);
 
-        const shade = useColorModeValue('gray.200', 'gray.800');
+        const shade = 'var(--chain-editor-bg)';
 
         return (
             <Resizable

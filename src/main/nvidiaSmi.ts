@@ -88,7 +88,7 @@ export const getNvidiaSmi = lazy(async (): Promise<string | undefined> => {
 export const getNvidiaGpuName = async (nvidiaSmi: string): Promise<string> => {
     const [nvidiaGpu] = (
         await exec(
-            `${nvidiaSmi} --query-gpu=name --format=csv,noheader,nounits ${
+            `"${nvidiaSmi}" --query-gpu=name --format=csv,noheader,nounits ${
                 process.platform === 'linux' ? '  2>/dev/null' : ''
             }`
         )
