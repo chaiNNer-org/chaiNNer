@@ -6,8 +6,11 @@ import { assertNever } from '../../src/common/util';
 // eslint-disable-next-line consistent-return
 test(`Chainner scope is correct`, () => {
     const scope = getChainnerScope();
-    for (const [name, def] of scope.definitions) {
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    for (const [name, def] of scope['definitions']) {
         switch (def.type) {
+            case 'parameter':
+                break;
             case 'variable':
             case 'struct':
                 evaluate(new NamedExpression(name), scope);

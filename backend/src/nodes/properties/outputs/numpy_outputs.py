@@ -2,7 +2,7 @@ import numpy as np
 
 from ...utils.image_utils import preview_encode
 from ...utils.utils import get_h_w_c
-from .base_output import BaseOutput
+from .base_output import BaseOutput, OutputKind
 from .. import expression
 
 
@@ -13,7 +13,7 @@ class NumPyOutput(BaseOutput):
         self,
         output_type: expression.ExpressionJson,
         label: str,
-        kind: str = "generic",
+        kind: OutputKind = "generic",
         has_handle: bool = True,
     ):
         super().__init__(output_type, label, kind=kind, has_handle=has_handle)
@@ -29,8 +29,9 @@ class ImageOutput(NumPyOutput):
         self,
         label: str = "Image",
         image_type: expression.ExpressionJson = "Image",
-        kind: str = "image",
+        kind: OutputKind = "image",
         has_handle: bool = True,
+        broadcast_type: bool = False,
     ):
         super().__init__(
             expression.intersect(image_type, "Image"),
@@ -38,10 +39,20 @@ class ImageOutput(NumPyOutput):
             kind=kind,
             has_handle=has_handle,
         )
+        self.broadcast_type = broadcast_type
 
-    # Maybe someday we'll bring this back, but not today.
-    def get_broadcast_data(self, _value: np.ndarray):
-        return None
+    def get_broadcast_data(self, value: np.ndarray):
+        if not self.broadcast_type:
+            return None
+
+        img = value
+        h, w, c = get_h_w_c(img)
+
+        return {
+            "height": h,
+            "width": w,
+            "channels": c,
+        }
 
 
 class LargeImageOutput(ImageOutput):
@@ -49,7 +60,7 @@ class LargeImageOutput(ImageOutput):
         self,
         label: str = "Image",
         image_type: expression.ExpressionJson = "Image",
-        kind: str = "large-image",
+        kind: OutputKind = "large-image",
         has_handle: bool = True,
     ):
         super().__init__(

@@ -1,13 +1,12 @@
-import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Center, VStack } from '@chakra-ui/react';
 import path from 'path';
-import { DragEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { DragEvent, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, Input, NodeData } from '../../../common/common-types';
+import { Input, NodeData } from '../../../common/common-types';
 import { isStartingNode } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { Validity, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { DisabledStatus } from '../../helpers/disabled';
@@ -15,6 +14,7 @@ import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
 import { useRunNode } from '../../hooks/useRunNode';
+import { useValidity } from '../../hooks/useValidity';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -50,46 +50,25 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
-    const { schemata, updateIteratorBounds, setHoveredNode, useInputData } =
-        useContext(GlobalContext);
-    const { getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { updateIteratorBounds, setHoveredNode, useInputData } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
-    const { id, inputData, inputSize, isLocked, parentNode, schemaId, animated = false } = data;
+    const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
+    const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
-    );
+    const { validity } = useValidity(id, schema, inputData);
 
-    const regularBorderColor = useColorModeValue('gray.200', 'gray.800');
+    const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
     );
-
-    const [validity, setValidity] = useState<Validity>({
-        isValid: false,
-        reason: 'Validating nodes...',
-    });
-    useEffect(() => {
-        if (inputs.length) {
-            setValidity(
-                checkNodeValidity({
-                    id,
-                    schema,
-                    inputData,
-                    edges: getEdges(),
-                    functionInstance,
-                })
-            );
-        }
-    }, [inputData, edgeChanges, functionInstance]);
 
     const targetRef = useRef<HTMLDivElement>(null);
     const [checkedSize, setCheckedSize] = useState(false);
@@ -149,20 +128,14 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const disabled = useDisabled(data);
     const menu = useNodeMenu(data, disabled);
 
-    const bgColor = useColorModeValue('gray.400', 'gray.750');
-    const shadowColor = useColorModeValue('gray.600', 'gray.900');
-
     useRunNode(data, validity.isValid && isStartingNode(schema));
 
     return (
         <Center
-            bg={bgColor}
+            bg="var(--node-bg-color)"
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
-            boxShadow={`${selected ? 10 : 6}px ${selected ? 10 : 6}px ${
-                selected ? 12 : 8
-            }px ${shadowColor}8F`}
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}

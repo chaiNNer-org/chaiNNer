@@ -1,11 +1,11 @@
-import { Box, Center, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { SchemaId } from '../common/common-types';
+import { Category, NodeType, SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -21,6 +21,7 @@ import { Node } from './components/node/Node';
 import { NodeSelector } from './components/NodeSelectorPanel/NodeSelectorPanel';
 import { ReactFlowBox } from './components/ReactFlowBox';
 import { AlertBoxContext, AlertType } from './contexts/AlertBoxContext';
+import { BackendProvider } from './contexts/BackendContext';
 import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
@@ -30,17 +31,18 @@ import { useLastWindowSize } from './hooks/useLastWindowSize';
 
 interface NodesInfo {
     schemata: SchemaMap;
+    categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
-const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
-    const schemata = new SchemaMap(response);
+const processBackendResponse = ({ nodes, categories }: BackendNodesResponse): NodesInfo => {
+    const schemata = new SchemaMap(nodes);
 
     const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
 
     const errors: string[] = [];
 
-    for (const schema of response) {
+    for (const schema of nodes) {
         try {
             functionDefinitions.set(
                 schema.schemaId,
@@ -55,10 +57,10 @@ const processBackendResponse = (response: BackendNodesResponse): NodesInfo => {
         throw new Error(errors.join('\n\n'));
     }
 
-    return { schemata, functionDefinitions };
+    return { schemata, categories, functionDefinitions };
 };
 
-const nodeTypes: NodeTypes = {
+const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
     regularNode: Node,
     iterator: IteratorNode,
     iteratorHelper: IteratorHelperNode,
@@ -85,8 +87,6 @@ export const Main = memo(({ port }: MainProps) => {
         { cachePolicy: CachePolicies.NO_CACHE, retries: 10 },
         [port]
     );
-
-    const bgColor = useColorModeValue('gray.300', 'gray.900');
 
     useEffect(() => {
         if (response.ok && data && !loading && !error && !backendReady) {
@@ -167,41 +167,44 @@ export const Main = memo(({ port }: MainProps) => {
 
     return (
         <ReactFlowProvider>
-            <SettingsProvider port={port}>
-                <GlobalProvider
+            <SettingsProvider>
+                <BackendProvider
+                    categories={nodesInfo.categories}
                     functionDefinitions={nodesInfo.functionDefinitions}
-                    reactFlowWrapper={reactFlowWrapper}
+                    port={port}
                     schemata={nodesInfo.schemata}
                 >
-                    <ExecutionProvider>
-                        <DependencyProvider>
-                            <HistoryProvider>
-                                <VStack
-                                    bg={bgColor}
-                                    h="100vh"
-                                    overflow="hidden"
-                                    p={2}
-                                    w="100vw"
-                                >
-                                    <Header />
-                                    <HStack
-                                        h="calc(100vh - 80px)"
-                                        minH="360px"
-                                        minW="720px"
-                                        w="full"
+                    <GlobalProvider reactFlowWrapper={reactFlowWrapper}>
+                        <ExecutionProvider>
+                            <DependencyProvider>
+                                <HistoryProvider>
+                                    <VStack
+                                        bg="var(--window-bg)"
+                                        h="100vh"
+                                        overflow="hidden"
+                                        p={2}
+                                        w="100vw"
                                     >
-                                        <NodeSelector schemata={nodesInfo.schemata} />
-                                        <ReactFlowBox
-                                            edgeTypes={edgeTypes}
-                                            nodeTypes={nodeTypes}
-                                            wrapperRef={reactFlowWrapper}
-                                        />
-                                    </HStack>
-                                </VStack>
-                            </HistoryProvider>
-                        </DependencyProvider>
-                    </ExecutionProvider>
-                </GlobalProvider>
+                                        <Header />
+                                        <HStack
+                                            h="calc(100vh - 80px)"
+                                            minH="360px"
+                                            minW="720px"
+                                            w="full"
+                                        >
+                                            <NodeSelector />
+                                            <ReactFlowBox
+                                                edgeTypes={edgeTypes}
+                                                nodeTypes={nodeTypes}
+                                                wrapperRef={reactFlowWrapper}
+                                            />
+                                        </HStack>
+                                    </VStack>
+                                </HistoryProvider>
+                            </DependencyProvider>
+                        </ExecutionProvider>
+                    </GlobalProvider>
+                </BackendProvider>
             </SettingsProvider>
         </ReactFlowProvider>
     );

@@ -1,14 +1,15 @@
-import { Box, Center, HStack, Tag, Text, chakra, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
 import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { Type } from '../../../common/types/types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';
-import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
+import { BackendContext } from '../../contexts/BackendContext';
+import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { noContextMenu } from '../../hooks/useContextMenu';
+import { TypeTag } from '../TypeTag';
 
 interface InputContainerProps {
     id: string;
@@ -85,12 +86,10 @@ export const InputContainer = memo(
             });
         }, [connectingFrom, definitionType, id, inputId]);
 
-        const { functionDefinitions } = useContext(GlobalContext);
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
+        const { functionDefinitions } = useContext(BackendContext);
 
         let contents = children;
-        const handleColors = getTypeAccentColors(definitionType, isDarkMode);
+        const handleColors = getTypeAccentColors(definitionType);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
@@ -105,12 +104,12 @@ export const InputContainer = memo(
                     if (!parentType) {
                         return defaultColor;
                     }
-                    return getTypeAccentColors(parentType, isDarkMode)[0];
+                    return getTypeAccentColors(parentType)[0];
                 }
                 return defaultColor;
             }
             return null;
-        }, [connectedEdge, functionDefinitions, getNode, isDarkMode]);
+        }, [connectedEdge, functionDefinitions, getNode]);
 
         // A conic gradient that uses all handle colors to give an even distribution of colors
         const handleColorString = handleColors
@@ -121,7 +120,7 @@ export const InputContainer = memo(
             })
             .join(', ');
         const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
-        const connectedColor = useColorModeValue('#EDF2F7', '#171923');
+        const connectedColor = 'var(--connection-color)';
         if (hasHandle) {
             contents = (
                 <HStack h="full">
@@ -184,13 +183,9 @@ export const InputContainer = memo(
             );
         }
 
-        const bgColor = useColorModeValue('gray.300', 'gray.700');
-        const tagColor = useColorModeValue('gray.400', 'gray.750');
-        const tagFontColor = useColorModeValue('gray.700', 'gray.400');
-
         return (
             <Box
-                bg={bgColor}
+                bg="var(--bg-700)"
                 h="auto"
                 minH="2rem"
                 px={2}
@@ -216,22 +211,7 @@ export const InputContainer = memo(
                                 h="1rem"
                                 verticalAlign="middle"
                             >
-                                <Tag
-                                    bgColor={tagColor}
-                                    color={tagFontColor}
-                                    fontSize="xx-small"
-                                    fontStyle="italic"
-                                    height="0.9rem"
-                                    lineHeight="auto"
-                                    minHeight="0.9rem"
-                                    ml={1}
-                                    px={1}
-                                    size="sm"
-                                    variant="subtle"
-                                    verticalAlign="middle"
-                                >
-                                    optional
-                                </Tag>
+                                <TypeTag isOptional>optional</TypeTag>
                             </Center>
                         )}
                     </Center>

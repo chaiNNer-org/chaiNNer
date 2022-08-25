@@ -33,7 +33,7 @@ jobs:
             - name: Black
               run: black backend/
             - name: pylint
-              run: pylint backend/ --output-format=colorized --disable="C,R"
+              run: pylint backend/ --output-format=colorized --disable="C,R" --fail-under=10
             - name: pyright
               run: pyright backend/
     frontend-lint:

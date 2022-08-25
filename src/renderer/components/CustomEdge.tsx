@@ -1,4 +1,4 @@
-import { Center, Icon, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
 import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
@@ -6,10 +6,10 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseSourceHandle } from '../../common/util';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
-import { DisabledStatus, getDisabledStatus } from '../helpers/disabled';
 import { getTypeAccentColors } from '../helpers/getTypeAccentColors';
 
 export const CustomEdge = memo(
@@ -31,8 +31,7 @@ export const CustomEdge = memo(
             GlobalVolatileContext,
             (c) => c.effectivelyDisabledNodes
         );
-        const { useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
+        const { useAnimateChain } = useContext(SettingsContext);
         const [animateChain] = useAnimateChain;
 
         const edgePath = useMemo(
@@ -50,12 +49,10 @@ export const CustomEdge = memo(
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
         const parentNode = useMemo(() => getNode(source)!, [source]);
-        const disabledStatus = useMemo(
-            () => getDisabledStatus(parentNode.data, effectivelyDisabledNodes),
-            [parentNode.data, effectivelyDisabledNodes]
-        );
+        const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
-        const { removeEdgeById, setHoveredNode, functionDefinitions } = useContext(GlobalContext);
+        const { removeEdgeById, setHoveredNode } = useContext(GlobalContext);
+        const { functionDefinitions } = useContext(BackendContext);
 
         const [isHovered, setIsHovered] = useState(false);
 
@@ -64,7 +61,7 @@ export const CustomEdge = memo(
             .get(parentNode.data.schemaId)!
             .outputDefaults.get(inOutId)!;
 
-        const [accentColor] = getTypeAccentColors(type, isDarkMode);
+        const [accentColor] = getTypeAccentColors(type);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const [edgeCenterX, edgeCenterY] = useMemo(
@@ -79,14 +76,12 @@ export const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
-        const chainHoleColor = useColorModeValue('#EDF2F7', '#1A202C');
-
         return (
             <g
                 className="edge-chain-group"
                 style={{
                     cursor: 'pointer',
-                    opacity: disabledStatus === DisabledStatus.Enabled ? 1 : 0.5,
+                    opacity: isSourceEnabled ? 1 : 0.5,
                 }}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
@@ -130,7 +125,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated && animateChain ? 1 : 0,
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
@@ -144,7 +139,7 @@ export const CustomEdge = memo(
                     style={{
                         ...style,
                         strokeWidth: isHovered ? '4px' : '3px',
-                        stroke: chainHoleColor,
+                        stroke: 'var(--chain-hole-color)',
                         transitionDuration: '0.15s',
                         transitionProperty: 'stroke-width, stroke',
                         transitionTimingFunction: 'ease-in-out',
@@ -153,7 +148,7 @@ export const CustomEdge = memo(
                             animated && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated && animateChain ? 1 : 0,
+                        opacity: animated ? 1 : 0,
                     }}
                 />
                 <path
@@ -182,7 +177,7 @@ export const CustomEdge = memo(
                 >
                     <Center
                         backgroundColor={currentColor}
-                        borderColor={useColorModeValue('gray.100', 'gray.800')}
+                        borderColor="var(--node-border-color)"
                         borderRadius={100}
                         borderWidth={2}
                         h="full"
@@ -194,7 +189,7 @@ export const CustomEdge = memo(
                         <IconButton
                             isRound
                             aria-label="Remove edge button"
-                            borderColor={useColorModeValue('gray.100', 'gray.800')}
+                            borderColor="var(--node-border-color)"
                             borderRadius={100}
                             borderWidth={2}
                             className="edgebutton"

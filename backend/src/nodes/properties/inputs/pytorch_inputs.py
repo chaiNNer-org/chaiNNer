@@ -3,16 +3,14 @@ try:
 except:
     torch = None
 
-import os
-
 from .base_input import BaseInput
 
 
 class ModelInput(BaseInput):
     """Input a loaded model"""
 
-    def __init__(self, label: str = "Model"):
-        super().__init__("PyTorchModel", label)
+    def __init__(self, label: str = "Model", input_type: str = "PyTorchModel"):
+        super().__init__(input_type, label)
 
     def enforce(self, value):
         if torch is not None:

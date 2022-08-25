@@ -1,13 +1,19 @@
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, topologicalSort } from '../util';
+import { EMPTY_MAP, lazy, topologicalSort } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { evaluate } from './evaluate';
-import { Expression, VariableDefinition } from './expression';
+import { Expression } from './expression';
 import { intersect, isDisjointWith } from './intersection';
 import { fromJson } from './json';
-import { ReadonlyScope, Scope } from './scope';
-import { AnyType, NonNeverType, Type } from './types';
+import { ParameterDefinition, Scope, ScopeBuilder } from './scope';
+import { NonNeverType, Type } from './types';
 import { getReferences } from './util';
+
+const getConversionScope = lazy(() => {
+    const scope = new ScopeBuilder('Conversion scope', getChainnerScope());
+    scope.add(new ParameterDefinition('Input'));
+    return scope.createScope();
+});
 
 type IdType<P extends 'Input' | 'Output'> = P extends 'Input' ? InputId : OutputId;
 const getParamRefs = <P extends 'Input' | 'Output'>(
@@ -40,7 +46,7 @@ interface InputInfo {
 }
 const evaluateInputs = (
     schema: NodeSchema,
-    scope: ReadonlyScope
+    scope: Scope
 ): { ordered: InputInfo[]; defaults: Map<InputId, NonNeverType> } => {
     const inputIds = new Set(schema.inputs.map((i) => i.id));
 
@@ -65,7 +71,11 @@ const evaluateInputs = (
     }
     ordered.reverse();
 
-    const expressionScope = new Scope('evaluateInputs scope', scope);
+    const expressionScopeBuilder = new ScopeBuilder('evaluateInputs scope', scope);
+    for (const inputId of inputIds) {
+        expressionScopeBuilder.add(new ParameterDefinition(getInputParamName(inputId)));
+    }
+    const expressionScope = expressionScopeBuilder.createScope();
 
     const defaults = new Map<InputId, NonNeverType>();
     for (const { expression, input } of ordered) {
@@ -82,7 +92,7 @@ const evaluateInputs = (
         }
 
         defaults.set(input.id, type);
-        expressionScope.add(new VariableDefinition(getInputParamName(input.id), type));
+        expressionScope.assignParameter(getInputParamName(input.id), type);
     }
 
     return { ordered, defaults };
@@ -96,7 +106,7 @@ interface OutputInfo {
 }
 const evaluateOutputs = (
     schema: NodeSchema,
-    scope: ReadonlyScope,
+    scope: Scope,
     inputDefaults: ReadonlyMap<InputId, NonNeverType>
 ): { ordered: OutputInfo[]; defaults: Map<OutputId, NonNeverType> } => {
     const inputIds = new Set(inputDefaults.keys());
@@ -127,10 +137,14 @@ const evaluateOutputs = (
     }
     ordered.reverse();
 
-    const expressionScope = new Scope('evaluateOutputs scope', scope);
+    const expressionScopeBuilder = new ScopeBuilder('evaluateOutputs scope', scope);
     for (const [inputId, inputType] of inputDefaults) {
-        expressionScope.add(new VariableDefinition(getInputParamName(inputId), inputType));
+        expressionScopeBuilder.add(new ParameterDefinition(getInputParamName(inputId), inputType));
     }
+    for (const outputId of outputIds) {
+        expressionScopeBuilder.add(new ParameterDefinition(getOutputParamName(outputId)));
+    }
+    const expressionScope = expressionScopeBuilder.createScope();
 
     const defaults = new Map<OutputId, NonNeverType>();
     for (const { expression, output } of ordered) {
@@ -147,14 +161,14 @@ const evaluateOutputs = (
         }
 
         defaults.set(output.id, type);
-        expressionScope.add(new VariableDefinition(getOutputParamName(output.id), type));
+        expressionScope.assignParameter(getOutputParamName(output.id), type);
     }
     return { ordered, defaults };
 };
 
 const evaluateInputOptions = (
     schema: NodeSchema,
-    scope: ReadonlyScope
+    scope: Scope
 ): Map<InputId, Map<InputSchemaValue, NonNeverType>> => {
     const result = new Map<InputId, Map<InputSchemaValue, NonNeverType>>();
     for (const input of schema.inputs) {
@@ -196,10 +210,8 @@ const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
         const e = fromJson(input.conversion);
 
         // verify that it's a valid conversion
-        const scope = new Scope('test scope', getChainnerScope());
-        scope.add(new VariableDefinition('Input', AnyType.instance));
         try {
-            evaluate(e, scope);
+            evaluate(e, getConversionScope());
         } catch (error) {
             const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
             throw new Error(`The conversion of input ${name} is invalid: ${String(error)}`);
@@ -213,7 +225,7 @@ const getConversions = (schema: NodeSchema): Map<InputId, Expression> => {
 export class FunctionDefinition {
     readonly schema: NodeSchema;
 
-    readonly scope: ReadonlyScope;
+    readonly scope: Scope;
 
     readonly inputDefaults: ReadonlyMap<InputId, NonNeverType>;
 
@@ -245,7 +257,7 @@ export class FunctionDefinition {
 
     readonly defaultInstance: FunctionInstance;
 
-    private constructor(schema: NodeSchema, scope: ReadonlyScope) {
+    private constructor(schema: NodeSchema, scope: Scope) {
         this.schema = schema;
         this.scope = scope;
 
@@ -294,7 +306,7 @@ export class FunctionDefinition {
         this.defaultInstance = FunctionInstance.fromDefinition(this);
     }
 
-    static fromSchema(schema: NodeSchema, scope: ReadonlyScope): FunctionDefinition {
+    static fromSchema(schema: NodeSchema, scope: Scope): FunctionDefinition {
         return new FunctionDefinition(schema, scope);
     }
 
@@ -304,8 +316,8 @@ export class FunctionDefinition {
             return type;
         }
 
-        const scope = new Scope('Conversion scope', getChainnerScope());
-        scope.add(new VariableDefinition('Input', type));
+        const scope = getConversionScope();
+        scope.assignParameter('Input', type);
         return evaluate(conversion, scope);
     }
 
@@ -387,7 +399,14 @@ export class FunctionInstance {
         const outputErrors: FunctionOutputError[] = [];
 
         // scope
-        const scope = new Scope('function instance', definition.scope);
+        const scopeBuilder = new ScopeBuilder('function instance', definition.scope);
+        for (const [inputId, type] of definition.inputDefaults) {
+            scopeBuilder.add(new ParameterDefinition(getInputParamName(inputId), type));
+        }
+        for (const [outputId, type] of definition.outputDefaults) {
+            scopeBuilder.add(new ParameterDefinition(getOutputParamName(outputId), type));
+        }
+        const scope = scopeBuilder.createScope();
 
         // evaluate inputs
         const inputs = new Map<InputId, NonNeverType>();
@@ -419,7 +438,7 @@ export class FunctionInstance {
             }
 
             inputs.set(id, type);
-            scope.add(new VariableDefinition(getInputParamName(id), type));
+            scope.assignParameter(getInputParamName(id), type);
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
@@ -459,7 +478,7 @@ export class FunctionInstance {
             }
 
             outputs.set(id, type);
-            scope.add(new VariableDefinition(getOutputParamName(id), type));
+            scope.assignParameter(getOutputParamName(id), type);
         }
 
         return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);

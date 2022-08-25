@@ -4,8 +4,9 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { TypeTag } from '../TypeTag';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
 export const GenericOutput = memo(
@@ -14,11 +15,12 @@ export const GenericOutput = memo(
             c.typeState.functions.get(id)?.outputs.get(outputId)
         );
 
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
 
         const schema = schemata.get(schemaId);
 
-        const value = useOutputData(outputId);
+        const [value] = useOutputData(outputId);
 
         useEffect(() => {
             if (isStartingNode(schema)) {
@@ -56,7 +58,7 @@ export const GenericOutput = memo(
                         h="2rem"
                         verticalAlign="middle"
                     >
-                        <TypeTag type={type} />
+                        <TypeTags type={type} />
                     </Center>
                 )}
                 <Text

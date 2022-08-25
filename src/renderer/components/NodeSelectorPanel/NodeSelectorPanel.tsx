@@ -17,13 +17,12 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { memo, useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { SchemaMap } from '../../../common/SchemaMap';
+import { BackendContext } from '../../contexts/BackendContext';
 import { DependencyContext } from '../../contexts/DependencyContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import {
@@ -34,15 +33,17 @@ import {
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
-import { RegularAccordionItem } from './RegularAccordionItem';
+import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
 
-interface NodeSelectorProps {
-    schemata: SchemaMap;
-}
-
-export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
+export const NodeSelector = memo(() => {
+    const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
+
+    const nonEmptyCategories = useMemo(
+        () => new Set(schemata.schemata.map((s) => s.category)),
+        [schemata]
+    );
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -86,11 +87,10 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.200', 'gray.800')}
+                bg="var(--node-selector-bg)"
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
-                overflowX="hidden"
             >
                 <motion.div
                     animate={{ width: collapsed ? '76px' : '300px' }}
@@ -113,29 +113,33 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                         <TabPanels>
                             <TabPanel
                                 m={0}
+                                overflowX="hidden"
                                 p={0}
                             >
                                 <InputGroup borderRadius={0}>
                                     <InputLeftElement
-                                        color={useColorModeValue('gray.500', 'gray.300')}
+                                        color="var(--fg-300)"
                                         pointerEvents="none"
                                     >
                                         <SearchIcon />
                                     </InputLeftElement>
                                     <Input
                                         borderRadius={0}
-                                        disabled={collapsed}
                                         placeholder="Search..."
                                         spellCheck={false}
                                         type="text"
                                         value={searchQuery}
                                         variant="filled"
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            setCollapsed(false);
+                                        }}
+                                        onClick={() => setCollapsed(false)}
                                     />
                                     <InputRightElement
-                                        _hover={{ color: useColorModeValue('black', 'white') }}
+                                        _hover={{ color: 'var(--fg-000)' }}
                                         style={{
-                                            color: useColorModeValue('gray.500', 'gray.300'),
+                                            color: 'var(--fg-300)',
                                             cursor: 'pointer',
                                             display: searchQuery ? undefined : 'none',
                                             fontSize: '66%',
@@ -153,11 +157,11 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                                     <Center>
                                         <Button
                                             _hover={{
-                                                bg: useColorModeValue('gray.400', 'gray.600'),
+                                                bg: 'var(--bg-600)',
                                                 opacity: 1,
                                             }}
                                             aria-label="Collapse/Expand Categories"
-                                            bg={useColorModeValue('gray.300', 'gray.700')}
+                                            bg="var(--bg-700)"
                                             borderRadius="0px 0px 8px 8px"
                                             h="0.5rem"
                                             opacity={showCollapseButtons ? 0.75 : 0}
@@ -191,17 +195,47 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
                                             favoriteNodes={favoriteNodes}
                                             noFavorites={favorites.size === 0}
                                         />
-                                        {[...byCategories].map(([category, categoryNodes]) => {
-                                            const subcategoryMap = getSubcategories(categoryNodes);
+                                        {categories.map((category) => {
+                                            const categoryNodes = byCategories.get(category.name);
 
-                                            return (
-                                                <RegularAccordionItem
-                                                    category={category}
-                                                    collapsed={collapsed}
-                                                    key={category}
-                                                    subcategoryMap={subcategoryMap}
-                                                />
-                                            );
+                                            if (categoryNodes) {
+                                                const subcategoryMap =
+                                                    getSubcategories(categoryNodes);
+
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                    >
+                                                        <Subcategories
+                                                            collapsed={collapsed}
+                                                            subcategoryMap={subcategoryMap}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            const noNodes = !nonEmptyCategories.has(category.name);
+                                            if (category.installHint && noNodes) {
+                                                return (
+                                                    <RegularAccordionItem
+                                                        category={category}
+                                                        collapsed={collapsed}
+                                                        key={category.name}
+                                                    >
+                                                        <PackageHint
+                                                            collapsed={collapsed}
+                                                            hint={category.installHint}
+                                                            // TODO: Somehow link categories to deps
+                                                            packageName={category.name}
+                                                            onClick={openDependencyManager}
+                                                        />
+                                                    </RegularAccordionItem>
+                                                );
+                                            }
+
+                                            return <React.Fragment key={category.name} />;
                                         })}
                                         <AccordionItem>
                                             <Box p={4}>
@@ -226,11 +260,11 @@ export const NodeSelector = memo(({ schemata }: NodeSelectorProps) => {
             </Box>
             <Button
                 _hover={{
-                    bg: useColorModeValue('gray.400', 'gray.600'),
+                    bg: 'var(--bg-600)',
                     opacity: 1,
                 }}
                 aria-label="collapse"
-                bg={useColorModeValue('gray.300', 'gray.700')}
+                bg="var(--bg-700)"
                 borderRadius={0}
                 borderRightRadius="xl"
                 h="100px"

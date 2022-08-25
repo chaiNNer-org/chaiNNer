@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Union
+from typing import Any, List, Literal, Union
+
+from .categories import Category
 
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
@@ -11,22 +13,27 @@ def assign_implicit_ids(l: Union[List[BaseInput], List[BaseOutput]]):
             inout.id = i
 
 
+NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
+
+
 class NodeBase(metaclass=ABCMeta):
     """Base class for a node"""
 
     def __init__(self):
         self.inputs: List[BaseInput] = []
         self.outputs: List[BaseOutput] = []
-        self.description = ""
+        self.description: str = ""
 
-        self.category = ""
-        self.name = ""
-        self.icon = ""
-        self.sub = "Miscellaneous"
-        self.type = "regularNode"
+        self.category: Category = Category(
+            "Unknown", "Unknown category", "BsQuestionDiamond", "#718096"
+        )
+        self.name: str = ""
+        self.icon: str = ""
+        self.sub: str = "Miscellaneous"
+        self.type: NodeType = "regularNode"
 
-        self.side_effects = False
-        self.deprecated = False
+        self.side_effects: bool = False
+        self.deprecated: bool = False
 
     @abstractmethod
     def run(self) -> Any:
@@ -42,30 +49,6 @@ class NodeBase(metaclass=ABCMeta):
         if with_implicit_ids:
             assign_implicit_ids(self.outputs)
         return self.outputs
-
-    def get_description(self):
-        return self.description
-
-    def get_name(self):
-        return self.name
-
-    def get_category(self):
-        return self.category
-
-    def get_icon(self):
-        return self.icon
-
-    def get_sub_category(self):
-        return self.sub
-
-    def get_type(self):
-        return self.type
-
-    def get_has_side_effects(self):
-        return self.side_effects
-
-    def is_deprecated(self):
-        return self.deprecated
 
 
 # pylint: disable=abstract-method

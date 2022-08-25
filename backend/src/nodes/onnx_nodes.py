@@ -8,13 +8,14 @@ import onnx
 import onnxruntime as ort
 from sanic.log import logger
 
-from .categories import ONNX
+from .categories import ONNXCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.onnx_auto_split import onnx_auto_split_process
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
+from .utils.exec_options import get_execution_options
 
 
 class TensorOrders:
@@ -30,16 +31,20 @@ class OnnxLoadModelNode(NodeBase):
             """Load ONNX model file (.onnx). Theoretically supports any ONNX model."""
         )
         self.inputs = [OnnxFileInput()]
-        self.outputs = [OnnxModelOutput(), TextOutput("Model Name")]
+        self.outputs = [
+            OnnxModelOutput(),
+            DirectoryOutput().with_id(2),
+            TextOutput("Model Name").with_id(1),
+        ]
 
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Load Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Tuple[bytes, str]:
+    def run(self, path: str) -> Tuple[bytes, str, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -52,9 +57,8 @@ class OnnxLoadModelNode(NodeBase):
 
         model_as_string = model.SerializeToString()  # type: ignore
 
-        basename = os.path.splitext(os.path.basename(path))[0]
-
-        return model_as_string, basename
+        dirname, basename = os.path.split(os.path.splitext(path)[0])
+        return model_as_string, dirname, basename
 
 
 @NodeFactory.register("chainner:onnx:save_model")
@@ -64,9 +68,13 @@ class OnnxSaveModelNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Save ONNX model to file (.onnx)."""
-        self.inputs = [OnnxModelInput(), DirectoryInput(), TextInput("Model Name")]
+        self.inputs = [
+            OnnxModelInput(),
+            DirectoryInput(has_handle=True),
+            TextInput("Model Name"),
+        ]
         self.outputs = []
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Save Model"
         self.icon = "ONNX"
         self.sub = "Input & Output"
@@ -101,7 +109,7 @@ class OnnxImageUpscaleNode(NodeBase):
             )
         ]
 
-        self.category = ONNX
+        self.category = ONNXCategory
         self.name = "Upscale Image"
         self.icon = "ONNX"
         self.sub = "Processing"
@@ -140,7 +148,7 @@ class OnnxImageUpscaleNode(NodeBase):
             onnx_model,
             providers=[
                 "CPUExecutionProvider"
-                if os.environ["device"] == "cpu"
+                if get_execution_options().device == "cpu"
                 else "CUDAExecutionProvider"
             ],
         )

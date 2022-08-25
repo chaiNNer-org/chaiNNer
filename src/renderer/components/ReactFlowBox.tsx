@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import log from 'electron-log';
-import { DragEvent, memo, useCallback, useEffect, useMemo } from 'react';
+import { DragEvent, memo, useCallback, useMemo } from 'react';
 import ReactFlow, {
     Background,
     BackgroundVariant,
@@ -21,6 +21,7 @@ import ReactFlow, {
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
+import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -156,17 +157,17 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { createNode, createConnection } = useContext(GlobalVolatileContext);
     const {
-        schemata,
         setZoom,
         setHoveredNode,
         addNodeChanges,
         addEdgeChanges,
         changeNodes,
         changeEdges,
-        setSetNodes,
-        setSetEdges,
+        setNodesRef,
+        setEdgesRef,
         updateIteratorBounds,
     } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
     const useSnapToGrid = useContextSelector(SettingsContext, (c) => c.useSnapToGrid);
     const animateChain = useContextSelector(SettingsContext, (c) => c.useAnimateChain[0]);
@@ -176,6 +177,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
+    setNodesRef.current = setNodes;
+    setEdgesRef.current = setEdges;
 
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => {
@@ -191,11 +194,6 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         },
         [internalOnEdgesChange]
     );
-
-    useEffect(() => {
-        setSetNodes(() => setNodes);
-        setSetEdges(() => setEdges);
-    }, [setNodes, setEdges]);
 
     const [displayNodes, displayEdges] = useMemo(() => {
         const displayNodes = nodes.map<Node<NodeData>>((n) => ({ ...n })).sort(compareById);
@@ -382,7 +380,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     return (
         <Box
-            bg={useColorModeValue('gray.200', 'gray.800')}
+            bg="var(--chain-editor-bg)"
             borderRadius="lg"
             borderWidth="0px"
             className={animateChain ? '' : 'no-chain-animation'}

@@ -15,17 +15,12 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from .categories import IMAGE
+from .categories import ImageCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import (
-    get_opencv_formats,
-    get_pil_formats,
-    normalize,
-    preview_encode,
-)
+from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -34,7 +29,7 @@ from .utils.utils import get_h_w_c
 class ImReadNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Load image from file."
+        self.description = "Load image from specified file."
         self.inputs = [ImageFileInput()]
         self.outputs = [
             LargeImageOutput(),
@@ -42,7 +37,7 @@ class ImReadNode(NodeBase):
             TextOutput("Image Name"),
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Load Image"
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
@@ -66,6 +61,11 @@ class ImReadNode(NodeBase):
                     raise RuntimeError(
                         f'Error reading image image from path "{path}". Image may be corrupt.'
                     ) from e
+                if img is None:
+                    logger.error("Error loading image.")
+                    raise RuntimeError(  # pylint: disable=raise-missing-from
+                        f'Error reading image image from path "{path}". Image may be corrupt.'
+                    )
         elif ext.lower() in get_pil_formats():
             im = Image.open(path)
             img = np.array(im)
@@ -76,7 +76,7 @@ class ImReadNode(NodeBase):
                 img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
         else:
             raise NotImplementedError(
-                "The image you are trying to read cannot be read by chaiNNer."
+                f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
             )
 
         # Uncomment if wild 2-channel image is encountered
@@ -86,6 +86,7 @@ class ImReadNode(NodeBase):
         #     alpha_channel = img[:, :, 1]
         #     img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)
 
+        assert img is not None, f'Internal error loading image "{path}".'
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
@@ -104,7 +105,7 @@ class ImWriteNode(NodeBase):
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Save Image"
         self.outputs = []
         self.icon = "MdSave"
@@ -149,7 +150,7 @@ class ImOpenNode(NodeBase):
         self.description = "Open the image in your default image viewer."
         self.inputs = [ImageInput()]
         self.outputs = []
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "View Image (external)"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"
@@ -189,7 +190,7 @@ class ImViewNode(NodeBase):
         self.outputs = [
             LargeImageOutput("Preview", image_type="Input0", has_handle=False)
         ]
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "View Image"
         self.icon = "BsEyeFill"
         self.sub = "Input & Output"

@@ -7,7 +7,7 @@ import numpy as np
 
 from sanic.log import logger
 
-from .categories import IMAGE_FILTER
+from .categories import ImageFilterCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -22,14 +22,14 @@ from .utils.utils import get_h_w_c
 class BlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply box/average blur to an image"
+        self.description = "Apply box/average blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", step=0.1, controls_step=1),
-            NumberInput("Amount Y", step=0.1, controls_step=1),
+            NumberInput("Amount X", precision=1, controls_step=1),
+            NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Box Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -70,14 +70,14 @@ class BlurNode(NodeBase):
 class GaussianBlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply Gaussian Blur to an image"
+        self.description = "Apply Gaussian blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", step=0.1, controls_step=1),
-            NumberInput("Amount Y", step=0.1, controls_step=1),
+            NumberInput("Amount X", precision=1, controls_step=1),
+            NumberInput("Amount Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Gaussian Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -102,13 +102,13 @@ class GaussianBlurNode(NodeBase):
 class MedianBlurNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply median blur to an image"
+        self.description = "Apply median blur to an image."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Median Blur"
         self.icon = "MdBlurOn"
         self.sub = "Blur/Sharpen"
@@ -136,13 +136,13 @@ class MedianBlurNode(NodeBase):
 class SharpenNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Apply sharpening to an image"
+        self.description = "Apply sharpening to an image using an unsharp mask."
         self.inputs = [
             ImageInput(),
             NumberInput("Amount"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Sharpen"
         self.icon = "MdBlurOff"
         self.sub = "Blur/Sharpen"
@@ -175,7 +175,7 @@ class AverageColorFixNode(NodeBase):
             ImageInput("Reference Image", image_type=expression.Image(channels=[3, 4])),
             NumberInput(
                 "Reference Image Scale Factor",
-                step=0.0001,
+                precision=4,
                 controls_step=12.5,
                 maximum=100.0,
                 default=12.5,
@@ -183,7 +183,7 @@ class AverageColorFixNode(NodeBase):
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Average Color Fix"
         self.icon = "MdAutoFixHigh"
         self.sub = "Correction"
@@ -275,7 +275,7 @@ class ColorTransferNode(NodeBase):
             ReciprocalScalingFactorInput(),
         ]
         self.outputs = [ImageOutput("Image", image_type="Input0")]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Color Transfer"
         self.icon = "MdInput"
         self.sub = "Correction"
@@ -321,14 +321,14 @@ class NormalizeNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Normalizes the given normal map.
-            Only the R and G channels of the input image will be used."""
+            Only the R and G channels of the input image will be used to compute the unit vectors."""
         self.inputs = [
             ImageInput("Normal Map", expression.Image(channels=[3, 4])),
         ]
         self.outputs = [
             ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
         ]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Normalize Normal Map"
         self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
@@ -377,7 +377,7 @@ class NormalAdditionNode(NodeBase):
                 "The given normal maps have different sizes but must be the same size."
             ),
         ]
-        self.category = IMAGE_FILTER
+        self.category = ImageFilterCategory
         self.name = "Add Normals"
         self.icon = "MdAddCircleOutline"
         self.sub = "Normal Map"

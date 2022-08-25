@@ -66,6 +66,8 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
+export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
+
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
@@ -76,7 +78,7 @@ export interface NodeSchema {
     readonly subcategory: string;
     readonly description: string;
     readonly icon: string;
-    readonly nodeType: string;
+    readonly nodeType: NodeType;
     readonly inputs: Input[];
     readonly outputs: Output[];
     readonly defaultNodes?: DefaultNode[];
@@ -104,7 +106,6 @@ export interface NodeData {
     readonly percentComplete?: number;
     readonly minWidth?: number;
     readonly minHeight?: number;
-    readonly animated?: boolean;
 }
 export interface EdgeData {
     readonly complete?: boolean;
@@ -156,4 +157,12 @@ export interface WindowSize {
     readonly maximized: boolean;
     readonly width: number;
     readonly height: number;
+}
+
+export interface Category {
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    installHint?: string;
 }

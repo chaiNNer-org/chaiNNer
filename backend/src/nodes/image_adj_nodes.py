@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .categories import IMAGE_ADJUSTMENT
+from .categories import ImageAdjustmentCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -17,7 +17,7 @@ from .utils.utils import get_h_w_c
 class HueAndSaturationNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Adjust the hue and saturation of an image."
+        self.description = "Adjust the hue and saturation of an image. This is performed in the HSV color-space."
         self.inputs = [
             ImageInput(image_type=expression.Image(channels=[1, 3, 4])),
             SliderInput(
@@ -25,7 +25,7 @@ class HueAndSaturationNode(NodeBase):
                 minimum=-180,
                 maximum=180,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
@@ -33,12 +33,12 @@ class HueAndSaturationNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Hue & Saturation"
         self.icon = "MdOutlineColorLens"
         self.sub = "Adjustments"
@@ -93,7 +93,7 @@ class BrightnessAndContrastNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
@@ -101,12 +101,12 @@ class BrightnessAndContrastNode(NodeBase):
                 minimum=-100,
                 maximum=100,
                 default=0,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Brightness & Contrast"
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
@@ -156,27 +156,27 @@ class BrightnessAndContrastNode(NodeBase):
 class ThresholdNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Perform a threshold on an image."
+        self.description = "Replaces pixels based on the threshold value. If the pixel value is smaller than the threshold, it is set to 0, otherwise it is set to the maximum value."
         self.inputs = [
             ImageInput(),
             SliderInput(
                 "Threshold",
                 maximum=100,
                 default=50,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             SliderInput(
                 "Maximum Value",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             ThresholdInput(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Threshold"
         self.icon = "MdShowChart"
         self.sub = "Adjustments"
@@ -202,28 +202,23 @@ class ThresholdNode(NodeBase):
 class AdaptiveThresholdNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Perform an adaptive threshold on an image."
+        self.description = "Similar to regular threshold, but determines the threshold for a pixel based on a small region around it."
         self.inputs = [
             ImageInput(image_type=expression.Image(channels=1)),
             SliderInput(
                 "Maximum Value",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
             ),
             AdaptiveMethodInput(),
             AdaptiveThresholdInput(),
-            NumberInput(
-                "Block Size",
-                step=2,
-                default=3,
-                minimum=3,
-            ),
+            NumberInput("Block Radius", default=1, minimum=1),
             NumberInput("Mean Subtraction"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Threshold (Adaptive)"
         self.icon = "MdAutoGraph"
         self.sub = "Adjustments"
@@ -234,7 +229,7 @@ class AdaptiveThresholdNode(NodeBase):
         maxval: float,
         adaptive_method: int,
         thresh_type: int,
-        block_size: int,
+        block_radius: int,
         c: int,
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
@@ -253,7 +248,7 @@ class AdaptiveThresholdNode(NodeBase):
             real_maxval,
             adaptive_method,
             thresh_type,
-            block_size,
+            block_radius * 2 + 1,
             c,
         )
 
@@ -264,14 +259,14 @@ class AdaptiveThresholdNode(NodeBase):
 class OpacityNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Adjusts the opacity of an image."
+        self.description = "Adjusts the opacity of an image. The higher the opacity value, the more opaque the image is."
         self.inputs = [
             ImageInput(),
             SliderInput(
                 "Opacity",
                 maximum=100,
                 default=100,
-                step=0.1,
+                precision=1,
                 controls_step=1,
                 unit="%",
             ),
@@ -279,7 +274,7 @@ class OpacityNode(NodeBase):
         self.outputs = [
             ImageOutput(image_type=expression.Image(size_as="Input0", channels=4))
         ]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Opacity"
         self.icon = "MdOutlineOpacity"
         self.sub = "Adjustments"
@@ -311,13 +306,13 @@ class GammaNode(NodeBase):
                 minimum=0.01,
                 maximum=100,
                 default=1,
-                step=0.0001,
+                precision=4,
                 controls_step=0.1,
             ),
             GammaOptionInput(),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
-        self.category = IMAGE_ADJUSTMENT
+        self.category = ImageAdjustmentCategory
         self.name = "Gamma"
         self.icon = "ImBrightnessContrast"
         self.sub = "Adjustments"
@@ -342,4 +337,28 @@ class GammaNode(NodeBase):
         # apply gamma to the first 3 channels
         c = get_h_w_c(img)[2]
         img[:, :, : min(c, 3)] **= gamma
+        return img
+
+
+@NodeFactory.register("chainner:image:invert")
+class InvertNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Inverts all colors in an image."
+        self.inputs = [ImageInput()]
+        self.outputs = [ImageOutput(image_type="Input0")]
+        self.category = ImageAdjustmentCategory
+        self.name = "Invert Color"
+        self.icon = "MdInvertColors"
+        self.sub = "Adjustments"
+
+    def run(self, img: np.ndarray) -> np.ndarray:
+        c = get_h_w_c(img)[2]
+
+        # invert the first 3 channels
+        if c <= 3:
+            return 1 - img
+
+        img = img.copy()
+        img[:, :, :3] = 1 - img[:, :, :3]
         return img

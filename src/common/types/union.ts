@@ -6,6 +6,7 @@ import {
     CanonicalTypes,
     IntIntervalType,
     IntervalType,
+    InvertedStringSetType,
     NeverType,
     NonTrivialType,
     NumberPrimitive,
@@ -119,8 +120,40 @@ const unionNumber = (
     return undefined;
 };
 
+const unionInvertedStringSet = (
+    a: InvertedStringSetType,
+    b: InvertedStringSetType | StringLiteralType
+): StringPrimitive => {
+    if (b.type === 'literal') {
+        if (a.has(b.value)) return a;
+
+        // remove b's string value from the set of excluded strings
+        if (a.excluded.size === 1) return StringType.instance;
+
+        const excluded = new Set(a.excluded);
+        excluded.delete(b.value);
+        return new InvertedStringSetType(excluded);
+    }
+
+    // we need to the intersection of the excluded strings
+    const intersection = new Set<string>();
+    for (const aValue of a.excluded) {
+        if (b.excluded.has(aValue)) {
+            intersection.add(aValue);
+        }
+    }
+
+    if (intersection.size === 0) return StringType.instance;
+    if (intersection.size === a.excluded.size) return a;
+    if (intersection.size === b.excluded.size) return b;
+    return new InvertedStringSetType(intersection);
+};
+
 const unionString = (a: StringPrimitive, b: StringPrimitive): StringPrimitive | undefined => {
     if (a.type === 'string' || b.type === 'string') return StringType.instance;
+
+    if (a.type === 'inverted-set') return unionInvertedStringSet(a, b);
+    if (b.type === 'inverted-set') return unionInvertedStringSet(b, a);
 
     if (a.value === b.value) return a;
     return undefined;

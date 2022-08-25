@@ -488,6 +488,8 @@ export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimi
 });
 
 export const concat = wrapVarArgs(new StringLiteralType(''), (a, b) => {
-    if (a.type === 'string' || b.type === 'string') return StringType.instance;
-    return new StringLiteralType(a.value + b.value);
+    if (a.type === 'literal' && b.type === 'literal') {
+        return new StringLiteralType(a.value + b.value);
+    }
+    return StringType.instance;
 });

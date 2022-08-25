@@ -5,7 +5,7 @@ from typing import Tuple
 import numpy as np
 from sanic.log import logger
 
-from .categories import IMAGE_DIMENSION
+from .categories import ImageDimensionCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -28,14 +28,14 @@ class ImResizeByFactorNode(NodeBase):
             ImageInput(),
             NumberInput(
                 "Scale Factor",
-                step=0.0001,
+                precision=4,
                 controls_step=25.0,
                 default=100.0,
                 unit="%",
             ),
             InterpolationInput(),
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Resize (Factor)"
         self.outputs = [
             ImageOutput(
@@ -86,7 +86,7 @@ class ImResizeToResolutionNode(NodeBase):
                 )
             )
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Resize (Resolution)"
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
@@ -123,7 +123,7 @@ class TileFillNode(NodeBase):
                 )
             )
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Tile Fill"
         self.icon = "MdWindow"
         self.sub = "Resize"
@@ -153,7 +153,7 @@ class CropNode(NodeBase):
                 )
             )
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Crop (Offsets)"
         self.icon = "MdCrop"
         self.sub = "Crop"
@@ -195,7 +195,7 @@ class BorderCropNode(NodeBase):
                 "The cropped area would result in image with no width or no height."
             )
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Crop (Border)"
         self.icon = "MdCrop"
         self.sub = "Crop"
@@ -236,7 +236,7 @@ class EdgeCropNode(NodeBase):
                 "The cropped area would result in image with no width or no height."
             )
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Crop (Edges)"
         self.icon = "MdCrop"
         self.sub = "Crop"
@@ -267,11 +267,15 @@ class ContentCropNode(NodeBase):
         self.inputs = [
             ImageInput(),
             SliderInput(
-                "Threshold", step=0.1, controls_step=1, slider_step=1, default=0
+                "Threshold",
+                precision=1,
+                controls_step=1,
+                slider_step=1,
+                default=0,
             ),
         ]
         self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Crop (Content)"
         self.icon = "MdCrop"
         self.sub = "Crop"
@@ -317,7 +321,7 @@ class GetDimensionsNode(NodeBase):
             NumberOutput("Height", output_type="Input0.height"),
             NumberOutput("Channels", output_type="Input0.channels"),
         ]
-        self.category = IMAGE_DIMENSION
+        self.category = ImageDimensionCategory
         self.name = "Get Dimensions"
         self.icon = "BsRulers"
         self.sub = "Utility"

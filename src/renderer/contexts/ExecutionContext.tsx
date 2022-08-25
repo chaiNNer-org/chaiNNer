@@ -2,9 +2,8 @@ import isDeepEqual from 'fast-deep-equal/react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { createContext, useContext, useContextSelector } from 'use-context-selector';
+import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
-import { getBackend } from '../../common/Backend';
 import {
     EdgeData,
     EdgeHandle,
@@ -28,13 +27,16 @@ import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import {
+    BackendEventMap,
     BackendEventSourceListener,
     useBackendEventSource,
     useBackendEventSourceListener,
 } from '../hooks/useBackendEventSource';
+import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
-import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
+import { BackendContext } from './BackendContext';
+import { GlobalContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
@@ -50,7 +52,6 @@ interface ExecutionContextValue {
     status: ExecutionStatus;
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
-    useOutputData: (id: string, outputId: OutputId) => unknown;
 }
 
 const convertToUsableFormat = (
@@ -159,34 +160,78 @@ const convertToUsableFormat = (
     return result;
 };
 
+const getExecutionErrorMessage = (
+    { exception, source }: BackendEventMap['execution-error'],
+    schemata: SchemaMap
+): string => {
+    if (!source) return exception;
+
+    const schema = schemata.get(source.schemaId);
+    let { name } = schema;
+    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
+        // make the name unique using the category of the schema
+        name = `${schema.category} ${schema.name}`;
+    }
+
+    const inputs = schema.inputs.flatMap((i) => {
+        const value = source.inputs[i.id];
+        if (value === undefined) return [];
+
+        let valueStr: string;
+        const option = i.options?.find((o) => o.value === value);
+        if (option) {
+            valueStr = option.option;
+        } else if (value === null) {
+            valueStr = 'None';
+        } else if (typeof value === 'number') {
+            valueStr = String(value);
+        } else if (typeof value === 'string') {
+            valueStr = JSON.stringify(value);
+        } else {
+            let type = 'Image';
+            if (value.channels === 1) type = 'Grayscale image';
+            if (value.channels === 3) type = 'RGB image';
+            if (value.channels === 4) type = 'RGBA image';
+            valueStr = `${type} ${value.width}x${value.height}`;
+        }
+
+        return [`• ${i.label}: ${valueStr}`];
+    });
+    const partial = inputs.length === schema.inputs.length;
+    const inputsInfo =
+        inputs.length === 0
+            ? ''
+            : `Input values${partial ? '' : ' (partial)'}:\n${inputs.join('\n')}`;
+
+    return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
+};
+
 export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
     {} as ExecutionContextValue
 );
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
-    const { schemata, useAnimate, setIteratorPercent, typeStateRef } = useContext(GlobalContext);
-    const useOutputDataMap = useContextSelector(GlobalVolatileContext, (c) => c.useOutputDataMap);
-    const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
+    const {
+        animate,
+        unAnimate,
+        setIteratorPercent,
+        typeStateRef,
+        outputDataActions,
+        getInputHash,
+    } = useContext(GlobalContext);
+    const { schemata, port, backend } = useContext(BackendContext);
+    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
     const { sendAlert } = useContext(AlertBoxContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
-    const [animate, unAnimate] = useAnimate();
-
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const [status, setStatus] = useState(ExecutionStatus.READY);
-    const backend = getBackend(port);
 
     const [isBackendKilled, setIsBackendKilled] = useState(false);
-
-    const [outputDataMap, setOutputDataMap] = useOutputDataMap;
-    const useOutputData = useCallback(
-        (id: string, outputId: OutputId): unknown => outputDataMap.get(id)?.[outputId],
-        [outputDataMap]
-    );
 
     useEffect(() => {
         // TODO: Actually fix this so it un-animates correctly
@@ -212,10 +257,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         eventSource,
         'finish',
         () => {
-            unAnimate();
             setStatus(ExecutionStatus.READY);
         },
-        [setStatus, unAnimate]
+        [
+            // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+            // status isn't actually used
+            status,
+            setStatus,
+        ]
     );
 
     useBackendEventSourceListener(
@@ -223,18 +272,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         'execution-error',
         (data) => {
             if (data) {
-                let errorSource = '';
-                if (data.source) {
-                    const schema = schemata.get(data.source.schemaId);
-                    let { name } = schema;
-                    if (schemata.schemata.filter((s) => s.name === name).length > 1) {
-                        // make the name unique using the category of the schema
-                        name = `${schema.category} ${schema.name}`;
-                    }
-                    errorSource = `An error occurred in a ${name} node:\n\n`;
-                }
-
-                sendAlert(AlertType.ERROR, null, errorSource + data.exception);
+                sendAlert(AlertType.ERROR, null, getExecutionErrorMessage(data, schemata));
                 unAnimate();
                 setStatus(ExecutionStatus.READY);
             }
@@ -242,34 +280,35 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [setStatus, unAnimate, schemata]
     );
 
-    useBackendEventSourceListener(
-        eventSource,
-        'node-output-data',
-        (data) => {
-            if (data) {
-                setOutputDataMap((prev) => {
-                    const existingData = prev.get(data.nodeId);
-                    if (!existingData || !isDeepEqual(existingData, data.data)) {
-                        return new Map([...prev, [data.nodeId, data.data]]);
-                    }
-                    return prev;
-                });
-            }
-        },
-        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
-        [{}, setOutputDataMap]
-    );
+    const updateNodeFinish = useBatchedCallback<
+        Parameters<BackendEventSourceListener<'node-finish'>>
+    >(
+        (eventData) => {
+            if (eventData) {
+                const { finished, nodeId, executionTime, data } = eventData;
 
-    const updateNodeFinish = useThrottledCallback<BackendEventSourceListener<'node-finish'>>(
-        (data) => {
-            if (data) {
-                unAnimate(data.finished);
+                // TODO: This is incorrect. The inputs of the node might have changed since
+                // the chain started running. However, sending the then current input hashes
+                // of the chain to the backend along with the rest of its data and then making
+                // the backend send us those hashes is incorrect too because of iterators, I
+                // think.
+                const inputHash = getInputHash(nodeId);
+                outputDataActions.set(
+                    nodeId,
+                    executionTime ?? undefined,
+                    inputHash,
+                    data ?? undefined
+                );
+
+                unAnimate([nodeId, ...finished]);
             }
         },
-        350
+        500,
+        [unAnimate, outputDataActions, getInputHash]
     );
     useBackendEventSourceListener(eventSource, 'node-finish', updateNodeFinish, [
-        unAnimate,
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        {},
         updateNodeFinish,
     ]);
 
@@ -475,7 +514,6 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         status,
         isBackendKilled,
         setIsBackendKilled,
-        useOutputData,
     });
 
     return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;

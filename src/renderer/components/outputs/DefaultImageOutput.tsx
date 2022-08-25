@@ -1,15 +1,25 @@
-import { Center, Flex, Icon, Spacer, Text, useColorModeValue } from '@chakra-ui/react';
-import { memo } from 'react';
+import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
 import { useReactFlow } from 'react-flow-renderer';
 import { BsEyeFill } from 'react-icons/bs';
-import { useContextSelector } from 'use-context-selector';
-import { InputId, SchemaId } from '../../../common/common-types';
+import { useContext, useContextSelector } from 'use-context-selector';
+import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
+import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
+import { NumericLiteralType } from '../../../common/types/types';
 import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { TypeTag } from '../TypeTag';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
+import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
 
-export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) => {
+const VIEW_SCHEMA_ID = 'chainner:image:view' as SchemaId;
+
+interface ImageBroadcastData {
+    width: number;
+    height: number;
+    channels: number;
+}
+
+export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: OutputProps) => {
     const type = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)?.outputs.get(outputId)
     );
@@ -17,10 +27,27 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
     const createNode = useContextSelector(GlobalVolatileContext, (c) => c.createNode);
     const createConnection = useContextSelector(GlobalVolatileContext, (c) => c.createConnection);
 
-    const imgBgColor = useColorModeValue('gray.400', 'gray.750');
-    const eyeIconColor = useColorModeValue('gray.700', 'gray.400');
+    const { selectNode, setManualOutputType } = useContext(GlobalContext);
 
-    const { getNode } = useReactFlow();
+    const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
+    const [value, valueInputHash] = useOutputData<ImageBroadcastData>(outputId);
+    useEffect(() => {
+        if (value && valueInputHash === inputHash) {
+            setManualOutputType(
+                id,
+                outputId,
+                new NamedExpression('Image', [
+                    new NamedExpressionField('width', new NumericLiteralType(value.width)),
+                    new NamedExpressionField('height', new NumericLiteralType(value.height)),
+                    new NamedExpressionField('channels', new NumericLiteralType(value.channels)),
+                ])
+            );
+        } else {
+            setManualOutputType(id, outputId, undefined);
+        }
+    }, [id, outputId, value]);
+
+    const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     return (
         <Flex
@@ -30,11 +57,24 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
             w="full"
         >
             <Center
-                cursor="zoom-in"
+                cursor="pointer"
                 h="2rem"
                 w="2rem"
                 onClick={() => {
-                    const containingNode = getNode(id);
+                    const byId = new Map(getNodes().map((n) => [n.id, n]));
+
+                    // check whether there already is a view node
+                    const viewId = getEdges()
+                        .filter((e) => e.source === id)
+                        .map((e) => e.target)
+                        .find((i) => byId.get(i)?.data.schemaId === VIEW_SCHEMA_ID);
+                    if (viewId !== undefined) {
+                        // select view node
+                        selectNode(viewId);
+                        return;
+                    }
+
+                    const containingNode = byId.get(id);
                     if (containingNode) {
                         const nodeId = createUniqueId();
                         // TODO: This is a bit of hardcoding, but it works
@@ -46,7 +86,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                                     y: containingNode.position.y,
                                 },
                                 data: {
-                                    schemaId: 'chainner:image:view' as SchemaId,
+                                    schemaId: VIEW_SCHEMA_ID,
                                 },
                                 nodeType: 'regularNode',
                             },
@@ -62,20 +102,24 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                 }}
             >
                 <Center
-                    bgColor={imgBgColor}
+                    _hover={{
+                        backgroundColor: 'var(--node-image-preview-button-bg-hover)',
+                    }}
+                    bgColor="var(--node-image-preview-button-bg)"
                     borderRadius="md"
-                    cursor="zoom-in"
+                    cursor="pointer"
                     h="1.75rem"
                     maxH="1.75rem"
                     maxW="1.75rem"
                     minH="1.75rem"
                     minW="1.75rem"
                     overflow="hidden"
+                    transition="0.15s ease-in-out"
                     w="1.75rem"
                 >
                     <Icon
                         as={BsEyeFill}
-                        color={eyeIconColor}
+                        color="var(--node-image-preview-button-fg)"
                     />
                 </Center>
             </Center>
@@ -85,7 +129,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId }: OutputProps) =>
                     h="2rem"
                     verticalAlign="middle"
                 >
-                    <TypeTag type={type} />
+                    <TypeTags type={type} />
                 </Center>
             )}
             <Text

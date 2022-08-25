@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
 import logging
@@ -7,7 +8,7 @@ import platform
 import sys
 import traceback
 from json import dumps as stringify
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, TypedDict
 
 # pylint: disable=unused-import
 import cv2
@@ -17,7 +18,7 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.categories import category_order
+from nodes.categories import categories, category_order
 
 # Remove broken QT env var
 if platform.system() == "Linux":
@@ -66,15 +67,30 @@ except Exception as e:
 # pylint: disable=unused-import
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
-from process import Executor, NodeExecutionError
+from events import EventQueue, ExecutionErrorData
+from process import Executor, NodeExecutionError, UsableData, timed_supplier
+from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
-app = Sanic("chaiNNer")
-CORS(app)
-app.ctx.executor = None
-app.ctx.cache = dict()
 
+class AppContext:
+    def __init__(self):
+        self.executor: Optional[Executor] = None
+        self.cache: Dict[str, Any] = dict()
+        # This will be initialized by setup_queue.
+        # This is necessary because we don't know Sanic's event loop yet.
+        self.queue: EventQueue = None  # type: ignore
+        self.pool = ThreadPoolExecutor(max_workers=4)
+
+    @staticmethod
+    def get(app_instance: Sanic) -> "AppContext":
+        assert isinstance(app_instance.ctx, AppContext)
+        return app_instance.ctx
+
+
+app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
+CORS(app)
 
 
 from sanic.log import access_logger
@@ -85,6 +101,24 @@ class SSEFilter(logging.Filter):
         return not (record.request.endswith("/sse") and record.status == 200)  # type: ignore
 
 
+class ZeroCounter:
+    def __init__(self) -> None:
+        self.count = 0
+
+    async def wait_zero(self) -> None:
+        while self.count != 0:
+            await asyncio.sleep(0.01)
+
+    def __enter__(self):
+        self.count += 1
+
+    def __exit__(self, _exc_type, _exc_value, _exc_traceback):
+        self.count -= 1
+
+
+runIndividualCounter = ZeroCounter()
+
+
 access_logger.addFilter(SSEFilter())
 
 
@@ -92,83 +126,93 @@ access_logger.addFilter(SSEFilter())
 async def nodes(_):
     """Gets a list of all nodes as well as the node information"""
     registry = NodeFactory.get_registry()
-    logger.debug(category_order)
+    logger.debug(categories)
 
     # sort nodes in category order
     sorted_registry = sorted(
         registry.items(),
-        key=lambda x: category_order.index(
-            NodeFactory.create_node(x[0]).get_category()
-        ),
+        key=lambda x: category_order.index(NodeFactory.create_node(x[0]).category.name),
     )
     node_list = []
     for schema_id, _node_class in sorted_registry:
         node_object = NodeFactory.create_node(schema_id)
         node_dict = {
             "schemaId": schema_id,
-            "name": node_object.get_name(),
-            "category": node_object.get_category(),
+            "name": node_object.name,
+            "category": node_object.category.name,
             "inputs": [
                 x.toDict() for x in node_object.get_inputs(with_implicit_ids=True)
             ],
             "outputs": [
                 x.toDict() for x in node_object.get_outputs(with_implicit_ids=True)
             ],
-            "description": node_object.get_description(),
-            "icon": node_object.get_icon(),
-            "subcategory": node_object.get_sub_category(),
-            "nodeType": node_object.get_type(),
-            "hasSideEffects": node_object.get_has_side_effects(),
-            "deprecated": node_object.is_deprecated(),
+            "description": node_object.description,
+            "icon": node_object.icon,
+            "subcategory": node_object.sub,
+            "nodeType": node_object.type,
+            "hasSideEffects": node_object.side_effects,
+            "deprecated": node_object.deprecated,
         }
-        if node_object.get_type() == "iterator":
+        if node_object.type == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
-    return json(node_list)
+    return json({"nodes": node_list, "categories": [x.toDict() for x in categories]})
+
+
+class RunRequest(TypedDict):
+    data: Dict[str, UsableData]
+    isCpu: bool
+    isFp16: bool
 
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
     """Runs the provided nodes"""
-    # headers = {"Cache-Control": "no-cache"}
-    # await request.respond(response="Run request accepted", status=200, headers=headers)
-    queue = request.app.ctx.queue
+    ctx = AppContext.get(request.app)
 
     try:
-        os.environ["killed"] = "False"
-        if request.app.ctx.executor:
+        # wait until all previews are done
+        await runIndividualCounter.wait_zero()
+
+        if ctx.executor:
             logger.info("Resuming existing executor...")
-            executor = request.app.ctx.executor
+            executor = ctx.executor
             await executor.resume()
         else:
             logger.info("Running new executor...")
-            full_data = dict(request.json)  # type: ignore
+            full_data: RunRequest = dict(request.json)  # type: ignore
             logger.info(full_data)
             nodes_list = full_data["data"]
-            os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-            os.environ["isFp16"] = str(full_data["isFp16"])
-            logger.info(f"Using device: {os.environ['device']}")
-            executor = Executor(
-                nodes_list, app.loop, queue, request.app.ctx.cache.copy()
+            exec_opts = ExecutionOptions(
+                device="cpu" if full_data["isCpu"] else "cuda",
+                fp16=full_data["isFp16"],
             )
-            request.app.ctx.executor = executor
+            set_execution_options(exec_opts)
+            logger.info(f"Using device: {exec_opts.device}")
+            executor = Executor(
+                nodes_list,
+                app.loop,
+                ctx.queue,
+                ctx.pool,
+                ctx.cache.copy(),
+            )
+            ctx.executor = executor
             await executor.run()
         if not executor.paused:
-            del request.app.ctx.executor
-            request.app.ctx.executor = None
+            ctx.executor = None
         if torch is not None:
             torch.cuda.empty_cache()
         gc.collect()
-        await queue.put(
+        await ctx.queue.put(
             {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
         )
         return json({"message": "Successfully ran nodes!"}, status=200)
     except Exception as exception:
         logger.error(exception, exc_info=True)
-        request.app.ctx.executor = None
+        ctx.executor = None
         logger.error(traceback.format_exc())
 
-        error = {
+        error: ExecutionErrorData = {
             "message": "Error running nodes!",
             "source": None,
             "exception": str(exception),
@@ -177,21 +221,36 @@ async def run(request: Request):
             error["source"] = {
                 "nodeId": exception.node["id"],
                 "schemaId": exception.node["schemaId"],
+                "inputs": exception.inputs,
             }
 
-        await queue.put({"event": "execution-error", "data": error})
+        await ctx.queue.put({"event": "execution-error", "data": error})
         return json(error, status=500)
+
+
+class RunIndividualRequest(TypedDict):
+    id: str
+    inputs: List[Any]
+    isCpu: bool
+    isFp16: bool
+    schemaId: str
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
     """Runs a single node"""
+    ctx = AppContext.get(request.app)
     try:
-        full_data = dict(request.json)  # type: ignore
+        full_data: RunIndividualRequest = dict(request.json)  # type: ignore
+        if ctx.cache.get(full_data["id"], None) is not None:
+            del ctx.cache[full_data["id"]]
         logger.info(full_data)
-        os.environ["device"] = "cpu" if full_data["isCpu"] else "cuda"
-        os.environ["isFp16"] = str(full_data["isFp16"])
-        logger.info(f"Using device: {os.environ['device']}")
+        exec_opts = ExecutionOptions(
+            device="cpu" if full_data["isCpu"] else "cuda",
+            fp16=full_data["isFp16"],
+        )
+        set_execution_options(exec_opts)
+        logger.info(f"Using device: {exec_opts.device}")
         # Create node based on given category/name information
         node_instance = NodeFactory.create_node(full_data["schemaId"])
 
@@ -202,15 +261,17 @@ async def run_individual(request: Request):
         else:
             node_inputs = node_instance.get_inputs(with_implicit_ids=True)
             for idx, node_input in enumerate(full_data["inputs"]):
-                # TODO: remove this when all the inputs are transitioned to classes
-                if isinstance(node_inputs[idx], dict):
-                    enforced_inputs.append(node_input)
-                else:
-                    enforced_inputs.append(node_inputs[idx].enforce_(node_input))
+                enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
-        # Run the node and pass in inputs as args
-        run_func = functools.partial(node_instance.run, *full_data["inputs"])
-        output = await app.loop.run_in_executor(None, run_func)
+        with runIndividualCounter:
+            # Run the node and pass in inputs as args
+            run_func = functools.partial(node_instance.run, *full_data["inputs"])
+            output, execution_time = await app.loop.run_in_executor(
+                None, timed_supplier(run_func)
+            )
+
+            # Cache the output of the node
+            ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
         broadcast_data: Dict[int, Any] = dict()
@@ -225,14 +286,17 @@ async def run_individual(request: Request):
                     )
                 except Exception as error:
                     logger.error(f"Error broadcasting output: {error}")
-            await request.app.ctx.queue.put(
+            await ctx.queue.put(
                 {
-                    "event": "node-output-data",
-                    "data": {"nodeId": full_data["id"], "data": broadcast_data},
+                    "event": "node-finish",
+                    "data": {
+                        "finished": [],
+                        "nodeId": full_data["id"],
+                        "executionTime": execution_time,
+                        "data": broadcast_data,
+                    },
                 }
             )
-        # Cache the output of the node
-        request.app.ctx.cache[full_data["id"]] = output
         del node_instance, run_func
         return json({"success": True, "data": None})
     except Exception as exception:
@@ -242,12 +306,11 @@ async def run_individual(request: Request):
 
 @app.get("/sse")
 async def sse(request: Request):
+    ctx = AppContext.get(request.app)
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
-        message = await request.app.ctx.queue.get()
-        if not message:
-            break
+        message = await ctx.queue.get()
         if response is not None:
             await response.send(f"event: {message['event']}\n")
             await response.send(f"data: {stringify(message['data'])}\n\n")
@@ -255,16 +318,17 @@ async def sse(request: Request):
 
 @app.after_server_start
 async def setup_queue(sanic_app: Sanic, _):
-    sanic_app.ctx.queue = asyncio.Queue()
+    AppContext.get(sanic_app).queue = EventQueue()
 
 
 @app.route("/pause", methods=["POST"])
-async def pause(request):
+async def pause(request: Request):
     """Pauses the current execution"""
+    ctx = AppContext.get(request.app)
     try:
-        if request.app.ctx.executor:
+        if ctx.executor:
             logger.info("Executor found. Attempting to pause...")
-            await request.app.ctx.executor.pause()
+            await ctx.executor.pause()
             return json({"message": "Successfully paused execution!"}, status=200)
         logger.info("No executor to pause")
         return json({"message": "No executor to pause!"}, status=200)
@@ -277,13 +341,14 @@ async def pause(request):
 
 
 @app.route("/kill", methods=["POST"])
-async def kill(request):
+async def kill(request: Request):
     """Kills the current execution"""
+    ctx = AppContext.get(request.app)
     try:
-        if request.app.ctx.executor:
+        if ctx.executor:
             logger.info("Executor found. Attempting to kill...")
-            await request.app.ctx.executor.kill()
-            request.app.ctx.executor = None
+            await ctx.executor.kill()
+            ctx.executor = None
             return json({"message": "Successfully killed execution!"}, status=200)
         logger.info("No executor to kill")
         return json({"message": "No executor to kill!"}, status=200)

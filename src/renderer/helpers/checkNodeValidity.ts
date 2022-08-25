@@ -1,5 +1,5 @@
 import { Edge } from 'react-flow-renderer';
-import { EdgeData, InputData, NodeSchema } from '../../common/common-types';
+import { EdgeData, Input, InputData, NodeSchema } from '../../common/common-types';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';
 import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
@@ -73,6 +73,10 @@ const explainNumber = (n: Type): string | undefined => {
     return undefined;
 };
 
+const formatMissingInputs = (missingInputs: Input[]) => {
+    return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
+};
+
 export interface CheckNodeValidityOptions {
     id: string;
     schema: NodeSchema;
@@ -108,9 +112,7 @@ export const checkNodeValidity = ({
     if (missingInputs.length) {
         return {
             isValid: false,
-            reason: `Missing required input data: ${missingInputs
-                .map((input) => input.label)
-                .join(', ')}`,
+            reason: formatMissingInputs(missingInputs),
         };
     }
 
@@ -164,4 +166,31 @@ export const checkNodeValidity = ({
     }
 
     return VALID;
+};
+
+/**
+ * This is a fast approximation of the full validity check. It does not take into account edges
+ * and types. A node will only be found invalid if one of its inputs is guaranteed to be missing.
+ */
+export const checkRequiredInputs = (schema: NodeSchema, inputData: InputData): Validity => {
+    const missingInputs = schema.inputs.filter((input) => {
+        // optional inputs can't be missing
+        if (input.optional) return false;
+
+        const inputValue = inputData[input.id];
+        // a value is assigned
+        if (inputValue !== undefined) return false;
+
+        // an edge *might* be connected, so we can't guarantee that the input is missing
+        if (input.hasHandle) return false;
+
+        return true;
+    });
+
+    if (missingInputs.length === 0) return VALID;
+
+    return {
+        isValid: false,
+        reason: formatMissingInputs(missingInputs),
+    };
 };

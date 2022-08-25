@@ -56,7 +56,7 @@ export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Pr
     });
 };
 
-export type PipList = { [packageName: string]: string };
+export type PipList = { [packageName: string]: string | undefined };
 
 export const runPipList = async (onStdio?: OnStdio): Promise<PipList> => {
     const output = await runPip(['list', '--format=json'], onStdio);

@@ -1,7 +1,7 @@
 import { lazy } from '../util';
 import { globalScope } from './global-scope';
 import { parseDefinitions } from './parse';
-import { ReadonlyScope, Scope } from './scope';
+import { Scope, ScopeBuilder } from './scope';
 import { SourceDocument } from './source';
 
 const code = `
@@ -29,6 +29,8 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
+    modelType: string,
+    size: string,
 }
 
 struct NcnnBinFile;
@@ -78,13 +80,13 @@ def getUpscaleChannels(
 }
 `;
 
-export const getChainnerScope = lazy((): ReadonlyScope => {
-    const scope = new Scope('Chainner scope', globalScope);
+export const getChainnerScope = lazy((): Scope => {
+    const builder = new ScopeBuilder('Chainner scope', globalScope);
 
     const definitions = parseDefinitions(new SourceDocument(code, 'chainner-internal'));
     for (const d of definitions) {
-        scope.add(d);
+        builder.add(d);
     }
 
-    return scope;
+    return builder.createScope();
 });

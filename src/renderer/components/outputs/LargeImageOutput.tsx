@@ -1,11 +1,12 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
-import { Box, Center, HStack, Image, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
-import { memo, useEffect, useState } from 'react';
+import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
+import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
@@ -18,36 +19,15 @@ interface LargeImageBroadcastData {
 
 export const LargeImageOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const inputDataChanges = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.inputDataChanges
-        );
-        const lastInputDataUpdatedId = useContextSelector(
-            GlobalVolatileContext,
-            (c) => c.lastInputDataUpdatedId
-        );
-
-        const [stale, setStale] = useState(false);
-
-        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
-
-        const value = useOutputData(outputId) as LargeImageBroadcastData | undefined;
-
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
-
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
         const schema = schemata.get(schemaId);
 
-        useEffect(() => {
-            if (value) {
-                setStale(false);
-            }
-        }, [value]);
+        const inputHash = useContextSelector(GlobalVolatileContext, (c) => c.inputHashes.get(id));
+        const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        useEffect(() => {
-            if (value && lastInputDataUpdatedId !== id) {
-                setStale(true);
-            }
-        }, [inputDataChanges]);
+        const [value, valueInputHash] = useOutputData<LargeImageBroadcastData>(outputId);
+        const stale = value !== undefined && valueInputHash !== inputHash;
 
         useEffect(() => {
             if (isStartingNode(schema)) {
@@ -73,8 +53,8 @@ export const LargeImageOutput = memo(
             }
         }, [id, schemaId, value]);
 
-        const imgBgColor = useColorModeValue('gray.400', 'gray.750');
-        const fontColor = useColorModeValue('gray.700', 'gray.400');
+        const imgBgColor = 'var(--node-image-preview-bg)';
+        const fontColor = 'var(--node-image-preview-color)';
 
         return (
             <Center
@@ -134,7 +114,7 @@ export const LargeImageOutput = memo(
                         overflow="hidden"
                         w="200px"
                     >
-                        {value && !animated ? (
+                        {value ? (
                             <Center
                                 maxH="200px"
                                 maxW="200px"

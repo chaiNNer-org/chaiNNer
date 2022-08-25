@@ -1,14 +1,14 @@
-import { Center, VStack, useColorModeValue } from '@chakra-ui/react';
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { Center, VStack } from '@chakra-ui/react';
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { EdgeData, NodeData } from '../../../common/common-types';
+import { NodeData } from '../../../common/common-types';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { VALID, checkNodeValidity } from '../../helpers/checkNodeValidity';
 import { shadeColor } from '../../helpers/colorTools';
 import { DisabledStatus, getDisabledStatus } from '../../helpers/disabled';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
 import { useDisabled } from '../../hooks/useDisabled';
+import { useValidity } from '../../hooks/useValidity';
 import { NodeBody } from './NodeBody';
 import { NodeFooter } from './NodeFooter/NodeFooter';
 import { NodeHeader } from './NodeHeader';
@@ -19,46 +19,29 @@ interface IteratorHelperNodeProps {
 }
 
 export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodeProps) => {
-    const edgeChanges = useContextSelector(GlobalVolatileContext, (c) => c.edgeChanges);
     const effectivelyDisabledNodes = useContextSelector(
         GlobalVolatileContext,
         (c) => c.effectivelyDisabledNodes
     );
-    const { schemata, updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
-    const { getEdges } = useReactFlow<NodeData, EdgeData>();
+    const { updateIteratorBounds, setHoveredNode } = useContext(GlobalContext);
+    const { schemata } = useContext(BackendContext);
 
-    const { id, inputData, isLocked, parentNode, schemaId, animated = false } = data;
+    const { id, inputData, isLocked, parentNode, schemaId } = data;
+    const animated = useContextSelector(GlobalVolatileContext, (c) => c.isAnimated(id));
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
     const { inputs, outputs, icon, category, name } = schema;
 
-    const functionInstance = useContextSelector(GlobalVolatileContext, (c) =>
-        c.typeState.functions.get(id)
-    );
-
-    const regularBorderColor = useColorModeValue('gray.100', 'gray.800');
+    const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
     const borderColor = useMemo(
         () => (selected ? shadeColor(accentColor, 0) : regularBorderColor),
         [selected, accentColor, regularBorderColor]
     );
 
-    const [validity, setValidity] = useState(VALID);
-    useEffect(() => {
-        if (inputs.length) {
-            setValidity(
-                checkNodeValidity({
-                    id,
-                    schema,
-                    inputData,
-                    edges: getEdges(),
-                    functionInstance,
-                })
-            );
-        }
-    }, [inputData, edgeChanges, getEdges, functionInstance]);
+    const { validity } = useValidity(id, schema, inputData);
 
     const disabledStatus = useMemo(
         () => getDisabledStatus(data, effectivelyDisabledNodes),
@@ -82,7 +65,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
 
     return (
         <Center
-            bg={useColorModeValue('gray.300', 'gray.750')}
+            bg="var(--node-bg-color)"
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"

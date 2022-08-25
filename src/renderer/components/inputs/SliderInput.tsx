@@ -9,18 +9,16 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContext, useContextSelector } from 'use-context-selector';
+import { useContextSelector } from 'use-context-selector';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { SettingsContext } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
-import { AdvancedNumberInput, getPrecision } from './elements/AdvanceNumberInput';
+import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
 interface SliderInputProps extends InputProps {
     min: number;
     max: number;
-    offset: number;
-    step: number;
+    precision: number;
     controlsStep: number;
     sliderStep: number;
     def: number;
@@ -49,8 +47,7 @@ export const SliderInput = memo(
         def,
         min,
         max,
-        offset,
-        step,
+        precision,
         controlsStep,
         sliderStep,
         unit,
@@ -65,15 +62,11 @@ export const SliderInput = memo(
             inputId
         );
 
-        const { useIsDarkMode } = useContext(SettingsContext);
-        const [isDarkMode] = useIsDarkMode;
-
         const [input, setInput] = useInputData<number>(inputId);
         const [inputString, setInputString] = useState(String(input));
         const [sliderValue, setSliderValue] = useState(input ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
-        const precision = Math.max(getPrecision(offset), getPrecision(step));
         const precisionOutput = (val: number) =>
             hideTrailingZeros ? String(val) : val.toFixed(precision);
 
@@ -94,7 +87,7 @@ export const SliderInput = memo(
             setSliderValue(Number(numberAsString));
         };
 
-        const [typeAccentColor] = getTypeAccentColors(definitionType, isDarkMode);
+        const [typeAccentColor] = getTypeAccentColors(definitionType);
 
         const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
             const type = c.typeState.functions.get(id)?.inputs.get(inputId);
@@ -158,10 +151,9 @@ export const SliderInput = memo(
                         isDisabled={isLocked || isInputLocked}
                         max={max}
                         min={min}
-                        offset={offset}
+                        precision={precision}
                         setInput={setInput}
                         setInputString={onNumberInputChange}
-                        step={step}
                         unit={unit}
                     />
                 </HStack>

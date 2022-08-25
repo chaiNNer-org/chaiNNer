@@ -149,6 +149,8 @@ export const toJson = (e: Expression): ExpressionJson => {
         }
         case 'scope':
             throw new Error('Converting scoped expressions to JSON is currently not supported.');
+        case 'inverted-set':
+            throw new Error('Converting scoped expressions to JSON is currently not supported.');
         default:
             return assertNever(e);
     }

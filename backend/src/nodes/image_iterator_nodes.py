@@ -4,10 +4,10 @@ import math
 import os
 
 import numpy as np
-from process import Executor, ExecutionContext
+from process import ExecutionContext
 from sanic.log import logger
 
-from .categories import IMAGE
+from .categories import ImageCategory
 from .image_nodes import ImReadNode
 from .node_base import IteratorNodeBase, NodeBase
 from .node_factory import NodeFactory
@@ -31,12 +31,14 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = ImReadNode().get_outputs()
-        self.outputs.insert(
-            2, TextOutput("Relative Path")
-        )  # Add relative path to outputs outside ImReadNode
+        self.outputs = [
+            ImageOutput(broadcast_type=True),
+            DirectoryOutput(),
+            TextOutput("Relative Path"),
+            TextOutput("Image Name"),
+        ]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Load Image (Iterator)"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -45,15 +47,11 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
         self.side_effects = True
 
-    def run(
-        self, directory: str = "", root_dir: str = ""
-    ) -> Tuple[np.ndarray, str, str, str]:
-        imread = ImReadNode()
-        imread_output = imread.run(directory)
-        img, _, basename = imread_output
+    def run(self, path: str, root_dir: str) -> Tuple[np.ndarray, str, str, str]:
+        img, img_dir, basename = ImReadNode().run(path)
 
         # Get relative path from root directory passed by Iterator directory input
-        rel_path = os.path.relpath(imread_output[1], root_dir)
+        rel_path = os.path.relpath(img_dir, root_dir)
 
         return img, root_dir, rel_path, basename
 
@@ -67,7 +65,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
             DirectoryInput(),
         ]
         self.outputs = []
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Image File Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this
@@ -82,7 +80,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
         logger.info(context.nodes)
 
         img_path_node_id = None
-        child_nodes = []
+        child_nodes: List[str] = []
         for k, v in context.nodes.items():
             if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
                 img_path_node_id = v["id"]
@@ -99,14 +97,14 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 f"Exception occurred during walk: {exception_instance} Continuing..."
             )
 
-        just_image_files = []
+        just_image_files: List[str] = []
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
             if context.executor.should_stop_running():
                 return
 
-            for name in files:
+            for name in sorted(files):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
@@ -130,13 +128,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 )
                 # Replace the input filepath with the filepath from the loop
                 context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
-                executor = Executor(
-                    context.nodes,
-                    context.loop,
-                    context.queue,
-                    context.cache.copy(),
-                    parent_executor=context.executor,
-                )
+                executor = context.create_iterator_executor()
                 await executor.run()
                 await context.queue.put(
                     {
@@ -156,9 +148,12 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [LargeImageOutput("Frame Image"), TextOutput("Frame Index")]
+        self.outputs = [
+            ImageOutput("Frame Image", broadcast_type=True),
+            TextOutput("Frame Index"),
+        ]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Load Frame As Image"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -184,7 +179,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         ]
         self.outputs = []
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Write Output Frame"
         self.icon = "MdVideoCameraBack"
         self.sub = "Iteration"
@@ -248,7 +243,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             },
         ]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Video Frame Iterator"
         self.icon = "MdVideoCameraBack"
 
@@ -259,7 +254,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         input_node_id = None
         output_node_id = None
-        child_nodes = []
+        child_nodes: List[str] = []
         for k, v in context.nodes.items():
             if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
                 input_node_id = v["id"]
@@ -303,16 +298,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                     }
                 )
                 context.nodes[input_node_id]["inputs"] = [frame, idx]
-                external_cache_copy = context.cache.copy()
-                executor = Executor(
-                    context.nodes,
-                    context.loop,
-                    context.queue,
-                    external_cache_copy,
-                    parent_executor=context.executor,
-                )
+                executor = context.create_iterator_executor()
                 await executor.run()
-                del external_cache_copy
                 await context.queue.put(
                     {
                         "event": "iterator-progress-update",
@@ -335,9 +322,9 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [LargeImageOutput()]
+        self.outputs = [ImageOutput(broadcast_type=True)]
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Load Image (Iterator)"
         self.icon = "MdSubdirectoryArrowRight"
         self.sub = "Iteration"
@@ -358,7 +345,7 @@ class ImageSpriteSheetIteratorAppendImageNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = []
 
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Append Image"
         self.icon = "CgExtensionAdd"
         self.sub = "Iteration"
@@ -380,21 +367,19 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             ImageInput("Spritesheet"),
             NumberInput(
                 "Number of rows (vertical)",
-                step=1,
                 controls_step=1,
                 minimum=1,
                 default=1,
             ),
             NumberInput(
                 "Number of columns (horizontal)",
-                step=1,
                 controls_step=1,
                 minimum=1,
                 default=1,
             ),
         ]
         self.outputs = [ImageOutput()]
-        self.category = IMAGE
+        self.category = ImageCategory
         self.name = "Spritesheet Iterator"
         self.default_nodes = [
             # TODO: Figure out a better way to do this
@@ -424,7 +409,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
 
         img_loader_node_id = None
         output_node_id = None
-        child_nodes = []
+        child_nodes: List[str] = []
         for k, v in context.nodes.items():
             if v["schemaId"] == SPRITESHEET_ITERATOR_INPUT_NODE_ID:
                 img_loader_node_id = v["id"]
@@ -476,13 +461,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             # Replace the input filepath with the filepath from the loop
             context.nodes[img_loader_node_id]["inputs"] = [img]
             # logger.info(nodes[output_node_id]["inputs"])
-            executor = Executor(
-                context.nodes,
-                context.loop,
-                context.queue,
-                context.cache.copy(),
-                parent_executor=context.executor,
-            )
+            executor = context.create_iterator_executor()
             await executor.run()
             await context.queue.put(
                 {

@@ -10,7 +10,7 @@ import {
     NamedExpression,
     UnionExpression,
 } from '../../../src/common/types/expression';
-import { BuiltinFunctionDefinition, Scope } from '../../../src/common/types/scope';
+import { BuiltinFunctionDefinition, ScopeBuilder } from '../../../src/common/types/scope';
 import {
     AnyType,
     NeverType,
@@ -34,8 +34,9 @@ import {
     unorderedPairs,
 } from './data';
 
-const scope = new Scope('test scope', getChainnerScope());
-scope.add(BuiltinFunctionDefinition.unary('reciprocal', reciprocal, NumberType.instance));
+const scopeBuilder = new ScopeBuilder('test scope', getChainnerScope());
+scopeBuilder.add(BuiltinFunctionDefinition.unary('reciprocal', reciprocal, NumberType.instance));
+const scope = scopeBuilder.createScope();
 
 const assertSame = (a: Expression, b: Expression): void => {
     const expected = evaluate(a, scope).getTypeId();

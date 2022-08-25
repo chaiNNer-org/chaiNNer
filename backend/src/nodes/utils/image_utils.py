@@ -15,6 +15,13 @@ class FillColor:
     TRANSPARENT = 1
 
 
+class FlipAxis:
+    HORIZONTAL = 1
+    VERTICAL = 0
+    BOTH = -1
+    NONE = 2
+
+
 def get_opencv_formats():
     available_formats = [
         # Bitmaps
@@ -28,6 +35,7 @@ def get_opencv_formats():
         # PNG, WebP, Tiff
         ".png",
         ".webp",
+        ".tif",
         ".tiff",
         # Portable image format
         ".pbm",
@@ -108,16 +116,6 @@ def convert_to_BGRA(img: np.ndarray, c: int) -> np.ndarray:
     return img.copy()
 
 
-def convert_from_BGRA(img: np.ndarray, c: int) -> np.ndarray:
-    assert c in (1, 3, 4), f"Number of channels ({c}) unexpected"
-    if c == 1:
-        img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
-    elif c == 3:
-        img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-
-    return img.copy()
-
-
 def normalize(img: np.ndarray) -> np.ndarray:
     dtype_max = 1
     try:
@@ -177,36 +175,99 @@ def shift(img: np.ndarray, amount_x: int, amount_y: int, fill: int) -> np.ndarra
     return img
 
 
-def blend_images(ov: np.ndarray, base: np.ndarray, blend_mode: int):
-    """Changes the given image to the background overlayed with the image."""
-    assert get_h_w_c(ov)[2] == 4, "The image has to be an RGBA image"
-    assert get_h_w_c(base)[2] == 4, "The background has to be an RGBA image"
+def as_2d_grayscale(img: np.ndarray) -> np.ndarray:
+    """Given a grayscale image, this returns an image with 2 dimensions (image.ndim == 2)."""
+    if img.ndim == 2:
+        return img
+    if img.ndim == 3 and img.shape[2] == 1:
+        return img[:, :, 0]
+    assert False, f"Invalid image shape {img.shape}"
 
-    ov_a = ov[:, :, 3]
-    base_a = base[:, :, 3]
-    combined_a = 1 - (1 - ov_a) * (1 - base_a)
+
+def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
+    """
+    Given a number of target channels (either 1, 3, or 4), this convert the given image
+    to an image with that many channels. If the given image already has the correct
+    number of channels, it will be returned as is.
+
+    Only widening conversions are supported.
+    """
+    c = get_h_w_c(img)[2]
+
+    if target_channels == 1:
+        return as_2d_grayscale(img)
+    if c == target_channels:
+        return img
+
+    assert c < target_channels
+
+    if target_channels == 3:
+        if c == 1:
+            img = as_2d_grayscale(img)
+            return np.concatenate([img, img, img], axis=2)
+
+    if target_channels == 4:
+        return convert_to_BGRA(img, c)
+
+    assert False, "Unable to convert image"
+
+
+def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
+    """
+    Changes the given image to the background overlayed with the image.
+
+    The 2 given images must be the same size.
+
+    If the 2 given images have a different number of channels, then the returned image
+    will have maximum of the two.
+
+    Only grayscale, RGB, and RGBA images are supported.
+    """
+    o_shape = get_h_w_c(overlay)
+    b_shape = get_h_w_c(base)
+
+    assert (
+        o_shape[:2] == b_shape[:2]
+    ), "The overlay and the base image must have the same size"
+
+    def assert_sane(c: int, name: str):
+        sane = c in (1, 3, 4)
+        assert sane, f"The {name} has to be a grayscale, RGB, or RGBA image"
+
+    assert_sane(o_shape[2], "overlay layer")
+    assert_sane(b_shape[2], "base layer")
 
     blender = ImageBlender()
-    ov[:, :, 0] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 0])  # type: ignore
-        + ((base_a - ov_a * base_a) * base[:, :, 0])  # type: ignore
-        + (ov_a * base_a * blender.apply_blend(ov[:, :, 0], base[:, :, 0], blend_mode))
-    )
-    ov[:, :, 1] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 1])  # type: ignore
-        + ((base_a - ov_a * base_a) * base[:, :, 1])  # type: ignore
-        + (ov_a * base_a * blender.apply_blend(ov[:, :, 1], base[:, :, 1], blend_mode))
-    )
-    ov[:, :, 2] = (
-        ((ov_a - ov_a * base_a) * ov[:, :, 2])  # type: ignore
-        + ((base_a - ov_a * base_a) * base[:, :, 2])  # type: ignore
-        + (ov_a * base_a * blender.apply_blend(ov[:, :, 2], base[:, :, 2], blend_mode))
-    )
+    target_c = max(o_shape[2], b_shape[2])
+    overlay = as_target_channels(overlay, target_c)
+    base = as_target_channels(base, target_c)
 
-    ov[:, :, :3] = ov[:, :, :3] / np.maximum(np.dstack((combined_a,) * 3), 0.0001)
-    ov[:, :, 3] = combined_a
+    if target_c in (1, 3):
+        # We don't need to do any alpha blending, so the images can blended directly
+        return blender.apply_blend(overlay, base, blend_mode)
 
-    return ov
+    # do the alpha blending for RGBA
+    o_a = overlay[:, :, 3]
+    b_a = base[:, :, 3]
+    o_rgb = overlay[:, :, :3]
+    b_rgb = base[:, :, :3]
+
+    final_a = 1 - (1 - o_a) * (1 - b_a)
+
+    blend_strength = o_a * b_a
+    o_strength = o_a - blend_strength  # type: ignore
+    b_strength = b_a - blend_strength  # type: ignore
+
+    blend_rgb = blender.apply_blend(o_rgb, b_rgb, blend_mode)
+
+    final_rgb = (
+        (np.dstack((o_strength,) * 3) * o_rgb)
+        + (np.dstack((b_strength,) * 3) * b_rgb)
+        + (np.dstack((blend_strength,) * 3) * blend_rgb)
+    )
+    final_rgb /= np.maximum(np.dstack((final_a,) * 3), 0.0001)  # type: ignore
+
+    return np.concatenate([final_rgb, np.expand_dims(final_a, axis=2)], axis=2)
 
 
 def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:

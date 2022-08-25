@@ -1,40 +1,23 @@
 import { useMemo, useRef } from 'react';
 import { useContext } from 'use-context-selector';
-import { getBackend } from '../../common/Backend';
 import { NodeData } from '../../common/common-types';
 import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
+import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
 
 export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boolean): void => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { changeNodes, schemata } = useContext(GlobalContext);
-    const { useIsCpu, useIsFp16, port } = useContext(SettingsContext);
-    const backend = getBackend(port);
+    const { animate, unAnimate } = useContext(GlobalContext);
+    const { schemata, backend } = useContext(BackendContext);
+    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
 
     const schema = schemata.get(schemaId);
-
-    const setAnimated = (nodeAnimated: boolean) => {
-        changeNodes((nodes) =>
-            nodes.map((n) => {
-                if (n.id === id) {
-                    return {
-                        ...n,
-                        data: {
-                            ...n.data,
-                            animated: nodeAnimated,
-                        },
-                    };
-                }
-                return n;
-            })
-        );
-    };
 
     const inputs = useMemo(
         () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
@@ -50,13 +33,12 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 token.checkCanceled();
 
                 lastRunInputHash.current = inputHash;
-                setAnimated(true);
+                animate([id], false);
 
                 const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
 
-                setAnimated(false);
-
                 if (!result.success) {
+                    unAnimate([id]);
                     sendToast({
                         status: 'error',
                         title: 'Error',

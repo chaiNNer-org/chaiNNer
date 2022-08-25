@@ -10,13 +10,18 @@ import {
     MenuList,
     Spacer,
     Text,
-    useColorModeValue,
-    useToken,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
-import { InputId, NodeData, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
+import {
+    Category,
+    InputId,
+    NodeData,
+    NodeSchema,
+    OutputId,
+    SchemaId,
+} from '../../common/common-types';
 import { FunctionDefinition } from '../../common/types/function';
 import { Type } from '../../common/types/types';
 import {
@@ -28,22 +33,25 @@ import {
     stringifyTargetHandle,
 } from '../../common/util';
 import { IconFactory } from '../components/CustomIcons';
+import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
 import { TypeState } from '../helpers/TypeState';
 import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
+import { useThemeColor } from './useThemeColor';
 
 interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
+    categories: Category[];
 }
 
-const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
+const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
@@ -51,12 +59,9 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
         [searchQuery, schemata]
     );
 
-    const [gray200, gray800] = useToken('colors', ['gray.200', 'gray.800']) as string[];
-    const menuBgColor = useColorModeValue(gray200, gray800);
-    const [gray300, gray700] = useToken('colors', ['gray.300', 'gray.700']) as string[];
-    const bgColor = useColorModeValue(gray300, gray700);
-    const inputColor = useColorModeValue('gray.500', 'gray.300');
-    const hoverColor = useColorModeValue('black', 'white');
+    const bgColor = useThemeColor('--bg-700');
+    const menuBgColor = useThemeColor('--bg-800');
+    const inputColor = 'var(--fg-300)';
 
     return (
         <MenuList
@@ -87,7 +92,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <InputRightElement
-                    _hover={{ color: hoverColor }}
+                    _hover={{ color: 'var(--fg-000)' }}
                     style={{
                         color: inputColor,
                         cursor: 'pointer',
@@ -122,7 +127,7 @@ const Menu = memo(({ onSelect, schemata, favorites }: MenuProps) => {
                                     <IconFactory
                                         accentColor={accentColor}
                                         boxSize={3}
-                                        icon={category}
+                                        icon={categories.find((c) => c.name === category)?.icon}
                                     />
                                     <Text fontSize="xs">{category}</Text>
                                 </HStack>
@@ -265,7 +270,7 @@ export const usePaneNodeSearchMenu = (
     const { createNode, createConnection, typeState, useConnectingFrom } =
         useContext(GlobalVolatileContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { schemata, functionDefinitions } = useContext(GlobalContext);
+    const { schemata, functionDefinitions, categories } = useContext(BackendContext);
 
     const { favorites } = useNodeFavorites();
 
@@ -363,6 +368,7 @@ export const usePaneNodeSearchMenu = (
         onSelect: onSchemaSelect,
         schemata: matchingSchemata,
         favorites,
+        categories,
     };
     // eslint-disable-next-line react/jsx-props-no-spreading
     const menu = useContextMenu(() => <Menu {...menuProps} />, Object.values(menuProps));

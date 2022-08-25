@@ -7,8 +7,7 @@ import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
 
 interface NumericalInputProps extends InputProps {
-    offset: number;
-    step: number;
+    precision: number;
     controlsStep: number;
     min?: number | null;
     max?: number | null;
@@ -25,8 +24,7 @@ export const NumberInput = memo(
         def,
         min,
         max,
-        offset,
-        step,
+        precision,
         controlsStep,
         unit,
         hideTrailingZeros,
@@ -69,10 +67,9 @@ export const NumberInput = memo(
                     isDisabled={isLocked || isInputLocked}
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
-                    offset={offset}
+                    precision={precision}
                     setInput={setInput}
                     setInputString={setInputString}
-                    step={step}
                     unit={unit}
                 />
             </HStack>

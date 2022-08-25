@@ -715,7 +715,7 @@ Object {
           "1": 90,
           "2": 0,
           "3": 0,
-          "4": 9,
+          "4": 4,
           "5": 2,
         },
         "schemaId": "chainner:image:threshold_adaptive",
@@ -3240,7 +3240,7 @@ Object {
 
 exports[`Write save file image-adjustments.chn 1`] = `
 Object {
-  "checksum": "aa25590a25e064bc1651e02ae72dbd83",
+  "checksum": "d2a7d8b3d214413add0c229ac3d8be32",
   "content": Object {
     "edges": Array [],
     "nodes": Array [
@@ -3312,7 +3312,7 @@ Object {
             "1": 90,
             "2": 0,
             "3": 0,
-            "4": 9,
+            "4": 4,
             "5": 2,
           },
           "schemaId": "chainner:image:threshold_adaptive",

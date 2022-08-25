@@ -1,25 +1,17 @@
 /* eslint-disable no-nested-ternary */
 import { ViewOffIcon } from '@chakra-ui/icons';
-import {
-    Center,
-    HStack,
-    Spinner,
-    Tag,
-    Text,
-    Wrap,
-    WrapItem,
-    useColorModeValue,
-} from '@chakra-ui/react';
+import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
+import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
+import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
-    modelType?: string;
+    modelType: string;
     inNc: number;
     outNc: number;
     size: string[];
@@ -41,9 +33,10 @@ const getColorMode = (channels: number) => {
 
 export const PyTorchOutput = memo(
     ({ id, outputId, useOutputData, animated = false, schemaId }: OutputProps) => {
-        const value = useOutputData(outputId) as PyTorchModelData | undefined;
+        const [value] = useOutputData<PyTorchModelData>(outputId);
 
-        const { setManualOutputType, schemata } = useContext(GlobalContext);
+        const { setManualOutputType } = useContext(GlobalContext);
+        const { schemata } = useContext(BackendContext);
 
         const schema = schemata.get(schemaId);
 
@@ -63,6 +56,14 @@ export const PyTorchOutput = memo(
                                 'outputChannels',
                                 new NumericLiteralType(value.outNc)
                             ),
+                            new NamedExpressionField(
+                                'modelType',
+                                new StringLiteralType(value.modelType)
+                            ),
+                            new NamedExpressionField(
+                                'size',
+                                new StringLiteralType(value.size.join('x'))
+                            ),
                         ])
                     );
                 } else {
@@ -71,8 +72,8 @@ export const PyTorchOutput = memo(
             }
         }, [id, schemaId, value]);
 
-        const tagColor = useColorModeValue('gray.400', 'gray.750');
-        const fontColor = useColorModeValue('gray.700', 'gray.400');
+        const tagColor = 'var(--tag-bg)';
+        const fontColor = 'var(--tag-fg)';
 
         return (
             <Center
@@ -94,7 +95,7 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.modelType ?? '?'}
+                                    {value.modelType}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>
