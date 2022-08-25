@@ -1,4 +1,4 @@
-import { Box, Center, Text, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Text, Tooltip } from '@chakra-ui/react';
 import { MouseEventHandler, memo } from 'react';
 
 export interface TextBoxProps {
@@ -30,8 +30,12 @@ export const TextBox = memo(
                     py={1}
                 >
                     <Box
-                        _hover={interactive ? { backgroundColor: 'gray.600' } : undefined}
-                        bg={useColorModeValue('gray.200', 'gray.700')}
+                        _hover={
+                            interactive
+                                ? { backgroundColor: 'var(--selector-text-bg-hover)' }
+                                : undefined
+                        }
+                        bg="var(--selector-text-bg)"
                         borderRadius={10}
                         cursor={interactive ? 'pointer' : undefined}
                         p={2}

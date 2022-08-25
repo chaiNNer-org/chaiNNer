@@ -4,7 +4,7 @@ from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
-from ...utils.image_utils import FillColor
+from ...utils.image_utils import FillColor, FlipAxis
 
 
 class DropDownInput(BaseInput):
@@ -196,9 +196,10 @@ def FlipAxisInput() -> DropDownInput:
         input_type="FlipAxis",
         label="Flip Axis",
         options=[
-            {"option": "Horizontal", "value": 1},
-            {"option": "Vertical", "value": 0},
-            {"option": "Both", "value": -1},
+            {"option": "Horizontal", "value": FlipAxis.HORIZONTAL},
+            {"option": "Vertical", "value": FlipAxis.VERTICAL},
+            {"option": "Both", "value": FlipAxis.BOTH},
+            {"option": "None", "value": FlipAxis.NONE},
         ],
     )
 

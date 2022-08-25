@@ -95,7 +95,7 @@ export const pipInstallWithProgress = async (
             '--disable-pip-version-check',
         ];
         if (pkg.findLink) {
-            args = [...args, '-f', pkg.findLink];
+            args = [...args, '--extra-index-url', pkg.findLink];
         }
         const pipRequest = spawn(python, ['-m', 'pip', ...args]);
 
@@ -174,8 +174,8 @@ export const pipInstallWithProgress = async (
             }
         });
 
-        pipRequest.stderr.on('data', () => {
-            // log.debug(String(data));
+        pipRequest.stderr.on('data', (data) => {
+            log.error(String(data));
         });
 
         pipRequest.on('error', (error) => {

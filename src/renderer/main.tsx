@@ -1,11 +1,11 @@
-import { Box, Center, HStack, Text, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { Category, SchemaId } from '../common/common-types';
+import { Category, NodeType, SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -60,7 +60,7 @@ const processBackendResponse = ({ nodes, categories }: BackendNodesResponse): No
     return { schemata, categories, functionDefinitions };
 };
 
-const nodeTypes: NodeTypes = {
+const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
     regularNode: Node,
     iterator: IteratorNode,
     iteratorHelper: IteratorHelperNode,
@@ -87,8 +87,6 @@ export const Main = memo(({ port }: MainProps) => {
         { cachePolicy: CachePolicies.NO_CACHE, retries: 10 },
         [port]
     );
-
-    const bgColor = useColorModeValue('gray.300', 'gray.900');
 
     useEffect(() => {
         if (response.ok && data && !loading && !error && !backendReady) {
@@ -181,7 +179,7 @@ export const Main = memo(({ port }: MainProps) => {
                             <DependencyProvider>
                                 <HistoryProvider>
                                     <VStack
-                                        bg={bgColor}
+                                        bg="var(--window-bg)"
                                         h="100vh"
                                         overflow="hidden"
                                         p={2}

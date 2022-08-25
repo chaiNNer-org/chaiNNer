@@ -17,7 +17,6 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import React, { memo, useMemo, useState } from 'react';
@@ -40,6 +39,11 @@ import { TextBox } from './TextBox';
 export const NodeSelector = memo(() => {
     const { schemata, categories } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
+
+    const nonEmptyCategories = useMemo(
+        () => new Set(schemata.schemata.map((s) => s.category)),
+        [schemata]
+    );
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -83,7 +87,7 @@ export const NodeSelector = memo(() => {
             onMouseLeave={() => setShowCollapseButtons(false)}
         >
             <Box
-                bg={useColorModeValue('gray.200', 'gray.800')}
+                bg="var(--node-selector-bg)"
                 borderRadius="lg"
                 borderWidth="0px"
                 h="100%"
@@ -114,7 +118,7 @@ export const NodeSelector = memo(() => {
                             >
                                 <InputGroup borderRadius={0}>
                                     <InputLeftElement
-                                        color={useColorModeValue('gray.500', 'gray.300')}
+                                        color="var(--fg-300)"
                                         pointerEvents="none"
                                     >
                                         <SearchIcon />
@@ -133,9 +137,9 @@ export const NodeSelector = memo(() => {
                                         onClick={() => setCollapsed(false)}
                                     />
                                     <InputRightElement
-                                        _hover={{ color: useColorModeValue('black', 'white') }}
+                                        _hover={{ color: 'var(--fg-000)' }}
                                         style={{
-                                            color: useColorModeValue('gray.500', 'gray.300'),
+                                            color: 'var(--fg-300)',
                                             cursor: 'pointer',
                                             display: searchQuery ? undefined : 'none',
                                             fontSize: '66%',
@@ -153,11 +157,11 @@ export const NodeSelector = memo(() => {
                                     <Center>
                                         <Button
                                             _hover={{
-                                                bg: useColorModeValue('gray.400', 'gray.600'),
+                                                bg: 'var(--bg-600)',
                                                 opacity: 1,
                                             }}
                                             aria-label="Collapse/Expand Categories"
-                                            bg={useColorModeValue('gray.300', 'gray.700')}
+                                            bg="var(--bg-700)"
                                             borderRadius="0px 0px 8px 8px"
                                             h="0.5rem"
                                             opacity={showCollapseButtons ? 0.75 : 0}
@@ -212,7 +216,8 @@ export const NodeSelector = memo(() => {
                                                 );
                                             }
 
-                                            if (category.installHint) {
+                                            const noNodes = !nonEmptyCategories.has(category.name);
+                                            if (category.installHint && noNodes) {
                                                 return (
                                                     <RegularAccordionItem
                                                         category={category}
@@ -255,11 +260,11 @@ export const NodeSelector = memo(() => {
             </Box>
             <Button
                 _hover={{
-                    bg: useColorModeValue('gray.400', 'gray.600'),
+                    bg: 'var(--bg-600)',
                     opacity: 1,
                 }}
                 aria-label="collapse"
-                bg={useColorModeValue('gray.300', 'gray.700')}
+                bg="var(--bg-700)"
                 borderRadius={0}
                 borderRightRadius="xl"
                 h="100px"

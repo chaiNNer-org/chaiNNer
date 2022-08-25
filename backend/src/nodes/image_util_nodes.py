@@ -11,7 +11,7 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import blend_images, calculate_ssim, shift
+from .utils.image_utils import blend_images, calculate_ssim, shift, FlipAxis
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -505,6 +505,8 @@ class FlipNode(NodeBase):
         self.sub = "Modification"
 
     def run(self, img: np.ndarray, axis: int) -> np.ndarray:
+        if axis == FlipAxis.NONE:
+            return img
         return cv2.flip(img, axis)
 
 

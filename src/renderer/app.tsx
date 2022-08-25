@@ -1,7 +1,6 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import { LocalStorage } from 'node-localstorage';
 import { memo, useState } from 'react';
-import './global.css';
 import { ipcRenderer } from '../common/safeIpc';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { ContextMenuProvider } from './contexts/ContextMenuContext';

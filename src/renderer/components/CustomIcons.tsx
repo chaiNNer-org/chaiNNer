@@ -93,7 +93,7 @@ export const IconFactory = memo(
         accentColor,
         boxSize = 4,
     }: {
-        icon: string;
+        icon?: string;
         accentColor: string;
         boxSize?: number;
     }) => {

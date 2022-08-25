@@ -20,11 +20,7 @@ const colorList = lazy(() => {
     ];
 });
 
-export const getTypeAccentColors = (
-    inputType: Type,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isDarkMode = true
-): string[] => {
+export const getTypeAccentColors = (inputType: Type): string[] => {
     const colors: string[] = [];
     for (const { type, color } of colorList()) {
         if (!isDisjointWith(type, inputType)) {

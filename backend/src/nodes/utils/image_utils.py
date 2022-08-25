@@ -15,6 +15,13 @@ class FillColor:
     TRANSPARENT = 1
 
 
+class FlipAxis:
+    HORIZONTAL = 1
+    VERTICAL = 0
+    BOTH = -1
+    NONE = 2
+
+
 def get_opencv_formats():
     available_formats = [
         # Bitmaps

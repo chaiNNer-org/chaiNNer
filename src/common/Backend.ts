@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { Category, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
+import { Category, InputId, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
     message: string;
@@ -8,6 +8,12 @@ export interface BackendSuccessResponse {
 export interface BackendExceptionSource {
     nodeId: string;
     schemaId: SchemaId;
+    inputs: Partial<
+        Record<
+            InputId,
+            { width: number; height: number; channels: number } | string | number | null
+        >
+    >;
 }
 export interface BackendExceptionResponse {
     message: string;

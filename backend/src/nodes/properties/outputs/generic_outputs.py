@@ -1,4 +1,4 @@
-from .base_output import BaseOutput
+from .base_output import BaseOutput, OutputKind
 from .. import expression
 
 
@@ -9,7 +9,10 @@ def NumberOutput(label: str, output_type: expression.ExpressionJson = "number"):
 
 class TextOutput(BaseOutput):
     def __init__(
-        self, label: str, output_type: expression.ExpressionJson = "string", kind="text"
+        self,
+        label: str,
+        output_type: expression.ExpressionJson = "string",
+        kind: OutputKind = "text",
     ):
         super().__init__(expression.intersect("string", output_type), label, kind=kind)
 

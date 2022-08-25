@@ -9,8 +9,9 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { clipboard, shell } from 'electron';
+import log from 'electron-log';
 import path from 'path';
-import { DragEvent, memo, useEffect } from 'react';
+import { DragEvent, memo } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -28,6 +29,8 @@ interface FileInputProps extends InputProps {
     filetypes: readonly string[];
 }
 
+const logError = (e: unknown) => log.error(e);
+
 export const FileInput = memo(
     ({ filetypes, id, inputId, useInputData, label, isLocked, schemaId }: FileInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
@@ -38,41 +41,31 @@ export const FileInput = memo(
 
         const [filePath, setFilePath] = useInputData<string>(inputId);
 
-        // Handle case of NCNN model selection where param and bin files are named in pairs
-        // Eventually, these should be combined into a single input type instead of using
-        // the file inputs directly
-        if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('bin')) {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const [paramFilePath] = useInputData<string>((inputId - 1) as InputId);
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            useEffect(() => {
-                (async () => {
-                    if (paramFilePath) {
-                        const binFilePath = paramFilePath.replace('.param', '.bin');
-                        const binFileExists = await checkFileExists(binFilePath);
-                        if (binFileExists) {
-                            setFilePath(paramFilePath.replace('.param', '.bin'));
-                        }
+        const updateFilePath = async (file: string) => {
+            // Handle case of NCNN model selection where param and bin files are named in pairs
+            // Eventually, these should be combined into a single input type instead of using
+            // the file inputs directly
+            if (/NCNN/i.test(label)) {
+                if (/bin/i.test(label)) {
+                    const param = file.replace(/\.bin$/i, '.param');
+                    if (await checkFileExists(param)) {
+                        // eslint-disable-next-line react-hooks/rules-of-hooks
+                        const [, setParamPath] = useInputData((inputId - 1) as InputId);
+                        setParamPath(param);
                     }
-                })();
-            }, [paramFilePath]);
-        }
-        if (label.toUpperCase().includes('NCNN') && label.toLowerCase().includes('param')) {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const [binFilePath] = useInputData<string>((inputId + 1) as InputId);
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            useEffect(() => {
-                (async () => {
-                    if (binFilePath) {
-                        const paramFilePath = binFilePath.replace('.param', '.bin');
-                        const paramFileExists = await checkFileExists(paramFilePath);
-                        if (paramFileExists) {
-                            setFilePath(paramFilePath.replace('.bin', '.param'));
-                        }
+                }
+                if (/param/i.test(label)) {
+                    const bin = file.replace(/\.param$/i, '.bin');
+                    if (await checkFileExists(bin)) {
+                        // eslint-disable-next-line react-hooks/rules-of-hooks
+                        const [, setBinPath] = useInputData((inputId + 1) as InputId);
+                        setBinPath(bin);
                     }
-                })();
-            }, [binFilePath]);
-        }
+                }
+            }
+
+            setFilePath(file);
+        };
 
         const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
 
@@ -92,7 +85,7 @@ export const FileInput = memo(
             );
             const selectedPath = filePaths[0];
             if (!canceled && selectedPath) {
-                setFilePath(selectedPath);
+                updateFilePath(selectedPath).catch(logError);
                 setLastDirectory(path.dirname(selectedPath));
             }
         };
@@ -116,7 +109,7 @@ export const FileInput = memo(
 
                 const p = getSingleFileWithExtension(event.dataTransfer, filetypes);
                 if (p) {
-                    setFilePath(p);
+                    updateFilePath(p).catch(logError);
                     return;
                 }
 
