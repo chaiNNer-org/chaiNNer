@@ -612,6 +612,96 @@ Object {
 }
 `;
 
+exports[`Read save file convert-to-ncnn.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "1eaa9bee-3615-45de-8bb6-6b79230ff664",
+      "source": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "sourceHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+      "target": "9256866c-414a-4bd7-8b66-804922ac8875",
+      "targetHandle": "9256866c-414a-4bd7-8b66-804922ac8875-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c83b7ba6-3179-43ba-8c7f-9b44a2f8ca45",
+      "source": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+      "sourceHandle": "056923aa-5161-4efb-b1a8-1a15a867ae26-0",
+      "target": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "targetHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "inputData": Object {},
+        "schemaId": "chainner:onnx:load_model",
+      },
+      "height": 252,
+      "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+      "position": Object {
+        "x": 390,
+        "y": 345,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 256,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "inputData": Object {
+          "1": 0,
+        },
+        "schemaId": "chainner:onnx:convert_to_ncnn",
+      },
+      "height": 252,
+      "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "position": Object {
+        "x": 675,
+        "y": 345,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "inputData": Object {},
+        "schemaId": "chainner:ncnn:save_model",
+      },
+      "height": 270,
+      "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+      "position": Object {
+        "x": 945,
+        "y": 345,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 256,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": -113.11594255284149,
+    "y": 57.879643031246246,
+    "zoom": 0.6263322193120638,
+  },
+}
+`;
+
 exports[`Read save file crop-content.chn 1`] = `
 Object {
   "edges": Array [],
@@ -3196,6 +3286,100 @@ Object {
       "x": 0,
       "y": 0,
       "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file convert-to-ncnn.chn 1`] = `
+Object {
+  "checksum": "8b7a040d325bbda5f9fb8bca141054db",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "1eaa9bee-3615-45de-8bb6-6b79230ff664",
+        "source": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "sourceHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+        "target": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "targetHandle": "9256866c-414a-4bd7-8b66-804922ac8875-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c83b7ba6-3179-43ba-8c7f-9b44a2f8ca45",
+        "source": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "sourceHandle": "056923aa-5161-4efb-b1a8-1a15a867ae26-0",
+        "target": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "targetHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+          "inputData": Object {},
+          "schemaId": "chainner:onnx:load_model",
+        },
+        "height": 252,
+        "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "position": Object {
+          "x": 390,
+          "y": 345,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 256,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+          "inputData": Object {
+            "1": 0,
+          },
+          "schemaId": "chainner:onnx:convert_to_ncnn",
+        },
+        "height": 252,
+        "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "position": Object {
+          "x": 675,
+          "y": 345,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+          "inputData": Object {},
+          "schemaId": "chainner:ncnn:save_model",
+        },
+        "height": 270,
+        "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "position": Object {
+          "x": 945,
+          "y": 345,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 256,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": -113.11594255284149,
+      "y": 57.879643031246246,
+      "zoom": 0.6263322193120638,
     },
   },
   "timestamp": "",
