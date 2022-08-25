@@ -69,12 +69,12 @@ def ncnn_auto_split_process(
         try:
             lr_img_fix = fix_dtype_range(lr_img.copy())
             lr_c = get_h_w_c(lr_img)[2]
-            assert lr_c in (1, 3)
-            pixel_type = (
-                ncnn.Mat.PixelType.PIXEL_RGB
-                if lr_c == 3
-                else ncnn.Mat.PixelType.PIXEL_GRAY
-            )
+            if lr_c == 1:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_GRAY
+            elif lr_c == 3:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_RGB
+            else:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_RGBA
             mat_in = ncnn.Mat.from_pixels(
                 lr_img_fix,
                 pixel_type,
