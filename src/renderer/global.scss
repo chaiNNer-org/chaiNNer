@@ -1,3 +1,5 @@
+@use "colors.scss";
+
 /* :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle) */
@@ -85,30 +87,30 @@ body {
 
 [data-theme='light'] {
     .react-flow__controls:hover {
-        background: var(--chakra-colors-gray-300) !important;
+        background: var(--gray-300) !important;
     }
 
     .react-flow__controls-button {
         border: 0px solid rgba(113, 128, 150, 0.66) !important;
         background: rgba(203, 213, 224, 0.66) !important;
         &:hover {
-            background: var(--chakra-colors-gray-400) !important;
-            border: 0px solid var(--chakra-colors-gray-500) !important;
+            background: var(--gray-400) !important;
+            border: 0px solid var(--gray-500) !important;
         }
     }
 }
 
 [data-theme='dark'] {
     .react-flow__controls:hover {
-        background: var(--chakra-colors-gray-700) !important;
+        background: var(--gray-700) !important;
     }
 
     .react-flow__controls-button {
         border: 0px solid rgba(74, 85, 104, 0.66) !important;
         background: rgba(45, 55, 72, 0.66) !important;
         &:hover {
-            background: var(--chakra-colors-gray-600) !important;
-            border: 0px solid var(--chakra-colors-gray-600) !important;
+            background: var(--gray-600) !important;
+            border: 0px solid var(--gray-600) !important;
         }
         svg {
             fill: white;
@@ -119,7 +121,7 @@ body {
 ::-webkit-scrollbar {
     width: 9px;
     border-radius: 8px;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: transparent;
 }
 
 ::-webkit-scrollbar-track {
@@ -129,12 +131,12 @@ body {
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--chakra-colors-gray-700);
+    background-color: var(--gray-700);
 }
 
 [data-theme='light'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--chakra-colors-gray-300);
+    background-color: var(--gray-300);
 }
 
 #menu-button-global-context-menu {

@@ -1,5 +1,5 @@
 import { StarIcon } from '@chakra-ui/icons';
-import { Box, Center, Flex, HStack, Heading, Spacer, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Flex, HStack, Heading, Spacer } from '@chakra-ui/react';
 import { memo, useState } from 'react';
 import { SchemaId } from '../../../common/common-types';
 import { getNodeAccentColor } from '../../helpers/getNodeAccentColor';
@@ -26,7 +26,7 @@ export const RepresentativeNode = memo(
         collapsed = false,
         createNodeFromSelector,
     }: RepresentativeNodeProps) => {
-        const bgColor = useColorModeValue('gray.50', 'gray.700');
+        const bgColor = 'var(--selector-node-bg)';
         const accentColor = getNodeAccentColor(category);
 
         const [hover, setHover] = useState<boolean>(false);
@@ -91,7 +91,7 @@ export const RepresentativeNode = memo(
                             w={4}
                         >
                             <IconFactory
-                                accentColor={useColorModeValue('gray.600', 'gray.400')}
+                                accentColor="var(--selector-icon)"
                                 icon={icon}
                             />
                         </Center>
