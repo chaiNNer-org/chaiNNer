@@ -40,12 +40,7 @@ def auto_split_process(
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
-    # if os.environ["killed"] == "True":
-    #     torch.cuda.empty_cache()
-    #     gc.collect()
-    #     raise RuntimeError("Upscaling killed mid-processing")
-
-    logger.info(
+    logger.debug(
         f"auto_split_process: scale={scale}, overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
     )
 
