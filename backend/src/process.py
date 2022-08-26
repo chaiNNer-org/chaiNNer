@@ -137,7 +137,7 @@ class Executor:
             await self.queue.put(self.__create_node_finish(node_id))
             temp = self.output_cache[node_id]
             self.cache_hit_state[node_id] += 1
-            logger.info(
+            logger.debug(
                 f"Cache hit for node {node_id}: {self.cache_hit_state[node_id]} | max: {node['cacheOptions']['maxCacheHits']}"
             )
             if (
@@ -147,10 +147,10 @@ class Executor:
                 and self.cache_hit_state[node_id]
                 >= node["cacheOptions"]["maxCacheHits"]
             ):
-                logger.info(
+                logger.debug(
                     f"number of cache hits exceeded: max: {node['cacheOptions']['maxCacheHits']}, current: {self.cache_hit_state[node_id]}"
                 )
-                logger.info("deleting cache entry for node: " + node_id)
+                logger.debug(f"deleting cache entry for node: {node_id}")
                 del self.output_cache[node_id]
             return temp
 
