@@ -135,8 +135,9 @@ class LoadModelNode(NodeBase):
 class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscales an image using a PyTorch Super-Resolution model."
-        self.inputs = [ModelInput(), ImageInput()]
+        self.description = "Upscales an image using a PyTorch Super-Resolution model. \
+            Select a manual number of tiles if you are having issues with the automatic mode. "
+        self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
@@ -160,6 +161,7 @@ class ImageUpscaleNode(NodeBase):
         img: np.ndarray,
         model: torch.nn.Module,
         scale: int,
+        tile_mode: int,
         options: ExecutionOptions,
     ):
         with torch.no_grad():
@@ -190,6 +192,7 @@ class ImageUpscaleNode(NodeBase):
                 img_tensor,
                 model,
                 scale,
+                max_depth=tile_mode if tile_mode > 0 else None,
             )
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
@@ -204,7 +207,7 @@ class ImageUpscaleNode(NodeBase):
             del t_out
             return img_out
 
-    def run(self, model: PyTorchModel, img: np.ndarray) -> np.ndarray:
+    def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         exec_options = to_pytorch_execution_options(get_execution_options())
@@ -223,7 +226,7 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, model, model.scale, exec_options),
+            lambda i: self.upscale(i, model, model.scale, tile_mode, exec_options),
         )
 
 

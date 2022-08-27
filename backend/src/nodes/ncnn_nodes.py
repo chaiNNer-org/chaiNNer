@@ -76,11 +76,12 @@ class NcnnSaveNode(NodeBase):
 class NcnnUpscaleImageNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan."
+        self.description = "Upscale an image with NCNN. Unlike PyTorch, NCNN has GPU support on all devices, assuming your drivers support Vulkan. \
+            Select a manual number of tiles if you are having issues with the automatic mode."
         self.inputs = [
             NcnnModelInput(),
             ImageInput(),
-            NumberInput("Tile Size Target", default=0, minimum=0, maximum=None),
+            TileModeDropdown(),
         ]
         self.outputs = [
             ImageOutput(image_type=expression.Image(channels="Input1.channels"))
@@ -96,7 +97,7 @@ class NcnnUpscaleImageNode(NodeBase):
         net,
         input_name: str,
         output_name: str,
-        split_factor: Union[int, None],
+        tile_mode: int,
     ):
         # Try/except block to catch errors
         try:
@@ -110,33 +111,21 @@ class NcnnUpscaleImageNode(NodeBase):
                 output_name=output_name,
                 blob_vkallocator=blob_vkallocator,
                 staging_vkallocator=staging_vkallocator,
-                max_depth=split_factor,
+                max_depth=tile_mode if tile_mode > 0 else None,
             )
             # blob_vkallocator.clear() # this slows stuff down
             # staging_vkallocator.clear() # as does this
             # net.clear() # don't do this, it makes chaining break
             return output
+        except ValueError as e:
+            raise e
         except Exception as e:
             logger.error(e)
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(
-        self, model: NcnnModel, img: np.ndarray, tile_size_target: int
-    ) -> np.ndarray:
-        h, w, _ = get_h_w_c(img)
+    def run(self, model: NcnnModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         model_c = model.get_model_in_nc()
-
-        if tile_size_target > 0:
-            # Calculate split factor using a tile size target
-            # Example: w == 1280, tile_size_target == 512
-            # 1280 / 512 = 2.5, ceil makes that 3, so split_factor == 3
-            # This effectively makes the tile size for the image 426
-            w_split_factor = int(np.ceil(w / tile_size_target))
-            h_split_factor = int(np.ceil(h / tile_size_target))
-            split_factor = max(w_split_factor, h_split_factor, 1)
-        else:
-            split_factor = None
 
         net = ncnn.Net()
 
@@ -159,7 +148,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 net,
                 model.layer_list[0].outputs[0],
                 model.layer_list[-1].outputs[0],
-                split_factor,
+                tile_mode,
             )
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)

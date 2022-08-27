@@ -108,6 +108,10 @@ def ncnn_auto_split_process(
             else:
                 # Re-raise the exception if not an OOM error
                 raise
+    elif max_depth < current_depth:
+        raise ValueError(
+            "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+        )
 
     h, w = lr_img.shape[:2]
     if lr_img.ndim > 2:
