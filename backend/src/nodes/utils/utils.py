@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Callable, Tuple, Type
+import cv2
 
 import numpy as np
 from sanic.log import logger
@@ -342,7 +343,14 @@ def convenient_upscale(
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
             logger.info("Single color alpha channel, ignoring.")
-            output = upscale(img[:, :, :3])
+            if input_channels == 1:
+                logger.warning("Converting image to grayscale.")
+                img = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)
+            else:
+                img = img[:, :, :3]
+            output = upscale(img)
+            if input_channels == 1:
+                output = np.tile(output, (1, 1, 3))
             output = np.dstack(
                 (output, np.full(output.shape[:-1], unique[0], np.float32))
             )
@@ -354,12 +362,9 @@ def convenient_upscale(
                 img2[:, :, c] = (img2[:, :, c] - 1) * img[:, :, 3] + 1
 
             if input_channels == 1:
-                img1 = np.expand_dims(
-                    np.average(img1, axis=2).astype(np.float32), axis=2
-                )
-                img2 = np.expand_dims(
-                    np.average(img2, axis=2).astype(np.float32), axis=2
-                )
+                logger.warning("Converting image to grayscale.")
+                img1 = np.expand_dims(cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY), axis=2)
+                img2 = np.expand_dims(cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY), axis=2)
             output1 = upscale(img1)
             output2 = upscale(img2)
             alpha = 1 - np.mean(output2 - output1, axis=2)  # type: ignore
@@ -371,7 +376,7 @@ def convenient_upscale(
         gray = False
         if c == 1:
             gray = True
-            logger.debug("Expanding image channels if necessary")
+            logger.debug("Expanding image channels if necessary.")
             if img.ndim == 2:
                 img = np.tile(
                     np.expand_dims(img, axis=2), (1, 1, min(input_channels, 3))
@@ -381,21 +386,24 @@ def convenient_upscale(
             if input_channels == 4:
                 img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
         # Remove extra channels if too many (i.e three channel image, single channel model)
-        elif c in (3, 4) and input_channels == 1:
-            logger.warning("Averaging image channels")
-            if c == 4:
-                img = img[:, :, :3]
-            img = np.expand_dims(np.average(img, axis=2).astype(np.float32), axis=2)
-        # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
-        elif c == 3 and input_channels == 4:
-            logger.debug("Expanding image channels")
-            img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
+        elif c == 3:
+            if input_channels == 1:
+                logger.warning("Converting image to grayscale.")
+                img = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), axis=2)
+            # Pad with solid alpha channel if needed (i.e three channel image, four channel model)
+            elif input_channels == 4:
+                logger.debug("Expanding image channels.")
+                img = np.dstack((img, np.full(img.shape[:-1], 1.0, np.float32)))
 
         output = upscale(img)
 
         if gray:
-            if get_h_w_c(output)[2] == 4:
+            out_c = get_h_w_c(output)[2]
+            if out_c == 4:
                 output = output[:, :, :3]
-            output = np.average(output, axis=2).astype("float32")
+            if out_c > 1:
+                output = np.expand_dims(
+                    cv2.cvtColor(output, cv2.COLOR_BGR2GRAY), axis=2
+                )
 
     return np.clip(output, 0, 1)
