@@ -952,10 +952,14 @@ export const GlobalProvider = memo(
 
         const setIteratorPercent = useCallback(
             (id: string, percent: number) => {
-                modifyNode(id, (old) => {
-                    const newNode = copyNode(old);
-                    newNode.data.percentComplete = percent;
-                    return newNode;
+                rfSetNodes((nodes) => {
+                    const foundNode = nodes.find((n) => n.id === id);
+                    if (foundNode) {
+                        const newNode = copyNode(foundNode);
+                        newNode.data.percentComplete = percent;
+                        return [...nodes.filter((n) => n.id !== id), newNode];
+                    }
+                    return nodes;
                 });
             },
             [modifyNode]
