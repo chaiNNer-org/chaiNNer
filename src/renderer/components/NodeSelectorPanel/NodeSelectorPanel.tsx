@@ -102,14 +102,7 @@ export const NodeSelector = memo(() => {
                         h="100%"
                         w="100%"
                     >
-                        <TabList h="42px">
-                            {!collapsed && (
-                                <>
-                                    <Tab>Nodes</Tab>
-                                    <Tab isDisabled>Presets</Tab>
-                                </>
-                            )}
-                        </TabList>
+                        <TabList h="42px">{!collapsed && <Tab>Nodes</Tab>}</TabList>
                         <TabPanels>
                             <TabPanel
                                 m={0}
