@@ -136,6 +136,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             borderColor={borderColor}
             borderRadius="lg"
             borderWidth="0.5px"
+            boxShadow="lg"
             opacity={disabled.status === DisabledStatus.Enabled ? 1 : 0.75}
             overflow="hidden"
             ref={targetRef}

@@ -82,7 +82,7 @@ class OnnxSaveModelNode(NodeBase):
         self.outputs = []
         self.category = ONNXCategory
         self.name = "Save Model"
-        self.icon = "ONNX"
+        self.icon = "MdSave"
         self.sub = "Input & Output"
 
         self.side_effects = True
