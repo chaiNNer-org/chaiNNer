@@ -6,7 +6,12 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
 import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
 import { NumericLiteralType } from '../../../common/types/types';
-import { createUniqueId, stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
+import {
+    createUniqueId,
+    parseSourceHandle,
+    stringifySourceHandle,
+    stringifyTargetHandle,
+} from '../../../common/util';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { TypeTags } from '../TypeTag';
 import { OutputProps } from './props';
@@ -65,7 +70,12 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
 
                     // check whether there already is a view node
                     const viewId = getEdges()
-                        .filter((e) => e.source === id)
+                        .filter(
+                            (e) =>
+                                e.source === id &&
+                                e.sourceHandle &&
+                                parseSourceHandle(e.sourceHandle).inOutId === outputId
+                        )
                         .map((e) => e.target)
                         .find((i) => byId.get(i)?.data.schemaId === VIEW_SCHEMA_ID);
                     if (viewId !== undefined) {
