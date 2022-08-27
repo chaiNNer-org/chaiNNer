@@ -245,7 +245,7 @@ class CaptionNode(NodeBase):
         self.description = "Add a caption to the bottom of an image."
         self.inputs = [
             ImageInput(),
-            TextInput("Caption", allow_numbers=True),
+            TextInput("Caption"),
         ]
         self.outputs = [
             ImageOutput(

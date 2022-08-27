@@ -44,7 +44,7 @@ class TextInput(BaseInput):
         min_length: int = 1,
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
-        allow_numbers: bool = False,
+        allow_numbers: bool = True,
     ):
         super().__init__(
             ["string", "number"] if allow_numbers else "string",

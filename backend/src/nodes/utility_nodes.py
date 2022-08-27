@@ -105,10 +105,10 @@ class TextAppendNode(NodeBase):
         self.description = "Append different text together using a separator string."
         self.inputs = [
             TextInput("Separator", has_handle=False, max_length=3),
-            TextInput("Text A", allow_numbers=True),
-            TextInput("Text B", allow_numbers=True),
-            TextInput("Text C", allow_numbers=True).make_optional(),
-            TextInput("Text D", allow_numbers=True).make_optional(),
+            TextInput("Text A"),
+            TextInput("Text B"),
+            TextInput("Text C").make_optional(),
+            TextInput("Text D").make_optional(),
         ]
         self.outputs = [
             TextOutput(
@@ -149,10 +149,10 @@ class TextPatternNode(NodeBase):
         self.description = "Concatenate text using a pattern with a Python-like string interpolation syntax."
         self.inputs = [
             TextInput("Pattern", has_handle=False, placeholder='E.g. "{1} and {2}"'),
-            TextInput("{1}", allow_numbers=True).make_optional(),
-            TextInput("{2}", allow_numbers=True).make_optional(),
-            TextInput("{3}", allow_numbers=True).make_optional(),
-            TextInput("{4}", allow_numbers=True).make_optional(),
+            TextInput("{1}").make_optional(),
+            TextInput("{2}").make_optional(),
+            TextInput("{3}").make_optional(),
+            TextInput("{4}").make_optional(),
         ]
         self.outputs = [TextOutput("Output Text")]
 
