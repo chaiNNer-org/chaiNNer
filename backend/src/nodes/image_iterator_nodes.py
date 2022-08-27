@@ -36,7 +36,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
             DirectoryOutput(),
             TextOutput("Relative Path"),
             TextOutput("Image Name"),
-            TextOutput("Overall Index"),
+            NumberOutput("Overall Index"),
         ]
 
         self.category = ImageCategory
@@ -50,13 +50,13 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
     def run(
         self, path: str, root_dir: str, index: int
-    ) -> Tuple[np.ndarray, str, str, str, str]:
+    ) -> Tuple[np.ndarray, str, str, str, int]:
         img, img_dir, basename = ImReadNode().run(path)
 
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(img_dir, root_dir)
 
-        return img, root_dir, rel_path, basename, str(index)
+        return img, root_dir, rel_path, basename, index
 
 
 @NodeFactory.register("chainner:image:file_iterator")
@@ -153,7 +153,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
             ImageOutput("Frame Image", broadcast_type=True),
-            TextOutput("Frame Index"),
+            NumberOutput("Frame Index"),
         ]
 
         self.category = ImageCategory
@@ -325,7 +325,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput(broadcast_type=True), TextOutput("Overall Index")]
+        self.outputs = [ImageOutput(broadcast_type=True), NumberOutput("Overall Index")]
 
         self.category = ImageCategory
         self.name = "Load Image (Iterator)"
@@ -336,8 +336,8 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, img: np.ndarray, index: int) -> Tuple[np.ndarray, str]:
-        return img, str(index)
+    def run(self, img: np.ndarray, index: int) -> Tuple[np.ndarray, int]:
+        return img, index
 
 
 @NodeFactory.register(SPRITESHEET_ITERATOR_OUTPUT_NODE_ID)
