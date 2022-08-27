@@ -489,9 +489,7 @@ Object {
     Object {
       "data": Object {
         "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-        "inputData": Object {
-          "2": 256,
-        },
+        "inputData": Object {},
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -508,9 +506,7 @@ Object {
     Object {
       "data": Object {
         "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-        "inputData": Object {
-          "2": 512,
-        },
+        "inputData": Object {},
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -2906,7 +2902,7 @@ Object {
 
 exports[`Write save file convert-onnx-update.chn 1`] = `
 Object {
-  "checksum": "99b204702f8ad026547887afc1fb6453",
+  "checksum": "25e990edb8261f3b7fa470f9e070d42b",
   "content": Object {
     "edges": Array [
       Object {
@@ -3202,9 +3198,7 @@ Object {
       Object {
         "data": Object {
           "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-          "inputData": Object {
-            "2": 256,
-          },
+          "inputData": Object {},
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
@@ -3221,9 +3215,7 @@ Object {
       Object {
         "data": Object {
           "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-          "inputData": Object {
-            "2": 512,
-          },
+          "inputData": Object {},
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
