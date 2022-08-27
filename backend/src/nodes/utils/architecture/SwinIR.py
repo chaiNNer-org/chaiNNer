@@ -876,6 +876,7 @@ class SwinIR(nn.Module):
         )
 
         num_in_ch = self.state["conv_first.weight"].shape[1]
+        in_chans = num_in_ch
         if "conv_last.weight" in state_keys:
             num_out_ch = self.state["conv_last.weight"].shape[0]
         else:
@@ -957,6 +958,9 @@ class SwinIR(nn.Module):
                 * window_size
             )
 
+        # The JPEG models are the only ones with window-size 7, and they also use this range
+        img_range = 255.0 if window_size == 7 else 1.0
+
         self.in_nc = num_in_ch
         self.out_nc = num_out_ch
         self.num_feat = num_feat
@@ -968,6 +972,7 @@ class SwinIR(nn.Module):
         self.scale = upscale
         self.upsampler = upsampler
         self.img_size = img_size
+        self.img_range = img_range
 
         self.supports_fp16 = supports_fp16
         self.supports_bfp16 = True
