@@ -302,6 +302,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     useBackendEventSourceListener(eventSource, 'iterator-progress-update', updateIteratorProgress, [
         animate,
         updateIteratorProgress,
+        // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+        {},
     ]);
 
     const [ownsBackend, setOwnsBackend] = useState(true);
