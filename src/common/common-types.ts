@@ -136,6 +136,11 @@ export interface EdgeHandle {
     id: string;
     index: number;
 }
+
+export interface CacheOptions {
+    readonly shouldCache: boolean;
+    readonly maxCacheHits: number;
+}
 export interface UsableData {
     id: string;
     schemaId: SchemaId;
@@ -145,6 +150,7 @@ export interface UsableData {
     nodeType: string;
     percent?: number;
     hasSideEffects: boolean;
+    cacheOptions: CacheOptions;
 }
 
 export interface WindowSize {
