@@ -78,14 +78,12 @@ export const OnnxIcon = createIcon({
 
 export const NcnnIcon = createIcon({
     displayName: 'NcnnIcon',
-    viewBox: '0 -0.5 16 16',
+    viewBox: '0 0 14 14',
     path: (
-        <g>
-            <path
-                d="M2 .5h1m10 0h1m-13 1h3m8 0h3m-14 1h1m2 0h1m6 0h1m2 0h1m-15 1h1m4 0h1m4 0h1m4 0h1m-16 1h1m5 0h4m5 0h1m-16 1h1m14 0h1m-16 1h1m14 0h1m-16 1h1m14 0h1m-16 1h1m14 0h1m-16 1h1m14 0h1M1 11.5h3m8 0h3m-15 1h1m2 0h2m6 0h1m2 0h2m-16 1h1m3 0h1m6 0h1m3 0h1m-16 1h1m3 0h1m6 0h1m3 0h1m-16 1h1m3 0h1m6 0h1m3 0h1M3 7.5h4m2 0h4m-10 1h1m5 0h1m2 0h1m-10 1h1m5 0h1m2 0h1m-10 1h4m2 0h1m2 0h1"
-                stroke="currentColor"
-            />
-        </g>
+        <path
+            d="M3 6.5h1m6 0h1m-8 1h1m6 0h1M1 .5h2m8 0h2m-12 1h1m1 0h1m6 0h1m1 0h1m-13 9h2m9 0h2m-13 1h2m9 0h2m-11 1h1m10 0h1m-14 1h1m1 0h1m8 0h1m1 0h1M0 1.5h1m12 0h1m-14 1h1m12 0h1M2 1.5h1m8 0h1m-11 1h3m6 0h3m-12 1h12m-13 1h14m-14 1h2m4 0h2m4 0h2m-14 1h2m4 0h2m4 0h2m-14 1h2m4 0h2m4 0h2m-14 1h2m4 0h2m4 0h2m-11 1h8m-7 1h6m-8 1h1m1 0h6m3 0h1m-14 1h2m2 0h6m1 0h2m-12 1h1m10 0h1M4 2.5h1m4 0h1M0 3.5h1m12 0h1m-9 3h1m-1 1h1m3 1h2M4 6.5h1m4 0h1m-6 1h1m4 0h1"
+            stroke="currentColor"
+        />
     ),
 });
 
