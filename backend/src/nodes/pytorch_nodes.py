@@ -27,6 +27,11 @@ from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
 from .utils.torch_types import PyTorchModel
 
+try:
+    from .onnx_nodes import ConvertOnnxToNcnnNode
+except:
+    ConvertOnnxToNcnnNode = None
+
 
 def to_pytorch_execution_options(options: ExecutionOptions):
     return ExecutionOptions(
@@ -488,3 +493,28 @@ class GetModelDimensions(NodeBase):
 
     def run(self, model: PyTorchModel) -> int:
         return model.scale
+
+
+@NodeFactory.register("chainner:pytorch:convert_to_ncnn")
+class ConvertTorchToNCNNNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = """Convert a PyTorch model to NCNN."""
+        self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
+        if ConvertOnnxToNcnnNode is not None:
+            self.outputs = ConvertOnnxToNcnnNode().get_outputs()
+        else:
+            self.outputs = []
+
+        self.category = PyTorchCategory
+        self.name = "Convert To NCNN"
+        self.icon = "NCNN"
+        self.sub = "Utility"
+
+    def run(self, model: torch.nn.Module, is_fp16: int) -> Any:
+        if ConvertOnnxToNcnnNode is None:
+            raise Exception("ONNX is not installed")
+        onnx_model = ConvertTorchToONNXNode().run(model)
+        ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
+
+        return ncnn_model, fp_mode
