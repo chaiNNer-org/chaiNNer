@@ -16,6 +16,11 @@ from nodes.node_factory import NodeFactory
 from nodes.utils.image_utils import get_h_w_c
 
 
+class CacheOptions(TypedDict):
+    shouldCache: bool
+    maxCacheHits: int
+
+
 class UsableData(TypedDict):
     id: str
     schemaId: str
@@ -25,6 +30,7 @@ class UsableData(TypedDict):
     nodeType: str
     percent: float
     hasSideEffects: bool
+    cacheOptions: CacheOptions
 
 
 class NodeExecutionError(Exception):
@@ -101,6 +107,7 @@ class Executor:
         self.nodes: Dict[str, UsableData] = nodes
         self.output_cache: Dict[str, Any] = existing_cache
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
+        self.cache_hit_state = {node["id"]: 0 for node in self.nodes.values()}
 
         self.killed: bool = False
         self.paused: bool = False
@@ -128,7 +135,24 @@ class Executor:
         # Return cached output value from an already-run node if that cached output exists
         if self.output_cache.get(node_id, None) is not None:
             await self.queue.put(self.__create_node_finish(node_id))
-            return self.output_cache[node_id]
+            temp = self.output_cache[node_id]
+            self.cache_hit_state[node_id] += 1
+            logger.debug(
+                f"Cache hit for node {node_id}: {self.cache_hit_state[node_id]} | max: {node['cacheOptions']['maxCacheHits']}"
+            )
+            if (
+                self.cache_hit_state[node_id] is not None
+                and node["cacheOptions"]["maxCacheHits"] is not None
+                and node["cacheOptions"]["maxCacheHits"] != "None"
+                and self.cache_hit_state[node_id]
+                >= node["cacheOptions"]["maxCacheHits"]
+            ):
+                logger.debug(
+                    f"number of cache hits exceeded: max: {node['cacheOptions']['maxCacheHits']}, current: {self.cache_hit_state[node_id]}"
+                )
+                logger.debug(f"deleting cache entry for node: {node_id}")
+                del self.output_cache[node_id]
+            return temp
 
         inputs = []
         for node_input in node["inputs"]:
@@ -230,7 +254,8 @@ class Executor:
 
             await self.__broadcast_data(node_instance, node_id, execution_time, output)
             # Cache the output of the node
-            self.output_cache[node_id] = output
+            if node["cacheOptions"]["shouldCache"]:
+                self.output_cache[node_id] = output
             del node_instance, run_func
             return output
 
