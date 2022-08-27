@@ -182,7 +182,7 @@ class BorderCropNode(NodeBase):
         )
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount", unit="px"),
+            NumberInput("Amount", unit="px", minimum=None),
         ]
         self.outputs = [
             ImageOutput(
@@ -220,10 +220,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            NumberInput("Top", unit="px"),
-            NumberInput("Left", unit="px"),
-            NumberInput("Right", unit="px"),
-            NumberInput("Bottom", unit="px"),
+            NumberInput("Top", unit="px", minimum=None),
+            NumberInput("Left", unit="px", minimum=None),
+            NumberInput("Right", unit="px", minimum=None),
+            NumberInput("Bottom", unit="px", minimum=None),
         ]
         self.outputs = [
             ImageOutput(
