@@ -193,8 +193,10 @@ class ImageUpscaleNode(NodeBase):
             )
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
+
             del img_tensor, model
             logger.info("Converting tensor to image")
+
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
             logger.info("Done upscaling")
             if torch.cuda.is_available():
