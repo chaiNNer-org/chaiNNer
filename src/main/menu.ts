@@ -194,7 +194,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }:
             role: 'help',
             submenu: [
                 {
-                    label: 'View README',
+                    label: "Open chaiNNer's GitHub page",
                     click: async () => {
                         await shell.openExternal(
                             'https://github.com/joeyballentine/chaiNNer/blob/main/README.md'
@@ -208,7 +208,7 @@ export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }:
                     },
                 },
                 {
-                    label: 'Get ESRGAN models',
+                    label: 'Get Models (Upscale Wiki)',
                     click: async () => {
                         await shell.openExternal('https://upscale.wiki/wiki/Model_Database');
                     },

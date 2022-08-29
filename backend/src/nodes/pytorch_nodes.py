@@ -96,7 +96,7 @@ class LoadModelNode(NodeBase):
         self.inputs = [PthFileInput()]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
-            DirectoryOutput().with_id(2),
+            DirectoryOutput("Model Directory").with_id(2),
             TextOutput("Model Name").with_id(1),
         ]
 
