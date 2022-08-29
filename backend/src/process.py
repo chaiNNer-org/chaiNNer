@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import functools
+import gc
 import uuid
 import time
 import numpy as np
@@ -19,6 +20,7 @@ from nodes.utils.image_utils import get_h_w_c
 class CacheOptions(TypedDict):
     shouldCache: bool
     maxCacheHits: int
+    clearImmediately: bool
 
 
 class UsableData(TypedDict):
@@ -152,6 +154,7 @@ class Executor:
                 )
                 logger.debug(f"deleting cache entry for node: {node_id}")
                 del self.output_cache[node_id]
+                gc.collect()
             return temp
 
         inputs = []
@@ -171,6 +174,9 @@ class Executor:
                     index = next_index
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
+                if next_input["cacheOptions"]["clearImmediately"]:
+                    del self.output_cache[next_node_id]
+                    gc.collect()
                 if self.should_stop_running():
                     return None
             # Otherwise, just use the given input (number, string, etc)
@@ -228,6 +234,7 @@ class Executor:
             self.output_cache[node_id] = output
             await self.queue.put(self.__create_node_finish(node_id))
             del node_instance
+            gc.collect()
             return output
         else:
             try:
@@ -257,6 +264,7 @@ class Executor:
             if node["cacheOptions"]["shouldCache"]:
                 self.output_cache[node_id] = output
             del node_instance, run_func
+            gc.collect()
             return output
 
     async def __broadcast_data(
@@ -346,6 +354,8 @@ class Executor:
             if self.killed:
                 break
             await self.process(output_node)
+
+        logger.debug(self.output_cache.keys())
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
