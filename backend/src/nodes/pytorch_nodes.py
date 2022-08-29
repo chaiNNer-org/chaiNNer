@@ -160,15 +160,22 @@ class ImageUpscaleNode(NodeBase):
                 model_bytes = sum(
                     p.numel() * p.element_size() for p in model.parameters()
                 )
-                mem_required_estimation = (model_bytes / (1024 * 50)) * img_bytes
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
                 split_estimation = 1
                 x = mem_required_estimation
                 while x > free:
                     x /= 4
                     split_estimation += 1
+
+                required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
+                free_mem = f"{free/GB_AMT:.2f}"
+                total_mem = f"{total/GB_AMT:.2f}"
                 logger.info(
-                    f"Estimating memory required: {mem_required_estimation/GB_AMT:.2f} GB, {free/GB_AMT:.2f} GB free, {total/GB_AMT:.2f} GB total. Estimated Split depth: {split_estimation}"
+                    f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
                 )
+                # Attempt to avoid using too much vram at once
+                if float(required_mem) > float(free_mem) / 2:
+                    split_estimation += 1
 
             t_out, depth = auto_split_process(
                 options, img_tensor, model, scale, max_depth=split_estimation
@@ -179,8 +186,6 @@ class ImageUpscaleNode(NodeBase):
             logger.info("Converting tensor to image")
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
             logger.info("Done upscaling")
-            # if torch.cuda.is_available():
-            #     torch.cuda.empty_cache()
             del t_out
             return img_out
 
