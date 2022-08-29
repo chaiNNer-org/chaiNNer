@@ -30,9 +30,6 @@ from .utils.torch_types import PyTorchModel
 
 
 def to_pytorch_execution_options(options: ExecutionOptions):
-    if torch.cuda.is_available():
-        # pylint: disable=W0212
-        torch.cuda._lazy_init()
     return ExecutionOptions(
         "cuda" if torch.cuda.is_available() and options.device != "cpu" else "cpu",
         options.fp16,
