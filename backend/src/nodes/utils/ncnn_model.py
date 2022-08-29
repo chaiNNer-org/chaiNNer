@@ -5,9 +5,15 @@ from json import load as jload
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-import onnx.numpy_helper as onph
-from onnx import TensorProto
 from sanic.log import logger
+
+# Don't want not having onnx to crash this
+try:
+    import onnx.numpy_helper as onph
+    from onnx import TensorProto
+except:
+    TensorProto = None
+    onph = None
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
@@ -262,12 +268,12 @@ class NcnnLayer:
 
     def add_weight(
         self,
-        data: Union[float, int, np.ndarray, TensorProto],
+        data: Union[float, int, np.ndarray, TensorProto],  # type: ignore
         weight_name: str,
         quantize_tag: bytes = b"",
     ) -> bytes:
-        if isinstance(data, TensorProto):
-            data_array = onph.to_array(data)
+        if isinstance(data, TensorProto):  # type: ignore
+            data_array = onph.to_array(data)  # type: ignore
         elif isinstance(data, float):
             data_array = np.array(data, np.float32)
         elif isinstance(data, int):
