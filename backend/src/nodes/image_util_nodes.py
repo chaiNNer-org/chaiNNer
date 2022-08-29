@@ -554,3 +554,37 @@ class ImageMetricsNode(NodeBase):
         ssim = round(calculate_ssim(comp_img, orig_img), 6)
 
         return (float(mse), float(psnr), ssim)
+
+@NodeFactory.register("chainner:image:canny_edge_detection")
+class canny_edge_detection(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Detect edges and output as an image"
+        self.inputs = [
+            ImageInput(),
+            SliderInput("Lower Threshold", maximum=200, default=50, precision=1),
+            SliderInput("Higher Threshold", maximum=200, default=150, precision=1),
+            ]
+        self.outputs = [ImageOutput(image_type="Input0")]
+        self.category = ImageUtilityCategory
+        self.name = "Canny Edge Detection"
+        self.icon = "MdAutoFixHigh"
+        self.sub = "Miscellaneous"
+
+    def run(
+        self,
+        img: np.ndarray,
+        t_lower: int,
+        t_upper: int,
+    ) -> np.ndarray:
+        
+        def unnormalize(img: np.ndarray) -> np.ndarray:
+            img *= 255/img.max()
+            return img.astype(np.uint8)
+
+        img = unnormalize(img)
+        edges = cv2.Canny(img, t_lower, t_upper)
+
+        edges = normalize(edges)
+
+        return edges
