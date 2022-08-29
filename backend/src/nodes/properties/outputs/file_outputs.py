@@ -23,9 +23,9 @@ def ImageFileOutput() -> FileOutput:
     return FileOutput("ImageFile", "Image File")
 
 
-def DirectoryOutput() -> FileOutput:
+def DirectoryOutput(label: str = "Directory") -> FileOutput:
     """Output for saving to a directory"""
-    return FileOutput("Directory", "Image Directory", kind="directory")
+    return FileOutput("Directory", label, kind="directory")
 
 
 def OnnxFileOutput() -> FileOutput:
