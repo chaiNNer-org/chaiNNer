@@ -107,6 +107,7 @@ def auto_split_process(
         max_depth=max_depth,
         current_depth=current_depth + 1,
     )
+    del top_left
     top_right_rlt, _ = auto_split_process(
         exec_options,
         top_right,
@@ -116,6 +117,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del top_right
     bottom_left_rlt, _ = auto_split_process(
         exec_options,
         bottom_left,
@@ -125,6 +127,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del bottom_left
     bottom_right_rlt, _ = auto_split_process(
         exec_options,
         bottom_right,
@@ -134,6 +137,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del bottom_right
 
     # Define output shape
     out_h = h * scale
@@ -148,14 +152,19 @@ def auto_split_process(
     output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[
         ..., : out_h // 2, : out_w // 2
     ]
+    del top_left_rlt
     output_img[..., : out_h // 2, -out_w // 2 :] = top_right_rlt[
         ..., : out_h // 2, -out_w // 2 :
     ]
+    del top_right_rlt
     output_img[..., -out_h // 2 :, : out_w // 2] = bottom_left_rlt[
         ..., -out_h // 2 :, : out_w // 2
     ]
+    del bottom_left_rlt
     output_img[..., -out_h // 2 :, -out_w // 2 :] = bottom_right_rlt[
         ..., -out_h // 2 :, -out_w // 2 :
     ]
+    del bottom_right_rlt
+    gc.collect()
 
     return output_img, depth

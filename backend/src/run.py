@@ -200,9 +200,10 @@ async def run(request: Request):
             await executor.run()
         if not executor.paused:
             ctx.executor = None
-        if torch is not None:
-            torch.cuda.empty_cache()
+        # if torch is not None:
+        #     torch.cuda.empty_cache()
         gc.collect()
+        logger.info(f"Size of ctx: {sys.getsizeof(ctx)}")
         await ctx.queue.put(
             {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
         )
@@ -298,6 +299,7 @@ async def run_individual(request: Request):
                 }
             )
         del node_instance, run_func
+        gc.collect()
         return json({"success": True, "data": None})
     except Exception as exception:
         logger.error(exception, exc_info=True)
@@ -307,6 +309,7 @@ async def run_individual(request: Request):
 @app.get("/sse")
 async def sse(request: Request):
     ctx = AppContext.get(request.app)
+    logger.info(f"Size of ctx.cache: {sys.getsizeof(ctx.cache)}")
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:
