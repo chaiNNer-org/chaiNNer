@@ -76,11 +76,11 @@ def auto_split_process(
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
-                gc.collect()
+                # gc.collect()
                 if d_img is not None:
                     d_img.detach().cpu()
                     del d_img
-                torch.cuda.empty_cache()
+                # torch.cuda.empty_cache()
             # Re-raise the exception if not an OOM error
             else:
                 raise

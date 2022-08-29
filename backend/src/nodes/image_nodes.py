@@ -45,7 +45,7 @@ class ImReadNode(NodeBase):
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
-        logger.info(f"Reading image from path: {path}")
+        logger.debug(f"Reading image from path: {path}")
         _base, ext = os.path.splitext(path)
         if ext.lower() in get_opencv_formats():
             try:
@@ -128,7 +128,7 @@ class ImWriteNode(NodeBase):
             base_directory = os.path.join(base_directory, relative_path)
         full_path = os.path.join(base_directory, full_file)
 
-        logger.info(f"Writing image to path: {full_path}")
+        logger.debug(f"Writing image to path: {full_path}")
 
         # Put image back in int range
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
@@ -164,7 +164,7 @@ class ImOpenNode(NodeBase):
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         tempdir = mkdtemp(prefix="chaiNNer-")
-        logger.info(f"Writing image to temp path: {tempdir}")
+        logger.debug(f"Writing image to temp path: {tempdir}")
         im_name = f"{time.time()}.png"
         temp_save_dir = os.path.join(tempdir, im_name)
         status = cv2.imwrite(

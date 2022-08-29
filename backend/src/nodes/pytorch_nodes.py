@@ -152,6 +152,7 @@ class ImageUpscaleNode(NodeBase):
             img_tensor = np2tensor(img, change_range=True)
             logger.info("Upscaling image")
 
+            split_estimation = 1
             if options.device == "cuda":
                 GB_AMT = 1024**3
                 free, total = torch.cuda.mem_get_info(0)  # type: ignore
@@ -159,7 +160,7 @@ class ImageUpscaleNode(NodeBase):
                 model_bytes = sum(
                     p.numel() * p.element_size() for p in model.parameters()
                 )
-                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
+                mem_required_estimation = (model_bytes / (1024 * 50)) * img_bytes
                 split_estimation = 1
                 x = mem_required_estimation
                 while x > free:
@@ -170,19 +171,16 @@ class ImageUpscaleNode(NodeBase):
                 )
 
             t_out, depth = auto_split_process(
-                options,
-                img_tensor,
-                model,
-                scale,
+                options, img_tensor, model, scale, max_depth=split_estimation
             )
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
-            del img_tensor, model
+            del img_tensor
             logger.info("Converting tensor to image")
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
             logger.info("Done upscaling")
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+            # if torch.cuda.is_available():
+            #     torch.cuda.empty_cache()
             del t_out
             return img_out
 
