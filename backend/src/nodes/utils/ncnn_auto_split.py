@@ -91,6 +91,7 @@ def ncnn_auto_split_process(
                 blob_vkallocator.clear()
                 staging_vkallocator.clear()
             del ex, mat_in, mat_out
+            gc.collect()
             # # Clear VRAM
             return result.copy(), current_depth
         except Exception as e:
@@ -103,6 +104,7 @@ def ncnn_auto_split_process(
                 if blob_vkallocator is not None and staging_vkallocator is not None:
                     blob_vkallocator.clear()
                     staging_vkallocator.clear()
+                ex = None
                 del ex
                 gc.collect()
             else:
