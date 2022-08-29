@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import functools
+import gc
 import uuid
 import time
 import numpy as np
@@ -153,6 +154,7 @@ class Executor:
                 )
                 logger.info(f"deleting cache entry for node: {node_id}")
                 del self.output_cache[node_id]
+                gc.collect()
             return temp
 
         inputs = []
@@ -174,6 +176,7 @@ class Executor:
                 inputs.append(processed_input)
                 if next_input["cacheOptions"]["clearImmediately"]:
                     del self.output_cache[next_node_id]
+                    gc.collect()
                 if self.should_stop_running():
                     return None
             # Otherwise, just use the given input (number, string, etc)
@@ -231,6 +234,7 @@ class Executor:
             self.output_cache[node_id] = output
             await self.queue.put(self.__create_node_finish(node_id))
             del node_instance
+            gc.collect()
             return output
         else:
             try:
@@ -260,6 +264,7 @@ class Executor:
             if node["cacheOptions"]["shouldCache"]:
                 self.output_cache[node_id] = output
             del node_instance, run_func
+            gc.collect()
             return output
 
     async def __broadcast_data(

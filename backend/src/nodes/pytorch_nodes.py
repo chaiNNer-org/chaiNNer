@@ -3,6 +3,7 @@ Nodes that provide functionality for pytorch inference
 """
 
 from __future__ import annotations
+import gc
 
 from io import BytesIO
 import os
@@ -205,6 +206,7 @@ class ImageUpscaleNode(NodeBase):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             del t_out
+            gc.collect()
             return img_out
 
     def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
@@ -296,8 +298,7 @@ class InterpolateNode(NodeBase):
         del model, img_tensor, t_out, fake_img
         mean_color = np.mean(result)
         del result
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        gc.collect()
         return mean_color > 0.5
 
     def run(self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int) -> Any:
