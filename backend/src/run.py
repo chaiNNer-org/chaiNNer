@@ -36,6 +36,11 @@ from nodes import image_util_nodes  # type: ignore
 try:
     import torch
 
+    # Lazily initialize to avoid unnecessary ram usage
+    if torch.cuda.is_available():
+        # pylint: disable=W0212
+        torch.cuda._lazy_init()
+
     # pylint: disable=unused-import,ungrouped-imports
     from nodes import pytorch_nodes  # type: ignore
 except Exception as e:
