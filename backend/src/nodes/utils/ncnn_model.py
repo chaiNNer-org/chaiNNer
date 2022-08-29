@@ -12,8 +12,8 @@ try:
     import onnx.numpy_helper as onph
     from onnx import TensorProto
 except:
-    TensorProto = {}
-    onph = {}
+    TensorProto = None
+    onph = None
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
