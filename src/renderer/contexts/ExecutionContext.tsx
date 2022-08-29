@@ -18,6 +18,7 @@ import {
     ParsedHandle,
     assertNever,
     getInputValues,
+    isEndingNode,
     isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
@@ -94,8 +95,8 @@ const convertToUsableFormat = (
         (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
     });
-    log.info('inputHandles', inputHandles);
-    log.info('outputHandles', outputHandles);
+    // log.info('inputHandles', inputHandles);
+    // log.info('outputHandles', outputHandles);
 
     // Necessary to get around TS mutability warning
     const nodesCopy = [...nodes];
@@ -114,8 +115,9 @@ const convertToUsableFormat = (
         }
 
         const cacheOptions = {
-            shouldCache: true,
+            shouldCache: !isEndingNode(schema),
             maxCacheHits: 0,
+            clearImmediately: false,
         };
 
         const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
@@ -133,13 +135,21 @@ const convertToUsableFormat = (
             }
         });
 
+        // Case when we want to clear the cache after all nodes that needed it have used it from the cache
         if (totalOutputs > 1 || isConnectedToIterator || isStartNode) {
             cacheOptions.maxCacheHits =
                 isConnectedToIterator || isStartNode
                     ? Infinity
                     : // Max cache hits is the number of outputs - 1 since the first output is what sets it
                       totalOutputs - 1;
+            // Case where we don't need to cache it at all
+        } else if (totalOutputs === 0) {
+            cacheOptions.shouldCache = false;
+            // Case where we can clear it as soon as it's used
+        } else if (totalOutputs === 1) {
+            cacheOptions.clearImmediately = true;
         }
+
         log.info(
             `${schema.name} (id: ${schemaId}) is ${
                 cacheOptions.shouldCache ? '' : 'not'

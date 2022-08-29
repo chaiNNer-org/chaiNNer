@@ -19,6 +19,7 @@ from nodes.utils.image_utils import get_h_w_c
 class CacheOptions(TypedDict):
     shouldCache: bool
     maxCacheHits: int
+    clearImmediately: bool
 
 
 class UsableData(TypedDict):
@@ -137,7 +138,7 @@ class Executor:
             await self.queue.put(self.__create_node_finish(node_id))
             temp = self.output_cache[node_id]
             self.cache_hit_state[node_id] += 1
-            logger.debug(
+            logger.info(
                 f"Cache hit for node {node_id}: {self.cache_hit_state[node_id]} | max: {node['cacheOptions']['maxCacheHits']}"
             )
             if (
@@ -147,10 +148,10 @@ class Executor:
                 and self.cache_hit_state[node_id]
                 >= node["cacheOptions"]["maxCacheHits"]
             ):
-                logger.debug(
+                logger.info(
                     f"number of cache hits exceeded: max: {node['cacheOptions']['maxCacheHits']}, current: {self.cache_hit_state[node_id]}"
                 )
-                logger.debug(f"deleting cache entry for node: {node_id}")
+                logger.info(f"deleting cache entry for node: {node_id}")
                 del self.output_cache[node_id]
             return temp
 
@@ -171,6 +172,8 @@ class Executor:
                     index = next_index
                     processed_input = processed_input[index]
                 inputs.append(processed_input)
+                if next_input["cacheOptions"]["clearImmediately"]:
+                    del self.output_cache[next_node_id]
                 if self.should_stop_running():
                     return None
             # Otherwise, just use the given input (number, string, etc)
@@ -346,6 +349,8 @@ class Executor:
             if self.killed:
                 break
             await self.process(output_node)
+
+        logger.info(self.output_cache.keys())
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
