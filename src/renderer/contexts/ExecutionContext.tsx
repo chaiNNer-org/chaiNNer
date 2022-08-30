@@ -235,6 +235,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         },
         [
             // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+            {},
             // status isn't actually used
             status,
             setStatus,
@@ -251,7 +252,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 setStatus(ExecutionStatus.READY);
             }
         },
-        [setStatus, unAnimate, schemata]
+        [setStatus, unAnimate, schemata, {}]
     );
 
     const updateNodeFinish = useBatchedCallback<
