@@ -121,7 +121,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        tile_mode: int,
+        tile_mode: Union[int, None],
         change_shape: bool,
     ) -> np.ndarray:
         logger.info("Upscaling image")
@@ -140,7 +140,9 @@ class OnnxImageUpscaleNode(NodeBase):
         logger.info("Done upscaling")
         return out
 
-    def run(self, onnx_model: bytes, img: np.ndarray, tile_mode: int) -> np.ndarray:
+    def run(
+        self, onnx_model: bytes, img: np.ndarray, tile_mode: Union[int, None]
+    ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
@@ -233,7 +235,7 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, interp: bytes):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(interp, fake_img, 0)  # type: ignore
+        result = OnnxImageUpscaleNode().run(interp, fake_img, None)
 
         mean_color = np.mean(result)
         del result
