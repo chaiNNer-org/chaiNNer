@@ -339,6 +339,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 status: 'warning',
                 description:
                     'You are modifying the chain while it is running. This will not modify the state of the current execution.',
+                id: 'execution-running',
+                variant: 'subtle',
             });
         } else if (
             status === ExecutionStatus.PAUSED &&
@@ -348,6 +350,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 status: 'warning',
                 description:
                     'You are modifying the chain while it is paused. This will not modify the state of the execution once resumed.',
+                id: 'execution-paused',
+                variant: 'subtle',
             });
         }
         previousStatus.current = status;
