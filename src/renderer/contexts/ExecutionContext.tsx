@@ -341,6 +341,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     'You are modifying the chain while it is running. This will not modify the state of the current execution.',
                 id: 'execution-running',
                 variant: 'subtle',
+                position: 'bottom',
             });
         } else if (
             status === ExecutionStatus.PAUSED &&
@@ -352,6 +353,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     'You are modifying the chain while it is paused. This will not modify the state of the execution once resumed.',
                 id: 'execution-paused',
                 variant: 'subtle',
+                position: 'bottom',
             });
         }
         previousStatus.current = status;
