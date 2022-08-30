@@ -121,7 +121,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        tile_mode: int,
+        tile_mode: Union[int, None],
         change_shape: bool,
     ) -> np.ndarray:
         logger.info("Upscaling image")
@@ -140,7 +140,9 @@ class OnnxImageUpscaleNode(NodeBase):
         logger.info("Done upscaling")
         return out
 
-    def run(self, onnx_model: bytes, img: np.ndarray, tile_mode: int) -> np.ndarray:
+    def run(
+        self, onnx_model: bytes, img: np.ndarray, tile_mode: Union[int, None]
+    ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         logger.info(f"Upscaling image...")
@@ -233,13 +235,20 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, interp: bytes):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(interp, fake_img, 0)  # type: ignore
+        result = OnnxImageUpscaleNode().run(interp, fake_img, None)
 
         mean_color = np.mean(result)
         del result
         return mean_color > 0.5
 
-    def run(self, model_a: bytes, model_b: bytes, amount: int) -> bytes:
+    def run(
+        self, model_a: bytes, model_b: bytes, amount: int
+    ) -> Tuple[bytes, int, int]:
+        if amount == 0:
+            return model_a, 100, 0
+        elif amount == 100:
+            return model_b, 0, 100
+
         # Just to be sure there is no mismatch from opt/un-opt models
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
 
@@ -272,7 +281,7 @@ class OnnxInterpolateModelsNode(NodeBase):
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        return model_interp
+        return model_interp, 100 - amount, amount
 
 
 @NodeFactory.register("chainner:onnx:convert_to_ncnn")
