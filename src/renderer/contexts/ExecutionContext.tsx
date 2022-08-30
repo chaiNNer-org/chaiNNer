@@ -1,5 +1,6 @@
+import log from 'electron-log';
 import { memo, useEffect, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
@@ -17,6 +18,8 @@ import {
     ParsedHandle,
     assertNever,
     getInputValues,
+    isEndingNode,
+    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -92,6 +95,12 @@ const convertToUsableFormat = (
         (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
     });
+    // log.info('inputHandles', inputHandles);
+    // log.info('outputHandles', outputHandles);
+
+    // Necessary to get around TS mutability warning
+    const nodesCopy = [...nodes];
+    const edgesCopy = [...edges];
 
     // Set up each node in the result
     nodes.forEach((element) => {
@@ -105,6 +114,48 @@ const convertToUsableFormat = (
             );
         }
 
+        const cacheOptions = {
+            shouldCache: !isEndingNode(schema),
+            maxCacheHits: 0,
+            clearImmediately: false,
+        };
+
+        const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
+        const isConnectedToIterator = currentChildren.some((child) => child.parentNode);
+        const isStartNode = isStartingNode(schema);
+
+        let totalOutputs = 0;
+        Object.values(inputHandles).forEach((value) => {
+            if (value) {
+                Object.values(value).forEach((v) => {
+                    if (v?.id === id) {
+                        totalOutputs += 1;
+                    }
+                });
+            }
+        });
+
+        // Case when we want to clear the cache after all nodes that needed it have used it from the cache
+        if (totalOutputs > 1 || isConnectedToIterator || isStartNode) {
+            cacheOptions.maxCacheHits =
+                isConnectedToIterator || isStartNode
+                    ? Infinity
+                    : // Max cache hits is the number of outputs - 1 since the first output is what sets it
+                      totalOutputs - 1;
+            // Case where we don't need to cache it at all
+        } else if (totalOutputs === 0) {
+            cacheOptions.shouldCache = false;
+            // Case where we can clear it as soon as it's used
+        } else if (totalOutputs === 1) {
+            cacheOptions.clearImmediately = true;
+        }
+
+        log.info(
+            `${schema.name} (id: ${schemaId}) is ${
+                cacheOptions.shouldCache ? '' : 'not'
+            } caching. Max cache hits: ${cacheOptions.maxCacheHits}`
+        );
+
         // Node
         result[id] = {
             schemaId,
@@ -116,6 +167,7 @@ const convertToUsableFormat = (
             child: false,
             nodeType,
             hasSideEffects: schema.hasSideEffects,
+            cacheOptions,
         };
         if (nodeType === 'iterator') {
             result[id].children = [];
@@ -235,6 +287,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         },
         [
             // TODO: This is a hack due to useEventSource having a bug related to useEffect jank
+            {},
             // status isn't actually used
             status,
             setStatus,
@@ -251,7 +304,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 setStatus(ExecutionStatus.READY);
             }
         },
-        [setStatus, unAnimate, schemata]
+        [setStatus, unAnimate, schemata, {}]
     );
 
     const updateNodeFinish = useBatchedCallback<

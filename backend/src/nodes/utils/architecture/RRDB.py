@@ -85,6 +85,9 @@ class RRDBNet(nn.Module):
         self.scale: int = self.get_scale()
         self.num_filters: int = self.state[self.key_arr[0]].shape[0]
 
+        self.supports_fp16 = True
+        self.supports_bfp16 = True
+
         # Detect if pixelunshuffle was used (Real-ESRGAN)
         if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (
             self.in_nc / 4,

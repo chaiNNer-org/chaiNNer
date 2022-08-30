@@ -40,11 +40,6 @@ def auto_split_process(
     """
     # Original code: https://github.com/JoeyBallentine/ESRGAN/blob/master/utils/dataops.py
 
-    # if os.environ["killed"] == "True":
-    #     torch.cuda.empty_cache()
-    #     gc.collect()
-    #     raise RuntimeError("Upscaling killed mid-processing")
-
     logger.debug(
         f"auto_split_process: scale={scale}, overlap={overlap}, max_depth={max_depth}, current_depth={current_depth}"
     )
@@ -62,13 +57,17 @@ def auto_split_process(
             device = torch.device(exec_options.device)
             d_img = lr_img.to(device)
             model = model.to(device)
-            if exec_options.fp16:
-                model = model.half()
-                d_img = d_img.half()
+            if exec_options.device == "cuda":
+                with torch.autocast(  # type: ignore
+                    device_type=exec_options.device,
+                    dtype=torch.float16
+                    if exec_options.fp16
+                    and model.supports_fp16  # TODO: use bfloat16 if RTX
+                    else torch.float32,
+                ):
+                    result = model(d_img)
             else:
-                model = model.float()
-                d_img = d_img.float()
-            result = model(d_img)
+                result = model(d_img)
             result = result.detach().cpu()
             del d_img
             return result, current_depth
@@ -84,6 +83,10 @@ def auto_split_process(
             # Re-raise the exception if not an OOM error
             else:
                 raise
+    elif max_depth < current_depth:
+        raise ValueError(
+            "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+        )
 
     b, c, h, w = lr_img.shape
 
@@ -104,6 +107,7 @@ def auto_split_process(
         max_depth=max_depth,
         current_depth=current_depth + 1,
     )
+    del top_left
     top_right_rlt, _ = auto_split_process(
         exec_options,
         top_right,
@@ -113,6 +117,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del top_right
     bottom_left_rlt, _ = auto_split_process(
         exec_options,
         bottom_left,
@@ -122,6 +127,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del bottom_left
     bottom_right_rlt, _ = auto_split_process(
         exec_options,
         bottom_right,
@@ -131,6 +137,7 @@ def auto_split_process(
         max_depth=depth,
         current_depth=current_depth + 1,
     )
+    del bottom_right
 
     # Define output shape
     out_h = h * scale
@@ -145,14 +152,19 @@ def auto_split_process(
     output_img[..., : out_h // 2, : out_w // 2] = top_left_rlt[
         ..., : out_h // 2, : out_w // 2
     ]
+    del top_left_rlt
     output_img[..., : out_h // 2, -out_w // 2 :] = top_right_rlt[
         ..., : out_h // 2, -out_w // 2 :
     ]
+    del top_right_rlt
     output_img[..., -out_h // 2 :, : out_w // 2] = bottom_left_rlt[
         ..., -out_h // 2 :, : out_w // 2
     ]
+    del bottom_left_rlt
     output_img[..., -out_h // 2 :, -out_w // 2 :] = bottom_right_rlt[
         ..., -out_h // 2 :, -out_w // 2 :
     ]
+    del bottom_right_rlt
+    gc.collect()
 
     return output_img, depth

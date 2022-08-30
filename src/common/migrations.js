@@ -677,6 +677,20 @@ const blockSizeToRadius = (data) => {
     return data;
 };
 
+const removeTargetTileSize = (data) => {
+    data.nodes.forEach((node) => {
+        if (
+            ['chainner:ncnn:upscale_image', 'chainner:onnx:upscale_image'].includes(
+                node.data.schemaId
+            )
+        ) {
+            delete node.data.inputData[2];
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -714,6 +728,7 @@ const migrations = [
     onnxConvertUpdate,
     removeEmptyStrings,
     blockSizeToRadius,
+    removeTargetTileSize,
 ];
 
 export const currentMigration = migrations.length;

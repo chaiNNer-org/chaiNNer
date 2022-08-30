@@ -51,11 +51,15 @@ def onnx_auto_split_process(
                 gc.collect()
                 # pylint: disable=raise-missing-from
                 raise RuntimeError(
-                    "Upscaling stopped due to an out of memory error. Try setting a tile size, or using a smaller one if already set."
+                    "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
                 )
             else:
                 # Re-raise the exception if not an OOM error
                 raise
+    elif max_depth < current_depth:
+        raise ValueError(
+            "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+        )
 
     b, c, h, w = lr_img.shape
 
