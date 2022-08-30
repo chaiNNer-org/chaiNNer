@@ -199,10 +199,15 @@ class NcnnInterpolateModelsNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, a: NcnnModel, b: NcnnModel, amount: int
+        self, model_a: NcnnModel, model_b: NcnnModel, amount: int
     ) -> Tuple[NcnnModel, int, int]:
+        if amount == 0:
+            return model_a, 100, 0
+        elif amount == 100:
+            return model_b, 0, 100
+
         f_amount = 1 - amount / 100
-        interp_model = a.interpolate(b, f_amount)
+        interp_model = model_a.interpolate(model_b, f_amount)
 
         if not self.check_will_upscale(interp_model):
             raise ValueError(

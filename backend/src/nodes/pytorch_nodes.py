@@ -306,7 +306,13 @@ class InterpolateNode(NodeBase):
         gc.collect()
         return mean_color > 0.5
 
-    def run(self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int) -> Any:
+    def run(
+        self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int
+    ) -> Tuple[PyTorchModel, int, int]:
+        if amount == 0:
+            return model_a, 100, 0
+        elif amount == 100:
+            return model_b, 0, 100
 
         state_a = model_a.state
         state_b = model_b.state

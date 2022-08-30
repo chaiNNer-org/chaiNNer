@@ -239,7 +239,14 @@ class OnnxInterpolateModelsNode(NodeBase):
         del result
         return mean_color > 0.5
 
-    def run(self, model_a: bytes, model_b: bytes, amount: int) -> bytes:
+    def run(
+        self, model_a: bytes, model_b: bytes, amount: int
+    ) -> Tuple[bytes, int, int]:
+        if amount == 0:
+            return model_a, 100, 0
+        elif amount == 100:
+            return model_b, 0, 100
+
         # Just to be sure there is no mismatch from opt/un-opt models
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
 
@@ -272,7 +279,7 @@ class OnnxInterpolateModelsNode(NodeBase):
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        return model_interp
+        return model_interp, 100 - amount, amount
 
 
 @NodeFactory.register("chainner:onnx:convert_to_ncnn")
