@@ -206,7 +206,7 @@ class ImageUpscaleNode(NodeBase):
                 img_tensor,
                 model,
                 scale,
-                max_depth=tile_mode if tile_mode > 0 else None,
+                max_depth=tile_mode if tile_mode > 0 else split_estimation,
             )
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
