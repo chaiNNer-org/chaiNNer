@@ -33,7 +33,7 @@ class OnnxLoadModelNode(NodeBase):
         self.inputs = [OnnxFileInput()]
         self.outputs = [
             OnnxModelOutput(),
-            DirectoryOutput().with_id(2),
+            DirectoryOutput("Model Directory").with_id(2),
             TextOutput("Model Name").with_id(1),
         ]
 
