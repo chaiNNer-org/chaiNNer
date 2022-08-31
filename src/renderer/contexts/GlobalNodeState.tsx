@@ -167,6 +167,7 @@ export const GlobalProvider = memo(
             getEdges,
             setNodes: rfSetNodes,
             setEdges: rfSetEdges,
+            viewportInitialized,
         } = useReactFlow<NodeData, EdgeData>();
 
         const currentViewport = useViewport();
@@ -249,17 +250,23 @@ export const GlobalProvider = memo(
             }, 100);
             return () => clearTimeout(timerId);
         }, Object.values(currentViewport));
+        const [causeVPEffect, setCauseVPEffect] = useState(0);
+        useEffect(() => {
+            if (viewportInitialized) {
+                const cachedViewport = getSessionStorageOrDefault<Viewport | null>(
+                    'cachedViewport',
+                    null
+                );
+                if (cachedViewport) setViewport(cachedViewport);
+            }
+        }, [viewportInitialized, setViewport, causeVPEffect]);
         useEffect(() => {
             const cachedNodes = getSessionStorageOrDefault<Node<NodeData>[]>('cachedNodes', []);
             const cachedEdges = getSessionStorageOrDefault<Edge<EdgeData>[]>('cachedEdges', []);
-            const cachedViewport = getSessionStorageOrDefault<Viewport | null>(
-                'cachedViewport',
-                null
-            );
 
             changeNodes(cachedNodes);
             changeEdges(cachedEdges);
-            if (cachedViewport) setViewport(cachedViewport);
+            setCauseVPEffect(causeVPEffect + 1);
         }, [changeNodes, changeEdges]);
 
         const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
