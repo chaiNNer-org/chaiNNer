@@ -1,8 +1,8 @@
 import log from 'electron-log';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import {
     EdgeData,
@@ -37,7 +37,7 @@ import { useBatchedCallback } from '../hooks/useBatchedCallback';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
-import { GlobalContext } from './GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
 import { SettingsContext } from './SettingsContext';
 
 export enum ExecutionStatus {
@@ -248,7 +248,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     } = useContext(GlobalContext);
     const { schemata, port, backend } = useContext(BackendContext);
     const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
-    const { sendAlert } = useContext(AlertBoxContext);
+    const { sendAlert, sendToast } = useContext(AlertBoxContext);
+    const { nodeChanges, edgeChanges } = useContextSelector(GlobalVolatileContext, (c) => ({
+        nodeChanges: c.nodeChanges,
+        edgeChanges: c.edgeChanges,
+    }));
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
@@ -379,6 +383,36 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setStatus(ExecutionStatus.READY);
         }
     }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend]);
+
+    const previousStatus = useRef(status);
+    useEffect(() => {
+        if (
+            status === ExecutionStatus.RUNNING &&
+            previousStatus.current === ExecutionStatus.RUNNING
+        ) {
+            sendToast({
+                status: 'warning',
+                description:
+                    'You are modifying the chain while it is running. This will not modify the state of the current execution.',
+                id: 'execution-running',
+                variant: 'subtle',
+                position: 'bottom',
+            });
+        } else if (
+            status === ExecutionStatus.PAUSED &&
+            previousStatus.current === ExecutionStatus.PAUSED
+        ) {
+            sendToast({
+                status: 'warning',
+                description:
+                    'You are modifying the chain while it is paused. This will not modify the state of the execution once resumed.',
+                id: 'execution-paused',
+                variant: 'subtle',
+                position: 'bottom',
+            });
+        }
+        previousStatus.current = status;
+    }, [status, nodeChanges, edgeChanges]);
 
     const run = async () => {
         const allNodes = getNodes();
