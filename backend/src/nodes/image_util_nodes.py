@@ -563,7 +563,7 @@ class CannyEdgeDetectionNode(NodeBase):
         self.inputs = [
             ImageInput(),
             NumberInput("Lower Threshold", minimum=0, default=100),
-            NumberInput("Higher Threshold", minimum=0, default=300),
+            NumberInput("Upper Threshold", minimum=0, default=300),
             ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageUtilityCategory
