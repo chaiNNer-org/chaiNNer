@@ -20,7 +20,7 @@ import {
     Tabs,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import React, { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -254,19 +254,17 @@ export const NodeSelector = memo(() => {
                                                         onClick={openDependencyManager}
                                                     />
                                                 );
-                                            } else {
-                                                return (
-                                                    <RegularAccordionItem
-                                                        category={category}
-                                                        collapsed={collapsed}
-                                                        key={category.name}
-                                                    >
-                                                        {inner}
-                                                    </RegularAccordionItem>
-                                                );
                                             }
 
-                                            return <React.Fragment key={category.name} />;
+                                            return (
+                                                <RegularAccordionItem
+                                                    category={category}
+                                                    collapsed={collapsed}
+                                                    key={category.name}
+                                                >
+                                                    {inner}
+                                                </RegularAccordionItem>
+                                            );
                                         })}
                                         <AccordionItem>
                                             <Box p={4}>
