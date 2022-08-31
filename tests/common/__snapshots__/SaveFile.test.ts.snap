@@ -100,6 +100,97 @@ Object {
 }
 `;
 
+exports[`Read save file canny-edge-detection.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "1270dca4-eab0-4bb0-857a-6bd27bd1aa33",
+      "source": "d708003f-ca9e-4178-a775-4f35735dae02",
+      "sourceHandle": "d708003f-ca9e-4178-a775-4f35735dae02-0",
+      "target": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+      "targetHandle": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "77306abe-b237-4b21-abe9-5750fe43bd66",
+      "source": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+      "sourceHandle": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b-0",
+      "target": "b82af4e7-689e-46a2-873f-d41bc570401e",
+      "targetHandle": "b82af4e7-689e-46a2-873f-d41bc570401e-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "b82af4e7-689e-46a2-873f-d41bc570401e",
+        "inputData": Object {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 371,
+      "id": "b82af4e7-689e-46a2-873f-d41bc570401e",
+      "position": Object {
+        "x": 645,
+        "y": 240,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 241,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+        "inputData": Object {
+          "1": 100,
+          "2": 300,
+        },
+        "schemaId": "chainner:image:canny_edge_detection",
+      },
+      "height": 327,
+      "id": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+      "position": Object {
+        "x": 330,
+        "y": 240,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 266,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "d708003f-ca9e-4178-a775-4f35735dae02",
+        "inputData": Object {},
+        "schemaId": "chainner:image:load",
+      },
+      "height": 487,
+      "id": "d708003f-ca9e-4178-a775-4f35735dae02",
+      "position": Object {
+        "x": 30,
+        "y": 240,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 259,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file combine-rgba.chn 1`] = `
 Object {
   "edges": Array [
@@ -489,9 +580,7 @@ Object {
     Object {
       "data": Object {
         "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-        "inputData": Object {
-          "2": 256,
-        },
+        "inputData": Object {},
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -508,9 +597,7 @@ Object {
     Object {
       "data": Object {
         "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-        "inputData": Object {
-          "2": 512,
-        },
+        "inputData": Object {},
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -608,6 +695,96 @@ Object {
     "x": 0,
     "y": 0,
     "zoom": 1,
+  },
+}
+`;
+
+exports[`Read save file convert-to-ncnn.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "1eaa9bee-3615-45de-8bb6-6b79230ff664",
+      "source": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "sourceHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+      "target": "9256866c-414a-4bd7-8b66-804922ac8875",
+      "targetHandle": "9256866c-414a-4bd7-8b66-804922ac8875-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c83b7ba6-3179-43ba-8c7f-9b44a2f8ca45",
+      "source": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+      "sourceHandle": "056923aa-5161-4efb-b1a8-1a15a867ae26-0",
+      "target": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "targetHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "inputData": Object {},
+        "schemaId": "chainner:onnx:load_model",
+      },
+      "height": 252,
+      "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+      "position": Object {
+        "x": 390,
+        "y": 345,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 256,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "inputData": Object {
+          "1": 0,
+        },
+        "schemaId": "chainner:onnx:convert_to_ncnn",
+      },
+      "height": 252,
+      "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+      "position": Object {
+        "x": 675,
+        "y": 345,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "inputData": Object {},
+        "schemaId": "chainner:ncnn:save_model",
+      },
+      "height": 270,
+      "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+      "position": Object {
+        "x": 945,
+        "y": 345,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 256,
+      "zIndex": 70,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": -113.11594255284149,
+    "y": 57.879643031246246,
+    "zoom": 0.6263322193120638,
   },
 }
 `;
@@ -2074,6 +2251,40 @@ Object {
 }
 `;
 
+exports[`Read save file onnx-interpolate.chn 1`] = `
+Object {
+  "edges": Array [],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+        "inputData": Object {
+          "2": 67,
+        },
+        "isDisabled": false,
+        "schemaId": "chainner:onnx:interpolate_models",
+      },
+      "height": 381,
+      "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+      "position": Object {
+        "x": 384,
+        "y": 144,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 247,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file opacity.chn 1`] = `
 Object {
   "edges": Array [],
@@ -2683,6 +2894,101 @@ Object {
 }
 `;
 
+exports[`Write save file canny-edge-detection.chn 1`] = `
+Object {
+  "checksum": "1c98b81bffb6983c881f27aea8bccabb",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "1270dca4-eab0-4bb0-857a-6bd27bd1aa33",
+        "source": "d708003f-ca9e-4178-a775-4f35735dae02",
+        "sourceHandle": "d708003f-ca9e-4178-a775-4f35735dae02-0",
+        "target": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+        "targetHandle": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "77306abe-b237-4b21-abe9-5750fe43bd66",
+        "source": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+        "sourceHandle": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b-0",
+        "target": "b82af4e7-689e-46a2-873f-d41bc570401e",
+        "targetHandle": "b82af4e7-689e-46a2-873f-d41bc570401e-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "b82af4e7-689e-46a2-873f-d41bc570401e",
+          "inputData": Object {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 371,
+        "id": "b82af4e7-689e-46a2-873f-d41bc570401e",
+        "position": Object {
+          "x": 645,
+          "y": 240,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 241,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+          "inputData": Object {
+            "1": 100,
+            "2": 300,
+          },
+          "schemaId": "chainner:image:canny_edge_detection",
+        },
+        "height": 327,
+        "id": "d6f6e8e6-3699-44eb-95c1-bb9bd951a32b",
+        "position": Object {
+          "x": 330,
+          "y": 240,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 266,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "d708003f-ca9e-4178-a775-4f35735dae02",
+          "inputData": Object {},
+          "schemaId": "chainner:image:load",
+        },
+        "height": 487,
+        "id": "d708003f-ca9e-4178-a775-4f35735dae02",
+        "position": Object {
+          "x": 30,
+          "y": 240,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 259,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
 exports[`Write save file combine-rgba.chn 1`] = `
 Object {
   "checksum": "a39de727bfc6e56f17be9f67adf99fe4",
@@ -2782,7 +3088,7 @@ Object {
 
 exports[`Write save file convert-onnx-update.chn 1`] = `
 Object {
-  "checksum": "99b204702f8ad026547887afc1fb6453",
+  "checksum": "25e990edb8261f3b7fa470f9e070d42b",
   "content": Object {
     "edges": Array [
       Object {
@@ -3078,9 +3384,7 @@ Object {
       Object {
         "data": Object {
           "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-          "inputData": Object {
-            "2": 256,
-          },
+          "inputData": Object {},
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
@@ -3097,9 +3401,7 @@ Object {
       Object {
         "data": Object {
           "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-          "inputData": Object {
-            "2": 512,
-          },
+          "inputData": Object {},
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
@@ -3196,6 +3498,100 @@ Object {
       "x": 0,
       "y": 0,
       "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file convert-to-ncnn.chn 1`] = `
+Object {
+  "checksum": "8b7a040d325bbda5f9fb8bca141054db",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "1eaa9bee-3615-45de-8bb6-6b79230ff664",
+        "source": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "sourceHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+        "target": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "targetHandle": "9256866c-414a-4bd7-8b66-804922ac8875-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c83b7ba6-3179-43ba-8c7f-9b44a2f8ca45",
+        "source": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "sourceHandle": "056923aa-5161-4efb-b1a8-1a15a867ae26-0",
+        "target": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "targetHandle": "3e1a29d5-06de-4ab7-ac98-480c88156a73-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+          "inputData": Object {},
+          "schemaId": "chainner:onnx:load_model",
+        },
+        "height": 252,
+        "id": "056923aa-5161-4efb-b1a8-1a15a867ae26",
+        "position": Object {
+          "x": 390,
+          "y": 345,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 256,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+          "inputData": Object {
+            "1": 0,
+          },
+          "schemaId": "chainner:onnx:convert_to_ncnn",
+        },
+        "height": 252,
+        "id": "3e1a29d5-06de-4ab7-ac98-480c88156a73",
+        "position": Object {
+          "x": 675,
+          "y": 345,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+          "inputData": Object {},
+          "schemaId": "chainner:ncnn:save_model",
+        },
+        "height": 270,
+        "id": "9256866c-414a-4bd7-8b66-804922ac8875",
+        "position": Object {
+          "x": 945,
+          "y": 345,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 256,
+        "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": -113.11594255284149,
+      "y": 57.879643031246246,
+      "zoom": 0.6263322193120638,
     },
   },
   "timestamp": "",
@@ -4695,6 +5091,44 @@ Object {
         "selected": false,
         "type": "regularNode",
         "width": 257,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file onnx-interpolate.chn 1`] = `
+Object {
+  "checksum": "1826a1b882ec4c54636066932cdeafb1",
+  "content": Object {
+    "edges": Array [],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+          "inputData": Object {
+            "2": 67,
+          },
+          "isDisabled": false,
+          "schemaId": "chainner:onnx:interpolate_models",
+        },
+        "height": 381,
+        "id": "fbb2100e-2568-4427-b730-642e92b633b0",
+        "position": Object {
+          "x": 384,
+          "y": 144,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 247,
         "zIndex": 50,
       },
     ],

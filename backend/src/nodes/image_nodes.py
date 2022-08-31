@@ -33,7 +33,7 @@ class ImReadNode(NodeBase):
         self.inputs = [ImageFileInput()]
         self.outputs = [
             LargeImageOutput(),
-            DirectoryOutput(),
+            DirectoryOutput("Image Directory"),
             TextOutput("Image Name"),
         ]
 

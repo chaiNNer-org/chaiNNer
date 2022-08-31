@@ -34,7 +34,13 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
         },
         {
             name: 'NCNN',
-            packages: [{ packageName: 'ncnn-vulkan', version: '2022.8.12', sizeEstimate: 4 * MB }],
+            packages: [
+                {
+                    packageName: 'ncnn-vulkan',
+                    version: '2022.8.29',
+                    sizeEstimate: isMac ? 7 * MB : 4 * MB,
+                },
+            ],
         },
         {
             name: 'ONNX',
@@ -43,6 +49,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     packageName: 'onnx',
                     version: '1.11.0',
                     sizeEstimate: 12 * MB,
+                },
+                {
+                    packageName: 'onnxoptimizer',
+                    version: '0.3.0',
+                    sizeEstimate: 300 * KB,
                 },
                 {
                     packageName: isNvidiaAvailable ? 'onnxruntime-gpu' : 'onnxruntime',

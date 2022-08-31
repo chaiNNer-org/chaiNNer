@@ -7,6 +7,8 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
+from .utils import get_h_w_c
+
 
 def fix_dtype_range(img):
     dtype_max = 1
@@ -66,14 +68,21 @@ def ncnn_auto_split_process(
         # ex.set_light_mode(True)
         try:
             lr_img_fix = fix_dtype_range(lr_img.copy())
+            lr_c = get_h_w_c(lr_img)[2]
+            if lr_c == 1:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_GRAY
+            elif lr_c == 3:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_RGB
+            else:
+                pixel_type = ncnn.Mat.PixelType.PIXEL_RGBA
             mat_in = ncnn.Mat.from_pixels(
                 lr_img_fix,
-                ncnn.Mat.PixelType.PIXEL_RGB,
+                pixel_type,
                 lr_img_fix.shape[1],
                 lr_img_fix.shape[0],
             )
             mean_vals = []
-            norm_vals = [1 / 255.0, 1 / 255.0, 1 / 255.0]
+            norm_vals = [1 / 255.0] * lr_c
             mat_in.substract_mean_normalize(mean_vals, norm_vals)
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
@@ -82,6 +91,7 @@ def ncnn_auto_split_process(
                 blob_vkallocator.clear()
                 staging_vkallocator.clear()
             del ex, mat_in, mat_out
+            gc.collect()
             # # Clear VRAM
             return result.copy(), current_depth
         except Exception as e:
@@ -94,11 +104,16 @@ def ncnn_auto_split_process(
                 if blob_vkallocator is not None and staging_vkallocator is not None:
                     blob_vkallocator.clear()
                     staging_vkallocator.clear()
+                ex = None
                 del ex
                 gc.collect()
             else:
                 # Re-raise the exception if not an OOM error
                 raise
+    elif max_depth < current_depth:
+        raise ValueError(
+            "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
+        )
 
     h, w = lr_img.shape[:2]
     if lr_img.ndim > 2:

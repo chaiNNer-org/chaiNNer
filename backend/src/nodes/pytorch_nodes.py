@@ -3,6 +3,7 @@ Nodes that provide functionality for pytorch inference
 """
 
 from __future__ import annotations
+import gc
 
 from io import BytesIO
 import os
@@ -21,10 +22,16 @@ from .utils.architecture.RRDB import RRDBNet as ESRGAN
 from .utils.architecture.SPSR import SPSRNet as SPSR
 from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
+from .utils.architecture.SwinIR import SwinIR
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
 from .utils.torch_types import PyTorchModel
+
+try:
+    from .onnx_nodes import ConvertOnnxToNcnnNode
+except:
+    ConvertOnnxToNcnnNode = None
 
 
 def to_pytorch_execution_options(options: ExecutionOptions):
@@ -35,7 +42,7 @@ def to_pytorch_execution_options(options: ExecutionOptions):
 
 
 def load_state_dict(state_dict) -> PyTorchModel:
-    logger.info(f"Loading state dict into ESRGAN model")
+    logger.info(f"Loading state dict into model arch")
 
     # SRVGGNet Real-ESRGAN (v2)
     if (
@@ -53,6 +60,21 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
+    # SwinIR # TODO: fix this garbage
+    elif (
+        ("layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys())
+        or (
+            "params_ema" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params_ema"].keys()
+        )
+        or (
+            "params" in state_dict.keys()
+            and "layers.0.residual_group.blocks.0.norm1.weight"
+            in state_dict["params"].keys()
+        )
+    ):
+        model = SwinIR(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:
@@ -70,11 +92,11 @@ class LoadModelNode(NodeBase):
         self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
-            Real-ESRGAN's SRVGG architecture, and Swift-SRGAN."""
+            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, and SwinIR."""
         self.inputs = [PthFileInput()]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),
-            DirectoryOutput().with_id(2),
+            DirectoryOutput("Model Directory").with_id(2),
             TextOutput("Model Name").with_id(1),
         ]
 
@@ -119,8 +141,9 @@ class LoadModelNode(NodeBase):
 class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscales an image using a PyTorch Super-Resolution model."
-        self.inputs = [ModelInput(), ImageInput()]
+        self.description = "Upscales an image using a PyTorch Super-Resolution model. \
+            Select a manual number of tiles if you are having issues with the automatic mode. "
+        self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
@@ -128,7 +151,7 @@ class ImageUpscaleNode(NodeBase):
                 Image {
                     width: multiply(Input0.scale, Input1.width),
                     height: multiply(Input0.scale, Input1.height),
-                    channels: getUpscaleChannels(Input1.channels, Input0.inputChannels, Input0.outputChannels)
+                    channels: Input1.channels
                 }
                 """,
             )
@@ -144,6 +167,7 @@ class ImageUpscaleNode(NodeBase):
         img: np.ndarray,
         model: torch.nn.Module,
         scale: int,
+        tile_mode: int,
         options: ExecutionOptions,
     ):
         with torch.no_grad():
@@ -174,19 +198,23 @@ class ImageUpscaleNode(NodeBase):
                 img_tensor,
                 model,
                 scale,
+                max_depth=tile_mode if tile_mode > 0 else None,
             )
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
+
             del img_tensor, model
             logger.info("Converting tensor to image")
+
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
             logger.info("Done upscaling")
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             del t_out
+            gc.collect()
             return img_out
 
-    def run(self, model: PyTorchModel, img: np.ndarray) -> np.ndarray:
+    def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         exec_options = to_pytorch_execution_options(get_execution_options())
@@ -205,7 +233,7 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, model, model.scale, exec_options),
+            lambda i: self.upscale(i, model, model.scale, tile_mode, exec_options),
         )
 
 
@@ -275,11 +303,16 @@ class InterpolateNode(NodeBase):
         del model, img_tensor, t_out, fake_img
         mean_color = np.mean(result)
         del result
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        gc.collect()
         return mean_color > 0.5
 
-    def run(self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int) -> Any:
+    def run(
+        self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int
+    ) -> Tuple[PyTorchModel, int, int]:
+        if amount == 0:
+            return model_a, 100, 0
+        elif amount == 100:
+            return model_b, 0, 100
 
         state_a = model_a.state
         state_b = model_b.state
@@ -416,8 +449,7 @@ class PthSaveNode(NodeBase):
 class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX.
-            Can be used to convert to NCNN outside chaiNNer, or used to run the model via ONNX."""
+        self.description = """Convert a PyTorch model to ONNX."""
         self.inputs = [ModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput("ONNX Model")]
 
@@ -473,3 +505,28 @@ class GetModelDimensions(NodeBase):
 
     def run(self, model: PyTorchModel) -> int:
         return model.scale
+
+
+@NodeFactory.register("chainner:pytorch:convert_to_ncnn")
+class ConvertTorchToNCNNNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = """Convert a PyTorch model to NCNN."""
+        self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
+        if ConvertOnnxToNcnnNode is not None:
+            self.outputs = ConvertOnnxToNcnnNode().get_outputs()
+        else:
+            self.outputs = []
+
+        self.category = PyTorchCategory
+        self.name = "Convert To NCNN"
+        self.icon = "NCNN"
+        self.sub = "Utility"
+
+    def run(self, model: torch.nn.Module, is_fp16: int) -> Any:
+        if ConvertOnnxToNcnnNode is None:
+            raise Exception("ONNX is not installed")
+        onnx_model = ConvertTorchToONNXNode().run(model)
+        ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
+
+        return ncnn_model, fp_mode

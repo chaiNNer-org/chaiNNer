@@ -33,9 +33,10 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
             ImageOutput(broadcast_type=True),
-            DirectoryOutput(),
+            DirectoryOutput("Image Directory"),
             TextOutput("Relative Path"),
             TextOutput("Image Name"),
+            NumberOutput("Overall Index"),
         ]
 
         self.category = ImageCategory
@@ -47,13 +48,15 @@ class ImageFileIteratorLoadImageNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, path: str, root_dir: str) -> Tuple[np.ndarray, str, str, str]:
+    def run(
+        self, path: str, root_dir: str, index: int
+    ) -> Tuple[np.ndarray, str, str, str, int]:
         img, img_dir, basename = ImReadNode().run(path)
 
         # Get relative path from root directory passed by Iterator directory input
         rel_path = os.path.relpath(img_dir, root_dir)
 
-        return img, root_dir, rel_path, basename
+        return img, root_dir, rel_path, basename, index
 
 
 @NodeFactory.register("chainner:image:file_iterator")
@@ -127,7 +130,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
                     }
                 )
                 # Replace the input filepath with the filepath from the loop
-                context.nodes[img_path_node_id]["inputs"] = [filepath, directory]
+                context.nodes[img_path_node_id]["inputs"] = [filepath, directory, idx]
                 executor = context.create_iterator_executor()
                 await executor.run()
                 await context.queue.put(
@@ -150,7 +153,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
             ImageOutput("Frame Image", broadcast_type=True),
-            TextOutput("Frame Index"),
+            NumberOutput("Frame Index"),
         ]
 
         self.category = ImageCategory
@@ -322,7 +325,7 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
         super().__init__()
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
-        self.outputs = [ImageOutput(broadcast_type=True)]
+        self.outputs = [ImageOutput(broadcast_type=True), NumberOutput("Overall Index")]
 
         self.category = ImageCategory
         self.name = "Load Image (Iterator)"
@@ -333,8 +336,8 @@ class ImageSpriteSheetIteratorLoadImageNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, img: np.ndarray) -> np.ndarray:
-        return img
+    def run(self, img: np.ndarray, index: int) -> Tuple[np.ndarray, int]:
+        return img, index
 
 
 @NodeFactory.register(SPRITESHEET_ITERATOR_OUTPUT_NODE_ID)
@@ -459,7 +462,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                 }
             )
             # Replace the input filepath with the filepath from the loop
-            context.nodes[img_loader_node_id]["inputs"] = [img]
+            context.nodes[img_loader_node_id]["inputs"] = [img, idx]
             # logger.info(nodes[output_node_id]["inputs"])
             executor = context.create_iterator_executor()
             await executor.run()
