@@ -13,7 +13,7 @@ import numpy as np
 import torch
 from sanic.log import logger
 
-from .categories import PyTorchCategory
+from .categories import ONNXCategory, PyTorchCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
@@ -457,6 +457,13 @@ class ConvertTorchToONNXNode(NodeBase):
         self.name = "Convert To ONNX"
         self.icon = "ONNX"
         self.sub = "Utility"
+
+        # Attempt to import the ONNX save node, otherwise it would be impossible to save
+        try:
+            # pylint: disable=unused-import, import-outside-toplevel
+            from .model_save_nodes import OnnxSaveModelNode
+        except:
+            pass
 
     def run(self, model: torch.nn.Module) -> bytes:
         exec_options = get_execution_options()
