@@ -5,7 +5,6 @@ import {
     Box,
     Button,
     Center,
-    Divider,
     ExpandedIndex,
     HStack,
     Icon,
@@ -222,7 +221,6 @@ export const NodeSelector = memo(() => {
                                                                 packageName={category.name}
                                                                 onClick={openDependencyManager}
                                                             />
-                                                            <Divider py={1} />
                                                             <Subcategories
                                                                 collapsed={collapsed}
                                                                 subcategoryMap={subcategoryMap}
