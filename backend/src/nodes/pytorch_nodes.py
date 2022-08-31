@@ -13,7 +13,7 @@ import numpy as np
 import torch
 from sanic.log import logger
 
-from .categories import ONNXCategory, PyTorchCategory
+from .categories import PyTorchCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
