@@ -54,7 +54,7 @@ class ModelFileIteratorLoadModelNode(NodeBase):
 class ModelFileIteratorNode(IteratorNodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Iterate over all files in a directory and run the provided nodes on just the image files."
+        self.description = "Iterate over all files in a directory and run the provided nodes on just the PyTorch model files (.pth). Supports everything _Load Model_ does."
         self.inputs = [
             DirectoryInput(),
         ]
