@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 
 class Category:
@@ -9,12 +9,16 @@ class Category:
         icon: str,
         color: str,
         install_hint: Union[str, None] = None,
+        excluded_from_check: Union[List[str], None] = None,
     ):
         self.name: str = name
         self.description: str = description
         self.icon: str = icon
         self.color: str = color
         self.install_hint: Union[str, None] = install_hint
+        self.excluded_from_check = (
+            excluded_from_check if excluded_from_check is not None else []
+        )
 
     def toDict(self):
         return {
@@ -23,6 +27,7 @@ class Category:
             "icon": self.icon,
             "color": self.color,
             "installHint": self.install_hint,
+            "excludedFromCheck": self.excluded_from_check,
         }
 
     def __repr__(self):
@@ -84,6 +89,7 @@ ONNXCategory = Category(
     icon="ONNX",
     color="#63B3ED",
     install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
+    excluded_from_check=["chainner:onnx:save_model"],
 )
 NCNNCategory = Category(
     name="NCNN",
@@ -91,6 +97,7 @@ NCNNCategory = Category(
     icon="NCNN",
     color="#ED64A6",
     install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
+    excluded_from_check=["chainner:ncnn:save_model"],
 )
 
 # Etc
