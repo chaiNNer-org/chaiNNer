@@ -1,4 +1,5 @@
 from typing import Literal
+from sanic.log import logger
 
 
 DeviceType = Literal["cpu", "cuda"]
@@ -22,6 +23,9 @@ __global_exec_options = ExecutionOptions("cpu", False)
 
 
 def get_execution_options() -> ExecutionOptions:
+    logger.info(
+        f"Execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.device}"
+    )
     return __global_exec_options
 
 
