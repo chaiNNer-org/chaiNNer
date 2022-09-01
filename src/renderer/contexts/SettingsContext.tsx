@@ -11,6 +11,7 @@ interface Settings {
     useIsFp16: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useDisHwAccel: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useCheckUpdOnStrtUp: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useSnapToGrid: readonly [
         snapToGrid: boolean,
         setSnapToGrid: React.Dispatch<React.SetStateAction<boolean>>,
@@ -38,6 +39,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
     const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
+    const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
 
     const useIsDarkMode = useMemoArray(useLocalStorage('use-dark-mode', true));
@@ -75,6 +77,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useIsSystemPython,
         useSnapToGrid,
         useDisHwAccel,
+        useCheckUpdOnStrtUp,
         useStartupTemplate,
         useIsDarkMode,
         useAnimateChain,
