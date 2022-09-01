@@ -480,21 +480,20 @@ const spawnBackend = async (port: number) => {
             }
         });
 
-        app.on('window-all-closed', () => {
-            if (process.platform !== 'darwin') {
-                log.info('Attempting to kill backend...');
-                try {
-                    const success = backend.kill();
-                    if (success) {
-                        log.error('Successfully killed backend.');
-                    } else {
-                        log.error('Error killing backend.');
-                    }
-                } catch (error) {
+        app.on('before-quit', () => {
+            log.info('Attempting to kill backend...');
+            try {
+                const success = backend.kill();
+                if (success) {
+                    log.error('Successfully killed backend.');
+                } else {
                     log.error('Error killing backend.');
                 }
+            } catch (error) {
+                log.error('Error killing backend.');
             }
         });
+
         log.info('Successfully spawned backend.');
     } catch (error) {
         log.error('Error spawning backend.');
@@ -686,6 +685,9 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
+});
+
+app.on('quit', () => {
     log.info('Cleaning up temp folders...');
     const tempDir = os.tmpdir();
     // find all the folders starting with 'chaiNNer-'
