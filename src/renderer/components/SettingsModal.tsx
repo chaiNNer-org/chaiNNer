@@ -288,7 +288,7 @@ const PythonSettings = memo(() => {
 const AdvancedSettings = memo(() => {
     const { useDisHwAccel } = useContext(SettingsContext);
     const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
-    
+
     const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
 
@@ -310,7 +310,7 @@ const AdvancedSettings = memo(() => {
                 title="Check for Update on Start-up"
                 value={isCheckUpdOnStrtUp}
                 onToggle={() => {
-                    setIsCheckUpdOnStrtUp((prev) => !prev)
+                    setIsCheckUpdOnStrtUp((prev) => !prev);
                 }}
             />
         </VStack>
