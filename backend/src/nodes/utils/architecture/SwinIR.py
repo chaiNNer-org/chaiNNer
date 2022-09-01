@@ -974,7 +974,7 @@ class SwinIR(nn.Module):
         self.img_size = img_size
         self.img_range = img_range
 
-        self.supports_fp16 = supports_fp16
+        self.supports_fp16 = False  # Too much weirdness to support this at the moment
         self.supports_bfp16 = True
 
         self.img_range = img_range
