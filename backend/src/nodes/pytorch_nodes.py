@@ -165,16 +165,20 @@ class ImageUpscaleNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        model: torch.nn.Module,
+        model: PyTorchModel,
         scale: int,
         tile_mode: int,
         options: ExecutionOptions,
     ):
+        exec_options = to_pytorch_execution_options(get_execution_options())
+        should_use_fp16 = (
+            exec_options.fp16 and model.supports_fp16
+        )  # TODO: use bfloat16 if RTX
         with torch.no_grad():
             # Borrowed from iNNfer
-            logger.info("Converting image to tensor")
+            logger.debug("Converting image to tensor")
             img_tensor = np2tensor(img, change_range=True)
-            logger.info("Upscaling image")
+            logger.debug("Upscaling image")
 
             split_estimation = 1
             if options.device == "cuda":
@@ -182,7 +186,8 @@ class ImageUpscaleNode(NodeBase):
                 free, total = torch.cuda.mem_get_info(0)  # type: ignore
                 img_bytes = img_tensor.numel() * img_tensor.element_size()
                 model_bytes = sum(
-                    p.numel() * p.element_size() for p in model.parameters()
+                    p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))
+                    for p in model.parameters()
                 )
                 mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
                 split_estimation = 1
@@ -211,12 +216,13 @@ class ImageUpscaleNode(NodeBase):
             if options.device == "cuda":
                 logger.info(f"Actual Split depth: {depth}")
             del img_tensor
-            logger.info("Converting tensor to image")
+            logger.debug("Converting tensor to image")
 
             img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
-            logger.info("Done upscaling")
+            logger.debug("Done upscaling")
             del t_out
             gc.collect()
+            torch.cuda.empty_cache()
             return img_out
 
     def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
@@ -224,14 +230,14 @@ class ImageUpscaleNode(NodeBase):
 
         exec_options = to_pytorch_execution_options(get_execution_options())
 
-        logger.info(f"Upscaling image...")
+        logger.debug(f"Upscaling image...")
 
         # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
         in_nc = model.in_nc
         out_nc = model.out_nc
         scale = model.scale
         h, w, c = get_h_w_c(img)
-        logger.info(
+        logger.debug(
             f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc: {out_nc})"
         )
 

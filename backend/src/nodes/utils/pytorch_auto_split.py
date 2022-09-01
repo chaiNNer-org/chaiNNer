@@ -57,16 +57,13 @@ def auto_split_process(
             device = torch.device(exec_options.device)
             d_img = lr_img.to(device)
             model = model.to(device)
-            if exec_options.device == "cuda":
-                with torch.autocast(  # type: ignore
-                    device_type=exec_options.device,
-                    dtype=torch.float16
-                    if exec_options.fp16
-                    and model.supports_fp16  # TODO: use bfloat16 if RTX
-                    else torch.float32,
-                ):
-                    result = model(d_img)
-            else:
+            should_use_fp16 = (
+                exec_options.fp16 and model.supports_fp16
+            )  # TODO: use bfloat16 if RTX
+            with torch.autocast(  # type: ignore
+                device_type=exec_options.device,
+                dtype=torch.float16 if should_use_fp16 else torch.float32,
+            ):
                 result = model(d_img)
             result = result.detach().cpu()
             del d_img
@@ -75,11 +72,11 @@ def auto_split_process(
             # Check to see if its actually the CUDA out of memory error
             if "allocate" in str(e) or "CUDA" in str(e):
                 # Collect garbage (clear VRAM)
-                # gc.collect()
                 if d_img is not None:
                     d_img.detach().cpu()
                     del d_img
-                # torch.cuda.empty_cache()
+                gc.collect()
+                torch.cuda.empty_cache()
             # Re-raise the exception if not an OOM error
             else:
                 raise
