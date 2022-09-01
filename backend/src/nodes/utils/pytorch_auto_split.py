@@ -60,10 +60,14 @@ def auto_split_process(
             should_use_fp16 = (
                 exec_options.fp16 and model.supports_fp16
             )  # TODO: use bfloat16 if RTX
-            with torch.autocast(  # type: ignore
-                device_type=exec_options.device,
-                dtype=torch.float16 if should_use_fp16 else torch.float32,
-            ):
+            # cpu does not support autocast
+            if device == "cuda":
+                with torch.autocast(  # type: ignore
+                    device_type=exec_options.device,
+                    dtype=torch.float16 if should_use_fp16 else torch.float32,
+                ):
+                    result = model(d_img)
+            else:
                 result = model(d_img)
             result = result.detach().cpu()
             del d_img
