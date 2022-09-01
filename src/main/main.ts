@@ -82,7 +82,8 @@ log.catchErrors({
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 // Check for update
-if (app.isPackaged) {
+const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
+if (app.isPackaged && checkUpdateOnStartup) {
     hasUpdate(app.getVersion())
         .then(async (latest) => {
             if (!latest) return;

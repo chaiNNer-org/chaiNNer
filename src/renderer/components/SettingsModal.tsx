@@ -289,6 +289,9 @@ const AdvancedSettings = memo(() => {
     const { useDisHwAccel } = useContext(SettingsContext);
     const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
 
+    const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
+    const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
+
     return (
         <VStack
             divider={<StackDivider />}
@@ -300,6 +303,14 @@ const AdvancedSettings = memo(() => {
                 value={isDisHwAccel}
                 onToggle={() => {
                     setIsDisHwAccel((prev) => !prev);
+                }}
+            />
+            <Toggle
+                description="Toggles checking for updates on start-up."
+                title="Check for Update on Start-up"
+                value={isCheckUpdOnStrtUp}
+                onToggle={() => {
+                    setIsCheckUpdOnStrtUp((prev) => !prev);
                 }}
             />
         </VStack>

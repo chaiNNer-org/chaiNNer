@@ -463,6 +463,13 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
+        # Attempt to import the ONNX save node, otherwise it would be impossible to save
+        try:
+            # pylint: disable=unused-import, import-outside-toplevel
+            from .model_save_nodes import OnnxSaveModelNode
+        except:
+            pass
+
     def run(self, model: torch.nn.Module) -> bytes:
         exec_options = get_execution_options()
 

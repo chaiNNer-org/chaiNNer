@@ -6,9 +6,11 @@ from __future__ import annotations
 
 import os
 import platform
+import random
 import subprocess
 import time
 from tempfile import mkdtemp
+import string
 
 import cv2
 import numpy as np
@@ -135,10 +137,21 @@ class ImWriteNode(NodeBase):
 
         os.makedirs(base_directory, exist_ok=True)
 
-        status, buf_img = cv2.imencode(f".{extension}", img)
-        with open(full_path, "wb") as outf:
-            bytes_written = outf.write(buf_img)
-            status = status and bytes_written == len(buf_img)
+        # Write image with opencv if path is ascii, since imwrite doesn't support unicode
+        # This saves us from having to keep the image buffer in memory, if possible
+        if full_path.isascii():
+            status = cv2.imwrite(full_path, img)
+        else:
+            try:
+                temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
+                full_temp_path = full_path.replace(full_file, temp_filename)
+                status = cv2.imwrite(full_temp_path, img)
+                os.rename(full_temp_path, full_path)
+            except:
+                status, buf_img = cv2.imencode(f".{extension}", img)
+                with open(full_path, "wb") as outf:
+                    bytes_written = outf.write(buf_img)
+                    status = status and bytes_written == len(buf_img)
 
         return status
 

@@ -23,6 +23,10 @@ from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options
 
+# ONNX Save Model node
+# pylint: disable=unused-import
+from .model_save_nodes import OnnxSaveModelNode
+
 
 class TensorOrders:
     bchw = 1
@@ -65,32 +69,6 @@ class OnnxLoadModelNode(NodeBase):
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
         return model_as_string, dirname, basename
-
-
-@NodeFactory.register("chainner:onnx:save_model")
-class OnnxSaveModelNode(NodeBase):
-    """ONNX Save Model node"""
-
-    def __init__(self):
-        super().__init__()
-        self.description = """Save ONNX model to file (.onnx)."""
-        self.inputs = [
-            OnnxModelInput(),
-            DirectoryInput(has_handle=True),
-            TextInput("Model Name"),
-        ]
-        self.outputs = []
-        self.category = ONNXCategory
-        self.name = "Save Model"
-        self.icon = "MdSave"
-        self.sub = "Input & Output"
-
-        self.side_effects = True
-
-    def run(self, onnx_model: bytes, directory: str, model_name: str) -> None:
-        full_path = f"{os.path.join(directory, model_name)}.onnx"
-        logger.info(f"Writing file to path: {full_path}")
-        onnx.save_model(onnx_model, full_path)
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
@@ -305,6 +283,13 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.name = "Convert To NCNN"
         self.icon = "NCNN"
         self.sub = "Utility"
+
+        # Attempt to import the NCNN save node, otherwise it would be impossible to save
+        try:
+            # pylint: disable=unused-import, import-outside-toplevel
+            from .model_save_nodes import NcnnSaveNode
+        except:
+            pass
 
     def run(self, onnx_model: bytes, is_fp16: int) -> Tuple[NcnnModel, str]:
         fp16 = bool(is_fp16)
