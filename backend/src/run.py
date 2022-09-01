@@ -43,6 +43,7 @@ try:
 
     # pylint: disable=unused-import,ungrouped-imports
     from nodes import pytorch_nodes  # type: ignore
+    from nodes import pytorch_iterators  # type: ignore
 except Exception as e:
     torch = None
     logger.warning(e)
