@@ -114,20 +114,20 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                 overflowY="scroll"
                 p={1}
             >
-                <Box>
-                    <HStack
-                        borderRadius="md"
-                        mx={1}
-                        py={0.5}
-                    >
-                        <StarIcon
-                            boxSize={3}
-                            color="yellow.500"
-                        />
-                        <Text fontSize="xs">Favorites</Text>
-                    </HStack>
-                    {favoriteNodes.length > 0 ? (
-                        favoriteNodes.map((favorite) => {
+                {favoriteNodes.length > 0 && (
+                    <Box>
+                        <HStack
+                            borderRadius="md"
+                            mx={1}
+                            py={0.5}
+                        >
+                            <StarIcon
+                                boxSize={3}
+                                color="yellow.500"
+                            />
+                            <Text fontSize="xs">Favorites</Text>
+                        </HStack>
+                        {favoriteNodes.map((favorite) => {
                             const accentColor = getNodeAccentColor(favorite.category);
                             const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
                             const gradR = menuBgColor;
@@ -162,11 +162,9 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                     </Text>
                                 </HStack>
                             );
-                        })
-                    ) : (
-                        <></>
-                    )}
-                </Box>
+                        })}
+                    </Box>
+                )}
 
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
