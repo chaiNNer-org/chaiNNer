@@ -59,6 +59,10 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
         [searchQuery, schemata]
     );
 
+    const favoriteNodes = useMemo(() => {
+        return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
+    }, [byCategories, favorites]);
+
     const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
     const inputColor = 'var(--fg-300)';
@@ -110,6 +114,58 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                 overflowY="scroll"
                 p={1}
             >
+                {favoriteNodes.length > 0 && (
+                    <Box>
+                        <HStack
+                            borderRadius="md"
+                            mx={1}
+                            py={0.5}
+                        >
+                            <StarIcon
+                                boxSize={3}
+                                color="yellow.500"
+                            />
+                            <Text fontSize="xs">Favorites</Text>
+                        </HStack>
+                        {favoriteNodes.map((favorite) => {
+                            const accentColor = getNodeAccentColor(favorite.category);
+                            const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+                            const gradR = menuBgColor;
+                            const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+                            const hoverGradR = bgColor;
+                            return (
+                                <HStack
+                                    _hover={{
+                                        bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
+                                    }}
+                                    bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
+                                    borderRadius="md"
+                                    key={favorite.schemaId}
+                                    mx={1}
+                                    my={0.5}
+                                    px={2}
+                                    py={0.5}
+                                    onClick={() => {
+                                        setSearchQuery('');
+                                        onSelect(favorite);
+                                    }}
+                                >
+                                    <IconFactory
+                                        accentColor="gray.500"
+                                        icon={favorite.icon}
+                                    />
+                                    <Text
+                                        h="full"
+                                        verticalAlign="middle"
+                                    >
+                                        {favorite.name}
+                                    </Text>
+                                </HStack>
+                            );
+                        })}
+                    </Box>
+                )}
+
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
                         const accentColor = getNodeAccentColor(category);
