@@ -1,18 +1,25 @@
-import { Box, Center } from '@chakra-ui/react';
+import { Center, SimpleGrid } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useContextSelector } from 'use-context-selector';
+import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { Validity } from '../../../helpers/checkNodeValidity';
 import { UseDisabled } from '../../../hooks/useDisabled';
 import { DisableToggle } from './DisableToggle';
+import { Timer } from './Timer';
 import { ValidityIndicator } from './ValidityIndicator';
 
 interface NodeFooterProps {
     validity: Validity;
     useDisable: UseDisabled;
     animated: boolean;
+    id: string;
 }
 
-export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterProps) => {
+export const NodeFooter = memo(({ id, validity, useDisable, animated }: NodeFooterProps) => {
     const { canDisable } = useDisable;
+    const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
+        c.outputDataMap.get(id)
+    );
 
     return (
         <Center
@@ -21,26 +28,28 @@ export const NodeFooter = memo(({ validity, useDisable, animated }: NodeFooterPr
             py={1}
             w="full"
         >
-            {canDisable ? (
-                <DisableToggle useDisable={useDisable} />
-            ) : (
-                <Box
-                    p="1px"
-                    width={7}
-                />
-            )}
+            <SimpleGrid
+                columns={3}
+                spacing={2}
+                w="full"
+            >
+                <Center marginRight="auto">
+                    {canDisable && <DisableToggle useDisable={useDisable} />}
+                </Center>
 
-            <Center w="full">
-                <ValidityIndicator
-                    animated={animated}
-                    validity={validity}
-                />
-            </Center>
+                <Center w="full">
+                    <ValidityIndicator
+                        animated={animated}
+                        validity={validity}
+                    />
+                </Center>
 
-            <Box
-                p="1px"
-                width={7}
-            />
+                <Center marginLeft="auto">
+                    {outputDataEntry?.lastExecutionTime !== undefined && (
+                        <Timer time={outputDataEntry.lastExecutionTime} />
+                    )}
+                </Center>
+            </SimpleGrid>
         </Center>
     );
 });

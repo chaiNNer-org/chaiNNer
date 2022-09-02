@@ -178,6 +178,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                 </VStack>
                 <NodeFooter
                     animated={animated}
+                    id={id}
                     useDisable={disabled}
                     validity={validity}
                 />

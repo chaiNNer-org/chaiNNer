@@ -108,6 +108,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                 </VStack>
                 <NodeFooter
                     animated={animated}
+                    id={id}
                     useDisable={disabled}
                     validity={validity}
                 />

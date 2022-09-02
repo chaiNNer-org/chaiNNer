@@ -154,6 +154,7 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                 </VStack>
                 <NodeFooter
                     animated={animated}
+                    id={id}
                     useDisable={disabled}
                     validity={validity}
                 />
