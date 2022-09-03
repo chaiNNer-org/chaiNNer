@@ -401,3 +401,7 @@ class Executor:
             or (self.parent_executor is not None and self.parent_executor.is_killed())
             or (self.parent_executor is not None and self.parent_executor.is_paused())
         )
+
+    def set_nodes_list(self, nodes: Dict[str, UsableData]):
+        """Set the list of nodes to run"""
+        self.nodes = nodes
