@@ -180,15 +180,17 @@ async def run(request: Request):
         # wait until all previews are done
         await runIndividualCounter.wait_zero()
 
+        full_data: RunRequest = dict(request.json)  # type: ignore
+        logger.info(full_data)
+        nodes_list = full_data["data"]
+
         if ctx.executor:
             logger.info("Resuming existing executor...")
             executor = ctx.executor
+            executor.set_nodes_list(nodes_list)
             await executor.resume()
         else:
             logger.info("Running new executor...")
-            full_data: RunRequest = dict(request.json)  # type: ignore
-            logger.info(full_data)
-            nodes_list = full_data["data"]
             exec_opts = ExecutionOptions(
                 device="cpu" if full_data["isCpu"] else "cuda",
                 fp16=full_data["isFp16"],
