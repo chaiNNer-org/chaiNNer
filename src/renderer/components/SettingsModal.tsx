@@ -292,6 +292,9 @@ const AdvancedSettings = memo(() => {
     const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
 
+    const { useDiscordRPC } = useContext(SettingsContext);
+    const [isDiscordRPC, setDiscordRPC] = useDiscordRPC;
+
     return (
         <VStack
             divider={<StackDivider />}
@@ -313,20 +316,6 @@ const AdvancedSettings = memo(() => {
                     setIsCheckUpdOnStrtUp((prev) => !prev);
                 }}
             />
-        </VStack>
-    );
-});
-
-const DiscordRPCSettings = memo(() => {
-    const { useDiscordRPC } = useContext(SettingsContext);
-
-    const [isDiscordRPC, setDiscordRPC] = useDiscordRPC;
-
-    return (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
             <Toggle
                 description="Enable Discord Rich Presence integration"
                 title="Discord Rich Presence"
@@ -370,7 +359,6 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                             <Tab>Environment</Tab>
                             <Tab>Python</Tab>
                             <Tab>Advanced</Tab>
-                            <Tab>DiscordRPC</Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel>
@@ -384,9 +372,6 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                             </TabPanel>
                             <TabPanel>
                                 <AdvancedSettings />
-                            </TabPanel>
-                            <TabPanel>
-                                <DiscordRPCSettings />
                             </TabPanel>
                         </TabPanels>
                     </Tabs>
