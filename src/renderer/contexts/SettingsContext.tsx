@@ -2,7 +2,7 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
-import { showRPC } from '../../discordRPC';
+import { toggleRPC } from '../../discordRPC';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
@@ -58,7 +58,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useDiscordRPC = useMemoArray(useLocalStorage('use-discordRPC', true));
     const [isDiscordRPC] = useDiscordRPC;
     useEffect(() => {
-        showRPC(isDiscordRPC);
+        toggleRPC(isDiscordRPC);
     });
 
     // Snap to grid
