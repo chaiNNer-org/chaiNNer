@@ -334,7 +334,6 @@ export const usePaneNodeSearchMenu = (
     const [, setGlobalConnectingFrom] = useConnectingFrom;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
 
-    const [isStoppedOnPane, setIsStoppedOnPane] = useState(false);
     const { getNode, project } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
@@ -370,13 +369,7 @@ export const usePaneNodeSearchMenu = (
                 nodeType: schema.nodeType,
             });
             const targetFn = functionDefinitions.get(schema.schemaId);
-            if (
-                isStoppedOnPane &&
-                connectingFrom &&
-                targetFn &&
-                connectingFromType &&
-                connectingFrom.handleType
-            ) {
+            if (connectingFrom && targetFn && connectingFromType && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
                         const first = getFirstPossibleInput(targetFn, connectingFromType);
@@ -408,16 +401,11 @@ export const usePaneNodeSearchMenu = (
             }
 
             setConnectingFrom(null);
+            setGlobalConnectingFrom(null);
+            setConnectingFromType(null);
             closeContextMenu();
         },
-        [
-            connectingFrom,
-            createConnection,
-            createNode,
-            connectingFromType,
-            isStoppedOnPane,
-            mousePosition,
-        ]
+        [connectingFrom, createConnection, createNode, connectingFromType, mousePosition]
     );
 
     const menuProps: MenuProps = {
@@ -426,8 +414,16 @@ export const usePaneNodeSearchMenu = (
         favorites,
         categories,
     };
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    const menu = useContextMenu(() => <Menu {...menuProps} />, Object.values(menuProps));
+
+    const menu = useContextMenu(
+        () => (
+            <Menu
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...menuProps}
+            />
+        ),
+        Object.values(menuProps)
+    );
 
     useEffect(() => {
         if (connectingFrom && connectingFrom.handleId && connectingFrom.nodeId) {
@@ -459,7 +455,7 @@ export const usePaneNodeSearchMenu = (
                 }
             }
         }
-    }, [connectingFrom]);
+    }, [connectingFrom, setConnectingFrom, setConnectingFromType]);
 
     const onConnectStart = useCallback(
         (event: React.MouseEvent, handle: OnConnectStartParams) => {
@@ -467,53 +463,38 @@ export const usePaneNodeSearchMenu = (
                 x: event.pageX,
                 y: event.pageY,
             });
-            setIsStoppedOnPane(false);
             setConnectingFrom(handle);
             setGlobalConnectingFrom(handle);
         },
-        [setConnectingFrom, setIsStoppedOnPane]
+        [setConnectingFrom, setGlobalConnectingFrom, setMousePosition]
     );
-
-    const [coordinates, setCoordinates] = useState<Position>({ x: 0, y: 0 });
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
-            setIsStoppedOnPane(
-                // TODO: Maybe make this a setting, idk
-                // (event.ctrlKey || event.metaKey) &&
-                String((event.target as Element).className).includes('pane')
-            );
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
             });
-            setCoordinates({
-                x: event.pageX,
-                y: event.pageY,
-            });
+            if (String((event.target as Element).className).includes('pane')) {
+                menu.manuallyOpenContextMenu(event.pageX, event.pageY);
+            }
             setGlobalConnectingFrom(null);
         },
-        [setCoordinates, setIsStoppedOnPane]
+        [setGlobalConnectingFrom, setMousePosition, menu]
     );
 
     const onPaneContextMenu = useCallback(
         (event: React.MouseEvent) => {
+            setConnectingFrom(null);
+            setConnectingFromType(null);
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
             });
-            setConnectingFrom(null);
             menu.onContextMenu(event);
         },
         [setConnectingFrom, menu, setMousePosition]
     );
-
-    useEffect(() => {
-        if (isStoppedOnPane && connectingFrom) {
-            const { x, y } = coordinates;
-            menu.manuallyOpenContextMenu(x, y);
-        }
-    }, [isStoppedOnPane, connectingFrom]);
 
     return { onConnectStart, onConnectStop, onPaneContextMenu };
 };
