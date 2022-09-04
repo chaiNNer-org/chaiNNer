@@ -11,7 +11,13 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.image_utils import blend_images, calculate_ssim, shift, FlipAxis
+from .utils.image_utils import (
+    as_2d_grayscale,
+    blend_images,
+    calculate_ssim,
+    shift,
+    FlipAxis,
+)
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
@@ -55,7 +61,7 @@ class ImBlend(NodeBase):
     ) -> np.ndarray:
         """Blend images together"""
 
-        b_h, b_w, _ = get_h_w_c(base)
+        b_h, b_w, b_c = get_h_w_c(base)
         o_h, o_w, _ = get_h_w_c(ov)
         max_h = max(b_h, o_h)
         max_w = max(b_w, o_w)
@@ -72,9 +78,14 @@ class ImBlend(NodeBase):
             if b_w < max_w:
                 left = (max_w - b_w) // 2
                 right = max_w - b_w - left
-            base = cv2.copyMakeBorder(
-                base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
-            )
+            if any((top, bottom, left, right)):
+                # copyMakeBorder will create black border if base not converted to RGBA first
+                base = convert_to_BGRA(base, b_c)
+                base = cv2.copyMakeBorder(
+                    base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+                )
+            else:  # Make sure cached image not being worked on regardless
+                base = base.copy()
 
             # Center overlay
             center_x = base.shape[1] // 2
@@ -88,7 +99,17 @@ class ImBlend(NodeBase):
                 blend_mode,
             )
 
-            result = base.copy()
+            result = base  # Just so the names make sense
+            result_c = get_h_w_c(result)[2]
+            blend_c = get_h_w_c(blended_img)[2]
+
+            # Have to ensure blend and result have same shape
+            if result_c < blend_c:
+                if blend_c == 4:
+                    result = convert_to_BGRA(result, result_c)
+                else:
+                    result = as_2d_grayscale(result)
+                    result = np.dstack((result, result, result))
             result[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
 
         result = np.clip(result, 0, 1)
@@ -555,16 +576,19 @@ class ImageMetricsNode(NodeBase):
 
         return (float(mse), float(psnr), ssim)
 
+
 @NodeFactory.register("chainner:image:canny_edge_detection")
 class CannyEdgeDetectionNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Detect the edges of the input image and output as black and white image."
+        self.description = (
+            "Detect the edges of the input image and output as black and white image."
+        )
         self.inputs = [
             ImageInput(),
             NumberInput("Lower Threshold", minimum=0, default=100),
             NumberInput("Upper Threshold", minimum=0, default=300),
-            ]
+        ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageUtilityCategory
         self.name = "Canny Edge Detection"
