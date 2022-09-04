@@ -33,7 +33,7 @@ export const hideDiscordRPC = () => {
     client.clearActivity();
 };
 
-export const showRPC = (show) => {
+export const toggleRPC = (show) => {
     if (show === true) {
         updateDiscordRPC();
     } else {
