@@ -5,7 +5,6 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
-from sanic.log import logger
 
 from .categories import ImageUtilityCategory
 from .node_base import NodeBase
