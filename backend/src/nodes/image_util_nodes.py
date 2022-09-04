@@ -84,6 +84,8 @@ class ImBlend(NodeBase):
                 base = cv2.copyMakeBorder(
                     base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
                 )
+            else:  # Make sure cached image not being worked on regardless
+                base = base.copy()
 
             # Center overlay
             center_x = base.shape[1] // 2
@@ -97,9 +99,9 @@ class ImBlend(NodeBase):
                 blend_mode,
             )
 
-            result_c = get_h_w_c(base)[2]
+            result = base  # Just so the names make sense
+            result_c = get_h_w_c(result)[2]
             blend_c = get_h_w_c(blended_img)[2]
-            result = base.copy()
 
             # Have to ensure blend and result have same shape
             if result_c < blend_c:
