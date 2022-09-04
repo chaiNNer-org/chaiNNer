@@ -28,11 +28,6 @@ from .utils.exec_options import get_execution_options
 from .model_save_nodes import OnnxSaveModelNode
 
 
-class TensorOrders:
-    bchw = 1
-    bhwc = 3
-
-
 @NodeFactory.register("chainner:onnx:load_model")
 class OnnxLoadModelNode(NodeBase):
     def __init__(self):
@@ -134,13 +129,14 @@ class OnnxImageUpscaleNode(NodeBase):
             ],
         )
 
-        index, in_nc = [
-            (i, x)
-            for i, x in enumerate(session.get_inputs()[0].shape)
-            if isinstance(x, int)
-        ][0]
-
-        change_shape = index == TensorOrders.bhwc
+        shape = session.get_inputs()[0].shape
+        logger.info(shape)
+        if isinstance(shape[1], int) and shape[1] <= 4:
+            in_nc = shape[1]
+            change_shape = False
+        else:
+            in_nc = shape[3]
+            change_shape = True
 
         h, w, c = get_h_w_c(img)
         logger.debug(f"Image is {h}x{w}x{c}")
