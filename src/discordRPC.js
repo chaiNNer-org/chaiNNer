@@ -14,17 +14,18 @@ const clientId = config.appId;
 rpc.register(config.appId);
 const client = new rpc.Client({ transport: 'ipc' });
 const startTimestamp = new Date();
+
 client.login({ clientId });
 
-// can be expanded with other params. Call this when you want to update the RPC.
 export const updateDiscordRPC = (detailsArg, largeImageKeyNameArg, startTimestampArg) => {
-    const detailsIn = detailsArg || config.details;
-    const largeImageKeyNameIn = largeImageKeyNameArg || config.largeImageKeyName;
-    const startTimestampIn = startTimestampArg || startTimestamp;
+    // can be expanded with other params. Call this when you want to update the RPC.
+    const detailsArgIn = detailsArg || config.details;
+    const largeImageKeyNameArgIn = largeImageKeyNameArg || config.largeImageKeyName;
+    const startTimestampArgIn = startTimestampArg || startTimestamp;
     client.setActivity({
-        details: detailsIn,
-        largeImageKey: largeImageKeyNameIn,
-        startTimestamp: startTimestampIn,
+        details: detailsArgIn,
+        largeImageKey: largeImageKeyNameArgIn,
+        startTimestamp: startTimestampArgIn,
     });
 };
 
@@ -32,7 +33,7 @@ export const hideDiscordRPC = () => {
     client.clearActivity();
 };
 
-export const toggleRPC = (show) => {
+export const showRPC = (show) => {
     if (show === true) {
         updateDiscordRPC();
     } else {
