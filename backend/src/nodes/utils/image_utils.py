@@ -106,11 +106,11 @@ def get_available_image_formats():
     return sorted(list(no_dupes))
 
 
-def convert_to_BGRA(img: np.ndarray, c: int) -> np.ndarray:
-    assert c in (1, 3, 4), f"Number of channels ({c}) unexpected"
-    if c == 1:
+def convert_to_BGRA(img: np.ndarray, in_c: int) -> np.ndarray:
+    assert in_c in (1, 3, 4), f"Number of channels ({in_c}) unexpected"
+    if in_c == 1:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-    elif c == 3:
+    elif in_c == 3:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
     return img.copy()
@@ -204,7 +204,7 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
     if target_channels == 3:
         if c == 1:
             img = as_2d_grayscale(img)
-            return np.concatenate([img, img, img], axis=2)
+            return np.dstack((img, img, img))
 
     if target_channels == 4:
         return convert_to_BGRA(img, c)
