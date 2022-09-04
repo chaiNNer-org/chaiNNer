@@ -130,7 +130,6 @@ class OnnxImageUpscaleNode(NodeBase):
         )
 
         shape = session.get_inputs()[0].shape
-        logger.info(shape)
         if isinstance(shape[1], int) and shape[1] <= 4:
             in_nc = shape[1]
             change_shape = False
