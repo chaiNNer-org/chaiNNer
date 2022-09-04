@@ -2,6 +2,7 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
+import { toggleRPC } from '../../discordRPC';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
@@ -21,6 +22,7 @@ interface Settings {
     useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useAnimateChain: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useDiscordRPC: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Node Settings
     useNodeFavorites: readonly [
@@ -52,6 +54,13 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
 
     const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
 
+    // Discord Rich Presence
+    const useDiscordRPC = useMemoArray(useLocalStorage('use-discordRPC', true));
+    const [isDiscordRPC] = useDiscordRPC;
+    useEffect(() => {
+        toggleRPC(isDiscordRPC);
+    });
+
     // Snap to grid
     const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);
     const [snapToGridAmount, setSnapToGridAmount] = useLocalStorage('snap-to-grid-amount', 15);
@@ -81,6 +90,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useStartupTemplate,
         useIsDarkMode,
         useAnimateChain,
+        useDiscordRPC,
 
         // Node
         useNodeFavorites,
