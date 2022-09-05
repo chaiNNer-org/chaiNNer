@@ -9,8 +9,6 @@ from PIL import Image, ImageDraw, ImageFont
 from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from .utils import get_h_w_c
 
-from sanic.log import logger
-
 
 class InterpolationMethod:
     AUTO = -1
@@ -100,7 +98,7 @@ def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.n
         text_y = round(size / 2)
     font_color = (255,) * c
 
-    fw, fh = font.getsize(caption)
+    fw, _ = font.getsize(caption)
     # scale font size to fit image
     if fw > w:
         font = ImageFont.truetype(font_path, round(fontsize * w / fw))
