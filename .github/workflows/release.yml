@@ -4,36 +4,36 @@ name: Release
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push with a tag
-  push:
-    tags:
-      - 'v*'
+    # Triggers the workflow on push with a tag
+    push:
+        tags:
+            - 'v*'
 
-  # Triggers on creation of a release
-  # release:
-  #     types:
-  #         - created
+    # Triggers on creation of a release
+    # release:
+    #     types:
+    #         - created
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
+    release:
+        runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
 
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@master
-        with:
-          node-version: 14
-      - name: install dependencies
-        run: npm ci
-      - name: publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run publish
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@master
+              with:
+                  node-version: 16
+            - name: install dependencies
+              run: npm ci --force
+            - name: publish
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npm run publish

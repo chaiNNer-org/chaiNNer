@@ -47,6 +47,7 @@ struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
 struct BorderType;
+struct CaptionPosition;
 struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
 struct FillMethod;
