@@ -12,11 +12,13 @@ const config: Presence = {
     smallImageText: 'chaiNNer', // Text when you hover over the small image
 };
 const startTimestamp = new Date();
+let registered = false;
 
 export const registerDiscordRPC = async () => {
     try {
         rpc.register(CLIENT_ID);
         await client.login({ clientId: CLIENT_ID });
+        registered = true;
     } catch (e) {
         log.warn('Failed to login to discord');
     }
@@ -26,6 +28,9 @@ let lastConfig = config;
 
 export const updateDiscordRPC = async (updateConfig: Presence) => {
     try {
+        if (!registered) {
+            await registerDiscordRPC();
+        }
         lastConfig = { ...config, ...updateConfig, startTimestamp };
         await client.setActivity(lastConfig);
     } catch (e) {
