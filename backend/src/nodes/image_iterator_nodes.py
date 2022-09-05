@@ -115,6 +115,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
         file_len = len(just_image_files)
         start_idx = math.ceil(float(context.percent) * file_len)
+        errors = []
         for idx, filepath in enumerate(just_image_files):
             if context.executor.should_stop_running():
                 return
@@ -132,7 +133,11 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 # Replace the input filepath with the filepath from the loop
                 context.nodes[img_path_node_id]["inputs"] = [filepath, directory, idx]
                 executor = context.create_iterator_executor()
-                await executor.run()
+                try:
+                    await executor.run()
+                except Exception as e:
+                    logger.error(e)
+                    errors.append(str(e))
                 await context.queue.put(
                     {
                         "event": "iterator-progress-update",
@@ -143,6 +148,11 @@ class ImageFileIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -278,6 +288,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         start_idx = math.ceil(float(context.percent) * frame_count)
         context.nodes[output_node_id]["inputs"].extend((writer, fps))
+        errors = []
         for idx in range(frame_count):
             if context.executor.should_stop_running():
                 cap.release()
@@ -302,7 +313,11 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 )
                 context.nodes[input_node_id]["inputs"] = [frame, idx]
                 executor = context.create_iterator_executor()
-                await executor.run()
+                try:
+                    await executor.run()
+                except Exception as e:
+                    logger.error(e)
+                    errors.append(str(e))
                 await context.queue.put(
                     {
                         "event": "iterator-progress-update",
@@ -317,6 +332,11 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         cap.release()
         if writer["out"] is not None:
             writer["out"].release()
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
 
 
 @NodeFactory.register(SPRITESHEET_ITERATOR_INPUT_NODE_ID)
@@ -448,6 +468,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
 
         results = []
         context.nodes[output_node_id]["inputs"].append(results)
+        errors = []
         for idx, img in enumerate(img_list):
             if context.executor.should_stop_running():
                 break
@@ -465,7 +486,11 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             context.nodes[img_loader_node_id]["inputs"] = [img, idx]
             # logger.info(nodes[output_node_id]["inputs"])
             executor = context.create_iterator_executor()
-            await executor.run()
+            try:
+                await executor.run()
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
             await context.queue.put(
                 {
                     "event": "iterator-progress-update",
@@ -480,4 +505,9 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         for i in range(rows):
             row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)
             result_rows.append(row)
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
         return np.concatenate(result_rows, axis=0)

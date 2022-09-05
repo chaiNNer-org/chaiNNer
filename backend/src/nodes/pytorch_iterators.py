@@ -108,6 +108,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
 
         file_len = len(just_model_files)
         start_idx = math.ceil(float(context.percent) * file_len)
+        errors = []
         for idx, filepath in enumerate(just_model_files):
             if context.executor.should_stop_running():
                 return
@@ -125,7 +126,11 @@ class ModelFileIteratorNode(IteratorNodeBase):
                 # Replace the input filepath with the filepath from the loop
                 context.nodes[model_path_node_id]["inputs"] = [filepath, directory, idx]
                 executor = context.create_iterator_executor()
-                await executor.run()
+                try:
+                    await executor.run()
+                except Exception as e:
+                    logger.error(e)
+                    errors.append(str(e))
                 await context.queue.put(
                     {
                         "event": "iterator-progress-update",
@@ -136,3 +141,8 @@ class ModelFileIteratorNode(IteratorNodeBase):
                         },
                     }
                 )
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
