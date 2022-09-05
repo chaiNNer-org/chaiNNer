@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import path, { dirname } from 'path';
+import { basename, dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -504,7 +504,7 @@ export const GlobalProvider = memo(
                             if (!isTemplate) {
                                 setSavePath(result.path);
                                 await ipcRenderer.invoke('update-discord-rpc', {
-                                    details: `Working on ${path.basename(result.path)}`,
+                                    details: `Working on ${basename(result.path)}`,
                                 });
                             }
                         }
@@ -535,7 +535,7 @@ export const GlobalProvider = memo(
                 if (result.kind === 'Success') {
                     await setStateFromJSONRef.current(result.saveData, result.path, true);
                     await ipcRenderer.invoke('update-discord-rpc', {
-                        details: `Working on ${path.basename(result.path)}`,
+                        details: `Working on ${basename(result.path)}`,
                     });
                 } else {
                     removeRecentPath(result.path);
@@ -555,7 +555,7 @@ export const GlobalProvider = memo(
                 if (result.kind === 'Success') {
                     await setStateFromJSONRef.current(result.saveData, result.path, true);
                     await ipcRenderer.invoke('update-discord-rpc', {
-                        details: `Working on ${path.basename(result.path)}`,
+                        details: `Working on ${basename(result.path)}`,
                     });
                 } else {
                     removeRecentPath(result.path);

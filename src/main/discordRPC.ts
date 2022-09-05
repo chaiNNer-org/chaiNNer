@@ -25,12 +25,20 @@ export const registerDiscordRPC = async () => {
 let lastConfig = config;
 
 export const updateDiscordRPC = async (updateConfig: Presence) => {
-    lastConfig = { ...config, ...updateConfig, startTimestamp };
-    await client.setActivity(lastConfig);
+    try {
+        lastConfig = { ...config, ...updateConfig, startTimestamp };
+        await client.setActivity(lastConfig);
+    } catch (e) {
+        log.warn('Failed to update discord RPC');
+    }
 };
 
 export const hideDiscordRPC = async () => {
-    await client.clearActivity();
+    try {
+        await client.clearActivity();
+    } catch (e) {
+        log.warn('Failed to hide discord RPC');
+    }
 };
 
 export const toggleDiscordRPC = async (enabled: boolean) => {
