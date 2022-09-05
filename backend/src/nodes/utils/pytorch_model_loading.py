@@ -21,19 +21,19 @@ def load_state_dict(state_dict) -> PyTorchModel:
         state_dict = state_dict["params"]
 
     # SRVGGNet Real-ESRGAN (v2)
-    if "body.0.weight" in state_dict.keys() and "body.1.weight" in state_dict.keys():
+    if "body.0.weight" in state_dict_keys and "body.1.weight" in state_dict_keys:
         model = RealESRGANv2(state_dict)
     # SPSR (ESRGAN with lots of extra layers)
     elif "f_HR_conv1.0.weight" in state_dict:
         model = SPSR(state_dict)
     # Swift-SRGAN
     elif (
-        "model" in state_dict.keys()
+        "model" in state_dict_keys
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
     # SwinIR
-    elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys():
+    elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict_keys:
         model = SwinIR(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
