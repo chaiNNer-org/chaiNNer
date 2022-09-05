@@ -2,7 +2,9 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { memo, useEffect } from 'react';
 import { createContext } from 'use-context-selector';
 import { SchemaId } from '../../common/common-types';
-import { toggleRPC } from '../../discordRPC';
+import { ipcRenderer } from '../../common/safeIpc';
+
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMemoArray, useMemoObject } from '../hooks/useMemo';
 
@@ -55,11 +57,11 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useAnimateChain = useMemoArray(useLocalStorage('animate-chain', true));
 
     // Discord Rich Presence
-    const useDiscordRPC = useMemoArray(useLocalStorage('use-discordRPC', true));
+    const useDiscordRPC = useMemoArray(useLocalStorage('use-discord-rpc', true));
     const [isDiscordRPC] = useDiscordRPC;
-    useEffect(() => {
-        toggleRPC(isDiscordRPC);
-    });
+    useAsyncEffect(async () => {
+        await ipcRenderer.invoke('toggle-discord-rpc', isDiscordRPC);
+    }, [isDiscordRPC]);
 
     // Snap to grid
     const [isSnapToGrid, setIsSnapToGrid] = useLocalStorage('snap-to-grid', false);

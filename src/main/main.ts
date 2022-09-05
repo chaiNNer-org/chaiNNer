@@ -19,6 +19,7 @@ import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
+import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
 import { setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython } from './setupIntegratedPython';
@@ -185,6 +186,14 @@ const registerEventHandlers = () => {
 
     ipcMain.on('enable-menu', () => {
         setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
+    });
+
+    ipcMain.handle('toggle-discord-rpc', async (event, enabled) => {
+        await toggleDiscordRPC(enabled);
+    });
+
+    ipcMain.handle('update-discord-rpc', async (event, config) => {
+        await updateDiscordRPC(config);
     });
 };
 
@@ -581,6 +590,10 @@ const doSplashScreenChecks = async () =>
         });
 
         ipcMain.once('backend-ready', async () => {
+            if (localStorage.getItem('use-discord-rpc') === 'true') {
+                await registerDiscordRPC();
+                await updateDiscordRPC({});
+            }
             splash.webContents.send('finish-loading');
             splash.on('close', () => {});
             await sleep(500);
