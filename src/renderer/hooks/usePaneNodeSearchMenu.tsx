@@ -36,7 +36,7 @@ import {
 import { IconFactory } from '../components/CustomIcons';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
-import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { interpolateColor } from '../helpers/colorTools';
 import { getNodeAccentColor } from '../helpers/getNodeAccentColor';
 import { getMatchingNodes, getNodesByCategory, sortSchemata } from '../helpers/nodeSearchFuncs';
@@ -326,7 +326,6 @@ export const usePaneNodeSearchMenu = (
 ): UsePaneNodeSearchMenuValue => {
     const { createNode, createConnection, typeState, useConnectingFrom } =
         useContext(GlobalVolatileContext);
-    const { updateIteratorBounds } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
     const { schemata, functionDefinitions, categories } = useContext(BackendContext);
 
