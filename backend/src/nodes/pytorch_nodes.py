@@ -18,15 +18,11 @@ from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.architecture.RRDB import RRDBNet as ESRGAN
-from .utils.architecture.SPSR import SPSRNet as SPSR
-from .utils.architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
-from .utils.architecture.SwiftSRGAN import Generator as SwiftSRGAN
-from .utils.architecture.SwinIR import SwinIR
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
 from .utils.torch_types import PyTorchModel
+from .utils.pytorch_model_loading import load_state_dict
 
 try:
     from .onnx_nodes import ConvertOnnxToNcnnNode
@@ -39,50 +35,6 @@ def to_pytorch_execution_options(options: ExecutionOptions):
         "cuda" if torch.cuda.is_available() and options.device != "cpu" else "cpu",
         options.fp16,
     )
-
-
-def load_state_dict(state_dict) -> PyTorchModel:
-    logger.info(f"Loading state dict into model arch")
-
-    # SRVGGNet Real-ESRGAN (v2)
-    if (
-        "params" in state_dict.keys() and "body.0.weight" in state_dict["params"].keys()
-    ) or (
-        "body.0.weight" in state_dict.keys() and "body.1.weight" in state_dict.keys()
-    ):
-        model = RealESRGANv2(state_dict)
-    # SPSR (ESRGAN with lots of extra layers)
-    elif "f_HR_conv1.0.weight" in state_dict:
-        model = SPSR(state_dict)
-    # Swift-SRGAN
-    elif (
-        "model" in state_dict.keys()
-        and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
-    ):
-        model = SwiftSRGAN(state_dict)
-    # SwinIR # TODO: fix this garbage
-    elif (
-        ("layers.0.residual_group.blocks.0.norm1.weight" in state_dict.keys())
-        or (
-            "params_ema" in state_dict.keys()
-            and "layers.0.residual_group.blocks.0.norm1.weight"
-            in state_dict["params_ema"].keys()
-        )
-        or (
-            "params" in state_dict.keys()
-            and "layers.0.residual_group.blocks.0.norm1.weight"
-            in state_dict["params"].keys()
-        )
-    ):
-        model = SwinIR(state_dict)
-    # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
-    else:
-        try:
-            model = ESRGAN(state_dict)
-        except:
-            # pylint: disable=raise-missing-from
-            raise ValueError("Model unsupported by chaiNNer. Please try another.")
-    return model
 
 
 @NodeFactory.register("chainner:pytorch:load_model")
