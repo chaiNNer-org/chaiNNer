@@ -73,11 +73,15 @@ def rotate(
 
 def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
     """Add caption with PIL"""
-    fontsize = round(size*0.8)
-    if position == 'bottom':
-        img = cv2.copyMakeBorder(img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1))
-    elif position == 'top':
-        img = cv2.copyMakeBorder(img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1))
+    fontsize = round(size * 0.8)
+    if position == "bottom":
+        img = cv2.copyMakeBorder(
+            img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
+        )
+    elif position == "top":
+        img = cv2.copyMakeBorder(
+            img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
+        )
     else:
         raise RuntimeError(f"Unknown position {position}")
 
@@ -88,11 +92,16 @@ def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.n
     font = ImageFont.truetype(font_path, fontsize)
     h, w, c = get_h_w_c(img)
     text_x = w // 2
-    if position == 'bottom':
-        text_y = h - round(size/2)
-    elif position == 'top':
-        text_y = round(size/2)
+    if position == "bottom":
+        text_y = h - round(size / 2)
+    elif position == "top":
+        text_y = round(size / 2)
     font_color = (255,) * c
+
+    fw, _ = font.getsize(caption)
+    # scale font size to fit image
+    if fw > w:
+        font = ImageFont.truetype(font_path, round(fontsize * w / fw))
 
     d = ImageDraw.Draw(pimg)
     d.text(
