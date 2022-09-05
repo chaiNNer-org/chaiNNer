@@ -130,7 +130,9 @@ class LoadModelNode(NodeBase):
             raise e
         except Exception:
             # pylint: disable=raise-missing-from
-            raise ValueError("Model unsupported by chaiNNer. Please try another.")
+            raise ValueError(
+                f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try another."
+            )
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
         return model, dirname, basename
