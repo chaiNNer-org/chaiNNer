@@ -33,6 +33,7 @@ const DotPattern = memo(({ id }: { id: string }) => {
             }}
         >
             <pattern
+                className={`iterator-editor=${id}`}
                 height={scaledGap}
                 id={patternId}
                 patternUnits="userSpaceOnUse"
@@ -43,6 +44,7 @@ const DotPattern = memo(({ id }: { id: string }) => {
                 {path}
             </pattern>
             <rect
+                className={`iterator-editor=${id}`}
                 fill={`url(#${patternId})`}
                 height="100%"
                 width="100%"
