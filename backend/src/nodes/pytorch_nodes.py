@@ -477,7 +477,7 @@ class ConvertTorchToONNXNode(NodeBase):
             pass
 
     def run(self, model: torch.nn.Module) -> bytes:
-        exec_options = get_execution_options()
+        exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
         if exec_options.device == "cuda":
