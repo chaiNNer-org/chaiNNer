@@ -54,6 +54,7 @@ struct FlipAxis;
 struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
+struct SideSelection;
 struct MathOperation { operation: string }
 struct OverflowMethod;
 struct ReciprocalScalingFactor;

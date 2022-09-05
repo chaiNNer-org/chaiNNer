@@ -100,6 +100,32 @@ def InterpolationInput() -> DropDownInput:
     )
 
 
+def ResizeToSideInput() -> DropDownInput:
+    """Resize to side dropdown"""
+    return DropDownInput(
+        input_type="SideSelection",
+        label="Resize To",
+        options=[
+            {
+                "option": "Width",
+                "value": "width",
+            },
+            {
+                "option": "Height",
+                "value": "height",
+            },
+            {
+                "option": "Shorter Side",
+                "value": "shorter side",
+            },
+            {
+                "option": "Longer Side",
+                "value": "longer side",
+            },
+        ],
+    )
+
+
 def RotateInterpolationInput() -> DropDownInput:
     return DropDownInput(
         input_type="RotateInterpolationMode",

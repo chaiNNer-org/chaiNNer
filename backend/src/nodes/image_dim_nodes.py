@@ -63,6 +63,63 @@ class ImResizeByFactorNode(NodeBase):
         return resize(img, out_dims, interpolation)
 
 
+@NodeFactory.register("chainner:image:resize_to_side")
+class ImResizeToSide(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = (
+            "Resize an image to a given side length while keeping aspect ratio."
+            "Auto uses box for downsampling and lanczos for upsampling."
+        )
+        self.inputs = [
+            ImageInput(),
+            NumberInput(
+                "Size Target",
+                default=2160,
+                minimum=1,
+                unit="px",
+            ),
+            ResizeToSideInput(),
+            InterpolationInput(),
+        ]
+        self.category = ImageDimensionCategory
+        self.name = "Resize To Side"
+        self.outputs = [ImageOutput(image_type="Input0")]
+        self.icon = "MdOutlinePhotoSizeSelectLarge"
+        self.sub = "Resize"
+
+    def run(self, img: np.ndarray, target: int, side: str, interpolation: int) -> np.ndarray:
+        """Takes an image and resizes it"""
+
+        logger.info(f"Resizing image to {side} via {interpolation}")
+
+        h, w, _ = get_h_w_c(img)
+        
+        if side == 'width':
+            w_new = target
+            h_new = max(round((target / w) * h), 1)
+
+        elif side == 'height':
+            w_new = max(round((target / h) * w), 1)
+            h_new = target
+
+        elif side == 'shorter side':
+            w_new = max(round((target / min(h, w)) * w), 1)
+            h_new = max(round((target / min(h, w)) * h), 1)
+
+        elif side == 'longer side':
+            w_new = max(round((target / max(h, w)) * w), 1)
+            h_new = max(round((target / max(h, w)) * h), 1)
+        
+        else:
+            raise RuntimeError(f"Unknown side selection {side}")
+
+        out_dims = (w_new, h_new)
+
+        return resize(img, out_dims, interpolation)
+
+
+
 @NodeFactory.register("chainner:image:resize_resolution")
 class ImResizeToResolutionNode(NodeBase):
     def __init__(self):
