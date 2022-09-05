@@ -130,7 +130,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
                     await executor.run()
                 except Exception as e:
                     logger.error(e)
-                    errors.append(e)
+                    errors.append(str(e))
                 await context.queue.put(
                     {
                         "event": "iterator-progress-update",
