@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw, ImageFont
 from .image_utils import FillColor, convert_to_BGRA, get_fill_color
 from .utils import get_h_w_c
 
+from sanic.log import logger
+
 
 class InterpolationMethod:
     AUTO = -1
@@ -73,26 +75,37 @@ def rotate(
 
 def add_caption(img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
     """Add caption with PIL"""
-    fontsize = round(size*0.8)
-    if position == 'bottom':
-        img = cv2.copyMakeBorder(img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1))
-    elif position == 'top':
-        img = cv2.copyMakeBorder(img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1))
+    fontsize = round(size * 0.8)
+    if position == "bottom":
+        img = cv2.copyMakeBorder(
+            img, 0, size, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
+        )
+    elif position == "top":
+        img = cv2.copyMakeBorder(
+            img, size, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0, 1)
+        )
     else:
         raise RuntimeError(f"Unknown position {position}")
 
+    h, w, c = get_h_w_c(img)
     pimg = Image.fromarray((img * 255).astype("uint8"))
     font_path = os.path.join(
         os.path.dirname(sys.modules["__main__"].__file__), "fonts/Roboto-Light.ttf"  # type: ignore
     )
     font = ImageFont.truetype(font_path, fontsize)
-    h, w, c = get_h_w_c(img)
+
     text_x = w // 2
-    if position == 'bottom':
-        text_y = h - round(size/2)
-    elif position == 'top':
-        text_y = round(size/2)
+    if position == "bottom":
+        text_y = h - round(size / 2)
+    elif position == "top":
+        text_y = round(size / 2)
     font_color = (255,) * c
+
+    fw, fh = font.getsize(caption)
+    logger.info(f"Font size: {(fw, fh)}, img size: {(w, h)}, fontsize: {fontsize}")
+    # scale font size to fit image
+    if fw > w:
+        font = ImageFont.truetype(font_path, round(fontsize * w / fw))
 
     d = ImageDraw.Draw(pimg)
     d.text(
