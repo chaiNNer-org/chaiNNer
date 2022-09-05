@@ -267,12 +267,14 @@ class CaptionNode(NodeBase):
         self.inputs = [
             ImageInput(),
             TextInput("Caption"),
+            NumberInput("Caption Size", minimum=20, default=42, unit="px"),
+            CaptionPositionInput(),
         ]
         self.outputs = [
             ImageOutput(
                 image_type="""
                 // this value is defined by `add_caption`
-                let captionHeight = 42;
+                let captionHeight = Input2;
                 Image {
                     width: Input0.width,
                     height: add(Input0.height, captionHeight),
@@ -286,10 +288,10 @@ class CaptionNode(NodeBase):
         self.icon = "MdVideoLabel"
         self.sub = "Compositing"
 
-    def run(self, img: np.ndarray, caption: str) -> np.ndarray:
+    def run(self, img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
         """Add caption an image"""
 
-        return add_caption(img, caption)
+        return add_caption(img, caption, size, position)
 
 
 @NodeFactory.register("chainner:image:change_colorspace")
