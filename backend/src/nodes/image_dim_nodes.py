@@ -68,7 +68,7 @@ class ImResizeToSide(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = (
-            "Resize an image to a given side length while keeping aspect ratio."
+            "Resize an image to a given side length while keeping aspect ratio. "
             "Auto uses box for downsampling and lanczos for upsampling."
         )
         self.inputs = [
