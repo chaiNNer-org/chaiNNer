@@ -84,7 +84,7 @@ export const Main = memo(({ port }: MainProps) => {
 
     const { loading, error, data, response } = useFetch<BackendNodesResponse>(
         `http://localhost:${port}/nodes`,
-        { cachePolicy: CachePolicies.NO_CACHE, retries: 50 },
+        { cachePolicy: CachePolicies.NO_CACHE, retries: 25 },
         [port]
     );
 
