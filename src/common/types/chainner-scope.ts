@@ -55,7 +55,6 @@ struct FlipAxis;
 struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
-struct SideSelection;
 struct MathOperation { operation: string }
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
@@ -65,6 +64,7 @@ struct TileMode;
 struct VideoType;
 
 enum Orientation { Horizontal, Vertical }
+enum SideSelection { Width, Height, Shorter, Longer}
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }

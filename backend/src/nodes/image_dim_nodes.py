@@ -84,7 +84,29 @@ class ImResizeToSide(NodeBase):
         ]
         self.category = ImageDimensionCategory
         self.name = "Resize To Side"
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                Image {
+                    width: match Input2 {
+                        SideSelection::Width => Input1,
+                        SideSelection::Height => max(int & round(multiply(divide(Input1, Input0.height), Input0.width)), 1),
+                        SideSelection::Shorter => max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.width)), 1),
+                        SideSelection::Longer => max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.width)), 1),
+                        _ => 5
+                    },
+                    height: match Input2 {
+                        SideSelection::Width => max(int & round(multiply(divide(Input1, Input0.width), Input0.height)), 1),
+                        SideSelection::Height => Input1,
+                        SideSelection::Shorter => max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.height)), 1),
+                        SideSelection::Longer => max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.height)), 1),
+                        _ => 5
+                    },
+                    channels: Input0.channels
+                }
+                """
+                )
+        ]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 

@@ -109,18 +109,22 @@ def ResizeToSideInput() -> DropDownInput:
             {
                 "option": "Width",
                 "value": "width",
+                "type": "SideSelection::Width",
             },
             {
                 "option": "Height",
                 "value": "height",
+                "type": "SideSelection::Height",
             },
             {
                 "option": "Shorter Side",
                 "value": "shorter side",
+                "type": "SideSelection::Shorter",
             },
             {
                 "option": "Longer Side",
                 "value": "longer side",
+                "type": "SideSelection::Longer",
             },
         ],
     )
