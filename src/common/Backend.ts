@@ -112,6 +112,13 @@ export class Backend {
     async kill(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
         return this.fetchJson('/kill', 'POST');
     }
+
+    /**
+     * Clears the cache of the passed in node id
+     */
+    clearNodeCacheIndividual(id: string): Promise<BackendResult<null>> {
+        return this.fetchJson('/clearcache/individual', 'POST', { id });
+    }
 }
 
 const backendCache = new Map<number, Backend>();
