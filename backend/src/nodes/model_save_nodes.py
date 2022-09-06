@@ -43,7 +43,7 @@ class OnnxSaveModelNode(NodeBase):
 class NcnnSaveNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Save an NCNN model to specified directory. It can also be saved in fp16 mode for smaller file size and faster inference."
+        self.description = "Save an NCNN model to specified directory. It can also be saved in fp16 mode for smaller file size and faster processing."
         self.inputs = [
             NcnnModelInput(),
             DirectoryInput(has_handle=True),
