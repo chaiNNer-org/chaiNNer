@@ -61,7 +61,7 @@ def auto_split_process(
                 exec_options.fp16 and model.supports_fp16
             )  # TODO: use bfloat16 if RTX
             # cpu does not support autocast
-            if device == "cuda":
+            if exec_options.device == "cuda":
                 with torch.autocast(  # type: ignore
                     device_type=exec_options.device,
                     dtype=torch.float16 if should_use_fp16 else torch.float32,
@@ -84,7 +84,8 @@ def auto_split_process(
             # Re-raise the exception if not an OOM error
             else:
                 raise
-    elif max_depth < current_depth:
+    # Allow to attempt going one more deep before erroring
+    elif (max_depth + 1) < current_depth:
         raise ValueError(
             "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
         )
