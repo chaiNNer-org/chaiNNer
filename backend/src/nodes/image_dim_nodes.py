@@ -95,19 +95,19 @@ class ImResizeToSide(NodeBase):
 
         h, w, _ = get_h_w_c(img)
         
-        if side == 'width':
+        if side == "width":
             w_new = target
             h_new = max(round((target / w) * h), 1)
 
-        elif side == 'height':
+        elif side == "height":
             w_new = max(round((target / h) * w), 1)
             h_new = target
 
-        elif side == 'shorter side':
+        elif side == "shorter side":
             w_new = max(round((target / min(h, w)) * w), 1)
             h_new = max(round((target / min(h, w)) * h), 1)
 
-        elif side == 'longer side':
+        elif side == "longer side":
             w_new = max(round((target / max(h, w)) * w), 1)
             h_new = max(round((target / max(h, w)) * h), 1)
         
