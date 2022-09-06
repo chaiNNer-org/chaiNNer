@@ -9,6 +9,7 @@ import {
     floor,
     maximum,
     minimum,
+    modulo,
     multiply,
     negate,
     round,
@@ -47,6 +48,7 @@ builder.add(unary('negate', negate, NumberType.instance));
 builder.add(unary('round', round, NumberType.instance));
 builder.add(unary('floor', floor, NumberType.instance));
 builder.add(unary('ceil', ceil, NumberType.instance));
+builder.add(binary('mod', modulo, NumberType.instance, NumberType.instance));
 
 builder.add(unary('degToRad', degToRad, NumberType.instance));
 builder.add(unary('sin', sin, NumberType.instance));
