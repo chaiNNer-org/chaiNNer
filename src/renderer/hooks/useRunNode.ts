@@ -1,7 +1,8 @@
-import { useMemo, useRef } from 'react';
+import log from 'electron-log';
+import { useEffect, useMemo, useRef } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
-import { delay, getInputValues } from '../../common/util';
+import { delay, getInputValues, isStartingNode } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
@@ -51,4 +52,18 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
         },
         [shouldRun, inputHash]
     );
+
+    useEffect(() => {
+        return () => {
+            // TODO: Change this if we ever make more than starting nodes run
+            if (isStartingNode(schema)) {
+                backend
+                    .clearNodeCacheIndividual(id)
+                    .then(() => {})
+                    .catch((error) => {
+                        log.error(error);
+                    });
+            }
+        };
+    }, []);
 };

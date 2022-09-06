@@ -11,6 +11,7 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
+import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -333,6 +334,7 @@ export const usePaneNodeSearchMenu = (
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
     const [, setGlobalConnectingFrom] = useConnectingFrom;
     const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
+    const [stoppedOnIterator, setStoppedOnIterator] = useState<string | null>(null);
 
     const { getNode, project } = useReactFlow();
 
@@ -360,14 +362,17 @@ export const usePaneNodeSearchMenu = (
                 y: y - reactFlowBounds.top,
             });
             const nodeId = createUniqueId();
-            createNode({
-                id: nodeId,
-                position: projPosition,
-                data: {
-                    schemaId: schema.schemaId,
+            createNode(
+                {
+                    id: nodeId,
+                    position: projPosition,
+                    data: {
+                        schemaId: schema.schemaId,
+                    },
+                    nodeType: schema.nodeType,
                 },
-                nodeType: schema.nodeType,
-            });
+                stoppedOnIterator || undefined
+            );
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (connectingFrom && targetFn && connectingFromType && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
@@ -403,9 +408,17 @@ export const usePaneNodeSearchMenu = (
             setConnectingFrom(null);
             setGlobalConnectingFrom(null);
             setConnectingFromType(null);
+            setStoppedOnIterator(null);
             closeContextMenu();
         },
-        [connectingFrom, createConnection, createNode, connectingFromType, mousePosition]
+        [
+            connectingFrom,
+            createConnection,
+            createNode,
+            connectingFromType,
+            mousePosition,
+            stoppedOnIterator,
+        ]
     );
 
     const menuProps: MenuProps = {
@@ -428,10 +441,6 @@ export const usePaneNodeSearchMenu = (
     useEffect(() => {
         if (connectingFrom && connectingFrom.handleId && connectingFrom.nodeId) {
             const node: Node<NodeData> | undefined = getNode(connectingFrom.nodeId);
-            if (node?.data.parentNode) {
-                setConnectingFrom(null);
-                setConnectingFromType(null);
-            }
             if (node && connectingFrom.handleType) {
                 switch (connectingFrom.handleType) {
                     case 'source': {
@@ -475,12 +484,30 @@ export const usePaneNodeSearchMenu = (
                 x: event.pageX,
                 y: event.pageY,
             });
-            if (String((event.target as Element).className).includes('pane')) {
-                menu.manuallyOpenContextMenu(event.pageX, event.pageY);
+            const isStoppedOnPane = String((event.target as Element).className).includes('pane');
+            const isStoppedOnIterator =
+                typeof (event.target as Element).className === 'object' &&
+                (event.target as Element).classList[0].includes('iterator-editor');
+            if (isStoppedOnPane || isStoppedOnIterator) {
+                const fromNode = getNode(connectingFrom?.nodeId ?? '');
+                // Handle case of dragging from inside iterator to outside
+                if (!(fromNode && fromNode.parentNode && isStoppedOnPane)) {
+                    menu.manuallyOpenContextMenu(event.pageX, event.pageY);
+                }
+                if (isStoppedOnIterator) {
+                    try {
+                        const iteratorId = String((event.target as Element).classList[0])
+                            .split('=')
+                            .slice(-1)[0];
+                        setStoppedOnIterator(iteratorId);
+                    } catch (e) {
+                        log.error('Unable to parse iterator id from class name', e);
+                    }
+                }
             }
             setGlobalConnectingFrom(null);
         },
-        [setGlobalConnectingFrom, setMousePosition, menu]
+        [setGlobalConnectingFrom, setMousePosition, menu, setStoppedOnIterator, connectingFrom]
     );
 
     const onPaneContextMenu = useCallback(

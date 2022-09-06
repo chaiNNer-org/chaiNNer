@@ -314,6 +314,19 @@ async def run_individual(request: Request):
         return json({"success": False, "error": str(exception)})
 
 
+@app.route("/clearcache/individual", methods=["POST"])
+async def clear_cache_individual(request: Request):
+    ctx = AppContext.get(request.app)
+    try:
+        full_data = dict(request.json)  # type: ignore
+        if ctx.cache.get(full_data["id"], None) is not None:
+            del ctx.cache[full_data["id"]]
+        return json({"success": True, "data": None})
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json({"success": False, "error": str(exception)})
+
+
 @app.get("/sse")
 async def sse(request: Request):
     ctx = AppContext.get(request.app)
