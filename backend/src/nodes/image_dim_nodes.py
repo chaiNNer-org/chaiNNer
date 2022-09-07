@@ -329,7 +329,7 @@ class ImResizeToSide(NodeBase):
             out_dims = (w_new, h_new)
         
         else:
-                raise RuntimeError(f"Unknown condition {condition}")
+            raise RuntimeError(f"Unknown condition {condition}")
 
 
         return resize(img, out_dims, interpolation)
