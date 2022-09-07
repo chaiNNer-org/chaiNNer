@@ -25,6 +25,7 @@ from .properties.outputs import *
 from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
+from .utils.clipboard import Clipboard
 
 
 @NodeFactory.register("chainner:image:load")
@@ -212,3 +213,20 @@ class ImViewNode(NodeBase):
 
     def run(self, img: np.ndarray):
         return img
+
+@NodeFactory.register("chainner:image:clipboard")
+class ImClipboardNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Copy the image to the clipboard"
+        self.inputs = [ImageInput()]
+        self.outputs = []
+        self.category = ImageCategory
+        self.name = "Copy to Clipboard"
+        self.icon = "HiClipboard"
+        self.sub = "Input & Output"
+
+        self.side_effects = True
+
+    def run(self, img: np.ndarray):
+        Clipboard.copy_image(img)
