@@ -93,7 +93,7 @@ export const getNvidiaGpuNames = async (nvidiaSmi: string): Promise<string[]> =>
             }`
         )
     ).stdout.split('\n');
-    return nvidiaGpus;
+    return nvidiaGpus.slice(0, nvidiaGpus.length - 1);
 };
 
 export const createNvidiaSmiVRamChecker = (

@@ -37,6 +37,7 @@ import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } 
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
 
 interface SettingsItemProps {
     title: ReactNode;
@@ -103,10 +104,9 @@ interface DropdownProps extends SettingsItemProps {
     isDisabled?: boolean;
     value: string | number;
     options: { label: string; value: string | number }[];
-    onChange: (event: React.ChangeEvent) => void;
+    onChange: React.ChangeEventHandler<HTMLSelectElement>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Dropdown = memo(
     ({ title, description, isDisabled, value, options, onChange }: DropdownProps) => {
         return (
@@ -197,12 +197,43 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
-    const { useIsCpu, useIsFp16, useStartupTemplate } = useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, useStartupTemplate, usePyTorchGPU, useNcnnGPU } =
+        useContext(SettingsContext);
 
     const [startupTemplate, setStartupTemplate] = useStartupTemplate;
 
     const [isCpu, setIsCpu] = useIsCpu;
     const [isFp16, setIsFp16] = useIsFp16;
+
+    const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
+    const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                const nvidiaGpus = await ipcRenderer.invoke('get-nvidia-gpus');
+                if (nvidiaGpus) {
+                    return nvidiaGpus;
+                }
+                return [];
+            },
+            successEffect: setNvidiaGpuList,
+        },
+        []
+    );
+
+    const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
+    const [fullGpuList, setFullGpuList] = useState<string[]>([]);
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
+                return gpuNames;
+            },
+            successEffect: setFullGpuList,
+        },
+        []
+    );
 
     useEffect(() => {
         if (isCpu && isFp16) {
@@ -293,6 +324,34 @@ const EnvironmentSettings = memo(() => {
                 value={isFp16}
                 onToggle={() => {
                     setIsFp16((prev) => !prev);
+                }}
+            />
+
+            <Dropdown
+                description="Which GPU to use for PyTorch. Only Nvidia GPUs are supported."
+                isDisabled={nvidiaGpuList.length === 0}
+                options={nvidiaGpuList.map((gpu, i) => ({
+                    label: gpu,
+                    value: i,
+                }))}
+                title="PyTorch GPU"
+                value={pytorchGPU}
+                onChange={(e) => {
+                    setPytorchGPU(Number(e.target.value));
+                }}
+            />
+
+            <Dropdown
+                description="Which GPU to use for NCNN."
+                isDisabled={fullGpuList.length === 0}
+                options={fullGpuList.map((gpu, i) => ({
+                    label: gpu,
+                    value: i,
+                }))}
+                title="NCNN GPU"
+                value={ncnnGPU}
+                onChange={(e) => {
+                    setNcnnGPU(Number(e.target.value));
                 }}
             />
         </VStack>
