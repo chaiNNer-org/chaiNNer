@@ -17,6 +17,8 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
+from .utils import clipboard
+
 from .categories import ImageCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
@@ -25,8 +27,6 @@ from .properties.outputs import *
 from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
-from .utils.clipboard import Clipboard
-
 
 @NodeFactory.register("chainner:image:load")
 class ImReadNode(NodeBase):
@@ -229,4 +229,4 @@ class ImClipboardNode(NodeBase):
         self.side_effects = True
 
     def run(self, img: np.ndarray):
-        Clipboard.copy_image(img)
+        clipboard.copy_image(img)
