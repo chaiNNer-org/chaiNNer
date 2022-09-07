@@ -106,6 +106,7 @@ interface DropdownProps extends SettingsItemProps {
     onChange: (event: React.ChangeEvent) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Dropdown = memo(
     ({ title, description, isDisabled, value, options, onChange }: DropdownProps) => {
         return (
