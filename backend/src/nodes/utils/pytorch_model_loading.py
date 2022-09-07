@@ -15,10 +15,12 @@ def load_state_dict(state_dict) -> PyTorchModel:
 
     if "params_ema" in state_dict_keys:
         state_dict = state_dict["params_ema"]
-    if "params-ema" in state_dict_keys:
+    elif "params-ema" in state_dict_keys:
         state_dict = state_dict["params-ema"]
-    if "params" in state_dict_keys:
+    elif "params" in state_dict_keys:
         state_dict = state_dict["params"]
+
+    state_dict_keys = list(state_dict.keys())
 
     # SRVGGNet Real-ESRGAN (v2)
     if "body.0.weight" in state_dict_keys and "body.1.weight" in state_dict_keys:
