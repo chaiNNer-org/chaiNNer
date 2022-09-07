@@ -129,6 +129,30 @@ def ResizeToSideInput() -> DropDownInput:
         ],
     )
 
+def ResizeCondition() -> DropDownInput:
+    """Upscale / Downscale condition dropdown"""
+    return DropDownInput(
+        input_type="ResizeCondition",
+        label="Resize Condition",
+        options=[
+            {
+                "option": "Upscale And Downscale",
+                "value": "both",
+                "type": "ResizeCondition::Both",
+            },
+            {
+                "option": "Upscale Only",
+                "value": "upscale",
+                "type": "ResizeCondition::Upscale",
+            },
+            {
+                "option": "Downscale Only",
+                "value": "downscale",
+                "type": "ResizeCondition::Downscale",
+            },
+        ],
+    )
+
 
 def RotateInterpolationInput() -> DropDownInput:
     return DropDownInput(
