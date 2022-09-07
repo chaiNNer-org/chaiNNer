@@ -19,6 +19,7 @@ import {
     NumberInput,
     NumberInputField,
     NumberInputStepper,
+    Select,
     StackDivider,
     Switch,
     Tab,
@@ -97,6 +98,40 @@ const Toggle = memo(({ title, description, isDisabled, value, onToggle }: Toggle
         </SettingsItem>
     );
 });
+
+interface DropdownProps extends SettingsItemProps {
+    isDisabled?: boolean;
+    value: string | number;
+    options: { label: string; value: string | number }[];
+    onChange: (event: React.ChangeEvent) => void;
+}
+
+const Dropdown = memo(
+    ({ title, description, isDisabled, value, options, onChange }: DropdownProps) => {
+        return (
+            <SettingsItem
+                description={description}
+                title={title}
+            >
+                <Select
+                    isDisabled={isDisabled}
+                    minWidth="256px"
+                    value={value}
+                    onChange={onChange}
+                >
+                    {options.map(({ label, value: v }) => (
+                        <option
+                            key={v}
+                            value={v}
+                        >
+                            {label}
+                        </option>
+                    ))}
+                </Select>
+            </SettingsItem>
+        );
+    }
+);
 
 const AppearanceSettings = memo(() => {
     const { useSnapToGrid, useIsDarkMode, useAnimateChain } = useContext(SettingsContext);
