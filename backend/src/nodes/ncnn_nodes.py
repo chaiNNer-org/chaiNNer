@@ -18,6 +18,7 @@ from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_model import NcnnModel
 from .utils.utils import get_h_w_c, convenient_upscale
+from .utils.exec_options import get_execution_options
 
 # NCNN Save Model node
 # pylint: disable=unused-import
@@ -71,9 +72,10 @@ class NcnnUpscaleImageNode(NodeBase):
         output_name: str,
         tile_mode: int,
     ):
+        exec_options = get_execution_options()
         # Try/except block to catch errors
         try:
-            vkdev = ncnn.get_gpu_device(ncnn.get_default_gpu_index())
+            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
             blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
             staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(
