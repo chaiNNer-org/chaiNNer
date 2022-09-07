@@ -331,7 +331,7 @@ const EnvironmentSettings = memo(() => {
                 description="Which GPU to use for PyTorch. Only Nvidia GPUs are supported."
                 isDisabled={nvidiaGpuList.length === 0}
                 options={nvidiaGpuList.map((gpu, i) => ({
-                    label: gpu,
+                    label: `${i}: ${gpu}`,
                     value: i,
                 }))}
                 title="PyTorch GPU"
@@ -345,7 +345,7 @@ const EnvironmentSettings = memo(() => {
                 description="Which GPU to use for NCNN."
                 isDisabled={fullGpuList.length === 0}
                 options={fullGpuList.map((gpu, i) => ({
-                    label: gpu,
+                    label: `${i}: ${gpu}`,
                     value: i,
                 }))}
                 title="NCNN GPU"
