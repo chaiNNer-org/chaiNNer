@@ -21,7 +21,7 @@ import { checkFileExists, lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
 import { setMainMenu } from './menu';
-import { createNvidiaSmiVRamChecker, getNvidiaGpuName, getNvidiaSmi } from './nvidiaSmi';
+import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { downloadPython, extractPython } from './setupIntegratedPython';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
@@ -366,12 +366,14 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
 const checkNvidiaSmi = async () => {
     const registerEmptyGpuEvents = () => {
         ipcMain.handle('get-nvidia-gpu-name', () => null);
+        ipcMain.handle('get-nvidia-gpus', () => null);
         ipcMain.handle('get-vram-usage', () => null);
     };
 
     const registerNvidiaSmiEvents = async (nvidiaSmi: string) => {
-        const nvidiaGpu = await getNvidiaGpuName(nvidiaSmi);
-        ipcMain.handle('get-nvidia-gpu-name', () => nvidiaGpu.trim());
+        const nvidiaGpus = await getNvidiaGpuNames(nvidiaSmi);
+        ipcMain.handle('get-nvidia-gpu-name', () => nvidiaGpus[0].trim());
+        ipcMain.handle('get-nvidia-gpus', () => nvidiaGpus.map((gpu) => gpu.trim()));
 
         let vramChecker: ChildProcessWithoutNullStreams | undefined;
         let lastVRam: number | null = null;

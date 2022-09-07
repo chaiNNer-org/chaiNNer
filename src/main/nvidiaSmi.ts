@@ -85,15 +85,15 @@ export const getNvidiaSmi = lazy(async (): Promise<string | undefined> => {
     }
 });
 
-export const getNvidiaGpuName = async (nvidiaSmi: string): Promise<string> => {
-    const [nvidiaGpu] = (
+export const getNvidiaGpuNames = async (nvidiaSmi: string): Promise<string[]> => {
+    const nvidiaGpus = (
         await exec(
             `"${nvidiaSmi}" --query-gpu=name --format=csv,noheader,nounits ${
                 process.platform === 'linux' ? '  2>/dev/null' : ''
             }`
         )
     ).stdout.split('\n');
-    return nvidiaGpu;
+    return nvidiaGpus;
 };
 
 export const createNvidiaSmiVRamChecker = (
