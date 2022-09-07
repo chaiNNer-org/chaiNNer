@@ -141,7 +141,7 @@ class ImageUpscaleNode(NodeBase):
             split_estimation = 1
             if "cuda" in options.device:
                 GB_AMT = 1024**3
-                free, total = torch.cuda.mem_get_info(0)  # type: ignore
+                free, total = torch.cuda.mem_get_info(options.pytorch_gpu_index)  # type: ignore
                 img_bytes = img_tensor.numel() * img_tensor.element_size()
                 model_bytes = sum(
                     p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))

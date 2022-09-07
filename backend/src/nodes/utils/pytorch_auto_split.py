@@ -63,7 +63,7 @@ def auto_split_process(
             # cpu does not support autocast
             if "cuda" in exec_options.device:
                 with torch.autocast(  # type: ignore
-                    device_type="cuda",
+                    device_type=device.type,
                     dtype=torch.float16 if should_use_fp16 else torch.float32,
                 ):
                     result = model(d_img)
