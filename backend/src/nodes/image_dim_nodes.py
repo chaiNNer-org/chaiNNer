@@ -125,13 +125,11 @@ class ImResizeToSide(NodeBase):
                             Input1 => Input0.width
                         },
                         SideSelection::Shorter => match largerTargetMin {
-                            Input0.width => widthShorter,
-                            Input0.height => widthShorter,
+                            min(Input0.width, Input0.height) => widthShorter,
                             Input1 => Input0.width
                         },
                         SideSelection::Longer => match largerTargetMax {
-                            Input0.width => widthLonger,
-                            Input0.height => widthLonger,
+                            max(Input0.width, Input0.height) => widthLonger,
                             Input1 => Input0.width
                         },
                     },
@@ -145,13 +143,11 @@ class ImResizeToSide(NodeBase):
                             Input1 => Input0.width
                         },
                         SideSelection::Shorter => match smallerTargetMin {
-                            Input0.width => widthShorter,
-                            Input0.height => widthShorter,
+                            min(Input0.width, Input0.height) => widthShorter,
                             Input1 => Input0.width
                         },
                         SideSelection::Longer => match smallerTargetMax {
-                            Input0.width => widthLonger,
-                            Input0.height => widthLonger,
+                            max(Input0.width, Input0.height) => widthLonger,
                             Input1 => Input0.width
                         },
                     },
@@ -174,13 +170,11 @@ class ImResizeToSide(NodeBase):
                             Input1 => Input0.height
                         },
                         SideSelection::Shorter => match largerTargetMin {
-                            Input0.width => heightShorter,
-                            Input0.height => heightShorter,
+                            min(Input0.width, Input0.height) => heightShorter,
                             Input1 => Input0.height
                         },
                         SideSelection::Longer => match largerTargetMax {
-                            Input0.width => heightLonger,
-                            Input0.height => heightLonger,
+                            max(Input0.width, Input0.height) => heightLonger,
                             Input1 => Input0.height
                         },
                     },
@@ -194,13 +188,11 @@ class ImResizeToSide(NodeBase):
                             Input1 => Input0.height
                         },
                         SideSelection::Shorter => match smallerTargetMin {
-                            Input0.width => heightShorter,
-                            Input0.height => heightShorter,
+                            min(Input0.width, Input0.height) => heightShorter,
                             Input1 => Input0.height
                         },
                         SideSelection::Longer => match smallerTargetMax {
-                            Input0.width => heightLonger,
-                            Input0.height => heightLonger,
+                            max(Input0.width, Input0.height) => heightLonger,
                             Input1 => Input0.height
                         },
                     },
