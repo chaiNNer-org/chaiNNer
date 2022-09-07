@@ -12,7 +12,6 @@ def load_state_dict(state_dict) -> PyTorchModel:
     logger.info(f"Loading state dict into pytorch model arch")
 
     state_dict_keys = list(state_dict.keys())
-    logger.info(f"State dict keys: {state_dict_keys}")
 
     if "params_ema" in state_dict_keys:
         state_dict = state_dict["params_ema"]
