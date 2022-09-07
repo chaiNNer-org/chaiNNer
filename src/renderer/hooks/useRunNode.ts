@@ -13,10 +13,12 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const { useIsCpu, useIsFp16 } = useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU } = useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
+    const [pytorchGPU] = usePyTorchGPU;
+    const [ncnnGPU] = useNcnnGPU;
 
     const schema = schemata.get(schemaId);
 
@@ -36,7 +38,15 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                 lastRunInputHash.current = inputHash;
                 animate([id], false);
 
-                const result = await backend.runIndividual({ schemaId, id, inputs, isCpu, isFp16 });
+                const result = await backend.runIndividual({
+                    schemaId,
+                    id,
+                    inputs,
+                    isCpu,
+                    isFp16,
+                    pytorchGPU,
+                    ncnnGPU,
+                });
 
                 if (!result.success) {
                     unAnimate([id]);
