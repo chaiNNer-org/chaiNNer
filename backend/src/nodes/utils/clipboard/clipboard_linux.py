@@ -4,15 +4,19 @@ import subprocess
 
 from .clipboard_base import ClipboardBase
 
+
 class LinuxClipboard(ClipboardBase):
     def __init__(self) -> None:
-        self.xclip = shutil.which('xclip')
+        self.xclip = shutil.which("xclip")
         if not self.xclip:
-            raise Exception("xclip must be installed. " "Please install xclip using your system package manager")
+            raise Exception(
+                "xclip must be installed. "
+                "Please install xclip using your system package manager"
+            )
 
     def copy_image(self, img: bytes) -> None:
         proc = subprocess.Popen(
-            args=[str(self.xclip), '-selection', 'clipboard', '-t', 'image/png'],
+            args=[str(self.xclip), "-selection", "clipboard", "-t", "image/png"],
             stdin=subprocess.PIPE,
         )
 

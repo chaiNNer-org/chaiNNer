@@ -1,4 +1,4 @@
-import { isMac } from './env';
+import { isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
 const MB = 1024 ** 2;
@@ -92,3 +92,15 @@ export const requiredDependencies: Dependency[] = [
         packages: [{ packageName: 'Pillow', version: '9.2.0', sizeEstimate: 3 * MB }],
     },
 ];
+
+if (isMac) {
+    requiredDependencies.push({
+        name: 'Pasteboard',
+        packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }]
+    });
+} else if (isWindows) {
+    requiredDependencies.push({
+        name: 'Pywin32',
+        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB }]
+    });
+}

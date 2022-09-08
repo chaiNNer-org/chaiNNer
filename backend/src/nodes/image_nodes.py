@@ -28,6 +28,7 @@ from .utils.image_utils import get_opencv_formats, get_pil_formats, normalize
 from .utils.pil_utils import *
 from .utils.utils import get_h_w_c
 
+
 @NodeFactory.register("chainner:image:load")
 class ImReadNode(NodeBase):
     def __init__(self):
@@ -213,6 +214,7 @@ class ImViewNode(NodeBase):
 
     def run(self, img: np.ndarray):
         return img
+
 
 @NodeFactory.register("chainner:image:clipboard")
 class ImClipboardNode(NodeBase):

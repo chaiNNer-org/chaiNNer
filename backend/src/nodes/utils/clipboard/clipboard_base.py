@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 
 from nodes.utils.utils import get_h_w_c
 
+
 class ClipboardBase(ABC):
     @staticmethod
     def prepare_image(img: np.ndarray):

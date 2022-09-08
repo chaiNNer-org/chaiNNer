@@ -4,15 +4,19 @@ import subprocess
 
 from .clipboard_base import ClipboardBase
 
+
 class WaylandClipboard(ClipboardBase):
     def __init__(self) -> None:
-        self.wl_copy = shutil.which('wl-copy')
+        self.wl_copy = shutil.which("wl-copy")
         if not self.wl_copy:
-            raise Exception("wl-copy must be installed. " "Please install wl-copy using your system package manager")
+            raise Exception(
+                "wl-copy must be installed. "
+                "Please install wl-copy using your system package manager"
+            )
 
     def copy_image(self, img: bytes) -> None:
         proc = subprocess.Popen(
-            args=[str(self.wl_copy), '-selection', 'clipboard', '-t', 'image/png'],
+            args=[str(self.wl_copy), "-selection", "clipboard", "-t", "image/png"],
             stdin=subprocess.PIPE,
         )
 

@@ -3,6 +3,7 @@ import pasteboard
 
 from .clipboard_base import ClipboardBase
 
+
 class DarwinClipboard(ClipboardBase):
     def __init__(self) -> None:
         self.pb = pasteboard.Pasteboard()
