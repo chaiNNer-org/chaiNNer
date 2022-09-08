@@ -72,6 +72,8 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
 
+- Linux users need to have xclip or, for wayland users, wl-copy installed to be able to use the clipboard functionality.
+
 - Apple M1 laptops are mostly untested, though they are theoretically supported.
 
 ## GPU Support
