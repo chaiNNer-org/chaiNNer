@@ -13,7 +13,7 @@ from .properties.outputs import *
 from .utils.fill_alpha import *
 from .utils.tile_util import tile_image
 from .utils.pil_utils import *
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, resize_to_side_conditional
 
 
 @NodeFactory.register("chainner:image:resize_factor")
@@ -235,94 +235,9 @@ class ImResizeToSide(NodeBase):
                 raise RuntimeError(f"Unknown side selection {side}")
 
             out_dims = (w_new, h_new)
-        
-        elif condition == "downscale":
-            if side == "width":
-                if target > w:
-                    w_new = w
-                    h_new = h
 
-                else:
-                    w_new = target
-                    h_new = max(round((target / w) * h), 1)
-
-            elif side == "height":
-                if target > h:
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / h) * w), 1)
-                    h_new = target
-
-            elif side == "shorter side":
-                if target > min(h, w):
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / min(h, w)) * w), 1)
-                    h_new = max(round((target / min(h, w)) * h), 1)
-
-            elif side == "longer side":
-                if target > max(h ,w):
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / max(h, w)) * w), 1)
-                    h_new = max(round((target / max(h, w)) * h), 1)
-        
-            else:
-                raise RuntimeError(f"Unknown side selection {side}")
-
-            out_dims = (w_new, h_new)
-
-        elif condition == "upscale":
-            if side == "width":
-                if target < w:
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = target
-                    h_new = max(round((target / w) * h), 1)
-
-            elif side == "height":
-                if target < h:
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / h) * w), 1)
-                    h_new = target
-
-            elif side == "shorter side":
-                if target < min(h, w):
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / min(h, w)) * w), 1)
-                    h_new = max(round((target / min(h, w)) * h), 1)
-
-            elif side == "longer side":
-                if target < max(h ,w):
-                    w_new = w
-                    h_new = h
-
-                else:
-                    w_new = max(round((target / max(h, w)) * w), 1)
-                    h_new = max(round((target / max(h, w)) * h), 1)
-        
-            else:
-                raise RuntimeError(f"Unknown side selection {side}")
-
-            out_dims = (w_new, h_new)
-        
         else:
-            raise RuntimeError(f"Unknown condition {condition}")
-
+            out_dims = resize_to_side_conditional(w, h, target, side, condition)
 
         return resize(img, out_dims, interpolation)
 

@@ -407,3 +407,50 @@ def convenient_upscale(
                 )
 
     return np.clip(output, 0, 1)
+
+def resize_to_side_conditional(w, h, target, side, condition):
+
+    def compare_conditions(a, b):
+        if condition == "downscale":
+            return a > b
+        elif condition == "upscale":
+            return a < b
+        else:
+            raise RuntimeError(f"Unknown condition {condition}")
+
+    if side == "width":
+        if compare_conditions(target, w):
+            w_new = w
+            h_new = h
+        else:
+            w_new = target
+            h_new = max(round((target / w) * h), 1)
+
+    elif side == "height":
+        if compare_conditions(target, h):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round((target / h) * w), 1)
+            h_new = target
+
+    elif side == "shorter side":
+        if compare_conditions(target, min(h, w)):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round((target / min(h, w)) * w), 1)
+            h_new = max(round((target / min(h, w)) * h), 1)
+
+    elif side == "longer side":
+        if compare_conditions(target, max(h, w)):
+            w_new = w
+            h_new = h
+        else:
+            w_new = max(round((target / max(h, w)) * w), 1)
+            h_new = max(round((target / max(h, w)) * h), 1)
+
+    else:
+        raise RuntimeError(f"Unknown side selection {side}")
+
+    return w_new, h_new
