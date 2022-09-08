@@ -223,7 +223,7 @@ class ImClipboardNode(NodeBase):
         self.outputs = []
         self.category = ImageCategory
         self.name = "Copy to Clipboard"
-        self.icon = "HiClipboard"
+        self.icon = "BsClipboard"
         self.sub = "Input & Output"
 
         self.side_effects = True
