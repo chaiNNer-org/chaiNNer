@@ -66,6 +66,7 @@ class MathNode(NodeBase):
                     "div" => divide(Input0, Input2),
                     "max" => max(Input0, Input2),
                     "min" => min(Input0, Input2),
+                    "mod" => mod(Input0, Input2),
                     _ => number
                 }
                 """,
@@ -94,6 +95,8 @@ class MathNode(NodeBase):
             return max(in1, in2)
         elif op == "min":
             return min(in1, in2)
+        elif op == "mod":
+            return in1 % in2
         else:
             raise RuntimeError(f"Unknown operator {op}")
 
