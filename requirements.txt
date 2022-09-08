@@ -5,12 +5,13 @@ onnx
 onnxoptimizer
 onnxruntime
 opencv-python
+pasteboard ; sys_platform=="darwin"
 Pillow
 protobuf==3.16.0
 pylint
 pyright==1.1.249
 pytest
-pywin32
+pywin32 ; sys_platform=="win32"
 sanic
 sanic_cors
 torch
