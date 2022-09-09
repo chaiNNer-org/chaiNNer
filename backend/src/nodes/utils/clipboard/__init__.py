@@ -26,18 +26,19 @@ try:
         raise Exception("No suitable clipboard found.")
 except Exception as e:
     DEFAULT_CLIPBOARD = None
+    ERROR = e
     logger.error(e)
+    raise e
 
 
 def copy_image(imageArray: np.ndarray):
     if DEFAULT_CLIPBOARD is None:
-        error = f"Cant clipboard image!\nNo suitable clipboard found."
-        logger.error(error)
-        raise Exception(error)
+        logger.error(ERROR)
+        raise Exception(ERROR)
         
     try:
-        imageBytes, image = ClipboardBase.prepare_image(imageArray)
-        DEFAULT_CLIPBOARD.copy_image(imageBytes, image)
+        image_bytes, fixed_image_array = ClipboardBase.prepare_image(imageArray)
+        DEFAULT_CLIPBOARD.copy_image(image_bytes, fixed_image_array)
     except Exception as err:
         logger.error(err)
         raise err

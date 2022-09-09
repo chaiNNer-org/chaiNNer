@@ -1,11 +1,11 @@
 import win32clipboard
 import ctypes
+import cv2
+import numpy as np
 
-from PIL import Image
-import requests
-from io import BytesIO
-from sanic.log import logger
 from ctypes import wintypes
+
+from nodes.utils.utils import get_h_w_c
 from .clipboard_base import ClipboardBase
 
 
@@ -88,56 +88,46 @@ class WindowsClipboard(ClipboardBase):
                 "pywin32 must be installed to use this library on Windows platform."
             )
 
-    def __generate_dibv5(self, image: Image.Image):
-        img_pixel_size = image.width * image.height
+    def __generate_dibv5(self, image_array: np.ndarray):
+        image_height, image_width, image_channel_count = get_h_w_c(image_array)
+
+        img_pixel_size = image_height * image_width
 
         class BITMAPINFO(ctypes.Structure):
             _fields_ = [
                 ("bmiHeader", BITMAPV5HEADER),
-                ("bmiColors", RGBQUAD * img_pixel_size),
+                ("bmiColors", ctypes.c_byte * (4 * img_pixel_size)),
             ]
 
         dipv5 = BITMAPINFO()
         dipv5.bmiHeader.bV5Size = ctypes.sizeof(BITMAPV5HEADER)
-        dipv5.bmiHeader.bV5Width = image.width
-        dipv5.bmiHeader.bV5Height = image.height
+        dipv5.bmiHeader.bV5Width = image_width
+        dipv5.bmiHeader.bV5Height = image_height
         dipv5.bmiHeader.bV5Planes = 1
         dipv5.bmiHeader.bV5BitCount = 32
         dipv5.bmiHeader.bV5Compression = COMPRESSION_ENUMERATION.BI_RGB
         dipv5.bmiHeader.bV5SizeImage = 0
 
-        colors = ((RGBQUAD) * img_pixel_size)()
-        channel_count = len(image.getbands())
+        if image_channel_count == 3:
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
 
-        for y in range(image.height):
-            for x in range(image.width):
-                i = (
-                    (image.height - y - 1) * image.width + x
-                ) - 1  # Flip the image upside down
-
-                if channel_count == 3:
-                    b, g, r = image.getpixel((x, y))
-                    colors[i].rgbRed = r
-                    colors[i].rgbGreen = g
-                    colors[i].rgbBlue = b
-                    colors[i].rgbReserved = 0
-                elif channel_count == 4:
-                    b, g, r, a = image.getpixel((x, y))
-                    colors[i].rgbRed = r
-                    colors[i].rgbGreen = g
-                    colors[i].rgbBlue = b
-                    colors[i].rgbReserved = a # Not technically an alpha channel, but most applications use this as the alpha channel
+        image_array = cv2.flip(image_array, 0)
+        colors = (
+            image_array.flatten()
+            .ctypes.data_as(ctypes.POINTER(ctypes.c_byte * (4 * img_pixel_size)))
+            .contents
+        )
 
         dipv5.bmiColors = colors
 
         return dipv5
 
-    def copy_image(self, imageBytes: bytes, image: Image.Image) -> None:
+    def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
         try:
             win32clipboard.OpenClipboard()
             win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardData(self.__PNG_FORMAT, imageBytes)  # type: ignore
-            dipv5 = self.__generate_dibv5(image)
+            win32clipboard.SetClipboardData(self.__PNG_FORMAT, image_bytes)  # type: ignore
+            dipv5 = self.__generate_dibv5(image_array)
             win32clipboard.SetClipboardData(self.__DIPV5_FORMAT, dipv5)  # type: ignore
             win32clipboard.CloseClipboard()
         except Exception as err:

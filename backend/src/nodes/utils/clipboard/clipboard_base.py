@@ -3,30 +3,18 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from PIL import Image
 from abc import ABC, abstractmethod
-
-from nodes.utils.utils import get_h_w_c
 
 
 class ClipboardBase(ABC):
     @staticmethod
-    def prepare_image(imageArray: np.ndarray) -> Tuple[bytes, Image.Image]:
-        imageArray = (np.clip(imageArray, 0, 1) * 255).round().astype("uint8")
+    def prepare_image(image_array: np.ndarray) -> Tuple[bytes, np.ndarray]:
+        image_array = (np.clip(image_array, 0, 1) * 255).round().astype("uint8")
 
-        _, _, c = get_h_w_c(imageArray)
-        if c == 3:
-            imageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2RGB)
-        elif c == 4:
-            imageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGRA2RGBA)
+        _, im_buff_arr = cv2.imencode(".png", image_array)
 
-        image = Image.fromarray(imageArray)
-
-        imgBytes = io.BytesIO()
-        image.save(imgBytes, format="png")
-
-        return (imgBytes.getvalue(), image)
+        return im_buff_arr.tobytes(), image_array
 
     @abstractmethod
-    def copy_image(self, imageBytes: bytes, image: Image.Image) -> None:
+    def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
         return NotImplemented
