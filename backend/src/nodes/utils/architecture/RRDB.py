@@ -168,6 +168,11 @@ class RRDBNet(nn.Module):
             ),
         )
 
+        # Adjust these properties for calculations outside of the model
+        if self.shuffle_factor:
+            self.in_nc //= self.shuffle_factor**2
+            self.scale //= self.shuffle_factor
+
         self.load_state_dict(self.state, strict=False)
 
     def new_to_old_arch(self, state):
@@ -202,7 +207,6 @@ class RRDBNet(nn.Module):
         max_upconv = 0
         for key in state.keys():
             match = re.match(r"(upconv|conv_up)(\d)\.(weight|bias)", key)
-            print(match)
             if match is not None:
                 _, key_num, key_type = match.groups()
                 old_state[f"model.{int(key_num) * 3}.{key_type}"] = state[key]
