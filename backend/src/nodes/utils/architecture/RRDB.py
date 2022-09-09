@@ -54,14 +54,6 @@ class RRDBNet(nn.Module):
             "model.0.bias": ("conv_first.bias",),
             "model.1.sub./NB/.weight": ("trunk_conv.weight", "conv_body.weight"),
             "model.1.sub./NB/.bias": ("trunk_conv.bias", "conv_body.bias"),
-            "model.3.weight": ("upconv1.weight", "conv_up1.weight"),
-            "model.3.bias": ("upconv1.bias", "conv_up1.bias"),
-            "model.6.weight": ("upconv2.weight", "conv_up2.weight"),
-            "model.6.bias": ("upconv2.bias", "conv_up2.bias"),
-            "model.8.weight": ("HRconv.weight", "conv_hr.weight"),
-            "model.8.bias": ("HRconv.bias", "conv_hr.bias"),
-            "model.10.weight": ("conv_last.weight",),
-            "model.10.bias": ("conv_last.bias",),
             r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
                 r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
                 r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)",
@@ -176,6 +168,11 @@ class RRDBNet(nn.Module):
             ),
         )
 
+        # Adjust these properties for calculations outside of the model
+        if self.shuffle_factor:
+            self.in_nc //= self.shuffle_factor**2
+            self.scale //= self.shuffle_factor
+
         self.load_state_dict(self.state, strict=False)
 
     def new_to_old_arch(self, state):
@@ -205,6 +202,26 @@ class RRDBNet(nn.Module):
                 else:
                     if new_key in state:
                         old_state[old_key] = state[new_key]
+
+        # upconv layers
+        max_upconv = 0
+        for key in state.keys():
+            match = re.match(r"(upconv|conv_up)(\d)\.(weight|bias)", key)
+            if match is not None:
+                _, key_num, key_type = match.groups()
+                old_state[f"model.{int(key_num) * 3}.{key_type}"] = state[key]
+                max_upconv = max(max_upconv, int(key_num) * 3)
+
+        # final layers
+        for key in state.keys():
+            if key in ("HRconv.weight", "conv_hr.weight"):
+                old_state[f"model.{max_upconv + 2}.weight"] = state[key]
+            elif key in ("HRconv.bias", "conv_hr.bias"):
+                old_state[f"model.{max_upconv + 2}.bias"] = state[key]
+            elif key in ("conv_last.weight",):
+                old_state[f"model.{max_upconv + 4}.weight"] = state[key]
+            elif key in ("conv_last.bias",):
+                old_state[f"model.{max_upconv + 4}.bias"] = state[key]
 
         # Sort by first numeric value of each layer
         def compare(item1, item2):
