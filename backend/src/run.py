@@ -169,6 +169,8 @@ class RunRequest(TypedDict):
     data: Dict[str, UsableData]
     isCpu: bool
     isFp16: bool
+    pytorchGPU: int
+    ncnnGPU: int
 
 
 @app.route("/run", methods=["POST"])
@@ -194,6 +196,8 @@ async def run(request: Request):
             exec_opts = ExecutionOptions(
                 device="cpu" if full_data["isCpu"] else "cuda",
                 fp16=full_data["isFp16"],
+                pytorch_gpu_index=full_data["pytorchGPU"],
+                ncnn_gpu_index=full_data["ncnnGPU"],
             )
             set_execution_options(exec_opts)
             logger.info(f"Using device: {exec_opts.device}")
@@ -242,6 +246,8 @@ class RunIndividualRequest(TypedDict):
     inputs: List[Any]
     isCpu: bool
     isFp16: bool
+    pytorchGPU: int
+    ncnnGPU: int
     schemaId: str
 
 
@@ -257,6 +263,8 @@ async def run_individual(request: Request):
         exec_opts = ExecutionOptions(
             device="cpu" if full_data["isCpu"] else "cuda",
             fp16=full_data["isFp16"],
+            pytorch_gpu_index=full_data["pytorchGPU"],
+            ncnn_gpu_index=full_data["ncnnGPU"],
         )
         set_execution_options(exec_opts)
         logger.info(f"Using device: {exec_opts.device}")

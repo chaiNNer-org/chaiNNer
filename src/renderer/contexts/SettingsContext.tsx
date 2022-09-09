@@ -12,6 +12,8 @@ interface Settings {
     // Global settings
     useIsCpu: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useIsFp16: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    usePyTorchGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
+    useNcnnGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
     useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useDisHwAccel: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useCheckUpdOnStrtUp: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
@@ -41,6 +43,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     // Global Settings
     const useIsCpu = useMemoArray(useLocalStorage('is-cpu', false));
     const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
+    const usePyTorchGPU = useMemoArray(useLocalStorage('pytorch-gpu', 0));
+    const useNcnnGPU = useMemoArray(useLocalStorage('ncnn-gpu', 0));
+
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
     const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
     const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup', true));
@@ -85,6 +90,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         // Globals
         useIsCpu,
         useIsFp16,
+        usePyTorchGPU,
+        useNcnnGPU,
         useIsSystemPython,
         useSnapToGrid,
         useDisHwAccel,
