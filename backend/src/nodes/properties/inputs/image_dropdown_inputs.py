@@ -100,6 +100,60 @@ def InterpolationInput() -> DropDownInput:
     )
 
 
+def ResizeToSideInput() -> DropDownInput:
+    """Resize to side dropdown"""
+    return DropDownInput(
+        input_type="SideSelection",
+        label="Resize To",
+        options=[
+            {
+                "option": "Width",
+                "value": "width",
+                "type": "SideSelection::Width",
+            },
+            {
+                "option": "Height",
+                "value": "height",
+                "type": "SideSelection::Height",
+            },
+            {
+                "option": "Shorter Side",
+                "value": "shorter side",
+                "type": "SideSelection::Shorter",
+            },
+            {
+                "option": "Longer Side",
+                "value": "longer side",
+                "type": "SideSelection::Longer",
+            },
+        ],
+    )
+
+def ResizeCondition() -> DropDownInput:
+    """Upscale / Downscale condition dropdown"""
+    return DropDownInput(
+        input_type="ResizeCondition",
+        label="Resize Condition",
+        options=[
+            {
+                "option": "Upscale And Downscale",
+                "value": "both",
+                "type": "ResizeCondition::Both",
+            },
+            {
+                "option": "Upscale Only",
+                "value": "upscale",
+                "type": "ResizeCondition::Upscale",
+            },
+            {
+                "option": "Downscale Only",
+                "value": "downscale",
+                "type": "ResizeCondition::Downscale",
+            },
+        ],
+    )
+
+
 def RotateInterpolationInput() -> DropDownInput:
     return DropDownInput(
         input_type="RotateInterpolationMode",
