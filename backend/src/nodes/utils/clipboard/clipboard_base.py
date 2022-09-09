@@ -1,6 +1,4 @@
 import io
-import os
-import sys
 import cv2
 import numpy as np
 
@@ -12,22 +10,22 @@ from nodes.utils.utils import get_h_w_c
 
 class ClipboardBase(ABC):
     @staticmethod
-    def prepare_image(img: np.ndarray):
-        img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
+    def prepare_image(imageArray: np.ndarray):
+        imageArray = (np.clip(imageArray, 0, 1) * 255).round().astype("uint8")
 
-        _, _, c = get_h_w_c(img)
+        _, _, c = get_h_w_c(imageArray)
         if c == 3:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            imageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2RGB)
         elif c == 4:
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+            imageArray = cv2.cvtColor(imageArray, cv2.COLOR_BGRA2RGBA)
 
-        data = Image.fromarray(img)
+        image = Image.fromarray(imageArray)
 
         imgBytes = io.BytesIO()
-        data.save(imgBytes, format="png")
+        image.save(imgBytes, format="png")
 
         return imgBytes.getvalue()
 
     @abstractmethod
-    def copy_image(self, data: np.ndarray) -> None:
+    def copy_image(self, imageBytes: bytes) -> None:
         return NotImplemented

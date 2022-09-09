@@ -96,11 +96,11 @@ export const requiredDependencies: Dependency[] = [
 if (isMac) {
     requiredDependencies.push({
         name: 'Pasteboard',
-        packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }]
+        packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB },]
     });
 } else if (isWindows) {
     requiredDependencies.push({
         name: 'Pywin32',
-        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB }]
+        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB },]
     });
 }

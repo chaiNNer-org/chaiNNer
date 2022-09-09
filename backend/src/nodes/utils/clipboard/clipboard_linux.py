@@ -1,4 +1,3 @@
-import numpy as np
 import shutil
 import subprocess
 
@@ -14,13 +13,13 @@ class LinuxClipboard(ClipboardBase):
                 "Please install xclip using your system package manager"
             )
 
-    def copy_image(self, img: bytes) -> None:
+    def copy_image(self, imageBytes: bytes) -> None:
         proc = subprocess.Popen(
             args=[str(self.xclip), "-selection", "clipboard", "-t", "image/png"],
             stdin=subprocess.PIPE,
         )
 
-        stdout, stderr = proc.communicate(img)
+        stdout, stderr = proc.communicate(imageBytes)
         if proc.returncode != 0:
             raise Exception(
                 f"Copy failed. xclip returned code: {proc.returncode!r} "
