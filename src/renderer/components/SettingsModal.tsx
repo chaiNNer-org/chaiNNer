@@ -35,7 +35,8 @@ import {
 } from '@chakra-ui/react';
 import path from 'path';
 import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
-import { FaPython } from 'react-icons/fa';
+import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
+import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
@@ -492,12 +493,32 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                 <ModalHeader>Settings</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <Tabs>
+                    <Tabs isFitted>
                         <TabList>
-                            <Tab>Appearance</Tab>
-                            <Tab>Environment</Tab>
-                            <Tab>Python</Tab>
-                            <Tab>Advanced</Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={BsPaletteFill} />
+                                    <Text cursor="pointer">Appearance</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={BsFillPencilFill} />
+                                    <Text cursor="pointer">Environment</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={FaPython} />
+                                    <Text cursor="pointer">Python</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={FaTools} />
+                                    <Text cursor="pointer">Advanced</Text>
+                                </HStack>
+                            </Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel>
