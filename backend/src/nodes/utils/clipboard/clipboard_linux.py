@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 
+from PIL import Image
 from .clipboard_base import ClipboardBase
 
 
@@ -13,7 +14,7 @@ class LinuxClipboard(ClipboardBase):
                 "Please install xclip using your system package manager"
             )
 
-    def copy_image(self, imageBytes: bytes) -> None:
+    def copy_image(self, imageBytes: bytes, image: Image.Image) -> None:
         proc = subprocess.Popen(
             args=[str(self.xclip), "-selection", "clipboard", "-t", "image/png"],
             stdin=subprocess.PIPE,

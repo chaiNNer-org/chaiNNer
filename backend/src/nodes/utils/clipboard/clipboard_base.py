@@ -1,4 +1,5 @@
 import io
+from typing import Tuple
 import cv2
 import numpy as np
 
@@ -10,7 +11,7 @@ from nodes.utils.utils import get_h_w_c
 
 class ClipboardBase(ABC):
     @staticmethod
-    def prepare_image(imageArray: np.ndarray):
+    def prepare_image(imageArray: np.ndarray) -> Tuple[bytes, Image.Image]:
         imageArray = (np.clip(imageArray, 0, 1) * 255).round().astype("uint8")
 
         _, _, c = get_h_w_c(imageArray)
@@ -24,8 +25,8 @@ class ClipboardBase(ABC):
         imgBytes = io.BytesIO()
         image.save(imgBytes, format="png")
 
-        return imgBytes.getvalue()
+        return (imgBytes.getvalue(), image)
 
     @abstractmethod
-    def copy_image(self, imageBytes: bytes) -> None:
+    def copy_image(self, imageBytes: bytes, image: Image.Image) -> None:
         return NotImplemented

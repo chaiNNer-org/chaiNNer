@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 
+from PIL import Image
 from .clipboard_base import ClipboardBase
 
 
@@ -13,7 +14,7 @@ class WaylandClipboard(ClipboardBase):
                 "Please install wl-copy using your system package manager"
             )
 
-    def copy_image(self, imageBytes: bytes) -> None:
+    def copy_image(self, imageBytes: bytes, image: Image.Image) -> None:
         proc = subprocess.Popen(
             args=[str(self.wl_copy), "-selection", "clipboard", "-t", "image/png"],
             stdin=subprocess.PIPE,

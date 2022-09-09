@@ -36,8 +36,8 @@ def copy_image(imageArray: np.ndarray):
         raise Exception(error)
         
     try:
-        imageBytes = ClipboardBase.prepare_image(imageArray)
-        DEFAULT_CLIPBOARD.copy_image(imageBytes)
+        imageBytes, image = ClipboardBase.prepare_image(imageArray)
+        DEFAULT_CLIPBOARD.copy_image(imageBytes, image)
     except Exception as err:
         logger.error(err)
         raise err
