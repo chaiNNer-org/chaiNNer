@@ -1,12 +1,17 @@
 from ctypes import wintypes
 import ctypes
-import win32clipboard
+import sys
 import cv2
 import numpy as np
 
-
 from nodes.utils.utils import get_h_w_c
 from .clipboard_base import ClipboardBase
+
+# Check if we are running on Windows, because win32clipboard is only available on Windows
+if sys.platform == "win32":
+    import win32clipboard
+else:
+    win32clipboard = None
 
 
 class COMPRESSION_ENUMERATION:
@@ -79,14 +84,13 @@ class BITMAPV5HEADER(ctypes.Structure):
 
 class WindowsClipboard(ClipboardBase):
     def __init__(self) -> None:
-
-        self.__PNG_FORMAT = win32clipboard.RegisterClipboardFormat("PNG")  # type: ignore
-        self.__DIPV5_FORMAT = 17
-
         if win32clipboard is None:
             raise Exception(
                 "pywin32 must be installed to use this library on Windows platform."
             )
+
+        self.__PNG_FORMAT = win32clipboard.RegisterClipboardFormat("PNG")  # type: ignore
+        self.__DIPV5_FORMAT = 17
 
     def __generate_dibv5(self, image_array: np.ndarray):
         image_height, image_width, image_channel_count = get_h_w_c(image_array)
@@ -120,11 +124,14 @@ class WindowsClipboard(ClipboardBase):
         )
 
         # Not sure how to prevent the pylint warning, without hurting performance
-        dipv5.bmiColors = colors # pylint: disable=attribute-defined-outside-init
+        dipv5.bmiColors = colors  # pylint: disable=attribute-defined-outside-init
 
         return dipv5
 
     def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
+        if win32clipboard is None:
+            raise Exception("win32clipboard is not avaiable!")
+
         try:
             win32clipboard.OpenClipboard()
             win32clipboard.EmptyClipboard()
