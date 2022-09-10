@@ -199,3 +199,24 @@ def Image(
         fields["width"] = field(size_as, "width")
         fields["height"] = field(size_as, "height")
     return named("Image", fields)
+
+
+def PyTorchModel(
+    scale: Optional[ExpressionJson] = None,
+    inputChannels: Optional[ExpressionJson] = None,
+    outputChannels: Optional[ExpressionJson] = None,
+    modelType: Optional[ExpressionJson] = None,
+    size: Optional[ExpressionJson] = None,
+) -> ExpressionJson:
+    fields: Dict[str, ExpressionJson] = {}
+    if scale is not None:
+        fields["scale"] = scale
+    if inputChannels is not None:
+        fields["inputChannels"] = inputChannels
+    if outputChannels is not None:
+        fields["outputChannels"] = outputChannels
+    if modelType is not None:
+        fields["modelType"] = modelType
+    if size is not None:
+        fields["size"] = size
+    return named("PyTorchModel", fields)

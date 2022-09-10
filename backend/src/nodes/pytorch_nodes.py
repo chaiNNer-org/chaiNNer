@@ -206,6 +206,129 @@ class ImageUpscaleNode(NodeBase):
         )
 
 
+@NodeFactory.register("chainner:pytorch:upscale_face")
+@torch.inference_mode()
+class FaceUpscaleNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = (
+            "Upscales a face in an image using a PyTorch Face Super-Resolution model."
+        )
+        self.inputs = [
+            ModelInput(
+                "Face SR Model",
+                input_type=expression.PyTorchModel(
+                    modelType=[expression.literal("GFPGAN")]
+                ),
+            ),
+            ModelInput("Background SR Model").make_optional(),
+            ImageInput(),
+            TileModeDropdown(),
+        ]
+        self.outputs = [
+            ImageOutput(
+                "Upscaled Image",
+                image_type="""
+                Image {
+                    width: multiply(Input0.scale, Input2.width),
+                    height: multiply(Input0.scale, Input2.height),
+                    channels: Input2.channels
+                }
+                """,
+            )
+        ]
+
+        self.category = PyTorchCategory
+        self.name = "Upscale Face"
+        self.icon = "PyTorch"
+        self.sub = "Processing"
+
+    def upscale(
+        self,
+        img: np.ndarray,
+        model: PyTorchModel,
+        scale: int,
+        tile_mode: int,
+        options: ExecutionOptions,
+    ):
+        exec_options = to_pytorch_execution_options(get_execution_options())
+        should_use_fp16 = (
+            exec_options.fp16 and model.supports_fp16
+        )  # TODO: use bfloat16 if RTX
+        with torch.no_grad():
+            # Borrowed from iNNfer
+            logger.debug("Converting image to tensor")
+            img_tensor = np2tensor(img, change_range=True)
+            logger.debug("Upscaling image")
+
+            split_estimation = 1
+            if "cuda" in options.device:
+                GB_AMT = 1024**3
+                free, total = torch.cuda.mem_get_info(options.pytorch_gpu_index)  # type: ignore
+                img_bytes = img_tensor.numel() * img_tensor.element_size()
+                model_bytes = sum(
+                    p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))
+                    for p in model.parameters()
+                )
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
+                split_estimation = 1
+                x = mem_required_estimation
+                while x > free:
+                    x /= 4
+                    split_estimation += 1
+
+                required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
+                free_mem = f"{free/GB_AMT:.2f}"
+                total_mem = f"{total/GB_AMT:.2f}"
+                logger.info(
+                    f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
+                )
+                # Attempt to avoid using too much vram at once
+                if float(required_mem) > float(free_mem) / 2:
+                    split_estimation += 1
+
+            t_out, depth = auto_split_process(
+                options,
+                img_tensor,
+                model,
+                scale,
+                max_depth=tile_mode if tile_mode > 0 else split_estimation,
+            )
+            if "cuda" in options.device:
+                logger.info(f"Actual Split depth: {depth}")
+            del img_tensor
+            logger.debug("Converting tensor to image")
+
+            img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
+            logger.debug("Done upscaling")
+            del t_out
+            gc.collect()
+            torch.cuda.empty_cache()
+            return img_out
+
+    def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
+        """Upscales an image with a pretrained model"""
+
+        exec_options = to_pytorch_execution_options(get_execution_options())
+
+        logger.debug(f"Upscaling image...")
+
+        # TODO: Have all super resolution models inherit from something that forces them to use in_nc and out_nc
+        in_nc = model.in_nc
+        out_nc = model.out_nc
+        scale = model.scale
+        h, w, c = get_h_w_c(img)
+        logger.debug(
+            f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc: {out_nc})"
+        )
+
+        return convenient_upscale(
+            img,
+            in_nc,
+            lambda i: self.upscale(i, model, model.scale, tile_mode, exec_options),
+        )
+
+
 @NodeFactory.register("chainner:pytorch:interpolate_models")
 class InterpolateNode(NodeBase):
     def __init__(self):
