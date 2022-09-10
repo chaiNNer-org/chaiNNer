@@ -1,9 +1,9 @@
-import win32clipboard
+from ctypes import wintypes
 import ctypes
+import win32clipboard
 import cv2
 import numpy as np
 
-from ctypes import wintypes
 
 from nodes.utils.utils import get_h_w_c
 from .clipboard_base import ClipboardBase
@@ -112,13 +112,15 @@ class WindowsClipboard(ClipboardBase):
             image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
 
         image_array = cv2.flip(image_array, 0)
+
         colors = (
             image_array.flatten()
             .ctypes.data_as(ctypes.POINTER(ctypes.c_byte * (4 * img_pixel_size)))
             .contents
         )
 
-        dipv5.bmiColors = colors
+        # Not sure how to prevent the pylint warning, without hurting performance
+        dipv5.bmiColors = colors # pylint: disable=attribute-defined-outside-init
 
         return dipv5
 

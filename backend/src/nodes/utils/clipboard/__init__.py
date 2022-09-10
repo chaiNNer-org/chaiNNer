@@ -5,6 +5,8 @@ from sanic.log import logger
 
 from .clipboard_base import ClipboardBase
 
+ERROR = None
+DEFAULT_CLIPBOARD = None
 try:
     if sys.platform == "win32":
         from .clipboard_win32 import WindowsClipboard
@@ -27,15 +29,14 @@ try:
 except Exception as e:
     DEFAULT_CLIPBOARD = None
     ERROR = e
-    logger.error(e)
-    raise e
+    logger.error(f"{e}\nClipboard functionality will be disabled.")
 
 
 def copy_image(imageArray: np.ndarray):
     if DEFAULT_CLIPBOARD is None:
         logger.error(ERROR)
         raise Exception(ERROR)
-        
+
     try:
         image_bytes, fixed_image_array = ClipboardBase.prepare_image(imageArray)
         DEFAULT_CLIPBOARD.copy_image(image_bytes, fixed_image_array)

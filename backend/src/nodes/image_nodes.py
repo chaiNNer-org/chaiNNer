@@ -227,6 +227,7 @@ class ImClipboardNode(NodeBase):
         self.name = "Copy to Clipboard"
         self.icon = "BsClipboard"
         self.sub = "Input & Output"
+        self.deprecated = clipboard.DEFAULT_CLIPBOARD is None # Disable this node if no clipboard support is available
 
         self.side_effects = True
 
