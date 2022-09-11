@@ -82,6 +82,22 @@ class BITMAPV5HEADER(ctypes.Structure):
     ]
 
 
+class BITMAPINFOHEADER(ctypes.Structure):
+    _fields_ = [
+        ("biSize", wintypes.DWORD),
+        ("biWidth", wintypes.LONG),
+        ("biHeight", wintypes.LONG),
+        ("biPlanes", wintypes.WORD),
+        ("biBitCount", wintypes.WORD),
+        ("biCompression", wintypes.DWORD),
+        ("biSizeImage", wintypes.DWORD),
+        ("biXPelsPerMeter", wintypes.LONG),
+        ("biYPelsPerMeter", wintypes.LONG),
+        ("biClrUsed", wintypes.DWORD),
+        ("biClrImportant", wintypes.DWORD),
+    ]
+
+
 class WindowsClipboard(ClipboardBase):
     def __init__(self) -> None:
         if win32clipboard is None:
@@ -91,6 +107,7 @@ class WindowsClipboard(ClipboardBase):
 
         self.__PNG_FORMAT = win32clipboard.RegisterClipboardFormat("PNG")  # type: ignore
         self.__DIPV5_FORMAT = 17
+        self.__DIP_FORMAT = 8
 
     def __generate_dibv5(self, image_array: np.ndarray):
         image_height, image_width, image_channel_count = get_h_w_c(image_array)
@@ -128,6 +145,42 @@ class WindowsClipboard(ClipboardBase):
 
         return dipv5
 
+    def __generate_div(self, image_array: np.ndarray):
+        image_height, image_width, image_channel_count = get_h_w_c(image_array)
+
+        img_pixel_size = image_height * image_width
+
+        class BITMAPINFO(ctypes.Structure):
+            _fields_ = [
+                ("bmiHeader", BITMAPINFOHEADER),
+                ("bmiColors", ctypes.c_byte * (4 * img_pixel_size)),
+            ]
+
+        dip = BITMAPINFO()
+        dip.bmiHeader.biSize = ctypes.sizeof(BITMAPINFOHEADER)
+        dip.bmiHeader.biWidth = image_width
+        dip.bmiHeader.biHeight = image_height
+        dip.bmiHeader.biPlanes = 1
+        dip.bmiHeader.biBitCount = 32
+        dip.bmiHeader.biCompression = COMPRESSION_ENUMERATION.BI_RGB
+        dip.bmiHeader.biSizeImage = 0
+
+        if image_channel_count == 3:
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
+
+        image_array = cv2.flip(image_array, 0)
+
+        colors = (
+            image_array.flatten()
+            .ctypes.data_as(ctypes.POINTER(ctypes.c_byte * (4 * img_pixel_size)))
+            .contents
+        )
+
+        # Not sure how to prevent the pylint warning, without hurting performance
+        dip.bmiColors = colors  # pylint: disable=attribute-defined-outside-init
+
+        return dip
+
     def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
         if win32clipboard is None:
             raise Exception("win32clipboard is not avaiable!")
@@ -138,6 +191,25 @@ class WindowsClipboard(ClipboardBase):
             win32clipboard.SetClipboardData(self.__PNG_FORMAT, image_bytes)  # type: ignore
             dipv5 = self.__generate_dibv5(image_array)
             win32clipboard.SetClipboardData(self.__DIPV5_FORMAT, dipv5)  # type: ignore
+            dip = self.__generate_div(image_array)
+            win32clipboard.SetClipboardData(self.__DIP_FORMAT, dip)  # type: ignore
+            win32clipboard.CloseClipboard()
+        except Exception as err:
+            win32clipboard.CloseClipboard()
+            raise err
+
+    def copy_text(self, text: str) -> None:
+        if win32clipboard is None:
+            raise Exception("win32clipboard is not avaiable!")
+
+        if text.isdigit():
+            text = f"{text}\0" # Add null terminator. Without this, the clipboard will throw an error when the input is a number.
+
+        try:
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)  # type: ignore
+            win32clipboard.SetClipboardData(win32clipboard.CF_TEXT, text)  # type: ignore
             win32clipboard.CloseClipboard()
         except Exception as err:
             win32clipboard.CloseClipboard()

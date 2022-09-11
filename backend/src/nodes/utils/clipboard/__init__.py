@@ -43,3 +43,14 @@ def copy_image(imageArray: np.ndarray):
     except Exception as err:
         logger.error(err)
         raise err
+
+def copy_text(text: str):
+    if DEFAULT_CLIPBOARD is None:
+        logger.error(ERROR)
+        raise Exception(ERROR)
+
+    try:
+        DEFAULT_CLIPBOARD.copy_text(text)
+    except Exception as err:
+        logger.error(err)
+        raise err

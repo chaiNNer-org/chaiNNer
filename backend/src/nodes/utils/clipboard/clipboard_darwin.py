@@ -21,3 +21,9 @@ class DarwinClipboard(ClipboardBase):
             raise Exception("Pasteboard is not available.")
 
         self.pb.set_contents(image_bytes, pasteboard.PNG)
+
+    def copy_text(self, text: str) -> None:
+        if self.pb is None or pasteboard is None:
+            raise Exception("Pasteboard is not available.")
+
+        self.pb.set_contents(text)

@@ -17,3 +17,7 @@ class ClipboardBase(ABC):
     @abstractmethod
     def copy_image(self, image_bytes: bytes, image_array: np.ndarray) -> None:
         return NotImplemented
+
+    @abstractmethod
+    def copy_text(self, text: str) -> None:
+        return NotImplemented

@@ -17,8 +17,6 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from .utils import clipboard
-
 from .categories import ImageCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
@@ -214,22 +212,3 @@ class ImViewNode(NodeBase):
 
     def run(self, img: np.ndarray):
         return img
-
-
-@NodeFactory.register("chainner:image:clipboard")
-class ImClipboardNode(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.description = "Copy the image to the clipboard"
-        self.inputs = [ImageInput()]
-        self.outputs = []
-        self.category = ImageCategory
-        self.name = "Copy to Clipboard"
-        self.icon = "BsClipboard"
-        self.sub = "Utility"
-        self.deprecated = clipboard.DEFAULT_CLIPBOARD is None # Disable this node if no clipboard support is available
-
-        self.side_effects = True
-
-    def run(self, img: np.ndarray):
-        clipboard.copy_image(img)

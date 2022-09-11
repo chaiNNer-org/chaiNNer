@@ -27,3 +27,17 @@ class WaylandClipboard(ClipboardBase):
                 f"Stderr: {stderr!r} "
                 f"Stdout: {stdout!r}"
             )
+
+    def copy_text(self, text: str) -> None:
+        proc = subprocess.Popen(
+            args=[str(self.wl_copy), "-selection", "clipboard"],
+            stdin=subprocess.PIPE,
+        )
+
+        stdout, stderr = proc.communicate(text.encode("utf-8"))
+        if proc.returncode != 0:
+            raise Exception(
+                f"Copy failed. wl_copy returned code: {proc.returncode!r} "
+                f"Stderr: {stderr!r} "
+                f"Stdout: {stdout!r}"
+            )
