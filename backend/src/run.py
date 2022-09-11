@@ -171,6 +171,8 @@ class RunRequest(TypedDict):
     isFp16: bool
     pytorchGPU: int
     ncnnGPU: int
+    onnxGPU: int
+    onnxExecutionProvider: str
 
 
 @app.route("/run", methods=["POST"])
@@ -198,6 +200,8 @@ async def run(request: Request):
                 fp16=full_data["isFp16"],
                 pytorch_gpu_index=full_data["pytorchGPU"],
                 ncnn_gpu_index=full_data["ncnnGPU"],
+                onnx_gpu_index=full_data["onnxGPU"],
+                onnx_execution_provider=full_data["onnxExecutionProvider"],
             )
             set_execution_options(exec_opts)
             logger.info(f"Using device: {exec_opts.device}")
@@ -248,6 +252,8 @@ class RunIndividualRequest(TypedDict):
     isFp16: bool
     pytorchGPU: int
     ncnnGPU: int
+    onnxGPU: int
+    onnxExecutionProvider: str
     schemaId: str
 
 
@@ -265,6 +271,8 @@ async def run_individual(request: Request):
             fp16=full_data["isFp16"],
             pytorch_gpu_index=full_data["pytorchGPU"],
             ncnn_gpu_index=full_data["ncnnGPU"],
+            onnx_gpu_index=full_data["onnxGPU"],
+            onnx_execution_provider=full_data["onnxExecutionProvider"],
         )
         set_execution_options(exec_opts)
         logger.info(f"Using device: {exec_opts.device}")

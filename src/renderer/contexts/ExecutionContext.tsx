@@ -247,7 +247,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         getInputHash,
     } = useContext(GlobalContext);
     const { schemata, port, backend } = useContext(BackendContext);
-    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU } = useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
+        useContext(SettingsContext);
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const { nodeChanges, edgeChanges } = useContextSelector(GlobalVolatileContext, (c) => ({
         nodeChanges: c.nodeChanges,
@@ -258,6 +259,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [isFp16] = useIsFp16;
     const [pytorchGPU] = usePyTorchGPU;
     const [ncnnGPU] = useNcnnGPU;
+    const [onnxGPU] = useOnnxGPU;
+    const [onnxExecutionProvider] = useOnnxExecutionProvider;
 
     const { getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -480,6 +483,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 isFp16,
                 pytorchGPU,
                 ncnnGPU,
+                onnxGPU,
+                onnxExecutionProvider,
             });
             if (response.exception) {
                 // no need to alert here, because the error has already been handled by the queue

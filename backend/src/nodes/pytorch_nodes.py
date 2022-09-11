@@ -38,6 +38,8 @@ def to_pytorch_execution_options(options: ExecutionOptions):
         fp16=options.fp16,
         pytorch_gpu_index=options.pytorch_gpu_index,
         ncnn_gpu_index=options.ncnn_gpu_index,
+        onnx_gpu_index=options.onnx_gpu_index,
+        onnx_execution_provider=options.onnx_execution_provider,
     )
 
 

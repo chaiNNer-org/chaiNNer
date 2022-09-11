@@ -117,16 +117,42 @@ class OnnxImageUpscaleNode(NodeBase):
         self, onnx_model: bytes, img: np.ndarray, tile_mode: Union[int, None]
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
+        exec_options = get_execution_options()
 
         logger.info(f"Upscaling image...")
 
+        if exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
+            providers = [
+                (
+                    "TensorrtExecutionProvider",
+                    {
+                        "device_id": exec_options.onnx_gpu_index,
+                    },
+                ),
+                (
+                    "CUDAExecutionProvider",
+                    {
+                        "device_id": exec_options.onnx_gpu_index,
+                    },
+                ),
+                "CPUExecutionProvider",
+            ]
+        elif exec_options.onnx_execution_provider == "CUDAExecutionProvider":
+            providers = [
+                (
+                    "CUDAExecutionProvider",
+                    {
+                        "device_id": exec_options.onnx_gpu_index,
+                    },
+                ),
+                "CPUExecutionProvider",
+            ]
+        else:
+            providers = [exec_options.onnx_execution_provider, "CPUExecutionProvider"]
+
         session = ort.InferenceSession(
             onnx_model,
-            providers=[
-                "CPUExecutionProvider"
-                if get_execution_options().device == "cpu"
-                else "CUDAExecutionProvider"
-            ],
+            providers=providers,
         )
 
         shape = session.get_inputs()[0].shape
