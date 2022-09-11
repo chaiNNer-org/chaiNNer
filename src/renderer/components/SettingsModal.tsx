@@ -3,6 +3,7 @@ import {
     Button,
     Flex,
     HStack,
+    Icon,
     IconButton,
     Input,
     InputGroup,
@@ -34,9 +35,13 @@ import {
 } from '@chakra-ui/react';
 import path from 'path';
 import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
+import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
+import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
+import { useAsyncEffect } from '../hooks/useAsyncEffect';
+import { NcnnIcon, PyTorchIcon } from './CustomIcons';
 
 interface SettingsItemProps {
     title: ReactNode;
@@ -103,10 +108,9 @@ interface DropdownProps extends SettingsItemProps {
     isDisabled?: boolean;
     value: string | number;
     options: { label: string; value: string | number }[];
-    onChange: (event: React.ChangeEvent) => void;
+    onChange: React.ChangeEventHandler<HTMLSelectElement>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Dropdown = memo(
     ({ title, description, isDisabled, value, options, onChange }: DropdownProps) => {
         return (
@@ -116,7 +120,7 @@ const Dropdown = memo(
             >
                 <Select
                     isDisabled={isDisabled}
-                    minWidth="256px"
+                    minWidth="350px"
                     value={value}
                     onChange={onChange}
                 >
@@ -197,18 +201,9 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
-    const { useIsCpu, useIsFp16, useStartupTemplate } = useContext(SettingsContext);
+    const { useStartupTemplate } = useContext(SettingsContext);
 
     const [startupTemplate, setStartupTemplate] = useStartupTemplate;
-
-    const [isCpu, setIsCpu] = useIsCpu;
-    const [isFp16, setIsFp16] = useIsFp16;
-
-    useEffect(() => {
-        if (isCpu && isFp16) {
-            setIsFp16(false);
-        }
-    }, [isCpu]);
 
     const [lastDirectory, setLastDirectory] = useState(startupTemplate || '');
 
@@ -278,46 +273,155 @@ const EnvironmentSettings = memo(() => {
                     />
                 </HStack>
             </SettingsItem>
-            <Toggle
-                description="Use CPU for PyTorch instead of GPU."
-                title="CPU mode"
-                value={isCpu}
-                onToggle={() => {
-                    setIsCpu((prev) => !prev);
-                }}
-            />
-
-            <Toggle
-                description="Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
-                title="FP16 mode"
-                value={isFp16}
-                onToggle={() => {
-                    setIsFp16((prev) => !prev);
-                }}
-            />
+            <Text>Looking for the CPU and FP16 settings? They moved to the Python tab.</Text>
         </VStack>
     );
 });
 
 const PythonSettings = memo(() => {
-    const { useIsSystemPython } = useContext(SettingsContext);
+    const { useIsSystemPython, useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU } =
+        useContext(SettingsContext);
 
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
 
+    const [isCpu, setIsCpu] = useIsCpu;
+    const [isFp16, setIsFp16] = useIsFp16;
+
+    const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
+    const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                const nvidiaGpus = await ipcRenderer.invoke('get-nvidia-gpus');
+                if (nvidiaGpus) {
+                    return nvidiaGpus;
+                }
+                return [];
+            },
+            successEffect: setNvidiaGpuList,
+        },
+        []
+    );
+
+    const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
+    const [fullGpuList, setFullGpuList] = useState<string[]>([]);
+    useAsyncEffect(
+        {
+            supplier: async () => {
+                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
+                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
+                return gpuNames;
+            },
+            successEffect: setFullGpuList,
+        },
+        []
+    );
+
+    useEffect(() => {
+        if (isCpu && isFp16) {
+            setIsFp16(false);
+        }
+    }, [isCpu]);
+
     return (
-        <VStack
-            divider={<StackDivider />}
-            w="full"
-        >
-            <Toggle
-                description="Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
-                title="Use system Python (requires restart)"
-                value={isSystemPython}
-                onToggle={() => {
-                    setIsSystemPython((prev) => !prev);
-                }}
-            />
-        </VStack>
+        <Tabs isFitted>
+            <TabList>
+                <Tab>
+                    <HStack cursor="pointer">
+                        <Icon as={FaPython} />
+                        <Text cursor="pointer">General</Text>
+                    </HStack>
+                </Tab>
+                <Tab>
+                    <HStack cursor="pointer">
+                        <PyTorchIcon />
+                        <Text cursor="pointer">PyTorch</Text>
+                    </HStack>
+                </Tab>
+                <Tab>
+                    <HStack cursor="pointer">
+                        <NcnnIcon />
+                        <Text cursor="pointer">NCNN</Text>
+                    </HStack>
+                </Tab>
+            </TabList>
+
+            <TabPanels>
+                <TabPanel>
+                    <VStack
+                        divider={<StackDivider />}
+                        w="full"
+                    >
+                        <Toggle
+                            description="Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
+                            title="Use system Python (requires restart)"
+                            value={isSystemPython}
+                            onToggle={() => {
+                                setIsSystemPython((prev) => !prev);
+                            }}
+                        />
+                    </VStack>
+                </TabPanel>
+                <TabPanel>
+                    <VStack
+                        divider={<StackDivider />}
+                        w="full"
+                    >
+                        <Toggle
+                            description="Use CPU for PyTorch instead of GPU."
+                            title="CPU mode"
+                            value={isCpu}
+                            onToggle={() => {
+                                setIsCpu((prev) => !prev);
+                            }}
+                        />
+
+                        <Toggle
+                            description="Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX GPUs also get a speedup."
+                            title="FP16 mode"
+                            value={isFp16}
+                            onToggle={() => {
+                                setIsFp16((prev) => !prev);
+                            }}
+                        />
+
+                        <Dropdown
+                            description="Which GPU to use for PyTorch. Only Nvidia GPUs are supported."
+                            isDisabled={nvidiaGpuList.length === 0}
+                            options={nvidiaGpuList.map((gpu, i) => ({
+                                label: `${i}: ${gpu}`,
+                                value: i,
+                            }))}
+                            title="PyTorch GPU"
+                            value={pytorchGPU}
+                            onChange={(e) => {
+                                setPytorchGPU(Number(e.target.value));
+                            }}
+                        />
+                    </VStack>
+                </TabPanel>
+                <TabPanel>
+                    <VStack
+                        divider={<StackDivider />}
+                        w="full"
+                    >
+                        <Dropdown
+                            description="Which GPU to use for NCNN."
+                            isDisabled={fullGpuList.length === 0}
+                            options={fullGpuList.map((gpu, i) => ({
+                                label: `${i}: ${gpu}`,
+                                value: i,
+                            }))}
+                            title="NCNN GPU"
+                            value={ncnnGPU}
+                            onChange={(e) => {
+                                setNcnnGPU(Number(e.target.value));
+                            }}
+                        />
+                    </VStack>
+                </TabPanel>
+            </TabPanels>
+        </Tabs>
     );
 });
 
@@ -389,12 +493,32 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                 <ModalHeader>Settings</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <Tabs>
+                    <Tabs isFitted>
                         <TabList>
-                            <Tab>Appearance</Tab>
-                            <Tab>Environment</Tab>
-                            <Tab>Python</Tab>
-                            <Tab>Advanced</Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={BsPaletteFill} />
+                                    <Text cursor="pointer">Appearance</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={BsFillPencilFill} />
+                                    <Text cursor="pointer">Environment</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={FaPython} />
+                                    <Text cursor="pointer">Python</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab>
+                                <HStack cursor="pointer">
+                                    <Icon as={FaTools} />
+                                    <Text cursor="pointer">Advanced</Text>
+                                </HStack>
+                            </Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel>

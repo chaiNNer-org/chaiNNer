@@ -28,12 +28,16 @@ export interface BackendRunRequest {
     data: Record<string, UsableData>;
     isCpu: boolean;
     isFp16: boolean;
+    pytorchGPU: number;
+    ncnnGPU: number;
 }
 export interface BackendRunIndividualRequest {
     id: string;
     inputs: (InputValue | null)[];
     isCpu: boolean;
     isFp16: boolean;
+    pytorchGPU: number;
+    ncnnGPU: number;
     schemaId: SchemaId;
 }
 

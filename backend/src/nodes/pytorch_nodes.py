@@ -32,8 +32,12 @@ except:
 
 def to_pytorch_execution_options(options: ExecutionOptions):
     return ExecutionOptions(
-        "cuda" if torch.cuda.is_available() and options.device != "cpu" else "cpu",
-        options.fp16,
+        device="cuda"
+        if torch.cuda.is_available() and options.device != "cpu"
+        else "cpu",
+        fp16=options.fp16,
+        pytorch_gpu_index=options.pytorch_gpu_index,
+        ncnn_gpu_index=options.ncnn_gpu_index,
     )
 
 
@@ -135,9 +139,9 @@ class ImageUpscaleNode(NodeBase):
             logger.debug("Upscaling image")
 
             split_estimation = 1
-            if options.device == "cuda":
+            if "cuda" in options.device:
                 GB_AMT = 1024**3
-                free, total = torch.cuda.mem_get_info(0)  # type: ignore
+                free, total = torch.cuda.mem_get_info(options.pytorch_gpu_index)  # type: ignore
                 img_bytes = img_tensor.numel() * img_tensor.element_size()
                 model_bytes = sum(
                     p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))
@@ -167,7 +171,7 @@ class ImageUpscaleNode(NodeBase):
                 scale,
                 max_depth=tile_mode if tile_mode > 0 else split_estimation,
             )
-            if options.device == "cuda":
+            if "cuda" in options.device:
                 logger.info(f"Actual Split depth: {depth}")
             del img_tensor
             logger.debug("Converting tensor to image")
@@ -434,16 +438,14 @@ class ConvertTorchToONNXNode(NodeBase):
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
-        if exec_options.device == "cuda":
-            model = model.cuda()
+        model = model.to(torch.device(exec_options.device))
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
             "data": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
-        if exec_options.device == "cuda":
-            dummy_input = dummy_input.cuda()
+        dummy_input = dummy_input.to(torch.device(exec_options.device))
 
         with BytesIO() as f:
             torch.onnx.export(

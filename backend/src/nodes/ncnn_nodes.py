@@ -18,6 +18,7 @@ from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
 from .utils.ncnn_model import NcnnModel
 from .utils.utils import get_h_w_c, convenient_upscale
+from .utils.exec_options import get_execution_options
 
 # NCNN Save Model node
 # pylint: disable=unused-import
@@ -71,9 +72,10 @@ class NcnnUpscaleImageNode(NodeBase):
         output_name: str,
         tile_mode: int,
     ):
+        exec_options = get_execution_options()
         # Try/except block to catch errors
         try:
-            vkdev = ncnn.get_gpu_device(ncnn.get_default_gpu_index())
+            vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
             blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
             staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(
@@ -97,13 +99,15 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(self, model: NcnnModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
+        exec_options = get_execution_options()
+
         model_c = model.get_model_in_nc()
 
         net = ncnn.Net()
 
         # Use vulkan compute
         net.opt.use_vulkan_compute = True
-        net.set_vulkan_device(ncnn.get_default_gpu_index())
+        net.set_vulkan_device(exec_options.ncnn_gpu_index)
 
         # Load model param and bin
         net.load_param_mem(model.write_param())

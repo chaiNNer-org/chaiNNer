@@ -53,6 +53,8 @@ Once you have a working chain set up in the editor, you can press the green "run
     <img src="src/public/screenshot.png" width="540" />
 </p>
 
+Don't forget, there's plenty of non-upscaling tasks you can do with chaiNNer as well!
+
 ### Tips & Tricks
 
 To select multiple nodes, hold down shift and drag around all the nodes you want selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
@@ -70,17 +72,23 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## Compatibility Notes
 
+- MacOS versions older than 10.15 are not supported at this time. This is due to a major dependency (opencv) not yet having a build for this version. The next release of it should be compatible though, so stay tuned for an update that adds support for that.
+
+- Apple M1 laptops are mostly untested, though they should support almost everything. Although, ONNX is unable to be installed as it does not yet have an arm64 build, and NCNN sometimes does not work properly.
+
+- Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
+
 - Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
 
 - To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
-
-- Apple M1 laptops are mostly untested, though they are theoretically supported.
 
 ## GPU Support
 
 For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only support's Nvidia's CUDA. MacOS also does not support CUDA at all, so PyTorch will only work in CPU mode on MacOS.
 
 If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch or ONNX model to NCNN.
+
+For NCNN, make sure to select which GPU you want to use in the settings. It might be defaulting to your integrated graphics!
 
 For Nvidia GPUs, ONNX is also an option to be used. ONNX will use CPU mode on non-Nvidia GPUs, similar to PyTorch.
 
@@ -120,12 +128,14 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 **Why not just use Cupscale/IEU/CLI?**
 
-- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+
+- Cupscale and IEU are also seemingly no longer maintained at the moment, while chaiNNer is being actively worked on still.
 
 **Wouldn't this make it more difficult to do things?**
 
--   In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
 
 **What platforms are supported?**
 
-- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality. M1 MacBooks also are not very well tested, but should work now.
+- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for PyTorch, meaning you will need to use NCNN in order to get GPU upscaling functionality. MacOS versions under 10.15 are also currently not supported as mentioned earlier in this readme. M1 MacBooks also are not very well tested, but should work now.

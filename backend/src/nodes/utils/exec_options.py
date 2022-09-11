@@ -1,25 +1,39 @@
-from typing import Literal
 from sanic.log import logger
 
 
-DeviceType = Literal["cpu", "cuda"]
-
-
 class ExecutionOptions:
-    def __init__(self, device: DeviceType, fp16: bool) -> None:
-        self.__device: DeviceType = device
+    def __init__(
+        self,
+        device: str,
+        fp16: bool,
+        pytorch_gpu_index: int,
+        ncnn_gpu_index: int,
+    ) -> None:
+        self.__device = device
         self.__fp16 = fp16
+        self.__pytorch_gpu_index = pytorch_gpu_index
+        self.__ncnn_gpu_index = ncnn_gpu_index
 
     @property
-    def device(self) -> DeviceType:
+    def device(self) -> str:
+        if self.__device == "cuda":
+            return f"cuda:{self.__pytorch_gpu_index}"
         return self.__device
 
     @property
     def fp16(self):
         return self.__fp16
 
+    @property
+    def pytorch_gpu_index(self):
+        return self.__pytorch_gpu_index
 
-__global_exec_options = ExecutionOptions("cpu", False)
+    @property
+    def ncnn_gpu_index(self):
+        return self.__ncnn_gpu_index
+
+
+__global_exec_options = ExecutionOptions("cpu", False, 0, 0)
 
 
 def get_execution_options() -> ExecutionOptions:

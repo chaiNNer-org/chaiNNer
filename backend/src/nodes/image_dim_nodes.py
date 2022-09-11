@@ -13,7 +13,7 @@ from .properties.outputs import *
 from .utils.fill_alpha import *
 from .utils.tile_util import tile_image
 from .utils.pil_utils import *
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, resize_to_side_conditional
 
 
 @NodeFactory.register("chainner:image:resize_factor")
@@ -61,6 +61,186 @@ class ImResizeByFactorNode(NodeBase):
         )
 
         return resize(img, out_dims, interpolation)
+
+
+@NodeFactory.register("chainner:image:resize_to_side")
+class ImResizeToSide(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = (
+            "Resize an image to a given side length while keeping aspect ratio. "
+            "Auto uses box for downsampling and lanczos for upsampling."
+        )
+        self.inputs = [
+            ImageInput(),
+            NumberInput(
+                "Size Target",
+                default=2160,
+                minimum=1,
+                unit="px",
+            ),
+            ResizeToSideInput(),
+            InterpolationInput(),
+            ResizeCondition(),
+        ]
+        self.category = ImageDimensionCategory
+        self.name = "Resize To Side"
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                let widthWidth = Input1;
+                let widthHeight = max(int & round(multiply(divide(Input1, Input0.height), Input0.width)), 1);
+                let widthShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.width)), 1);
+                let widthLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.width)), 1);
+
+                let heightWidth = max(int & round(multiply(divide(Input1, Input0.width), Input0.height)), 1);
+                let heightHeight = Input1;
+                let heightShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.height)), 1);
+                let heightLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.height)), 1);
+
+                let largerTargetWidth = max(Input0.width, Input1);
+                let largerTargetHeight = max(Input0.height, Input1);
+                let largerTargetMin = max(min(Input0.width, Input0.height), Input1);
+                let largerTargetMax = max(max(Input0.width, Input0.height), Input1);
+
+                let smallerTargetWidth = min(Input0.width, Input1);
+                let smallerTargetHeight = min(Input0.height, Input1);
+                let smallerTargetMin = min(min(Input0.width, Input0.height), Input1);
+                let smallerTargetMax = min(max(Input0.width, Input0.height), Input1);
+
+                let w_out = match Input4 {
+                    ResizeCondition::Both => match Input2 {
+                        SideSelection::Width => widthWidth,
+                        SideSelection::Height => widthHeight,
+                        SideSelection::Shorter => widthShorter,
+                        SideSelection::Longer => widthLonger
+                    },
+                    ResizeCondition::Downscale => match Input2 {
+                        SideSelection::Width => match largerTargetWidth {
+                            Input0.width => widthWidth,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Height => match largerTargetHeight {
+                            Input0.height => widthHeight,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Shorter => match largerTargetMin {
+                            min(Input0.width, Input0.height) => widthShorter,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Longer => match largerTargetMax {
+                            max(Input0.width, Input0.height) => widthLonger,
+                            Input1 => Input0.width
+                        },
+                    },
+                    ResizeCondition::Upscale => match Input2 {
+                        SideSelection::Width => match smallerTargetWidth {
+                            Input0.width => widthWidth,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Height => match smallerTargetHeight {
+                            Input0.height => widthHeight,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Shorter => match smallerTargetMin {
+                            min(Input0.width, Input0.height) => widthShorter,
+                            Input1 => Input0.width
+                        },
+                        SideSelection::Longer => match smallerTargetMax {
+                            max(Input0.width, Input0.height) => widthLonger,
+                            Input1 => Input0.width
+                        },
+                    },
+                };
+
+                let h_out = match Input4 {
+                    ResizeCondition::Both => match Input2 {
+                        SideSelection::Width => heightWidth,
+                        SideSelection::Height => heightHeight,
+                        SideSelection::Shorter => heightShorter,
+                        SideSelection::Longer => heightLonger,
+                    },
+                    ResizeCondition::Downscale => match Input2 {
+                        SideSelection::Width => match largerTargetWidth {
+                            Input0.width => heightWidth,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Height => match largerTargetHeight {
+                            Input0.height => heightHeight,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Shorter => match largerTargetMin {
+                            min(Input0.width, Input0.height) => heightShorter,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Longer => match largerTargetMax {
+                            max(Input0.width, Input0.height) => heightLonger,
+                            Input1 => Input0.height
+                        },
+                    },
+                    ResizeCondition::Upscale => match Input2 {
+                        SideSelection::Width => match smallerTargetWidth {
+                            Input0.width => heightWidth,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Height => match smallerTargetHeight {
+                            Input0.height => heightHeight,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Shorter => match smallerTargetMin {
+                            min(Input0.width, Input0.height) => heightShorter,
+                            Input1 => Input0.height
+                        },
+                        SideSelection::Longer => match smallerTargetMax {
+                            max(Input0.width, Input0.height) => heightLonger,
+                            Input1 => Input0.height
+                        },
+                    },
+                };
+                Image {
+                    width: w_out,
+                    height: h_out,
+                    channels: Input0.channels
+                }
+                """
+                )
+        ]
+        self.icon = "MdOutlinePhotoSizeSelectLarge"
+        self.sub = "Resize"
+
+    def run(self, img: np.ndarray, target: int, side: str, interpolation: int, condition: str) -> np.ndarray:
+        """Takes an image and resizes it"""
+
+        logger.info(f"Resizing image to {side} via {interpolation}")
+
+        h, w, _ = get_h_w_c(img)
+        if condition == "both":
+            if side == "width":
+                w_new = target
+                h_new = max(round((target / w) * h), 1)
+
+            elif side == "height":
+                w_new = max(round((target / h) * w), 1)
+                h_new = target
+
+            elif side == "shorter side":
+                w_new = max(round((target / min(h, w)) * w), 1)
+                h_new = max(round((target / min(h, w)) * h), 1)
+
+            elif side == "longer side":
+                w_new = max(round((target / max(h, w)) * w), 1)
+                h_new = max(round((target / max(h, w)) * h), 1)
+        
+            else:
+                raise RuntimeError(f"Unknown side selection {side}")
+
+            out_dims = (w_new, h_new)
+
+        else:
+            out_dims = resize_to_side_conditional(w, h, target, side, condition)
+
+        return resize(img, out_dims, interpolation)
+
 
 
 @NodeFactory.register("chainner:image:resize_resolution")

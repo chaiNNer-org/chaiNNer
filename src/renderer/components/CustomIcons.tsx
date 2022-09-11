@@ -94,7 +94,7 @@ export const IconFactory = memo(
         boxSize = 4,
     }: {
         icon?: string;
-        accentColor: string;
+        accentColor?: string;
         boxSize?: number;
     }) => {
         const unknownIcon = (

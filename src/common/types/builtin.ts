@@ -347,6 +347,9 @@ export const floor = wrapUnary((n: NumberPrimitive) => {
 export const ceil: UnaryFn<NumberPrimitive> = (a) => negate(floor(negate(a)));
 export const degToRad: UnaryFn<NumberPrimitive> = (a) => multiply(a, literal(Math.PI / 180));
 
+export const modulo: BinaryFn<NumberPrimitive> = (a, b) =>
+    multiply(subtract(divide(a, b), floor(divide(a, b))), b);
+
 const minimumLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
     if (Number.isNaN(a.value)) return a;
     if (a.value === Infinity) return b;

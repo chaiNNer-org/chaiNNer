@@ -150,6 +150,11 @@ def MathOpsDropdown() -> DropDownInput:
                 "value": "min",
                 "type": """MathOperation { operation: "min" }""",
             },
+            {
+                "option": "Modulo",
+                "value": "mod",
+                "type": """MathOperation { operation: "mod" }""",
+            },
         ],
     )
 
