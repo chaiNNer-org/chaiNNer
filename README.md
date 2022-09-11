@@ -53,6 +53,8 @@ Once you have a working chain set up in the editor, you can press the green "run
     <img src="src/public/screenshot.png" width="540" />
 </p>
 
+Don't forget, there's plenty of non-upscaling tasks you can do with chaiNNer as well!
+
 ### Tips & Tricks
 
 To select multiple nodes, hold down shift and drag around all the nodes you want selected. You can also select an individual node by just clicking on it. When nodes are selected, you can press backspace or delete to delete them from the editor.
@@ -124,7 +126,9 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 **Why not just use Cupscale/IEU/CLI?**
 
-- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded in and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
+
+- Cupscale and IEU are also seemingly no longer maintained at the moment, while chaiNNer is being actively worked on still.
 
 **Wouldn't this make it more difficult to do things?**
 
@@ -132,4 +136,4 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 **What platforms are supported?**
 
-- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for pytorch, so I highly recommend using another OS if you need that functionality. M1 MacBooks also are not very well tested, but should work now.
+- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for PyTorch, meaning you will need to use NCNN in order to get GPU upscaling functionality. MacOS versions under 10.15 are also currently not supported as mentioned earlier in this readme. M1 MacBooks also are not very well tested, but should work now.
