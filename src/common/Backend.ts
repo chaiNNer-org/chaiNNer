@@ -30,6 +30,8 @@ export interface BackendRunRequest {
     isFp16: boolean;
     pytorchGPU: number;
     ncnnGPU: number;
+    onnxGPU: number;
+    onnxExecutionProvider: string;
 }
 export interface BackendRunIndividualRequest {
     id: string;
@@ -38,6 +40,8 @@ export interface BackendRunIndividualRequest {
     isFp16: boolean;
     pytorchGPU: number;
     ncnnGPU: number;
+    onnxGPU: number;
+    onnxExecutionProvider: string;
     schemaId: SchemaId;
 }
 

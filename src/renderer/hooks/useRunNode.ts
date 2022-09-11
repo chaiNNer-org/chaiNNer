@@ -13,12 +13,15 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const { sendToast } = useContext(AlertBoxContext);
     const { animate, unAnimate } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU } = useContext(SettingsContext);
+    const { useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU, useOnnxGPU, useOnnxExecutionProvider } =
+        useContext(SettingsContext);
 
     const [isCpu] = useIsCpu;
     const [isFp16] = useIsFp16;
     const [pytorchGPU] = usePyTorchGPU;
     const [ncnnGPU] = useNcnnGPU;
+    const [onnxGPU] = useOnnxGPU;
+    const [onnxExecutionProvider] = useOnnxExecutionProvider;
 
     const schema = schemata.get(schemaId);
 
@@ -46,6 +49,8 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
                     isFp16,
                     pytorchGPU,
                     ncnnGPU,
+                    onnxGPU,
+                    onnxExecutionProvider,
                 });
 
                 if (!result.success) {

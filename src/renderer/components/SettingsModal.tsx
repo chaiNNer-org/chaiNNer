@@ -34,14 +34,23 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import path from 'path';
-import { PropsWithChildren, ReactNode, memo, useCallback, useEffect, useState } from 'react';
+import {
+    PropsWithChildren,
+    ReactNode,
+    memo,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
+import { hasTensorRt } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { NcnnIcon, PyTorchIcon } from './CustomIcons';
+import { NcnnIcon, OnnxIcon, PyTorchIcon } from './CustomIcons';
 
 interface SettingsItemProps {
     title: ReactNode;
@@ -279,8 +288,15 @@ const EnvironmentSettings = memo(() => {
 });
 
 const PythonSettings = memo(() => {
-    const { useIsSystemPython, useIsCpu, useIsFp16, usePyTorchGPU, useNcnnGPU } =
-        useContext(SettingsContext);
+    const {
+        useIsSystemPython,
+        useIsCpu,
+        useIsFp16,
+        usePyTorchGPU,
+        useNcnnGPU,
+        useOnnxGPU,
+        useOnnxExecutionProvider,
+    } = useContext(SettingsContext);
 
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
 
@@ -288,6 +304,8 @@ const PythonSettings = memo(() => {
     const [isFp16, setIsFp16] = useIsFp16;
 
     const [pytorchGPU, setPytorchGPU] = usePyTorchGPU;
+    const [onnxGPU, setOnnxGPU] = useOnnxGPU;
+    const [onnxExecutionProvider, setOnnxExecutionProvider] = useOnnxExecutionProvider;
     const [nvidiaGpuList, setNvidiaGpuList] = useState<string[]>([]);
     useAsyncEffect(
         {
@@ -323,6 +341,32 @@ const PythonSettings = memo(() => {
         }
     }, [isCpu]);
 
+    const onnxExecutionProviders = useMemo(
+        () => [
+            ...(nvidiaGpuList.length > 0
+                ? [
+                      {
+                          label: 'CUDA',
+                          value: 'CUDAExecutionProvider',
+                      },
+                  ]
+                : []),
+            {
+                label: 'CPU',
+                value: 'CPUExecutionProvider',
+            },
+            ...(hasTensorRt
+                ? [
+                      {
+                          label: 'TensorRT',
+                          value: 'TensorrtExecutionProvider',
+                      },
+                  ]
+                : []),
+        ],
+        [nvidiaGpuList]
+    );
+
     return (
         <Tabs isFitted>
             <TabList>
@@ -342,6 +386,12 @@ const PythonSettings = memo(() => {
                     <HStack cursor="pointer">
                         <NcnnIcon />
                         <Text cursor="pointer">NCNN</Text>
+                    </HStack>
+                </Tab>
+                <Tab>
+                    <HStack cursor="pointer">
+                        <OnnxIcon />
+                        <Text cursor="pointer">ONNX</Text>
                     </HStack>
                 </Tab>
             </TabList>
@@ -416,6 +466,35 @@ const PythonSettings = memo(() => {
                             value={ncnnGPU}
                             onChange={(e) => {
                                 setNcnnGPU(Number(e.target.value));
+                            }}
+                        />
+                    </VStack>
+                </TabPanel>
+                <TabPanel>
+                    <VStack
+                        divider={<StackDivider />}
+                        w="full"
+                    >
+                        <Dropdown
+                            description="Which GPU to use for ONNX."
+                            isDisabled={nvidiaGpuList.length === 0}
+                            options={nvidiaGpuList.map((gpu, i) => ({
+                                label: `${i}: ${gpu}`,
+                                value: i,
+                            }))}
+                            title="ONNX GPU"
+                            value={onnxGPU}
+                            onChange={(e) => {
+                                setOnnxGPU(Number(e.target.value));
+                            }}
+                        />
+                        <Dropdown
+                            description="ONNX Inference Engine."
+                            options={onnxExecutionProviders}
+                            title="ONNX GPU"
+                            value={onnxExecutionProvider}
+                            onChange={(e) => {
+                                setOnnxExecutionProvider(String(e.target.value));
                             }}
                         />
                     </VStack>

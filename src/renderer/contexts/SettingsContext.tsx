@@ -14,6 +14,8 @@ interface Settings {
     useIsFp16: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     usePyTorchGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
     useNcnnGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
+    useOnnxGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
+    useOnnxExecutionProvider: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useDisHwAccel: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useCheckUpdOnStrtUp: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
@@ -45,6 +47,10 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     const useIsFp16 = useMemoArray(useLocalStorage('is-fp16', false));
     const usePyTorchGPU = useMemoArray(useLocalStorage('pytorch-gpu', 0));
     const useNcnnGPU = useMemoArray(useLocalStorage('ncnn-gpu', 0));
+    const useOnnxGPU = useMemoArray(useLocalStorage('onnx-gpu', 0));
+    const useOnnxExecutionProvider = useMemoArray(
+        useLocalStorage('onnx-execution-provider', 'CUDAExecutionProvider')
+    );
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
     const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
@@ -87,11 +93,15 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const contextValue = useMemoObject<Settings>({
-        // Globals
+        // GPU Stuff
         useIsCpu,
         useIsFp16,
         usePyTorchGPU,
         useNcnnGPU,
+        useOnnxGPU,
+        useOnnxExecutionProvider,
+
+        // Globals
         useIsSystemPython,
         useSnapToGrid,
         useDisHwAccel,
