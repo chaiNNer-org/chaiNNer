@@ -76,6 +76,10 @@ class NcnnUpscaleImageNode(NodeBase):
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
+            # logger.info(vkdev.get_heap_budget())
+            # TODO: Figure out if the below is better than what's uncommented
+            # blob_vkallocator = vkdev.acquire_blob_allocator()
+            # staging_vkallocator = vkdev.acquire_staging_allocator()
             blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
             staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(
@@ -87,8 +91,8 @@ class NcnnUpscaleImageNode(NodeBase):
                 staging_vkallocator=staging_vkallocator,
                 max_depth=tile_mode if tile_mode > 0 else None,
             )
-            # blob_vkallocator.clear() # this slows stuff down
-            # staging_vkallocator.clear() # as does this
+            blob_vkallocator.clear()
+            staging_vkallocator.clear()
             # net.clear() # don't do this, it makes chaining break
             return output
         except ValueError as e:
@@ -112,6 +116,9 @@ class NcnnUpscaleImageNode(NodeBase):
         # Load model param and bin
         net.load_param_mem(model.write_param())
         net.load_model_mem(model.weights_bin)
+
+        for i in range(ncnn.get_gpu_count()):
+            logger.info(f"GPU {i}: {ncnn.get_gpu_info(i).device_name()}")
 
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
