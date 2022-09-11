@@ -355,7 +355,7 @@ const PythonSettings = memo(() => {
                 label: 'CPU',
                 value: 'CPUExecutionProvider',
             },
-            ...(hasTensorRt
+            ...(hasTensorRt && nvidiaGpuList.length > 0
                 ? [
                       {
                           label: 'TensorRT',
