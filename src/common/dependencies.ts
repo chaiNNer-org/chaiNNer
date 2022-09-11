@@ -12,6 +12,7 @@ export interface PyPiPackage {
      * A size estimate (in bytes) for the whl file to download.
      */
     sizeEstimate: number;
+    autoUpdate?: boolean;
 }
 export interface Dependency {
     name: string;
@@ -39,6 +40,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     packageName: 'ncnn-vulkan',
                     version: '2022.8.29',
                     sizeEstimate: isMac ? 7 * MB : 4 * MB,
+                    autoUpdate: true,
                 },
             ],
         },
