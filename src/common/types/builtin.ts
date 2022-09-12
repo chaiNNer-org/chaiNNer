@@ -488,12 +488,9 @@ export const log = wrapUnary<NumberPrimitive>((a) => {
     }
 
     return interval(
-                fixRoundingError(Math.log(Math.max(0, a.min))),
-                fixRoundingError(Math.log(a.max))
-            )
-        );
-    }
-    return union(...items);
+        fixRoundingError(Math.log(Math.max(0, a.min))),
+        fixRoundingError(Math.log(a.max))
+    );
 });
 
 export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
