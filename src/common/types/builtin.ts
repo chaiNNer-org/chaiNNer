@@ -66,7 +66,7 @@ const wrapBinaryImpl = <T extends ValueType>(fn: (a: T, b: T) => Arg<T>): Binary
         return fn(a, b);
     };
 };
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 function wrapBinary(
     fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
 ): BinaryFn<StringPrimitive>;
@@ -101,6 +101,20 @@ function wrapVarArgs<T extends ValueType>(
     };
 }
 
+const isSmallIntInterval = (type: IntIntervalType): boolean => {
+    return type.max - type.min <= 10;
+};
+const mapSmallIntInterval = (
+    { min, max }: IntIntervalType,
+    mapFn: (i: number) => Arg<NumberPrimitive>
+): Arg<NumberPrimitive> => {
+    const items: Arg<NumberPrimitive>[] = [];
+    for (let i = min; i <= max; i += 1) {
+        items.push(mapFn(i));
+    }
+    return union(...items);
+};
+
 const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
     if (Number.isNaN(a.value)) return a;
 
@@ -128,12 +142,8 @@ const addLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimit
     if (b.type === 'int-interval') {
         if (Number.isInteger(a.value)) return new IntIntervalType(min, max);
 
-        if (b.max - b.min <= 10) {
-            const items: NumberPrimitive[] = [];
-            for (let i = b.min; i <= b.max; i += 1) {
-                items.push(literal(fixRoundingError(i + a.value)));
-            }
-            return union(...items);
+        if (isSmallIntInterval(b)) {
+            return mapSmallIntInterval(b, (i) => literal(fixRoundingError(i + a.value)));
         }
     }
 
@@ -211,13 +221,8 @@ const multiplyLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberP
         // This is a problem. Multiplying int intervals with a constant is not easy.
         // We cannot correctly represent int(0..Infinity) * 4. So we will multiply the elements of
         // small int interval individually, and approximate larger intervals.
-        if (b.max - b.min <= 10) {
-            // small enough
-            const items: NumberPrimitive[] = [];
-            for (let i = b.min; i <= b.max; i += 1) {
-                items.push(literal(fixRoundingError(i * a.value)));
-            }
-            return union(...items);
+        if (isSmallIntInterval(b)) {
+            return mapSmallIntInterval(b, (i) => literal(fixRoundingError(i * a.value)));
         }
 
         if (Number.isInteger(a.value)) {
@@ -251,28 +256,19 @@ export const multiply = wrapVarArgs(literal(1), (a: NumberPrimitive, b: NumberPr
     }
     return i;
 });
+const reciprocalLiteral = (value: number): Arg<NumberPrimitive> => {
+    if (value === 0) return union(literal(-Infinity), literal(Infinity));
+    return literal(1 / value);
+};
 export const reciprocal = wrapUnary((n: NumberPrimitive) => {
     // In this function, 1/0 is -Infinity | Infinity
     if (n.type === 'number') return NumberType.instance;
-    if (n.type === 'literal') {
-        if (n.value === 0) return union(literal(-Infinity), literal(Infinity));
-        return literal(1 / n.value);
-    }
+    if (n.type === 'literal') return reciprocalLiteral(n.value);
     if (n.type === 'int-interval') {
         // Same as with multiply. We cannot accurately represent 1 over and int interval, so we
         // will approximate and destructure small int intervals.
-        if (n.max - n.min <= 10) {
-            // small
-            const items: NumberPrimitive[] = [];
-
-            for (let i = n.min; i <= n.max; i += 1) {
-                if (i === 0) {
-                    items.push(literal(-Infinity), literal(Infinity));
-                } else {
-                    items.push(literal(1 / i));
-                }
-            }
-            return union(...items);
+        if (isSmallIntInterval(n)) {
+            return mapSmallIntInterval(n, reciprocalLiteral);
         }
 
         if (n.has(0)) {
@@ -437,15 +433,8 @@ export const sin = wrapUnary<NumberPrimitive>((a: NumberPrimitive) => {
     if (a.type === 'literal') return literal(Math.sin(a.value));
     if (a.type === 'number') return union(literal(NaN), interval(-1, 1));
 
-    if (a.type === 'int-interval') {
-        const count = a.max - a.min;
-        if (count <= 10) {
-            const items: NumberPrimitive[] = [];
-            for (let i = a.min; i <= a.max; i += 1) {
-                items.push(literal(Math.sin(i)));
-            }
-            return union(...items);
-        }
+    if (a.type === 'int-interval' && isSmallIntInterval(a)) {
+        return mapSmallIntInterval(a, (i) => literal(Math.sin(i)));
     }
 
     // the following could be improved, but it's not important right now
@@ -458,15 +447,8 @@ export const cos = wrapUnary<NumberPrimitive>((a: NumberPrimitive) => {
     if (a.type === 'literal') return literal(Math.cos(a.value));
     if (a.type === 'number') return union(literal(NaN), interval(-1, 1));
 
-    if (a.type === 'int-interval') {
-        const count = a.max - a.min;
-        if (count <= 10) {
-            const items: NumberPrimitive[] = [];
-            for (let i = a.min; i <= a.max; i += 1) {
-                items.push(literal(Math.cos(i)));
-            }
-            return union(...items);
-        }
+    if (a.type === 'int-interval' && isSmallIntInterval(a)) {
+        return mapSmallIntInterval(a, (i) => literal(Math.cos(i)));
     }
 
     // the following could be improved, but it's not important right now
