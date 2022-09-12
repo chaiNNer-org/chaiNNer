@@ -64,6 +64,7 @@ class MathNode(NodeBase):
                     "sub" => subtract(Input0, Input2),
                     "mul" => multiply(Input0, Input2),
                     "div" => divide(Input0, Input2),
+                    "pow" => pow(Input0, Input2),
                     "max" => max(Input0, Input2),
                     "min" => min(Input0, Input2),
                     "mod" => mod(Input0, Input2),
