@@ -15,7 +15,14 @@ import { union } from './union';
 import { intInterval, interval, literal } from './util';
 
 const fixRoundingError = (n: number): number => {
-    if (!Number.isFinite(n) || Number.isInteger(n)) return n; // no fixing necessary
+    if (!Number.isFinite(n)) return n;
+
+    const expS = n.toExponential(15);
+    if (/0{6}[0-3]\d[eE][+-]\d+$/.test(expS)) {
+        return Number(n.toExponential(12));
+    }
+
+    if (Number.isInteger(n)) return n;
     const s = String(n);
     if (/(?:9{6}[6-9]|0{6}[0-3])\d$/.test(s)) {
         return Number(n.toPrecision(12));
