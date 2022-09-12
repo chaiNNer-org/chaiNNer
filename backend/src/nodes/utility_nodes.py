@@ -3,6 +3,7 @@ Nodes that provide various generic utility
 """
 
 from __future__ import annotations
+import math
 from typing import Union
 
 from .categories import UtilityCategory
@@ -35,6 +36,8 @@ class NoteNode(NodeBase):
 
 @NodeFactory.register("chainner:utility:math")
 class MathNode(NodeBase):
+    special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
+
     def __init__(self):
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
@@ -97,7 +100,13 @@ class MathNode(NodeBase):
         elif op == "min":
             return min(in1, in2)
         elif op == "mod":
-            return in1 % in2
+            if (
+                in1 in MathNode.special_mod_numbers
+                or in2 in MathNode.special_mod_numbers
+            ):
+                return in1 - in2 * math.floor(in1 / in2)
+            else:
+                return in1 % in2
         else:
             raise RuntimeError(f"Unknown operator {op}")
 
