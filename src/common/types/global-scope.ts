@@ -6,7 +6,9 @@ import {
     cos,
     degToRad,
     divide,
+    exp,
     floor,
+    log,
     maximum,
     minimum,
     modulo,
@@ -53,6 +55,9 @@ builder.add(binary('mod', modulo, NumberType.instance, NumberType.instance));
 builder.add(unary('degToRad', degToRad, NumberType.instance));
 builder.add(unary('sin', sin, NumberType.instance));
 builder.add(unary('cos', cos, NumberType.instance));
+
+builder.add(unary('exp', exp, NumberType.instance));
+builder.add(unary('log', log, NumberType.instance));
 
 builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));

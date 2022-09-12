@@ -292,6 +292,9 @@ describe('Builtin functions', () => {
     testUnaryNumber('sin');
     testUnaryNumber('cos');
 
+    testUnaryNumber('exp');
+    testUnaryNumber('log');
+
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
     testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('multiply', { commutative: true, reflexive: false, associative: false });

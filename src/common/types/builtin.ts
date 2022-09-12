@@ -458,6 +458,44 @@ export const cos = wrapUnary<NumberPrimitive>((a: NumberPrimitive) => {
     return interval(-1, 1);
 });
 
+export const exp = wrapUnary<NumberPrimitive>((a) => {
+    if (a.type === 'number') return union(literal(NaN), interval(0, Infinity));
+    if (a.type === 'literal') return literal(fixRoundingError(Math.exp(a.value)));
+
+    if (a.type === 'int-interval' && isSmallIntInterval(a)) {
+        return mapSmallIntInterval(a, (i) => literal(fixRoundingError(Math.exp(i))));
+    }
+
+    return interval(fixRoundingError(Math.exp(a.min)), fixRoundingError(Math.exp(a.max)));
+});
+const logLiteral = (value: number): Arg<NumberPrimitive> => {
+    if (value <= 0) return NeverType.instance;
+    return literal(fixRoundingError(Math.log(value)));
+};
+/**
+ * This models the behavior of Python's `math.log` function.
+ *
+ * This function throws on error for values <= 0.
+ */
+export const log = wrapUnary<NumberPrimitive>((a) => {
+    if (a.type === 'number') return NumberType.instance;
+    if (a.type === 'literal') return logLiteral(a.value);
+
+    if (a.max <= 0) return NeverType.instance;
+
+    if (a.type === 'int-interval' && isSmallIntInterval(a)) {
+        return mapSmallIntInterval(a, logLiteral);
+    }
+
+    return interval(
+                fixRoundingError(Math.log(Math.max(0, a.min))),
+                fixRoundingError(Math.log(a.max))
+            )
+        );
+    }
+    return union(...items);
+});
+
 export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
     if (a.underlying === 'string') return a;
     if (a.type === 'literal') {
