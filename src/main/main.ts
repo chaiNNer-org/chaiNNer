@@ -11,7 +11,7 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import util from 'util';
 import { PythonInfo, WindowSize } from '../common/common-types';
-import { requiredDependencies } from '../common/dependencies';
+import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
@@ -341,23 +341,71 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('get-python', () => pythonInfo);
 };
 
-const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc) => {
+const checkSemverGt = (v1: string, v2: string) => {
+    try {
+        return semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
+    } catch (error) {
+        log.error(error);
+        return false;
+    }
+};
+
+const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia: boolean) => {
     log.info('Attempting to check Python deps...');
     try {
         const pipList = await runPipList();
         const installedPackages = new Set(Object.keys(pipList));
 
-        const pending = requiredDependencies.filter((dep) => {
-            return dep.packages.some((pkg) => {
-                if (installedPackages.has(pkg.packageName)) return false;
-                log.info(`Dependency ${dep.name} (${pkg.packageName}) not found.`);
-                return true;
-            });
+        const requiredIndividualPackages = requiredDependencies.flatMap((dep) => dep.packages);
+
+        const optionalInvividualPackages = getOptionalDependencies(hasNvidia).flatMap(
+            (dep) => dep.packages
+        );
+
+        // CASE 1: A package isn't installed
+        const missingRequiredPackages = requiredIndividualPackages.filter(
+            (packageInfo) => !installedPackages.has(packageInfo.packageName)
+        );
+
+        // CASE 2: A required package is installed but not the latest version
+        const outOfDateRequiredPackages = requiredIndividualPackages.filter((packageInfo) => {
+            const installedVersion = pipList[packageInfo.packageName];
+            if (!installedVersion) {
+                return false;
+            }
+            return checkSemverGt(packageInfo.version, installedVersion);
         });
-        splashWindow.webContents.send('installing-deps', pending.length === 0);
-        // Try to update/install deps no matter what
-        log.info('Installing/Updating dependencies...');
-        await runPipInstall(requiredDependencies);
+
+        // CASE 3: An optional package is installed, set to auto update, and is not the latest version
+        const outOfDateOptionalPackages = optionalInvividualPackages.filter((packageInfo) => {
+            const installedVersion = pipList[packageInfo.packageName];
+            if (!installedVersion) {
+                return false;
+            }
+            return packageInfo.autoUpdate && checkSemverGt(packageInfo.version, installedVersion);
+        });
+
+        const isInstallingRequired = missingRequiredPackages.length > 0;
+        const isUpdating =
+            outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
+
+        const allPackagesThatNeedToBeInstalled = [
+            ...missingRequiredPackages,
+            ...outOfDateRequiredPackages,
+            ...outOfDateOptionalPackages,
+        ];
+
+        if (isInstallingRequired || isUpdating) {
+            splashWindow.webContents.send('installing-deps', isUpdating && !isInstallingRequired);
+            // Try to update/install deps
+            log.info('Installing/Updating dependencies...');
+            await runPipInstall([
+                {
+                    name: 'All Packages That Need To Be Installed',
+                    packages: allPackagesThatNeedToBeInstalled,
+                },
+            ] as Dependency[]);
+        }
     } catch (error) {
         log.error(error);
     }
@@ -393,6 +441,7 @@ const checkNvidiaSmi = async () => {
     if (nvidiaSmi) {
         try {
             await registerNvidiaSmiEvents(nvidiaSmi);
+            return true;
         } catch (error) {
             log.error(error);
             registerEmptyGpuEvents();
@@ -400,7 +449,10 @@ const checkNvidiaSmi = async () => {
     } else {
         registerEmptyGpuEvents();
     }
+    return false;
 };
+
+const nvidiaSmiPromise = checkNvidiaSmi();
 
 const spawnBackend = async (port: number) => {
     if (getArguments().noBackend) {
@@ -576,8 +628,8 @@ const doSplashScreenChecks = async () =>
             await sleep(250);
 
             splash.webContents.send('checking-deps');
-            await checkPythonDeps(splash);
-            await checkNvidiaSmi();
+            const hasNvidia = await nvidiaSmiPromise;
+            await checkPythonDeps(splash, hasNvidia);
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
