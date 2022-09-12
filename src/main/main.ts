@@ -11,12 +11,7 @@ import portfinder from 'portfinder';
 import semver from 'semver';
 import util from 'util';
 import { PythonInfo, WindowSize } from '../common/common-types';
-import {
-    Dependency,
-    PyPiPackage,
-    getOptionalDependencies,
-    requiredDependencies,
-} from '../common/dependencies';
+import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
@@ -361,26 +356,16 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
         const pipList = await runPipList();
         const installedPackages = new Set(Object.keys(pipList));
 
-        let requiredIndividualPackages: PyPiPackage[] = [];
-        requiredDependencies.forEach((dependency) => {
-            requiredIndividualPackages = [...requiredIndividualPackages, ...dependency.packages];
-        });
+        const requiredIndividualPackages = requiredDependencies.flatMap((dep) => dep.packages);
 
-        let optionalInvividualPackages: PyPiPackage[] = [];
-        getOptionalDependencies(hasNvidia).forEach((dependency) => {
-            optionalInvividualPackages = [...optionalInvividualPackages, ...dependency.packages];
-        });
-
-        let isInstallingRequired = false;
-        let isUpdating = false;
+        const optionalInvividualPackages = getOptionalDependencies(hasNvidia).flatMap(
+            (dep) => dep.packages
+        );
 
         // CASE 1: A package isn't installed
         const missingRequiredPackages = requiredIndividualPackages.filter(
             (packageInfo) => !installedPackages.has(packageInfo.packageName)
         );
-        if (missingRequiredPackages.length > 0) {
-            isInstallingRequired = true;
-        }
 
         // CASE 2: A required package is installed but not the latest version
         const outOfDateRequiredPackages = requiredIndividualPackages.filter((packageInfo) => {
@@ -390,9 +375,6 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
             }
             return checkSemverGt(packageInfo.version, installedVersion);
         });
-        if (outOfDateRequiredPackages.length > 0) {
-            isUpdating = true;
-        }
 
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
         const outOfDateOptionalPackages = optionalInvividualPackages.filter((packageInfo) => {
@@ -402,9 +384,10 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
             }
             return packageInfo.autoUpdate && checkSemverGt(packageInfo.version, installedVersion);
         });
-        if (outOfDateOptionalPackages.length > 0) {
-            isUpdating = true;
-        }
+
+        const isInstallingRequired = missingRequiredPackages.length > 0;
+        const isUpdating =
+            outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
 
         const allPackagesThatNeedToBeInstalled = [
             ...missingRequiredPackages,
@@ -468,6 +451,8 @@ const checkNvidiaSmi = async () => {
     }
     return false;
 };
+
+const nvidiaSmiPromise = checkNvidiaSmi();
 
 const spawnBackend = async (port: number) => {
     if (getArguments().noBackend) {
@@ -643,7 +628,7 @@ const doSplashScreenChecks = async () =>
             await sleep(250);
 
             splash.webContents.send('checking-deps');
-            const hasNvidia = await checkNvidiaSmi();
+            const hasNvidia = await nvidiaSmiPromise;
             await checkPythonDeps(splash, hasNvidia);
             await sleep(250);
 
