@@ -493,6 +493,43 @@ export const log = wrapUnary<NumberPrimitive>((a) => {
     );
 });
 
+const powPositiveLiteral = (a: number, b: NumberPrimitive): Arg<NumberPrimitive> => {
+    if (a === 1) return literal(1);
+    return exp(multiplyLiteral(literal(Math.log(a)), b));
+};
+const powLiteral = (a: number, b: NumberPrimitive): Arg<NumberPrimitive> => {
+    if (Number.isNaN(a)) {
+        return literal(NaN);
+    }
+    if (Number.isFinite(a)) {
+        if (a > 0) {
+            return powPositiveLiteral(a, b);
+        }
+        if (a < 0) {
+            return negate(powPositiveLiteral(-a, b));
+        }
+    }
+    return NumberType.instance;
+};
+/**
+ * Implements a power operation with the same behavior as Python's `**` operator.
+ *
+ * Note that the behavior of Python's `math.pow` and `**` are slightly different from each other and JS's `Math.pow`.
+ * See https://github.com/joeyballentine/chaiNNer/issues/837 for more details.
+ */
+export const pow = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+    // Python's ** behavior is super strange and inconsistent because the operations is implemented by the operants
+    // via operator overloading. So this will only implement the part that all implementations should agree on and
+    // none of the edge cases.
+
+    if (a.type === 'literal') return powLiteral(a.value, b);
+    if (a.type === 'int-interval' && isSmallIntInterval(a)) {
+        return mapSmallIntInterval(a, (i) => powLiteral(i, b));
+    }
+
+    return NumberType.instance;
+});
+
 export const toString = wrapUnary<StringPrimitive | NumberPrimitive, StringPrimitive>((a) => {
     if (a.underlying === 'string') return a;
     if (a.type === 'literal') {

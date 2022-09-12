@@ -14,6 +14,7 @@ import {
     modulo,
     multiply,
     negate,
+    pow,
     round,
     sin,
     subtract,
@@ -58,6 +59,7 @@ builder.add(unary('cos', cos, NumberType.instance));
 
 builder.add(unary('exp', exp, NumberType.instance));
 builder.add(unary('log', log, NumberType.instance));
+builder.add(binary('pow', pow, NumberType.instance, NumberType.instance));
 
 builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));
