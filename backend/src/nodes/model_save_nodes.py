@@ -1,5 +1,6 @@
 # These sad files have to be all on their own :(
 from __future__ import annotations
+from typing import Any
 from sanic.log import logger
 
 from .node_base import NodeBase
@@ -32,11 +33,14 @@ class OnnxSaveModelNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, onnx_model: bytes, directory: str, model_name: str) -> None:
+    def run(
+        self, onnx_model: Tuple[Any, bytes], directory: str, model_name: str
+    ) -> None:
         full_path = f"{os.path.join(directory, model_name)}.onnx"
         logger.info(f"Writing file to path: {full_path}")
         with open(full_path, "wb") as f:
-            f.write(onnx_model)
+            _, onnx_model_bytes = onnx_model
+            f.write(onnx_model_bytes)
 
 
 @NodeFactory.register("chainner:ncnn:save_model")
