@@ -350,8 +350,22 @@ export const floor = wrapUnary((n: NumberPrimitive) => {
 export const ceil: UnaryFn<NumberPrimitive> = (a) => negate(floor(negate(a)));
 export const degToRad: UnaryFn<NumberPrimitive> = (a) => multiply(a, literal(Math.PI / 180));
 
-export const modulo: BinaryFn<NumberPrimitive> = (a, b) =>
-    multiply(subtract(divide(a, b), floor(divide(a, b))), b);
+const moduleLiteral = (a: NumberPrimitive, b: number): Arg<NumberPrimitive> => {
+    if (b === 0) {
+        // any % 0 will always throw a ZeroDivisionError
+        return NeverType.instance;
+    }
+
+    return subtract(a, multiply(literal(b), floor(divide(a, literal(b)))));
+};
+export const modulo = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+    if (b.type === 'literal') return moduleLiteral(a, b.value);
+    if (b.type === 'int-interval' && isSmallIntInterval(b)) {
+        return mapSmallIntInterval(b, (i) => moduleLiteral(a, i));
+    }
+
+    return subtract(a, multiply(b, floor(divide(a, b))));
+});
 
 const minimumLiteral = (a: NumericLiteralType, b: NumberPrimitive): Arg<NumberPrimitive> => {
     if (Number.isNaN(a.value)) return a;
