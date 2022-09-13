@@ -48,6 +48,7 @@ import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { hasTensorRt } from '../../common/env';
 import { ipcRenderer } from '../../common/safeIpc';
+import { BackendContext } from '../contexts/BackendContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { NcnnIcon, OnnxIcon, PyTorchIcon } from './CustomIcons';
@@ -297,6 +298,7 @@ const PythonSettings = memo(() => {
         useOnnxGPU,
         useOnnxExecutionProvider,
     } = useContext(SettingsContext);
+    const { backend } = useContext(BackendContext);
 
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
 
@@ -322,15 +324,15 @@ const PythonSettings = memo(() => {
     );
 
     const [ncnnGPU, setNcnnGPU] = useNcnnGPU;
-    const [fullGpuList, setFullGpuList] = useState<string[]>([]);
+    const [ncnnGpuList, setNcnnGpuList] = useState<string[]>([]);
     useAsyncEffect(
         {
             supplier: async () => {
-                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
+                const ncnnGpuInfo = await backend.listNcnnGpus();
+                const gpuNames = Object.values(ncnnGpuInfo);
                 return gpuNames;
             },
-            successEffect: setFullGpuList,
+            successEffect: setNcnnGpuList,
         },
         []
     );
@@ -457,8 +459,8 @@ const PythonSettings = memo(() => {
                     >
                         <Dropdown
                             description="Which GPU to use for NCNN."
-                            isDisabled={fullGpuList.length === 0}
-                            options={fullGpuList.map((gpu, i) => ({
+                            isDisabled={ncnnGpuList.length === 0}
+                            options={ncnnGpuList.map((gpu, i) => ({
                                 label: `${i}: ${gpu}`,
                                 value: i,
                             }))}

@@ -411,10 +411,10 @@ async def list_ncnn_gpus(_request: Request):
         for i in range(ncnn.get_gpu_count()):
             logger.info(f"GPU {i}: {ncnn.get_gpu_info(i).device_name()}")
             result[i] = ncnn.get_gpu_info(i).device_name()
-        return json({"success": True, "data": result})
+        return json(result)
     except Exception as exception:
         logger.error(exception, exc_info=True)
-        return json({"success": True, "data": dict()})
+        return json({})
 
 
 if __name__ == "__main__":

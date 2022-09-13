@@ -127,6 +127,13 @@ export class Backend {
     clearNodeCacheIndividual(id: string): Promise<BackendResult<null>> {
         return this.fetchJson('/clearcache/individual', 'POST', { id });
     }
+
+    /**
+     * Gets a list of all NCNN GPU devices and their indexes
+     */
+    listNcnnGpus(): Promise<Record<number, string>> {
+        return this.fetchJson('/listgpus/ncnn', 'GET');
+    }
 }
 
 const backendCache = new Map<number, Backend>();
