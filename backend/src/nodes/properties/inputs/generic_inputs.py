@@ -281,6 +281,7 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Color Dodge", "value": bm.COLOR_DODGE},
             {"option": "Add", "value": bm.ADD},
             {"option": "Overlay", "value": bm.OVERLAY},
+            {"option": "Soft Light", "value": bm.SOFT_LIGHT},
             {"option": "Reflect", "value": bm.REFLECT},
             {"option": "Glow", "value": bm.GLOW},
             {"option": "Difference", "value": bm.DIFFERENCE},
