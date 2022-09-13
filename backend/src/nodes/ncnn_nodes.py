@@ -119,9 +119,6 @@ class NcnnUpscaleImageNode(NodeBase):
         net.load_param_mem(model.write_param())
         net.load_model_mem(model.weights_bin)
 
-        for i in range(ncnn.get_gpu_count()):
-            logger.info(f"GPU {i}: {ncnn.get_gpu_info(i).device_name()}")
-
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
             if ic == 3:
