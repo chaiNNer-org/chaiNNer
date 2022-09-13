@@ -93,7 +93,7 @@ class ClipboardInput(BaseInput):
         super().__init__(["Image", "string", "number"], label, kind="text-line")
         self.input_conversion = """
             match Input {
-                Image as i => "Copying image",
+                Image => "<Image>",
                 _ as i => i,
             }
         """
