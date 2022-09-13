@@ -77,11 +77,13 @@ class NcnnUpscaleImageNode(NodeBase):
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
             # logger.info(vkdev.get_heap_budget())
-            # TODO: Figure out if the below is better than what's uncommented
-            # blob_vkallocator = vkdev.acquire_blob_allocator()
-            # staging_vkallocator = vkdev.acquire_staging_allocator()
-            blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
-            staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
+            try:
+                blob_vkallocator = vkdev.acquire_blob_allocator()
+                staging_vkallocator = vkdev.acquire_staging_allocator()
+            except:
+                # This is the old way of allocating these. Use if the above breaks
+                blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
+                staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
             output, _ = ncnn_auto_split_process(
                 img,
                 net,

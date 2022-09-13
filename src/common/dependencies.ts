@@ -38,7 +38,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
             packages: [
                 {
                     packageName: 'ncnn-vulkan',
-                    version: '2022.8.29',
+                    version: '2022.9.12',
                     sizeEstimate: isMac ? 7 * MB : 4 * MB,
                     autoUpdate: true,
                 },
