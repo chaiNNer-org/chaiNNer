@@ -80,6 +80,8 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 - Arch Linux users may need to manually install libxcrypt before chaiNner's integrated Python will correctly start up.
 
+- To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
+
 ## GPU Support
 
 For PyTorch inference, only Nvidia GPUs are supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only support's Nvidia's CUDA. MacOS also does not support CUDA at all, so PyTorch will only work in CPU mode on MacOS.

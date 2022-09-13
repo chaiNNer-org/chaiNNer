@@ -22,6 +22,7 @@ class BlendModes:
     SUBTRACT = 14
     DIVIDE = 15
     EXCLUSION = 16
+    SOFT_LIGHT = 17
 
 
 class ImageBlender:
@@ -46,6 +47,7 @@ class ImageBlender:
             BlendModes.SUBTRACT: self.__subtract,
             BlendModes.DIVIDE: self.__divide,
             BlendModes.EXCLUSION: self.__exclusion,
+            BlendModes.SOFT_LIGHT: self.__soft_light,
         }
 
     def apply_blend(self, a: np.ndarray, b: np.ndarray, blend_mode: int) -> np.ndarray:
@@ -108,3 +110,6 @@ class ImageBlender:
 
     def __exclusion(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return a * (1 - b) + b * (1 - a)
+
+    def __soft_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return 2 * b * a + b * b * (1 - 2 * a)

@@ -3,7 +3,10 @@ Nodes that provide various generic utility
 """
 
 from __future__ import annotations
+import math
 from typing import Union
+
+from nodes.utils import clipboard
 
 from .categories import UtilityCategory
 
@@ -35,6 +38,8 @@ class NoteNode(NodeBase):
 
 @NodeFactory.register("chainner:utility:math")
 class MathNode(NodeBase):
+    special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
+
     def __init__(self):
         super().__init__()
         self.description = "Perform mathematical operations on numbers."
@@ -64,6 +69,7 @@ class MathNode(NodeBase):
                     "sub" => subtract(Input0, Input2),
                     "mul" => multiply(Input0, Input2),
                     "div" => divide(Input0, Input2),
+                    "pow" => pow(Input0, Input2),
                     "max" => max(Input0, Input2),
                     "min" => min(Input0, Input2),
                     "mod" => mod(Input0, Input2),
@@ -96,7 +102,13 @@ class MathNode(NodeBase):
         elif op == "min":
             return min(in1, in2)
         elif op == "mod":
-            return in1 % in2
+            if (
+                in1 in MathNode.special_mod_numbers
+                or in2 in MathNode.special_mod_numbers
+            ):
+                return in1 - in2 * math.floor(in1 / in2)
+            else:
+                return in1 % in2
         else:
             raise RuntimeError(f"Unknown operator {op}")
 
@@ -178,3 +190,29 @@ class TextPatternNode(NodeBase):
                 replacements[str(i + 1)] = s
 
         return ReplacementString(pattern).replace(replacements)
+
+
+@NodeFactory.register("chainner:utility:copy_to_clipboard")
+class TextClipboardNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Copies the input to the clipboard."
+        self.inputs = [
+            ClipboardInput(),
+        ]
+        self.outputs = []
+
+        self.category = UtilityCategory
+        self.name = "Copy To Clipboard"
+        self.icon = "BsClipboard"
+        self.sub = "Clipboard"
+
+        self.side_effects = True
+
+    def run(self, value: Union[str, np.ndarray]) -> None:
+        if isinstance(value, np.ndarray):
+            clipboard.copy_image(value)
+        elif isinstance(value, str):
+            clipboard.copy_text(value)
+        else:
+            raise RuntimeError(f"Unsupported type {type(value)}")

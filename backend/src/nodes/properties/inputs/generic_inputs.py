@@ -1,10 +1,11 @@
 from typing import Dict, List, Union
+import numpy as np
 
 from .. import expression
 
 from .base_input import BaseInput
 from ...utils.blend_modes import BlendModes as bm
-from ...utils.image_utils import FillColor, FlipAxis
+from ...utils.image_utils import FillColor, FlipAxis, normalize
 
 
 class DropDownInput(BaseInput):
@@ -83,6 +84,29 @@ class NoteTextAreaInput(BaseInput):
             **super().toDict(),
             "resizable": self.resizable,
         }
+
+
+class ClipboardInput(BaseInput):
+    """Input for pasting from clipboard"""
+
+    def __init__(self, label: str = "Clipboard input"):
+        super().__init__(["Image", "string", "number"], label, kind="text-line")
+        self.input_conversion = """
+            match Input {
+                Image => "<Image>",
+                _ as i => i,
+            }
+        """
+
+    def enforce(self, value):
+        if isinstance(value, np.ndarray):
+            return normalize(value)
+
+        if isinstance(value, float) and int(value) == value:
+            # stringify integers values
+            return str(int(value))
+
+        return str(value)
 
 
 def MathOpsDropdown() -> DropDownInput:
@@ -257,6 +281,7 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Color Dodge", "value": bm.COLOR_DODGE},
             {"option": "Add", "value": bm.ADD},
             {"option": "Overlay", "value": bm.OVERLAY},
+            {"option": "Soft Light", "value": bm.SOFT_LIGHT},
             {"option": "Reflect", "value": bm.REFLECT},
             {"option": "Glow", "value": bm.GLOW},
             {"option": "Difference", "value": bm.DIFFERENCE},

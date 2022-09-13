@@ -1,4 +1,4 @@
-import { isMac } from './env';
+import { isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
 const MB = 1024 ** 2;
@@ -12,6 +12,7 @@ export interface PyPiPackage {
      * A size estimate (in bytes) for the whl file to download.
      */
     sizeEstimate: number;
+    autoUpdate?: boolean;
 }
 export interface Dependency {
     name: string;
@@ -39,6 +40,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     packageName: 'ncnn-vulkan',
                     version: '2022.8.29',
                     sizeEstimate: isMac ? 7 * MB : 4 * MB,
+                    autoUpdate: true,
                 },
             ],
         },
@@ -56,8 +58,8 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: 300 * KB,
                 },
                 {
-                    packageName: isNvidiaAvailable ? 'onnxruntime-gpu' : 'onnxruntime',
-                    sizeEstimate: isNvidiaAvailable ? 110 * MB : 5 * MB,
+                    packageName: canCuda ? 'onnxruntime-gpu' : 'onnxruntime',
+                    sizeEstimate: canCuda ? 110 * MB : 5 * MB,
                     version: '1.12.1',
                 },
                 {
@@ -92,3 +94,15 @@ export const requiredDependencies: Dependency[] = [
         packages: [{ packageName: 'Pillow', version: '9.2.0', sizeEstimate: 3 * MB }],
     },
 ];
+
+if (isMac) {
+    requiredDependencies.push({
+        name: 'Pasteboard',
+        packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }],
+    });
+} else if (isWindows) {
+    requiredDependencies.push({
+        name: 'Pywin32',
+        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB }],
+    });
+}

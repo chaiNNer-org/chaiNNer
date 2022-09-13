@@ -1,6 +1,7 @@
 import { Center, Icon, Spinner, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
 import { BsCheck, BsExclamation } from 'react-icons/bs';
+import ReactMarkdown from 'react-markdown';
 import { Validity } from '../../../helpers/checkNodeValidity';
 
 interface ValidityIndicatorProps {
@@ -29,7 +30,9 @@ export const ValidityIndicator = memo(({ validity, animated }: ValidityIndicator
             borderRadius={8}
             closeOnClick={false}
             gutter={24}
-            label={validity.isValid ? 'Node valid' : validity.reason}
+            label={
+                <ReactMarkdown>{validity.isValid ? 'Node valid' : validity.reason}</ReactMarkdown>
+            }
             px={2}
             textAlign="center"
         >

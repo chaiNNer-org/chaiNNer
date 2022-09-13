@@ -5,7 +5,7 @@ import { evaluate } from '../../common/types/evaluate';
 import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
 import { FunctionInstance } from '../../common/types/function';
 import { isDisjointWith } from '../../common/types/intersection';
-import { IntIntervalType, NumericLiteralType, Type } from '../../common/types/types';
+import { IntIntervalType, NumericLiteralType, StructType, Type } from '../../common/types/types';
 import { IntNumberType, isImage } from '../../common/types/util';
 import { parseTargetHandle } from '../../common/util';
 
@@ -75,6 +75,76 @@ const explainNumber = (n: Type): string | undefined => {
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
+};
+
+type AssignmentErrorTrace = FieldAssignmentError | GeneralAssignmentError;
+interface GeneralAssignmentError {
+    type: 'General';
+    assigned: Type;
+    definition: Type;
+}
+interface FieldAssignmentError {
+    type: 'Field';
+    assigned: StructType;
+    definition: StructType;
+    field: string;
+    inner: AssignmentErrorTrace;
+}
+
+const generateAssignmentErrorTrace = (assigned: Type, definition: Type): AssignmentErrorTrace => {
+    if (
+        assigned.type === 'struct' &&
+        definition.type === 'struct' &&
+        assigned.name === definition.name
+    ) {
+        // find the field that causes the mismatch
+        const mismatchIndex = assigned.fields.findIndex((a, i) => {
+            return isDisjointWith(a.type, definition.fields[i].type);
+        });
+
+        if (mismatchIndex !== -1) {
+            const a = assigned.fields[mismatchIndex];
+            const d = definition.fields[mismatchIndex];
+
+            return {
+                type: 'Field',
+                assigned,
+                definition,
+                field: a.name,
+
+                inner: generateAssignmentErrorTrace(a.type, d.type),
+            };
+        }
+    }
+
+    return { type: 'General', assigned, definition };
+};
+
+const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
+    const { assigned, definition } = trace;
+
+    if (trace.type === 'General') {
+        return [
+            `The type **${assigned.toString()}** is not connectable with **${definition.toString()}**.`,
+        ];
+    }
+
+    if (trace.inner.type === 'General') {
+        return [
+            `The **${trace.assigned.name}** types are incompatible because **${
+                trace.field
+            }: ${trace.inner.assigned.toString()}** is not connectable with **${
+                trace.field
+            }: ${trace.inner.definition.toString()}**.`,
+        ];
+    }
+
+    return [
+        `The type **${assigned.toString()}** is not connectable with **${definition.toString()}** because the **${
+            trace.field
+        }** fields are incompatible.`,
+        ...printErrorTrace(trace.inner),
+    ];
 };
 
 export interface CheckNodeValidityOptions {
@@ -152,6 +222,18 @@ export const checkNodeValidity = ({
                     reason: `Input ${input.label} requires ${inputNumber} but was connected with ${assignedNumber}.`,
                 };
             }
+        }
+
+        if (functionInstance.inputErrors.length > 0) {
+            const { inputId, assignedType, inputType } = functionInstance.inputErrors[0];
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+            const trace = printErrorTrace(generateAssignmentErrorTrace(assignedType, inputType));
+            return {
+                isValid: false,
+                reason: `Input ${
+                    input.label
+                } was connected with an incompatible value. ${trace.join(' ')}`,
+            };
         }
 
         // eslint-disable-next-line no-unreachable-loop

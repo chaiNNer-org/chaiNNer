@@ -34,7 +34,9 @@ const Splash = memo(() => {
         ipcRenderer.on('installing-deps', (event, onlyUpdating) => {
             setShowProgressBar(false);
             setOverallProgressPercentage(0.4);
-            setStatus(onlyUpdating ? 'Updating dependencies...' : 'Installing dependencies...');
+            setStatus(
+                onlyUpdating ? 'Updating dependencies...' : 'Installing required dependencies...'
+            );
         });
 
         ipcRenderer.on('spawning-backend', () => {
