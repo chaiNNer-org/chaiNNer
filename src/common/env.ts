@@ -1,5 +1,6 @@
 import os from 'os';
 
+export const isWindows = process.platform === 'win32';
 export const isMac = process.platform === 'darwin';
 export const isM1 = isMac && (os.cpus()[0]?.model.includes('Apple M1') ?? false);
 
