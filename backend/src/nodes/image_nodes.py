@@ -116,12 +116,12 @@ class ImWriteNode(NodeBase):
         self.side_effects = True
 
     def run(
-        self,
-        img: np.ndarray,
-        base_directory: str,
-        relative_path: Union[str, None],
-        filename: str,
-        extension: str,
+            self,
+            img: np.ndarray,
+            base_directory: str,
+            relative_path: Union[str, None],
+            filename: str,
+            extension: str,
     ) -> bool:
         """Write an image to the specified path and return write status"""
 
@@ -140,7 +140,18 @@ class ImWriteNode(NodeBase):
         # Write image with opencv if path is ascii, since imwrite doesn't support unicode
         # This saves us from having to keep the image buffer in memory, if possible
         if full_path.isascii():
-            status = cv2.imwrite(full_path, img)
+
+            if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
+                status = 1  # spoof
+                if img.shape[2] == 4:
+                    img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+                else:
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+                with Image.fromarray(img) as image:
+                    image.save(full_path)
+            else:
+                status = cv2.imwrite(full_path, img)
         else:
             try:
                 temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
