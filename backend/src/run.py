@@ -400,6 +400,23 @@ async def kill(request: Request):
         )
 
 
+@app.route("/listgpus/ncnn", methods=["GET"])
+async def list_ncnn_gpus(_request: Request):
+    """Lists the available GPUs for NCNN"""
+    try:
+        # pylint: disable=import-outside-toplevel
+        from ncnn_vulkan import ncnn
+
+        result = dict()
+        for i in range(ncnn.get_gpu_count()):
+            logger.info(f"GPU {i}: {ncnn.get_gpu_info(i).device_name()}")
+            result[i] = ncnn.get_gpu_info(i).device_name()
+        return json({"success": True, "data": result})
+    except Exception as exception:
+        logger.error(exception, exc_info=True)
+        return json({"success": True, "data": dict()})
+
+
 if __name__ == "__main__":
     try:
         port = int(sys.argv[1]) or 8000
