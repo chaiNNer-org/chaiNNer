@@ -489,9 +489,9 @@ const PythonSettings = memo(() => {
                             }}
                         />
                         <Dropdown
-                            description="ONNX Inference Engine."
+                            description="What provider to use for ONNX."
                             options={onnxExecutionProviders}
-                            title="ONNX GPU"
+                            title="ONNX Execution Provider"
                             value={onnxExecutionProvider}
                             onChange={(e) => {
                                 setOnnxExecutionProvider(String(e.target.value));
