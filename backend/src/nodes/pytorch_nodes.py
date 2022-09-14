@@ -487,12 +487,18 @@ class GetModelDimensions(NodeBase):
 class ConvertTorchToNCNNNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to NCNN."""
+        self.description = """Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format."""
         self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
-        if ConvertOnnxToNcnnNode is not None:
-            self.outputs = ConvertOnnxToNcnnNode().get_outputs()
-        else:
-            self.outputs = []
+        self.outputs = [
+            NcnnModelOutput("NCNN Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                        FpMode::fp32 => "fp32",
+                        FpMode::fp16 => "fp16",
+                }""",
+            ),
+        ]
 
         self.category = PyTorchCategory
         self.name = "Convert To NCNN"
@@ -501,7 +507,11 @@ class ConvertTorchToNCNNNode(NodeBase):
 
     def run(self, model: torch.nn.Module, is_fp16: int) -> Any:
         if ConvertOnnxToNcnnNode is None:
-            raise Exception("ONNX is not installed")
+            raise Exception(
+                "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
+                and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
+                manager to use this node."
+            )
         onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
