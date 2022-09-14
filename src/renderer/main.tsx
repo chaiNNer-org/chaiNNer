@@ -143,10 +143,13 @@ export const Main = memo(({ port }: MainProps) => {
     );
 
     const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
-    useAsyncEffect({
-        supplier: () => ipcRenderer.invoke('get-python'),
-        successEffect: setPythonInfo,
-    });
+    useAsyncEffect(
+        {
+            supplier: () => ipcRenderer.invoke('get-python'),
+            successEffect: setPythonInfo,
+        },
+        []
+    );
 
     if (error) return null;
 
