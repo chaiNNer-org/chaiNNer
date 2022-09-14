@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
@@ -9,7 +9,6 @@ import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import util from 'util';
 import { PythonInfo, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
@@ -17,16 +16,15 @@ import { runPipInstall, runPipList } from '../common/pip';
 import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists, lazy } from '../common/util';
+import { lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
 import { setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
-import { downloadPython, extractPython } from './setupIntegratedPython';
+import { getIntegratedPython } from './python/integratedPython';
+import { getSystemPython } from './python/systemPython';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
-
-const exec = util.promisify(_exec);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // eslint-disable-next-line global-require
@@ -107,7 +105,6 @@ if (app.isPackaged && checkUpdateOnStartup) {
 const ownsBackend = !getArguments().noBackend;
 ipcMain.handle('owns-backend', () => ownsBackend);
 
-let splash: BrowserWindowWithSafeIpc;
 let mainWindow: BrowserWindowWithSafeIpc;
 let lastOpenRecent: string[];
 
@@ -222,17 +219,6 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
     return port;
 };
 
-const getPythonVersion = async (pythonBin: string) => {
-    const { stdout } = await exec(`"${pythonBin}" --version`);
-    log.info(`Python version (raw): ${stdout}`);
-
-    const { version } = semver.coerce(stdout)!;
-    log.info(`Python version (semver): ${version}`);
-    return version;
-};
-
-const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
-
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
@@ -241,22 +227,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
     if (useSystemPython) {
-        // User is using system python
-        let validPythonVersion;
-        let pythonBin;
-
-        for (const py of ['python', 'python3']) {
-            // eslint-disable-next-line no-await-in-loop
-            const version = await getPythonVersion(py).catch(() => null);
-            if (version && checkPythonVersion(version)) {
-                validPythonVersion = version;
-                pythonBin = py;
-                break;
-            }
-        }
-
-        if (!pythonBin || !validPythonVersion) {
-            log.warn('Python binary not found or invalid');
+        try {
+            pythonInfo = await getSystemPython();
+        } catch (error) {
+            log.error(error);
 
             splashWindow.hide();
             const messageBoxOptions = {
@@ -274,64 +248,38 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             app.exit(1);
             return;
         }
-
-        pythonInfo = { python: pythonBin, version: validPythonVersion };
     } else {
         // User is using bundled python
         const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
-        const platform = os.platform();
-        let pythonPath;
-        switch (platform) {
-            case 'win32':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/python.exe')
-                );
-                break;
-            case 'linux':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/bin/python3.9')
-                );
-                break;
-            case 'darwin':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/bin/python3.9')
-                );
-                break;
-            default:
-                throw new Error(`Platform ${platform} not supported`);
+        try {
+            let lastStage = '';
+            pythonInfo = await getIntegratedPython(
+                integratedPythonFolderPath,
+                (percentage, stage) => {
+                    if (stage !== lastStage) {
+                        lastStage = stage;
+                        splashWindow.webContents.send(`${stage}ing-python`);
+                    }
+                    splashWindow.webContents.send('progress', percentage);
+                }
+            );
+        } catch (error) {
+            log.error(error);
+
+            splashWindow.hide();
+            const messageBoxOptions = {
+                type: 'error',
+                title: 'Unable to install integrated Python',
+                buttons: ['Exit'],
+                message:
+                    `Chainner was unable to install its integrated Python environment.` +
+                    ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+            };
+            await dialog.showMessageBox(messageBoxOptions);
+            app.exit(1);
+            return;
         }
-
-        const pythonBinExists = await checkFileExists(pythonPath);
-
-        if (!pythonBinExists) {
-            log.info('Python not downloaded');
-            try {
-                const onProgress = (percentage: number | string) => {
-                    splash.webContents.send('progress', Number(percentage));
-                };
-                splash.webContents.send('downloading-python');
-                onProgress(0);
-                log.info('Downloading standalone python...');
-                await downloadPython(integratedPythonFolderPath, onProgress);
-                log.info('Done downloading standalone python.');
-                splash.webContents.send('extracting-python');
-                onProgress(0);
-                log.info('Extracting standalone python...');
-                await extractPython(integratedPythonFolderPath, pythonPath, onProgress);
-                log.info('Done extracting standalone python.');
-            } catch (error) {
-                log.error(error);
-            }
-        }
-
-        let pythonVersion = await getPythonVersion(pythonPath).catch(() => null);
-        if (!pythonVersion) {
-            // TODO: Find a solution for this hack
-            pythonVersion = 'unknown';
-        }
-
-        pythonInfo = { python: pythonPath, version: pythonVersion };
     }
 
     log.info(`Final Python binary: ${pythonInfo.python}`);
@@ -565,7 +513,7 @@ const spawnBackend = async (port: number) => {
 
 const doSplashScreenChecks = async () =>
     new Promise<void>((resolve) => {
-        splash = new BrowserWindow({
+        const splash = new BrowserWindow({
             width: 400,
             height: 400,
             frame: false,
