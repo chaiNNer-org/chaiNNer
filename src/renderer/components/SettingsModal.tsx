@@ -329,8 +329,7 @@ const PythonSettings = memo(() => {
         {
             supplier: async () => {
                 const ncnnGpuInfo = await backend.listNcnnGpus();
-                const gpuNames = Object.values(ncnnGpuInfo);
-                return gpuNames;
+                return ncnnGpuInfo;
             },
             successEffect: setNcnnGpuList,
         },

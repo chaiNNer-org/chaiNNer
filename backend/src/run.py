@@ -407,14 +407,13 @@ async def list_ncnn_gpus(_request: Request):
         # pylint: disable=import-outside-toplevel
         from ncnn_vulkan import ncnn
 
-        result = dict()
+        result = []
         for i in range(ncnn.get_gpu_count()):
-            logger.info(f"GPU {i}: {ncnn.get_gpu_info(i).device_name()}")
-            result[i] = ncnn.get_gpu_info(i).device_name()
+            result.append(ncnn.get_gpu_info(i).device_name())
         return json(result)
     except Exception as exception:
         logger.error(exception, exc_info=True)
-        return json({})
+        return json([])
 
 
 if __name__ == "__main__":

@@ -131,7 +131,7 @@ export class Backend {
     /**
      * Gets a list of all NCNN GPU devices and their indexes
      */
-    listNcnnGpus(): Promise<Record<number, string>> {
+    listNcnnGpus(): Promise<string[]> {
         return this.fetchJson('/listgpus/ncnn', 'GET');
     }
 }
