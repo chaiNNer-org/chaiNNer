@@ -9,6 +9,7 @@ from typing import Tuple
 import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
+from contextlib import contextmanager
 
 from .categories import NCNNCategory
 from .node_base import NodeBase
@@ -23,6 +24,31 @@ from .utils.exec_options import get_execution_options
 # NCNN Save Model node
 # pylint: disable=unused-import
 from .model_save_nodes import NcnnSaveNode
+
+
+@contextmanager
+def managed_blob_vkallocator(vkdev: ncnn.VulkanDevice):
+    try:
+        blob_vkallocator = vkdev.acquire_blob_allocator()
+    except:
+        blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
+    try:
+        yield blob_vkallocator
+    finally:
+        blob_vkallocator.clear()
+
+
+@contextmanager
+def ncnn_allocators(vkdev: ncnn.VulkanDevice):
+    with managed_blob_vkallocator(vkdev) as blob_vkallocator:
+        try:
+            staging_vkallocator = vkdev.acquire_staging_allocator()
+        except:
+            staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
+        try:
+            yield blob_vkallocator, staging_vkallocator
+        finally:
+            staging_vkallocator.clear()
 
 
 @NodeFactory.register("chainner:ncnn:load_model")
@@ -76,19 +102,20 @@ class NcnnUpscaleImageNode(NodeBase):
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
-            blob_vkallocator = ncnn.VkBlobAllocator(vkdev)
-            staging_vkallocator = ncnn.VkStagingAllocator(vkdev)
-            output, _ = ncnn_auto_split_process(
-                img,
-                net,
-                input_name=input_name,
-                output_name=output_name,
-                blob_vkallocator=blob_vkallocator,
-                staging_vkallocator=staging_vkallocator,
-                max_depth=tile_mode if tile_mode > 0 else None,
-            )
-            # blob_vkallocator.clear() # this slows stuff down
-            # staging_vkallocator.clear() # as does this
+            # logger.info(vkdev.get_heap_budget())
+            with ncnn_allocators(vkdev) as (
+                blob_vkallocator,
+                staging_vkallocator,
+            ):
+                output, _ = ncnn_auto_split_process(
+                    img,
+                    net,
+                    input_name=input_name,
+                    output_name=output_name,
+                    blob_vkallocator=blob_vkallocator,
+                    staging_vkallocator=staging_vkallocator,
+                    max_depth=tile_mode if tile_mode > 0 else None,
+                )
             # net.clear() # don't do this, it makes chaining break
             return output
         except ValueError as e:

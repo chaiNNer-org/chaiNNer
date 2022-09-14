@@ -87,9 +87,6 @@ def ncnn_auto_split_process(
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
             result = np.array(mat_out).transpose(1, 2, 0).astype(np.float32)
-            if blob_vkallocator is not None and staging_vkallocator is not None:
-                blob_vkallocator.clear()
-                staging_vkallocator.clear()
             del ex, mat_in, mat_out
             gc.collect()
             # # Clear VRAM
@@ -101,9 +98,6 @@ def ncnn_auto_split_process(
                 logger.info(
                     f"NCNN out of VRAM, clearing VRAM and splitting. Current depth: {current_depth}"
                 )
-                if blob_vkallocator is not None and staging_vkallocator is not None:
-                    blob_vkallocator.clear()
-                    staging_vkallocator.clear()
                 ex = None
                 del ex
                 gc.collect()
