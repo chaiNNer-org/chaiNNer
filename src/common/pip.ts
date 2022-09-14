@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
 import log from 'electron-log';
+import { PythonInfo } from './common-types';
 import { Dependency } from './dependencies';
 import { sanitizedEnv } from './env';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
-import { getPythonInfo } from './python';
 import { noop } from './util';
 
 export interface OnStdio {
@@ -12,10 +12,12 @@ export interface OnStdio {
     onStderr?: (data: string) => void;
 }
 
-export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Promise<string> => {
+export const runPip = async (
+    { python }: PythonInfo,
+    args: readonly string[],
+    onStdio: OnStdio = {}
+): Promise<string> => {
     const { onStdout = noop, onStderr = (data) => log.error(data) } = onStdio;
-
-    const { python } = await getPythonInfo();
 
     // defensive copy in case the args array is changed
     args = ['-m', 'pip', ...args, '--disable-pip-version-check'];
@@ -58,8 +60,8 @@ export const runPip = async (args: readonly string[], onStdio: OnStdio = {}): Pr
 
 export type PipList = { [packageName: string]: string | undefined };
 
-export const runPipList = async (onStdio?: OnStdio): Promise<PipList> => {
-    const output = await runPip(['list', '--format=json'], onStdio);
+export const runPipList = async (info: PythonInfo, onStdio?: OnStdio): Promise<PipList> => {
+    const output = await runPip(info, ['list', '--format=json'], onStdio);
 
     interface ListEntry {
         name: string;
@@ -71,6 +73,7 @@ export const runPipList = async (onStdio?: OnStdio): Promise<PipList> => {
 };
 
 export const runPipInstall = async (
+    info: PythonInfo,
     dependencies: readonly Dependency[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
@@ -81,9 +84,9 @@ export const runPipInstall = async (
         const deps = dependencies
             .map((d) => d.packages.map((p) => `${p.packageName}==${p.version}`))
             .flat();
-        await runPip(['install', '--upgrade', ...deps], onStdio);
+        await runPip(info, ['install', '--upgrade', ...deps], onStdio);
     } else {
-        const { python } = await getPythonInfo();
+        const { python } = info;
         for (const dep of dependencies) {
             for (const pkg of dep.packages) {
                 // eslint-disable-next-line no-await-in-loop
@@ -95,6 +98,7 @@ export const runPipInstall = async (
 };
 
 export const runPipUninstall = async (
+    info: PythonInfo,
     dependencies: readonly Dependency[],
     onProgress?: (percentage: number) => void,
     onStdio?: OnStdio
@@ -102,10 +106,6 @@ export const runPipUninstall = async (
     onProgress?.(10);
     const deps = dependencies.map((d) => d.packages.map((p) => p.packageName)).flat();
     onProgress?.(25);
-    await runPip(['uninstall', '-y', ...deps], onStdio);
+    await runPip(info, ['uninstall', '-y', ...deps], onStdio);
     onProgress?.(100);
-};
-
-export const upgradePip = async (onStdio?: OnStdio) => {
-    await runPip(['install', '--upgrade', 'pip', '--no-warn-script-location'], onStdio);
 };

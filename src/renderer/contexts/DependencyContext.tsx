@@ -29,15 +29,14 @@ import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import semver from 'semver';
 import { createContext, useContext } from 'use-context-selector';
-import { PythonInfo } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
-import { getPythonInfo } from '../../common/python';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
+import { BackendContext } from './BackendContext';
 import { ExecutionContext } from './ExecutionContext';
 import { SettingsContext } from './SettingsContext';
 
@@ -182,25 +181,18 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { showAlert } = useContext(AlertBoxContext);
     const { setIsBackendKilled } = useContext(ExecutionContext);
     const { useIsSystemPython } = useContext(SettingsContext);
+    const { pythonInfo } = useContext(BackendContext);
 
     const [isSystemPython] = useIsSystemPython;
 
-    const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
     const [pipList, setPipList] = useState<PipList>();
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
     useAsyncEffect(
         {
-            supplier: getPythonInfo,
-            successEffect: setPythonInfo,
-        },
-        [setPythonInfo]
-    );
-    useAsyncEffect(
-        {
             supplier: async () => {
                 if (pipList) return undefined;
-                return runPipList();
+                return runPipList(pythonInfo);
             },
             successEffect: (list) => {
                 if (list) {
@@ -208,7 +200,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 }
             },
         },
-        [pipList, setPipList]
+        [pythonInfo, pipList, setPipList]
     );
 
     type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
@@ -289,12 +281,12 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const installPackage = (dep: Dependency) => {
         setInstallingPackage(dep);
-        changePackages(() => runPipInstall([dep], setProgress, onStdio));
+        changePackages(() => runPipInstall(pythonInfo, [dep], setProgress, onStdio));
     };
 
     const uninstallPackage = (dep: Dependency) => {
         setUninstallingPackage(dep);
-        changePackages(() => runPipUninstall([dep], setProgress, onStdio));
+        changePackages(() => runPipUninstall(pythonInfo, [dep], setProgress, onStdio));
     };
 
     useEffect(() => {
@@ -371,7 +363,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         flex="1"
                                         textAlign="left"
                                     >
-                                        Python ({pythonInfo?.version}) [
+                                        Python ({pythonInfo.version}) [
                                         {isSystemPython ? 'System' : 'Integrated'}]
                                     </Text>
                                 </Flex>
