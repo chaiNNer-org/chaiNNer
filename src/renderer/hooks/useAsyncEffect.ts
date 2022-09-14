@@ -93,7 +93,7 @@ interface ObjectUseAsyncEffectOptions<T> {
  */
 export const useAsyncEffect = <T>(
     options: UseAsyncEffectOptions<T>,
-    dependencies?: readonly unknown[]
+    dependencies: readonly unknown[]
 ) => {
     const objOptions: ObjectUseAsyncEffectOptions<T> =
         typeof options === 'function' ? { supplier: options, successEffect: noop } : options;
