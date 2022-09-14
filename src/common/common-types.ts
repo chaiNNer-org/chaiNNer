@@ -112,8 +112,8 @@ export interface EdgeData {
 }
 
 export interface PythonInfo {
-    python: string;
-    version: string;
+    readonly python: string;
+    readonly version: string;
 }
 
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;

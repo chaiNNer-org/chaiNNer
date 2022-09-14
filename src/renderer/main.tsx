@@ -5,7 +5,7 @@ import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';
-import { Category, NodeType, SchemaId } from '../common/common-types';
+import { Category, NodeType, PythonInfo, SchemaId } from '../common/common-types';
 import { ipcRenderer } from '../common/safeIpc';
 import { SchemaMap } from '../common/SchemaMap';
 import { getChainnerScope } from '../common/types/chainner-scope';
@@ -26,6 +26,7 @@ import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
 
@@ -141,9 +142,15 @@ export const Main = memo(({ port }: MainProps) => {
         [sendAlert]
     );
 
+    const [pythonInfo, setPythonInfo] = useState<PythonInfo>();
+    useAsyncEffect({
+        supplier: () => ipcRenderer.invoke('get-python'),
+        successEffect: setPythonInfo,
+    });
+
     if (error) return null;
 
-    if (!nodesInfo || !data) {
+    if (!nodesInfo || !data || !pythonInfo) {
         return (
             <Box
                 h="100vh"
@@ -172,6 +179,7 @@ export const Main = memo(({ port }: MainProps) => {
                     categories={nodesInfo.categories}
                     functionDefinitions={nodesInfo.functionDefinitions}
                     port={port}
+                    pythonInfo={pythonInfo}
                     schemata={nodesInfo.schemata}
                 >
                     <GlobalProvider reactFlowWrapper={reactFlowWrapper}>

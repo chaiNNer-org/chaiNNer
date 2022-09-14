@@ -13,7 +13,6 @@ import { PythonInfo, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
-import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
@@ -246,7 +245,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
-            return;
+            throw new Error();
         }
     } else {
         // User is using bundled python
@@ -278,15 +277,15 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             };
             await dialog.showMessageBox(messageBoxOptions);
             app.exit(1);
-            return;
+            throw new Error();
         }
     }
 
     log.info(`Final Python binary: ${pythonInfo.python}`);
     log.info(pythonInfo);
 
-    setPythonInfo(pythonInfo);
     ipcMain.handle('get-python', () => pythonInfo);
+    return pythonInfo;
 };
 
 const checkSemverGt = (v1: string, v2: string) => {
@@ -298,25 +297,26 @@ const checkSemverGt = (v1: string, v2: string) => {
     }
 };
 
-const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia: boolean) => {
+const checkPythonDeps = async (
+    splashWindow: BrowserWindowWithSafeIpc,
+    pythonInfo: PythonInfo,
+    hasNvidia: boolean
+) => {
     log.info('Attempting to check Python deps...');
     try {
-        const pipList = await runPipList();
+        const pipList = await runPipList(pythonInfo);
         const installedPackages = new Set(Object.keys(pipList));
 
-        const requiredIndividualPackages = requiredDependencies.flatMap((dep) => dep.packages);
-
-        const optionalInvividualPackages = getOptionalDependencies(hasNvidia).flatMap(
-            (dep) => dep.packages
-        );
+        const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
+        const optionalPackages = getOptionalDependencies(hasNvidia).flatMap((dep) => dep.packages);
 
         // CASE 1: A package isn't installed
-        const missingRequiredPackages = requiredIndividualPackages.filter(
+        const missingRequiredPackages = requiredPackages.filter(
             (packageInfo) => !installedPackages.has(packageInfo.packageName)
         );
 
         // CASE 2: A required package is installed but not the latest version
-        const outOfDateRequiredPackages = requiredIndividualPackages.filter((packageInfo) => {
+        const outOfDateRequiredPackages = requiredPackages.filter((packageInfo) => {
             const installedVersion = pipList[packageInfo.packageName];
             if (!installedVersion) {
                 return false;
@@ -325,7 +325,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
         });
 
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
-        const outOfDateOptionalPackages = optionalInvividualPackages.filter((packageInfo) => {
+        const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
             const installedVersion = pipList[packageInfo.packageName];
             if (!installedVersion) {
                 return false;
@@ -333,21 +333,21 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
             return packageInfo.autoUpdate && checkSemverGt(packageInfo.version, installedVersion);
         });
 
-        const isInstallingRequired = missingRequiredPackages.length > 0;
-        const isUpdating =
-            outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
-
         const allPackagesThatNeedToBeInstalled = [
             ...missingRequiredPackages,
             ...outOfDateRequiredPackages,
             ...outOfDateOptionalPackages,
         ];
 
-        if (isInstallingRequired || isUpdating) {
+        if (allPackagesThatNeedToBeInstalled.length > 0) {
+            const isInstallingRequired = missingRequiredPackages.length > 0;
+            const isUpdating =
+                outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
+
             splashWindow.webContents.send('installing-deps', isUpdating && !isInstallingRequired);
             // Try to update/install deps
             log.info('Installing/Updating dependencies...');
-            await runPipInstall([
+            await runPipInstall(pythonInfo, [
                 {
                     name: 'All Packages That Need To Be Installed',
                     packages: allPackagesThatNeedToBeInstalled,
@@ -402,7 +402,7 @@ const checkNvidiaSmi = async () => {
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const spawnBackend = async (port: number) => {
+const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     if (getArguments().noBackend) {
         return;
     }
@@ -412,7 +412,7 @@ const spawnBackend = async (port: number) => {
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
-        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)], {
+        const backend = spawn(pythonInfo.python, [backendPath, String(port)], {
             env: sanitizedEnv,
         });
         backend.stdout.on('data', (data) => {
@@ -485,7 +485,7 @@ const spawnBackend = async (port: number) => {
                     log.error('Error killing backend.');
                 }
                 ipcMain.removeHandler('kill-backend');
-                spawnBackend(port);
+                spawnBackend(port, pythonInfo);
             } catch (error) {
                 log.error('Error restarting backend.', error);
             }
@@ -572,16 +572,16 @@ const doSplashScreenChecks = async () =>
             await sleep(250);
 
             splash.webContents.send('checking-python');
-            await checkPythonEnv(splash);
+            const pythonInfo = await checkPythonEnv(splash);
             await sleep(250);
 
             splash.webContents.send('checking-deps');
             const hasNvidia = await nvidiaSmiPromise;
-            await checkPythonDeps(splash, hasNvidia);
+            await checkPythonDeps(splash, pythonInfo, hasNvidia);
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
-            await spawnBackend(port);
+            spawnBackend(port, pythonInfo);
 
             registerEventHandlers();
 
