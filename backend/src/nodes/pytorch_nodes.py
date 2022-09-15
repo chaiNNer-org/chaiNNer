@@ -436,7 +436,7 @@ class ConvertTorchToONNXNode(NodeBase):
         except:
             pass
 
-    def run(self, model: torch.nn.Module) -> bytes:
+    def run(self, model: torch.nn.Module) -> Tuple[Any, bytes]:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
@@ -463,7 +463,15 @@ class ConvertTorchToONNXNode(NodeBase):
             f.seek(0)
             onnx_model_bytes = f.read()
 
-        return onnx_model_bytes
+        try:
+            # pylint: disable=import-outside-toplevel
+            from onnx_nodes import create_inference_session
+
+            session = create_inference_session(onnx_model_bytes)
+        except:
+            session = None
+
+        return session, onnx_model_bytes
 
 
 @NodeFactory.register("chainner:pytorch:model_dim")
@@ -512,7 +520,7 @@ class ConvertTorchToNCNNNode(NodeBase):
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."
             )
-        onnx_model = ConvertTorchToONNXNode().run(model)
+        _, onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode
