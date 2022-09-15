@@ -520,7 +520,7 @@ class ConvertTorchToNCNNNode(NodeBase):
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."
             )
-        onnx_model = ConvertTorchToONNXNode().run(model)
+        _, onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode
