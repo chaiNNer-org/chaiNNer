@@ -459,6 +459,7 @@ class ConvertTorchToONNXNode(NodeBase):
                 input_names=["data"],
                 output_names=["output"],
                 dynamic_axes=dynamic_axes,
+                do_constant_folding=True,
             )
             f.seek(0)
             onnx_model_bytes = f.read()
