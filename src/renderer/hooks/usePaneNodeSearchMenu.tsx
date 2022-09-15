@@ -263,14 +263,14 @@ const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | 
     fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
 
 const getConnectionTarget = (
-    connectingFrom: OnConnectStartParams,
+    connectingFrom: OnConnectStartParams | null,
     schema: NodeSchema,
     typeState: TypeState,
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
     getNode: (id: string) => Node<NodeData> | undefined
 ): ConnectionTarget | undefined => {
-    if (!connectingFrom.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
-        return undefined;
+    if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
+        return { type: 'none' };
     }
     switch (connectingFrom.handleType) {
         case 'source': {
@@ -358,7 +358,6 @@ export const usePaneNodeSearchMenu = (
         return new Map<NodeSchema, ConnectionTarget>(
             schemata.schemata.flatMap((schema) => {
                 if (schema.deprecated) return [];
-                if (!connectingFrom) return [[schema, { type: 'none' }]];
                 const target = getConnectionTarget(
                     connectingFrom,
                     schema,
