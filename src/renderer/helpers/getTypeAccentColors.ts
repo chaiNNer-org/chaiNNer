@@ -21,6 +21,10 @@ const colorList = lazy(() => {
 });
 
 export const getTypeAccentColors = (inputType: Type): string[] => {
+    if (inputType.type === 'any') {
+        return [defaultColor];
+    }
+
     const colors: string[] = [];
     for (const { type, color } of colorList()) {
         if (!isDisjointWith(type, inputType)) {

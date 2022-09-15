@@ -109,6 +109,15 @@ class ClipboardInput(BaseInput):
         return str(value)
 
 
+class AnyInput(BaseInput):
+    def __init__(self, label: str):
+        super().__init__(input_type="any", label=label)
+
+    def enforce_(self, value):
+        # The behavior for optional inputs and None makes sense for all inputs except this one.
+        return value
+
+
 def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(

@@ -4,7 +4,7 @@ Nodes that provide various generic utility
 
 from __future__ import annotations
 import math
-from typing import Union
+from typing import Any, Union
 
 from nodes.utils import clipboard
 
@@ -216,3 +216,20 @@ class TextClipboardNode(NodeBase):
             clipboard.copy_text(value)
         else:
             raise RuntimeError(f"Unsupported type {type(value)}")
+
+
+@NodeFactory.register("chainner:utility:identity")
+class IdentityNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Outputs the input value as is."
+        self.inputs = [AnyInput(label="Value")]
+        self.outputs = [BaseOutput(output_type="Input0", label="Value")]
+
+        self.category = UtilityCategory
+        self.name = "Foo"
+        self.icon = "BsClipboard"
+        self.sub = "Bar"
+
+    def run(self, value: Any) -> Any:
+        return value
