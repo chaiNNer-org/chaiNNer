@@ -69,6 +69,13 @@ enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }
+
+def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
+    match fill {
+        FillColor::Transparent => 4,
+        _ => channels
+    }
+}
 `;
 
 export const getChainnerScope = lazy((): Scope => {

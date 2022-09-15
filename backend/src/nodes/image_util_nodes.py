@@ -409,7 +409,15 @@ class ShiftNode(NodeBase):
             NumberInput("Amount Y", minimum=None, unit="px"),
             FillColorDropdown(),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0.width",
+                    height="Input0.height",
+                    channels="FillColor::getOutputChannels(Input3, Input0.channels)",
+                )
+            )
+        ]
         self.category = ImageUtilityCategory
         self.name = "Shift"
         self.icon = "BsGraphDown"
@@ -496,7 +504,7 @@ class RotateNode(NodeBase):
                         RotateSizeChange::Crop => Input0.height,
                         _ => expandHeight
                     },
-                    channels: match Input4 { FillColor::Transparent => 4, _ => Input0.channels }
+                    channels: FillColor::getOutputChannels(Input4, Input0.channels)
                 }
                 """
             )
