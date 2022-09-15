@@ -1,4 +1,4 @@
-import { isMac, isWindows } from './env';
+import { isM1, isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
 const MB = 1024 ** 2;
@@ -95,7 +95,7 @@ export const requiredDependencies: Dependency[] = [
     },
 ];
 
-if (isMac) {
+if (isMac && !isM1) {
     requiredDependencies.push({
         name: 'Pasteboard',
         packages: [{ packageName: 'pasteboard', version: '0.3.3', sizeEstimate: 19 * KB }],

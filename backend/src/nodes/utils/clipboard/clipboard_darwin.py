@@ -5,9 +5,13 @@ from .clipboard_base import ClipboardBase
 
 # Check if we are running on macOS, because pasteboard is only available on macOS
 if sys.platform == "darwin":
-    import pasteboard
+    try:
+        import pasteboard
+    except:
+        pasteboard = None
 else:
     pasteboard = None
+
 
 class DarwinClipboard(ClipboardBase):
     def __init__(self) -> None:
