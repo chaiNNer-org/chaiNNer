@@ -18,7 +18,7 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
-import { setMainMenu } from './menu';
+import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { getIntegratedPython } from './python/integratedPython';
 import { getSystemPython } from './python/systemPython';
@@ -103,10 +103,7 @@ if (app.isPackaged && checkUpdateOnStartup) {
 const ownsBackend = !getArguments().noBackend;
 ipcMain.handle('owns-backend', () => ownsBackend);
 
-let mainWindow: BrowserWindowWithSafeIpc;
-let lastOpenRecent: string[];
-
-const registerEventHandlers = () => {
+const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
@@ -173,14 +170,6 @@ const registerEventHandlers = () => {
             powerSaveBlocker.stop(blockerId);
             blockerId = undefined;
         }
-    });
-
-    ipcMain.on('disable-menu', () => {
-        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: false });
-    });
-
-    ipcMain.on('enable-menu', () => {
-        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
     });
 
     ipcMain.handle('toggle-discord-rpc', async (event, enabled) => {
@@ -391,11 +380,9 @@ const checkNvidiaSmi = async () => {
             return true;
         } catch (error) {
             log.error(error);
-            registerEmptyGpuEvents();
         }
-    } else {
-        registerEmptyGpuEvents();
     }
+    registerEmptyGpuEvents();
     return false;
 };
 
@@ -510,7 +497,7 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     }
 };
 
-const doSplashScreenChecks = async () =>
+const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
     new Promise<void>((resolve) => {
         const splash = new BrowserWindow({
             width: 400,
@@ -582,7 +569,7 @@ const doSplashScreenChecks = async () =>
             splash.webContents.send('spawning-backend');
             spawnBackend(port, pythonInfo);
 
-            registerEventHandlers();
+            registerEventHandlers(mainWindow);
 
             splash.webContents.send('splash-finish');
             await sleep(250);
@@ -608,7 +595,7 @@ const doSplashScreenChecks = async () =>
 
 const createWindow = lazy(async () => {
     // Create the browser window.
-    mainWindow = new BrowserWindow({
+    const mainWindow = new BrowserWindow({
         width: lastWindowSize?.width ?? 1280,
         height: lastWindowSize?.height ?? 720,
         backgroundColor: '#1A202C',
@@ -626,13 +613,20 @@ const createWindow = lazy(async () => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
-    setMainMenu({ mainWindow, enabled: true });
+    const menuData: MenuData = { openRecentRev: [] };
+    setMainMenu({ mainWindow, menuData, enabled: true });
     ipcMain.on('update-open-recent-menu', (_, openRecent) => {
-        lastOpenRecent = openRecent;
-        setMainMenu({ mainWindow, openRecentRev: openRecent, enabled: true });
+        menuData.openRecentRev = openRecent;
+        setMainMenu({ mainWindow, menuData, enabled: true });
+    });
+    ipcMain.on('disable-menu', () => {
+        setMainMenu({ mainWindow, menuData, enabled: false });
+    });
+    ipcMain.on('enable-menu', () => {
+        setMainMenu({ mainWindow, menuData, enabled: true });
     });
 
-    await doSplashScreenChecks();
+    await doSplashScreenChecks(mainWindow);
 
     // and load the index.html of the app.
     if (!mainWindow.isDestroyed()) {
