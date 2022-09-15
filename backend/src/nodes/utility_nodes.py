@@ -218,8 +218,8 @@ class TextClipboardNode(NodeBase):
             raise RuntimeError(f"Unsupported type {type(value)}")
 
 
-@NodeFactory.register("chainner:utility:identity")
-class IdentityNode(NodeBase):
+@NodeFactory.register("chainner:utility:pass_through")
+class PassThroughNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Outputs the input value as is."
@@ -227,9 +227,9 @@ class IdentityNode(NodeBase):
         self.outputs = [BaseOutput(output_type="Input0", label="Value")]
 
         self.category = UtilityCategory
-        self.name = "Foo"
-        self.icon = "BsClipboard"
-        self.sub = "Bar"
+        self.name = "Pass Through"
+        self.icon = "MdDoubleArrow"
+        self.sub = "Value"
 
     def run(self, value: Any) -> Any:
         return value
