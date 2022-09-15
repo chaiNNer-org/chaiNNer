@@ -45,7 +45,10 @@ import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
-type ConnectionTarget = { type: 'source'; input: InputId } | { type: 'target'; output: OutputId };
+type ConnectionTarget =
+    | { type: 'source'; input: InputId }
+    | { type: 'target'; output: OutputId }
+    | { type: 'none' };
 
 interface MenuProps {
     onSelect: (schema: NodeSchema, target: ConnectionTarget) => void;
@@ -355,15 +358,14 @@ export const usePaneNodeSearchMenu = (
         return new Map<NodeSchema, ConnectionTarget>(
             schemata.schemata.flatMap((schema) => {
                 if (schema.deprecated) return [];
-                const target =
-                    connectingFrom &&
-                    getConnectionTarget(
-                        connectingFrom,
-                        schema,
-                        typeState,
-                        functionDefinitions,
-                        getNode
-                    );
+                if (!connectingFrom) return [[schema, { type: 'none' }]];
+                const target = getConnectionTarget(
+                    connectingFrom,
+                    schema,
+                    typeState,
+                    functionDefinitions,
+                    getNode
+                );
                 if (!target) return [];
 
                 return [[schema, target] as const];
@@ -393,7 +395,7 @@ export const usePaneNodeSearchMenu = (
                 stoppedOnIterator || undefined
             );
             const targetFn = functionDefinitions.get(schema.schemaId);
-            if (connectingFrom && targetFn && connectingFrom.handleType) {
+            if (connectingFrom && targetFn && target.type !== 'none') {
                 switch (target.type) {
                     case 'source': {
                         createConnection({
