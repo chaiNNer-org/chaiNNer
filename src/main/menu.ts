@@ -7,14 +7,18 @@ import { BrowserWindowWithSafeIpc } from '../common/safeIpc';
 import { openSaveFile } from '../common/SaveFile';
 import { getCpuInfo, getGpuInfo } from './systemInfo';
 
+export interface MenuData {
+    openRecentRev: readonly string[];
+}
+
 export interface MainMenuArgs {
     mainWindow: BrowserWindowWithSafeIpc;
-    openRecentRev?: string[];
+    menuData: Readonly<MenuData>;
     enabled?: boolean;
 }
 
-export const setMainMenu = ({ mainWindow, openRecentRev = [], enabled = false }: MainMenuArgs) => {
-    const openRecent = openRecentRev.reverse();
+export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuArgs) => {
+    const openRecent = [...menuData.openRecentRev].reverse();
     const defaultPath = openRecent[0] ? path.dirname(openRecent[0]) : undefined;
 
     const template = [
