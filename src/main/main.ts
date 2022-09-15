@@ -62,15 +62,14 @@ log.catchErrors({
             .then((result) => {
                 if (result.response === 1) {
                     submitIssue!('https://github.com/joeyballentine/chaiNNer/issues/new', {
-                        title: `Error report for ${String(versions?.app)}`,
-                        body: `Error:\n\`\`\`${String(error.stack)}\n\`\`\`\nOS: ${String(
-                            versions?.os
-                        )}`,
+                        title: `Error report: ${error.message}`,
+                        body: [
+                            `\`\`\`\n${String(error)}\n\`\`\``,
+                            `ChaiNNer: ${String(versions?.app)}`,
+                            `OS: ${String(versions?.os)}`,
+                        ].join('\n'),
                     });
-                    return;
-                }
-
-                if (result.response === 2) {
+                } else if (result.response === 2) {
                     app.quit();
                 }
             });
