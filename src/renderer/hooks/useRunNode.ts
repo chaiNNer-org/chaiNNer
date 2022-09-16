@@ -33,12 +33,16 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
     const lastRunInputHash = useRef<string>();
     useAsyncEffect(
         async (token) => {
-            if (shouldRun && inputHash !== lastRunInputHash.current) {
-                // give it some time for other effects to settle in
-                await delay(50);
-                token.checkCanceled();
+            if (inputHash === lastRunInputHash.current) {
+                return;
+            }
+            // give it some time for other effects to settle in
+            await delay(50);
+            token.checkCanceled();
 
-                lastRunInputHash.current = inputHash;
+            lastRunInputHash.current = inputHash;
+
+            if (shouldRun) {
                 animate([id], false);
 
                 const result = await backend.runIndividual({
