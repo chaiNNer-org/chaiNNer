@@ -30,15 +30,19 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
         [inputData]
     );
     const inputHash = useMemo(() => JSON.stringify(inputs), [inputData]);
-    const lastRunInputHash = useRef<string>();
+    const lastInputHash = useRef<string>();
     useAsyncEffect(
         async (token) => {
-            if (shouldRun && inputHash !== lastRunInputHash.current) {
-                // give it some time for other effects to settle in
-                await delay(50);
-                token.checkCanceled();
+            if (inputHash === lastInputHash.current) {
+                return;
+            }
+            // give it some time for other effects to settle in
+            await delay(50);
+            token.checkCanceled();
 
-                lastRunInputHash.current = inputHash;
+            lastInputHash.current = inputHash;
+
+            if (shouldRun) {
                 animate([id], false);
 
                 const result = await backend.runIndividual({
