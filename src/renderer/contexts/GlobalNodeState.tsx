@@ -37,7 +37,6 @@ import {
     createUniqueId,
     deepCopy,
     deriveUniqueId,
-    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -1029,15 +1028,9 @@ export const GlobalProvider = memo(
                 });
                 outputDataActions.delete(id);
                 addInputDataChanges();
-                const nodeSchemaId = getNode(id)?.data.schemaId;
-                if (nodeSchemaId && isStartingNode(schemata.get(nodeSchemaId))) {
-                    backend
-                        .clearNodeCacheIndividual(id)
-                        .then(() => {})
-                        .catch((error) => {
-                            log.error(error);
-                        });
-                }
+                backend.clearNodeCacheIndividual(id).catch((error) => {
+                    log.error(error);
+                });
             },
             [modifyNode, addInputDataChanges, outputDataActions]
         );
