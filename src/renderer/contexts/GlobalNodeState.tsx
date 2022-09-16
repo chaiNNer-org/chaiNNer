@@ -206,6 +206,15 @@ export const GlobalProvider = memo(
             },
             [setManualOutputTypes]
         );
+        const clearManualOutputTypes = useCallback(
+            (nodeId: string): void => {
+                setManualOutputTypes(({ map }) => {
+                    map.delete(nodeId);
+                    return { map };
+                });
+            },
+            [setManualOutputTypes]
+        );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
         const typeStateRef = useRef(typeState);
@@ -1027,9 +1036,10 @@ export const GlobalProvider = memo(
                     return newNode;
                 });
                 outputDataActions.delete(id);
+                clearManualOutputTypes(id);
                 addInputDataChanges();
             },
-            [modifyNode, addInputDataChanges, outputDataActions]
+            [modifyNode, addInputDataChanges, outputDataActions, clearManualOutputTypes]
         );
 
         const setNodeDisabled = useCallback(
