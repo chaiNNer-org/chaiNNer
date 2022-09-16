@@ -7,7 +7,7 @@ import { FunctionInstance } from '../../common/types/function';
 import { isDisjointWith } from '../../common/types/intersection';
 import { IntIntervalType, NumericLiteralType, StructType, Type } from '../../common/types/types';
 import { IntNumberType, isImage } from '../../common/types/util';
-import { parseTargetHandle } from '../../common/util';
+import { assertNever, parseTargetHandle } from '../../common/util';
 
 export type Validity =
     | { readonly isValid: true }
@@ -120,29 +120,85 @@ const generateAssignmentErrorTrace = (assigned: Type, definition: Type): Assignm
     return { type: 'General', assigned, definition };
 };
 
+const prettyPrintType = (type: Type): string => {
+    switch (type.type) {
+        case 'any':
+        case 'never':
+        case 'literal':
+        case 'number':
+        case 'string':
+        case 'interval':
+        case 'inverted-set':
+            return type.toString();
+
+        case 'int-interval':
+            if (type.min === -Infinity && type.max === Infinity) {
+                return 'int';
+            }
+            if (type.min === 0 && type.max === Infinity) {
+                return 'uint';
+            }
+            return type.toString();
+
+        case 'union':
+            return type.items.map(prettyPrintType).join(' | ');
+
+        case 'struct':
+            if (type.fields.length === 0) return type.name;
+            return `${type.name} { ${type.fields
+
+                .map((f) => `${f.name}: ${prettyPrintType(f.type)}`)
+                .join(', ')} }`;
+
+        default:
+            return assertNever(type);
+    }
+};
+
+const shortTypeComparison = (
+    a: Type,
+    b: Type,
+    toString: (t: Type) => string
+): [a: string, b: string] => {
+    if (a.type === 'struct') {
+        if (b.type === 'struct' && b.name !== a.name) {
+            return [a.name, b.name];
+        }
+        if (b.type === 'union' && b.items.every((i) => i.type !== 'struct' || i.name !== a.name)) {
+            return [a.name, toString(b)];
+        }
+    }
+    if (b.type === 'struct') {
+        if (a.type === 'union' && a.items.every((i) => i.type !== 'struct' || i.name !== b.name)) {
+            return [toString(a), b.name];
+        }
+    }
+    return [toString(a), toString(b)];
+};
+
 const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
     const { assigned, definition } = trace;
 
     if (trace.type === 'General') {
-        return [
-            `The type **${assigned.toString()}** is not connectable with **${definition.toString()}**.`,
-        ];
+        const [a, d] = shortTypeComparison(assigned, definition, prettyPrintType);
+        return [`The type **${a}** is not connectable with type **${d}**.`];
     }
 
     if (trace.inner.type === 'General') {
+        const [a, d] = shortTypeComparison(
+            trace.inner.assigned,
+            trace.inner.definition,
+            prettyPrintType
+        );
         return [
-            `The **${trace.assigned.name}** types are incompatible because **${
-                trace.field
-            }: ${trace.inner.assigned.toString()}** is not connectable with **${
-                trace.field
-            }: ${trace.inner.definition.toString()}**.`,
+            `The **${trace.assigned.name}** types are incompatible because **${trace.field}: ${a}** is not connectable with **${trace.field}: ${d}**.`,
         ];
     }
 
     return [
-        `The type **${assigned.toString()}** is not connectable with **${definition.toString()}** because the **${
-            trace.field
-        }** fields are incompatible.`,
+        `The type **${prettyPrintType(assigned)}** is not connectable with **${prettyPrintType(
+            definition
+        )}** because the **${trace.field}** fields are incompatible.`,
         ...printErrorTrace(trace.inner),
     ];
 };
