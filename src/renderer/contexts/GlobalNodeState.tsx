@@ -37,6 +37,7 @@ import {
     createUniqueId,
     deepCopy,
     deriveUniqueId,
+    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -154,7 +155,7 @@ interface GlobalProviderProps {
 export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
-        const { schemata, functionDefinitions } = useContext(BackendContext);
+        const { schemata, functionDefinitions, backend } = useContext(BackendContext);
         const { useStartupTemplate } = useContext(SettingsContext);
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
@@ -1028,6 +1029,15 @@ export const GlobalProvider = memo(
                 });
                 outputDataActions.delete(id);
                 addInputDataChanges();
+                const nodeSchemaId = getNode(id)?.data.schemaId;
+                if (nodeSchemaId && isStartingNode(schemata.get(nodeSchemaId))) {
+                    backend
+                        .clearNodeCacheIndividual(id)
+                        .then(() => {})
+                        .catch((error) => {
+                            log.error(error);
+                        });
+                }
             },
             [modifyNode, addInputDataChanges, outputDataActions]
         );
