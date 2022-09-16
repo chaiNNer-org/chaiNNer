@@ -1028,9 +1028,7 @@ export const GlobalProvider = memo(
                 });
                 outputDataActions.delete(id);
                 addInputDataChanges();
-                backend.clearNodeCacheIndividual(id).catch((error) => {
-                    log.error(error);
-                });
+                backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
             },
             [modifyNode, addInputDataChanges, outputDataActions]
         );
