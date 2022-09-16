@@ -85,10 +85,18 @@ if (app.isPackaged && checkUpdateOnStartup) {
         .then(async (latest) => {
             if (!latest) return;
 
+            const splitBody = latest.body.split('\n');
+            const changelogItems = splitBody.filter(
+                (line) => line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')
+            );
+
             const buttonResult = await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
                 type: 'info',
                 title: 'An update is available for chaiNNer!',
                 message: `Version ${latest.version} is available for download from GitHub.`,
+                detail: `Currently installed: ${app.getVersion()}\n\nRelease notes:\n\n${changelogItems.join(
+                    '\n'
+                )}`,
                 buttons: [`Get version ${latest.version}`, 'Ok'],
                 defaultId: 1,
             });
