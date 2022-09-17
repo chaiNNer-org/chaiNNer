@@ -164,7 +164,7 @@ class ImageUpscaleNode(NodeBase):
                     f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
                 )
                 # Attempt to avoid using too much vram at once
-                if float(required_mem) > float(free_mem) * 0.75:
+                if float(required_mem) > float(free_mem) * 0.6:
                     split_estimation += 1
 
             t_out, depth = auto_split_process(
