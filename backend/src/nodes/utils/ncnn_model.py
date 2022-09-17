@@ -23,6 +23,7 @@ with open(param_schema_file, encoding="utf-8") as schemaf:
 
 DTYPE_FP32 = b"\x00\x00\x00\x00"
 DTYPE_FP16 = b"\x47\x6b\x30\x01"
+DTYPE_DICT = {b"\x00\x00\x00\x00": np.float32, b"\x47\x6b\x30\x01": np.float16}
 
 
 class UnaryOpTypes:
@@ -281,8 +282,7 @@ class NcnnLayer:
         else:
             data_array = data
 
-        if quantize_tag == DTYPE_FP16:
-            data_array = data_array.astype(np.float16)
+        data_array = data_array.astype(DTYPE_DICT[quantize_tag])
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
         return quantize_tag + data_array.tobytes()
@@ -475,7 +475,7 @@ class NcnnModel:
         weight_dict = {}
         if op_type == "Convolution":
             quantize_tag = binf.read(4)
-            dtype = np.float16 if quantize_tag == DTYPE_FP16 else np.float32
+            dtype = DTYPE_DICT[quantize_tag]
             weight_data_length = layer.params[6].value
             assert isinstance(weight_data_length, int), "Data size must be int"
             weight_data_size = (
@@ -490,7 +490,7 @@ class NcnnModel:
             kernel_w = layer.params[1].value
             kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
             num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
-            shape = (num_filters, num_input, kernel_w, kernel_h)
+            shape = (num_filters, num_input, kernel_h, kernel_w)
 
             weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
             weight_data = weight_data.reshape(shape)  # type: ignore
@@ -499,6 +499,55 @@ class NcnnModel:
             if has_bias:
                 bias_data_size = num_filters * 4
                 bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
+                weight_dict["bias"] = NcnnWeight(bias_data)
+        elif op_type == "Deconvolution":
+            quantize_tag = binf.read(4)
+            dtype = DTYPE_DICT[quantize_tag]
+            weight_data_length = layer.params[6].value
+            assert isinstance(weight_data_length, int), "Data size must be int"
+            weight_data_size = (
+                weight_data_length * 2
+                if quantize_tag == DTYPE_FP16
+                else weight_data_length * 4
+            )
+
+            has_bias = layer.params[5].value if 5 in layer.params else 0
+
+            num_filters = layer.params[0].value
+            kernel_w = layer.params[1].value
+            kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
+            num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
+            shape = (num_filters, num_input, kernel_h, kernel_w)
+
+            weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
+            weight_data = weight_data.reshape(shape)  # type: ignore
+            weight_dict["weight"] = NcnnWeight(weight_data, quantize_tag)
+
+            if has_bias:
+                bias_data_size = num_filters * 4
+                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)  # type: ignore
+                weight_dict["bias"] = NcnnWeight(bias_data)
+        elif op_type == "InnerProduct":
+            quantize_tag = binf.read(4)
+            dtype = DTYPE_DICT[quantize_tag]
+            weight_data_length = layer.params[2].value
+            assert isinstance(weight_data_length, int), "Weight data size must be int"
+            weight_data_size = (
+                weight_data_length * 2
+                if quantize_tag == DTYPE_FP16
+                else weight_data_length * 4
+            )
+            weight_data = np.frombuffer(binf.read(weight_data_size), dtype)
+            num_output = layer.params[0].value
+            assert isinstance(num_output, int), "Num output must be int"
+            num_input = weight_data_length // num_output
+            weight_data = weight_data.reshape((num_input, num_output))
+            weight_dict["weight"] = NcnnWeight(weight_data)
+
+            has_bias = layer.params[1].value if 1 in layer.params else 0
+            if has_bias == 1:
+                bias_data_size = num_output * 4
+                bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)
                 weight_dict["bias"] = NcnnWeight(bias_data)
         elif op_type == "PReLU":
             num_slope = layer.params[0].value
