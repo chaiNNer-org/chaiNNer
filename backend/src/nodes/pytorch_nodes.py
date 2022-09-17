@@ -21,6 +21,7 @@ from .properties.outputs import *
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
+from .utils.onnx_model import OnnxModel
 from .utils.torch_types import PyTorchModel
 from .utils.pytorch_model_loading import load_state_dict
 
@@ -436,7 +437,7 @@ class ConvertTorchToONNXNode(NodeBase):
         except:
             pass
 
-    def run(self, model: torch.nn.Module) -> List[Any]:
+    def run(self, model: torch.nn.Module) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
@@ -464,15 +465,7 @@ class ConvertTorchToONNXNode(NodeBase):
             f.seek(0)
             onnx_model_bytes = f.read()
 
-        try:
-            # pylint: disable=import-outside-toplevel
-            from .onnx_nodes import create_inference_session
-
-            session = create_inference_session(onnx_model_bytes)
-        except:
-            session = None
-
-        return [(session, onnx_model_bytes)]
+        return OnnxModel(onnx_model_bytes)
 
 
 @NodeFactory.register("chainner:pytorch:model_dim")
@@ -522,6 +515,6 @@ class ConvertTorchToNCNNNode(NodeBase):
                 manager to use this node."
             )
         onnx_model = ConvertTorchToONNXNode().run(model)
-        ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model[0][1], is_fp16)
+        ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode

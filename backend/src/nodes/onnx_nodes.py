@@ -19,6 +19,8 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_model import NcnnModel
 from .utils.onnx_auto_split import onnx_auto_split_process
+from .utils.onnx_model import OnnxModel
+from .utils.onnx_session import get_onnx_session
 from .utils.onnx_to_ncnn import Onnx2NcnnConverter
 from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options
@@ -26,44 +28,6 @@ from .utils.exec_options import get_execution_options
 # ONNX Save Model node
 # pylint: disable=unused-import
 from .model_save_nodes import OnnxSaveModelNode
-
-
-def create_inference_session(model_as_string: bytes) -> ort.InferenceSession:
-    exec_options = get_execution_options()
-    if exec_options.onnx_execution_provider == "TensorrtExecutionProvider":
-        providers = [
-            (
-                "TensorrtExecutionProvider",
-                {
-                    "device_id": exec_options.onnx_gpu_index,
-                },
-            ),
-            (
-                "CUDAExecutionProvider",
-                {
-                    "device_id": exec_options.onnx_gpu_index,
-                },
-            ),
-            "CPUExecutionProvider",
-        ]
-    elif exec_options.onnx_execution_provider == "CUDAExecutionProvider":
-        providers = [
-            (
-                "CUDAExecutionProvider",
-                {
-                    "device_id": exec_options.onnx_gpu_index,
-                },
-            ),
-            "CPUExecutionProvider",
-        ]
-    else:
-        providers = [exec_options.onnx_execution_provider, "CPUExecutionProvider"]
-
-    session = ort.InferenceSession(
-        model_as_string,
-        providers=providers,
-    )
-    return session
 
 
 @NodeFactory.register("chainner:onnx:load_model")
@@ -87,7 +51,7 @@ class OnnxLoadModelNode(NodeBase):
 
         self.model = None  # Defined in run
 
-    def run(self, path: str) -> Tuple[Tuple[ort.InferenceSession, bytes], str, str]:
+    def run(self, path: str) -> Tuple[OnnxModel, str, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -100,10 +64,8 @@ class OnnxLoadModelNode(NodeBase):
 
         model_as_string = model.SerializeToString()  # type: ignore
 
-        session = create_inference_session(model_as_string)
-
         dirname, basename = os.path.split(os.path.splitext(path)[0])
-        return (session, model_as_string), dirname, basename
+        return OnnxModel(model_as_string), dirname, basename
 
 
 @NodeFactory.register("chainner:onnx:upscale_image")
@@ -155,12 +117,12 @@ class OnnxImageUpscaleNode(NodeBase):
 
     def run(
         self,
-        onnx_model: Tuple[ort.InferenceSession, bytes],
+        model: OnnxModel,
         img: np.ndarray,
         tile_mode: Union[int, None],
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
-        session, _ = onnx_model
+        session = get_onnx_session(model, get_execution_options())
         shape = session.get_inputs()[0].shape
         if isinstance(shape[1], int) and shape[1] <= 4:
             in_nc = shape[1]
@@ -238,9 +200,9 @@ class OnnxInterpolateModelsNode(NodeBase):
 
         return interp_weights_list
 
-    def check_will_upscale(self, interp: Tuple[ort.InferenceSession, bytes]):
+    def check_will_upscale(self, model: OnnxModel):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(interp, fake_img, None)
+        result = OnnxImageUpscaleNode().run(model, fake_img, None)
 
         mean_color = np.mean(result)
         del result
@@ -248,12 +210,12 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def run(
         self,
-        a: Tuple[ort.InferenceSession, bytes],
-        b: Tuple[ort.InferenceSession, bytes],
+        a: OnnxModel,
+        b: OnnxModel,
         amount: int,
-    ) -> Tuple[Tuple[ort.InferenceSession, bytes], int, int]:
-        model_a = a[1]
-        model_b = b[1]
+    ) -> Tuple[OnnxModel, int, int]:
+        model_a = a.bytes
+        model_b = b.bytes
         if amount == 0:
             return a, 100, 0
         elif amount == 100:
@@ -286,13 +248,13 @@ class OnnxInterpolateModelsNode(NodeBase):
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
         model_interp: bytes = model_proto_interp.SerializeToString()  # type: ignore
 
-        session = create_inference_session(model_interp)
-        if not self.check_will_upscale((session, model_interp)):
+        model = OnnxModel(model_interp)
+        if not self.check_will_upscale(model):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"
             )
 
-        return (session, model_interp), 100 - amount, amount
+        return model, 100 - amount, amount
 
 
 @NodeFactory.register("chainner:onnx:convert_to_ncnn")
@@ -324,10 +286,10 @@ class ConvertOnnxToNcnnNode(NodeBase):
         except:
             pass
 
-    def run(self, onnx_model: bytes, is_fp16: int) -> Tuple[NcnnModel, str]:
+    def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModel, str]:
         fp16 = bool(is_fp16)
 
-        model_proto = onnx.load_model_from_string(onnx_model)
+        model_proto = onnx.load_model_from_string(model.bytes)
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
         opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
 
