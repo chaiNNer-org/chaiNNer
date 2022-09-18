@@ -72,6 +72,36 @@ const formatBytes = (bytes: number): string => {
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
+const IndividualDep = memo(
+    ({
+        pkg,
+        installed,
+        outdated,
+        isRunningShell,
+    }: {
+        pkg: PyPiPackage;
+        installed: boolean;
+        outdated: boolean;
+        isRunningShell: boolean;
+    }) => {
+        return (
+            <Flex
+                align="center"
+                key={pkg.packageName}
+                w="full"
+            >
+                <Text
+                    color={installed ? 'inherit' : 'red.500'}
+                    flex="1"
+                    textAlign="left"
+                >
+                    {`${pkg.packageName} (${pkg.version || 'not installed'})`}
+                </Text>
+            </Flex>
+        );
+    }
+);
+
 const Package = memo(
     ({
         dep,
@@ -91,86 +121,112 @@ const Package = memo(
         onUpdate: () => void;
     }) => {
         const allDepPackagesInstalled = dep.packages.every((p) => pipList[p.packageName]);
-        const allDepPackageVersionsString = dep.packages
-            .map((p) => pipList[p.packageName])
-            .join('/');
         const outdatedPackages = dep.packages.filter((p) => {
             const installedVersion = pipList[p.packageName];
             return installedVersion && checkSemverGt(p.version, installedVersion);
         });
 
         return (
-            <VStack
-                key={dep.name}
-                w="full"
-            >
-                <Flex
-                    align="center"
-                    key={dep.name}
-                    w="full"
-                >
-                    <Text
-                        color={allDepPackagesInstalled ? 'inherit' : 'red.500'}
-                        flex="1"
-                        textAlign="left"
-                    >
-                        {`${dep.name} (${
-                            allDepPackagesInstalled ? allDepPackageVersionsString : 'not installed'
-                        })`}
-                    </Text>
-                    {allDepPackagesInstalled ? (
-                        <HStack>
-                            {outdatedPackages.length > 0 && (
-                                <Button
-                                    colorScheme="blue"
-                                    disabled={isRunningShell}
-                                    isLoading={isRunningShell}
-                                    leftIcon={<DownloadIcon />}
-                                    size="sm"
-                                    onClick={onUpdate}
-                                >
-                                    Update to {outdatedPackages.map((p) => p.version).join('/')} (
-                                    {formatSizeEstimate(outdatedPackages)})
-                                </Button>
-                            )}
-
-                            <Button
-                                colorScheme="red"
-                                disabled={isRunningShell}
-                                leftIcon={<DeleteIcon />}
-                                size="sm"
-                                onClick={onUninstall}
+            <AccordionItem cursor="pointer">
+                <h2>
+                    <HStack>
+                        <AccordionButton cursor="pointer">
+                            <Box
+                                cursor="pointer"
+                                flex="1"
+                                textAlign="left"
                             >
-                                Uninstall
+                                {dep.name} ({dep.packages.length} package
+                                {dep.packages.length === 1 ? '' : 's'})
+                            </Box>
+
+                            {progress !== undefined && (
+                                <Center
+                                    cursor="pointer"
+                                    h={8}
+                                    w="full"
+                                >
+                                    <Progress
+                                        hasStripe
+                                        isAnimated
+                                        cursor="pointer"
+                                        value={progress}
+                                        w="full"
+                                    />
+                                </Center>
+                            )}
+                        </AccordionButton>
+                        {allDepPackagesInstalled ? (
+                            <HStack mr={1}>
+                                {outdatedPackages.length > 0 && (
+                                    <Button
+                                        colorScheme="blue"
+                                        disabled={isRunningShell}
+                                        isLoading={isRunningShell}
+                                        leftIcon={<DownloadIcon />}
+                                        size="sm"
+                                        onClick={onUpdate}
+                                    >
+                                        Update to {outdatedPackages.map((p) => p.version).join('/')}{' '}
+                                        ({formatSizeEstimate(outdatedPackages)})
+                                    </Button>
+                                )}
+
+                                <Button
+                                    colorScheme="red"
+                                    disabled={isRunningShell}
+                                    leftIcon={<DeleteIcon />}
+                                    size="sm"
+                                    onClick={onUninstall}
+                                >
+                                    Uninstall
+                                </Button>
+                            </HStack>
+                        ) : (
+                            <Button
+                                colorScheme="blue"
+                                disabled={isRunningShell}
+                                isLoading={isRunningShell}
+                                leftIcon={<DownloadIcon />}
+                                size="sm"
+                                onClick={onInstall}
+                            >
+                                Install ({formatSizeEstimate(dep.packages)})
                             </Button>
-                        </HStack>
-                    ) : (
-                        <Button
-                            colorScheme="blue"
-                            disabled={isRunningShell}
-                            isLoading={isRunningShell}
-                            leftIcon={<DownloadIcon />}
-                            size="sm"
-                            onClick={onInstall}
+                        )}
+                        <AccordionButton
+                            cursor="pointer"
+                            w={4}
                         >
-                            Install ({formatSizeEstimate(dep.packages)})
-                        </Button>
-                    )}
-                </Flex>
-                {progress !== undefined && (
-                    <Center
-                        h={8}
+                            <Center
+                                cursor="pointer"
+                                w="full"
+                            >
+                                <AccordionIcon />
+                            </Center>
+                        </AccordionButton>
+                    </HStack>
+                </h2>
+                <AccordionPanel pb={4}>
+                    <VStack
+                        key={dep.name}
                         w="full"
                     >
-                        <Progress
-                            hasStripe
-                            isAnimated
-                            value={progress}
-                            w="full"
-                        />
-                    </Center>
-                )}
-            </VStack>
+                        {dep.packages.map((p) => (
+                            <IndividualDep
+                                installed={!!pipList[p.packageName]}
+                                isRunningShell={isRunningShell}
+                                key={p.packageName}
+                                outdated={
+                                    !!pipList[p.packageName] &&
+                                    checkSemverGt(p.version, pipList[p.packageName]!)
+                                }
+                                pkg={p}
+                            />
+                        ))}
+                    </VStack>
+                </AccordionPanel>
+            </AccordionItem>
         );
     }
 );
@@ -337,7 +393,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                             w="full"
                         >
                             <VStack
-                                divider={<StackDivider />}
+                                // divider={<StackDivider />}
                                 w="full"
                             >
                                 <Flex
@@ -370,53 +426,60 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                 {!pipList ? (
                                     <Spinner />
                                 ) : (
-                                    availableDeps.map((dep) => {
-                                        const install = () => installPackage(dep);
-                                        const uninstall = () => {
-                                            showAlert({
-                                                type: AlertType.WARN,
-                                                title: 'Uninstall',
-                                                message: `Are you sure you want to uninstall ${dep.name}?`,
-                                                buttons: ['Cancel', 'Uninstall'],
-                                                defaultButton: 0,
-                                            })
-                                                .then((button) => {
-                                                    if (button === 1) {
-                                                        uninstallPackage(dep);
-                                                    }
+                                    <Accordion
+                                        allowToggle
+                                        // allowMultiple={false}
+                                        w="full"
+                                    >
+                                        {availableDeps.map((dep) => {
+                                            const install = () => installPackage(dep);
+                                            const uninstall = () => {
+                                                showAlert({
+                                                    type: AlertType.WARN,
+                                                    title: 'Uninstall',
+                                                    message: `Are you sure you want to uninstall ${dep.name}?`,
+                                                    buttons: ['Cancel', 'Uninstall'],
+                                                    defaultButton: 0,
                                                 })
-                                                .catch((error) => log.error(error));
-                                        };
+                                                    .then((button) => {
+                                                        if (button === 1) {
+                                                            uninstallPackage(dep);
+                                                        }
+                                                    })
+                                                    .catch((error) => log.error(error));
+                                            };
 
-                                        return (
-                                            <Package
-                                                dep={dep}
-                                                isRunningShell={isRunningShell}
-                                                key={dep.name}
-                                                pipList={pipList}
-                                                progress={
-                                                    isRunningShell &&
-                                                    (installingPackage || uninstallingPackage)
-                                                        ?.name === dep.name
-                                                        ? progress
-                                                        : undefined
-                                                }
-                                                onInstall={install}
-                                                onUninstall={uninstall}
-                                                onUpdate={install}
-                                            />
-                                        );
-                                    })
+                                            return (
+                                                <Package
+                                                    dep={dep}
+                                                    isRunningShell={isRunningShell}
+                                                    key={dep.name}
+                                                    pipList={pipList}
+                                                    progress={
+                                                        isRunningShell &&
+                                                        (installingPackage || uninstallingPackage)
+                                                            ?.name === dep.name
+                                                            ? progress
+                                                            : undefined
+                                                    }
+                                                    onInstall={install}
+                                                    onUninstall={uninstall}
+                                                    onUpdate={install}
+                                                />
+                                            );
+                                        })}
+                                    </Accordion>
                                 )}
                             </VStack>
                             <Accordion
                                 allowToggle
                                 w="full"
                             >
-                                <AccordionItem>
+                                <AccordionItem cursor="pointer">
                                     <h2>
-                                        <AccordionButton>
+                                        <AccordionButton cursor="pointer">
                                             <Box
+                                                cursor="pointer"
                                                 flex="1"
                                                 textAlign="left"
                                             >
