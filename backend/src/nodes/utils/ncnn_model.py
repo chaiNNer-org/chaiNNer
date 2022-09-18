@@ -282,7 +282,8 @@ class NcnnLayer:
         else:
             data_array = data
 
-        data_array = data_array.astype(DTYPE_DICT[quantize_tag])
+        if quantize_tag == DTYPE_FP16:
+            data_array = data_array.astype(np.float16)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
         return quantize_tag + data_array.tobytes()
