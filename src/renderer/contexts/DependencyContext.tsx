@@ -75,17 +75,15 @@ const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
 const IndividualDep = memo(
-    ({
-        pkg,
-        installed,
-        outdated,
-        isRunningShell,
-    }: {
-        pkg: PyPiPackage;
-        installed: boolean;
-        outdated: boolean;
-        isRunningShell: boolean;
-    }) => {
+    ({ pkg, installed, outdated }: { pkg: PyPiPackage; installed: boolean; outdated: boolean }) => {
+        let color = 'red.500';
+        if (installed) {
+            if (outdated) {
+                color = 'yellow.500';
+            } else {
+                color = 'inherit';
+            }
+        }
         return (
             <Flex
                 align="center"
@@ -93,7 +91,7 @@ const IndividualDep = memo(
                 w="full"
             >
                 <Text
-                    color={installed ? 'inherit' : 'red.500'}
+                    color={color}
                     flex="1"
                     textAlign="left"
                 >
@@ -131,102 +129,113 @@ const Package = memo(
         return (
             <AccordionItem cursor="pointer">
                 <h2>
-                    <HStack>
-                        <AccordionButton cursor="pointer">
-                            <HStack
-                                cursor="pointer"
-                                w="full"
-                            >
-                                <Text
+                    <VStack
+                        spacing={0}
+                        w="full"
+                    >
+                        <HStack w="full">
+                            <AccordionButton cursor="pointer">
+                                <HStack
                                     cursor="pointer"
-                                    flex="1"
-                                    textAlign="left"
+                                    spacing={1}
                                     w="full"
                                 >
-                                    {dep.name} ({dep.packages.length} package
-                                    {dep.packages.length === 1 ? '' : 's'})
-                                </Text>
-                                <Tooltip
-                                    closeOnClick
-                                    closeOnMouseDown
-                                    borderRadius={8}
-                                    label={dep.description}
-                                    px={2}
-                                    py={1}
-                                >
-                                    <InfoIcon />
-                                </Tooltip>
-                            </HStack>
-
-                            {progress !== undefined && (
-                                <Center
-                                    cursor="pointer"
-                                    h={8}
-                                    w="full"
-                                >
-                                    <Progress
-                                        hasStripe
-                                        isAnimated
+                                    <Text
                                         cursor="pointer"
-                                        value={progress}
+                                        flex="1"
+                                        textAlign="left"
                                         w="full"
-                                    />
-                                </Center>
-                            )}
-                        </AccordionButton>
-                        {allDepPackagesInstalled ? (
-                            <HStack
-                                mr={1}
-                                py={2}
-                            >
-                                {outdatedPackages.length > 0 && (
+                                    >
+                                        {dep.name} ({dep.packages.length} package
+                                        {dep.packages.length === 1 ? '' : 's'})
+                                    </Text>
+                                    <Tooltip
+                                        closeOnClick
+                                        closeOnMouseDown
+                                        borderRadius={8}
+                                        label={dep.description}
+                                        px={2}
+                                        py={1}
+                                    >
+                                        <InfoIcon />
+                                    </Tooltip>
+                                </HStack>
+                            </AccordionButton>
+                            {allDepPackagesInstalled ? (
+                                <HStack
+                                    mr={1}
+                                    py={2}
+                                >
+                                    {outdatedPackages.length > 0 && (
+                                        <Button
+                                            colorScheme="blue"
+                                            disabled={isRunningShell}
+                                            isLoading={isRunningShell}
+                                            leftIcon={<DownloadIcon />}
+                                            size="sm"
+                                            onClick={onUpdate}
+                                        >
+                                            Update to{' '}
+                                            {outdatedPackages.map((p) => p.version).join('/')} (
+                                            {formatSizeEstimate(outdatedPackages)})
+                                        </Button>
+                                    )}
+
+                                    <Button
+                                        colorScheme="red"
+                                        disabled={isRunningShell}
+                                        leftIcon={<DeleteIcon />}
+                                        size="sm"
+                                        onClick={onUninstall}
+                                    >
+                                        Uninstall
+                                    </Button>
+                                </HStack>
+                            ) : (
+                                <HStack
+                                    mr={1}
+                                    py={2}
+                                >
                                     <Button
                                         colorScheme="blue"
                                         disabled={isRunningShell}
                                         isLoading={isRunningShell}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
-                                        onClick={onUpdate}
+                                        onClick={onInstall}
                                     >
-                                        Update to {outdatedPackages.map((p) => p.version).join('/')}{' '}
-                                        ({formatSizeEstimate(outdatedPackages)})
+                                        Install ({formatSizeEstimate(dep.packages)})
                                     </Button>
-                                )}
-
-                                <Button
-                                    colorScheme="red"
-                                    disabled={isRunningShell}
-                                    leftIcon={<DeleteIcon />}
-                                    size="sm"
-                                    onClick={onUninstall}
-                                >
-                                    Uninstall
-                                </Button>
-                            </HStack>
-                        ) : (
-                            <Button
-                                colorScheme="blue"
-                                disabled={isRunningShell}
-                                isLoading={isRunningShell}
-                                leftIcon={<DownloadIcon />}
-                                size="sm"
-                                onClick={onInstall}
+                                </HStack>
+                            )}
+                            <AccordionButton
+                                cursor="pointer"
+                                w={4}
                             >
-                                Install ({formatSizeEstimate(dep.packages)})
-                            </Button>
-                        )}
-                        <AccordionButton
-                            cursor="pointer"
-                            w={4}
-                        >
+                                <Center
+                                    cursor="pointer"
+                                    w="full"
+                                >
+                                    <AccordionIcon />
+                                </Center>
+                            </AccordionButton>
+                        </HStack>
+                        {progress !== undefined && (
                             <Center
                                 cursor="pointer"
+                                h={8}
                                 w="full"
                             >
-                                <AccordionIcon />
+                                <Progress
+                                    hasStripe
+                                    isAnimated
+                                    cursor="pointer"
+                                    value={progress}
+                                    w="full"
+                                />
                             </Center>
-                        </AccordionButton>
-                    </HStack>
+                        )}
+                    </VStack>
                 </h2>
                 <AccordionPanel pb={4}>
                     <VStack
