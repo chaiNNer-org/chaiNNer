@@ -338,10 +338,10 @@ class FillAlphaNode(NodeBase):
             img = fill_alpha_fragment_blur(img)
 
             convert_to_binary_alpha(img)
-            fill_alpha_edge_extend(img, 8)
+            img = fill_alpha_edge_extend(img, 8)
         elif method == AlphaFillMethod.EXTEND_COLOR:
             convert_to_binary_alpha(img)
-            fill_alpha_edge_extend(img, 40)
+            img = fill_alpha_edge_extend(img, 40)
         else:
             assert False, f"Invalid alpha fill method {type(method)} {method}"
 
