@@ -1,15 +1,16 @@
-import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { DeleteIcon, DownloadIcon, InfoIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
     AccordionIcon,
     AccordionItem,
     AccordionPanel,
-    Box,
     Button,
     Center,
+    Collapse,
     Flex,
     HStack,
+    IconButton,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -19,14 +20,15 @@ import {
     ModalOverlay,
     Progress,
     Spinner,
-    StackDivider,
     Text,
     Textarea,
+    Tooltip,
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BsTerminalFill } from 'react-icons/bs';
 import semver from 'semver';
 import { createContext, useContext } from 'use-context-selector';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
@@ -131,14 +133,30 @@ const Package = memo(
                 <h2>
                     <HStack>
                         <AccordionButton cursor="pointer">
-                            <Box
+                            <HStack
                                 cursor="pointer"
-                                flex="1"
-                                textAlign="left"
+                                w="full"
                             >
-                                {dep.name} ({dep.packages.length} package
-                                {dep.packages.length === 1 ? '' : 's'})
-                            </Box>
+                                <Text
+                                    cursor="pointer"
+                                    flex="1"
+                                    textAlign="left"
+                                    w="full"
+                                >
+                                    {dep.name} ({dep.packages.length} package
+                                    {dep.packages.length === 1 ? '' : 's'})
+                                </Text>
+                                <Tooltip
+                                    closeOnClick
+                                    closeOnMouseDown
+                                    borderRadius={8}
+                                    label={dep.description}
+                                    px={2}
+                                    py={1}
+                                >
+                                    <InfoIcon />
+                                </Tooltip>
+                            </HStack>
 
                             {progress !== undefined && (
                                 <Center
@@ -157,7 +175,10 @@ const Package = memo(
                             )}
                         </AccordionButton>
                         {allDepPackagesInstalled ? (
-                            <HStack mr={1}>
+                            <HStack
+                                mr={1}
+                                py={2}
+                            >
                                 {outdatedPackages.length > 0 && (
                                     <Button
                                         colorScheme="blue"
@@ -244,6 +265,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [pipList, setPipList] = useState<PipList>();
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
+    const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+
     useAsyncEffect(
         {
             supplier: async () => {
@@ -259,21 +282,17 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         [pythonInfo, pipList, setPipList]
     );
 
-    type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
-    const [gpu, setGpu] = useState<GpuInfo>({ isNvidia: false, gpuNames: [] });
+    const [hasNvidia, setHasNvidia] = useState(false);
     useAsyncEffect(
         {
-            supplier: async (): Promise<GpuInfo> => {
+            supplier: async (): Promise<boolean> => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
                 if (nvidiaGpu) {
-                    return { isNvidia: true, nvidiaGpu };
+                    return true;
                 }
-
-                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
-                return { isNvidia: false, gpuNames };
+                return false;
             },
-            successEffect: setGpu,
+            successEffect: setHasNvidia,
         },
         []
     );
@@ -388,139 +407,123 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalHeader>Dependency Manager</ModalHeader>
                     <ModalCloseButton disabled={depChanged} />
                     <ModalBody>
-                        <VStack
-                            divider={<StackDivider />}
-                            w="full"
-                        >
-                            <VStack
-                                // divider={<StackDivider />}
+                        <VStack w="full">
+                            <Flex w="full">
+                                <Text
+                                    flex="1"
+                                    textAlign="left"
+                                >
+                                    {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
+                                </Text>
+                            </Flex>
+                            <Flex
+                                align="center"
                                 w="full"
                             >
-                                <Flex
-                                    align="center"
+                                <Text
+                                    flex="1"
+                                    textAlign="left"
+                                >
+                                    Python ({pythonInfo.version}) [
+                                    {isSystemPython ? 'System' : 'Integrated'}]
+                                </Text>
+                                <IconButton
+                                    aria-label="Open Console View"
+                                    icon={<BsTerminalFill />}
+                                    size="sm"
+                                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                                />
+                            </Flex>
+                            {!pipList ? (
+                                <Spinner />
+                            ) : (
+                                <Accordion
+                                    allowToggle
+                                    // allowMultiple={false}
                                     w="full"
                                 >
-                                    <Text
-                                        flex="1"
-                                        textAlign="left"
-                                    >
-                                        GPU (
-                                        {gpu.isNvidia
-                                            ? gpu.nvidiaGpu
-                                            : gpu.gpuNames[0] ?? 'No GPU available'}
-                                        )
-                                    </Text>
-                                </Flex>
-                                <Flex
-                                    align="center"
-                                    w="full"
-                                >
-                                    <Text
-                                        flex="1"
-                                        textAlign="left"
-                                    >
-                                        Python ({pythonInfo.version}) [
-                                        {isSystemPython ? 'System' : 'Integrated'}]
-                                    </Text>
-                                </Flex>
-                                {!pipList ? (
-                                    <Spinner />
-                                ) : (
-                                    <Accordion
-                                        allowToggle
-                                        // allowMultiple={false}
-                                        w="full"
-                                    >
-                                        {availableDeps.map((dep) => {
-                                            const install = () => installPackage(dep);
-                                            const uninstall = () => {
-                                                showAlert({
-                                                    type: AlertType.WARN,
-                                                    title: 'Uninstall',
-                                                    message: `Are you sure you want to uninstall ${dep.name}?`,
-                                                    buttons: ['Cancel', 'Uninstall'],
-                                                    defaultButton: 0,
-                                                })
-                                                    .then((button) => {
-                                                        if (button === 1) {
-                                                            uninstallPackage(dep);
-                                                        }
-                                                    })
-                                                    .catch((error) => log.error(error));
-                                            };
-
-                                            return (
-                                                <Package
-                                                    dep={dep}
-                                                    isRunningShell={isRunningShell}
-                                                    key={dep.name}
-                                                    pipList={pipList}
-                                                    progress={
-                                                        isRunningShell &&
-                                                        (installingPackage || uninstallingPackage)
-                                                            ?.name === dep.name
-                                                            ? progress
-                                                            : undefined
+                                    {availableDeps.map((dep) => {
+                                        const install = () => installPackage(dep);
+                                        const uninstall = () => {
+                                            showAlert({
+                                                type: AlertType.WARN,
+                                                title: 'Uninstall',
+                                                message: `Are you sure you want to uninstall ${dep.name}?`,
+                                                buttons: ['Cancel', 'Uninstall'],
+                                                defaultButton: 0,
+                                            })
+                                                .then((button) => {
+                                                    if (button === 1) {
+                                                        uninstallPackage(dep);
                                                     }
-                                                    onInstall={install}
-                                                    onUninstall={uninstall}
-                                                    onUpdate={install}
-                                                />
-                                            );
-                                        })}
-                                    </Accordion>
-                                )}
-                            </VStack>
-                            <Accordion
-                                allowToggle
+                                                })
+                                                .catch((error) => log.error(error));
+                                        };
+
+                                        return (
+                                            <Package
+                                                dep={dep}
+                                                isRunningShell={isRunningShell}
+                                                key={dep.name}
+                                                pipList={pipList}
+                                                progress={
+                                                    isRunningShell &&
+                                                    (installingPackage || uninstallingPackage)
+                                                        ?.name === dep.name
+                                                        ? progress
+                                                        : undefined
+                                                }
+                                                onInstall={install}
+                                                onUninstall={uninstall}
+                                                onUpdate={install}
+                                            />
+                                        );
+                                    })}
+                                </Accordion>
+                            )}
+                            <Center
+                                animateOpacity
+                                as={Collapse}
+                                in={isConsoleOpen}
                                 w="full"
                             >
-                                <AccordionItem cursor="pointer">
-                                    <h2>
-                                        <AccordionButton cursor="pointer">
-                                            <Box
-                                                cursor="pointer"
-                                                flex="1"
-                                                textAlign="left"
-                                            >
-                                                Console Output
-                                            </Box>
-                                            <AccordionIcon />
-                                        </AccordionButton>
-                                    </h2>
-                                    <AccordionPanel pb={4}>
-                                        <Textarea
-                                            readOnly
-                                            cursor="default"
-                                            fontFamily="monospace"
-                                            h="150"
-                                            overflowY="scroll"
-                                            placeholder=""
-                                            ref={consoleRef}
-                                            sx={{
-                                                '&::-webkit-scrollbar': {
-                                                    width: '8px',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                                                },
-                                                '&::-webkit-scrollbar-track': {
-                                                    borderRadius: '8px',
-                                                    width: '8px',
-                                                },
-                                                '&::-webkit-scrollbar-thumb': {
-                                                    borderRadius: '8px',
-                                                    backgroundColor: 'var(--bg-600)',
-                                                },
-                                            }}
-                                            value={shellOutput}
-                                            w="full"
-                                            onChange={(e) => e.preventDefault()}
-                                            onClick={(e) => e.preventDefault()}
-                                            onFocus={(e) => e.preventDefault()}
-                                        />
-                                    </AccordionPanel>
-                                </AccordionItem>
-                            </Accordion>
+                                {/* <Collapse
+                                    animateOpacity
+                                    in={isConsoleOpen}
+                                > */}
+                                <Center w="full">
+                                    <Textarea
+                                        readOnly
+                                        cursor="default"
+                                        fontFamily="monospace"
+                                        h="150"
+                                        overflowY="scroll"
+                                        placeholder=""
+                                        ref={consoleRef}
+                                        sx={{
+                                            '&::-webkit-scrollbar': {
+                                                width: '8px',
+                                                borderRadius: '8px',
+                                                backgroundColor: 'rgba(0, 0, 0, 0)',
+                                            },
+                                            '&::-webkit-scrollbar-track': {
+                                                borderRadius: '8px',
+                                                width: '8px',
+                                            },
+                                            '&::-webkit-scrollbar-thumb': {
+                                                borderRadius: '8px',
+                                                backgroundColor: 'var(--bg-600)',
+                                            },
+                                        }}
+                                        value={shellOutput}
+                                        w="full"
+                                        onChange={(e) => e.preventDefault()}
+                                        onClick={(e) => e.preventDefault()}
+                                        onFocus={(e) => e.preventDefault()}
+                                    />
+                                </Center>
+                                {/* </Collapse> */}
+                            </Center>
                         </VStack>
                     </ModalBody>
 

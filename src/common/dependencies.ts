@@ -17,6 +17,7 @@ export interface PyPiPackage {
 export interface Dependency {
     name: string;
     packages: PyPiPackage[];
+    description?: string;
 }
 
 export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[] => {
@@ -32,6 +33,8 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: canCuda ? 2 * GB : 140 * MB,
                 },
             ],
+            description:
+                'PyTorch supports a limited number of .pth models, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).',
         },
         {
             name: 'NCNN',
@@ -43,6 +46,8 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     autoUpdate: true,
                 },
             ],
+            description:
+                'NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. NCNN uses .param/.bin model files. Models can be converted from PyTorch to NCNN.',
         },
         {
             name: 'ONNX',
@@ -68,6 +73,8 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: 500 * KB,
                 },
             ],
+            description:
+                'ONNX helps to convert between PyTorch and NCNN, and can also run .onnx models. Also fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
         },
     ];
 };
