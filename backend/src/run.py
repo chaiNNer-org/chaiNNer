@@ -367,8 +367,9 @@ async def pause(request: Request):
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
-        logger.info("No executor to pause")
-        return json({"message": "No executor to pause!"}, status=200)
+        message = "No executor to pause"
+        logger.warning(message)
+        return json({"message": message, "exception": message}, status=400)
 
     try:
         logger.info("Executor found. Attempting to pause...")
@@ -388,8 +389,9 @@ async def resume(request: Request):
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
-        logger.info("No executor to resume")
-        return json({"message": "No executor to resume!"}, status=200)
+        message = "No executor to resume"
+        logger.warning(message)
+        return json({"message": message, "exception": message}, status=400)
 
     try:
         logger.info("Executor found. Attempting to resume...")
@@ -409,8 +411,9 @@ async def kill(request: Request):
     ctx = AppContext.get(request.app)
 
     if not ctx.executor:
-        logger.info("No executor to kill")
-        return json({"message": "No executor to kill!"}, status=200)
+        message = "No executor to kill"
+        logger.warning(message)
+        return json({"message": message, "exception": message}, status=400)
 
     try:
         logger.info("Executor found. Attempting to kill...")
