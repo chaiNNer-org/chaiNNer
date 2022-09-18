@@ -208,7 +208,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         video_name: str,
         video_type: str,
         writer,
-        fps,
+        fps: float,
     ) -> None:
         h, w, _ = get_h_w_c(img)
         if writer["out"] is None and video_type != "none":
@@ -282,7 +282,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         # TODO: Open Video Buffer
         cap = cv2.VideoCapture(path)
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        fps = float(cap.get(cv2.CAP_PROP_FPS))
 
         writer = {"out": None}
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
