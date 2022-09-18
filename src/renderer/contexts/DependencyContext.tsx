@@ -245,7 +245,6 @@ const Package = memo(
                         {dep.packages.map((p) => (
                             <IndividualDep
                                 installed={!!pipList[p.packageName]}
-                                isRunningShell={isRunningShell}
                                 key={p.packageName}
                                 outdated={
                                     !!pipList[p.packageName] &&
