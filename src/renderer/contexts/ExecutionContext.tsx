@@ -46,6 +46,11 @@ export enum ExecutionStatus {
     PAUSED,
 }
 
+interface ExecutionStatusContextValue {
+    status: ExecutionStatus;
+    paused: boolean;
+}
+
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
@@ -54,6 +59,15 @@ interface ExecutionContextValue {
     isBackendKilled: boolean;
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
+    status: ExecutionStatus.READY,
+    paused: false,
+});
+
+export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
+    {} as ExecutionContextValue
+);
 
 const convertToUsableFormat = (
     nodes: readonly Node<NodeData>[],
@@ -95,8 +109,6 @@ const convertToUsableFormat = (
         (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
         (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
     });
-    // log.info('inputHandles', inputHandles);
-    // log.info('outputHandles', outputHandles);
 
     // Necessary to get around TS mutability warning
     const nodesCopy = [...nodes];
@@ -171,7 +183,6 @@ const convertToUsableFormat = (
         };
         if (nodeType === 'iterator') {
             result[id].children = [];
-            result[id].percent = data.percentComplete || 0;
         }
     });
 
@@ -232,10 +243,6 @@ const getExecutionErrorMessage = (
     return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
 };
 
-export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
-    {} as ExecutionContextValue
-);
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
@@ -269,17 +276,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     useEffect(() => {
-        // TODO: Actually fix this so it un-animates correctly
-        const id = setTimeout(() => {
-            if (status !== ExecutionStatus.RUNNING) {
-                unAnimate();
-            }
-        }, 1000);
-        return () => clearTimeout(id);
-    }, [status, unAnimate]);
-
-    useEffect(() => {
-        if (status === ExecutionStatus.RUNNING) {
+        if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
@@ -419,7 +416,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         previousStatus.current = status;
     }, [status, nodeChanges, edgeChanges]);
 
-    const run = async () => {
+    const runNodes = async () => {
         const allNodes = getNodes();
         const allEdges = getEdges();
 
@@ -477,7 +474,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             animate(nodes.map((n) => n.id));
 
             const data = convertToUsableFormat(nodes, edges, schemata);
-            const response = await backend.run({
+            await backend.run({
                 data,
                 isCpu,
                 isFp16,
@@ -486,15 +483,33 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 onnxGPU,
                 onnxExecutionProvider,
             });
-            if (response.exception) {
-                // no need to alert here, because the error has already been handled by the queue
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
-            }
+            // no need to alert here, because the error has already been handled by the queue
         } catch (err: unknown) {
             sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
+        } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
+        }
+    };
+
+    const resume = async () => {
+        try {
+            const response = await backend.resume();
+            if (response.exception) {
+                sendAlert(AlertType.ERROR, null, response.exception);
+                return;
+            }
+            setStatus(ExecutionStatus.RUNNING);
+        } catch (err) {
+            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+        }
+    };
+
+    const run = async () => {
+        if (status === ExecutionStatus.PAUSED) {
+            await resume();
+        } else {
+            await runNodes();
         }
     };
 
@@ -503,26 +518,23 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const response = await backend.pause();
             if (response.exception) {
                 sendAlert(AlertType.ERROR, null, response.exception);
+                return;
             }
+            setStatus(ExecutionStatus.PAUSED);
         } catch (err) {
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        setStatus(ExecutionStatus.PAUSED);
-        unAnimate();
     };
 
     const kill = async () => {
         try {
             const response = await backend.kill();
-            unAnimate();
             if (response.exception) {
                 sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        unAnimate();
-        setStatus(ExecutionStatus.READY);
     };
 
     useHotkeys(
@@ -579,6 +591,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [kill]
     );
 
+    const statusValue = useMemoObject<ExecutionStatusContextValue>({
+        status,
+        paused: status === ExecutionStatus.PAUSED,
+    });
+
     const value = useMemoObject<ExecutionContextValue>({
         run,
         pause,
@@ -588,5 +605,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setIsBackendKilled,
     });
 
-    return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
+    return (
+        <ExecutionContext.Provider value={value}>
+            <ExecutionStatusContext.Provider value={statusValue}>
+                {children}
+            </ExecutionStatusContext.Provider>
+        </ExecutionContext.Provider>
+    );
 });

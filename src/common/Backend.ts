@@ -107,17 +107,15 @@ export class Backend {
         return this.fetchJson('/run/individual', 'POST', data);
     }
 
-    /**
-     * Pauses the current execution
-     */
     pause(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
         return this.fetchJson('/pause', 'POST');
     }
 
-    /**
-     * Kills the current execution
-     */
-    async kill(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
+    resume(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
+        return this.fetchJson('/resume', 'POST');
+    }
+
+    kill(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
         return this.fetchJson('/kill', 'POST');
     }
 

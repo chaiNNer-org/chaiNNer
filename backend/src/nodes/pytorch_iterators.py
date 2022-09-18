@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import os
 
 from sanic.log import logger
@@ -97,8 +96,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
-            if context.executor.should_stop_running():
-                return
+            await context.progress.suspend()
 
             for name in sorted(files):
                 filepath = os.path.join(root, name)
@@ -107,40 +105,39 @@ class ModelFileIteratorNode(IteratorNodeBase):
                     just_model_files.append(filepath)
 
         file_len = len(just_model_files)
-        start_idx = math.ceil(float(context.percent) * file_len)
         errors = []
         for idx, filepath in enumerate(just_model_files):
-            if context.executor.should_stop_running():
-                return
-            if idx >= start_idx:
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": idx / file_len,
-                            "iteratorId": context.iterator_id,
-                            "running": child_nodes,
-                        },
-                    }
-                )
-                # Replace the input filepath with the filepath from the loop
-                context.nodes[model_path_node_id]["inputs"] = [filepath, directory, idx]
-                executor = context.create_iterator_executor()
-                try:
-                    await executor.run()
-                except Exception as e:
-                    logger.error(e)
-                    errors.append(str(e))
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": (idx + 1) / file_len,
-                            "iteratorId": context.iterator_id,
-                            "running": None,
-                        },
-                    }
-                )
+            await context.progress.suspend()
+
+            await context.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": idx / file_len,
+                        "iteratorId": context.iterator_id,
+                        "running": child_nodes,
+                    },
+                }
+            )
+            # Replace the input filepath with the filepath from the loop
+            context.nodes[model_path_node_id]["inputs"] = [filepath, directory, idx]
+            executor = context.create_iterator_executor()
+            try:
+                await executor.run()
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+            await context.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": (idx + 1) / file_len,
+                        "iteratorId": context.iterator_id,
+                        "running": None,
+                    },
+                }
+            )
+
         if len(errors) > 0:
             raise Exception(
                 # pylint: disable=consider-using-f-string
