@@ -474,7 +474,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             animate(nodes.map((n) => n.id));
 
             const data = convertToUsableFormat(nodes, edges, schemata);
-            await backend.run({
+            const response = await backend.run({
                 data,
                 isCpu,
                 isFp16,
@@ -483,7 +483,16 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 onnxGPU,
                 onnxExecutionProvider,
             });
-            // no need to alert here, because the error has already been handled by the queue
+            if (response.type === 'error') {
+                // no need to alert here, because the error has already been handled by the queue
+            }
+            if (response.type === 'already-running') {
+                sendAlert(
+                    AlertType.ERROR,
+                    null,
+                    `Cannot start because a previous executor is still running.`
+                );
+            }
         } catch (err: unknown) {
             sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
         } finally {
@@ -495,8 +504,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const resume = async () => {
         try {
             const response = await backend.resume();
-            if (response.exception) {
+            if (response.type === 'error') {
                 sendAlert(AlertType.ERROR, null, response.exception);
+                return;
+            }
+            if (response.type === 'no-executor') {
                 return;
             }
             setStatus(ExecutionStatus.RUNNING);
@@ -516,8 +528,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const pause = async () => {
         try {
             const response = await backend.pause();
-            if (response.exception) {
+            if (response.type === 'error') {
                 sendAlert(AlertType.ERROR, null, response.exception);
+                return;
+            }
+            if (response.type === 'no-executor') {
                 return;
             }
             setStatus(ExecutionStatus.PAUSED);
@@ -529,7 +544,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const kill = async () => {
         try {
             const response = await backend.kill();
-            if (response.exception) {
+            if (response.type === 'error') {
                 sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {

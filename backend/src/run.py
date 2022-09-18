@@ -18,8 +18,6 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from progress import Aborted
-
 from nodes.categories import categories, category_order
 
 # Remove broken QT env var
@@ -77,6 +75,13 @@ from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, UsableData, timed_supplier
+from progress import Aborted
+from response import (
+    errorResponse,
+    alreadyRunningResponse,
+    noExecutorResponse,
+    successResponse,
+)
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
 
@@ -184,7 +189,8 @@ async def run(request: Request):
 
     if ctx.executor:
         message = "Cannot run another executor while the first one is still running."
-        return json({"message": message, "exception": message}, status=500)
+        logger.warning(message)
+        return json(alreadyRunningResponse(message), status=500)
 
     try:
         # wait until all previews are done
@@ -224,7 +230,7 @@ async def run(request: Request):
         await ctx.queue.put(
             {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
         )
-        return json({"message": "Successfully ran nodes!"}, status=200)
+        return json(successResponse("Successfully ran nodes!"), status=200)
     except Exception as exception:
         logger.error(exception, exc_info=True)
         logger.error(traceback.format_exc())
@@ -242,7 +248,7 @@ async def run(request: Request):
             }
 
         await ctx.queue.put({"event": "execution-error", "data": error})
-        return json(error, status=500)
+        return json(errorResponse("Error running nodes!", exception), status=500)
 
 
 class RunIndividualRequest(TypedDict):
@@ -369,18 +375,15 @@ async def pause(request: Request):
     if not ctx.executor:
         message = "No executor to pause"
         logger.warning(message)
-        return json({"message": message, "exception": message}, status=400)
+        return json(noExecutorResponse(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to pause...")
         ctx.executor.pause()
-        return json({"message": "Successfully paused execution!"}, status=200)
+        return json(successResponse("Successfully paused execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(
-            {"message": "Error pausing execution!", "exception": str(exception)},
-            status=500,
-        )
+        return json(errorResponse("Error pausing execution!", exception), status=500)
 
 
 @app.route("/resume", methods=["POST"])
@@ -391,18 +394,15 @@ async def resume(request: Request):
     if not ctx.executor:
         message = "No executor to resume"
         logger.warning(message)
-        return json({"message": message, "exception": message}, status=400)
+        return json(noExecutorResponse(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to resume...")
         ctx.executor.resume()
-        return json({"message": "Successfully resumed execution!"}, status=200)
+        return json(successResponse("Successfully resumed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(
-            {"message": "Error pausing execution!", "exception": str(exception)},
-            status=500,
-        )
+        return json(errorResponse("Error resuming execution!", exception), status=500)
 
 
 @app.route("/kill", methods=["POST"])
@@ -412,19 +412,16 @@ async def kill(request: Request):
 
     if not ctx.executor:
         message = "No executor to kill"
-        logger.warning(message)
-        return json({"message": message, "exception": message}, status=400)
+        logger.warning("No executor to kill")
+        return json(noExecutorResponse(message), status=400)
 
     try:
         logger.info("Executor found. Attempting to kill...")
         ctx.executor.kill()
-        return json({"message": "Successfully killed execution!"}, status=200)
+        return json(successResponse("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(
-            {"message": "Error killing execution!", "exception": str(exception)},
-            status=500,
-        )
+        return json(errorResponse("Error killing execution!", exception), status=500)
 
 
 @app.route("/listgpus/ncnn", methods=["GET"])
