@@ -34,7 +34,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                 },
             ],
             description:
-                'PyTorch supports a limited number of .pth models, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).',
+                'PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).',
         },
         {
             name: 'NCNN',
@@ -47,7 +47,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                 },
             ],
             description:
-                'NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. NCNN uses .param/.bin model files. Models can be converted from PyTorch to NCNN.',
+                'NCNN uses .bin/.param models to upscale images. NCNN uses Vulkan for GPU acceleration, meaning it supports any modern GPU. Models can be converted from PyTorch to NCNN.',
         },
         {
             name: 'ONNX',
@@ -74,7 +74,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                 },
             ],
             description:
-                'ONNX helps to convert between PyTorch and NCNN, and can also run .onnx models. Also fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
+                'ONNX uses .onnx models to upscale images. It also helps to convert between PyTorch and NCNN. It is fastest when CUDA is supported. If TensorRT is installed on the system, it can also be configured to use that.',
         },
     ];
 };
