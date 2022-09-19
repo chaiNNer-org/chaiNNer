@@ -75,6 +75,13 @@ from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, UsableData, timed_supplier
+from progress import Aborted
+from response import (
+    errorResponse,
+    alreadyRunningResponse,
+    noExecutorResponse,
+    successResponse,
+)
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
 
@@ -137,11 +144,11 @@ async def nodes(_):
     # sort nodes in category order
     sorted_registry = sorted(
         registry.items(),
-        key=lambda x: category_order.index(NodeFactory.create_node(x[0]).category.name),
+        key=lambda x: category_order.index(NodeFactory.get_node(x[0]).category.name),
     )
     node_list = []
     for schema_id, _node_class in sorted_registry:
-        node_object = NodeFactory.create_node(schema_id)
+        node_object = NodeFactory.get_node(schema_id)
         node_dict = {
             "schemaId": schema_id,
             "name": node_object.name,
@@ -180,6 +187,11 @@ async def run(request: Request):
     """Runs the provided nodes"""
     ctx = AppContext.get(request.app)
 
+    if ctx.executor:
+        message = "Cannot run another executor while the first one is still running."
+        logger.warning(message)
+        return json(alreadyRunningResponse(message), status=500)
+
     try:
         # wait until all previews are done
         await runIndividualCounter.wait_zero()
@@ -188,45 +200,39 @@ async def run(request: Request):
         logger.info(full_data)
         nodes_list = full_data["data"]
 
-        if ctx.executor:
-            logger.info("Resuming existing executor...")
-            executor = ctx.executor
-            executor.set_nodes_list(nodes_list)
-            await executor.resume()
-        else:
-            logger.info("Running new executor...")
-            exec_opts = ExecutionOptions(
-                device="cpu" if full_data["isCpu"] else "cuda",
-                fp16=full_data["isFp16"],
-                pytorch_gpu_index=full_data["pytorchGPU"],
-                ncnn_gpu_index=full_data["ncnnGPU"],
-                onnx_gpu_index=full_data["onnxGPU"],
-                onnx_execution_provider=full_data["onnxExecutionProvider"],
-            )
-            set_execution_options(exec_opts)
-            logger.info(f"Using device: {exec_opts.device}")
-            executor = Executor(
-                nodes_list,
-                app.loop,
-                ctx.queue,
-                ctx.pool,
-                ctx.cache.copy(),
-            )
+        logger.info("Running new executor...")
+        exec_opts = ExecutionOptions(
+            device="cpu" if full_data["isCpu"] else "cuda",
+            fp16=full_data["isFp16"],
+            pytorch_gpu_index=full_data["pytorchGPU"],
+            ncnn_gpu_index=full_data["ncnnGPU"],
+            onnx_gpu_index=full_data["onnxGPU"],
+            onnx_execution_provider=full_data["onnxExecutionProvider"],
+        )
+        set_execution_options(exec_opts)
+        logger.info(f"Using device: {exec_opts.device}")
+        executor = Executor(
+            nodes_list,
+            app.loop,
+            ctx.queue,
+            ctx.pool,
+            ctx.cache.copy(),
+        )
+        try:
             ctx.executor = executor
             await executor.run()
-        if not executor.paused:
+        except Aborted:
+            pass
+        finally:
             ctx.executor = None
-        # if torch is not None:
-        #     torch.cuda.empty_cache()
-        gc.collect()
-        logger.info(f"Size of ctx: {sys.getsizeof(ctx)}")
+            gc.collect()
+
         await ctx.queue.put(
             {"event": "finish", "data": {"message": "Successfully ran nodes!"}}
         )
-        return json({"message": "Successfully ran nodes!"}, status=200)
+        return json(successResponse("Successfully ran nodes!"), status=200)
     except Exception as exception:
         logger.error(exception, exc_info=True)
-        ctx.executor = None
         logger.error(traceback.format_exc())
 
         error: ExecutionErrorData = {
@@ -242,7 +248,7 @@ async def run(request: Request):
             }
 
         await ctx.queue.put({"event": "execution-error", "data": error})
-        return json(error, status=500)
+        return json(errorResponse("Error running nodes!", exception), status=500)
 
 
 class RunIndividualRequest(TypedDict):
@@ -277,7 +283,7 @@ async def run_individual(request: Request):
         set_execution_options(exec_opts)
         logger.info(f"Using device: {exec_opts.device}")
         # Create node based on given category/name information
-        node_instance = NodeFactory.create_node(full_data["schemaId"])
+        node_instance = NodeFactory.get_node(full_data["schemaId"])
 
         # Enforce that all inputs match the expected input schema
         enforced_inputs = []
@@ -365,39 +371,57 @@ async def setup_queue(sanic_app: Sanic, _):
 async def pause(request: Request):
     """Pauses the current execution"""
     ctx = AppContext.get(request.app)
+
+    if not ctx.executor:
+        message = "No executor to pause"
+        logger.warning(message)
+        return json(noExecutorResponse(message), status=400)
+
     try:
-        if ctx.executor:
-            logger.info("Executor found. Attempting to pause...")
-            await ctx.executor.pause()
-            return json({"message": "Successfully paused execution!"}, status=200)
-        logger.info("No executor to pause")
-        return json({"message": "No executor to pause!"}, status=200)
+        logger.info("Executor found. Attempting to pause...")
+        ctx.executor.pause()
+        return json(successResponse("Successfully paused execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(
-            {"message": "Error pausing execution!", "exception": str(exception)},
-            status=500,
-        )
+        return json(errorResponse("Error pausing execution!", exception), status=500)
+
+
+@app.route("/resume", methods=["POST"])
+async def resume(request: Request):
+    """Pauses the current execution"""
+    ctx = AppContext.get(request.app)
+
+    if not ctx.executor:
+        message = "No executor to resume"
+        logger.warning(message)
+        return json(noExecutorResponse(message), status=400)
+
+    try:
+        logger.info("Executor found. Attempting to resume...")
+        ctx.executor.resume()
+        return json(successResponse("Successfully resumed execution!"), status=200)
+    except Exception as exception:
+        logger.log(2, exception, exc_info=True)
+        return json(errorResponse("Error resuming execution!", exception), status=500)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
     """Kills the current execution"""
     ctx = AppContext.get(request.app)
+
+    if not ctx.executor:
+        message = "No executor to kill"
+        logger.warning("No executor to kill")
+        return json(noExecutorResponse(message), status=400)
+
     try:
-        if ctx.executor:
-            logger.info("Executor found. Attempting to kill...")
-            await ctx.executor.kill()
-            ctx.executor = None
-            return json({"message": "Successfully killed execution!"}, status=200)
-        logger.info("No executor to kill")
-        return json({"message": "No executor to kill!"}, status=200)
+        logger.info("Executor found. Attempting to kill...")
+        ctx.executor.kill()
+        return json(successResponse("Successfully killed execution!"), status=200)
     except Exception as exception:
         logger.log(2, exception, exc_info=True)
-        return json(
-            {"message": "Error killing execution!", "exception": str(exception)},
-            status=500,
-        )
+        return json(errorResponse("Error killing execution!", exception), status=500)
 
 
 @app.route("/listgpus/ncnn", methods=["GET"])

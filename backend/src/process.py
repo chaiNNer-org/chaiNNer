@@ -10,11 +10,13 @@ import numpy as np
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 from sanic.log import logger
+from progress import ProgressToken
 from events import EventQueue, Event, InputsDict
 
 from nodes.node_base import NodeBase
 from nodes.node_factory import NodeFactory
 from nodes.utils.image_utils import get_h_w_c
+from progress import Aborted, ProgressController
 
 
 class CacheOptions(TypedDict):
@@ -30,7 +32,6 @@ class UsableData(TypedDict):
     child: bool
     children: List[str]
     nodeType: str
-    percent: float
     hasSideEffects: bool
     cacheOptions: CacheOptions
 
@@ -57,7 +58,6 @@ class ExecutionContext:
         cache: Dict[str, Any],
         iterator_id: str,
         executor: Executor,
-        percent: float,
     ):
         self.nodes: Dict[str, UsableData] = nodes
 
@@ -68,7 +68,7 @@ class ExecutionContext:
         self.cache: Dict[str, Any] = cache
         self.iterator_id: str = iterator_id
         self.executor: Executor = executor
-        self.percent: float = percent
+        self.progress: ProgressToken = executor.progress
 
     def create_iterator_executor(self) -> Executor:
         return Executor(
@@ -111,9 +111,7 @@ class Executor:
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
         self.cache_hit_state = {node["id"]: 0 for node in self.nodes.values()}
 
-        self.killed: bool = False
-        self.paused: bool = False
-        self.resumed: bool = False
+        self.progress = ProgressController() if not parent_executor else parent_executor.progress
 
         self.loop: asyncio.AbstractEventLoop = loop
         self.queue: EventQueue = queue
@@ -124,6 +122,8 @@ class Executor:
     async def process(self, node: UsableData) -> Any:
         try:
             return await self.__process(node)
+        except Aborted:
+            raise
         except NodeExecutionError:
             raise
         except Exception as e:
@@ -131,6 +131,7 @@ class Executor:
 
     async def __process(self, node: UsableData) -> Any:
         """Process a single node"""
+
         logger.debug(f"node: {node}")
         node_id = node["id"]
         logger.debug(f"Running node {node_id}")
@@ -159,8 +160,8 @@ class Executor:
 
         inputs = []
         for node_input in node["inputs"]:
-            if self.should_stop_running():
-                return None
+            await self.progress.suspend()
+
             # If input is a dict indicating another node, use that node's output value
             if isinstance(node_input, dict) and node_input.get("id", None):
                 # Get the next node by id
@@ -177,15 +178,13 @@ class Executor:
                 if next_input["cacheOptions"]["clearImmediately"]:
                     del self.output_cache[next_node_id]
                     gc.collect()
-                if self.should_stop_running():
-                    return None
+                await self.progress.suspend()
             # Otherwise, just use the given input (number, string, etc)
             else:
                 inputs.append(node_input)
-        if self.should_stop_running():
-            return None
+        await self.progress.suspend()
         # Create node based on given category/name information
-        node_instance = NodeFactory.create_node(node["schemaId"])
+        node_instance = NodeFactory.get_node(node["schemaId"])
 
         # Enforce that all inputs match the expected input schema
         enforced_inputs = []
@@ -224,7 +223,6 @@ class Executor:
                 self.output_cache,
                 node["id"],
                 self,
-                node["percent"] if self.resumed else 0,
             )
             output = await node_instance.run(
                 *enforced_inputs,
@@ -346,13 +344,11 @@ class Executor:
         return output_nodes
 
     async def process_nodes(self):
-        if self.killed:
-            return
+        await self.progress.suspend()
 
         # Run each of the output nodes through processing
         for output_node in self.get_output_nodes():
-            if self.killed:
-                break
+            await self.progress.suspend()
             await self.process(output_node)
 
         logger.debug(self.output_cache.keys())
@@ -364,43 +360,20 @@ class Executor:
             await task
 
     async def run(self):
-        """Run the executor"""
         logger.debug(f"Running executor {self.execution_id}")
         await self.process_nodes()
 
-    async def resume(self):
-        """Run the executor"""
+    def resume(self):
         logger.info(f"Resuming executor {self.execution_id}")
-        self.paused = False
-        self.resumed = True
-        await self.process_nodes()
+        self.progress.resume()
 
-    async def pause(self):
-        """Pause the executor"""
+    def pause(self):
         logger.info(f"Pausing executor {self.execution_id}")
-        self.paused = True
+        self.progress.pause()
 
-    async def kill(self):
-        """Kill the executor"""
+    def kill(self):
         logger.info(f"Killing executor {self.execution_id}")
-        self.killed = True
-
-    def is_killed(self):
-        """Return if the executor is killed"""
-        return self.killed
-
-    def is_paused(self):
-        """Return if the executor is paused"""
-        return self.paused
-
-    def should_stop_running(self):
-        """Return if the executor should stop running"""
-        return (
-            self.killed
-            or self.paused
-            or (self.parent_executor is not None and self.parent_executor.is_killed())
-            or (self.parent_executor is not None and self.parent_executor.is_paused())
-        )
+        self.progress.abort()
 
     def set_nodes_list(self, nodes: Dict[str, UsableData]):
         """Set the list of nodes to run"""

@@ -7,6 +7,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { parseSourceHandle } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
+import { ExecutionStatusContext } from '../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { shadeColor } from '../helpers/colorTools';
@@ -32,6 +33,7 @@ export const CustomEdge = memo(
             (c) => c.effectivelyDisabledNodes
         );
         const { useAnimateChain } = useContext(SettingsContext);
+        const { paused } = useContext(ExecutionStatusContext);
         const [animateChain] = useAnimateChain;
 
         const edgePath = useMemo(
@@ -79,6 +81,8 @@ export const CustomEdge = memo(
             setIsHovered(false);
         }, 7500);
 
+        const showRunning = animated && !paused;
+
         return (
             <g
                 className="edge-chain-group"
@@ -125,10 +129,10 @@ export const CustomEdge = memo(
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation:
-                            animated && animateChain
+                            showRunning && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: showRunning ? 1 : 0,
                     }}
                 />
                 <path
@@ -148,10 +152,10 @@ export const CustomEdge = memo(
                         transitionTimingFunction: 'ease-in-out',
                         cursor: 'pointer',
                         animation:
-                            animated && animateChain
+                            showRunning && animateChain
                                 ? 'dashdraw-chain 0.5s linear infinite'
                                 : 'none',
-                        opacity: animated ? 1 : 0,
+                        opacity: showRunning ? 1 : 0,
                     }}
                 />
                 <path

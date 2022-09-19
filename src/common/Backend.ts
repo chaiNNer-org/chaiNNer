@@ -2,8 +2,8 @@ import fetch from 'cross-fetch';
 import { Category, InputId, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
 
 export interface BackendSuccessResponse {
+    type: 'success';
     message: string;
-    exception?: never;
 }
 export interface BackendExceptionSource {
     nodeId: string;
@@ -16,10 +16,23 @@ export interface BackendExceptionSource {
     >;
 }
 export interface BackendExceptionResponse {
+    type: 'error';
     message: string;
     source?: BackendExceptionSource | null;
     exception: string;
 }
+export interface BackendNoExecutorResponse {
+    type: 'no-executor';
+    message: string;
+}
+export interface BackendAlreadyRunningResponse {
+    type: 'already-running';
+    message: string;
+}
+export type BackendExecutorActionResponse =
+    | BackendSuccessResponse
+    | BackendExceptionResponse
+    | BackendNoExecutorResponse;
 export interface BackendNodesResponse {
     nodes: NodeSchema[];
     categories: Category[];
@@ -96,7 +109,9 @@ export class Backend {
     /**
      * Runs the provided nodes
      */
-    run(data: BackendRunRequest): Promise<BackendSuccessResponse | BackendExceptionResponse> {
+    run(
+        data: BackendRunRequest
+    ): Promise<BackendSuccessResponse | BackendExceptionResponse | BackendAlreadyRunningResponse> {
         return this.fetchJson('/run', 'POST', data);
     }
 
@@ -107,17 +122,15 @@ export class Backend {
         return this.fetchJson('/run/individual', 'POST', data);
     }
 
-    /**
-     * Pauses the current execution
-     */
-    pause(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
+    pause(): Promise<BackendExecutorActionResponse> {
         return this.fetchJson('/pause', 'POST');
     }
 
-    /**
-     * Kills the current execution
-     */
-    async kill(): Promise<BackendSuccessResponse | BackendExceptionResponse> {
+    resume(): Promise<BackendExecutorActionResponse> {
+        return this.fetchJson('/resume', 'POST');
+    }
+
+    kill(): Promise<BackendExecutorActionResponse> {
         return this.fetchJson('/kill', 'POST');
     }
 
