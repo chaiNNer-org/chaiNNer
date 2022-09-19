@@ -9,6 +9,7 @@ import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeS
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
+import { NcnnModelOutput } from '../outputs/NcnnModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps } from '../outputs/props';
 import { PyTorchOutput } from '../outputs/PyTorchOutput';
@@ -24,6 +25,7 @@ const OutputComponents: Readonly<
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
     pytorch: PyTorchOutput,
+    ncnn: NcnnModelOutput,
     directory: GenericOutput,
     text: GenericOutput,
     generic: GenericOutput,
@@ -32,6 +34,7 @@ const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     image: true,
     'large-image': false,
     pytorch: false,
+    ncnn: false,
     directory: true,
     text: true,
     generic: true,

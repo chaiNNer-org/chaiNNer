@@ -52,7 +52,14 @@ export interface Input {
     readonly filetypes?: string[];
 }
 
-export type OutputKind = 'image' | 'large-image' | 'text' | 'directory' | 'pytorch' | 'generic';
+export type OutputKind =
+    | 'image'
+    | 'large-image'
+    | 'text'
+    | 'directory'
+    | 'pytorch'
+    | 'ncnn'
+    | 'generic';
 
 export interface Output {
     readonly id: OutputId;
