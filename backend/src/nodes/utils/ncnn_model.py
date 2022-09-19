@@ -2,6 +2,7 @@ import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
 from json import load as jload
+from ssl import SSLEOFError
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -604,17 +605,21 @@ class NcnnModel:
 class NcnnModelWrapper:
     def __init__(self, model: NcnnModel) -> None:
         self.model: NcnnModel = model
-        scale, pixelshuffle = self.get_scale()
+        scale, in_nc, out_nc, nf = self.get_broadcast_data()
         self.scale: int = scale
-        self.__pixelshuffle: int = pixelshuffle
-        nf, in_nc = self.get_nf_and_in_nc()
         self.nf = nf
         self.in_nc: int = in_nc
-        self.out_nc: int = self.get_out_nc()
+        self.out_nc: int = out_nc
 
-    def get_scale(self) -> Tuple[int, int]:
+    def get_broadcast_data(self) -> Tuple[int, int, int, int]:
         scale = 1
+        in_nc = 0
+        out_nc = 0
+        nf = 0
         pixel_shuffle = 1
+        found_first_conv = False
+        current_conv = None
+
         for i, layer in enumerate(self.model.layer_list):
             if layer.op_type == "Interp":
                 try:
@@ -627,48 +632,46 @@ class NcnnModelWrapper:
                     pass
             elif layer.op_type == "PixelShuffle":
                 scale *= layer.params[0].value  # type: ignore
-                pixel_shuffle *= layer.params[0].value  # type: ignore
+                pixel_shuffle *= int(layer.params[0].value)  # type: ignore
             elif layer.op_type in (
                 "Convolution",
                 "Convolution1D",
                 "ConvolutionDepthWise",
             ):
+                if found_first_conv is not True:
+                    nf, in_nc = self.get_nf_and_in_nc(layer)
+                    found_first_conv = True
+
                 try:
                     scale /= layer.params[3].value  # type: ignore
                 except KeyError:
                     pass
+                current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
                 try:
                     scale *= layer.params[3].value  # type: ignore
                 except KeyError:
                     pass
 
-        return int(scale), int(pixel_shuffle)  # type: ignore
+        out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
 
-    def get_nf_and_in_nc(self) -> Tuple[int, int]:
-        conv_layer = next(
-            l for l in self.model.layer_list if l.op_type == "Convolution"
-        )
-        num_filters = conv_layer.params[0].value
-        kernel_w = conv_layer.params[1].value
+        return int(scale), in_nc, out_nc, nf  # type: ignore
+
+    def get_nf_and_in_nc(self, layer: NcnnLayer) -> Tuple[int, int]:
+        nf = layer.params[0].value
+        kernel_w = layer.params[1].value
         try:
-            kernel_h = conv_layer.params[11].value
+            kernel_h = layer.params[11].value
         except KeyError:
             kernel_h = kernel_w
-        weight_data_size = conv_layer.params[6].value
+        weight_data_size = layer.params[6].value
 
         assert (
-            isinstance(num_filters, int)
+            isinstance(nf, int)
             and isinstance(kernel_w, int)
             and isinstance(kernel_h, int)
             and isinstance(weight_data_size, int)
         ), "Out nc, kernel width and height, and weight data size must all be ints"
-        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
+        in_nc = weight_data_size // nf // kernel_w // kernel_h
 
-        return num_filters, in_nc
-
-    def get_out_nc(self) -> int:
-        conv_layer = next(
-            l for l in self.model.layer_list[::-1] if l.op_type == "Convolution"
-        )
-        return conv_layer.params[0].value // self.__pixelshuffle**2  # type: ignore
+        return nf, in_nc
