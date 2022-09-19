@@ -14,6 +14,7 @@ interface NcnnModelData {
     inNc: number;
     outNc: number;
     scale: number;
+    nf: number;
 }
 
 const getColorMode = (channels: number) => {
@@ -44,7 +45,7 @@ export const NcnnModelOutput = memo(
                     setManualOutputType(
                         id,
                         outputId,
-                        new NamedExpression('PyTorchModel', [
+                        new NamedExpression('NcnnNetwork', [
                             new NamedExpressionField('scale', new NumericLiteralType(value.scale)),
                             new NamedExpressionField(
                                 'inputChannels',
@@ -54,6 +55,7 @@ export const NcnnModelOutput = memo(
                                 'outputChannels',
                                 new NumericLiteralType(value.outNc)
                             ),
+                            new NamedExpressionField('nf', new NumericLiteralType(value.nf)),
                         ])
                     );
                 } else {
@@ -94,6 +96,14 @@ export const NcnnModelOutput = memo(
                                     textColor={fontColor}
                                 >
                                     {getColorMode(value.inNc)}→{getColorMode(value.outNc)}
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.nf}nf
                                 </Tag>
                             </WrapItem>
                         </Wrap>

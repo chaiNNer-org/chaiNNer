@@ -39,6 +39,7 @@ struct NcnnNetwork {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
+    nf: int(1..),
 }
 
 struct OnnxFile;

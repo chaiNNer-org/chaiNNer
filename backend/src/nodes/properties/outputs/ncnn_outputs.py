@@ -23,4 +23,5 @@ class NcnnModelOutput(BaseOutput):
             "inNc": value.in_nc,
             "outNc": value.out_nc,
             "scale": value.scale,
+            "nf": value.nf,
         }

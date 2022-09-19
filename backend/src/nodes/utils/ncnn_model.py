@@ -607,16 +607,24 @@ class NcnnModelWrapper:
         scale, pixelshuffle = self.get_scale()
         self.scale: int = scale
         self.__pixelshuffle: int = pixelshuffle
-        self.in_nc: int = self.get_in_nc()
+        nf, in_nc = self.get_nf_and_in_nc()
+        self.nf = nf
+        self.in_nc: int = in_nc
         self.out_nc: int = self.get_out_nc()
-        logger.info((self.scale, self.in_nc, self.out_nc))
 
     def get_scale(self) -> Tuple[int, int]:
         scale = 1
         pixel_shuffle = 1
-        for layer in self.model.layer_list:
+        for i, layer in enumerate(self.model.layer_list):
             if layer.op_type == "Interp":
-                scale *= layer.params[1].value  # type: ignore
+                try:
+                    if (
+                        self.model.layer_list[i + 1].op_type != "BinaryOp"
+                        and self.model.layer_list[i + 1].params[0].value != 0
+                    ):
+                        scale *= layer.params[1].value  # type: ignore
+                except IndexError:
+                    pass
             elif layer.op_type == "PixelShuffle":
                 scale *= layer.params[0].value  # type: ignore
                 pixel_shuffle *= layer.params[0].value  # type: ignore
@@ -637,7 +645,7 @@ class NcnnModelWrapper:
 
         return int(scale), int(pixel_shuffle)  # type: ignore
 
-    def get_in_nc(self) -> int:
+    def get_nf_and_in_nc(self) -> Tuple[int, int]:
         conv_layer = next(
             l for l in self.model.layer_list if l.op_type == "Convolution"
         )
@@ -657,7 +665,7 @@ class NcnnModelWrapper:
         ), "Out nc, kernel width and height, and weight data size must all be ints"
         in_nc = weight_data_size // num_filters // kernel_w // kernel_h
 
-        return in_nc
+        return num_filters, in_nc
 
     def get_out_nc(self) -> int:
         conv_layer = next(
