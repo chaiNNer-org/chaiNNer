@@ -132,24 +132,22 @@ export interface FileOpenError {
     error: string;
 }
 
-export interface EdgeHandle {
+export interface JsonEdgeInput {
+    type: 'edge';
     id: string;
     index: number;
 }
-
-export interface CacheOptions {
-    readonly shouldCache: boolean;
-    readonly maxCacheHits: number;
+export interface JsonValueInput {
+    type: 'value';
+    value: InputValue | null;
 }
-export interface UsableData {
+export type JsonInput = JsonEdgeInput | JsonValueInput;
+export interface JsonNode {
     id: string;
     schemaId: SchemaId;
-    inputs: (InputValue | EdgeHandle | null)[];
-    child: boolean;
-    children?: string[];
+    inputs: JsonInput[];
     nodeType: string;
-    hasSideEffects: boolean;
-    cacheOptions: CacheOptions;
+    parent: string | null;
 }
 
 export interface WindowSize {

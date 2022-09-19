@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from sanic.log import logger
-from process import ExecutionContext
+from process import IteratorContext
 
 from .pytorch_nodes import LoadModelNode
 from .categories import PyTorchCategory
@@ -68,22 +68,10 @@ class ModelFileIteratorNode(IteratorNodeBase):
         ]
 
     # pylint: disable=invalid-overridden-method
-    async def run(self, directory: str, context: ExecutionContext) -> None:
+    async def run(self, directory: str, context: IteratorContext) -> None:
         logger.info(f"Iterating over models in directory: {directory}")
-        logger.info(context.nodes)
 
-        model_path_node_id = None
-        child_nodes: List[str] = []
-        for k, v in context.nodes.items():
-            if v["schemaId"] == PYTORCH_ITERATOR_NODE_ID:
-                model_path_node_id = v["id"]
-            if context.nodes[k]["child"]:
-                child_nodes.append(v["id"])
-            # Set this to false to actually allow processing to happen
-            context.nodes[k]["child"] = False
-        assert (
-            model_path_node_id is not None
-        ), "Unable to find model iterator helper node"
+        model_path_node_id = context.get_helper(PYTORCH_ITERATOR_NODE_ID).id
 
         supported_filetypes = [".pth"]
 
@@ -107,36 +95,13 @@ class ModelFileIteratorNode(IteratorNodeBase):
         file_len = len(just_model_files)
         errors = []
         for idx, filepath in enumerate(just_model_files):
-            await context.progress.suspend()
-
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": idx / file_len,
-                        "iteratorId": context.iterator_id,
-                        "running": child_nodes,
-                    },
-                }
-            )
             # Replace the input filepath with the filepath from the loop
-            context.nodes[model_path_node_id]["inputs"] = [filepath, directory, idx]
-            executor = context.create_iterator_executor()
+            context.inputs.set_values(model_path_node_id, [filepath, directory, idx])
             try:
-                await executor.run()
+                await context.run_iteration(idx, file_len)
             except Exception as e:
                 logger.error(e)
                 errors.append(str(e))
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": (idx + 1) / file_len,
-                        "iteratorId": context.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
 
         if len(errors) > 0:
             raise Exception(

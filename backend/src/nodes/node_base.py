@@ -1,16 +1,12 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Literal, Union
+from typing import Any, List, Literal
+
+from base_types import InputId, OutputId
 
 from .categories import Category
 
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
-
-
-def assign_implicit_ids(l: Union[List[BaseInput], List[BaseOutput]]):
-    for i, inout in enumerate(l):
-        if inout.id is None:
-            inout.id = i
 
 
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
@@ -20,8 +16,8 @@ class NodeBase(metaclass=ABCMeta):
     """Base class for a node"""
 
     def __init__(self):
-        self.inputs: List[BaseInput] = []
-        self.outputs: List[BaseOutput] = []
+        self.__inputs: List[BaseInput] = []
+        self.__outputs: List[BaseOutput] = []
         self.description: str = ""
 
         self.category: Category = Category(
@@ -35,20 +31,32 @@ class NodeBase(metaclass=ABCMeta):
         self.side_effects: bool = False
         self.deprecated: bool = False
 
+    @property
+    def inputs(self) -> List[BaseInput]:
+        return self.__inputs
+
+    @inputs.setter
+    def inputs(self, value: List[BaseInput]):
+        for i, input_value in enumerate(value):
+            if input_value.id == -1:
+                input_value.id = InputId(i)
+        self.__inputs = value
+
+    @property
+    def outputs(self) -> List[BaseOutput]:
+        return self.__outputs
+
+    @outputs.setter
+    def outputs(self, value: List[BaseOutput]):
+        for i, output_value in enumerate(value):
+            if output_value.id == -1:
+                output_value.id = OutputId(i)
+        self.__outputs = value
+
     @abstractmethod
     def run(self) -> Any:
         """Abstract method to run a node's logic"""
         return
-
-    def get_inputs(self, with_implicit_ids=False):
-        if with_implicit_ids:
-            assign_implicit_ids(self.inputs)
-        return self.inputs
-
-    def get_outputs(self, with_implicit_ids=False):
-        if with_implicit_ids:
-            assign_implicit_ids(self.outputs)
-        return self.outputs
 
 
 # pylint: disable=abstract-method
