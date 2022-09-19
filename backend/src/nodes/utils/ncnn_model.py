@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
+from torch import pixel_shuffle
 
 # Don't want not having onnx to crash this
 try:
@@ -399,26 +400,6 @@ class NcnnModel:
             layer_bytes,
         )
 
-    def get_model_in_nc(self) -> int:
-        conv_layer = next(l for l in self.layer_list if l.op_type == "Convolution")
-        num_filters = conv_layer.params[0].value
-        kernel_w = conv_layer.params[1].value
-        try:
-            kernel_h = conv_layer.params[11].value
-        except KeyError:
-            kernel_h = kernel_w
-        weight_data_size = conv_layer.params[6].value
-
-        assert (
-            isinstance(num_filters, int)
-            and isinstance(kernel_w, int)
-            and isinstance(kernel_h, int)
-            and isinstance(weight_data_size, int)
-        ), "Out nc, kernel width and height, and weight data size must all be ints"
-        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
-
-        return in_nc
-
     def add_layer(self, layer: NcnnLayer) -> None:
         self.layer_list.append(layer)
 
@@ -618,3 +599,68 @@ class NcnnModel:
         interp_model.weights_bin = b"".join(weight_bytes_list)
 
         return interp_model
+
+
+class NcnnModelWrapper:
+    def __init__(self, model: NcnnModel) -> None:
+        self.model: NcnnModel = model
+        scale, pixelshuffle = self.get_scale()
+        self.scale: int = scale
+        self.__pixelshuffle: int = pixelshuffle
+        self.in_nc: int = self.get_in_nc()
+        self.out_nc: int = self.get_out_nc()
+        logger.info((self.scale, self.in_nc, self.out_nc))
+
+    def get_scale(self) -> Tuple[int, int]:
+        scale = 1
+        pixel_shuffle = 1
+        for layer in self.model.layer_list:
+            if layer.op_type == "Interp":
+                scale *= layer.params[1].value  # type: ignore
+            elif layer.op_type == "PixelShuffle":
+                scale *= layer.params[0].value  # type: ignore
+                pixel_shuffle *= layer.params[0].value  # type: ignore
+            elif layer.op_type in (
+                "Convolution",
+                "Convolution1D",
+                "ConvolutionDepthWise",
+            ):
+                try:
+                    scale /= layer.params[3].value  # type: ignore
+                except KeyError:
+                    pass
+            elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
+                try:
+                    scale *= layer.params[3].value  # type: ignore
+                except KeyError:
+                    pass
+
+        return int(scale), int(pixel_shuffle)  # type: ignore
+
+    def get_in_nc(self) -> int:
+        conv_layer = next(
+            l for l in self.model.layer_list if l.op_type == "Convolution"
+        )
+        num_filters = conv_layer.params[0].value
+        kernel_w = conv_layer.params[1].value
+        try:
+            kernel_h = conv_layer.params[11].value
+        except KeyError:
+            kernel_h = kernel_w
+        weight_data_size = conv_layer.params[6].value
+
+        assert (
+            isinstance(num_filters, int)
+            and isinstance(kernel_w, int)
+            and isinstance(kernel_h, int)
+            and isinstance(weight_data_size, int)
+        ), "Out nc, kernel width and height, and weight data size must all be ints"
+        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
+
+        return in_nc
+
+    def get_out_nc(self) -> int:
+        conv_layer = next(
+            l for l in self.model.layer_list[::-1] if l.op_type == "Convolution"
+        )
+        return conv_layer.params[0].value // self.__pixelshuffle**2  # type: ignore

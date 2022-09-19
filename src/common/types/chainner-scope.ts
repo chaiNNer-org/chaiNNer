@@ -35,7 +35,11 @@ struct PyTorchModel {
 
 struct NcnnBinFile;
 struct NcnnParamFile;
-struct NcnnNetwork;
+struct NcnnNetwork {
+    scale: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
+}
 
 struct OnnxFile;
 struct OnnxModel;

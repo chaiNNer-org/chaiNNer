@@ -17,7 +17,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.ncnn_auto_split import ncnn_auto_split_process
-from .utils.ncnn_model import NcnnModel
+from .utils.ncnn_model import NcnnModel, NcnnModelWrapper
 from .utils.utils import get_h_w_c, convenient_upscale
 from .utils.exec_options import get_execution_options
 
@@ -57,15 +57,19 @@ class NcnnLoadModelNode(NodeBase):
         super().__init__()
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
-        self.outputs = [NcnnModelOutput(), TextOutput("Model Name")]
+        self.outputs = [
+            NcnnModelOutput(should_broadcast=False),
+            TextOutput("Model Name"),
+        ]
 
         self.category = NCNNCategory
         self.name = "Load Model"
         self.icon = "NCNN"
         self.sub = "Input & Output"
 
-    def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModel, str]:
-        model = NcnnModel.load_from_file(param_path, bin_path)
+    def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModelWrapper, str]:
+        logger.info("here")
+        model = NcnnModelWrapper(NcnnModel.load_from_file(param_path, bin_path))
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         return model, model_name
@@ -125,10 +129,12 @@ class NcnnUpscaleImageNode(NodeBase):
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(self, model: NcnnModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
+    def run(
+        self, model: NcnnModelWrapper, img: np.ndarray, tile_mode: int
+    ) -> np.ndarray:
         exec_options = get_execution_options()
 
-        model_c = model.get_model_in_nc()
+        model_c = model.in_nc
 
         net = ncnn.Net()
 
@@ -137,8 +143,8 @@ class NcnnUpscaleImageNode(NodeBase):
         net.set_vulkan_device(exec_options.ncnn_gpu_index)
 
         # Load model param and bin
-        net.load_param_mem(model.write_param())
-        net.load_model_mem(model.weights_bin)
+        net.load_param_mem(model.model.write_param())
+        net.load_model_mem(model.model.weights_bin)
 
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
@@ -149,8 +155,8 @@ class NcnnUpscaleImageNode(NodeBase):
             i = self.upscale(
                 i,
                 net,
-                model.layer_list[0].outputs[0],
-                model.layer_list[-1].outputs[0],
+                model.model.layer_list[0].outputs[0],
+                model.model.layer_list[-1].outputs[0],
                 tile_mode,
             )
             if ic == 3:
@@ -183,7 +189,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NcnnModelOutput(),
+            NcnnModelOutput(should_broadcast=False),
             NumberOutput("Amount A", "subtract(100, Input2)"),
             NumberOutput("Amount B", "Input2"),
         ]
@@ -193,7 +199,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.icon = "BsTornado"
         self.sub = "Utility"
 
-    def check_will_upscale(self, interp: NcnnModel):
+    def check_will_upscale(self, interp: NcnnModelWrapper):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
         result = NcnnUpscaleImageNode().run(interp, fake_img, 0)
 
@@ -202,15 +208,17 @@ class NcnnInterpolateModelsNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, model_a: NcnnModel, model_b: NcnnModel, amount: int
-    ) -> Tuple[NcnnModel, int, int]:
+        self, model_a: NcnnModelWrapper, model_b: NcnnModelWrapper, amount: int
+    ) -> Tuple[NcnnModelWrapper, int, int]:
         if amount == 0:
             return model_a, 100, 0
         elif amount == 100:
             return model_b, 0, 100
 
         f_amount = 1 - amount / 100
-        interp_model = model_a.interpolate(model_b, f_amount)
+        interp_model = NcnnModelWrapper(
+            model_a.model.interpolate(model_b.model, f_amount)
+        )
 
         if not self.check_will_upscale(interp_model):
             raise ValueError(
