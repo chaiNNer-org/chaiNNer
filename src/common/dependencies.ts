@@ -31,6 +31,17 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
                     sizeEstimate: canCuda ? 2 * GB : 140 * MB,
                 },
+                {
+                    packageName: 'torchvision',
+                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: 800 * KB,
+                },
+                {
+                    packageName: 'gfpgan',
+                    version: '1.3.8',
+                    sizeEstimate: 52 * KB,
+                },
             ],
         },
         {
