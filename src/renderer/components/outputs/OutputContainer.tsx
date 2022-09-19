@@ -84,10 +84,10 @@ export const OutputContainer = memo(
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-        }, [connectingFrom, definitionType, id, outputId]);
+        }, [connectingFrom, id, outputId]);
 
         let contents = children;
-        const [handleColor] = getTypeAccentColors(definitionType);
+        const [handleColor] = getTypeAccentColors(type || definitionType);
         const connectedColor = 'var(--connection-color)';
         if (hasHandle) {
             contents = (
@@ -159,7 +159,10 @@ export const OutputContainer = memo(
                                 mr={1}
                                 verticalAlign="middle"
                             >
-                                <TypeTags type={type} />
+                                <TypeTags
+                                    isOptional={false}
+                                    type={type}
+                                />
                             </Center>
                         )}
                         <Text
