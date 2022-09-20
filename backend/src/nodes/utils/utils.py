@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Callable, Tuple, Type
 import cv2
+import re
 
 import numpy as np
 from sanic.log import logger
@@ -28,6 +29,7 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("float32"): 1.0,
     np.dtype("float64"): 1.0,
 }
+NUMBERS = re.compile(r"(\d+)")
 
 
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
@@ -408,8 +410,8 @@ def convenient_upscale(
 
     return np.clip(output, 0, 1)
 
-def resize_to_side_conditional(w, h, target, side, condition):
 
+def resize_to_side_conditional(w, h, target, side, condition):
     def compare_conditions(a, b):
         if condition == "downscale":
             return a > b
@@ -454,3 +456,12 @@ def resize_to_side_conditional(w, h, target, side, condition):
         raise RuntimeError(f"Unknown side selection {side}")
 
     return w_new, h_new
+
+
+def numerical_sort(value: str):
+    """Key function to sort strings containing numbers by proper
+    numerical order."""
+
+    parts = NUMBERS.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts
