@@ -148,7 +148,6 @@ export interface UsableData {
     child: boolean;
     children?: string[];
     nodeType: string;
-    percent?: number;
     hasSideEffects: boolean;
     cacheOptions: CacheOptions;
 }

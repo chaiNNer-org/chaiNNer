@@ -110,8 +110,8 @@ class ImageUpscaleNode(NodeBase):
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(Input0.scale, Input1.width),
-                    height: multiply(Input0.scale, Input1.height),
+                    width: Input0.scale * Input1.width,
+                    height: Input0.scale * Input1.height,
                     channels: Input1.channels
                 }
                 """,
@@ -164,7 +164,7 @@ class ImageUpscaleNode(NodeBase):
                     f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
                 )
                 # Attempt to avoid using too much vram at once
-                if float(required_mem) > float(free_mem) * 0.75:
+                if float(required_mem) > float(free_mem) * 0.6:
                     split_estimation += 1
 
             t_out, depth = auto_split_process(
@@ -234,7 +234,7 @@ class InterpolateNode(NodeBase):
             ModelOutput(model_type="Input0 & Input1").with_never_reason(
                 "Models must be of the same type and have the same parameters to be interpolated."
             ),
-            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
 

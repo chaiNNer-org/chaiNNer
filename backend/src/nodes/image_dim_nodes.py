@@ -40,8 +40,8 @@ class ImResizeByFactorNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="max(1, int & round(multiply(Input0.width, divide(Input1, 100))))",
-                    height="max(1, int & round(multiply(Input0.height, divide(Input1, 100))))",
+                    width="max(1, int & round(Input0.width * Input1 / 100))",
+                    height="max(1, int & round(Input0.height * Input1 / 100))",
                     channels_as="Input0",
                 )
             )
@@ -89,14 +89,14 @@ class ImResizeToSide(NodeBase):
             ImageOutput(
                 image_type="""
                 let widthWidth = Input1;
-                let widthHeight = max(int & round(multiply(divide(Input1, Input0.height), Input0.width)), 1);
-                let widthShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.width)), 1);
-                let widthLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.width)), 1);
+                let widthHeight = max(int & round(Input1 / Input0.height * Input0.width), 1);
+                let widthShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.width), 1);
+                let widthLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.width), 1);
 
-                let heightWidth = max(int & round(multiply(divide(Input1, Input0.width), Input0.height)), 1);
+                let heightWidth = max(int & round(Input1 / Input0.width * Input0.height), 1);
                 let heightHeight = Input1;
-                let heightShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.height)), 1);
-                let heightLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.height)), 1);
+                let heightShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.height), 1);
+                let heightLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.height), 1);
 
                 let largerTargetWidth = max(Input0.width, Input1);
                 let largerTargetHeight = max(Input0.height, Input1);
@@ -230,7 +230,7 @@ class ImResizeToSide(NodeBase):
             elif side == "longer side":
                 w_new = max(round((target / max(h, w)) * w), 1)
                 h_new = max(round((target / max(h, w)) * h), 1)
-        
+
             else:
                 raise RuntimeError(f"Unknown side selection {side}")
 
@@ -367,8 +367,8 @@ class BorderCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input1, Input1)) & int(1..)",
-                    height="subtract(Input0.height, add(Input1, Input1)) & int(1..)",
+                    width="(Input0.width - Input1 + Input1) & int(1..)",
+                    height="(Input0.height - Input1 + Input1) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
@@ -408,8 +408,8 @@ class EdgeCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input2, Input3)) & int(1..)",
-                    height="subtract(Input0.height, add(Input1, Input4)) & int(1..)",
+                    width="(Input0.width - Input2 + Input3) & int(1..)",
+                    height="(Input0.height - Input1 + Input4) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(

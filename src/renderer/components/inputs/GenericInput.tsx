@@ -5,7 +5,7 @@ import { InputProps } from './props';
 
 type GenericInputProps = InputProps;
 
-export const GenericInput = memo(({ label, definitionType }: GenericInputProps) => {
+export const GenericInput = memo(({ label, definitionType, optional }: GenericInputProps) => {
     return (
         // These both need to have -1 margins to thin it out... I don't know why
         <Box
@@ -27,7 +27,10 @@ export const GenericInput = memo(({ label, definitionType }: GenericInputProps) 
                 h="2rem"
                 verticalAlign="middle"
             >
-                <TypeTags type={definitionType} />
+                <TypeTags
+                    isOptional={optional}
+                    type={definitionType}
+                />
             </Center>
         </Box>
     );

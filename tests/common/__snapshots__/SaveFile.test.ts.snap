@@ -2378,6 +2378,138 @@ Object {
 }
 `;
 
+exports[`Read save file pass-through.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "3674d502-1d74-464c-ab57-89e7f2102a41",
+      "source": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+      "sourceHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+      "target": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+      "targetHandle": "4e60586a-6341-448f-a6b0-b88d61a2c53f-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "805d22e1-cb42-4ee3-aef6-146537b7730c",
+      "source": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+      "sourceHandle": "b002768b-9e7d-4498-92e8-3e8445a8f2d8-1",
+      "target": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+      "targetHandle": "4e60586a-6341-448f-a6b0-b88d61a2c53f-1",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "990e5119-03a0-4ce7-8229-02a7bb3efbf9",
+      "source": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+      "sourceHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+      "target": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+      "targetHandle": "e8ae0225-aa99-4d54-856b-c7488ca77dd0-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "e8214640-0ebc-40d4-80dc-35a014c9965d",
+      "source": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+      "sourceHandle": "b002768b-9e7d-4498-92e8-3e8445a8f2d8-0",
+      "target": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+      "targetHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+        "inputData": Object {},
+        "schemaId": "chainner:utility:pass_through",
+      },
+      "height": 176,
+      "id": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+      "position": Object {
+        "x": 341.7511423939119,
+        "y": 253.85412981498177,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+        "inputData": Object {
+          "3": "kjasdhaskdjhasd",
+          "4": "png",
+        },
+        "schemaId": "chainner:image:save",
+      },
+      "height": 422,
+      "id": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+      "position": Object {
+        "x": 649.8632689662784,
+        "y": 406.7388401632344,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 265,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+        "inputData": Object {
+          "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\face.png",
+        },
+        "schemaId": "chainner:image:load",
+      },
+      "height": 488,
+      "id": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+      "position": Object {
+        "x": 36,
+        "y": 166,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 257,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+        "inputData": Object {},
+        "schemaId": "chainner:image:preview",
+      },
+      "height": 118,
+      "id": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+      "position": Object {
+        "x": 643.747979314531,
+        "y": 247.93391927096337,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 267,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": 0,
+    "y": 0,
+    "zoom": 1,
+  },
+}
+`;
+
 exports[`Read save file pytorch.chn 1`] = `
 Object {
   "edges": Array [
@@ -5385,6 +5517,142 @@ Object {
         "type": "regularNode",
         "width": 241,
         "zIndex": 70,
+      },
+    ],
+    "viewport": Object {
+      "x": 0,
+      "y": 0,
+      "zoom": 1,
+    },
+  },
+  "timestamp": "",
+  "version": "",
+}
+`;
+
+exports[`Write save file pass-through.chn 1`] = `
+Object {
+  "checksum": "280bd59efd018bed5a456d8245f9c2ff",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "3674d502-1d74-464c-ab57-89e7f2102a41",
+        "source": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+        "sourceHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+        "target": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+        "targetHandle": "4e60586a-6341-448f-a6b0-b88d61a2c53f-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "805d22e1-cb42-4ee3-aef6-146537b7730c",
+        "source": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+        "sourceHandle": "b002768b-9e7d-4498-92e8-3e8445a8f2d8-1",
+        "target": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+        "targetHandle": "4e60586a-6341-448f-a6b0-b88d61a2c53f-1",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "990e5119-03a0-4ce7-8229-02a7bb3efbf9",
+        "source": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+        "sourceHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+        "target": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+        "targetHandle": "e8ae0225-aa99-4d54-856b-c7488ca77dd0-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "e8214640-0ebc-40d4-80dc-35a014c9965d",
+        "source": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+        "sourceHandle": "b002768b-9e7d-4498-92e8-3e8445a8f2d8-0",
+        "target": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+        "targetHandle": "0a30743c-0fef-48bf-9b3d-f30d9028136d-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+          "inputData": Object {},
+          "schemaId": "chainner:utility:pass_through",
+        },
+        "height": 176,
+        "id": "0a30743c-0fef-48bf-9b3d-f30d9028136d",
+        "position": Object {
+          "x": 341.7511423939119,
+          "y": 253.85412981498177,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+          "inputData": Object {
+            "3": "kjasdhaskdjhasd",
+            "4": "png",
+          },
+          "schemaId": "chainner:image:save",
+        },
+        "height": 422,
+        "id": "4e60586a-6341-448f-a6b0-b88d61a2c53f",
+        "position": Object {
+          "x": 649.8632689662784,
+          "y": 406.7388401632344,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 265,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+          "inputData": Object {
+            "0": "C:\\\\Users\\\\micha\\\\Desktop\\\\face.png",
+          },
+          "schemaId": "chainner:image:load",
+        },
+        "height": 488,
+        "id": "b002768b-9e7d-4498-92e8-3e8445a8f2d8",
+        "position": Object {
+          "x": 36,
+          "y": 166,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 257,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+          "inputData": Object {},
+          "schemaId": "chainner:image:preview",
+        },
+        "height": 118,
+        "id": "e8ae0225-aa99-4d54-856b-c7488ca77dd0",
+        "position": Object {
+          "x": 643.747979314531,
+          "y": 247.93391927096337,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 267,
+        "zIndex": 50,
       },
     ],
     "viewport": Object {

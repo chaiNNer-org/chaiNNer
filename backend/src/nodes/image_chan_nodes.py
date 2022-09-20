@@ -151,11 +151,11 @@ class ChannelMergeRGBANode(NodeBase):
                 image_type=expression.Image(
                     size_as="Input0",
                     channels="""
-                    match add(
-                        Input0.channels,
-                        match Input1 { Image as i => i.channels, _ => 0 },
-                        match Input2 { Image as i => i.channels, _ => 0 },
-                        match Input3 { Image as i => i.channels, _ => 0 }
+                    match (
+                        Input0.channels
+                        + match Input1 { Image as i => i.channels, _ => 0 }
+                        + match Input2 { Image as i => i.channels, _ => 0 }
+                        + match Input3 { Image as i => i.channels, _ => 0 }
                     ) {
                         1 => 1,
                         2 | 3 => 3,
@@ -338,10 +338,10 @@ class FillAlphaNode(NodeBase):
             img = fill_alpha_fragment_blur(img)
 
             convert_to_binary_alpha(img)
-            fill_alpha_edge_extend(img, 8)
+            img = fill_alpha_edge_extend(img, 8)
         elif method == AlphaFillMethod.EXTEND_COLOR:
             convert_to_binary_alpha(img)
-            fill_alpha_edge_extend(img, 40)
+            img = fill_alpha_edge_extend(img, 40)
         else:
             assert False, f"Invalid alpha fill method {type(method)} {method}"
 

@@ -58,7 +58,10 @@ export const GenericOutput = memo(
                         h="2rem"
                         verticalAlign="middle"
                     >
-                        <TypeTags type={type} />
+                        <TypeTags
+                            isOptional={false}
+                            type={type}
+                        />
                     </Center>
                 )}
                 <Text

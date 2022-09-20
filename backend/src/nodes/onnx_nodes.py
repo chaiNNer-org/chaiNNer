@@ -164,7 +164,7 @@ class OnnxInterpolateModelsNode(NodeBase):
         ]
         self.outputs = [
             OnnxModelOutput(),
-            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
 

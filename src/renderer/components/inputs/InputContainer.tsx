@@ -57,7 +57,7 @@ export const InputContainer = memo(
         optional,
         generic,
     }: React.PropsWithChildren<InputContainerProps>) => {
-        const { isValidConnection, edgeChanges, useConnectingFrom } =
+        const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
@@ -100,7 +100,9 @@ export const InputContainer = memo(
                     if (!parentDef) {
                         return defaultColor;
                     }
-                    const parentType = parentDef.outputDefaults.get(parentOutputId);
+                    const parentType =
+                        typeState.functions.get(parentNode.id)?.outputs.get(parentOutputId) ??
+                        parentDef.outputDefaults.get(parentOutputId);
                     if (!parentType) {
                         return defaultColor;
                     }
@@ -109,7 +111,7 @@ export const InputContainer = memo(
                 return defaultColor;
             }
             return null;
-        }, [connectedEdge, functionDefinitions, getNode]);
+        }, [connectedEdge, functionDefinitions, typeState, getNode]);
 
         // A conic gradient that uses all handle colors to give an even distribution of colors
         const handleColorString = handleColors
