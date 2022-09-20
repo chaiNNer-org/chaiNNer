@@ -175,8 +175,7 @@ const Package = memo(
                                             size="sm"
                                             onClick={onUpdate}
                                         >
-                                            Update to{' '}
-                                            {outdatedPackages.map((p) => p.version).join('/')} (
+                                            Update to (
                                             {formatSizeEstimate(outdatedPackages)})
                                         </Button>
                                     )}
