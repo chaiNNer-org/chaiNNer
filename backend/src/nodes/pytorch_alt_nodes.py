@@ -158,13 +158,10 @@ class FaceUpscaleNode(NodeBase):
                 raise ValueError(f"Unknown arch {arch}.")
 
             with torch.no_grad():
-                download_path = (
-                    os.path.join(
-                        user_data_dir(roaming=True),
-                        "chaiNNer/python",
-                        "gfpgan/weights",
-                    ),
-                )
+                appdata_path = user_data_dir(roaming=True)
+                path_str = "chaiNNer/python/gfpgan/weights"
+                download_path = os.path.join(appdata_path, path_str)
+
                 # initialize face helper
                 face_helper = FaceRestoreHelper(
                     upscale,
