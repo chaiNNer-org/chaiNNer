@@ -13,7 +13,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_available_image_formats, normalize
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, numerical_sort
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -90,12 +90,13 @@ class ImageFileIteratorNode(IteratorNodeBase):
             )
 
         just_image_files: List[str] = []
-        for root, _dirs, files in os.walk(
+        for root, dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
             await context.progress.suspend()
 
-            for name in sorted(files):
+            dirs.sort(key=numerical_sort)
+            for name in sorted(files, key=numerical_sort):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
