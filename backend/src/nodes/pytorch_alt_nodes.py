@@ -36,7 +36,16 @@ class FaceUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales & Restores a face in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN and RestoreFormer."
         self.inputs = [
-            FaceUpscaleDropdown(),
+            ModelInput(
+                "Face SR Model",
+                input_type=expression.PyTorchModel(
+                    modelType=[
+                        expression.literal(
+                            "GFPGANv1.2 | GFPGANv1.3 | GFPGANv1.4 | RestoreFormer"
+                        )
+                    ]
+                ),
+            ),
             ModelInput("Background SR Model").make_optional(),
             ImageInput(),
             TileModeDropdown(label="Background SR Tile Mode"),
