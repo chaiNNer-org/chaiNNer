@@ -33,7 +33,7 @@ class FaceUpscaleNode(NodeBase):
         self.inputs = [
             ModelInput(
                 "Face SR Model",
-                input_type='PyTorchModel { modelType: "GFPGAN" | "RestoreFormer" }',
+                input_type="PyTorchModel { modelType: PyTorchFaceModelTypes }",
             ),
             ImageInput(),
             ImageInput("Upscaled Background").make_optional(),
@@ -43,8 +43,8 @@ class FaceUpscaleNode(NodeBase):
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(Input0.scale, Input1.width),
-                    height: multiply(Input0.scale, Input1.height),
+                    width: Input0.scale * Input1.width,
+                    height: Input0.scale * Input1.height,
                     channels: 3
                 }
                 """,
