@@ -19,7 +19,9 @@ import {
     ModalHeader,
     ModalOverlay,
     Progress,
+    Spacer,
     Spinner,
+    Tag,
     Text,
     Textarea,
     Tooltip,
@@ -74,35 +76,44 @@ const formatBytes = (bytes: number): string => {
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
-const IndividualDep = memo(
-    ({ pkg, installed, outdated }: { pkg: PyPiPackage; installed: boolean; outdated: boolean }) => {
+const FeaturePackage = memo(
+    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion?: string }) => {
         let color = 'red.500';
-        if (installed) {
+        let tagText = 'Missing';
+        let versionString = pkg.version;
+        if (installedVersion) {
+            const outdated = checkSemverGt(pkg.version, installedVersion);
             if (outdated) {
                 color = 'yellow.500';
+                tagText = 'Outdated';
+                versionString = `${installedVersion} → ${pkg.version}`;
             } else {
                 color = 'inherit';
+                tagText = '';
             }
         }
         return (
-            <Flex
+            <HStack
                 align="center"
                 key={pkg.packageName}
                 w="full"
             >
                 <Text
                     color={color}
-                    flex="1"
                     textAlign="left"
+                    width="fit-content"
                 >
-                    {`${pkg.packageName} (${pkg.version || 'not installed'})`}
+                    {pkg.packageName}
                 </Text>
-            </Flex>
+                {!!tagText && <Tag color={color}>{tagText}</Tag>}
+                <Tag>{versionString}</Tag>
+                <Spacer />
+            </HStack>
         );
     }
 );
 
-const Package = memo(
+const Feature = memo(
     ({
         dep,
         pipList,
@@ -175,8 +186,7 @@ const Package = memo(
                                             size="sm"
                                             onClick={onUpdate}
                                         >
-                                            Update to (
-                                            {formatSizeEstimate(outdatedPackages)})
+                                            Update ({formatSizeEstimate(outdatedPackages)})
                                         </Button>
                                     )}
 
@@ -242,13 +252,9 @@ const Package = memo(
                         w="full"
                     >
                         {dep.packages.map((p) => (
-                            <IndividualDep
-                                installed={!!pipList[p.packageName]}
+                            <FeaturePackage
+                                installedVersion={pipList[p.packageName]}
                                 key={p.packageName}
-                                outdated={
-                                    !!pipList[p.packageName] &&
-                                    checkSemverGt(p.version, pipList[p.packageName]!)
-                                }
                                 pkg={p}
                             />
                         ))}
@@ -294,10 +300,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         {
             supplier: async (): Promise<boolean> => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                if (nvidiaGpu) {
-                    return true;
-                }
-                return false;
+                return !!nvidiaGpu;
             },
             successEffect: setHasNvidia,
         },
@@ -468,7 +471,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         };
 
                                         return (
-                                            <Package
+                                            <Feature
                                                 dep={dep}
                                                 isRunningShell={isRunningShell}
                                                 key={dep.name}
