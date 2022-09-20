@@ -141,9 +141,9 @@ class FaceUpscaleNode(NodeBase):
 
                 if background_model is not None:
                     # upsample the background
-                    background_upscale = ImageUpscaleNode().run(
-                        background_model, img, tile_mode
-                    )
+                    background_upscale = (
+                        ImageUpscaleNode().run(background_model, img, tile_mode) * 255
+                    ).astype(np.uint8)
 
                     face_helper.get_inverse_affine(None)
                     # paste each restored face to the input image
@@ -155,11 +155,8 @@ class FaceUpscaleNode(NodeBase):
                         ),
                     )
                 else:
-                    restored_img = face_helper.paste_faces_to_input_image(
-                        upsample_img=cv2.resize(
-                            img, (upsample_h, upsample_w), interpolation=cv2.INTER_AREA
-                        ),
-                    )
+                    face_helper.get_inverse_affine(None)
+                    restored_img = face_helper.paste_faces_to_input_image()
                 del face_helper
                 torch.cuda.empty_cache()
 
