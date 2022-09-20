@@ -15,6 +15,7 @@ import {
     multiply,
     negate,
     pow,
+    reciprocal,
     round,
     sin,
     subtract,
@@ -40,14 +41,9 @@ builder.add(new VariableDefinition('uint', new IntIntervalType(0, Infinity)));
 // builtin functions
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { unary, binary, varArgs } = BuiltinFunctionDefinition;
-builder.add(varArgs('add', add, NumberType.instance));
-builder.add(binary('subtract', subtract, NumberType.instance, NumberType.instance));
-builder.add(varArgs('multiply', multiply, NumberType.instance));
-builder.add(binary('divide', divide, NumberType.instance, NumberType.instance));
 builder.add(varArgs('min', minimum, NumberType.instance));
 builder.add(varArgs('max', maximum, NumberType.instance));
 builder.add(varArgs('abs', abs, NumberType.instance));
-builder.add(unary('negate', negate, NumberType.instance));
 builder.add(unary('round', round, NumberType.instance));
 builder.add(unary('floor', floor, NumberType.instance));
 builder.add(unary('ceil', ceil, NumberType.instance));
@@ -63,6 +59,14 @@ builder.add(binary('pow', pow, NumberType.instance, NumberType.instance));
 
 builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));
+
+// function for syntax desugaring
+builder.add(unary('ops::neg', negate, NumberType.instance));
+builder.add(varArgs('ops::add', add, NumberType.instance));
+builder.add(binary('ops::sub', subtract, NumberType.instance, NumberType.instance));
+builder.add(varArgs('ops::mul', multiply, NumberType.instance));
+builder.add(binary('ops::div', divide, NumberType.instance, NumberType.instance));
+builder.add(varArgs('ops::rec', reciprocal, NumberType.instance));
 
 /**
  * The global scope.

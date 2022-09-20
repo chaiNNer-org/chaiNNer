@@ -106,11 +106,12 @@ const getMultiple = <
 interface Token {
     getText(): string;
     toString(): string;
+    getPayload(): antlr4.CommonToken;
 }
 
 const getOptionalToken = <
     T extends antlr4.ParserRuleContext,
-    K extends keyof T & Capitalize<keyof T & string>
+    K extends keyof T & Capitalize<keyof T & string> & string
 >(
     context: T,
     key: K
@@ -130,7 +131,7 @@ const getOptionalToken = <
 };
 const getRequiredToken = <
     T extends antlr4.ParserRuleContext,
-    K extends keyof T & Capitalize<keyof T & string>
+    K extends keyof T & Capitalize<keyof T & string> & string
 >(
     context: T,
     key: K
@@ -146,7 +147,7 @@ const getRequiredToken = <
 };
 const getMultipleTokens = <
     T extends antlr4.ParserRuleContext,
-    K extends keyof T & Capitalize<keyof T & string>
+    K extends keyof T & Capitalize<keyof T & string> & string
 >(
     context: T,
     key: K
@@ -159,6 +160,26 @@ const getMultipleTokens = <
             `Expected there to be multiple ${key} tokens, but found a single token instead.`
         );
     }
+    return result;
+};
+
+interface OperatorToken<T> {
+    type: T;
+    token: Token;
+}
+const getOperatorsInOrder = <
+    T extends antlr4.ParserRuleContext,
+    K extends keyof T & Capitalize<keyof T & string> & string
+>(
+    context: T,
+    keys: K[]
+): OperatorToken<K>[] => {
+    type ExtendedToken = OperatorToken<K> & { start: number };
+    const result: ExtendedToken[] = keys.flatMap((k) => {
+        const tokens = getMultipleTokens(context, k);
+        return tokens.map((t) => ({ type: k, token: t, start: t.getPayload().start }));
+    });
+    result.sort((a, b) => a.start - b.start);
     return result;
 };
 
@@ -231,7 +252,9 @@ class AstConverter {
             .join('::');
     }
 
-    toExpression(context: Parameters<AstConverter['toExpressionWithoutSource']>[0]): Expression {
+    toExpression = (
+        context: Parameters<AstConverter['toExpressionWithoutSource']>[0]
+    ): Expression => {
         const expression = this.toExpressionWithoutSource(context);
         // can't add source info to types
         if (expression.underlying !== 'expression') return expression;
@@ -240,7 +263,7 @@ class AstConverter {
 
         expression.source = this.getSource(context);
         return expression;
-    }
+    };
 
     private toExpressionWithoutSource(
         context:
@@ -248,6 +271,9 @@ class AstConverter {
             | Contexts['ExpressionContext']
             | Contexts['UnionExpressionContext']
             | Contexts['IntersectionExpressionContext']
+            | Contexts['AdditiveExpressionContext']
+            | Contexts['MultiplicativeExpressionContext']
+            | Contexts['NegateExpressionContext']
             | Contexts['FieldAccessExpressionContext']
             | Contexts['PrimaryExpressionContext']
             | Contexts['FunctionCallContext']
@@ -259,9 +285,7 @@ class AstConverter {
             context instanceof NaviParser.ExpressionDocumentContext ||
             context instanceof NaviParser.ScopeExpressionContext
         ) {
-            const definitions = getMultiple(context, 'definition').flatMap((d) =>
-                this.toDefinitions(d)
-            );
+            const definitions = getMultiple(context, 'definition').flatMap(this.toDefinitions);
             const expression = this.toExpression(getRequired(context, 'expression'));
             if (definitions.length === 0) return expression;
             return new ScopeExpression(definitions, expression);
@@ -270,18 +294,49 @@ class AstConverter {
             return this.toExpression(getRequired(context, 'unionExpression'));
         }
         if (context instanceof NaviParser.UnionExpressionContext) {
-            const items = getMultiple(context, 'intersectionExpression').map((e) =>
-                this.toExpression(e)
-            );
+            const items = getMultiple(context, 'intersectionExpression').map(this.toExpression);
             if (items.length === 1) return items[0];
             return new UnionExpression(items);
         }
         if (context instanceof NaviParser.IntersectionExpressionContext) {
-            const items = getMultiple(context, 'fieldAccessExpression').map((e) =>
-                this.toExpression(e)
-            );
+            const items = getMultiple(context, 'additiveExpression').map(this.toExpression);
             if (items.length === 1) return items[0];
             return new IntersectionExpression(items);
+        }
+        if (context instanceof NaviParser.AdditiveExpressionContext) {
+            const exprs = getMultiple(context, 'multiplicativeExpression').map(this.toExpression);
+            if (exprs.length === 1) return exprs[0];
+            const operators = getOperatorsInOrder(context, ['OpMinus', 'OpPlus']);
+            return new FunctionCallExpression(
+                'ops::add',
+                exprs.map((e, i) => {
+                    const op = operators[i - 1]?.type;
+                    if (op === 'OpMinus') {
+                        return new FunctionCallExpression('ops::neg', [e]);
+                    }
+                    return e;
+                })
+            );
+        }
+        if (context instanceof NaviParser.MultiplicativeExpressionContext) {
+            const exprs = getMultiple(context, 'negateExpression').map(this.toExpression);
+            if (exprs.length === 1) return exprs[0];
+            const operators = getOperatorsInOrder(context, ['OpDiv', 'OpMult']);
+            return new FunctionCallExpression(
+                'ops::mul',
+                exprs.map((e, i) => {
+                    const op = operators[i - 1]?.type;
+                    if (op === 'OpDiv') {
+                        return new FunctionCallExpression('ops::rec', [e]);
+                    }
+                    return e;
+                })
+            );
+        }
+        if (context instanceof NaviParser.NegateExpressionContext) {
+            const expr = this.toExpression(getRequired(context, 'fieldAccessExpression'));
+            if (!getOptionalToken(context, 'OpMinus')) return expr;
+            return new FunctionCallExpression('ops::neg', [expr]);
         }
         if (context instanceof NaviParser.FieldAccessExpressionContext) {
             const ofExpression = this.toExpression(getRequired(context, 'primaryExpression'));
@@ -358,16 +413,16 @@ class AstConverter {
         return assertNever(context);
     }
 
-    toDefinitions(
+    toDefinitions = (
         context: Parameters<AstConverter['toDefinitionsWithoutSource']>[0]
-    ): Definition[] {
+    ): Definition[] => {
         const definitions = this.toDefinitionsWithoutSource(context);
         const source = this.getSource(context);
         for (const d of definitions) {
             d.source ??= source;
         }
         return definitions;
-    }
+    };
 
     private toDefinitionsWithoutSource(
         context:
@@ -379,7 +434,7 @@ class AstConverter {
             | Contexts['EnumDefinitionContext']
     ): Definition[] {
         if (context instanceof NaviParser.DefinitionDocumentContext) {
-            return getMultiple(context, 'definition').flatMap((d) => this.toDefinitions(d));
+            return getMultiple(context, 'definition').flatMap(this.toDefinitions);
         }
         if (context instanceof NaviParser.DefinitionContext) {
             const rule =

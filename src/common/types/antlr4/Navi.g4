@@ -41,8 +41,18 @@ scopeExpression: '{' definition* expression '}';
 
 fieldAccessExpression: primaryExpression ('.' Identifier)*;
 
+negateExpression: OpMinus? fieldAccessExpression;
+
+multiplicativeExpression:
+	negateExpression ((OpMult | OpDiv) negateExpression)*;
+
+additiveExpression:
+	multiplicativeExpression (
+		(OpMinus | OpPlus) multiplicativeExpression
+	)*;
+
 intersectionExpression:
-	fieldAccessExpression ('&' fieldAccessExpression)*;
+	additiveExpression ('&' additiveExpression)*;
 
 unionExpression:
 	intersectionExpression ('|' intersectionExpression)*;
@@ -83,6 +93,13 @@ fragment HEX: [0-9a-fA-F];
 
 // identifier
 Identifier: [a-zA-Z][a-zA-Z0-9_]*;
+
+// operators
+OpMinus: '-';
+OpPlus: '+';
+OpPow: '**';
+OpMult: '*';
+OpDiv: '/';
 
 // skip
 Space: [ \t\r\n]+ -> skip;

@@ -65,10 +65,10 @@ class MathNode(NodeBase):
                 "Result",
                 output_type="""
                 match Input1.operation {
-                    "add" => add(Input0, Input2),
-                    "sub" => subtract(Input0, Input2),
-                    "mul" => multiply(Input0, Input2),
-                    "div" => divide(Input0, Input2),
+                    "add" => Input0 + Input2,
+                    "sub" => Input0 - Input2,
+                    "mul" => Input0 * Input2,
+                    "div" => Input0 / Input2,
                     "pow" => pow(Input0, Input2),
                     "max" => max(Input0, Input2),
                     "min" => min(Input0, Input2),

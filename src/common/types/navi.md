@@ -248,23 +248,23 @@ The behave just like user-defined functions, but they are not implemented with N
 
 The following built-in functions are supported:
 
--   `add(...numbers: number) -> number`
+-   `ops::add(...numbers: number) -> number`
 
     Takes any number of numbers and returns their sum.
 
--   `subtract(a: number, b: number) -> number`
+-   `ops::sub(a: number, b: number) -> number`
 
     Takes 2 number types and returns the type that represents `a - b`.
 
--   `multiply(...numbers: number) -> number`
+-   `ops::mul(...numbers: number) -> number`
 
     Takes any number of numbers and returns their product.
 
--   `divide(a: number, b: number) -> number`
+-   `ops::div(a: number, b: number) -> number`
 
     Takes 2 number types and returns the type that represents `a / b`.
 
--   `negate(a: number) -> number`
+-   `ops::neg(a: number) -> number`
 
     Takes a number type and returns the type that represents `-a`.
 
@@ -283,6 +283,17 @@ The following built-in functions are supported:
 -   `concat(...segments: string) -> string`
 
     Takes any number of strings and returns their concatenation.
+
+### Syntax sugar
+
+Special syntax is available for all `ops::*` functions.
+This includes the following operators:
+
+- Unary operators: `-a` for `ops::neg`.
+- Binary operators: `a + b`, `a - b`, `a * b`, and `a / b` for the respective functions.
+
+Operator precedence is as you would expect it to be.
+E.g. `a + b * c` de-sugars to `ops::add(a, ops::mul(b, c))`.
 
 ## `match`
 

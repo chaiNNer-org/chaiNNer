@@ -151,11 +151,11 @@ class ChannelMergeRGBANode(NodeBase):
                 image_type=expression.Image(
                     size_as="Input0",
                     channels="""
-                    match add(
-                        Input0.channels,
-                        match Input1 { Image as i => i.channels, _ => 0 },
-                        match Input2 { Image as i => i.channels, _ => 0 },
-                        match Input3 { Image as i => i.channels, _ => 0 }
+                    match (
+                        Input0.channels
+                        + match Input1 { Image as i => i.channels, _ => 0 }
+                        + match Input2 { Image as i => i.channels, _ => 0 }
+                        + match Input3 { Image as i => i.channels, _ => 0 }
                     ) {
                         1 => 1,
                         2 | 3 => 3,
