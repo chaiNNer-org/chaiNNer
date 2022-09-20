@@ -1,11 +1,10 @@
 # pylint: skip-file
 # type: ignore
 import math
+import random
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.nn import init
-from torch.nn.modules.batchnorm import _BatchNorm
 
 
 @torch.no_grad()
@@ -41,8 +40,10 @@ def default_init_weights(module_list, scale=1, bias_fill=0, **kwargs):
 class NormStyleCode(nn.Module):
     def forward(self, x):
         """Normalize the style codes.
+
         Args:
             x (Tensor): Style codes with shape (b, c).
+
         Returns:
             Tensor: Normalized tensor.
         """
@@ -51,7 +52,9 @@ class NormStyleCode(nn.Module):
 
 class ModulatedConv2d(nn.Module):
     """Modulated Conv2d used in StyleGAN2.
+
     There is no bias in ModulatedConv2d.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -100,9 +103,11 @@ class ModulatedConv2d(nn.Module):
 
     def forward(self, x, style):
         """Forward function.
+
         Args:
             x (Tensor): Tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
+
         Returns:
             Tensor: Modulated tensor after convolution.
         """
@@ -143,6 +148,7 @@ class ModulatedConv2d(nn.Module):
 
 class StyleConv(nn.Module):
     """Style conv used in StyleGAN2.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -191,6 +197,7 @@ class StyleConv(nn.Module):
 
 class ToRGB(nn.Module):
     """To RGB (image space) from features.
+
     Args:
         in_channels (int): Channel number of input.
         num_style_feat (int): Channel number of style features.
@@ -212,10 +219,12 @@ class ToRGB(nn.Module):
 
     def forward(self, x, style, skip=None):
         """Forward function.
+
         Args:
             x (Tensor): Feature tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
             skip (Tensor): Base/skip tensor. Default: None.
+
         Returns:
             Tensor: RGB images.
         """
@@ -232,6 +241,7 @@ class ToRGB(nn.Module):
 
 class ConstantInput(nn.Module):
     """Constant input.
+
     Args:
         num_channel (int): Channel number of constant input.
         size (int): Spatial size of constant input.
@@ -248,6 +258,7 @@ class ConstantInput(nn.Module):
 
 class StyleGAN2GeneratorClean(nn.Module):
     """Clean version of StyleGAN2 Generator.
+
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -379,6 +390,7 @@ class StyleGAN2GeneratorClean(nn.Module):
         return_latents=False,
     ):
         """Forward function for StyleGAN2GeneratorClean.
+
         Args:
             styles (list[Tensor]): Sample codes of styles.
             input_is_latent (bool): Whether input is latent style. Default: False.
