@@ -2,7 +2,7 @@
 // jshint ignore: start
 import antlr4 from 'antlr4';
 import NaviListener from './NaviListener.js';
-const serializedATN = [4,1,33,295,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,
+const serializedATN = [4,1,32,295,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,
 4,2,5,7,5,2,6,7,6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,
 2,13,7,13,2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,
 20,7,20,2,21,7,21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,1,0,
@@ -25,7 +25,7 @@ const serializedATN = [4,1,33,295,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,
 8,24,10,24,12,24,274,9,24,1,24,3,24,277,8,24,3,24,279,8,24,1,24,1,24,1,25,
 1,25,1,25,1,25,1,26,1,26,1,26,5,26,290,8,26,10,26,12,26,293,9,26,1,26,0,
 0,27,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,
-48,50,52,0,2,1,0,29,30,1,0,26,27,309,0,57,1,0,0,0,2,65,1,0,0,0,4,75,1,0,
+48,50,52,0,2,1,0,28,29,1,0,26,27,309,0,57,1,0,0,0,2,65,1,0,0,0,4,75,1,0,
 0,0,6,77,1,0,0,0,8,83,1,0,0,0,10,93,1,0,0,0,12,99,1,0,0,0,14,120,1,0,0,0,
 16,136,1,0,0,0,18,138,1,0,0,0,20,158,1,0,0,0,22,167,1,0,0,0,24,172,1,0,0,
 0,26,176,1,0,0,0,28,186,1,0,0,0,30,195,1,0,0,0,32,199,1,0,0,0,34,207,1,0,
@@ -110,14 +110,13 @@ export default class NaviParser extends antlr4.Parser {
                             "')'", "'=>'", "'.'", "'&'", "'|'", "':'", "'::'", 
                             "'as'", "'def'", "'let'", "'match'", "'struct'", 
                             "'enum'", "'_'", null, null, null, null, null, 
-                            "'-'", "'+'", "'**'", "'*'", "'/'" ];
+                            "'-'", "'+'", "'*'", "'/'" ];
     static symbolicNames = [ null, null, null, null, null, null, null, null, 
                              null, null, null, null, null, null, "As", "Def", 
                              "Let", "Match", "Struct", "Enum", "Discard", 
                              "IntInterval", "Interval", "Number", "String", 
-                             "Identifier", "OpMinus", "OpPlus", "OpPow", 
-                             "OpMult", "OpDiv", "Space", "LineComment", 
-                             "BlockComment" ];
+                             "Identifier", "OpMinus", "OpPlus", "OpMult", 
+                             "OpDiv", "Space", "LineComment", "BlockComment" ];
     static ruleNames = [ "definitionDocument", "expressionDocument", "definition", 
                          "structDefinition", "functionDefinition", "variableDefinition", 
                          "enumDefinition", "enumVariant", "primaryExpression", 
@@ -1303,12 +1302,11 @@ NaviParser.String = 24;
 NaviParser.Identifier = 25;
 NaviParser.OpMinus = 26;
 NaviParser.OpPlus = 27;
-NaviParser.OpPow = 28;
-NaviParser.OpMult = 29;
-NaviParser.OpDiv = 30;
-NaviParser.Space = 31;
-NaviParser.LineComment = 32;
-NaviParser.BlockComment = 33;
+NaviParser.OpMult = 28;
+NaviParser.OpDiv = 29;
+NaviParser.Space = 30;
+NaviParser.LineComment = 31;
+NaviParser.BlockComment = 32;
 
 NaviParser.RULE_definitionDocument = 0;
 NaviParser.RULE_expressionDocument = 1;
