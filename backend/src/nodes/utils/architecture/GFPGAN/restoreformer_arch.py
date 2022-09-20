@@ -753,6 +753,8 @@ class RestoreFormer(nn.Module):
             for _, param in self.encoder.named_parameters():
                 param.requires_grad = False
 
+        self.load_state_dict(state_dict)
+
     def encode(self, x):
 
         hs = self.encoder(x)

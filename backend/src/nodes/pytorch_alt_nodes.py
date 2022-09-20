@@ -101,7 +101,7 @@ class FaceUpscaleNode(NodeBase):
                 output = (output + 1) / 2
                 restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
             except RuntimeError as error:
-                print(f"\tFailed inference for GFPGAN: {error}.")
+                logger.error(f"\tFailed inference for GFPGAN: {error}.")
                 restored_face = cropped_face
 
             restored_face = restored_face.astype("uint8")  # type: ignore
