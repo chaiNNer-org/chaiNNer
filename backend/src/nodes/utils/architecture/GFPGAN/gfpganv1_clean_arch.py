@@ -11,9 +11,7 @@ from .stylegan2_clean_arch import StyleGAN2GeneratorClean
 
 class StyleGAN2GeneratorCSFT(StyleGAN2GeneratorClean):
     """StyleGAN2 Generator with SFT modulation (Spatial Feature Transform).
-
     It is the clean version without custom compiled CUDA extensions used in StyleGAN2.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -54,7 +52,6 @@ class StyleGAN2GeneratorCSFT(StyleGAN2GeneratorClean):
         return_latents=False,
     ):
         """Forward function for StyleGAN2GeneratorCSFT.
-
         Args:
             styles (list[Tensor]): Sample codes of styles.
             conditions (list[Tensor]): SFT conditions to generators.
@@ -142,7 +139,6 @@ class StyleGAN2GeneratorCSFT(StyleGAN2GeneratorClean):
 
 class ResBlock(nn.Module):
     """Residual block with bilinear upsampling/downsampling.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -178,18 +174,14 @@ class ResBlock(nn.Module):
 
 class GFPGANv1Clean(nn.Module):
     """The GFPGAN architecture: Unet + StyleGAN2 decoder with SFT.
-
     It is the clean version without custom compiled CUDA extensions used in StyleGAN2.
-
     Ref: GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
         channel_multiplier (int): Channel multiplier for large networks of StyleGAN2. Default: 2.
         decoder_load_path (str): The path to the pre-trained decoder model (usually, the StyleGAN2). Default: None.
         fix_decoder (bool): Whether to fix the decoder. Default: True.
-
         num_mlp (int): Layer number of MLP style layers. Default: 8.
         input_is_latent (bool): Whether input is latent style. Default: False.
         different_w (bool): Whether to use different latent w for different layers. Default: False.
@@ -311,9 +303,10 @@ class GFPGANv1Clean(nn.Module):
                 )
             )
 
-    def forward(self, x, return_latents=False, return_rgb=True, randomize_noise=True):
+    def forward(
+        self, x, return_latents=False, return_rgb=True, randomize_noise=True, **kwargs
+    ):
         """Forward function for GFPGANv1Clean.
-
         Args:
             x (Tensor): Input images.
             return_latents (bool): Whether to return style latents. Default: False.

@@ -18,10 +18,8 @@ from .stylegan2_bilinear_arch import (
 
 class StyleGAN2GeneratorBilinearSFT(StyleGAN2GeneratorBilinear):
     """StyleGAN2 Generator with SFT modulation (Spatial Feature Transform).
-
     It is the bilinear version. It does not use the complicated UpFirDnSmooth function that is not friendly for
     deployment. It can be easily converted to the clean version: StyleGAN2GeneratorCSFT.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -65,7 +63,6 @@ class StyleGAN2GeneratorBilinearSFT(StyleGAN2GeneratorBilinear):
         return_latents=False,
     ):
         """Forward function for StyleGAN2GeneratorBilinearSFT.
-
         Args:
             styles (list[Tensor]): Sample codes of styles.
             conditions (list[Tensor]): SFT conditions to generators.
@@ -153,20 +150,15 @@ class StyleGAN2GeneratorBilinearSFT(StyleGAN2GeneratorBilinear):
 
 class GFPGANBilinear(nn.Module):
     """The GFPGAN architecture: Unet + StyleGAN2 decoder with SFT.
-
     It is the bilinear version and it does not use the complicated UpFirDnSmooth function that is not friendly for
     deployment. It can be easily converted to the clean version: GFPGANv1Clean.
-
-
     Ref: GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
         channel_multiplier (int): Channel multiplier for large networks of StyleGAN2. Default: 2.
         decoder_load_path (str): The path to the pre-trained decoder model (usually, the StyleGAN2). Default: None.
         fix_decoder (bool): Whether to fix the decoder. Default: True.
-
         num_mlp (int): Layer number of MLP style layers. Default: 8.
         lr_mlp (float): Learning rate multiplier for mlp layers. Default: 0.01.
         input_is_latent (bool): Whether input is latent style. Default: False.
@@ -346,7 +338,6 @@ class GFPGANBilinear(nn.Module):
 
     def forward(self, x, return_latents=False, return_rgb=True, randomize_noise=True):
         """Forward function for GFPGANBilinear.
-
         Args:
             x (Tensor): Input images.
             return_latents (bool): Whether to return style latents. Default: False.

@@ -3,24 +3,141 @@
 import math
 import random
 import torch
-from .fused_act import FusedLeakyReLU, fused_leaky_relu
 from torch import nn
 from torch.nn import functional as F
+
+from .fused_act import FusedLeakyReLU, fused_leaky_relu
+from .upfirdn2d import upfirdn2d
 
 
 class NormStyleCode(nn.Module):
     def forward(self, x):
         """Normalize the style codes.
+
         Args:
             x (Tensor): Style codes with shape (b, c).
+
         Returns:
             Tensor: Normalized tensor.
         """
         return x * torch.rsqrt(torch.mean(x**2, dim=1, keepdim=True) + 1e-8)
 
 
+def make_resample_kernel(k):
+    """Make resampling kernel for UpFirDn.
+
+    Args:
+        k (list[int]): A list indicating the 1D resample kernel magnitude.
+
+    Returns:
+        Tensor: 2D resampled kernel.
+    """
+    k = torch.tensor(k, dtype=torch.float32)
+    if k.ndim == 1:
+        k = k[None, :] * k[:, None]  # to 2D kernel, outer product
+    # normalize
+    k /= k.sum()
+    return k
+
+
+class UpFirDnUpsample(nn.Module):
+    """Upsample, FIR filter, and downsample (upsampole version).
+
+    References:
+    1. https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.upfirdn.html  # noqa: E501
+    2. http://www.ece.northwestern.edu/local-apps/matlabhelp/toolbox/signal/upfirdn.html  # noqa: E501
+
+    Args:
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude.
+        factor (int): Upsampling scale factor. Default: 2.
+    """
+
+    def __init__(self, resample_kernel, factor=2):
+        super(UpFirDnUpsample, self).__init__()
+        self.kernel = make_resample_kernel(resample_kernel) * (factor**2)
+        self.factor = factor
+
+        pad = self.kernel.shape[0] - factor
+        self.pad = ((pad + 1) // 2 + factor - 1, pad // 2)
+
+    def forward(self, x):
+        out = upfirdn2d(x, self.kernel.type_as(x), up=self.factor, down=1, pad=self.pad)
+        return out
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(factor={self.factor})"
+
+
+class UpFirDnDownsample(nn.Module):
+    """Upsample, FIR filter, and downsample (downsampole version).
+
+    Args:
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude.
+        factor (int): Downsampling scale factor. Default: 2.
+    """
+
+    def __init__(self, resample_kernel, factor=2):
+        super(UpFirDnDownsample, self).__init__()
+        self.kernel = make_resample_kernel(resample_kernel)
+        self.factor = factor
+
+        pad = self.kernel.shape[0] - factor
+        self.pad = ((pad + 1) // 2, pad // 2)
+
+    def forward(self, x):
+        out = upfirdn2d(x, self.kernel.type_as(x), up=1, down=self.factor, pad=self.pad)
+        return out
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(factor={self.factor})"
+
+
+class UpFirDnSmooth(nn.Module):
+    """Upsample, FIR filter, and downsample (smooth version).
+
+    Args:
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude.
+        upsample_factor (int): Upsampling scale factor. Default: 1.
+        downsample_factor (int): Downsampling scale factor. Default: 1.
+        kernel_size (int): Kernel size: Default: 1.
+    """
+
+    def __init__(
+        self, resample_kernel, upsample_factor=1, downsample_factor=1, kernel_size=1
+    ):
+        super(UpFirDnSmooth, self).__init__()
+        self.upsample_factor = upsample_factor
+        self.downsample_factor = downsample_factor
+        self.kernel = make_resample_kernel(resample_kernel)
+        if upsample_factor > 1:
+            self.kernel = self.kernel * (upsample_factor**2)
+
+        if upsample_factor > 1:
+            pad = (self.kernel.shape[0] - upsample_factor) - (kernel_size - 1)
+            self.pad = ((pad + 1) // 2 + upsample_factor - 1, pad // 2 + 1)
+        elif downsample_factor > 1:
+            pad = (self.kernel.shape[0] - downsample_factor) + (kernel_size - 1)
+            self.pad = ((pad + 1) // 2, pad // 2)
+        else:
+            raise NotImplementedError
+
+    def forward(self, x):
+        out = upfirdn2d(x, self.kernel.type_as(x), up=1, down=1, pad=self.pad)
+        return out
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(upsample_factor={self.upsample_factor}"
+            f", downsample_factor={self.downsample_factor})"
+        )
+
+
 class EqualLinear(nn.Module):
     """Equalized Linear as StyleGAN2.
+
     Args:
         in_channels (int): Size of each sample.
         out_channels (int): Size of each output sample.
@@ -80,7 +197,9 @@ class EqualLinear(nn.Module):
 
 class ModulatedConv2d(nn.Module):
     """Modulated Conv2d used in StyleGAN2.
+
     There is no bias in ModulatedConv2d.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -90,6 +209,8 @@ class ModulatedConv2d(nn.Module):
             Default: True.
         sample_mode (str | None): Indicating 'upsample', 'downsample' or None.
             Default: None.
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude. Default: (1, 3, 3, 1).
         eps (float): A value added to the denominator for numerical stability.
             Default: 1e-8.
     """
@@ -102,8 +223,8 @@ class ModulatedConv2d(nn.Module):
         num_style_feat,
         demodulate=True,
         sample_mode=None,
+        resample_kernel=(1, 3, 3, 1),
         eps=1e-8,
-        interpolation_mode="bilinear",
     ):
         super(ModulatedConv2d, self).__init__()
         self.in_channels = in_channels
@@ -112,11 +233,28 @@ class ModulatedConv2d(nn.Module):
         self.demodulate = demodulate
         self.sample_mode = sample_mode
         self.eps = eps
-        self.interpolation_mode = interpolation_mode
-        if self.interpolation_mode == "nearest":
-            self.align_corners = None
+
+        if self.sample_mode == "upsample":
+            self.smooth = UpFirDnSmooth(
+                resample_kernel,
+                upsample_factor=2,
+                downsample_factor=1,
+                kernel_size=kernel_size,
+            )
+        elif self.sample_mode == "downsample":
+            self.smooth = UpFirDnSmooth(
+                resample_kernel,
+                upsample_factor=1,
+                downsample_factor=2,
+                kernel_size=kernel_size,
+            )
+        elif self.sample_mode is None:
+            pass
         else:
-            self.align_corners = False
+            raise ValueError(
+                f"Wrong sample mode {self.sample_mode}, "
+                "supported ones are ['upsample', 'downsample', None]."
+            )
 
         self.scale = 1 / math.sqrt(in_channels * kernel_size**2)
         # modulation inside each modulated conv
@@ -136,9 +274,11 @@ class ModulatedConv2d(nn.Module):
 
     def forward(self, x, style):
         """Forward function.
+
         Args:
             x (Tensor): Tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
+
         Returns:
             Tensor: Modulated tensor after convolution.
         """
@@ -157,25 +297,26 @@ class ModulatedConv2d(nn.Module):
         )
 
         if self.sample_mode == "upsample":
-            x = F.interpolate(
-                x,
-                scale_factor=2,
-                mode=self.interpolation_mode,
-                align_corners=self.align_corners,
+            x = x.view(1, b * c, h, w)
+            weight = weight.view(
+                b, self.out_channels, c, self.kernel_size, self.kernel_size
             )
+            weight = weight.transpose(1, 2).reshape(
+                b * c, self.out_channels, self.kernel_size, self.kernel_size
+            )
+            out = F.conv_transpose2d(x, weight, padding=0, stride=2, groups=b)
+            out = out.view(b, self.out_channels, *out.shape[2:4])
+            out = self.smooth(out)
         elif self.sample_mode == "downsample":
-            x = F.interpolate(
-                x,
-                scale_factor=0.5,
-                mode=self.interpolation_mode,
-                align_corners=self.align_corners,
-            )
-
-        b, c, h, w = x.shape
-        x = x.view(1, b * c, h, w)
-        # weight: (b*c_out, c_in, k, k), groups=b
-        out = F.conv2d(x, weight, padding=self.padding, groups=b)
-        out = out.view(b, self.out_channels, *out.shape[2:4])
+            x = self.smooth(x)
+            x = x.view(1, b * c, *x.shape[2:4])
+            out = F.conv2d(x, weight, padding=0, stride=2, groups=b)
+            out = out.view(b, self.out_channels, *out.shape[2:4])
+        else:
+            x = x.view(1, b * c, h, w)
+            # weight: (b*c_out, c_in, k, k), groups=b
+            out = F.conv2d(x, weight, padding=self.padding, groups=b)
+            out = out.view(b, self.out_channels, *out.shape[2:4])
 
         return out
 
@@ -190,6 +331,7 @@ class ModulatedConv2d(nn.Module):
 
 class StyleConv(nn.Module):
     """Style conv.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -198,6 +340,8 @@ class StyleConv(nn.Module):
         demodulate (bool): Whether demodulate in the conv layer. Default: True.
         sample_mode (str | None): Indicating 'upsample', 'downsample' or None.
             Default: None.
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude. Default: (1, 3, 3, 1).
     """
 
     def __init__(
@@ -208,7 +352,7 @@ class StyleConv(nn.Module):
         num_style_feat,
         demodulate=True,
         sample_mode=None,
-        interpolation_mode="bilinear",
+        resample_kernel=(1, 3, 3, 1),
     ):
         super(StyleConv, self).__init__()
         self.modulated_conv = ModulatedConv2d(
@@ -218,7 +362,7 @@ class StyleConv(nn.Module):
             num_style_feat,
             demodulate=demodulate,
             sample_mode=sample_mode,
-            interpolation_mode=interpolation_mode,
+            resample_kernel=resample_kernel,
         )
         self.weight = nn.Parameter(torch.zeros(1))  # for noise injection
         self.activate = FusedLeakyReLU(out_channels)
@@ -238,22 +382,23 @@ class StyleConv(nn.Module):
 
 class ToRGB(nn.Module):
     """To RGB from features.
+
     Args:
         in_channels (int): Channel number of input.
         num_style_feat (int): Channel number of style features.
         upsample (bool): Whether to upsample. Default: True.
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude. Default: (1, 3, 3, 1).
     """
 
     def __init__(
-        self, in_channels, num_style_feat, upsample=True, interpolation_mode="bilinear"
+        self, in_channels, num_style_feat, upsample=True, resample_kernel=(1, 3, 3, 1)
     ):
         super(ToRGB, self).__init__()
-        self.upsample = upsample
-        self.interpolation_mode = interpolation_mode
-        if self.interpolation_mode == "nearest":
-            self.align_corners = None
+        if upsample:
+            self.upsample = UpFirDnUpsample(resample_kernel, factor=2)
         else:
-            self.align_corners = False
+            self.upsample = None
         self.modulated_conv = ModulatedConv2d(
             in_channels,
             3,
@@ -261,16 +406,17 @@ class ToRGB(nn.Module):
             num_style_feat=num_style_feat,
             demodulate=False,
             sample_mode=None,
-            interpolation_mode=interpolation_mode,
         )
         self.bias = nn.Parameter(torch.zeros(1, 3, 1, 1))
 
     def forward(self, x, style, skip=None):
         """Forward function.
+
         Args:
             x (Tensor): Feature tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
             skip (Tensor): Base/skip tensor. Default: None.
+
         Returns:
             Tensor: RGB images.
         """
@@ -278,18 +424,14 @@ class ToRGB(nn.Module):
         out = out + self.bias
         if skip is not None:
             if self.upsample:
-                skip = F.interpolate(
-                    skip,
-                    scale_factor=2,
-                    mode=self.interpolation_mode,
-                    align_corners=self.align_corners,
-                )
+                skip = self.upsample(skip)
             out = out + skip
         return out
 
 
 class ConstantInput(nn.Module):
     """Constant input.
+
     Args:
         num_channel (int): Channel number of constant input.
         size (int): Spatial size of constant input.
@@ -304,14 +446,18 @@ class ConstantInput(nn.Module):
         return out
 
 
-class StyleGAN2GeneratorBilinear(nn.Module):
+class StyleGAN2Generator(nn.Module):
     """StyleGAN2 Generator.
+
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
         num_mlp (int): Layer number of MLP style layers. Default: 8.
         channel_multiplier (int): Channel multiplier for large networks of
             StyleGAN2. Default: 2.
+        resample_kernel (list[int]): A list indicating the 1D resample kernel
+            magnitude. A cross production will be applied to extent 1D resample
+            kernel to 2D resample kernel. Default: (1, 3, 3, 1).
         lr_mlp (float): Learning rate multiplier for mlp layers. Default: 0.01.
         narrow (float): Narrow ratio for channels. Default: 1.0.
     """
@@ -322,11 +468,11 @@ class StyleGAN2GeneratorBilinear(nn.Module):
         num_style_feat=512,
         num_mlp=8,
         channel_multiplier=2,
+        resample_kernel=(1, 3, 3, 1),
         lr_mlp=0.01,
         narrow=1,
-        interpolation_mode="bilinear",
     ):
-        super(StyleGAN2GeneratorBilinear, self).__init__()
+        super(StyleGAN2Generator, self).__init__()
         # Style MLP layers
         self.num_style_feat = num_style_feat
         style_mlp_layers = [NormStyleCode()]
@@ -364,13 +510,13 @@ class StyleGAN2GeneratorBilinear(nn.Module):
             num_style_feat=num_style_feat,
             demodulate=True,
             sample_mode=None,
-            interpolation_mode=interpolation_mode,
+            resample_kernel=resample_kernel,
         )
         self.to_rgb1 = ToRGB(
             channels["4"],
             num_style_feat,
             upsample=False,
-            interpolation_mode=interpolation_mode,
+            resample_kernel=resample_kernel,
         )
 
         self.log_size = int(math.log(out_size, 2))
@@ -398,7 +544,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
                     num_style_feat=num_style_feat,
                     demodulate=True,
                     sample_mode="upsample",
-                    interpolation_mode=interpolation_mode,
+                    resample_kernel=resample_kernel,
                 )
             )
             self.style_convs.append(
@@ -409,7 +555,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
                     num_style_feat=num_style_feat,
                     demodulate=True,
                     sample_mode=None,
-                    interpolation_mode=interpolation_mode,
+                    resample_kernel=resample_kernel,
                 )
             )
             self.to_rgbs.append(
@@ -417,7 +563,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
                     out_channels,
                     num_style_feat,
                     upsample=True,
-                    interpolation_mode=interpolation_mode,
+                    resample_kernel=resample_kernel,
                 )
             )
             in_channels = out_channels
@@ -455,6 +601,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
         return_latents=False,
     ):
         """Forward function for StyleGAN2Generator.
+
         Args:
             styles (list[Tensor]): Sample codes of styles.
             input_is_latent (bool): Whether input is latent style.
@@ -534,6 +681,7 @@ class StyleGAN2GeneratorBilinear(nn.Module):
 
 class ScaledLeakyReLU(nn.Module):
     """Scaled LeakyReLU.
+
     Args:
         negative_slope (float): Negative slope. Default: 0.2.
     """
@@ -549,6 +697,7 @@ class ScaledLeakyReLU(nn.Module):
 
 class EqualConv2d(nn.Module):
     """Equalized Linear as StyleGAN2.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -610,12 +759,17 @@ class EqualConv2d(nn.Module):
 
 class ConvLayer(nn.Sequential):
     """Conv Layer used in StyleGAN2 Discriminator.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
         kernel_size (int): Kernel size.
         downsample (bool): Whether downsample by a factor of 2.
             Default: False.
+        resample_kernel (list[int]): A list indicating the 1D resample
+            kernel magnitude. A cross production will be applied to
+            extent 1D resample kernel to 2D resample kernel.
+            Default: (1, 3, 3, 1).
         bias (bool): Whether with bias. Default: True.
         activate (bool): Whether use activateion. Default: True.
     """
@@ -626,28 +780,26 @@ class ConvLayer(nn.Sequential):
         out_channels,
         kernel_size,
         downsample=False,
+        resample_kernel=(1, 3, 3, 1),
         bias=True,
         activate=True,
-        interpolation_mode="bilinear",
     ):
         layers = []
-        self.interpolation_mode = interpolation_mode
         # downsample
         if downsample:
-            if self.interpolation_mode == "nearest":
-                self.align_corners = None
-            else:
-                self.align_corners = False
-
             layers.append(
-                torch.nn.Upsample(
-                    scale_factor=0.5,
-                    mode=interpolation_mode,
-                    align_corners=self.align_corners,
+                UpFirDnSmooth(
+                    resample_kernel,
+                    upsample_factor=1,
+                    downsample_factor=2,
+                    kernel_size=kernel_size,
                 )
             )
-        stride = 1
-        self.padding = kernel_size // 2
+            stride = 2
+            self.padding = 0
+        else:
+            stride = 1
+            self.padding = kernel_size // 2
         # conv
         layers.append(
             EqualConv2d(
@@ -671,12 +823,17 @@ class ConvLayer(nn.Sequential):
 
 class ResBlock(nn.Module):
     """Residual block used in StyleGAN2 Discriminator.
+
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
+        resample_kernel (list[int]): A list indicating the 1D resample
+            kernel magnitude. A cross production will be applied to
+            extent 1D resample kernel to 2D resample kernel.
+            Default: (1, 3, 3, 1).
     """
 
-    def __init__(self, in_channels, out_channels, interpolation_mode="bilinear"):
+    def __init__(self, in_channels, out_channels, resample_kernel=(1, 3, 3, 1)):
         super(ResBlock, self).__init__()
 
         self.conv1 = ConvLayer(in_channels, in_channels, 3, bias=True, activate=True)
@@ -685,7 +842,7 @@ class ResBlock(nn.Module):
             out_channels,
             3,
             downsample=True,
-            interpolation_mode=interpolation_mode,
+            resample_kernel=resample_kernel,
             bias=True,
             activate=True,
         )
@@ -694,7 +851,7 @@ class ResBlock(nn.Module):
             out_channels,
             1,
             downsample=True,
-            interpolation_mode=interpolation_mode,
+            resample_kernel=resample_kernel,
             bias=False,
             activate=False,
         )

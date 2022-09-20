@@ -408,8 +408,8 @@ def convenient_upscale(
 
     return np.clip(output, 0, 1)
 
-def resize_to_side_conditional(w, h, target, side, condition):
 
+def resize_to_side_conditional(w, h, target, side, condition):
     def compare_conditions(a, b):
         if condition == "downscale":
             return a > b

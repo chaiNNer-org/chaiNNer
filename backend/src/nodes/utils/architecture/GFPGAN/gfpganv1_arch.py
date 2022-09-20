@@ -3,7 +3,7 @@
 import math
 import random
 import torch
-from basicsr.archs.stylegan2_arch import (
+from .stylegan2_arch import (
     ConvLayer,
     EqualConv2d,
     EqualLinear,
@@ -11,14 +11,13 @@ from basicsr.archs.stylegan2_arch import (
     ScaledLeakyReLU,
     StyleGAN2Generator,
 )
-from basicsr.ops.fused_act import FusedLeakyReLU
+from .fused_act import FusedLeakyReLU
 from torch import nn
 from torch.nn import functional as F
 
 
 class StyleGAN2GeneratorSFT(StyleGAN2Generator):
     """StyleGAN2 Generator with SFT modulation (Spatial Feature Transform).
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -66,7 +65,6 @@ class StyleGAN2GeneratorSFT(StyleGAN2Generator):
         return_latents=False,
     ):
         """Forward function for StyleGAN2GeneratorSFT.
-
         Args:
             styles (list[Tensor]): Sample codes of styles.
             conditions (list[Tensor]): SFT conditions to generators.
@@ -154,7 +152,6 @@ class StyleGAN2GeneratorSFT(StyleGAN2Generator):
 
 class ConvUpLayer(nn.Module):
     """Convolutional upsampling layer. It uses bilinear upsampler + Conv.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -223,7 +220,6 @@ class ConvUpLayer(nn.Module):
 
 class ResUpBlock(nn.Module):
     """Residual block with upsampling.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -250,9 +246,7 @@ class ResUpBlock(nn.Module):
 
 class GFPGANv1(nn.Module):
     """The GFPGAN architecture: Unet + StyleGAN2 decoder with SFT.
-
     Ref: GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -261,7 +255,6 @@ class GFPGANv1(nn.Module):
             applied to extent 1D resample kernel to 2D resample kernel. Default: (1, 3, 3, 1).
         decoder_load_path (str): The path to the pre-trained decoder model (usually, the StyleGAN2). Default: None.
         fix_decoder (bool): Whether to fix the decoder. Default: True.
-
         num_mlp (int): Layer number of MLP style layers. Default: 8.
         lr_mlp (float): Learning rate multiplier for mlp layers. Default: 0.01.
         input_is_latent (bool): Whether input is latent style. Default: False.
@@ -443,9 +436,10 @@ class GFPGANv1(nn.Module):
                 )
             )
 
-    def forward(self, x, return_latents=False, return_rgb=True, randomize_noise=True):
+    def forward(
+        self, x, return_latents=False, return_rgb=True, randomize_noise=True, **kwargs
+    ):
         """Forward function for GFPGANv1.
-
         Args:
             x (Tensor): Input images.
             return_latents (bool): Whether to return style latents. Default: False.
@@ -549,9 +543,8 @@ class FacialComponentDiscriminator(nn.Module):
         )
         self.final_conv = ConvLayer(256, 1, 3, bias=True, activate=False)
 
-    def forward(self, x, return_feats=False):
+    def forward(self, x, return_feats=False, **kwargs):
         """Forward function for FacialComponentDiscriminator.
-
         Args:
             x (Tensor): Input images.
             return_feats (bool): Whether to return intermediate features. Default: False.

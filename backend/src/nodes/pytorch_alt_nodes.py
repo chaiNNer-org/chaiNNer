@@ -13,9 +13,11 @@ from basicsr.utils import img2tensor, tensor2img
 from basicsr.utils.download_util import load_file_from_url
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 
-from gfpgan.archs.gfpgan_bilinear_arch import GFPGANBilinear
-from gfpgan.archs.gfpganv1_arch import GFPGANv1
-from gfpgan.archs.gfpganv1_clean_arch import GFPGANv1Clean
+from appdirs import user_data_dir
+
+from .utils.architecture.GFPGAN.gfpgan_bilinear_arch import GFPGANBilinear
+from .utils.architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
+from .utils.architecture.GFPGAN.restoreformer_arch import RestoreFormer
 
 
 from .categories import PyTorchCategory
@@ -82,10 +84,11 @@ class FaceUpscaleNode(NodeBase):
             weight = 0.5
 
             if face_model == "GFPGANv1":
-                arch = "original"
-                channel_multiplier = 1
-                model_name = "GFPGANv1"
-                url = "https://github.com/TencentARC/GFPGAN/releases/download/v0.1.0/GFPGANv1.pth"
+                raise NotImplementedError("GFPGANv1 is not supported.")
+                # arch = "original"
+                # channel_multiplier = 1
+                # model_name = "GFPGANv1"
+                # url = "https://github.com/TencentARC/GFPGAN/releases/download/v0.1.0/GFPGANv1.pth"
             elif face_model == "GFPGANv1.2":
                 arch = "clean"
                 channel_multiplier = 2
@@ -136,22 +139,20 @@ class FaceUpscaleNode(NodeBase):
                     sft_half=True,
                 )
             elif arch == "original":
-                gfpgan = GFPGANv1(
-                    out_size=512,
-                    num_style_feat=512,
-                    channel_multiplier=channel_multiplier,
-                    decoder_load_path=None,
-                    fix_decoder=True,
-                    num_mlp=8,
-                    input_is_latent=True,
-                    different_w=True,
-                    narrow=1,
-                    sft_half=True,
-                )
+                raise NotImplementedError("GFPGANv1 is not supported.")
+                # gfpgan = GFPGANv1(
+                #     out_size=512,
+                #     num_style_feat=512,
+                #     channel_multiplier=channel_multiplier,
+                #     decoder_load_path=None,
+                #     fix_decoder=True,
+                #     num_mlp=8,
+                #     input_is_latent=True,
+                #     different_w=True,
+                #     narrow=1,
+                #     sft_half=True,
+                # )
             elif arch == "RestoreFormer":
-                # pylint: disable=import-outside-toplevel
-                from gfpgan.archs.restoreformer_arch import RestoreFormer
-
                 gfpgan = RestoreFormer()
             else:
                 raise ValueError(f"Unknown arch {arch}.")
@@ -174,7 +175,11 @@ class FaceUpscaleNode(NodeBase):
                 if model_path.startswith("https://"):
                     model_path = load_file_from_url(
                         url=model_path,
-                        model_dir=os.path.join(ROOT_DIR, "gfpgan/weights"),
+                        model_dir=os.path.join(
+                            user_data_dir(roaming=True),
+                            "chaiNNer/python",
+                            "gfpgan/weights",
+                        ),
                         progress=True,
                         file_name=None,
                     )
