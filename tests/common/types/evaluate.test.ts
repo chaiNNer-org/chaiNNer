@@ -30,6 +30,7 @@ import {
     orderedPairs,
     potentiallyInvalidExpressions,
     sets,
+    strings,
     types,
     unorderedPairs,
 } from './data';
@@ -213,6 +214,23 @@ describe('Builtin functions', () => {
             expect(actual).toMatchSnapshot();
         });
     };
+    const testUnaryString = (name: string) => {
+        test(name, () => {
+            const actual = [...strings, ...sets]
+                .map((e) => new FunctionCallExpression(name, [e]))
+                .map((e) => {
+                    let result;
+                    try {
+                        result = evaluate(e, scope).toString();
+                    } catch (error) {
+                        result = String(error);
+                    }
+                    return `${e.toString()} => ${result}`;
+                })
+                .join('\n');
+            expect(actual).toMatchSnapshot();
+        });
+    };
     const testBinaryNumber = (
         name: string,
         properties: { commutative: boolean; reflexive: boolean; associative: boolean }
@@ -283,10 +301,10 @@ describe('Builtin functions', () => {
     };
 
     testUnaryNumber('abs');
-    testUnaryNumber('negate');
+    testUnaryNumber('ops::neg');
     testUnaryNumber('round');
     testUnaryNumber('floor');
-    testUnaryNumber('reciprocal');
+    testUnaryNumber('ops::rec');
 
     testUnaryNumber('degToRad');
     testUnaryNumber('sin');
@@ -296,10 +314,12 @@ describe('Builtin functions', () => {
     testUnaryNumber('log');
 
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
-    testBinaryNumber('add', { commutative: true, reflexive: false, associative: false });
-    testBinaryNumber('multiply', { commutative: true, reflexive: false, associative: false });
+    testBinaryNumber('ops::add', { commutative: true, reflexive: false, associative: false });
+    testBinaryNumber('ops::mul', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('mod', { commutative: false, reflexive: false, associative: false });
     testBinaryNumber('pow', { commutative: false, reflexive: false, associative: false });
+
+    testUnaryString('invStrSet');
 });
 
 describe('Match', () => {

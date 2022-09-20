@@ -148,18 +148,18 @@ class StackNode(NodeBase):
                 def getAdjustedWidth(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(divide(multiply(i.width, maxHeight), i.height))
+                        _ as i => uint & round(i.width * maxHeight / i.height)
                     }
                 }
                 def getAdjustedHeight(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(divide(multiply(i.height, maxWidth), i.width))
+                        _ as i => uint & round(i.height * maxWidth / i.width)
                     }
                 }
 
-                let widthSum = add(getAdjustedWidth(Input0), getAdjustedWidth(Input1), getAdjustedWidth(Input2), getAdjustedWidth(Input3));
-                let heightSum = add(getAdjustedHeight(Input0), getAdjustedHeight(Input1), getAdjustedHeight(Input2), getAdjustedHeight(Input3));
+                let widthSum = getAdjustedWidth(Input0) + getAdjustedWidth(Input1) + getAdjustedWidth(Input2) + getAdjustedWidth(Input3);
+                let heightSum = getAdjustedHeight(Input0) + getAdjustedHeight(Input1) + getAdjustedHeight(Input2) + getAdjustedHeight(Input3);
 
                 Image {
                     width: match Input4 {
@@ -275,7 +275,7 @@ class CaptionNode(NodeBase):
                 let captionHeight = Input2;
                 Image {
                     width: Input0.width,
-                    height: add(Input0.height, captionHeight),
+                    height: Input0.height + captionHeight,
                     channels: Input0.channels,
                 }
                 """
@@ -358,8 +358,8 @@ class BorderMakeNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="add(Input0.width, multiply(Input2, 2))",
-                    height="add(Input0.height, multiply(Input2, 2))",
+                    width="Input0.width + Input2 * 2",
+                    height="Input0.height + Input2 * 2",
                 )
             )
         ]
@@ -460,22 +460,22 @@ class RotateNode(NodeBase):
                 struct Point { x: number, y: number }
 
                 let rot_center = Point {
-                    x: divide(Input0.width, 2),
-                    y: divide(Input0.height, 2),
+                    x: Input0.width / 2,
+                    y: Input0.height / 2,
                 };
 
-                let angle = negate(degToRad(Input1));
+                let angle = -degToRad(Input1);
                 let m0 = cos(angle);
                 let m1 = sin(angle);
-                let m2 = add(rot_center.x, multiply(m0, negate(rot_center.x)), multiply(m1, negate(rot_center.y)));
-                let m3 = negate(sin(angle));
+                let m2 = rot_center.x + m0 * -rot_center.x + m1 * -rot_center.y;
+                let m3 = -sin(angle);
                 let m4 = cos(angle);
-                let m5 = add(rot_center.y, multiply(m3, negate(rot_center.x)), multiply(m4, negate(rot_center.y)));
+                let m5 = rot_center.y + m3 * -rot_center.x + m4 * -rot_center.y;
 
                 def transform(x: number, y: number) {
                     Point {
-                        x: add(multiply(m0, x), multiply(m1, y), m2),
-                        y: add(multiply(m3, x), multiply(m4, y), m5),
+                        x: m0 * x + m1 * y + m2,
+                        y: m3 * x + m4 * y + m5,
                     }
                 }
 
@@ -484,13 +484,13 @@ class RotateNode(NodeBase):
                 let p2 = transform(Input0.width, Input0.height);
                 let p3 = transform(0, Input0.height);
 
-                let expandWidth = uint & subtract(
-                    ceil(max(p0.x, p1.x, p2.x, p3.x)),
-                    floor(min(p0.x, p1.x, p2.x, p3.x))
+                let expandWidth = uint & (
+                    ceil(max(p0.x, p1.x, p2.x, p3.x))
+                    - floor(min(p0.x, p1.x, p2.x, p3.x))
                 );
-                let expandHeight = uint & subtract(
-                    ceil(max(p0.y, p1.y, p2.y, p3.y)),
-                    floor(min(p0.y, p1.y, p2.y, p3.y))
+                let expandHeight = uint & (
+                    ceil(max(p0.y, p1.y, p2.y, p3.y))
+                    - floor(min(p0.y, p1.y, p2.y, p3.y))
                 );
 
                 Image {

@@ -74,8 +74,12 @@ except Exception as e:
 # pylint: disable=unused-import
 from nodes import utility_nodes  # type: ignore
 from nodes.node_factory import NodeFactory
+from base_types import NodeId, InputId, OutputId
+from chain.cache import OutputCache
+from chain.json import parse_json, JsonNode
+from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
-from process import Executor, NodeExecutionError, UsableData, timed_supplier
+from process import Executor, NodeExecutionError, timed_supplier
 from progress import Aborted
 from response import (
     errorResponse,
@@ -89,7 +93,7 @@ from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 class AppContext:
     def __init__(self):
         self.executor: Optional[Executor] = None
-        self.cache: Dict[str, Any] = dict()
+        self.cache: Dict[NodeId, Any] = dict()
         # This will be initialized by setup_queue.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
@@ -154,12 +158,8 @@ async def nodes(_):
             "schemaId": schema_id,
             "name": node_object.name,
             "category": node_object.category.name,
-            "inputs": [
-                x.toDict() for x in node_object.get_inputs(with_implicit_ids=True)
-            ],
-            "outputs": [
-                x.toDict() for x in node_object.get_outputs(with_implicit_ids=True)
-            ],
+            "inputs": [x.toDict() for x in node_object.inputs],
+            "outputs": [x.toDict() for x in node_object.outputs],
             "description": node_object.description,
             "icon": node_object.icon,
             "subcategory": node_object.sub,
@@ -174,7 +174,7 @@ async def nodes(_):
 
 
 class RunRequest(TypedDict):
-    data: Dict[str, UsableData]
+    data: List[JsonNode]
     isCpu: bool
     isFp16: bool
     pytorchGPU: int
@@ -199,7 +199,8 @@ async def run(request: Request):
 
         full_data: RunRequest = dict(request.json)  # type: ignore
         logger.info(full_data)
-        nodes_list = full_data["data"]
+        chain, inputs = parse_json(full_data["data"])
+        optimize(chain)
 
         logger.info("Running new executor...")
         exec_opts = ExecutionOptions(
@@ -213,11 +214,12 @@ async def run(request: Request):
         set_execution_options(exec_opts)
         logger.info(f"Using device: {exec_opts.device}")
         executor = Executor(
-            nodes_list,
+            chain,
+            inputs,
             app.loop,
             ctx.queue,
             ctx.pool,
-            ctx.cache.copy(),
+            parent_cache=OutputCache(static_data=ctx.cache.copy()),
         )
         try:
             ctx.executor = executor
@@ -243,8 +245,8 @@ async def run(request: Request):
         }
         if isinstance(exception, NodeExecutionError):
             error["source"] = {
-                "nodeId": exception.node["id"],
-                "schemaId": exception.node["schemaId"],
+                "nodeId": exception.node.id,
+                "schemaId": exception.node.schema_id,
                 "inputs": exception.inputs,
             }
 
@@ -253,7 +255,7 @@ async def run(request: Request):
 
 
 class RunIndividualRequest(TypedDict):
-    id: str
+    id: NodeId
     inputs: List[Any]
     isCpu: bool
     isFp16: bool
@@ -291,7 +293,7 @@ async def run_individual(request: Request):
         if node_instance.type == "iteratorHelper":
             enforced_inputs = full_data["inputs"]
         else:
-            node_inputs = node_instance.get_inputs(with_implicit_ids=True)
+            node_inputs = node_instance.inputs
             for idx, node_input in enumerate(full_data["inputs"]):
                 enforced_inputs.append(node_inputs[idx].enforce_(node_input))
 
@@ -306,14 +308,13 @@ async def run_individual(request: Request):
             ctx.cache[full_data["id"]] = output
 
         # Broadcast the output from the individual run
-        broadcast_data: Dict[int, Any] = dict()
-        node_outputs = node_instance.get_outputs(with_implicit_ids=True)
+        broadcast_data: Dict[OutputId, Any] = dict()
+        node_outputs = node_instance.outputs
         if len(node_outputs) > 0:
             output_idxable = [output] if len(node_outputs) == 1 else output
             for idx, node_output in enumerate(node_outputs):
                 try:
-                    output_id = node_output.id if node_output.id is not None else idx
-                    broadcast_data[output_id] = node_output.get_broadcast_data(
+                    broadcast_data[node_output.id] = node_output.get_broadcast_data(
                         output_idxable[idx]
                     )
                 except Exception as error:
@@ -353,7 +354,6 @@ async def clear_cache_individual(request: Request):
 @app.get("/sse")
 async def sse(request: Request):
     ctx = AppContext.get(request.app)
-    logger.info(f"Size of ctx.cache: {sys.getsizeof(ctx.cache)}")
     headers = {"Cache-Control": "no-cache"}
     response = await request.respond(headers=headers, content_type="text/event-stream")
     while True:

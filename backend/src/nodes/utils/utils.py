@@ -2,8 +2,9 @@
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
-from typing import Callable, Tuple, Type
+from typing import Callable, List, Tuple, Type, Union
 import cv2
+import re
 
 import numpy as np
 from sanic.log import logger
@@ -28,6 +29,7 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("float32"): 1.0,
     np.dtype("float64"): 1.0,
 }
+NUMBERS = re.compile(r"(\d+)")
 
 
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
@@ -409,8 +411,10 @@ def convenient_upscale(
     return np.clip(output, 0, 1)
 
 
-def resize_to_side_conditional(w, h, target, side, condition):
-    def compare_conditions(a, b):
+def resize_to_side_conditional(
+    w: int, h: int, target: int, side: str, condition: str
+) -> Tuple[int, int]:
+    def compare_conditions(a: int, b: int) -> bool:
         if condition == "downscale":
             return a > b
         elif condition == "upscale":
@@ -454,3 +458,12 @@ def resize_to_side_conditional(w, h, target, side, condition):
         raise RuntimeError(f"Unknown side selection {side}")
 
     return w_new, h_new
+
+
+def numerical_sort(value: str) -> List[Union[str, int]]:
+    """Key function to sort strings containing numbers by proper
+    numerical order."""
+
+    parts = NUMBERS.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts  # type: ignore

@@ -9,6 +9,8 @@ from typing import (
     Union,
 )
 
+from base_types import NodeId, InputId, OutputId
+
 
 class FinishData(TypedDict):
     message: str
@@ -20,11 +22,11 @@ class ImageInputInfo(TypedDict):
     channels: int
 
 
-InputsDict = Dict[int, Union[str, int, float, ImageInputInfo, None]]
+InputsDict = Dict[InputId, Union[str, int, float, ImageInputInfo, None]]
 
 
 class ExecutionErrorSource(TypedDict):
-    nodeId: str
+    nodeId: NodeId
     schemaId: str
     inputs: InputsDict
 
@@ -36,16 +38,16 @@ class ExecutionErrorData(TypedDict):
 
 
 class NodeFinishData(TypedDict):
-    finished: List[str]
-    nodeId: str
+    finished: List[NodeId]
+    nodeId: NodeId
     executionTime: Optional[float]
-    data: Optional[Dict[int, Any]]
+    data: Optional[Dict[OutputId, Any]]
 
 
 class IteratorProgressUpdateData(TypedDict):
     percent: float
-    iteratorId: str
-    running: Optional[List[str]]
+    iteratorId: NodeId
+    running: Optional[List[NodeId]]
 
 
 class FinishEvent(TypedDict):

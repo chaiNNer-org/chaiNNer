@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from process import ExecutionContext
+from process import IteratorContext
 from sanic.log import logger
 
 from .categories import ImageCategory
@@ -13,7 +13,7 @@ from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
 from .utils.image_utils import get_available_image_formats, normalize
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, numerical_sort
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -77,20 +77,10 @@ class ImageFileIteratorNode(IteratorNodeBase):
         ]
 
     # pylint: disable=invalid-overridden-method
-    async def run(self, directory: str, context: ExecutionContext) -> None:
+    async def run(self, directory: str, context: IteratorContext) -> None:
         logger.info(f"Iterating over images in directory: {directory}")
-        logger.info(context.nodes)
 
-        img_path_node_id = None
-        child_nodes: List[str] = []
-        for k, v in context.nodes.items():
-            if v["schemaId"] == IMAGE_ITERATOR_NODE_ID:
-                img_path_node_id = v["id"]
-            if context.nodes[k]["child"]:
-                child_nodes.append(v["id"])
-            # Set this to false to actually allow processing to happen
-            context.nodes[k]["child"] = False
-        assert img_path_node_id is not None, "Unable to find image iterator helper node"
+        img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 
         supported_filetypes = get_available_image_formats()
 
@@ -100,12 +90,13 @@ class ImageFileIteratorNode(IteratorNodeBase):
             )
 
         just_image_files: List[str] = []
-        for root, _dirs, files in os.walk(
+        for root, dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
             await context.progress.suspend()
 
-            for name in sorted(files):
+            dirs.sort(key=numerical_sort)
+            for name in sorted(files, key=numerical_sort):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
@@ -114,35 +105,13 @@ class ImageFileIteratorNode(IteratorNodeBase):
         file_len = len(just_image_files)
         errors = []
         for idx, filepath in enumerate(just_image_files):
-            await context.progress.suspend()
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": idx / file_len,
-                        "iteratorId": context.iterator_id,
-                        "running": child_nodes,
-                    },
-                }
-            )
             # Replace the input filepath with the filepath from the loop
-            context.nodes[img_path_node_id]["inputs"] = [filepath, directory, idx]
-            executor = context.create_iterator_executor()
+            context.inputs.set_values(img_path_node_id, [filepath, directory, idx])
             try:
-                await executor.run()
+                await context.run_iteration(idx, file_len)
             except Exception as e:
                 logger.error(e)
                 errors.append(str(e))
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": (idx + 1) / file_len,
-                        "iteratorId": context.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
 
         if len(errors) > 0:
             raise Exception(
@@ -261,24 +230,11 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         self.icon = "MdVideoCameraBack"
 
     # pylint: disable=invalid-overridden-method
-    async def run(self, path: str, context: ExecutionContext) -> None:
+    async def run(self, path: str, context: IteratorContext) -> None:
         logger.info(f"Iterating over frames in video file: {path}")
-        logger.info(context.nodes)
 
-        input_node_id = None
-        output_node_id = None
-        child_nodes: List[str] = []
-        for k, v in context.nodes.items():
-            if v["schemaId"] == VIDEO_ITERATOR_INPUT_NODE_ID:
-                input_node_id = v["id"]
-            elif v["schemaId"] == VIDEO_ITERATOR_OUTPUT_NODE_ID:
-                output_node_id = v["id"]
-            if context.nodes[k]["child"]:
-                child_nodes.append(v["id"])
-            # Set this to false to actually allow processing to happen
-            context.nodes[k]["child"] = False
-        assert input_node_id is not None, "Unable to find video frame load helper node"
-        assert output_node_id is not None, "Unable to find video frame save helper node"
+        input_node_id = context.get_helper(VIDEO_ITERATOR_INPUT_NODE_ID).id
+        output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id
 
         # TODO: Open Video Buffer
         cap = cv2.VideoCapture(path)
@@ -287,7 +243,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         try:
             fps = float(cap.get(cv2.CAP_PROP_FPS))
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            context.nodes[output_node_id]["inputs"].extend((writer, fps))
+            context.inputs.set_append_values(output_node_id, [writer, fps])
             errors = []
             for idx in range(frame_count):
                 await context.progress.suspend()
@@ -298,33 +254,12 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                     print("Can't receive frame (stream end?). Exiting ...")
                     break
 
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": idx / frame_count,
-                            "iteratorId": context.iterator_id,
-                            "running": child_nodes,
-                        },
-                    }
-                )
-                context.nodes[input_node_id]["inputs"] = [frame, idx]
-                executor = context.create_iterator_executor()
+                context.inputs.set_values(input_node_id, [frame, idx])
                 try:
-                    await executor.run()
+                    await context.run_iteration(idx, frame_count)
                 except Exception as e:
                     logger.error(e)
                     errors.append(str(e))
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": (idx + 1) / frame_count,
-                            "iteratorId": context.iterator_id,
-                            "running": None,
-                        },
-                    }
-                )
 
             if len(errors) > 0:
                 raise Exception(
@@ -420,7 +355,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         sprite_sheet: np.ndarray,
         rows: int,
         columns: int,
-        context: ExecutionContext,
+        context: IteratorContext,
     ) -> np.ndarray:
         h, w, _ = get_h_w_c(sprite_sheet)
         assert (
@@ -430,24 +365,8 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
             w % columns == 0
         ), "Width of sprite sheet must be a multiple of the number of columns"
 
-        img_loader_node_id = None
-        output_node_id = None
-        child_nodes: List[str] = []
-        for k, v in context.nodes.items():
-            if v["schemaId"] == SPRITESHEET_ITERATOR_INPUT_NODE_ID:
-                img_loader_node_id = v["id"]
-            elif v["schemaId"] == SPRITESHEET_ITERATOR_OUTPUT_NODE_ID:
-                output_node_id = v["id"]
-            if context.nodes[k]["child"]:
-                child_nodes.append(v["id"])
-            # Set this to false to actually allow processing to happen
-            context.nodes[k]["child"] = False
-        assert (
-            img_loader_node_id is not None
-        ), "Unable to find sprite sheet load helper node"
-        assert (
-            output_node_id is not None
-        ), "Unable to find sprite sheet append helper node"
+        img_loader_node_id = context.get_helper(SPRITESHEET_ITERATOR_INPUT_NODE_ID).id
+        output_node_id = context.get_helper(SPRITESHEET_ITERATOR_OUTPUT_NODE_ID).id
 
         individual_h = h // rows
         individual_w = w // columns
@@ -467,39 +386,16 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         length = len(img_list)
 
         results = []
-        context.nodes[output_node_id]["inputs"].append(results)
+        context.inputs.set_append_values(output_node_id, [results])
         errors = []
         for idx, img in enumerate(img_list):
-            await context.progress.suspend()
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": idx / length,
-                        "iteratorId": context.iterator_id,
-                        "running": child_nodes,
-                    },
-                }
-            )
             # Replace the input filepath with the filepath from the loop
-            context.nodes[img_loader_node_id]["inputs"] = [img, idx]
-            # logger.info(nodes[output_node_id]["inputs"])
-            executor = context.create_iterator_executor()
+            context.inputs.set_values(img_loader_node_id, [img, idx])
             try:
-                await executor.run()
+                await context.run_iteration(idx, length)
             except Exception as e:
                 logger.error(e)
                 errors.append(str(e))
-            await context.queue.put(
-                {
-                    "event": "iterator-progress-update",
-                    "data": {
-                        "percent": (idx + 1) / length,
-                        "iteratorId": context.iterator_id,
-                        "running": None,
-                    },
-                }
-            )
         result_rows = []
         for i in range(rows):
             row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)

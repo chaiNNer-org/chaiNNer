@@ -116,8 +116,8 @@ class ImageUpscaleNode(NodeBase):
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(Input0.scale, Input1.width),
-                    height: multiply(Input0.scale, Input1.height),
+                    width: Input0.scale * Input1.width,
+                    height: Input0.scale * Input1.height,
                     channels: Input1.channels
                 }
                 """,
@@ -240,7 +240,7 @@ class InterpolateNode(NodeBase):
             ModelOutput(model_type="Input0 & Input1").with_never_reason(
                 "Models must be of the same type and have the same parameters to be interpolated."
             ),
-            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
 
