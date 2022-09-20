@@ -95,6 +95,16 @@ const expressionSnippets: string[] = [
     String.raw`a & b & c & d`,
     String.raw`a & b | c & d`,
 
+    // arithmetic
+    String.raw`a + b - c + d - e + f`,
+    String.raw`a * b / c * d / e * f`,
+    String.raw`a * (-b+c) / -2`,
+    String.raw`-a--b`,
+    String.raw`-a+-b`,
+    String.raw`a + b * c`,
+    String.raw`-100 - -100`,
+    String.raw`a---100`,
+
     // scope
     String.raw`{ 0 }`,
     String.raw`{ let foo = 0; foo }`,
@@ -189,6 +199,20 @@ const invalidExpressionSnippets: string[] = [
     String.raw`a & b &`,
     String.raw`| b`,
     String.raw`& b`,
+
+    // arithmetic
+    String.raw`a-`,
+    String.raw`a+`,
+    String.raw`a*`,
+    String.raw`a/`,
+    String.raw`+a`,
+    String.raw`*a`,
+    String.raw`/a`,
+    String.raw`--a`,
+    String.raw`a+--a`,
+    String.raw`a++a`,
+    String.raw`a**a`,
+    String.raw`a-100`,
 
     // definitions
 
