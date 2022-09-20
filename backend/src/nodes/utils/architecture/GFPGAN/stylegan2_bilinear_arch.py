@@ -3,7 +3,7 @@
 import math
 import random
 import torch
-from basicsr.ops.fused_act import FusedLeakyReLU, fused_leaky_relu
+from .fused_act import FusedLeakyReLU, fused_leaky_relu
 from torch import nn
 from torch.nn import functional as F
 
@@ -11,10 +11,8 @@ from torch.nn import functional as F
 class NormStyleCode(nn.Module):
     def forward(self, x):
         """Normalize the style codes.
-
         Args:
             x (Tensor): Style codes with shape (b, c).
-
         Returns:
             Tensor: Normalized tensor.
         """
@@ -23,7 +21,6 @@ class NormStyleCode(nn.Module):
 
 class EqualLinear(nn.Module):
     """Equalized Linear as StyleGAN2.
-
     Args:
         in_channels (int): Size of each sample.
         out_channels (int): Size of each output sample.
@@ -83,9 +80,7 @@ class EqualLinear(nn.Module):
 
 class ModulatedConv2d(nn.Module):
     """Modulated Conv2d used in StyleGAN2.
-
     There is no bias in ModulatedConv2d.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -141,11 +136,9 @@ class ModulatedConv2d(nn.Module):
 
     def forward(self, x, style):
         """Forward function.
-
         Args:
             x (Tensor): Tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
-
         Returns:
             Tensor: Modulated tensor after convolution.
         """
@@ -197,7 +190,6 @@ class ModulatedConv2d(nn.Module):
 
 class StyleConv(nn.Module):
     """Style conv.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -246,7 +238,6 @@ class StyleConv(nn.Module):
 
 class ToRGB(nn.Module):
     """To RGB from features.
-
     Args:
         in_channels (int): Channel number of input.
         num_style_feat (int): Channel number of style features.
@@ -276,12 +267,10 @@ class ToRGB(nn.Module):
 
     def forward(self, x, style, skip=None):
         """Forward function.
-
         Args:
             x (Tensor): Feature tensor with shape (b, c, h, w).
             style (Tensor): Tensor with shape (b, num_style_feat).
             skip (Tensor): Base/skip tensor. Default: None.
-
         Returns:
             Tensor: RGB images.
         """
@@ -301,7 +290,6 @@ class ToRGB(nn.Module):
 
 class ConstantInput(nn.Module):
     """Constant input.
-
     Args:
         num_channel (int): Channel number of constant input.
         size (int): Spatial size of constant input.
@@ -318,7 +306,6 @@ class ConstantInput(nn.Module):
 
 class StyleGAN2GeneratorBilinear(nn.Module):
     """StyleGAN2 Generator.
-
     Args:
         out_size (int): The spatial size of outputs.
         num_style_feat (int): Channel number of style features. Default: 512.
@@ -468,7 +455,6 @@ class StyleGAN2GeneratorBilinear(nn.Module):
         return_latents=False,
     ):
         """Forward function for StyleGAN2Generator.
-
         Args:
             styles (list[Tensor]): Sample codes of styles.
             input_is_latent (bool): Whether input is latent style.
@@ -548,7 +534,6 @@ class StyleGAN2GeneratorBilinear(nn.Module):
 
 class ScaledLeakyReLU(nn.Module):
     """Scaled LeakyReLU.
-
     Args:
         negative_slope (float): Negative slope. Default: 0.2.
     """
@@ -564,7 +549,6 @@ class ScaledLeakyReLU(nn.Module):
 
 class EqualConv2d(nn.Module):
     """Equalized Linear as StyleGAN2.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -626,7 +610,6 @@ class EqualConv2d(nn.Module):
 
 class ConvLayer(nn.Sequential):
     """Conv Layer used in StyleGAN2 Discriminator.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
@@ -688,7 +671,6 @@ class ConvLayer(nn.Sequential):
 
 class ResBlock(nn.Module):
     """Residual block used in StyleGAN2 Discriminator.
-
     Args:
         in_channels (int): Channel number of the input.
         out_channels (int): Channel number of the output.
