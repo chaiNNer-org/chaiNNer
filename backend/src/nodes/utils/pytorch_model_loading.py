@@ -1,3 +1,4 @@
+from typing import Union
 from sanic.log import logger
 
 from .architecture.RRDB import RRDBNet as ESRGAN
@@ -5,10 +6,12 @@ from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
-from .torch_types import PyTorchModel
+from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
+from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
+from .torch_types import PyTorchModel, PyTorchFaceModel
 
 
-def load_state_dict(state_dict) -> PyTorchModel:
+def load_state_dict(state_dict) -> Union[PyTorchModel, PyTorchFaceModel]:
     logger.info(f"Loading state dict into pytorch model arch")
 
     state_dict_keys = list(state_dict.keys())
@@ -37,6 +40,18 @@ def load_state_dict(state_dict) -> PyTorchModel:
     # SwinIR
     elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict_keys:
         model = SwinIR(state_dict)
+    # GFPGAN
+    elif (
+        "toRGB.0.weight" in state_dict_keys
+        and "stylegan_decoder.style_mlp.1.weight" in state_dict_keys
+    ):
+        model = GFPGANv1Clean(state_dict)
+    # RestoreFormer
+    elif (
+        "encoder.conv_in.weight" in state_dict_keys
+        and "encoder.down.0.block.0.norm1.weight" in state_dict_keys
+    ):
+        model = RestoreFormer(state_dict)
     # Regular ESRGAN, "new-arch" ESRGAN, Real-ESRGAN v1
     else:
         try:

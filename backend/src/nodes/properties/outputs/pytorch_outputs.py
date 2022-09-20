@@ -34,6 +34,8 @@ class ModelOutput(BaseOutput):
                 f"s{value.img_size}w{value.window_size}",
                 f"{value.num_feat}nf",
             ]
+        elif "GFPGAN" in value.model_type or "RestoreFormer" in value.model_type:
+            size = []
         else:
             size = [
                 f"{value.num_filters}nf",

@@ -674,25 +674,32 @@ class MultiHeadDecoderTransformer(nn.Module):
 class RestoreFormer(nn.Module):
     def __init__(
         self,
-        n_embed=1024,
-        embed_dim=256,
-        ch=64,
-        out_ch=3,
-        ch_mult=(1, 2, 2, 4, 4, 8),
-        num_res_blocks=2,
-        attn_resolutions=(16,),
-        dropout=0.0,
-        in_channels=3,
-        resolution=512,
-        z_channels=256,
-        double_z=False,
-        enable_mid=True,
-        fix_decoder=False,
-        fix_codebook=True,
-        fix_encoder=False,
-        head_size=8,
+        state_dict,
     ):
         super(RestoreFormer, self).__init__()
+
+        n_embed = 1024
+        embed_dim = 256
+        ch = 64
+        out_ch = 3
+        ch_mult = (1, 2, 2, 4, 4, 8)
+        num_res_blocks = 2
+        attn_resolutions = (16,)
+        dropout = 0.0
+        in_channels = 3
+        resolution = 512
+        z_channels = 256
+        double_z = False
+        enable_mid = True
+        fix_decoder = False
+        fix_codebook = True
+        fix_encoder = False
+        head_size = 8
+
+        self.model_type = "RestoreFormer"
+        self.scale = 2
+        self.in_nc = 3
+        self.out_nc = out_ch
 
         self.encoder = MultiHeadEncoder(
             ch=ch,

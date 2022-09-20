@@ -191,20 +191,26 @@ class GFPGANv1Clean(nn.Module):
 
     def __init__(
         self,
-        out_size,
-        num_style_feat=512,
-        channel_multiplier=1,
-        decoder_load_path=None,
-        fix_decoder=True,
-        # for stylegan decoder
-        num_mlp=8,
-        input_is_latent=False,
-        different_w=False,
-        narrow=1,
-        sft_half=False,
+        state_dict,
     ):
-
         super(GFPGANv1Clean, self).__init__()
+
+        out_size = 512
+        num_style_feat = 512
+        channel_multiplier = 2
+        decoder_load_path = None
+        fix_decoder = False
+        num_mlp = 8
+        input_is_latent = True
+        different_w = True
+        narrow = 1
+        sft_half = True
+
+        self.model_type = "GFPGAN"
+        self.scale = 2
+        self.in_nc = 3
+        self.out_nc = 3
+
         self.input_is_latent = input_is_latent
         self.different_w = different_w
         self.num_style_feat = num_style_feat
@@ -302,6 +308,7 @@ class GFPGANv1Clean(nn.Module):
                     nn.Conv2d(out_channels, sft_out_channels, 3, 1, 1),
                 )
             )
+        self.load_state_dict(state_dict)
 
     def forward(
         self, x, return_latents=False, return_rgb=True, randomize_noise=True, **kwargs
