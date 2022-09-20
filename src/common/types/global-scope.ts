@@ -21,7 +21,9 @@ import {
     toString,
 } from './builtin';
 import { VariableDefinition } from './expression';
+import { parseDefinitions } from './parse';
 import { BuiltinFunctionDefinition, ScopeBuilder } from './scope';
+import { SourceDocument } from './source';
 import { AnyType, IntIntervalType, NeverType, NumberType, StringType } from './types';
 import { union } from './union';
 
@@ -63,6 +65,23 @@ builder.add(binary('pow', pow, NumberType.instance, NumberType.instance));
 
 builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));
+
+// invStrSet is an interesting function, because it cannot be a built-in function.
+// For correctness, all built-in functions must guarantee the following property:
+//   f(A) ⊆ f(B) if A⊆B
+// This is necessary for the whole type system to work.
+//
+// This property is also expected of functions defined in Navi,
+// but functions that do not follow this property can still be non-problematic in some cases.
+const code = `
+def invStrSet(set: string) {
+    match string { set => never, _ as inv => inv }
+}
+`;
+const definitions = parseDefinitions(new SourceDocument(code, 'global-internal'));
+for (const d of definitions) {
+    builder.add(d);
+}
 
 /**
  * The global scope.
