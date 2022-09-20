@@ -75,7 +75,7 @@ class FaceUpscaleNode(NodeBase):
             if c == 4:
                 img = img[:, :, :3]
             elif c == 1:
-                img = np.repeat(img, 3, axis=2)
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
             exec_options = to_pytorch_execution_options(get_execution_options())
             device = torch.device(exec_options.device)
