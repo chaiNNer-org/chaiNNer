@@ -62,6 +62,7 @@ struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
 struct VideoType;
+struct FaceUpscaleModel;
 
 enum Orientation { Horizontal, Vertical }
 enum SideSelection { Width, Height, Shorter, Longer }

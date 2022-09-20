@@ -327,7 +327,7 @@ def FillColorDropdown() -> DropDownInput:
     )
 
 
-def TileModeDropdown(has_auto=True) -> DropDownInput:
+def TileModeDropdown(has_auto=True, label="Number of Tiles") -> DropDownInput:
     options = [
         {"option": "None", "value": 1},
         {"option": 4**1, "value": 2},
@@ -341,6 +341,19 @@ def TileModeDropdown(has_auto=True) -> DropDownInput:
         options.insert(0, {"option": "Auto", "value": 0})
     return DropDownInput(
         input_type="TileMode",
-        label="Number of Tiles",
+        label=label,
         options=options,
+    )
+
+
+def FaceUpscaleDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="FaceUpscaleModel",
+        label="Face Restoration Model",
+        options=[
+            {"option": "GFPGANv1.2", "value": "GFPGANv1.2"},
+            {"option": "GFPGANv1.3", "value": "GFPGANv1.3"},
+            {"option": "GFPGANv1.4", "value": "GFPGANv1.4"},
+            {"option": "RestoreFormer", "value": "RestoreFormer"},
+        ],
     )
