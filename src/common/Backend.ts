@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch';
-import { Category, InputId, InputValue, NodeSchema, SchemaId, UsableData } from './common-types';
+import { Category, InputId, InputValue, JsonNode, NodeSchema, SchemaId } from './common-types';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -38,7 +38,7 @@ export interface BackendNodesResponse {
     categories: Category[];
 }
 export interface BackendRunRequest {
-    data: Record<string, UsableData>;
+    data: JsonNode[];
     isCpu: boolean;
     isFp16: boolean;
     pytorchGPU: number;

@@ -1,4 +1,5 @@
 from typing import Union, Literal
+from base_types import InputId
 from .. import expression
 
 InputKind = Literal[
@@ -27,7 +28,7 @@ class BaseInput:
         self.label: str = label
         self.optional: bool = False
         self.has_handle: bool = has_handle
-        self.id: Union[int, None] = None
+        self.id: InputId = InputId(-1)
 
     # This is the method that should be created by each input
     def enforce(self, value):
@@ -56,8 +57,8 @@ class BaseInput:
             "hasHandle": self.has_handle,
         }
 
-    def with_id(self, input_id: int):
-        self.id = input_id
+    def with_id(self, input_id: Union[InputId, int]):
+        self.id = InputId(input_id)
         return self
 
     def make_optional(self):

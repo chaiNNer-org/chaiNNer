@@ -2,7 +2,7 @@ import { constants } from 'fs';
 import fs from 'fs/promises';
 import { LocalStorage } from 'node-localstorage';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
-import type { EdgeHandle, InputId, InputValue, NodeSchema, OutputId } from './common-types';
+import type { InputId, NodeSchema, OutputId } from './common-types';
 
 export const EMPTY_ARRAY: readonly never[] = [];
 export const EMPTY_SET: ReadonlySet<never> = new Set<never>();
@@ -194,7 +194,5 @@ export const delay = (ms: number): Promise<void> => {
     });
 };
 
-export const getInputValues = <T extends InputValue | EdgeHandle | null>(
-    schema: NodeSchema,
-    getValue: (inputId: InputId) => T
-): T[] => schema.inputs.map((input) => getValue(input.id));
+export const getInputValues = <T>(schema: NodeSchema, getValue: (inputId: InputId) => T): T[] =>
+    schema.inputs.map((input) => getValue(input.id));

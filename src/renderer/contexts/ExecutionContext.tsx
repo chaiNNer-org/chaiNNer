@@ -1,16 +1,16 @@
-import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
-import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import {
     EdgeData,
-    EdgeHandle,
     InputId,
+    JsonEdgeInput,
+    JsonInput,
+    JsonNode,
     NodeData,
     OutputId,
-    UsableData,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -18,8 +18,6 @@ import {
     ParsedHandle,
     assertNever,
     getInputValues,
-    isEndingNode,
-    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -74,31 +72,30 @@ const convertToUsableFormat = (
     edges: readonly Edge<EdgeData>[],
     schemata: SchemaMap
 ) => {
-    const result: Record<string, UsableData> = {};
+    const result: JsonNode[] = [];
 
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertHandle = (handle: ParsedHandle, type: 'input' | 'output'): EdgeHandle => {
+    const convertHandle = (handle: ParsedHandle<OutputId>): JsonEdgeInput => {
         const schema = nodeSchemaMap.get(handle.nodeId);
         if (!schema) {
             throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
         }
 
-        const index = schema[`${type}s`].findIndex((inOut) => inOut.id === handle.inOutId);
+        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.inOutId);
         if (index === -1) {
             throw new Error(
-                `Invalid handle: There is no ${type} with id ${handle.inOutId} in ${schema.name}`
+                `Invalid handle: There is no output with id ${handle.inOutId} in ${schema.name}`
             );
         }
 
-        return { id: handle.nodeId, index };
+        return { type: 'edge', id: handle.nodeId, index };
     };
 
     type Handles<I extends InputId | OutputId> = Record<
         string,
-        Record<I, EdgeHandle | undefined> | undefined
+        Record<I, JsonEdgeInput | undefined> | undefined
     >;
     const inputHandles: Handles<InputId> = {};
-    const outputHandles: Handles<OutputId> = {};
     edges.forEach((element) => {
         const { sourceHandle, targetHandle } = element;
         if (!sourceHandle || !targetHandle) return;
@@ -106,13 +103,8 @@ const convertToUsableFormat = (
         const sourceH = parseSourceHandle(sourceHandle);
         const targetH = parseTargetHandle(targetHandle);
 
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
-        (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
+        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH);
     });
-
-    // Necessary to get around TS mutability warning
-    const nodesCopy = [...nodes];
-    const edgesCopy = [...edges];
 
     // Set up each node in the result
     nodes.forEach((element) => {
@@ -126,72 +118,21 @@ const convertToUsableFormat = (
             );
         }
 
-        const cacheOptions = {
-            shouldCache: !isEndingNode(schema),
-            maxCacheHits: 0,
-            clearImmediately: false,
-        };
-
-        const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
-        const isConnectedToIterator = currentChildren.some((child) => child.parentNode);
-        const isStartNode = isStartingNode(schema);
-
-        let totalOutputs = 0;
-        Object.values(inputHandles).forEach((value) => {
-            if (value) {
-                Object.values(value).forEach((v) => {
-                    if (v?.id === id) {
-                        totalOutputs += 1;
-                    }
-                });
-            }
-        });
-
-        // Case when we want to clear the cache after all nodes that needed it have used it from the cache
-        if (totalOutputs > 1 || isConnectedToIterator || isStartNode) {
-            cacheOptions.maxCacheHits =
-                isConnectedToIterator || isStartNode
-                    ? Infinity
-                    : // Max cache hits is the number of outputs - 1 since the first output is what sets it
-                      totalOutputs - 1;
-            // Case where we don't need to cache it at all
-        } else if (totalOutputs === 0) {
-            cacheOptions.shouldCache = false;
-            // Case where we can clear it as soon as it's used
-        } else if (totalOutputs === 1) {
-            cacheOptions.clearImmediately = true;
-        }
-
-        log.info(
-            `${schema.name} (id: ${schemaId}) is ${
-                cacheOptions.shouldCache ? '' : 'not'
-            } caching. Max cache hits: ${cacheOptions.maxCacheHits}`
-        );
-
         // Node
-        result[id] = {
-            schemaId,
+        result.push({
             id,
-            inputs: getInputValues(
+            schemaId,
+            inputs: getInputValues<JsonInput>(
                 schema,
-                (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
+                (inputId) =>
+                    inputHandles[id]?.[inputId] ?? {
+                        type: 'value',
+                        value: inputData[inputId] ?? null,
+                    }
             ),
-            child: false,
             nodeType,
-            hasSideEffects: schema.hasSideEffects,
-            cacheOptions,
-        };
-        if (nodeType === 'iterator') {
-            result[id].children = [];
-        }
-    });
-
-    // set children
-    nodes.forEach((node) => {
-        if (node.parentNode) {
-            result[node.parentNode].children!.push(node.id);
-            result[node.id].child = true;
-        }
+            parent: element.parentNode ?? null,
+        });
     });
 
     return result;
