@@ -33,15 +33,12 @@ class FaceUpscaleNode(NodeBase):
         self.inputs = [
             ModelInput(
                 "Face SR Model",
-                input_type=expression.PyTorchModel(
-                    modelType=[
-                        expression.literal(
-                            "GFPGANv1.2 | GFPGANv1.3 | GFPGANv1.4 | RestoreFormer"
-                        )
-                    ]
-                ),
+                input_type='PyTorchModel { modelType: "GFPGAN" | "RestoreFormer" }',
             ),
-            ModelInput("Background SR Model").make_optional(),
+            ModelInput(
+                "Background SR Model",
+                input_type='PyTorchModel { modelType: "ESRGAN" | "ESRGAN+" | "SPSR" | "SRVGG (RealESRGAN)" | "Swift-SRGAN" | "SwinIR" }',
+            ).make_optional(),
             ImageInput(),
             TileModeDropdown(label="Background SR Tile Mode"),
         ]

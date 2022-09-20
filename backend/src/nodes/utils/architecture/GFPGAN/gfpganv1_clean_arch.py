@@ -211,6 +211,9 @@ class GFPGANv1Clean(nn.Module):
         self.in_nc = 3
         self.out_nc = 3
 
+        self.supports_fp16 = True
+        self.supports_bf16 = True
+
         self.input_is_latent = input_is_latent
         self.different_w = different_w
         self.num_style_feat = num_style_feat
