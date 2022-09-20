@@ -21,7 +21,7 @@ from .properties.outputs import *
 from .utils.utils import get_h_w_c, np2tensor, tensor2np
 from .utils.exec_options import get_execution_options
 from .utils.torch_types import PyTorchModel
-from .pytorch_nodes import ImageUpscaleNode, to_pytorch_execution_options
+from .pytorch_nodes import to_pytorch_execution_options
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
@@ -29,26 +29,22 @@ from .pytorch_nodes import ImageUpscaleNode, to_pytorch_execution_options
 class FaceUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = "Upscales & Restores a face in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN and RestoreFormer."
+        self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN and RestoreFormer."
         self.inputs = [
             ModelInput(
                 "Face SR Model",
                 input_type='PyTorchModel { modelType: "GFPGAN" | "RestoreFormer" }',
             ),
-            ModelInput(
-                "Background SR Model",
-                input_type='PyTorchModel { modelType: "ESRGAN" | "ESRGAN+" | "SPSR" | "SRVGG (RealESRGAN)" | "Swift-SRGAN" | "SwinIR" }',
-            ).make_optional(),
             ImageInput(),
-            TileModeDropdown(label="Background SR Tile Mode"),
+            ImageInput("Upscaled Background").make_optional(),
         ]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(2, Input2.width),
-                    height: multiply(2, Input2.height),
+                    width: multiply(Input0.scale, Input1.width),
+                    height: multiply(Input0.scale, Input1.height),
                     channels: 3
                 }
                 """,
@@ -63,9 +59,8 @@ class FaceUpscaleNode(NodeBase):
     def run(
         self,
         face_model: PyTorchModel,
-        background_model: Union[PyTorchModel, None],
         img: np.ndarray,
-        tile_mode: int,
+        background_img: Union[np.ndarray, None],
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
         face_helper = None
@@ -139,20 +134,29 @@ class FaceUpscaleNode(NodeBase):
                 upsample_h = int(h * upscale)
                 upsample_w = int(w * upscale)
 
-                if background_model is not None:
+                if background_img is not None:
                     # upsample the background
-                    background_upscale = (
-                        ImageUpscaleNode().run(background_model, img, tile_mode) * 255
-                    ).astype(np.uint8)
+                    background_img = (background_img * 255).astype(np.uint8)
+                    h, w, c = get_h_w_c(img)
+                    if c == 4:
+                        background_img = background_img[:, :, :3]
+                    elif c == 1:
+                        background_img = cv2.cvtColor(
+                            background_img, cv2.COLOR_GRAY2BGR
+                        )
+
+                    d_size = (upsample_h, upsample_w)
+                    interp = cv2.INTER_LANCZOS4
+                    background_upscale = cv2.resize(
+                        background_img,
+                        d_size,
+                        interpolation=interp,
+                    )
 
                     face_helper.get_inverse_affine(None)
                     # paste each restored face to the input image
                     restored_img = face_helper.paste_faces_to_input_image(
-                        upsample_img=cv2.resize(
-                            background_upscale,
-                            (upsample_h, upsample_w),
-                            interpolation=cv2.INTER_AREA,
-                        ),
+                        upsample_img=background_upscale
                     )
                 else:
                     face_helper.get_inverse_affine(None)
@@ -163,7 +167,7 @@ class FaceUpscaleNode(NodeBase):
                 return restored_img
         except Exception as e:
             logger.error(f"GFPGAN failed: {e}")
-            face_helper = None, None
+            face_helper = None
             del face_helper
             torch.cuda.empty_cache()
             # pylint: disable=raise-missing-from

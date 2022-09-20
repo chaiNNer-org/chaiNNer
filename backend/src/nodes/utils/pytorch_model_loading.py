@@ -1,4 +1,3 @@
-from typing import Union
 from sanic.log import logger
 
 from .architecture.RRDB import RRDBNet as ESRGAN

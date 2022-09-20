@@ -697,7 +697,7 @@ class RestoreFormer(nn.Module):
         head_size = 8
 
         self.model_type = "RestoreFormer"
-        self.scale = 2
+        self.scale = 8
         self.in_nc = 3
         self.out_nc = out_ch
         self.state = state_dict

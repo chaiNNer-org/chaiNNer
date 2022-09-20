@@ -207,7 +207,7 @@ class GFPGANv1Clean(nn.Module):
         sft_half = True
 
         self.model_type = "GFPGAN"
-        self.scale = 2
+        self.scale = 8
         self.in_nc = 3
         self.out_nc = 3
         self.state = state_dict
