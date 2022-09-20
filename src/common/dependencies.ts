@@ -35,7 +35,7 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     packageName: 'torchvision',
                     version: `0.11.3${canCuda ? '+cu113' : ''}`,
                     findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
-                    sizeEstimate: 800 * KB,
+                    sizeEstimate: canCuda ? 2 * MB : 800 * KB,
                 },
                 {
                     packageName: 'facexlib',
