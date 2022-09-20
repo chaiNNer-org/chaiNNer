@@ -205,6 +205,20 @@ floor(never) => never
 floor(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
 `;
 
+exports[`Builtin functions invStrSet 1`] = `
+"invStrSet(string) => never
+invStrSet(\\"\\") => invStrSet(\\"\\")
+invStrSet(\\"foo\\") => invStrSet(\\"foo\\")
+invStrSet(\\"bar\\") => invStrSet(\\"bar\\")
+invStrSet(\\"bar\\" | \\"foo\\") => invStrSet(\\"bar\\" | \\"foo\\")
+invStrSet(\\"baz\\" | \\"foo\\") => invStrSet(\\"baz\\" | \\"foo\\")
+invStrSet(invStrSet(\\"foo\\")) => \\"foo\\"
+invStrSet(invStrSet(\\"bar\\" | \\"foo\\")) => \\"bar\\" | \\"foo\\"
+invStrSet(invStrSet(\\"bar\\")) => \\"bar\\"
+invStrSet(never) => string
+invStrSet(any) => Error: Incompatible argument type: The supplied argument type any is not compatible with the definition type."
+`;
+
 exports[`Builtin functions log 1`] = `
 "log(number) => number
 log(-3.14) => never
