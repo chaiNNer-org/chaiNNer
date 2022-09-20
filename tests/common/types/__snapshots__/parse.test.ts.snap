@@ -463,7 +463,7 @@ SyntaxError: At 1:3: extraneous input '-' expecting {'{', '(', 'match', IntInter
 SyntaxError: At 1:2: extraneous input '+' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier, '-'}
 
 >>> a**a
-SyntaxError: At 1:1: mismatched input '**' expecting <EOF>
+SyntaxError: At 1:2: extraneous input '*' expecting {'{', '(', 'match', IntInterval, Interval, Number, String, Identifier, '-'}
 
 >>> a-100
 SyntaxError: At 1:1: extraneous input '-100' expecting <EOF>
