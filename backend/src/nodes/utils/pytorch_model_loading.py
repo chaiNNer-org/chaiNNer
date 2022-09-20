@@ -8,10 +8,10 @@ from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
 from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
-from .torch_types import PyTorchModel, PyTorchFaceModel
+from .torch_types import PyTorchModel
 
 
-def load_state_dict(state_dict) -> Union[PyTorchModel, PyTorchFaceModel]:
+def load_state_dict(state_dict) -> PyTorchModel:
     logger.info(f"Loading state dict into pytorch model arch")
 
     state_dict_keys = list(state_dict.keys())

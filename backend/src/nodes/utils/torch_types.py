@@ -7,5 +7,6 @@ from .architecture.SwinIR import SwinIR
 from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
 
-PyTorchModel = Union[RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR]
-PyTorchFaceModel = Union[GFPGANv1Clean, RestoreFormer]
+PyTorchModel = Union[
+    RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR, GFPGANv1Clean, RestoreFormer
+]

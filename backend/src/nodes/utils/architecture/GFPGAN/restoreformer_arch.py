@@ -700,6 +700,7 @@ class RestoreFormer(nn.Module):
         self.scale = 2
         self.in_nc = 3
         self.out_nc = out_ch
+        self.state = state_dict
 
         self.supports_fp16 = True
         self.supports_bf16 = True

@@ -22,7 +22,7 @@ from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
 from .utils.onnx_model import OnnxModel
-from .utils.torch_types import PyTorchFaceModel, PyTorchModel
+from .utils.torch_types import PyTorchModel
 from .utils.pytorch_model_loading import load_state_dict
 
 try:
@@ -64,7 +64,7 @@ class LoadModelNode(NodeBase):
         self.icon = "PyTorch"
         self.sub = "Input & Output"
 
-    def run(self, path: str) -> Tuple[Union[PyTorchModel, PyTorchFaceModel], str, str]:
+    def run(self, path: str) -> Tuple[PyTorchModel, str, str]:
         """Read a pth file from the specified path and return it as a state dict
         and loaded model after finding arch config"""
 
@@ -286,7 +286,7 @@ class InterpolateNode(NodeBase):
 
     def run(
         self, model_a: PyTorchModel, model_b: PyTorchModel, amount: int
-    ) -> Tuple[Union[PyTorchModel, PyTorchFaceModel], int, int]:
+    ) -> Tuple[PyTorchModel, int, int]:
         if amount == 0:
             return model_a, 100, 0
         elif amount == 100:

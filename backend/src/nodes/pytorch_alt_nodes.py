@@ -20,7 +20,7 @@ from .properties.inputs import *
 from .properties.outputs import *
 from .utils.utils import get_h_w_c, np2tensor, tensor2np
 from .utils.exec_options import get_execution_options
-from .utils.torch_types import PyTorchFaceModel, PyTorchModel
+from .utils.torch_types import PyTorchModel
 from .pytorch_nodes import ImageUpscaleNode, to_pytorch_execution_options
 
 
@@ -62,7 +62,7 @@ class FaceUpscaleNode(NodeBase):
 
     def run(
         self,
-        face_model: PyTorchFaceModel,
+        face_model: PyTorchModel,
         background_model: Union[PyTorchModel, None],
         img: np.ndarray,
         tile_mode: int,

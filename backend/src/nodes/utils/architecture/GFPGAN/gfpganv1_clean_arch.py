@@ -210,6 +210,7 @@ class GFPGANv1Clean(nn.Module):
         self.scale = 2
         self.in_nc = 3
         self.out_nc = 3
+        self.state = state_dict
 
         self.supports_fp16 = True
         self.supports_bf16 = True

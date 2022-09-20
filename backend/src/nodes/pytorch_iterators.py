@@ -11,7 +11,7 @@ from .node_base import NodeBase, IteratorNodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.torch_types import PyTorchModel, PyTorchFaceModel
+from .utils.torch_types import PyTorchModel
 
 PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"
 
@@ -41,7 +41,7 @@ class ModelFileIteratorLoadModelNode(NodeBase):
 
     def run(
         self, path: str, root_dir: str, index: int
-    ) -> Tuple[Union[PyTorchModel, PyTorchFaceModel], str, str, str, int]:
+    ) -> Tuple[PyTorchModel, str, str, str, int]:
         model, dirname, basename = LoadModelNode().run(path)
 
         # Get relative path from root directory passed by Iterator directory input
