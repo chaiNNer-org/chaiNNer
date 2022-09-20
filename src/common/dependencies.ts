@@ -38,9 +38,9 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     sizeEstimate: 800 * KB,
                 },
                 {
-                    packageName: 'gfpgan',
-                    version: '1.3.8',
-                    sizeEstimate: 52 * KB,
+                    packageName: 'facexlib',
+                    version: '0.2.5',
+                    sizeEstimate: 1.1 * MB,
                 },
             ],
         },

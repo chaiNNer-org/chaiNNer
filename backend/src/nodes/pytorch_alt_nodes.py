@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from torchvision.transforms.functional import normalize as tv_normalize
 from sanic.log import logger
 
-from basicsr.utils import img2tensor, tensor2img
+from torchvision.transforms.functional import normalize as tv_normalize
 from basicsr.utils.download_util import load_file_from_url
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 
@@ -19,19 +18,15 @@ from .utils.architecture.GFPGAN.gfpgan_bilinear_arch import GFPGANBilinear
 from .utils.architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .utils.architecture.GFPGAN.restoreformer_arch import RestoreFormer
 
-
 from .categories import PyTorchCategory
 from .node_base import NodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
-from .utils.utils import get_h_w_c
+from .utils.utils import get_h_w_c, np2tensor, tensor2np
 from .utils.exec_options import get_execution_options
 from .utils.torch_types import PyTorchModel
 from .pytorch_nodes import ImageUpscaleNode, to_pytorch_execution_options
-
-
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
@@ -53,7 +48,7 @@ class FaceUpscaleNode(NodeBase):
                 Image {
                     width: multiply(2, Input2.width),
                     height: multiply(2, Input2.height),
-                    channels: Input2.channels
+                    channels: 3
                 }
                 """,
             )
@@ -76,6 +71,11 @@ class FaceUpscaleNode(NodeBase):
         face_helper = None
         try:
             img = (img * 255).astype(np.uint8)
+            h, w, c = get_h_w_c(img)
+            if c == 4:
+                img = img[:, :, :3]
+            elif c == 1:
+                img = np.repeat(img, 3, axis=2)
 
             exec_options = to_pytorch_execution_options(get_execution_options())
             device = torch.device(exec_options.device)
@@ -158,6 +158,13 @@ class FaceUpscaleNode(NodeBase):
                 raise ValueError(f"Unknown arch {arch}.")
 
             with torch.no_grad():
+                download_path = (
+                    os.path.join(
+                        user_data_dir(roaming=True),
+                        "chaiNNer/python",
+                        "gfpgan/weights",
+                    ),
+                )
                 # initialize face helper
                 face_helper = FaceRestoreHelper(
                     upscale,
@@ -167,7 +174,7 @@ class FaceUpscaleNode(NodeBase):
                     save_ext="png",
                     use_parse=True,
                     device=device,
-                    model_rootpath="gfpgan/weights",
+                    model_rootpath=download_path,
                 )
 
                 # For now, rely solely on url
@@ -175,11 +182,7 @@ class FaceUpscaleNode(NodeBase):
                 if model_path.startswith("https://"):
                     model_path = load_file_from_url(
                         url=model_path,
-                        model_dir=os.path.join(
-                            user_data_dir(roaming=True),
-                            "chaiNNer/python",
-                            "gfpgan/weights",
-                        ),
+                        model_dir=download_path,
                         progress=True,
                         file_name=None,
                     )
@@ -207,8 +210,8 @@ class FaceUpscaleNode(NodeBase):
                 # face restoration
                 for cropped_face in face_helper.cropped_faces:
                     # prepare data
-                    cropped_face_t = img2tensor(
-                        cropped_face / 255.0, bgr2rgb=True, float32=True
+                    cropped_face_t = np2tensor(
+                        cropped_face, bgr2rgb=True, change_range=True, add_batch=False
                     )
                     tv_normalize(cropped_face_t, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)  # type: ignore
                     cropped_face_t = cropped_face_t.unsqueeze(0).to(device)  # type: ignore
@@ -218,9 +221,8 @@ class FaceUpscaleNode(NodeBase):
                             cropped_face_t, return_rgb=False, weight=weight
                         )[0]
                         # convert to image
-                        restored_face = tensor2img(
-                            output.squeeze(0), rgb2bgr=True, min_max=(-1, 1)
-                        )
+                        output = (output + 1) / 2
+                        restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
                     except RuntimeError as error:
                         print(f"\tFailed inference for GFPGAN: {error}.")
                         restored_face = cropped_face
