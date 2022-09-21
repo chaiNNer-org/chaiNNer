@@ -2,12 +2,10 @@ import os
 from copy import deepcopy
 from io import BufferedReader, StringIO
 from json import load as jload
-from ssl import SSLEOFError
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from sanic.log import logger
-from torch import pixel_shuffle
 
 # Don't want not having onnx to crash this
 try:

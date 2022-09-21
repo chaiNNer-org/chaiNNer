@@ -10,6 +10,7 @@ import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { NcnnModelOutput } from '../outputs/NcnnModelOutput';
+import { OnnxModelOutput } from '../outputs/OnnxModelOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
 import { OutputProps } from '../outputs/props';
 import { PyTorchOutput } from '../outputs/PyTorchOutput';
@@ -25,6 +26,7 @@ const OutputComponents: Readonly<
     image: DefaultImageOutput,
     'large-image': LargeImageOutput,
     pytorch: PyTorchOutput,
+    onnx: OnnxModelOutput,
     ncnn: NcnnModelOutput,
     directory: GenericOutput,
     text: GenericOutput,
@@ -34,6 +36,7 @@ const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
     image: true,
     'large-image': false,
     pytorch: false,
+    onnx: false,
     ncnn: false,
     directory: true,
     text: true,

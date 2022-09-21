@@ -1,7 +1,6 @@
+from ...utils.ncnn_model import NcnnModelWrapper
 from .. import expression
 from .base_output import BaseOutput, OutputKind
-
-from ...utils.ncnn_model import NcnnModelWrapper
 
 
 class NcnnModelOutput(BaseOutput):

@@ -37,7 +37,7 @@ class OnnxSaveModelNode(NodeBase):
         full_path = f"{os.path.join(directory, model_name)}.onnx"
         logger.info(f"Writing file to path: {full_path}")
         with open(full_path, "wb") as f:
-            f.write(model.bytes)
+            f.write(model.model)
 
 
 @NodeFactory.register("chainner:ncnn:save_model")

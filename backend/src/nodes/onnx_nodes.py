@@ -39,7 +39,7 @@ class OnnxLoadModelNode(NodeBase):
         )
         self.inputs = [OnnxFileInput()]
         self.outputs = [
-            OnnxModelOutput(),
+            OnnxModelOutput(should_broadcast=True),
             DirectoryOutput("Model Directory").with_id(2),
             TextOutput("Model Name").with_id(1),
         ]
@@ -214,8 +214,8 @@ class OnnxInterpolateModelsNode(NodeBase):
         b: OnnxModel,
         amount: int,
     ) -> Tuple[OnnxModel, int, int]:
-        model_a = a.bytes
-        model_b = b.bytes
+        model_a = a.model
+        model_b = b.model
         if amount == 0:
             return a, 100, 0
         elif amount == 100:
@@ -289,7 +289,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
     def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModelWrapper, str]:
         fp16 = bool(is_fp16)
 
-        model_proto = onnx.load_model_from_string(model.bytes)
+        model_proto = onnx.load_model_from_string(model.model)
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
         opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
 

@@ -1,4 +1,3 @@
-from sys import float_info
 from typing import Dict, List, Union
 
 import numpy as np
@@ -26,45 +25,8 @@ from .ncnn_model import (
     ReductionOpTypes,
     UnaryOpTypes,
 )
+from .onnx_tensor_utils import *
 
-INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
-FLOAT32_MAX = float_info.max
-
-
-class AttributeProtoTypes:
-    FLOAT = 1
-    INT = 2
-    STRING = 3
-    TENSOR = 4
-    GRAPH = 5
-    FLOATS = 6
-    INTS = 7
-    STRINGS = 8
-    TENSORS = 9
-    GRAPHS = 10
-
-
-class TensorProtoTypes:
-    UNDEFINED = 0
-    FLOAT = 1
-    UINT8 = 2
-    INT8 = 3
-    UINT16 = 4
-    INT16 = 5
-    INT32 = 6
-    INT64 = 7
-    STRING = 8
-    BOOL = 9
-    FLOAT16 = 10
-    DOUBLE = 11
-    UINT32 = 12
-    UINT64 = 13
-    COMPLEX64_VALUE = 14
-    COMPLEX128_VALUE = 15
-
-
-APT = AttributeProtoTypes
-TPT = TensorProtoTypes
 UOT = UnaryOpTypes
 BOT = BinaryOpTypes
 EOT = EltwiseOpTypes
@@ -92,12 +54,6 @@ class Onnx2NcnnConverter:
         self.node_reference: Dict[str, int] = {}
         self.blob_names: Dict[str, None] = {}
 
-    def swap_nodes(self, a: int, b: int) -> None:
-        self.mutable_graph_nodes[a], self.mutable_graph_nodes[b] = (
-            self.mutable_graph_nodes[b],
-            self.mutable_graph_nodes[a],
-        )
-
     @staticmethod
     def clear_container(
         container: Union[RepeatedCompositeFieldContainer, RepeatedScalarFieldContainer],
@@ -105,119 +61,16 @@ class Onnx2NcnnConverter:
         for _ in range(len(container)):
             container.pop()
 
-    @staticmethod
-    def get_node_attr_ai(node: onnx.NodeProto, key: str) -> np.ndarray:
-        for attr in node.attribute:
-            if attr.name == key:
-                return np.array(
-                    [max(min(i, INT64_MAX), INT64_MIN) for i in attr.ints], np.int64
-                )
-
-        return np.empty(0, np.int32)
-
-    @staticmethod
-    def set_node_attr_ai(node: onnx.NodeProto, key: str, value: np.ndarray) -> None:
-        attr_group = onnx.AttributeProto(name=key, floats=value, type=APT.INTS)
-        node.attribute.append(attr_group)
-
-    @staticmethod
-    def get_node_attr_af(node: onnx.NodeProto, key: str) -> np.ndarray:
-        for attr in node.attribute:
-            if attr.name == key:
-                return np.array([f for f in attr.floats], np.float32)
-
-        return np.empty(0, np.float32)
-
-    @staticmethod
-    def get_node_attr_i(node: onnx.NodeProto, key: str, default: int = 0) -> int:
-        for attr in node.attribute:
-            if attr.name == key:
-                return max(min(attr.i, INT64_MAX), INT64_MIN)
-
-        return default
-
-    @staticmethod
-    def get_node_attr_f(node: onnx.NodeProto, key: str, default: float = 0) -> float:
-        for attr in node.attribute:
-            if attr.name == key:
-                return attr.f
-
-        return default
-
-    @staticmethod
-    def get_node_attr_s(node: onnx.NodeProto, key: str, default: str = ""):
-        for attr in node.attribute:
-            if attr.name == key:
-                return attr.s.decode("ascii")
-
-        return default
-
-    @staticmethod
-    def get_node_attr_tensor(node: onnx.NodeProto, key: str) -> onnx.TensorProto:
-        for attr in node.attribute:
-            if attr.name == key:
-                return attr.t
-
-        return onnx.TensorProto()
-
-    @staticmethod
-    def get_node_attr_from_input_f(tp: onnx.TensorProto) -> float:
-        shape_data = onph.to_array(tp)
-
-        if tp.data_type in (TPT.FLOAT, TPT.DOUBLE, TPT.INT32):
-            f = shape_data.item(0)
-        elif tp.data_type == TPT.INT64:
-            f = max(min(shape_data.item(0), INT64_MAX), INT64_MIN)
-        else:
-            raise TypeError(f"Unknown data type {tp.data_type}")
-
-        return f
-
-    @staticmethod
-    def get_node_attr_from_input_ai(tp: onnx.TensorProto) -> np.ndarray:
-        if tp.data_type == TPT.INT32 or tp.data_type == TPT.INT64:
-            shape_data = onph.to_array(tp)
-            if shape_data.size == 1:
-                shape_data = np.array([shape_data.item(0)], shape_data.dtype)
-            return np.array(
-                [
-                    max(min(val, INT64_MAX), INT64_MIN)
-                    if tp.data_type == TPT.INT64
-                    else val
-                    for val in shape_data
-                ],
-                shape_data.dtype,
-            )
-        else:
-            logger.error(f"Unknown data type {tp.data_type}")
-
-        return np.empty(0, np.int32)
-
-    @staticmethod
-    def get_node_attr_from_input_af(tp: onnx.TensorProto) -> np.ndarray:
-        if tp.data_type == TPT.FLOAT or tp.data_type == TPT.DOUBLE:
-            shape_data = onph.to_array(tp)
-            return np.array([val for val in shape_data], shape_data.dtype)
-        else:
-            logger.error(f"Unknown data type {tp.data_type}")
-
-        return np.empty(0, np.float32)
-
-    @staticmethod
-    def get_tensor_proto_data_size(tp: onnx.TensorProto) -> int:
-        if tp.raw_data:
-            return len(tp.raw_data) // 4
-        elif tp.data_type == TPT.FLOAT:
-            return len(tp.float_data)
-
-        return 0
+    def swap_nodes(self, a: int, b: int) -> None:
+        self.mutable_graph_nodes[a], self.mutable_graph_nodes[b] = (
+            self.mutable_graph_nodes[b],
+            self.mutable_graph_nodes[a],
+        )
 
     def fuse_rewrite_gather(self) -> None:
         for gather in self.mutable_graph_nodes:
             if gather.op_type == "Gather":
-                indices = self.get_node_attr_from_input_ai(
-                    self.weights[gather.input[1]]
-                )
+                indices = get_node_attr_from_input_ai(self.weights[gather.input[1]])
                 if len(indices) == 1:
                     # Reconstruct node connections
                     self.node_reference[gather.input[1]] -= 1
@@ -226,16 +79,14 @@ class Onnx2NcnnConverter:
                     gather.input.append(origin_inp)
 
                     # Update axis, starts and ends
-                    axis = self.get_node_attr_i(gather, "axis", 1)
+                    axis = get_node_attr_i(gather, "axis", 1)
                     gather.op_type = "Crop"
                     gather.ClearField("attribute")
 
                     index = indices[0]
-                    self.set_node_attr_ai(gather, "starts", np.array([index], np.int32))
-                    self.set_node_attr_ai(
-                        gather, "ends", np.array([index + 1], np.int32)
-                    )
-                    self.set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
+                    set_node_attr_ai(gather, "starts", np.array([index], np.int32))
+                    set_node_attr_ai(gather, "ends", np.array([index + 1], np.int32))
+                    set_node_attr_ai(gather, "axis", np.array([axis], np.int32))
 
     def fuse_weight_reshape(self, reduced_node_count: List[int]) -> None:
         for i in range(self.node_count):
@@ -244,11 +95,9 @@ class Onnx2NcnnConverter:
                 if node.input[0] in self.weights:
                     self.weights[node.output[0]] = self.weights[node.input[0]]
                     if len(node.input) == 1:
-                        shape = self.get_node_attr_ai(node, "shape")
+                        shape = get_node_attr_ai(node, "shape")
                     elif len(node.input) == 2:
-                        shape = self.get_node_attr_from_input_ai(
-                            self.weights[node.input[1]]
-                        )
+                        shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
                     else:
                         shape = np.empty(0, np.int64)
 
@@ -270,7 +119,7 @@ class Onnx2NcnnConverter:
             node = self.mutable_graph_nodes[i]
             if node.op_type == "Transpose":
                 if node.input[0] in self.weights and len(node.input[0].dims) == 2:
-                    perm = self.get_node_attr_ai(node, "perm")
+                    perm = get_node_attr_ai(node, "perm")
                     if perm.size != 2 or perm[0] != 1 or perm[1] != 0:
                         continue
 
@@ -309,14 +158,12 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node.input) == 1:
-                    shape = self.get_node_attr_ai(node, "shape")
+                    shape = get_node_attr_ai(node, "shape")
                 else:
                     # Skip weight reshape
                     if node.input[1] not in self.weights:
                         continue
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 # 1 groups channels_per_group, height, width
                 # reverse style = channels_per_group, groups, height * width
@@ -341,7 +188,7 @@ class Onnx2NcnnConverter:
 
                 # 0 2 1 3 4
                 # reverse style = 1 0 2
-                perm = self.get_node_attr_ai(node2, "perm")
+                perm = get_node_attr_ai(node2, "perm")
                 if perm.size != 5 and perm.size != 3:
                     continue
                 if perm.size == 5 and (
@@ -356,13 +203,11 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node3.input) == 1:
-                    shape3 = self.get_node_attr_ai(node3, "shape")
+                    shape3 = get_node_attr_ai(node3, "shape")
                 else:
                     if node3.input[1] not in self.weights:
                         continue
-                    shape3 = self.get_node_attr_from_input_ai(
-                        self.weights[node3.input[1]]
-                    )
+                    shape3 = get_node_attr_from_input_ai(self.weights[node3.input[1]])
 
                 # 1, -1, height, width
                 # reverse style = group, -1, channels_per_group, height, width
@@ -415,7 +260,7 @@ class Onnx2NcnnConverter:
             # Split <= ShuffleChannel(reverse type) - Gather(0) - Gather(1)
             if node.op_type == "ShuffleChannel":
                 # reverse = 1
-                reverse = self.get_node_attr_i(node, "reverse")
+                reverse = get_node_attr_i(node, "reverse")
                 if reverse != 1 or (i + 2 >= self.node_count):
                     continue
 
@@ -428,22 +273,22 @@ class Onnx2NcnnConverter:
                     continue
 
                 # axis = 0 or indices = 0
-                gather2_axis = self.get_node_attr_i(node2, "axis")
+                gather2_axis = get_node_attr_i(node2, "axis")
                 if gather2_axis != 0 or node2.input[1] not in self.weights:
                     continue
 
-                gather2_indices = self.get_node_attr_from_input_ai(
+                gather2_indices = get_node_attr_from_input_ai(
                     self.weights[node2.input[1]]
                 )
                 if gather2_indices.size != 1 or gather2_indices[0] != 0:
                     continue
 
                 # axis = 0 or indices = 1
-                gather3_axis = self.get_node_attr_i(node3, "axis")
+                gather3_axis = get_node_attr_i(node3, "axis")
                 if gather3_axis != 0 or node3.input[1] not in self.weights:
                     continue
 
-                gather3_indices = self.get_node_attr_from_input_ai(
+                gather3_indices = get_node_attr_from_input_ai(
                     self.weights[node3.input[1]]
                 )
                 if gather3_indices.size != 1 or gather2_indices[0] != 1:
@@ -489,11 +334,11 @@ class Onnx2NcnnConverter:
                 add_three = self.weights[node.input[1]]
                 if (
                     len(add_three.dims) != 0
-                    or self.get_tensor_proto_data_size(add_three) != 1
+                    or get_tensor_proto_data_size(add_three) != 1
                 ):
                     continue
 
-                constant_add_three = self.get_node_attr_from_input_f(add_three)
+                constant_add_three = get_node_attr_from_input_f(add_three)
                 if constant_add_three != 3:
                     continue
 
@@ -516,13 +361,13 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node2.input) == 1:
-                    relu6_min = self.get_node_attr_f(node2, "min", -FLOAT32_MAX)
-                    relu6_max = self.get_node_attr_f(node2, "max", FLOAT32_MAX)
+                    relu6_min = get_node_attr_f(node2, "min", -FLOAT32_MAX)
+                    relu6_max = get_node_attr_f(node2, "max", FLOAT32_MAX)
                 else:
                     min_tp = self.weights[node2.input[1]]
                     max_tp = self.weights[node2.input[2]]
-                    relu6_min = self.get_node_attr_from_input_f(min_tp)
-                    relu6_max = self.get_node_attr_from_input_f(max_tp)
+                    relu6_min = get_node_attr_from_input_f(min_tp)
+                    relu6_max = get_node_attr_from_input_f(max_tp)
 
                 if relu6_min != 0 or relu6_max != 6:
                     continue
@@ -534,13 +379,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 div_six = self.weights[node4.input[1]]
-                if (
-                    len(div_six.dims) != 0
-                    or self.get_tensor_proto_data_size(div_six) != 1
-                ):
+                if len(div_six.dims) != 0 or get_tensor_proto_data_size(div_six) != 1:
                     continue
 
-                constant_div_six = self.get_node_attr_from_input_f(div_six)
+                constant_div_six = get_node_attr_from_input_f(div_six)
                 if (node4.op_type == "Div" and constant_div_six != 6) or (
                     node4.op_type == "Mul" and constant_div_six != 1 / 6
                 ):
@@ -587,8 +429,8 @@ class Onnx2NcnnConverter:
                 if self.node_reference[node.output[0]] != 1:
                     continue
 
-                alpha = self.get_node_attr_f(node, "alpha", 0.2)
-                beta = self.get_node_attr_f(node, "beta", 0.5)
+                alpha = get_node_attr_f(node, "alpha", 0.2)
+                beta = get_node_attr_f(node, "beta", 0.5)
 
                 if i + 1 >= self.node_count:
                     continue
@@ -641,7 +483,7 @@ class Onnx2NcnnConverter:
                 add_three = self.weights[node.input[1]]
                 if (
                     len(add_three.dims) != 0
-                    or self.get_tensor_proto_data_size(add_three) != 1
+                    or get_tensor_proto_data_size(add_three) != 1
                 ):
                     continue
 
@@ -666,13 +508,13 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node2.input) == 1:
-                    relu6_min = self.get_node_attr_f(node2, "min", -FLOAT32_MAX)
-                    relu6_max = self.get_node_attr_f(node2, "max", FLOAT32_MAX)
+                    relu6_min = get_node_attr_f(node2, "min", -FLOAT32_MAX)
+                    relu6_max = get_node_attr_f(node2, "max", FLOAT32_MAX)
                 else:
                     min_tp = self.weights[node2.input[1]]
                     max_tp = self.weights[node2.input[2]]
-                    relu6_min = self.get_node_attr_from_input_f(min_tp)
-                    relu6_max = self.get_node_attr_from_input_f(max_tp)
+                    relu6_min = get_node_attr_from_input_f(min_tp)
+                    relu6_max = get_node_attr_from_input_f(max_tp)
 
                 if relu6_min != 0 or relu6_max != 6:
                     continue
@@ -680,13 +522,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 div_six = self.weights[node3.input[1]]
-                if (
-                    len(div_six.dims) != 0
-                    or self.get_tensor_proto_data_size(div_six) != 1
-                ):
+                if len(div_six.dims) != 0 or get_tensor_proto_data_size(div_six) != 1:
                     continue
 
-                constant_div_six = self.get_node_attr_from_input_f(div_six)
+                constant_div_six = get_node_attr_from_input_f(div_six)
                 if (node3.op_type == "Div" and constant_div_six != 6) or (
                     node3.op_type == "Mul" and constant_div_six != 1 / 6
                 ):
@@ -807,7 +646,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # axes = (1, 2)
-                axes = self.get_node_attr_ai(node, "axes")
+                axes = get_node_attr_ai(node, "axes")
                 if axes.size != 2 or axes[0] != 1 or axes[1] != 2:
                     continue
                 if i + 1 >= self.node_count:
@@ -841,7 +680,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # axes = (1)
-                axes = self.get_node_attr_ai(node, "axes")
+                axes = get_node_attr_ai(node, "axes")
                 if len(axes) != 1 or axes[0] != 1 or i + 3 >= self.node_count:
                     continue
 
@@ -886,10 +725,10 @@ class Onnx2NcnnConverter:
 
                 # +eps
                 if len(node2.input) == 1:
-                    clip_min = self.get_node_attr_f(node2, "min", -FLOAT32_MAX)
+                    clip_min = get_node_attr_f(node2, "min", -FLOAT32_MAX)
                 else:
                     min_tp = self.weights[node2.input[1]]
-                    clip_min = self.get_node_attr_from_input_f(min_tp)
+                    clip_min = get_node_attr_from_input_f(min_tp)
 
                 # reduce
                 node.op_type = "noop_reducedncnn"
@@ -933,15 +772,13 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node.input) == 1:
-                    shape = self.get_node_attr_ai(node, "shape")
+                    shape = get_node_attr_ai(node, "shape")
                 else:
                     # Skip weight reshape
                     if node.input[1] not in self.weights:
                         continue
 
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 # 0, group, -1
                 if (
@@ -981,23 +818,21 @@ class Onnx2NcnnConverter:
                     continue
 
                 # InstanceNormalization S=1 B=0
-                S = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
-                B = self.get_node_attr_from_input_af(self.weights[node2.input[2]])
+                S = get_node_attr_from_input_af(self.weights[node2.input[1]])
+                B = get_node_attr_from_input_af(self.weights[node2.input[2]])
                 if S.size != groups or B.size != groups:
                     continue
                 if np.any(S != 1) or np.any(B != 0):
                     continue
 
                 if len(node3.input) == 1:
-                    shape2 = self.get_node_attr_ai(node3, "shape")
+                    shape2 = get_node_attr_ai(node3, "shape")
                 else:
                     # Skip weight reshape
                     if node3.input[1] not in self.weights:
                         continue
 
-                    shape2 = self.get_node_attr_from_input_ai(
-                        self.weights[node3.input[1]]
-                    )
+                    shape2 = get_node_attr_from_input_ai(self.weights[node3.input[1]])
 
                 # 1, channels, w, h
                 if shape2.size != 4 or shape2[0] != 1:
@@ -1006,12 +841,8 @@ class Onnx2NcnnConverter:
                 channels = shape2[1]
 
                 # affine
-                affine_S = self.get_node_attr_from_input_af(
-                    self.weights[node4.input[1]]
-                )
-                affine_B = self.get_node_attr_from_input_af(
-                    self.weights[node5.input[1]]
-                )
+                affine_S = get_node_attr_from_input_af(self.weights[node4.input[1]])
+                affine_B = get_node_attr_from_input_af(self.weights[node5.input[1]])
                 if affine_S.size != channels and affine_B.size != channels:
                     continue  # only per-channel affine allowed
 
@@ -1055,7 +886,7 @@ class Onnx2NcnnConverter:
                 node5.attribute.append(attr_channels)
 
                 # +eps
-                eps = self.get_node_attr_f(node2, "epsilon", 0.00001)
+                eps = get_node_attr_f(node2, "epsilon", 0.00001)
                 attr_eps = onnx.AttributeProto(name="epsilon", f=eps, type=APT.FLOAT)
                 node5.attribute.append(attr_eps)
 
@@ -1075,7 +906,7 @@ class Onnx2NcnnConverter:
                 if self.node_reference[node.output[0]] != 1:
                     continue
 
-                axes = self.get_node_attr_ai(node, "axes")
+                axes = get_node_attr_ai(node, "axes")
 
                 # -1
                 # -2 -1
@@ -1120,17 +951,14 @@ class Onnx2NcnnConverter:
                     continue
 
                 pow_two = self.weights[node3.input[1]]
-                if (
-                    len(pow_two.dims) != 0
-                    or self.get_tensor_proto_data_size(pow_two) != 1
-                ):
+                if len(pow_two.dims) != 0 or get_tensor_proto_data_size(pow_two) != 1:
                     continue
 
-                constant_pow_two = self.get_node_attr_from_input_f(pow_two)
+                constant_pow_two = get_node_attr_from_input_f(pow_two)
                 if constant_pow_two != 2:
                     continue
 
-                axes4 = self.get_node_attr_ai(node4, "axes")
+                axes4 = get_node_attr_ai(node4, "axes")
 
                 # -1
                 # -2 -1
@@ -1144,13 +972,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 add_eps = self.weights[node5.input[1]]
-                if (
-                    len(add_eps.dims) != 0
-                    or self.get_tensor_proto_data_size(add_eps) != 1
-                ):
+                if len(add_eps.dims) != 0 or get_tensor_proto_data_size(add_eps) != 1:
                     continue
 
-                eps = self.get_node_attr_from_input_f(add_eps)
+                eps = get_node_attr_from_input_f(add_eps)
 
                 affine = 0
                 while i + 8 < self.node_count:
@@ -1171,12 +996,8 @@ class Onnx2NcnnConverter:
                         break
 
                     # affine
-                    affine_S = self.get_node_attr_from_input_af(
-                        self.weights[node8.input[1]]
-                    )
-                    affine_B = self.get_node_attr_from_input_af(
-                        self.weights[node9.input[1]]
-                    )
+                    affine_S = get_node_attr_from_input_af(self.weights[node8.input[1]])
+                    affine_B = get_node_attr_from_input_af(self.weights[node9.input[1]])
                     if affine_S.size != affine_B.size:
                         break
 
@@ -1296,7 +1117,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # axis = 0
-                gather_axis = self.get_node_attr_i(node2, "axis")
+                gather_axis = get_node_attr_i(node2, "axis")
                 if gather_axis != 0:
                     continue
 
@@ -1304,17 +1125,17 @@ class Onnx2NcnnConverter:
                 if node2.input[1] not in self.weights:
                     continue
 
-                gather_indices = self.get_node_attr_from_input_ai(
+                gather_indices = get_node_attr_from_input_ai(
                     self.weights[node2.input[1]]
                 )
                 if gather_indices.size != 1 or gather_indices[0] != 0:
                     continue
 
                 # axes = (0)
-                unsqueeze_axes = self.get_node_attr_ai(node4, "axes")
+                unsqueeze_axes = get_node_attr_ai(node4, "axes")
                 if unsqueeze_axes.size != 1 or unsqueeze_axes[0] != 0:
                     continue
-                unsqueeze_axes2 = self.get_node_attr_ai(node5, "axes")
+                unsqueeze_axes2 = get_node_attr_ai(node5, "axes")
                 if unsqueeze_axes2.size != 1 or unsqueeze_axes2[0] != 0:
                     continue
 
@@ -1322,14 +1143,14 @@ class Onnx2NcnnConverter:
                 if node5.input[0] not in self.weights:
                     continue
 
-                unsqueeze2_data = self.get_node_attr_from_input_ai(
+                unsqueeze2_data = get_node_attr_from_input_ai(
                     self.weights[node5.input[0]]
                 )
                 if unsqueeze2_data.size != 1 or unsqueeze2_data[0] != -1:
                     continue
 
                 # axis = 0
-                concat_axis = self.get_node_attr_i(node6, "axis")
+                concat_axis = get_node_attr_i(node6, "axis")
                 if concat_axis != 0:
                     continue
 
@@ -1373,15 +1194,13 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node.input) == 1:
-                    shape = self.get_node_attr_ai(node, "shape")
+                    shape = get_node_attr_ai(node, "shape")
                 else:
                     # skip weight reshape
                     if node.input[1] not in self.weights:
                         continue
 
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 # -1, 3, upscale_factor, upscale_factor, height, width
                 if (
@@ -1407,7 +1226,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 0 1 4 2 5 3
-                perm = self.get_node_attr_ai(node2, "perm")
+                perm = get_node_attr_ai(node2, "perm")
                 if (
                     perm.size != 6
                     or perm[0] != 0
@@ -1420,14 +1239,12 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node3.input) == 1:
-                    shape3 = self.get_node_attr_ai(node3, "shape")
+                    shape3 = get_node_attr_ai(node3, "shape")
                 else:
                     if node3.input[1] not in self.weights:
                         continue
 
-                    shape3 = self.get_node_attr_from_input_ai(
-                        self.weights[node3.input[1]]
-                    )
+                    shape3 = get_node_attr_from_input_ai(self.weights[node3.input[1]])
 
                 # -1, 3, height, width
                 if (
@@ -1475,14 +1292,12 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node.input) == 1:
-                    shape = self.get_node_attr_ai(node, "shape")
+                    shape = get_node_attr_ai(node, "shape")
                 else:
                     if node.input[1] not in self.weights:
                         continue
 
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 # -1, 3, out_height, block_size, out_width, block_size
                 if (
@@ -1508,7 +1323,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 0 1 3 5 2 4
-                perm = self.get_node_attr_ai(node2, "perm")
+                perm = get_node_attr_ai(node2, "perm")
                 if (
                     perm.size != 6
                     or perm[0] != 0
@@ -1521,14 +1336,12 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node3.input) == 1:
-                    shape3 = self.get_node_attr_ai(node3, "shape")
+                    shape3 = get_node_attr_ai(node3, "shape")
                 else:
                     if node3.input[1] not in self.weights:
                         continue
 
-                    shape3 = self.get_node_attr_from_input_ai(
-                        self.weights[node3.input[1]]
-                    )
+                    shape3 = get_node_attr_from_input_ai(self.weights[node3.input[1]])
 
                 # -1, out_channels, out_height, out_width
                 if (
@@ -1623,12 +1436,12 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                direction = self.get_node_attr_s(node, "direction")
+                direction = get_node_attr_s(node, "direction")
                 if direction != "bidirectional":
                     continue
 
                 # 0 2 1 3
-                perm = self.get_node_attr_ai(node2, "perm")
+                perm = get_node_attr_ai(node2, "perm")
                 if (
                     perm.size != 4
                     or perm[0] != 0
@@ -1639,14 +1452,12 @@ class Onnx2NcnnConverter:
                     continue
 
                 if len(node3.input) == 1:
-                    shape = self.get_node_attr_ai(node3, "shape")
+                    shape = get_node_attr_ai(node3, "shape")
                 else:
                     if node3.input[1] not in self.weights:
                         continue
 
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node3.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node3.input[1]])
 
                 # 0 0 -1
                 if shape.size != 3 or shape[0] != 0 or shape[1] != 0 or shape[2] != -1:
@@ -1681,7 +1492,7 @@ class Onnx2NcnnConverter:
                         continue
 
                     # 1 0 2
-                    perm4 = self.get_node_attr_ai(node4, "perm")
+                    perm4 = get_node_attr_ai(node4, "perm")
                     if (
                         perm4.size != 3
                         or perm4[0] != 1
@@ -1717,11 +1528,11 @@ class Onnx2NcnnConverter:
                 if node2.input[0] != node.output[0]:
                     continue
 
-                direction = self.get_node_attr_s(node, "direction")
+                direction = get_node_attr_s(node, "direction")
                 if direction == "bidirectional":
                     continue
 
-                axes = self.get_node_attr_ai(node2, "axes")
+                axes = get_node_attr_ai(node2, "axes")
                 if axes.size != 1 or axes[0] != 1:
                     continue
 
@@ -1750,7 +1561,7 @@ class Onnx2NcnnConverter:
                         continue
 
                     # 1 0 2
-                    perm4 = self.get_node_attr_ai(node3, "perm")
+                    perm4 = get_node_attr_ai(node3, "perm")
                     if (
                         perm4.size != 3
                         or perm4[0] != 1
@@ -1780,7 +1591,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 1 0 2
-                perm = self.get_node_attr_ai(node, "perm")
+                perm = get_node_attr_ai(node, "perm")
                 if perm.size != 3 or perm[0] != 1 or perm[1] != 0 or perm[2] != 2:
                     continue
 
@@ -1907,10 +1718,10 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                q_B = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
-                k_B = self.get_node_attr_from_input_af(self.weights[node4.input[1]])
-                v_B = self.get_node_attr_from_input_af(self.weights[node6.input[1]])
-                o_B = self.get_node_attr_from_input_af(self.weights[node20.input[1]])
+                q_B = get_node_attr_from_input_af(self.weights[node2.input[1]])
+                k_B = get_node_attr_from_input_af(self.weights[node4.input[1]])
+                v_B = get_node_attr_from_input_af(self.weights[node6.input[1]])
+                o_B = get_node_attr_from_input_af(self.weights[node20.input[1]])
 
                 if q_B.size != k_B.size or q_B.size != v_B.size or q_B.size != o_B.size:
                     continue
@@ -1918,8 +1729,8 @@ class Onnx2NcnnConverter:
                 embed_dim = q_B.size
 
                 # 1 0 2
-                perm9 = self.get_node_attr_ai(node9, "perm")
-                perm12 = self.get_node_attr_ai(node12, "perm")
+                perm9 = get_node_attr_ai(node9, "perm")
+                perm12 = get_node_attr_ai(node12, "perm")
                 if perm9.size != 3 or perm9[0] != 1 or perm9[1] != 0 or perm9[2] != 2:
                     continue
                 if (
@@ -1931,7 +1742,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 1 2 0
-                perm13 = self.get_node_attr_ai(node13, "perm")
+                perm13 = get_node_attr_ai(node13, "perm")
                 if (
                     perm13.size != 3
                     or perm13[0] != 1
@@ -1941,7 +1752,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 1 0 2
-                perm17 = self.get_node_attr_ai(node17, "perm")
+                perm17 = get_node_attr_ai(node17, "perm")
                 if (
                     perm17.size != 3
                     or perm17[0] != 1
@@ -1950,38 +1761,32 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                softmax_axis = self.get_node_attr_i(node15, "axis")
+                softmax_axis = get_node_attr_i(node15, "axis")
                 if softmax_axis != 2:
                     continue
 
                 # 1/-1 seqlen * num_heads, embed_dim / num_heads
                 if len(node8.input) == 1:
-                    shape8 = self.get_node_attr_ai(node8, "shape")
+                    shape8 = get_node_attr_ai(node8, "shape")
                 else:
                     if node8.input[1] not in self.weights:
                         continue
 
-                    shape8 = self.get_node_attr_from_input_ai(
-                        self.weights[node8.input[1]]
-                    )
+                    shape8 = get_node_attr_from_input_ai(self.weights[node8.input[1]])
                 if len(node10.input) == 1:
-                    shape10 = self.get_node_attr_ai(node10, "shape")
+                    shape10 = get_node_attr_ai(node10, "shape")
                 else:
                     if node10.input[1] not in self.weights:
                         continue
 
-                    shape10 = self.get_node_attr_from_input_ai(
-                        self.weights[node10.input[1]]
-                    )
+                    shape10 = get_node_attr_from_input_ai(self.weights[node10.input[1]])
                 if len(node11.input) == 1:
-                    shape11 = self.get_node_attr_ai(node11, "shape")
+                    shape11 = get_node_attr_ai(node11, "shape")
                 else:
                     if node11.input[1] not in self.weights:
                         continue
 
-                    shape11 = self.get_node_attr_from_input_ai(
-                        self.weights[node11.input[1]]
-                    )
+                    shape11 = get_node_attr_from_input_ai(self.weights[node11.input[1]])
 
                 if shape8.size != 3 or shape10.size != 3 or shape11.size != 3:
                     continue
@@ -1996,14 +1801,12 @@ class Onnx2NcnnConverter:
                 num_heads = embed_dim / shape8[2]
 
                 if len(node18.input) == 1:
-                    shape18 = self.get_node_attr_ai(node18, "shape")
+                    shape18 = get_node_attr_ai(node18, "shape")
                 else:
                     if node18.input[1] not in self.weights:
                         continue
 
-                    shape18 = self.get_node_attr_from_input_ai(
-                        self.weights[node18.input[1]]
-                    )
+                    shape18 = get_node_attr_from_input_ai(self.weights[node18.input[1]])
 
                 if (
                     shape18.size != 3
@@ -2210,8 +2013,8 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                qkv_B = self.get_node_attr_from_input_af(self.weights[node2.input[1]])
-                o_B = self.get_node_attr_from_input_af(self.weights[node17.input[1]])
+                qkv_B = get_node_attr_from_input_af(self.weights[node2.input[1]])
+                o_B = get_node_attr_from_input_af(self.weights[node17.input[1]])
 
                 if qkv_B.size != o_B.size * 3:
                     continue
@@ -2219,15 +2022,15 @@ class Onnx2NcnnConverter:
                 embed_dim = o_B.size
 
                 # 1 0 2
-                perm6 = self.get_node_attr_ai(node6, "perm")
-                perm9 = self.get_node_attr_ai(node9, "perm")
+                perm6 = get_node_attr_ai(node6, "perm")
+                perm9 = get_node_attr_ai(node9, "perm")
                 if perm6.size != 3 or perm6[0] != 1 or perm6[1] != 0 or perm6[2] != 2:
                     continue
                 if perm9.size != 3 or perm9[0] != 1 or perm9[1] != 0 or perm9[2] != 2:
                     continue
 
                 # 1 2 0
-                perm10 = self.get_node_attr_ai(node10, "perm")
+                perm10 = get_node_attr_ai(node10, "perm")
                 if (
                     perm10.size != 3
                     or perm10[0] != 1
@@ -2237,7 +2040,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 # 1 0 2
-                perm14 = self.get_node_attr_ai(node14, "perm")
+                perm14 = get_node_attr_ai(node14, "perm")
                 if (
                     perm14.size != 3
                     or perm14[0] != 1
@@ -2246,38 +2049,32 @@ class Onnx2NcnnConverter:
                 ):
                     continue
 
-                softmax_axis = self.get_node_attr_i(node12, "axis")
+                softmax_axis = get_node_attr_i(node12, "axis")
                 if softmax_axis != 2:
                     continue
 
                 # 1/-1, seqlen * num_heads, embed_dim / num_heads
                 if len(node5.input) == 1:
-                    shape5 = self.get_node_attr_ai(node5, "shape")
+                    shape5 = get_node_attr_ai(node5, "shape")
                 else:
                     if node5.input[1] not in self.weights:
                         continue
 
-                    shape5 = self.get_node_attr_from_input_ai(
-                        self.weights[node5.input[1]]
-                    )
+                    shape5 = get_node_attr_from_input_ai(self.weights[node5.input[1]])
                 if len(node7.input) == 1:
-                    shape7 = self.get_node_attr_ai(node7, "shape")
+                    shape7 = get_node_attr_ai(node7, "shape")
                 else:
                     if node7.input[1] not in self.weights:
                         continue
 
-                    shape7 = self.get_node_attr_from_input_ai(
-                        self.weights[node7.input[1]]
-                    )
+                    shape7 = get_node_attr_from_input_ai(self.weights[node7.input[1]])
                 if len(node8.input) == 1:
-                    shape8 = self.get_node_attr_ai(node8, "shape")
+                    shape8 = get_node_attr_ai(node8, "shape")
                 else:
                     if node8.input[1] not in self.weights:
                         continue
 
-                    shape8 = self.get_node_attr_from_input_ai(
-                        self.weights[node8.input[1]]
-                    )
+                    shape8 = get_node_attr_from_input_ai(self.weights[node8.input[1]])
 
                 if (
                     shape5[1] != shape7[1]
@@ -2291,14 +2088,12 @@ class Onnx2NcnnConverter:
 
                 # 1, seqlen, embed_dim
                 if len(node15.input) == 1:
-                    shape15 = self.get_node_attr_ai(node15, "shape")
+                    shape15 = get_node_attr_ai(node15, "shape")
                 else:
                     if node15.input[1] not in self.weights:
                         continue
 
-                    shape15 = self.get_node_attr_from_input_ai(
-                        self.weights[node15.input[1]]
-                    )
+                    shape15 = get_node_attr_from_input_ai(self.weights[node15.input[1]])
 
                 if (
                     shape15.size != 3
@@ -2408,10 +2203,7 @@ class Onnx2NcnnConverter:
                     continue
 
                 scalar_b = self.weights[node.input[0]]
-                if (
-                    len(scalar_b.dims) != 0
-                    or self.get_tensor_proto_data_size(scalar_b) != 1
-                ):
+                if len(scalar_b.dims) != 0 or get_tensor_proto_data_size(scalar_b) != 1:
                     continue
 
                 if node.op_type == "Sub":
@@ -2419,7 +2211,7 @@ class Onnx2NcnnConverter:
                 elif node.op_type == "Div":
                     node.op_type = "RDiv"
 
-                b = self.get_node_attr_from_input_f(scalar_b)
+                b = get_node_attr_from_input_f(scalar_b)
 
                 self.node_reference[node.input[0]] -= 1
 
@@ -2444,13 +2236,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 scalar_b = self.weights[node.input[1]]
-                if (
-                    len(scalar_b.dims) != 0
-                    or self.get_tensor_proto_data_size(scalar_b) != 1
-                ):
+                if len(scalar_b.dims) != 0 or get_tensor_proto_data_size(scalar_b) != 1:
                     continue
 
-                b = self.get_node_attr_from_input_f(scalar_b)
+                b = get_node_attr_from_input_f(scalar_b)
 
                 self.node_reference[node.input[1]] -= 1
 
@@ -2524,7 +2313,7 @@ class Onnx2NcnnConverter:
                 node.name = node.output[0]
 
             if op == "Constant":
-                self.weights[node.output[0]] = self.get_node_attr_tensor(node, "value")
+                self.weights[node.output[0]] = get_node_attr_tensor(node, "value")
 
             for input_name in node.input:
                 self.blob_names[input_name] = None
@@ -2607,17 +2396,17 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[5]] -= 1
                 self.node_reference[node.input[6]] -= 1
             elif op == "Gemm":
-                alpha = self.get_node_attr_f(node, "alpha", 1)
-                beta = self.get_node_attr_f(node, "beta", 1)
-                transA = self.get_node_attr_i(node, "transA", 0)
-                transB = self.get_node_attr_i(node, "transB", 0)
+                alpha = get_node_attr_f(node, "alpha", 1)
+                beta = get_node_attr_f(node, "beta", 1)
+                transA = get_node_attr_i(node, "transA", 0)
+                transB = get_node_attr_i(node, "transB", 0)
 
                 if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
                     # InnerProduct-like A * B + C
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
             elif op == "GroupNorm":
-                affine = self.get_node_attr_i(node, "affine", 1)
+                affine = get_node_attr_i(node, "affine", 1)
                 if affine:
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
@@ -2628,7 +2417,7 @@ class Onnx2NcnnConverter:
                 self.node_reference[node.input[1]] -= 1
                 self.node_reference[node.input[2]] -= 1
             elif op == "LayerNorm":
-                affine = self.get_node_attr_i(node, "affine", 1)
+                affine = get_node_attr_i(node, "affine", 1)
                 if affine:
                     self.node_reference[node.input[1]] -= 1
                     self.node_reference[node.input[2]] -= 1
@@ -2787,7 +2576,7 @@ class Onnx2NcnnConverter:
 
                     M_dims_size = len(M.dims)
                     if M_dims_size == 0:
-                        layer.add_param(0, self.get_tensor_proto_data_size(M))
+                        layer.add_param(0, get_tensor_proto_data_size(M))
                     elif M_dims_size == 1:
                         layer.add_param(0, M.dims[0])
                     elif M_dims_size == 2:
@@ -2877,7 +2666,7 @@ class Onnx2NcnnConverter:
             ]:
                 layer.op_type = "BinaryOp"
             elif op == "AveragePool" or op == "MaxPool":
-                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                kernel_shape = get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
                     layer.op_type = "Pooling1D"
                 else:
@@ -2893,17 +2682,17 @@ class Onnx2NcnnConverter:
             elif op == "Constant":
                 continue
             elif op == "Conv":
-                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
+                kernel_shape = get_node_attr_ai(node, "kernel_shape")
                 if kernel_shape.size == 1:
                     layer.op_type = "Convolution1D"
                 else:
-                    group = self.get_node_attr_i(node, "group", 1)
+                    group = get_node_attr_i(node, "group", 1)
                     if group > 1:
                         layer.op_type = "ConvolutionDepthWise"
                     else:
                         layer.op_type = "Convolution"
             elif op == "ConvTranspose":
-                group = self.get_node_attr_i(node, "group", 1)
+                group = get_node_attr_i(node, "group", 1)
                 if group > 1:
                     layer.op_type = "DeconvolutionDepthWise"
                 else:
@@ -2924,10 +2713,10 @@ class Onnx2NcnnConverter:
             elif op == "Gelu":
                 layer.op_type = "GELU"
             elif op == "Gemm":
-                alpha = self.get_node_attr_f(node, "alpha", 1)
-                beta = self.get_node_attr_f(node, "beta", 1)
-                transA = self.get_node_attr_i(node, "transA", 0)
-                transB = self.get_node_attr_i(node, "transB", 0)
+                alpha = get_node_attr_f(node, "alpha", 1)
+                beta = get_node_attr_f(node, "beta", 1)
+                transA = get_node_attr_i(node, "transA", 0)
+                transB = get_node_attr_i(node, "transB", 0)
 
                 if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
                     # InnerProduct-like A * B + C
@@ -3068,8 +2857,8 @@ class Onnx2NcnnConverter:
                 elif op == "Sub":
                     layer.add_param(0, BOT.SUB)
 
-                with_scalar = self.get_node_attr_i(node, "with_scalar", 0)
-                b = self.get_node_attr_f(node, "b", 0)
+                with_scalar = get_node_attr_i(node, "with_scalar", 0)
+                b = get_node_attr_f(node, "b", 0)
                 if with_scalar:
                     layer.add_param(1, with_scalar)
                     layer.add_param(2, b)
@@ -3078,11 +2867,11 @@ class Onnx2NcnnConverter:
             elif op == "Atan":
                 layer.add_param(0, UOT.ATAN)
             elif op == "AveragePool" or op == "MaxPool":
-                auto_pad = self.get_node_attr_s(node, "auto_pad")
-                ceil_mode = self.get_node_attr_i(node, "ceil_mode", 0)
-                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
-                strides = self.get_node_attr_ai(node, "strides")
-                pads = self.get_node_attr_ai(node, "pads")
+                auto_pad = get_node_attr_s(node, "auto_pad")
+                ceil_mode = get_node_attr_i(node, "ceil_mode", 0)
+                kernel_shape = get_node_attr_ai(node, "kernel_shape")
+                strides = get_node_attr_ai(node, "strides")
+                pads = get_node_attr_ai(node, "pads")
 
                 pool = int(op == "AveragePool")
 
@@ -3123,17 +2912,17 @@ class Onnx2NcnnConverter:
                 layer.add_param(5, pad_mode)
 
                 if pool:
-                    avgpool_count_include_pad = self.get_node_attr_i(
+                    avgpool_count_include_pad = get_node_attr_i(
                         node, "count_include_pad", 0
                     )
                     layer.add_param(6, avgpool_count_include_pad)
             elif op == "BatchNormalization":
-                epsilon = self.get_node_attr_f(node, "epsilon", 0.00001)
+                epsilon = get_node_attr_f(node, "epsilon", 0.00001)
                 scale = self.weights[node.input[1]]
                 B = self.weights[node.input[2]]
                 mean = self.weights[node.input[3]]
                 var = self.weights[node.input[4]]
-                channels = self.get_tensor_proto_data_size(scale)
+                channels = get_tensor_proto_data_size(scale)
 
                 layer.add_param(0, channels)
 
@@ -3148,23 +2937,23 @@ class Onnx2NcnnConverter:
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
-                layer.add_param(0, self.get_tensor_proto_data_size(B))
+                layer.add_param(0, get_tensor_proto_data_size(B))
 
                 weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "Ceil":
                 layer.add_param(0, UOT.CEIL)
             elif op == "Clip":
                 if len(node.input) == 1:
-                    minimum = self.get_node_attr_f(node, "min", -FLOAT32_MAX)
-                    maximum = self.get_node_attr_f(node, "max", FLOAT32_MAX)
+                    minimum = get_node_attr_f(node, "min", -FLOAT32_MAX)
+                    maximum = get_node_attr_f(node, "max", FLOAT32_MAX)
                 else:
                     minimum = (
-                        self.get_node_attr_from_input_f(self.weights[node.input[1]])
+                        get_node_attr_from_input_f(self.weights[node.input[1]])
                         if node.input[1] in self.weights
                         else -FLOAT32_MAX
                     )
                     maximum = (
-                        self.get_node_attr_from_input_f(self.weights[node.input[2]])
+                        get_node_attr_from_input_f(self.weights[node.input[2]])
                         if node.input[2] in self.weights
                         else FLOAT32_MAX
                     )
@@ -3172,7 +2961,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, minimum)
                 layer.add_param(1, maximum)
             elif op == "Concat":
-                axis = self.get_node_attr_i(node, "axis", 1)
+                axis = get_node_attr_i(node, "axis", 1)
                 layer.add_param(0, axis - 1 if axis > 0 else axis)
             elif op == "Constant":
                 logger.error("Code should not have reached inside Constant.")
@@ -3182,12 +2971,12 @@ class Onnx2NcnnConverter:
                 num_filter = W.dims[0]
                 has_bias = int(len(node.input) == 3)
 
-                auto_pad = self.get_node_attr_s(node, "auto_pad")
-                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
-                dilations = self.get_node_attr_ai(node, "dilations")
-                strides = self.get_node_attr_ai(node, "strides")
-                pads = self.get_node_attr_ai(node, "pads")
-                group = self.get_node_attr_i(node, "group", 1)
+                auto_pad = get_node_attr_s(node, "auto_pad")
+                kernel_shape = get_node_attr_ai(node, "kernel_shape")
+                dilations = get_node_attr_ai(node, "dilations")
+                strides = get_node_attr_ai(node, "strides")
+                pads = get_node_attr_ai(node, "pads")
+                group = get_node_attr_i(node, "group", 1)
 
                 layer.add_param(0, num_filter)
 
@@ -3227,7 +3016,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, has_bias)
 
-                layer.add_param(6, self.get_tensor_proto_data_size(W))
+                layer.add_param(6, get_tensor_proto_data_size(W))
 
                 if group > 1:
                     layer.add_param(7, group)
@@ -3243,14 +3032,14 @@ class Onnx2NcnnConverter:
 
                 has_bias = int(len(node.input) == 3)
 
-                auto_pad = self.get_node_attr_s(node, "auto_pad")
-                kernel_shape = self.get_node_attr_ai(node, "kernel_shape")
-                dilations = self.get_node_attr_ai(node, "dilations")
-                strides = self.get_node_attr_ai(node, "strides")
-                output_padding = self.get_node_attr_ai(node, "output_padding")
-                output_shape = self.get_node_attr_ai(node, "output_shape")
-                pads = self.get_node_attr_ai(node, "pads")
-                group = self.get_node_attr_i(node, "group", 1)
+                auto_pad = get_node_attr_s(node, "auto_pad")
+                kernel_shape = get_node_attr_ai(node, "kernel_shape")
+                dilations = get_node_attr_ai(node, "dilations")
+                strides = get_node_attr_ai(node, "strides")
+                output_padding = get_node_attr_ai(node, "output_padding")
+                output_shape = get_node_attr_ai(node, "output_shape")
+                pads = get_node_attr_ai(node, "pads")
+                group = get_node_attr_i(node, "group", 1)
                 num_filter = W.dims[1] * group
 
                 layer.add_param(0, num_filter)
@@ -3303,7 +3092,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, has_bias)
 
-                weight_data_size = self.get_tensor_proto_data_size(W)
+                weight_data_size = get_tensor_proto_data_size(W)
                 layer.add_param(6, weight_data_size)
 
                 if group > 1:
@@ -3321,18 +3110,18 @@ class Onnx2NcnnConverter:
             elif op == "Cos":
                 layer.add_param(0, UOT.COS)
             elif op == "Crop":
-                starts = self.get_node_attr_ai(node, "starts")
+                starts = get_node_attr_ai(node, "starts")
                 layer.add_param(9, [starts.size, *starts])
 
-                ends = self.get_node_attr_ai(node, "ends")
+                ends = get_node_attr_ai(node, "ends")
                 layer.add_param(10, [ends.size, *ends])
 
-                axes = self.get_node_attr_ai(node, "axis")
+                axes = get_node_attr_ai(node, "axis")
                 layer.add_param(11, [axes.size, *axes])
             elif op == "DepthToSpace":
                 # pixelshuffle
-                scale_factor = self.get_node_attr_i(node, "blocksize", 1)
-                mode = self.get_node_attr_s(node, "mode")
+                scale_factor = get_node_attr_i(node, "blocksize", 1)
+                mode = get_node_attr_s(node, "mode")
                 layer.add_param(0, scale_factor)
                 if mode == "CRD":
                     layer.add_param(1, 0)
@@ -3341,7 +3130,7 @@ class Onnx2NcnnConverter:
             elif op == "Dropout":
                 pass
             elif op == "Elu":
-                alpha = self.get_node_attr_f(node, "alpha", 1)
+                alpha = get_node_attr_f(node, "alpha", 1)
                 layer.add_param(0, alpha)
             elif op == "EmbedLayerNormalization":
                 logger.error(f"No NCNN documentation for {op} yet, will not function")
@@ -3350,9 +3139,9 @@ class Onnx2NcnnConverter:
                 W = self.weights[node.input[5]]
                 B = self.weights[node.input[6]]
 
-                layer.add_param(0, self.get_tensor_proto_data_size(B))
-                layer.add_param(1, self.get_tensor_proto_data_size(words))
-                layer.add_param(2, self.get_tensor_proto_data_size(positions))
+                layer.add_param(0, get_tensor_proto_data_size(B))
+                layer.add_param(1, get_tensor_proto_data_size(words))
+                layer.add_param(2, get_tensor_proto_data_size(positions))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_bytes_list.append(layer.add_weight(words, "words", DTYPE_FP32))
@@ -3364,7 +3153,7 @@ class Onnx2NcnnConverter:
             elif op == "Exp":
                 layer.add_param(0, UOT.EXP)
             elif op == "Flatten":
-                axis = self.get_node_attr_i(node, "axis", 1)
+                axis = get_node_attr_i(node, "axis", 1)
                 if axis != 1:
                     raise ValueError(f"Unsupported Flatten axis {axis}.")
             elif op == "Floor":
@@ -3372,19 +3161,19 @@ class Onnx2NcnnConverter:
             elif op == "Gelu":
                 layer.add_param(0, 1)
             elif op == "Gemm":
-                alpha = self.get_node_attr_f(node, "alpha", 1)
-                beta = self.get_node_attr_f(node, "beta", 1)
-                transA = self.get_node_attr_i(node, "transA", 0)
-                transB = self.get_node_attr_i(node, "transB", 0)
+                alpha = get_node_attr_f(node, "alpha", 1)
+                beta = get_node_attr_f(node, "beta", 1)
+                transA = get_node_attr_i(node, "transA", 0)
+                transB = get_node_attr_i(node, "transB", 0)
 
                 if alpha == 1 and beta == 1 and transA == 0 and transB == 1:
                     # InnerProduct-like A * B * C
                     B = self.weights[node.input[1]]
                     C = self.weights[node.input[2]]
 
-                    layer.add_param(0, self.get_tensor_proto_data_size(C))
+                    layer.add_param(0, get_tensor_proto_data_size(C))
                     layer.add_param(1, 1)
-                    layer.add_param(2, self.get_tensor_proto_data_size(B))
+                    layer.add_param(2, get_tensor_proto_data_size(B))
 
                     weight_bytes_list.append(layer.add_weight(B, "B", DTYPE_FP32))
                     weight_bytes_list.append(layer.add_weight(C, "C"))
@@ -3399,7 +3188,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(4, 1)
             elif op == "adaptive_avg_pool2d" or op == "adaptive_max_pool2d":
                 out_shape_tp = self.weights[node.input[1]]
-                out_shape = self.get_node_attr_from_input_ai(out_shape_tp)
+                out_shape = get_node_attr_from_input_ai(out_shape_tp)
 
                 layer.add_param(0, int(op == "adaptive_avg_pool2d"))
                 layer.add_param(7, 1)
@@ -3409,19 +3198,15 @@ class Onnx2NcnnConverter:
                     layer.add_param(8, out_shape[1])  # out_w
                     layer.add_param(18, out_shape[0])  # out_h
             elif op == "GroupNorm":
-                groups = self.get_node_attr_i(node, "groups", 1)
-                channels = self.get_node_attr_i(node, "channels", 1)
-                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
-                affine = self.get_node_attr_i(node, "affine", 1)
+                groups = get_node_attr_i(node, "groups", 1)
+                channels = get_node_attr_i(node, "channels", 1)
+                eps = get_node_attr_f(node, "epsilon", 0.00001)
+                affine = get_node_attr_i(node, "affine", 1)
 
                 if affine:
                     # discard affine-less S=1 B=0
-                    affine_S = self.get_node_attr_from_input_af(
-                        self.weights[node.input[1]]
-                    )
-                    affine_B = self.get_node_attr_from_input_af(
-                        self.weights[node.input[2]]
-                    )
+                    affine_S = get_node_attr_from_input_af(self.weights[node.input[1]])
+                    affine_B = get_node_attr_from_input_af(self.weights[node.input[2]])
                     if (
                         affine_S.size == 1
                         and affine_S[0] == 1
@@ -3452,8 +3237,8 @@ class Onnx2NcnnConverter:
                 # R = self.weights[node.input[2]]
                 # B = self.weights[node.input[3]]
 
-                # hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
-                # direction = self.get_node_attr_s(node, "direction")
+                # hidden_size = get_node_attr_i(node, "hidden_size", 0)
+                # direction = get_node_attr_s(node, "direction")
 
                 # if direction == "forward":
                 #    direction_type = GRU.FORWARD
@@ -3462,7 +3247,7 @@ class Onnx2NcnnConverter:
                 # elif direction == "bidirectional":
                 #    direction_type = GRU.BIDIRECTIONAL
 
-                # weight_data_size = self.get_tensor_proto_data_size(W)
+                # weight_data_size = get_tensor_proto_data_size(W)
 
                 # layer.add_param(0, hidden_size)
                 # layer.add_param(1, weight_data_size)
@@ -3497,14 +3282,14 @@ class Onnx2NcnnConverter:
                     "GRU not implemented yet, please report issue with model used"
                 )
             elif op == "HardSigmoid" or op == "Hard Swish":
-                alpha = self.get_node_attr_f(node, "alpha", 0.2)
-                beta = self.get_node_attr_f(node, "beta", 0.5)
+                alpha = get_node_attr_f(node, "alpha", 0.2)
+                beta = get_node_attr_f(node, "beta", 0.5)
 
                 layer.add_param(0, alpha)
                 layer.add_param(1, beta)
             elif op == "ImageScaler":
-                bias = self.get_node_attr_af(node, "bias")
-                scale = self.get_node_attr_f(node, "scale", 1)
+                bias = get_node_attr_af(node, "bias")
+                scale = get_node_attr_f(node, "scale", 1)
                 channels = bias.size
 
                 layer.add_param(0, channels)
@@ -3515,11 +3300,11 @@ class Onnx2NcnnConverter:
                 )
                 weight_bytes_list.append(layer.add_weight(bias, "bias"))
             elif op == "InstanceNormalization":
-                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
+                eps = get_node_attr_f(node, "epsilon", 0.00001)
 
                 # Discard affine-less S=1 B=0
-                affine_S = self.get_node_attr_from_input_af(self.weights[node.input[1]])
-                affine_B = self.get_node_attr_from_input_af(self.weights[node.input[2]])
+                affine_S = get_node_attr_from_input_af(self.weights[node.input[1]])
+                affine_B = get_node_attr_from_input_af(self.weights[node.input[2]])
                 channels = affine_S.size
 
                 if np.any(affine_S[:channels] != 1) or np.any(affine_B[:channels] != 0):
@@ -3537,17 +3322,13 @@ class Onnx2NcnnConverter:
                     weight_bytes_list.append(layer.add_weight(scale, "scale"))
                     weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "LayerNorm":
-                eps = self.get_node_attr_f(node, "epsilon", 0.00001)
-                affine = self.get_node_attr_i(node, "affine", 1)
+                eps = get_node_attr_f(node, "epsilon", 0.00001)
+                affine = get_node_attr_i(node, "affine", 1)
 
                 if affine:
                     # discard affine-less S=1 B=0
-                    affine_S = self.get_node_attr_from_input_af(
-                        self.weights[node.input[1]]
-                    )
-                    affine_B = self.get_node_attr_from_input_af(
-                        self.weights[node.input[2]]
-                    )
+                    affine_S = get_node_attr_from_input_af(self.weights[node.input[1]])
+                    affine_B = get_node_attr_from_input_af(self.weights[node.input[2]])
                     affine_size = affine_S.size
 
                     if np.any(affine_S[:affine_size] != 1) or np.any(
@@ -3570,23 +3351,23 @@ class Onnx2NcnnConverter:
                     weight_bytes_list.append(layer.add_weight(scale, "scale"))
                     weight_bytes_list.append(layer.add_weight(B, "bias"))
             elif op == "LeakyRelu":
-                alpha = self.get_node_attr_f(node, "alpha", 0.01)
+                alpha = get_node_attr_f(node, "alpha", 0.01)
                 layer.add_param(0, alpha)
             elif op == "Log":
                 layer.add_param(0, UOT.LOG)
             elif op == "LRN":
                 layer.add_param(0, 0)
-                layer.add_param(1, self.get_node_attr_i(node, "size", 1))
-                layer.add_param(2, self.get_node_attr_f(node, "alpha", 1))
-                layer.add_param(3, self.get_node_attr_f(node, "beta", 0.5))
-                layer.add_param(4, self.get_node_attr_f(node, "bias", 1))
+                layer.add_param(1, get_node_attr_i(node, "size", 1))
+                layer.add_param(2, get_node_attr_f(node, "alpha", 1))
+                layer.add_param(3, get_node_attr_f(node, "beta", 0.5))
+                layer.add_param(4, get_node_attr_f(node, "bias", 1))
             elif op == "LSTM":
                 # W = self.weights[node.input[1]]
                 # R = self.weights[node.input[2]]
                 # B = self.weights[node.input[3]]
 
-                # hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
-                # direction = self.get_node_attr_s(node, "direction")
+                # hidden_size = get_node_attr_i(node, "hidden_size", 0)
+                # direction = get_node_attr_s(node, "direction")
 
                 # if direction == "forward":
                 #    direction_type = GRU.FORWARD
@@ -3601,7 +3382,7 @@ class Onnx2NcnnConverter:
                 if node.input[1] in self.weights:
                     # InnerProduct
                     B = self.weights[node.input[1]]
-                    weight_data_size = self.get_tensor_proto_data_size(B)
+                    weight_data_size = get_tensor_proto_data_size(B)
                     num_output = B.dims[-1]
 
                     layer.add_param(0, num_output)
@@ -3614,8 +3395,8 @@ class Onnx2NcnnConverter:
                     )
                 # There is a dead else here, not sure if this was incomplete code
             elif op == "MultiHeadAttention":
-                # embed_dim = self.get_node_attr_i(node, "embed_dim", 0)
-                # num_heads = self.get_node_attr_i(node, "num_heads", 0)
+                # embed_dim = get_node_attr_i(node, "embed_dim", 0)
+                # num_heads = get_node_attr_i(node, "num_heads", 0)
 
                 # layer.add_param(0, embed_dim)
                 # layer.add_param(1, num_heads)
@@ -3626,7 +3407,7 @@ class Onnx2NcnnConverter:
                 #    ow = self.weights[node.input[3]]
                 #    ob = self.weights[node.input[4]]
 
-                #    weight_data_size = self.get_tensor_proto_data_size(ow)
+                #    weight_data_size = get_tensor_proto_data_size(ow)
 
                 #    layer.add_param(2, weight_data_size)
 
@@ -3637,7 +3418,7 @@ class Onnx2NcnnConverter:
             elif op == "Neg":
                 layer.add_param(0, UOT.NEG)
             elif op == "Normalize":
-                eps = self.get_node_attr_f(node, "eps", 0)
+                eps = get_node_attr_f(node, "eps", 0)
 
                 layer.add_param(1, 1)  # channel_shared
                 layer.add_param(2, eps)
@@ -3646,13 +3427,13 @@ class Onnx2NcnnConverter:
 
                 weight_bytes_list.append(layer.add_weight(1, "scale"))
             elif op == "Pad":
-                mode = self.get_node_attr_s(node, "mode")
-                value = self.get_node_attr_f(node, "value", 0)
+                mode = get_node_attr_s(node, "mode")
+                value = get_node_attr_f(node, "value", 0)
 
                 if len(node.input) == 1:
-                    pads = self.get_node_attr_ai(node, "pads")
+                    pads = get_node_attr_ai(node, "pads")
                 else:
-                    pads = self.get_node_attr_from_input_ai(self.weights[node.input[1]])
+                    pads = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 if mode == "edge":
                     ptype = PAT.REPLICATE
@@ -3691,10 +3472,10 @@ class Onnx2NcnnConverter:
                 layer.add_param(7, front)
                 layer.add_param(8, behind)
             elif op == "PixelShuffle":
-                layer.add_param(0, self.get_node_attr_i(node, "scale_factor", 1))
+                layer.add_param(0, get_node_attr_i(node, "scale_factor", 1))
             elif op == "PRelu":
                 slope = self.weights[node.input[1]]
-                num_slope = self.get_tensor_proto_data_size(slope)
+                num_slope = get_tensor_proto_data_size(slope)
 
                 layer.add_param(0, num_slope)
 
@@ -3738,8 +3519,8 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(0, op_type)
 
-                axes = self.get_node_attr_ai(node, "axes")
-                keepdims = self.get_node_attr_i(node, "keepdims", 1)
+                axes = get_node_attr_ai(node, "axes")
+                keepdims = get_node_attr_i(node, "keepdims", 1)
 
                 if axes.size > 0:
                     # if axes set, reduce according to axes
@@ -3760,14 +3541,12 @@ class Onnx2NcnnConverter:
                 logger.error("No NCNN documentation for Reduction param 5")
                 layer.add_param(5, 1)
             elif op == "Reorg":
-                layer.add_param(0, self.get_node_attr_i(node, "stride", 1))
+                layer.add_param(0, get_node_attr_i(node, "stride", 1))
             elif op == "Reshape":
                 if len(node.input) == 1:
-                    shape = self.get_node_attr_ai(node, "shape")
+                    shape = get_node_attr_ai(node, "shape")
                 else:
-                    shape = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
+                    shape = get_node_attr_from_input_ai(self.weights[node.input[1]])
 
                 shape_size = shape.size
                 if shape_size == 1:
@@ -3787,24 +3566,18 @@ class Onnx2NcnnConverter:
                     layer.add_param(1, shape[2])
                     layer.add_param(2, shape[1])
             elif op == "Resize":
-                mode = self.get_node_attr_s(node, "mode")
-                align = self.get_node_attr_s(node, "coordinate_transformation_mode")
+                mode = get_node_attr_s(node, "mode")
+                align = get_node_attr_s(node, "coordinate_transformation_mode")
 
                 if len(node.input) == 2:
                     # opset 10
-                    scales = self.get_node_attr_from_input_af(
-                        self.weights[node.input[1]]
-                    )
+                    scales = get_node_attr_from_input_af(self.weights[node.input[1]])
                     sizes = np.empty(0, np.int32)
                 else:
                     # opset 11+
-                    scales = self.get_node_attr_from_input_af(
-                        self.weights[node.input[2]]
-                    )
+                    scales = get_node_attr_from_input_af(self.weights[node.input[2]])
                     if len(node.input) >= 4:
-                        sizes = self.get_node_attr_from_input_ai(
-                            self.weights[node.input[3]]
-                        )
+                        sizes = get_node_attr_from_input_ai(self.weights[node.input[3]])
                     else:
                         sizes = np.empty(0, np.int32)
 
@@ -3861,8 +3634,8 @@ class Onnx2NcnnConverter:
                 R = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
 
-                hidden_size = self.get_node_attr_i(node, "hidden_size", 0)
-                direction = self.get_node_attr_s(node, "direction")
+                hidden_size = get_node_attr_i(node, "hidden_size", 0)
+                direction = get_node_attr_s(node, "direction")
 
                 if direction == "reverse":
                     direction_type = GRU.REVERSE
@@ -3871,7 +3644,7 @@ class Onnx2NcnnConverter:
                 else:
                     direction_type = GRU.FORWARD
 
-                weight_data_size = self.get_tensor_proto_data_size(W)
+                weight_data_size = get_tensor_proto_data_size(W)
 
                 layer.add_param(0, hidden_size)
                 layer.add_param(1, weight_data_size)
@@ -3888,8 +3661,8 @@ class Onnx2NcnnConverter:
 
                 weight_bytes_list.append(layer.add_weight(R, "R", quantize_tag))
             elif op == "ShuffleChannel":
-                layer.add_param(0, self.get_node_attr_i(node, "group", 1))
-                layer.add_param(1, self.get_node_attr_i(node, "reverse", 0))
+                layer.add_param(0, get_node_attr_i(node, "group", 1))
+                layer.add_param(1, get_node_attr_i(node, "reverse", 0))
             elif op == "Sigmoid":
                 pass
             elif op == "Sin":
@@ -3900,7 +3673,7 @@ class Onnx2NcnnConverter:
                 B = self.weights[node.input[3]]
                 B2 = self.weights[node.input[4]]
 
-                layer.add_param(0, self.get_tensor_proto_data_size(B))
+                layer.add_param(0, get_tensor_proto_data_size(B))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 weight_bytes_list.append(layer.add_weight(W, "weight", quantize_tag))
@@ -3909,25 +3682,19 @@ class Onnx2NcnnConverter:
             elif op == "Slice":
                 input_size = len(node.input)
                 if input_size == 1:
-                    starts = self.get_node_attr_ai(node, "starts")
-                    ends = self.get_node_attr_ai(node, "ends")
-                    axes = self.get_node_attr_ai(node, "axes")
-                    steps = self.get_node_attr_ai(node, "steps")
+                    starts = get_node_attr_ai(node, "starts")
+                    ends = get_node_attr_ai(node, "ends")
+                    axes = get_node_attr_ai(node, "axes")
+                    steps = get_node_attr_ai(node, "steps")
                 else:
-                    starts = self.get_node_attr_from_input_ai(
-                        self.weights[node.input[1]]
-                    )
-                    ends = self.get_node_attr_from_input_ai(self.weights[node.input[2]])
+                    starts = get_node_attr_from_input_ai(self.weights[node.input[1]])
+                    ends = get_node_attr_from_input_ai(self.weights[node.input[2]])
                     if input_size >= 4:
-                        axes = self.get_node_attr_from_input_ai(
-                            self.weights[node.input[3]]
-                        )
+                        axes = get_node_attr_from_input_ai(self.weights[node.input[3]])
                     else:
                         axes = np.empty(0, np.int32)
                     if input_size >= 5:
-                        steps = self.get_node_attr_from_input_ai(
-                            self.weights[node.input[4]]
-                        )
+                        steps = get_node_attr_from_input_ai(self.weights[node.input[4]])
                     else:
                         steps = np.empty(0, np.int32)
 
@@ -3952,12 +3719,12 @@ class Onnx2NcnnConverter:
                         11, [axes.size, *[a - 1 if a > 0 else a for a in axes]]
                     )
             elif op == "Softmax":
-                axis = self.get_node_attr_i(node, "axis", 1)
+                axis = get_node_attr_i(node, "axis", 1)
                 layer.add_param(0, axis - 1)
                 layer.add_param(1, 1)
             elif op == "Split":
-                axis = self.get_node_attr_i(node, "axis", 0)
-                splits = self.get_node_attr_ai(node, "split")
+                axis = get_node_attr_i(node, "axis", 0)
+                splits = get_node_attr_ai(node, "split")
 
                 assert axis >= 1, f"Unsupported axis {axis} in Split"
 
@@ -3971,7 +3738,7 @@ class Onnx2NcnnConverter:
             elif op == "Sqrt":
                 layer.add_param(0, UOT.SQRT)
             elif op == "Squeeze":
-                axes = self.get_node_attr_ai(node, "axes")
+                axes = get_node_attr_ai(node, "axes")
 
                 if axes.size:
                     assert np.all(
@@ -3994,7 +3761,7 @@ class Onnx2NcnnConverter:
             elif op == "Tanh":
                 layer.add_param(0, UOT.TANH)
             elif op == "Transpose":
-                perm = self.get_node_attr_ai(node, "perm")
+                perm = get_node_attr_ai(node, "perm")
                 if perm.size == 3:
                     if (perm[1] == 1 and perm[2] == 2) or (
                         perm[0] == 1 and perm[1] == 0 and perm[2] == 2
@@ -4044,15 +3811,13 @@ class Onnx2NcnnConverter:
                         error_msg = f"Unsupported Transpose type {perm}"
                         raise ValueError(error_msg)
             elif op == "Upsample":
-                mode = self.get_node_attr_s(node, "mode")
-                align = self.get_node_attr_s(node, "coordinate_transformation_mode")
+                mode = get_node_attr_s(node, "mode")
+                align = get_node_attr_s(node, "coordinate_transformation_mode")
 
                 if len(node.input) == 1:
-                    scales = self.get_node_attr_af(node, "scales")
+                    scales = get_node_attr_af(node, "scales")
                 else:
-                    scales = self.get_node_attr_from_input_af(
-                        self.weights[node.input[1]]
-                    )
+                    scales = get_node_attr_from_input_af(self.weights[node.input[1]])
 
                 if mode == "bilinear" or mode == "linear":
                     resize_type = IRT.BILINEAR
@@ -4085,7 +3850,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(2, w_scale)
                 layer.add_param(6, align_corner)
             elif op == "Unsqueeze":
-                axes = self.get_node_attr_ai(node, "axes")
+                axes = get_node_attr_ai(node, "axes")
 
                 assert np.all(
                     axes != 0 and axes <= 4 and axes >= -4
