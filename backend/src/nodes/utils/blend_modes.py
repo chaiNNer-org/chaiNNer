@@ -25,6 +25,35 @@ class BlendModes:
     SOFT_LIGHT = 17
 
 
+__normalized = {
+    BlendModes.NORMAL: True,
+    BlendModes.MULTIPLY: True,
+    BlendModes.DARKEN: True,
+    BlendModes.LIGHTEN: True,
+    BlendModes.ADD: False,
+    BlendModes.COLOR_BURN: False,
+    BlendModes.COLOR_DODGE: False,
+    BlendModes.REFLECT: False,
+    BlendModes.GLOW: False,
+    BlendModes.OVERLAY: True,
+    BlendModes.DIFFERENCE: True,
+    BlendModes.NEGATION: True,
+    BlendModes.SCREEN: True,
+    BlendModes.XOR: True,
+    BlendModes.SUBTRACT: False,
+    BlendModes.DIVIDE: False,
+    BlendModes.EXCLUSION: True,
+    BlendModes.SOFT_LIGHT: True,
+}
+
+
+def blend_mode_normalized(blend_mode: int) -> bool:
+    """
+    Returns whether the given blend mode is guaranteed to produce normalized results (value between 0 and 1).
+    """
+    return __normalized.get(blend_mode, False)
+
+
 class ImageBlender:
     """Class for compositing images using different blending modes."""
 

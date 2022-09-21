@@ -1,15 +1,16 @@
-import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { DeleteIcon, DownloadIcon, InfoIcon } from '@chakra-ui/icons';
 import {
     Accordion,
     AccordionButton,
     AccordionIcon,
     AccordionItem,
     AccordionPanel,
-    Box,
     Button,
     Center,
+    Collapse,
     Flex,
     HStack,
+    IconButton,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -18,15 +19,18 @@ import {
     ModalHeader,
     ModalOverlay,
     Progress,
+    Spacer,
     Spinner,
-    StackDivider,
+    Tag,
     Text,
     Textarea,
+    Tooltip,
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BsTerminalFill } from 'react-icons/bs';
 import semver from 'semver';
 import { createContext, useContext } from 'use-context-selector';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
@@ -72,7 +76,44 @@ const formatBytes = (bytes: number): string => {
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
-const Package = memo(
+const FeaturePackage = memo(
+    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion?: string }) => {
+        let color = 'red.500';
+        let tagText = 'Missing';
+        let versionString = pkg.version;
+        if (installedVersion) {
+            const outdated = checkSemverGt(pkg.version, installedVersion);
+            if (outdated) {
+                color = 'yellow.500';
+                tagText = 'Outdated';
+                versionString = `${installedVersion} → ${pkg.version}`;
+            } else {
+                color = 'inherit';
+                tagText = '';
+            }
+        }
+        return (
+            <HStack
+                align="center"
+                key={pkg.packageName}
+                w="full"
+            >
+                <Text
+                    color={color}
+                    textAlign="left"
+                    width="fit-content"
+                >
+                    {pkg.packageName}
+                </Text>
+                {!!tagText && <Tag color={color}>{tagText}</Tag>}
+                <Tag>{versionString}</Tag>
+                <Spacer />
+            </HStack>
+        );
+    }
+);
+
+const Feature = memo(
     ({
         dep,
         pipList,
@@ -91,86 +132,135 @@ const Package = memo(
         onUpdate: () => void;
     }) => {
         const allDepPackagesInstalled = dep.packages.every((p) => pipList[p.packageName]);
-        const allDepPackageVersionsString = dep.packages
-            .map((p) => pipList[p.packageName])
-            .join('/');
         const outdatedPackages = dep.packages.filter((p) => {
             const installedVersion = pipList[p.packageName];
             return installedVersion && checkSemverGt(p.version, installedVersion);
         });
 
         return (
-            <VStack
-                key={dep.name}
-                w="full"
-            >
-                <Flex
-                    align="center"
-                    key={dep.name}
-                    w="full"
-                >
-                    <Text
-                        color={allDepPackagesInstalled ? 'inherit' : 'red.500'}
-                        flex="1"
-                        textAlign="left"
-                    >
-                        {`${dep.name} (${
-                            allDepPackagesInstalled ? allDepPackageVersionsString : 'not installed'
-                        })`}
-                    </Text>
-                    {allDepPackagesInstalled ? (
-                        <HStack>
-                            {outdatedPackages.length > 0 && (
-                                <Button
-                                    colorScheme="blue"
-                                    disabled={isRunningShell}
-                                    isLoading={isRunningShell}
-                                    leftIcon={<DownloadIcon />}
-                                    size="sm"
-                                    onClick={onUpdate}
-                                >
-                                    Update to {outdatedPackages.map((p) => p.version).join('/')} (
-                                    {formatSizeEstimate(outdatedPackages)})
-                                </Button>
-                            )}
-
-                            <Button
-                                colorScheme="red"
-                                disabled={isRunningShell}
-                                leftIcon={<DeleteIcon />}
-                                size="sm"
-                                onClick={onUninstall}
-                            >
-                                Uninstall
-                            </Button>
-                        </HStack>
-                    ) : (
-                        <Button
-                            colorScheme="blue"
-                            disabled={isRunningShell}
-                            isLoading={isRunningShell}
-                            leftIcon={<DownloadIcon />}
-                            size="sm"
-                            onClick={onInstall}
-                        >
-                            Install ({formatSizeEstimate(dep.packages)})
-                        </Button>
-                    )}
-                </Flex>
-                {progress !== undefined && (
-                    <Center
-                        h={8}
+            <AccordionItem cursor="pointer">
+                <h2>
+                    <VStack
+                        spacing={0}
                         w="full"
                     >
-                        <Progress
-                            hasStripe
-                            isAnimated
-                            value={progress}
-                            w="full"
-                        />
-                    </Center>
-                )}
-            </VStack>
+                        <HStack w="full">
+                            <AccordionButton cursor="pointer">
+                                <HStack
+                                    cursor="pointer"
+                                    spacing={1}
+                                    w="full"
+                                >
+                                    <Text
+                                        cursor="pointer"
+                                        flex="1"
+                                        textAlign="left"
+                                        w="full"
+                                    >
+                                        {dep.name} ({dep.packages.length} package
+                                        {dep.packages.length === 1 ? '' : 's'})
+                                    </Text>
+                                    <Tooltip
+                                        closeOnClick
+                                        closeOnMouseDown
+                                        borderRadius={8}
+                                        label={dep.description}
+                                        px={2}
+                                        py={1}
+                                    >
+                                        <InfoIcon />
+                                    </Tooltip>
+                                </HStack>
+                            </AccordionButton>
+                            {allDepPackagesInstalled ? (
+                                <HStack
+                                    mr={1}
+                                    py={2}
+                                >
+                                    {outdatedPackages.length > 0 && (
+                                        <Button
+                                            colorScheme="blue"
+                                            disabled={isRunningShell}
+                                            isLoading={isRunningShell}
+                                            leftIcon={<DownloadIcon />}
+                                            size="sm"
+                                            onClick={onUpdate}
+                                        >
+                                            Update ({formatSizeEstimate(outdatedPackages)})
+                                        </Button>
+                                    )}
+
+                                    <Button
+                                        colorScheme="red"
+                                        disabled={isRunningShell}
+                                        leftIcon={<DeleteIcon />}
+                                        size="sm"
+                                        onClick={onUninstall}
+                                    >
+                                        Uninstall
+                                    </Button>
+                                </HStack>
+                            ) : (
+                                <HStack
+                                    mr={1}
+                                    py={2}
+                                >
+                                    <Button
+                                        colorScheme="blue"
+                                        disabled={isRunningShell}
+                                        isLoading={isRunningShell}
+                                        leftIcon={<DownloadIcon />}
+                                        size="sm"
+                                        onClick={onInstall}
+                                    >
+                                        Install ({formatSizeEstimate(dep.packages)})
+                                    </Button>
+                                </HStack>
+                            )}
+                            <AccordionButton
+                                cursor="pointer"
+                                w={4}
+                            >
+                                <Center
+                                    cursor="pointer"
+                                    w="full"
+                                >
+                                    <AccordionIcon />
+                                </Center>
+                            </AccordionButton>
+                        </HStack>
+                        {progress !== undefined && (
+                            <Center
+                                cursor="pointer"
+                                h={8}
+                                w="full"
+                            >
+                                <Progress
+                                    hasStripe
+                                    isAnimated
+                                    cursor="pointer"
+                                    value={progress}
+                                    w="full"
+                                />
+                            </Center>
+                        )}
+                    </VStack>
+                </h2>
+                <AccordionPanel pb={4}>
+                    <VStack
+                        key={dep.name}
+                        w="full"
+                    >
+                        {dep.packages.map((p) => (
+                            <FeaturePackage
+                                installedVersion={pipList[p.packageName]}
+                                key={p.packageName}
+                                pkg={p}
+                            />
+                        ))}
+                    </VStack>
+                </AccordionPanel>
+            </AccordionItem>
         );
     }
 );
@@ -188,6 +278,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const [pipList, setPipList] = useState<PipList>();
     const refreshInstalledPackages = useCallback(() => setPipList(undefined), [setPipList]);
 
+    const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+
     useAsyncEffect(
         {
             supplier: async () => {
@@ -203,21 +295,14 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         [pythonInfo, pipList, setPipList]
     );
 
-    type GpuInfo = { isNvidia: true; nvidiaGpu: string } | { isNvidia: false; gpuNames: string[] };
-    const [gpu, setGpu] = useState<GpuInfo>({ isNvidia: false, gpuNames: [] });
+    const [hasNvidia, setHasNvidia] = useState(false);
     useAsyncEffect(
         {
-            supplier: async (): Promise<GpuInfo> => {
+            supplier: async (): Promise<boolean> => {
                 const nvidiaGpu = await ipcRenderer.invoke('get-nvidia-gpu-name');
-                if (nvidiaGpu) {
-                    return { isNvidia: true, nvidiaGpu };
-                }
-
-                const fullGpuInfo = await ipcRenderer.invoke('get-gpu-info');
-                const gpuNames = fullGpuInfo.controllers.map((g) => g.model);
-                return { isNvidia: false, gpuNames };
+                return !!nvidiaGpu;
             },
-            successEffect: setGpu,
+            successEffect: setHasNvidia,
         },
         []
     );
@@ -332,45 +417,42 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalHeader>Dependency Manager</ModalHeader>
                     <ModalCloseButton disabled={depChanged} />
                     <ModalBody>
-                        <VStack
-                            divider={<StackDivider />}
-                            w="full"
-                        >
-                            <VStack
-                                divider={<StackDivider />}
+                        <VStack w="full">
+                            <Flex w="full">
+                                <Text
+                                    flex="1"
+                                    textAlign="left"
+                                >
+                                    {hasNvidia ? 'CUDA supported' : 'CUDA not supported'}
+                                </Text>
+                            </Flex>
+                            <Flex
+                                align="center"
                                 w="full"
                             >
-                                <Flex
-                                    align="center"
+                                <Text
+                                    flex="1"
+                                    textAlign="left"
+                                >
+                                    Python ({pythonInfo.version}) [
+                                    {isSystemPython ? 'System' : 'Integrated'}]
+                                </Text>
+                                <IconButton
+                                    aria-label="Open Console View"
+                                    icon={<BsTerminalFill />}
+                                    size="sm"
+                                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                                />
+                            </Flex>
+                            {!pipList ? (
+                                <Spinner />
+                            ) : (
+                                <Accordion
+                                    allowToggle
+                                    // allowMultiple={false}
                                     w="full"
                                 >
-                                    <Text
-                                        flex="1"
-                                        textAlign="left"
-                                    >
-                                        GPU (
-                                        {gpu.isNvidia
-                                            ? gpu.nvidiaGpu
-                                            : gpu.gpuNames[0] ?? 'No GPU available'}
-                                        )
-                                    </Text>
-                                </Flex>
-                                <Flex
-                                    align="center"
-                                    w="full"
-                                >
-                                    <Text
-                                        flex="1"
-                                        textAlign="left"
-                                    >
-                                        Python ({pythonInfo.version}) [
-                                        {isSystemPython ? 'System' : 'Integrated'}]
-                                    </Text>
-                                </Flex>
-                                {!pipList ? (
-                                    <Spinner />
-                                ) : (
-                                    availableDeps.map((dep) => {
+                                    {availableDeps.map((dep) => {
                                         const install = () => installPackage(dep);
                                         const uninstall = () => {
                                             showAlert({
@@ -389,7 +471,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                         };
 
                                         return (
-                                            <Package
+                                            <Feature
                                                 dep={dep}
                                                 isRunningShell={isRunningShell}
                                                 key={dep.name}
@@ -406,58 +488,52 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                                                 onUpdate={install}
                                             />
                                         );
-                                    })
-                                )}
-                            </VStack>
-                            <Accordion
-                                allowToggle
+                                    })}
+                                </Accordion>
+                            )}
+                            <Center
+                                animateOpacity
+                                as={Collapse}
+                                in={isConsoleOpen}
                                 w="full"
                             >
-                                <AccordionItem>
-                                    <h2>
-                                        <AccordionButton>
-                                            <Box
-                                                flex="1"
-                                                textAlign="left"
-                                            >
-                                                Console Output
-                                            </Box>
-                                            <AccordionIcon />
-                                        </AccordionButton>
-                                    </h2>
-                                    <AccordionPanel pb={4}>
-                                        <Textarea
-                                            readOnly
-                                            cursor="default"
-                                            fontFamily="monospace"
-                                            h="150"
-                                            overflowY="scroll"
-                                            placeholder=""
-                                            ref={consoleRef}
-                                            sx={{
-                                                '&::-webkit-scrollbar': {
-                                                    width: '8px',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                                                },
-                                                '&::-webkit-scrollbar-track': {
-                                                    borderRadius: '8px',
-                                                    width: '8px',
-                                                },
-                                                '&::-webkit-scrollbar-thumb': {
-                                                    borderRadius: '8px',
-                                                    backgroundColor: 'var(--bg-600)',
-                                                },
-                                            }}
-                                            value={shellOutput}
-                                            w="full"
-                                            onChange={(e) => e.preventDefault()}
-                                            onClick={(e) => e.preventDefault()}
-                                            onFocus={(e) => e.preventDefault()}
-                                        />
-                                    </AccordionPanel>
-                                </AccordionItem>
-                            </Accordion>
+                                {/* <Collapse
+                                    animateOpacity
+                                    in={isConsoleOpen}
+                                > */}
+                                <Center w="full">
+                                    <Textarea
+                                        readOnly
+                                        cursor="default"
+                                        fontFamily="monospace"
+                                        h="150"
+                                        overflowY="scroll"
+                                        placeholder=""
+                                        ref={consoleRef}
+                                        sx={{
+                                            '&::-webkit-scrollbar': {
+                                                width: '8px',
+                                                borderRadius: '8px',
+                                                backgroundColor: 'rgba(0, 0, 0, 0)',
+                                            },
+                                            '&::-webkit-scrollbar-track': {
+                                                borderRadius: '8px',
+                                                width: '8px',
+                                            },
+                                            '&::-webkit-scrollbar-thumb': {
+                                                borderRadius: '8px',
+                                                backgroundColor: 'var(--bg-600)',
+                                            },
+                                        }}
+                                        value={shellOutput}
+                                        w="full"
+                                        onChange={(e) => e.preventDefault()}
+                                        onClick={(e) => e.preventDefault()}
+                                        onFocus={(e) => e.preventDefault()}
+                                    />
+                                </Center>
+                                {/* </Collapse> */}
+                            </Center>
                         </VStack>
                     </ModalBody>
 

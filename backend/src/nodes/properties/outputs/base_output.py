@@ -1,4 +1,5 @@
 from typing import Union, Literal
+from base_types import OutputId
 from .. import expression
 
 OutputKind = Literal[
@@ -16,7 +17,7 @@ class BaseOutput:
     ):
         self.output_type: expression.ExpressionJson = output_type
         self.label: str = label
-        self.id = None
+        self.id: OutputId = OutputId(-1)
         self.never_reason: Union[str, None] = None
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
@@ -31,8 +32,8 @@ class BaseOutput:
             "hasHandle": self.has_handle,
         }
 
-    def with_id(self, output_id: int):
-        self.id = output_id
+    def with_id(self, output_id: Union[OutputId, int]):
+        self.id = OutputId(output_id)
         return self
 
     def with_never_reason(self, reason: str):

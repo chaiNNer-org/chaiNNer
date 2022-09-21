@@ -110,8 +110,8 @@ class ImageUpscaleNode(NodeBase):
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(Input0.scale, Input1.width),
-                    height: multiply(Input0.scale, Input1.height),
+                    width: Input0.scale * Input1.width,
+                    height: Input0.scale * Input1.height,
                     channels: Input1.channels
                 }
                 """,
@@ -234,7 +234,7 @@ class InterpolateNode(NodeBase):
             ModelOutput(model_type="Input0 & Input1").with_never_reason(
                 "Models must be of the same type and have the same parameters to be interpolated."
             ),
-            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
 
@@ -444,7 +444,7 @@ class ConvertTorchToONNXNode(NodeBase):
         model = model.to(torch.device(exec_options.device))
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
-            "data": {0: "batch_size", 2: "width", 3: "height"},
+            "input": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
@@ -457,7 +457,7 @@ class ConvertTorchToONNXNode(NodeBase):
                 f,
                 opset_version=14,
                 verbose=False,
-                input_names=["data"],
+                input_names=["input"],
                 output_names=["output"],
                 dynamic_axes=dynamic_axes,
                 do_constant_folding=True,
