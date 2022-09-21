@@ -597,7 +597,9 @@ class CannyEdgeDetectionNode(NodeBase):
             NumberInput("Lower Threshold", minimum=0, default=100),
             NumberInput("Upper Threshold", minimum=0, default=300),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(image_type=expression.Image(size_as="Input0", channels=1))
+        ]
         self.category = ImageUtilityCategory
         self.name = "Canny Edge Detection"
         self.icon = "MdAutoFixHigh"
@@ -614,4 +616,4 @@ class CannyEdgeDetectionNode(NodeBase):
 
         edges = cv2.Canny(img, t_lower, t_upper)
 
-        return edges
+        return normalize(edges)
