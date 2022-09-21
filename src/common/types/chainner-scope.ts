@@ -33,7 +33,7 @@ struct PyTorchModel {
     size: string,
     subType: string,
 }
-let PyTorchFaceModelArchs = "GFPGAN" | "RestoreFormer";
+let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
 
 struct NcnnBinFile;
 struct NcnnParamFile;

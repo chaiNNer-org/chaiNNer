@@ -106,7 +106,7 @@ class ImageUpscaleNode(NodeBase):
             Select a manual number of tiles if you are having issues with the automatic mode. "
         self.inputs = [
             ModelInput(
-                input_type="PyTorchModel { arch: invStrSet(PyTorchFaceModelArchs) }"
+                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
             ),
             ImageInput(),
             TileModeDropdown(),
