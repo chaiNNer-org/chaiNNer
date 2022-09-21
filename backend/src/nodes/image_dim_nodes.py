@@ -329,8 +329,8 @@ class CropNode(NodeBase):
             ImageInput(),
             NumberInput("Top Offset", unit="px"),
             NumberInput("Left Offset", unit="px"),
-            NumberInput("Height", unit="px", default=1),
-            NumberInput("Width", unit="px", default=1),
+            NumberInput("Height", unit="px", minimum=1, default=1),
+            NumberInput("Width", unit="px", minimum=1, default=1),
         ]
         self.outputs = [
             ImageOutput(
