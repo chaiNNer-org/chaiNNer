@@ -375,8 +375,8 @@ class BorderCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="(Input0.width - Input1 + Input1) & int(1..)",
-                    height="(Input0.height - Input1 + Input1) & int(1..)",
+                    width="(Input0.width - Input1 * 2) & int(1..)",
+                    height="(Input0.height - Input1 * 2) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
