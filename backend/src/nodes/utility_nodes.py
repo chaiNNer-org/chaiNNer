@@ -169,7 +169,30 @@ class TextPatternNode(NodeBase):
             TextInput("{3}").make_optional(),
             TextInput("{4}").make_optional(),
         ]
-        self.outputs = [TextOutput("Output Text")]
+        self.outputs = [
+            TextOutput(
+                "Output Text",
+                output_type="""
+                def convert(value: string | number | null) {
+                    match value {
+                        number as n => toString(n),
+                        _ as v => v
+                    }
+                }
+
+                formatPattern(
+                    toString(Input0),
+                    convert(Input1),
+                    convert(Input2),
+                    convert(Input3),
+                    convert(Input4)
+                )
+                """,
+            ).with_never_reason(
+                "The pattern is either syntactically invalid or contains replacements that do not have a value."
+                '\n\nHint: Use "{{" to escape a single "{" inside the pattern.'
+            )
+        ]
 
         self.category = UtilityCategory
         self.name = "Text Pattern"

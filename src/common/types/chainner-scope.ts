@@ -1,8 +1,11 @@
 import { lazy } from '../util';
+import { formatTextPattern } from './chainner-format';
 import { globalScope } from './global-scope';
 import { parseDefinitions } from './parse';
-import { Scope, ScopeBuilder } from './scope';
+import { BuiltinFunctionDefinition, Scope, ScopeBuilder } from './scope';
 import { SourceDocument } from './source';
+import { StringType, StructType, Type } from './types';
+import { union } from './union';
 
 const code = `
 struct null;
@@ -91,6 +94,15 @@ export const getChainnerScope = lazy((): Scope => {
     for (const d of definitions) {
         builder.add(d);
     }
+
+    builder.add(
+        new BuiltinFunctionDefinition(
+            'formatPattern',
+            formatTextPattern as (..._: Type[]) => Type,
+            [StringType.instance],
+            union(StringType.instance, new StructType('null'))
+        )
+    );
 
     return builder.createScope();
 });
