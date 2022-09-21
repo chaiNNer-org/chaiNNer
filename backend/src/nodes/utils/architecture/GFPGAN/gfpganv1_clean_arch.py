@@ -206,7 +206,8 @@ class GFPGANv1Clean(nn.Module):
         narrow = 1
         sft_half = True
 
-        self.model_type = "GFPGAN"
+        self.model_arch = "GFPGAN"
+        self.sub_type = "Face SR"
         self.scale = 8
         self.in_nc = 3
         self.out_nc = 3

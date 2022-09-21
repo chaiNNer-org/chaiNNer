@@ -11,11 +11,12 @@ import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
-    modelType: string;
+    arch: string;
     inNc: number;
     outNc: number;
     size: string[];
     scale: number;
+    subType: string;
 }
 
 const getColorMode = (channels: number) => {
@@ -56,13 +57,14 @@ export const PyTorchOutput = memo(
                                 'outputChannels',
                                 new NumericLiteralType(value.outNc)
                             ),
-                            new NamedExpressionField(
-                                'modelType',
-                                new StringLiteralType(value.modelType)
-                            ),
+                            new NamedExpressionField('arch', new StringLiteralType(value.arch)),
                             new NamedExpressionField(
                                 'size',
                                 new StringLiteralType(value.size.join('x'))
+                            ),
+                            new NamedExpressionField(
+                                'subType',
+                                new StringLiteralType(value.subType)
                             ),
                         ])
                     );
@@ -95,7 +97,15 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.modelType}
+                                    {value.arch}
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.subType}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>

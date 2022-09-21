@@ -39,7 +39,8 @@ class RRDBNet(nn.Module):
             mode: Convolution mode
         """
         super(RRDBNet, self).__init__()
-        self.model_type = "ESRGAN"
+        self.model_arch = "ESRGAN"
+        self.sub_type = "SR"
 
         self.state = state_dict
         self.norm = norm
@@ -61,11 +62,11 @@ class RRDBNet(nn.Module):
         }
         if "params_ema" in self.state:
             self.state = self.state["params_ema"]
-            # self.model_type = "RealESRGAN"
+            # self.model_arch = "RealESRGAN"
         self.num_blocks = self.get_num_blocks()
         self.plus = any("conv1x1" in k for k in self.state.keys())
         if self.plus:
-            self.model_type = "ESRGAN+"
+            self.model_arch = "ESRGAN+"
 
         self.state = self.new_to_old_arch(self.state)
 

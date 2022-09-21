@@ -33,7 +33,7 @@ class FaceUpscaleNode(NodeBase):
         self.inputs = [
             ModelInput(
                 "Face SR Model",
-                input_type="PyTorchModel { modelType: PyTorchFaceModelTypes }",
+                input_type="PyTorchModel { arch: PyTorchFaceModelArchs }",
             ),
             ImageInput(),
             ImageInput("Upscaled Background").make_optional(),

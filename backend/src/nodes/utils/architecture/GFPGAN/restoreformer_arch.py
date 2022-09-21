@@ -696,7 +696,8 @@ class RestoreFormer(nn.Module):
         fix_encoder = False
         head_size = 8
 
-        self.model_type = "RestoreFormer"
+        self.model_arch = "RestoreFormer"
+        self.sub_type = "Face SR"
         self.scale = 8
         self.in_nc = 3
         self.out_nc = out_ch

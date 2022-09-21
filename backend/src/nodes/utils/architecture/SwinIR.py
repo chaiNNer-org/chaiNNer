@@ -849,7 +849,8 @@ class SwinIR(nn.Module):
         num_out_ch = in_chans
         supports_fp16 = True
 
-        self.model_type = "SwinIR"
+        self.model_arch = "SwinIR"
+        self.sub_type = "SR"
         self.state = state_dict
         if "params_ema" in self.state:
             self.state = self.state["params_ema"]
