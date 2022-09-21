@@ -44,51 +44,70 @@ class ImReadNode(NodeBase):
         self.icon = "BsFillImageFill"
         self.sub = "Input & Output"
 
+    def read_cv(self, path: str) -> np.ndarray:
+        img = None
+        try:
+            img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        except Exception as cv_err:
+            logger.warning(f"Error loading image, trying with imdecode: {cv_err}")
+
+        if img is None:
+            try:
+                img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            except Exception as e:
+                raise RuntimeError(
+                    f'Error reading image image from path "{path}". Image may be corrupt.'
+                ) from e
+
+        if img is None:
+            raise RuntimeError(  # pylint: disable=raise-missing-from
+                f'Error reading image image from path "{path}". Image may be corrupt.'
+            )
+
+        return img
+
+    def read_pil(self, path: str) -> np.ndarray:
+        im = Image.open(path)
+        img = np.array(im)
+        _, _, c = get_h_w_c(img)
+        if c == 3:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        elif c == 4:
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
+        return img
+
     def run(self, path: str) -> Tuple[np.ndarray, str, str]:
         """Reads an image from the specified path and return it as a numpy array"""
 
         logger.debug(f"Reading image from path: {path}")
         _base, ext = os.path.splitext(path)
-        if ext.lower() in get_opencv_formats():
-            try:
-                img = cv2.imdecode(
-                    np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED
-                )
-            except:
-                logger.warning(f"Error loading image, trying with imread.")
-                try:
-                    img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-                except Exception as e:
-                    logger.error("Error loading image.")
-                    raise RuntimeError(
-                        f'Error reading image image from path "{path}". Image may be corrupt.'
-                    ) from e
-                if img is None:
-                    logger.error("Error loading image.")
-                    raise RuntimeError(  # pylint: disable=raise-missing-from
-                        f'Error reading image image from path "{path}". Image may be corrupt.'
-                    )
-        elif ext.lower() in get_pil_formats():
-            im = Image.open(path)
-            img = np.array(im)
-            _, _, c = get_h_w_c(img)
-            if c == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            elif c == 4:
-                img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
-        else:
+
+        supported_by_cv = ext.lower() in get_opencv_formats()
+        supported_by_pil = ext.lower() in get_pil_formats()
+
+        if not supported_by_cv and not supported_by_pil:
             raise NotImplementedError(
                 f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
             )
 
-        # Uncomment if wild 2-channel image is encountered
-        # self.shape = img.shape
-        # if img.shape[2] == 2:
-        #     color_channel = img[:, :, 0]
-        #     alpha_channel = img[:, :, 1]
-        #     img = np.dstack(color_channel, color_channel, color_channel, alpha_channel)
+        img = None
+        error = None
+        if supported_by_cv:
+            try:
+                img = self.read_cv(path)
+            except Exception as e:
+                error = e
+        if img is None and supported_by_pil:
+            try:
+                img = self.read_pil(path)
+            except Exception as e:
+                error = e
 
-        assert img is not None, f'Internal error loading image "{path}".'
+        if img is None:
+            if error is not None:
+                raise error
+            raise RuntimeError(f'Internal error loading image "{path}".')
+
         img = normalize(img)
 
         dirname, basename = os.path.split(os.path.splitext(path)[0])
