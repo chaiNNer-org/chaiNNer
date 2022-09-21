@@ -104,7 +104,13 @@ class ImageUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model. \
             Select a manual number of tiles if you are having issues with the automatic mode. "
-        self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
+        self.inputs = [
+            ModelInput(
+                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
+            ),
+            ImageInput(),
+            TileModeDropdown(),
+        ]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",

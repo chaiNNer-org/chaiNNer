@@ -32,9 +32,11 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
-    modelType: string,
+    arch: string,
     size: string,
+    subType: string,
 }
+let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
 
 struct NcnnBinFile;
 struct NcnnParamFile;

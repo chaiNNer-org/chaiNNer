@@ -102,7 +102,8 @@ class Generator(nn.Module):
         state_dict,
     ):
         super(Generator, self).__init__()
-        self.model_type = "Swift-SRGAN"
+        self.model_arch = "Swift-SRGAN"
+        self.sub_type = "SR"
         self.state = state_dict
         if "model" in self.state:
             self.state = self.state["model"]
@@ -157,49 +158,3 @@ class Generator(nn.Module):
         x = self.convblock(x) + initial
         x = self.upsampler(x)
         return (torch.tanh(self.final_conv(x)) + 1) / 2
-
-
-class Discriminator(nn.Module):
-    """Swift-SRGAN Discriminator
-    Args:
-        in_channels (int): number of input image channels.
-        features (tuple): sequence of hidden channels.
-    Returns:
-        torch.Tensor
-    """
-
-    def __init__(
-        self,
-        in_channels: int = 3,
-        features: tuple = (64, 64, 128, 128, 256, 256, 512, 512),
-    ) -> None:
-        super(Discriminator, self).__init__()
-
-        blocks = []
-        for idx, feature in enumerate(features):
-            blocks.append(
-                ConvBlock(
-                    in_channels,
-                    feature,
-                    kernel_size=3,
-                    stride=1 + idx % 2,
-                    padding=1,
-                    discriminator=True,
-                    use_act=True,
-                    use_bn=False if idx == 0 else True,
-                )
-            )
-            in_channels = feature
-
-        self.blocks = nn.Sequential(*blocks)
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d((6, 6)),
-            nn.Flatten(),
-            nn.Linear(512 * 6 * 6, 1024),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(1024, 1),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.blocks(x)
-        return torch.sigmoid(self.classifier(x))

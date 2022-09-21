@@ -32,6 +32,17 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
                     sizeEstimate: canCuda ? 2 * GB : 140 * MB,
                 },
+                {
+                    packageName: 'torchvision',
+                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * MB : 800 * KB,
+                },
+                {
+                    packageName: 'facexlib',
+                    version: '0.2.5',
+                    sizeEstimate: 1.1 * MB,
+                },
             ],
             description:
                 'PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).',
@@ -99,6 +110,10 @@ export const requiredDependencies: Dependency[] = [
     {
         name: 'Pillow (PIL)',
         packages: [{ packageName: 'Pillow', version: '9.2.0', sizeEstimate: 3 * MB }],
+    },
+    {
+        name: 'appdirs',
+        packages: [{ packageName: 'appdirs', version: '1.4.4', sizeEstimate: 13.5 * KB }],
     },
 ];
 

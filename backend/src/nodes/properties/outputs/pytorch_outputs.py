@@ -19,9 +19,9 @@ class ModelOutput(BaseOutput):
         if not self.should_broadcast:
             return None
 
-        if "SRVGG" in value.model_type:  # type: ignore
+        if "SRVGG" in value.model_arch:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
-        elif "SwinIR" in value.model_type:  # type: ignore
+        elif "SwinIR" in value.model_arch:  # type: ignore
             head_length = len(value.depths)  # type: ignore
             if head_length <= 4:
                 size_tag = "small"
@@ -34,6 +34,8 @@ class ModelOutput(BaseOutput):
                 f"s{value.img_size}w{value.window_size}",
                 f"{value.num_feat}nf",
             ]
+        elif "GFPGAN" in value.model_arch or "RestoreFormer" in value.model_arch:
+            size = []
         else:
             size = [
                 f"{value.num_filters}nf",
@@ -41,11 +43,12 @@ class ModelOutput(BaseOutput):
             ]
 
         return {
-            "modelType": value.model_type,
+            "arch": value.model_arch,
             "inNc": value.in_nc,
             "outNc": value.out_nc,
             "size": size,
             "scale": value.scale,
+            "subType": value.sub_type,
         }
 
 

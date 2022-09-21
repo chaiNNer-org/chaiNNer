@@ -45,7 +45,8 @@ class SPSRNet(nn.Module):
         mode: str = "CNA",
     ):
         super(SPSRNet, self).__init__()
-        self.model_type = "SPSR"
+        self.model_arch = "SPSR"
+        self.sub_type = "SR"
 
         self.state = state_dict
         self.norm = norm
