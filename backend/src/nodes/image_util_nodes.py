@@ -15,6 +15,7 @@ from .utils.image_utils import (
     as_2d_grayscale,
     blend_images,
     calculate_ssim,
+    create_border,
     shift,
     FlipAxis,
 )
@@ -286,7 +287,9 @@ class CaptionNode(NodeBase):
         self.icon = "MdVideoLabel"
         self.sub = "Compositing"
 
-    def run(self, img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
+    def run(
+        self, img: np.ndarray, caption: str, size: int, position: str
+    ) -> np.ndarray:
         """Add caption an image"""
 
         return add_caption(img, caption, size, position)
@@ -346,7 +349,7 @@ class ColorConvertNode(NodeBase):
 
 
 @NodeFactory.register("chainner:image:create_border")
-class BorderMakeNode(NodeBase):
+class CreateBorderNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Creates a border around the image."
@@ -360,6 +363,7 @@ class BorderMakeNode(NodeBase):
                 image_type=expression.Image(
                     width="Input0.width + Input2 * 2",
                     height="Input0.height + Input2 * 2",
+                    channels="BorderType::getOutputChannels(Input1, Input0.channels)",
                 )
             )
         ]
@@ -369,31 +373,46 @@ class BorderMakeNode(NodeBase):
         self.sub = "Miscellaneous"
 
     def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
-        """Takes an image and applies a border to it"""
+        return create_border(img, border_type, amount, amount, amount, amount)
 
-        amount = int(amount)
-        border_type = int(border_type)
 
-        _, _, c = get_h_w_c(img)
-        if c == 4 and border_type == cv2.BORDER_CONSTANT:
-            value = (0, 0, 0, 1)
-        else:
-            value = 0
+@NodeFactory.register("chainner:image:create_edges")
+class CreateEdgesNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Creates an edge border around the image."
+        self.inputs = [
+            ImageInput(),
+            BorderInput(),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0.width + Input3 + Input4",
+                    height="Input0.height + Input2 + Input5",
+                    channels="BorderType::getOutputChannels(Input1, Input0.channels)",
+                )
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Create Edges"
+        self.icon = "BsBorderOuter"
+        self.sub = "Miscellaneous"
 
-        if border_type == cv2.BORDER_TRANSPARENT:
-            border_type = cv2.BORDER_CONSTANT
-
-        result = cv2.copyMakeBorder(
-            img,
-            amount,
-            amount,
-            amount,
-            amount,
-            border_type,
-            value=value,
-        )
-
-        return result
+    def run(
+        self,
+        img: np.ndarray,
+        border_type: int,
+        top: int,
+        left: int,
+        right: int,
+        bottom: int,
+    ) -> np.ndarray:
+        return create_border(img, border_type, top, right, bottom, left)
 
 
 @NodeFactory.register("chainner:image:shift")
