@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from ..BaseModel import BaseModel
 
 
 class VectorQuantizer(nn.Module):
@@ -671,7 +672,7 @@ class MultiHeadDecoderTransformer(nn.Module):
         return h
 
 
-class RestoreFormer(nn.Module):
+class RestoreFormer(BaseModel):
     def __init__(
         self,
         state_dict,
@@ -703,7 +704,7 @@ class RestoreFormer(nn.Module):
         self.out_nc = out_ch
         self.state = state_dict
 
-        self.supports_fp16 = True
+        self.supports_fp16 = False
         self.supports_bf16 = True
 
         self.encoder = MultiHeadEncoder(

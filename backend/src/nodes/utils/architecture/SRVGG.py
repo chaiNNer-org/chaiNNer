@@ -6,8 +6,10 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .BaseModel import BaseModel
 
-class SRVGGNetCompact(nn.Module):
+
+class SRVGGNetCompact(BaseModel):
     """A compact VGG-style network structure for super-resolution.
     It is a compact network structure, which performs upsampling in the last layer and no convolution is
     conducted on the HR feature space.

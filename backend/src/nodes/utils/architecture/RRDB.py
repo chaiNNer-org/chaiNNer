@@ -7,15 +7,16 @@ import re
 from collections import OrderedDict
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+
+from .BaseModel import BaseModel
 
 from . import block as B
 
 
 # Borrowed from https://github.com/rlaphoenix/VSGAN/blob/master/vsgan/archs/ESRGAN.py
 # Which enhanced stuff that was already here
-class RRDBNet(nn.Module):
+class RRDBNet(BaseModel):
     def __init__(
         self,
         state_dict,
@@ -81,6 +82,7 @@ class RRDBNet(nn.Module):
 
         self.supports_fp16 = True
         self.supports_bfp16 = True
+        self.precision_mode = "fp32"
 
         # Detect if pixelunshuffle was used (Real-ESRGAN)
         if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (

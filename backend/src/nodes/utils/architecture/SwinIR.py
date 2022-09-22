@@ -5,12 +5,15 @@
 # -----------------------------------------------------------------------------------
 
 import math
+from typing import Literal
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import re
 import math
+
+from .BaseModel import BaseModel
 
 # Originally from the timm package
 from .timm.drop import DropPath
@@ -787,7 +790,7 @@ class UpsampleOneStep(nn.Sequential):
         return flops
 
 
-class SwinIR(nn.Module):
+class SwinIR(BaseModel):
     r"""SwinIR
         A PyTorch impl of : `SwinIR: Image Restoration Using Swin Transformer`, based on Swin Transformer.
 

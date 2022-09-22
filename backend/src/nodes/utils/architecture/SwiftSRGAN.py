@@ -1,7 +1,10 @@
 # From https://github.com/Koushik0901/Swift-SRGAN/blob/master/swift-srgan/models.py
 
+from typing import Literal
 import torch
 from torch import nn
+
+from .BaseModel import BaseModel
 
 
 class SeperableConv2d(nn.Module):
@@ -32,7 +35,7 @@ class ConvBlock(nn.Module):
         use_act=True,
         use_bn=True,
         discriminator=False,
-        **kwargs
+        **kwargs,
     ):
         super(ConvBlock, self).__init__()
 
@@ -86,7 +89,7 @@ class ResidualBlock(nn.Module):
         return out + x
 
 
-class Generator(nn.Module):
+class Generator(BaseModel):
     """Swift-SRGAN Generator
     Args:
         in_channels (int): number of input image channels.

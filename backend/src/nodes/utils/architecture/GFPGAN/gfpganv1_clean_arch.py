@@ -7,6 +7,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from .stylegan2_clean_arch import StyleGAN2GeneratorClean
+from ..BaseModel import BaseModel
 
 
 class StyleGAN2GeneratorCSFT(StyleGAN2GeneratorClean):
@@ -172,7 +173,7 @@ class ResBlock(nn.Module):
         return out
 
 
-class GFPGANv1Clean(nn.Module):
+class GFPGANv1Clean(BaseModel):
     """The GFPGAN architecture: Unet + StyleGAN2 decoder with SFT.
     It is the clean version without custom compiled CUDA extensions used in StyleGAN2.
     Ref: GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior.
@@ -213,7 +214,7 @@ class GFPGANv1Clean(nn.Module):
         self.out_nc = 3
         self.state = state_dict
 
-        self.supports_fp16 = True
+        self.supports_fp16 = False
         self.supports_bf16 = True
 
         self.input_is_latent = input_is_latent
