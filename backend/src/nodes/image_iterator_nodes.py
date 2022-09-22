@@ -102,22 +102,10 @@ class ImageFileIteratorNode(IteratorNodeBase):
                 if ext.lower() in supported_filetypes:
                     just_image_files.append(filepath)
 
-        file_len = len(just_image_files)
-        errors = []
-        for idx, filepath in enumerate(just_image_files):
-            # Replace the input filepath with the filepath from the loop
-            context.inputs.set_values(img_path_node_id, [filepath, directory, idx])
-            try:
-                await context.run_iteration(idx, file_len)
-            except Exception as e:
-                logger.error(e)
-                errors.append(str(e))
+        def before(filepath: str, index: int):
+            context.inputs.set_values(img_path_node_id, [filepath, directory, index])
 
-        if len(errors) > 0:
-            raise Exception(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
+        await context.run(just_image_files, before)
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -244,30 +232,17 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
             fps = float(cap.get(cv2.CAP_PROP_FPS))
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             context.inputs.set_append_values(output_node_id, [writer, fps])
-            errors = []
-            for idx in range(frame_count):
-                await context.progress.suspend()
 
+            def before(_: int, index: int):
                 ret, frame = cap.read()
                 # if frame is read correctly ret is True
                 if not ret:
                     print("Can't receive frame (stream end?). Exiting ...")
-                    break
+                    return False
 
-                context.inputs.set_values(input_node_id, [frame, idx])
-                try:
-                    await context.run_iteration(idx, frame_count)
-                except Exception as e:
-                    logger.error(e)
-                    errors.append(str(e))
+                context.inputs.set_values(input_node_id, [frame, index])
 
-            if len(errors) > 0:
-                raise Exception(
-                    # pylint: disable=consider-using-f-string
-                    "Errors occurred during iteration: \n• {}".format(
-                        "\n• ".join(errors)
-                    )
-                )
+            await context.run(range(frame_count), before)
         finally:
             cap.release()
             if writer["out"] is not None:
@@ -372,7 +347,7 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
         individual_w = w // columns
 
         # Split sprite sheet into a single list of images
-        img_list = []
+        img_list: List[np.ndarray] = []
 
         for row in range(rows):
             for col in range(columns):
@@ -383,26 +358,16 @@ class ImageSpriteSheetIteratorNode(IteratorNodeBase):
                     ]
                 )
 
-        length = len(img_list)
-
         results = []
         context.inputs.set_append_values(output_node_id, [results])
-        errors = []
-        for idx, img in enumerate(img_list):
-            # Replace the input filepath with the filepath from the loop
-            context.inputs.set_values(img_loader_node_id, [img, idx])
-            try:
-                await context.run_iteration(idx, length)
-            except Exception as e:
-                logger.error(e)
-                errors.append(str(e))
+
+        def before(img: np.ndarray, index: int):
+            context.inputs.set_values(img_loader_node_id, [img, index])
+
+        await context.run(img_list, before)
+
         result_rows = []
         for i in range(rows):
             row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)
             result_rows.append(row)
-        if len(errors) > 0:
-            raise Exception(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
         return np.concatenate(result_rows, axis=0)
