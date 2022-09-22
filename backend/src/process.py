@@ -105,6 +105,13 @@ def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float
     return wrapper
 
 
+async def timed_supplier_async(supplier):
+    start = time.time()
+    result = await supplier()
+    duration = time.time() - start
+    return result, duration
+
+
 class Executor:
     """
     Class for executing chaiNNer's processing logic
@@ -204,11 +211,12 @@ class Executor:
 
         if node_instance.type == "iterator":
             context = IteratorContext(self, node.id)
-            output = await node_instance.run(
-                *enforced_inputs,
-                context=context,  # type: ignore
+            run_func = functools.partial(
+                node_instance.run, *enforced_inputs, context=context
             )
-            await self.queue.put(self.__create_node_finish(node.id))
+            output, execution_time = await timed_supplier_async(run_func)
+            del run_func
+            await self.__broadcast_data(node_instance, node.id, execution_time, output)
         else:
             try:
                 # Run the node and pass in inputs as args
