@@ -3,8 +3,6 @@ from concurrent.futures import ThreadPoolExecutor
 import functools
 import gc
 import logging
-import os
-import platform
 import sys
 import traceback
 from json import dumps as stringify
@@ -19,10 +17,6 @@ from sanic.response import json
 from sanic_cors import CORS
 
 from nodes.categories import categories, category_order
-
-# Remove broken QT env var
-if platform.system() == "Linux":
-    os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 # pylint: disable=ungrouped-imports,wrong-import-position
 from nodes import image_adj_nodes  # type: ignore

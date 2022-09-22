@@ -6,7 +6,18 @@ import functools
 import gc
 import uuid
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 import numpy as np
 
 from sanic.log import logger
@@ -20,6 +31,8 @@ from chain.input import InputMap, EdgeInput
 
 from nodes.node_base import NodeBase
 from nodes.utils.image_utils import get_h_w_c
+
+T = TypeVar("T")
 
 
 class NodeExecutionError(Exception):
@@ -94,6 +107,36 @@ class IteratorContext:
                 }
             )
 
+    async def run(
+        self,
+        collection: Iterable[T],
+        before: Callable[[T, int], Union[None, Literal[False]]],
+    ):
+        items = list(collection)
+        length = len(items)
+
+        errors: List[str] = []
+        for index, item in enumerate(items):
+            try:
+                await self.progress.suspend()
+
+                result = before(item, index)
+                if result is False:
+                    break
+
+                await self.run_iteration(index, length)
+            except Aborted:
+                raise
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
+
 
 def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float]]:
     def wrapper():
@@ -103,6 +146,13 @@ def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float
         return result, duration
 
     return wrapper
+
+
+async def timed_supplier_async(supplier):
+    start = time.time()
+    result = await supplier()
+    duration = time.time() - start
+    return result, duration
 
 
 class Executor:
@@ -204,11 +254,12 @@ class Executor:
 
         if node_instance.type == "iterator":
             context = IteratorContext(self, node.id)
-            output = await node_instance.run(
-                *enforced_inputs,
-                context=context,  # type: ignore
+            run_func = functools.partial(
+                node_instance.run, *enforced_inputs, context=context
             )
-            await self.queue.put(self.__create_node_finish(node.id))
+            output, execution_time = await timed_supplier_async(run_func)
+            del run_func
+            await self.__broadcast_data(node_instance, node.id, execution_time, output)
         else:
             try:
                 # Run the node and pass in inputs as args

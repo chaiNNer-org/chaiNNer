@@ -37,14 +37,17 @@ class FaceUpscaleNode(NodeBase):
             ),
             ImageInput(),
             ImageInput("Upscaled Background").make_optional(),
+            NumberInput(
+                label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
+            ),
         ]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: Input0.scale * Input1.width,
-                    height: Input0.scale * Input1.height,
+                    width: Input3 * Input1.width,
+                    height: Input3 * Input1.height,
                     channels: 3
                 }
                 """,
@@ -75,7 +78,6 @@ class FaceUpscaleNode(NodeBase):
     ):
         exec_options = to_pytorch_execution_options(get_execution_options())
         device = torch.device(exec_options.device)
-        upscale = face_model.scale
         face_helper.clean_all()
 
         face_helper.read_image(img)
@@ -107,26 +109,14 @@ class FaceUpscaleNode(NodeBase):
             restored_face = restored_face.astype("uint8")  # type: ignore
             face_helper.add_restored_face(restored_face)
 
-        h, w, _ = get_h_w_c(img)
-        upsample_h = int(h * upscale)
-        upsample_w = int(w * upscale)
-
         if background_img is not None:
             # upsample the background
             background_img = self.denormalize(background_img)
 
-            d_size = (upsample_h, upsample_w)
-            interp = cv2.INTER_LANCZOS4
-            background_upscale = cv2.resize(
-                background_img,
-                d_size,
-                interpolation=interp,
-            )
-
             face_helper.get_inverse_affine(None)
             # paste each restored face to the input image
             restored_img = face_helper.paste_faces_to_input_image(
-                upsample_img=background_upscale
+                upsample_img=background_img
             )
         else:
             face_helper.get_inverse_affine(None)
@@ -141,6 +131,7 @@ class FaceUpscaleNode(NodeBase):
         face_model: PyTorchModel,
         img: np.ndarray,
         background_img: Union[np.ndarray, None],
+        upscale: int,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
         face_helper = None
@@ -151,7 +142,6 @@ class FaceUpscaleNode(NodeBase):
             device = torch.device(exec_options.device)
             should_use_fp16 = exec_options.fp16 and face_model.supports_fp16
 
-            upscale = face_model.scale
             weight = 0.5
 
             # with torch.no_grad():
