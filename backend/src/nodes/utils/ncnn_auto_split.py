@@ -32,7 +32,7 @@ def ncnn_auto_split_process(
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
-    input_name: str = "data",
+    input_name: str = "input",
     output_name: str = "output",
     blob_vkallocator=None,
     staging_vkallocator=None,
@@ -129,6 +129,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=max_depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -138,6 +140,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -147,6 +151,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -156,6 +162,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
