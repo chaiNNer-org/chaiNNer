@@ -153,32 +153,32 @@ class FaceUpscaleNode(NodeBase):
 
             weight = 0.5
 
-            # with torch.no_grad():
-            appdata_path = user_data_dir(roaming=True)
-            path_str = "chaiNNer/python/gfpgan/weights"
-            download_path = os.path.join(appdata_path, path_str)
+            with torch.no_grad():
+                appdata_path = user_data_dir(roaming=True)
+                path_str = "chaiNNer/python/gfpgan/weights"
+                download_path = os.path.join(appdata_path, path_str)
 
-            # initialize face helper
-            face_helper = FaceRestoreHelper(
-                upscale,
-                face_size=512,
-                crop_ratio=(1, 1),
-                det_model="retinaface_resnet50",
-                save_ext="png",
-                use_parse=True,
-                device=device,
-                model_rootpath=download_path,
-            )
+                # initialize face helper
+                face_helper = FaceRestoreHelper(
+                    upscale,
+                    face_size=512,
+                    crop_ratio=(1, 1),
+                    det_model="retinaface_resnet50",
+                    save_ext="png",
+                    use_parse=True,
+                    device=device,
+                    model_rootpath=download_path,
+                )
 
-            result = self.upscale(
-                img,
-                background_img,
-                face_helper,
-                face_model,
-                weight,
-            )
+                result = self.upscale(
+                    img,
+                    background_img,
+                    face_helper,
+                    face_model,
+                    weight,
+                )
 
-            return result
+                return result
 
         except Exception as e:
             logger.error(f"GFPGAN failed: {e}")
