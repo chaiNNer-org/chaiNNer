@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .BaseModel import BaseModel
-
 from . import block as B
 
 
@@ -37,7 +35,7 @@ class Get_gradient_nopadding(nn.Module):
         return x
 
 
-class SPSRNet(BaseModel):
+class SPSRNet(nn.Module):
     def __init__(
         self,
         state_dict,

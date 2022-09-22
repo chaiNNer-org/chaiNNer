@@ -88,8 +88,11 @@ class FaceUpscaleNode(NodeBase):
         # align and warp each face
         face_helper.align_warp_face()
 
-        precision_mode = "fp16" if exec_options.fp16 else "fp32"
-        face_model.to_self_precision(precision_mode)
+        should_use_fp16 = exec_options.fp16 and face_model.supports_fp16
+        if should_use_fp16:
+            face_model.half()
+        else:
+            face_model.float()
 
         # face restoration
         for cropped_face in face_helper.cropped_faces:
@@ -101,9 +104,10 @@ class FaceUpscaleNode(NodeBase):
             cropped_face_t = cropped_face_t.unsqueeze(0).to(device)  # type: ignore
 
             try:
-                cropped_face_t = face_model.to_precision_mode(
-                    cropped_face_t, precision_mode
-                )
+                if should_use_fp16:
+                    cropped_face_t.half()
+                else:
+                    cropped_face_t.float()
                 output = face_model(cropped_face_t, return_rgb=False, weight=weight)[0]
                 # convert to image
                 output = (output + 1) / 2

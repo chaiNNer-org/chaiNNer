@@ -58,9 +58,13 @@ def auto_split_process(
             device = torch.device(exec_options.device)
             d_img = lr_img.to(device)
             model = model.to(device)
-            d_img = model.to_paired_precision(
-                "fp16" if exec_options.fp16 else "fp32", d_img
-            )
+            should_use_fp16 = exec_options.fp16 and model.supports_fp16
+            if should_use_fp16:
+                d_img.half()
+                model.half()
+            else:
+                d_img.float()
+                model.float()
             result = model(d_img)
             result = result.detach().cpu()
             del d_img

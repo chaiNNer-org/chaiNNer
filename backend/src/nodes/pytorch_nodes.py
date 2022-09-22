@@ -85,7 +85,11 @@ class LoadModelNode(NodeBase):
                 v.requires_grad = False
             model.eval()
             model = model.to(torch.device(exec_options.device))
-            model.to_self_precision("fp16" if exec_options.fp16 else "fp32")
+            should_use_fp16 = exec_options.fp16 and model.supports_fp16
+            if should_use_fp16:
+                model.half()
+            else:
+                model.float()
         except ValueError as e:
             raise e
         except Exception:
