@@ -340,30 +340,30 @@ class SPSRNet(nn.Module):
         # short cut
         x = x_ori + x
         x = self.model[2:](x)
-        x = self.HR_conv1_new(x)
+        x = self.HR_conv1_new(x)  # type: ignore
 
-        x_b_fea = self.b_fea_conv(x_grad)
+        x_b_fea = self.b_fea_conv(x_grad)  # type: ignore
         x_cat_1 = torch.cat([x_b_fea, x_fea1], dim=1)
 
-        x_cat_1 = self.b_block_1(x_cat_1)
-        x_cat_1 = self.b_concat_1(x_cat_1)
+        x_cat_1 = self.b_block_1(x_cat_1)  # type: ignore
+        x_cat_1 = self.b_concat_1(x_cat_1)  # type: ignore
 
         x_cat_2 = torch.cat([x_cat_1, x_fea2], dim=1)
 
         x_cat_2 = self.b_block_2(x_cat_2)
-        x_cat_2 = self.b_concat_2(x_cat_2)
+        x_cat_2 = self.b_concat_2(x_cat_2)  # type: ignore
 
         x_cat_3 = torch.cat([x_cat_2, x_fea3], dim=1)
 
         x_cat_3 = self.b_block_3(x_cat_3)
-        x_cat_3 = self.b_concat_3(x_cat_3)
+        x_cat_3 = self.b_concat_3(x_cat_3)  # type: ignore
 
         x_cat_4 = torch.cat([x_cat_3, x_fea4], dim=1)
 
         x_cat_4 = self.b_block_4(x_cat_4)
-        x_cat_4 = self.b_concat_4(x_cat_4)
+        x_cat_4 = self.b_concat_4(x_cat_4)  # type: ignore
 
-        x_cat_4 = self.b_LR_conv(x_cat_4)
+        x_cat_4 = self.b_LR_conv(x_cat_4)  # type: ignore
 
         # short cut
         x_cat_4 = x_cat_4 + x_b_fea
@@ -374,9 +374,9 @@ class SPSRNet(nn.Module):
         x_branch_d = x_branch
         x_f_cat = torch.cat([x_branch_d, x], dim=1)
         x_f_cat = self.f_block(x_f_cat)
-        x_out = self.f_concat(x_f_cat)
-        x_out = self.f_HR_conv0(x_out)
-        x_out = self.f_HR_conv1(x_out)
+        x_out = self.f_concat(x_f_cat)  # type: ignore
+        x_out = self.f_HR_conv0(x_out)  # type: ignore
+        x_out = self.f_HR_conv1(x_out)  # type: ignore
 
         #########
         # return x_out_branch, x_out, x_grad

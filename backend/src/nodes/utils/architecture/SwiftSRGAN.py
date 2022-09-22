@@ -32,7 +32,7 @@ class ConvBlock(nn.Module):
         use_act=True,
         use_bn=True,
         discriminator=False,
-        **kwargs
+        **kwargs,
     ):
         super(ConvBlock, self).__init__()
 

@@ -8,6 +8,7 @@ from sanic.log import logger
 from torch import Tensor
 
 from .exec_options import ExecutionOptions
+from .torch_types import PyTorchModel
 
 
 def torch_center_crop(tensor, crop_x, crop_y):
@@ -29,7 +30,7 @@ def torch_center_replace(tensor, crop_x, crop_y, replacement):
 def auto_split_process(
     exec_options: ExecutionOptions,
     lr_img: Tensor,
-    model: torch.nn.Module,
+    model: PyTorchModel,
     scale: int,
     overlap: int = 16,
     max_depth: Union[int, None] = None,
@@ -57,18 +58,14 @@ def auto_split_process(
             device = torch.device(exec_options.device)
             d_img = lr_img.to(device)
             model = model.to(device)
-            should_use_fp16 = (
-                exec_options.fp16 and model.supports_fp16
-            )  # TODO: use bfloat16 if RTX
-            # cpu does not support autocast
-            if "cuda" in exec_options.device:
-                with torch.autocast(  # type: ignore
-                    device_type=device.type,
-                    dtype=torch.float16 if should_use_fp16 else torch.float32,
-                ):
-                    result = model(d_img)
+            should_use_fp16 = exec_options.fp16 and model.supports_fp16
+            if should_use_fp16:
+                d_img.half()
+                model.half()
             else:
-                result = model(d_img)
+                d_img.float()
+                model.float()
+            result = model(d_img)
             result = result.detach().cpu()
             del d_img
             return result, current_depth

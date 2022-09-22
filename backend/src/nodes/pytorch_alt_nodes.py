@@ -88,6 +88,12 @@ class FaceUpscaleNode(NodeBase):
         # align and warp each face
         face_helper.align_warp_face()
 
+        should_use_fp16 = exec_options.fp16 and face_model.supports_fp16
+        if should_use_fp16:
+            face_model.half()
+        else:
+            face_model.float()
+
         # face restoration
         for cropped_face in face_helper.cropped_faces:
             # prepare data
@@ -98,6 +104,10 @@ class FaceUpscaleNode(NodeBase):
             cropped_face_t = cropped_face_t.unsqueeze(0).to(device)  # type: ignore
 
             try:
+                if should_use_fp16:
+                    cropped_face_t.half()
+                else:
+                    cropped_face_t.float()
                 output = face_model(cropped_face_t, return_rgb=False, weight=weight)[0]
                 # convert to image
                 output = (output + 1) / 2
@@ -140,7 +150,6 @@ class FaceUpscaleNode(NodeBase):
 
             exec_options = to_pytorch_execution_options(get_execution_options())
             device = torch.device(exec_options.device)
-            should_use_fp16 = exec_options.fp16 and face_model.supports_fp16
 
             weight = 0.5
 
@@ -161,26 +170,13 @@ class FaceUpscaleNode(NodeBase):
                     model_rootpath=download_path,
                 )
 
-                if "cuda" in exec_options.device:
-                    with torch.autocast(  # type: ignore
-                        device_type=device.type,
-                        dtype=torch.float16 if should_use_fp16 else torch.float32,
-                    ):
-                        result = self.upscale(
-                            img,
-                            background_img,
-                            face_helper,
-                            face_model,
-                            weight,
-                        )
-                else:
-                    result = self.upscale(
-                        img,
-                        background_img,
-                        face_helper,
-                        face_model,
-                        weight,
-                    )
+                result = self.upscale(
+                    img,
+                    background_img,
+                    face_helper,
+                    face_model,
+                    weight,
+                )
 
                 return result
 

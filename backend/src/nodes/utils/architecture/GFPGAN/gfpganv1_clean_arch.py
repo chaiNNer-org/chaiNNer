@@ -213,7 +213,7 @@ class GFPGANv1Clean(nn.Module):
         self.out_nc = 3
         self.state = state_dict
 
-        self.supports_fp16 = True
+        self.supports_fp16 = False
         self.supports_bf16 = True
 
         self.input_is_latent = input_is_latent
