@@ -99,7 +99,6 @@ class LoadModelNode(NodeBase):
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
-# @torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
@@ -142,56 +141,56 @@ class ImageUpscaleNode(NodeBase):
         should_use_fp16 = (
             exec_options.fp16 and model.supports_fp16
         )  # TODO: use bfloat16 if RTX
-        # with torch.no_grad():
-        # Borrowed from iNNfer
-        logger.debug("Converting image to tensor")
-        img_tensor = np2tensor(img, change_range=True)
-        logger.debug("Upscaling image")
+        with torch.no_grad():
+            # Borrowed from iNNfer
+            logger.debug("Converting image to tensor")
+            img_tensor = np2tensor(img, change_range=True)
+            logger.debug("Upscaling image")
 
-        split_estimation = 1
-        if "cuda" in options.device:
-            GB_AMT = 1024**3
-            free, total = torch.cuda.mem_get_info(options.pytorch_gpu_index)  # type: ignore
-            img_bytes = img_tensor.numel() * img_tensor.element_size()
-            model_bytes = sum(
-                p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))
-                for p in model.parameters()
-            )
-            mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
             split_estimation = 1
-            x = mem_required_estimation
-            while x > free:
-                x /= 4
-                split_estimation += 1
+            if "cuda" in options.device:
+                GB_AMT = 1024**3
+                free, total = torch.cuda.mem_get_info(options.pytorch_gpu_index)  # type: ignore
+                img_bytes = img_tensor.numel() * img_tensor.element_size()
+                model_bytes = sum(
+                    p.numel() * (p.element_size() / (2 if should_use_fp16 else 1))
+                    for p in model.parameters()
+                )
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
+                split_estimation = 1
+                x = mem_required_estimation
+                while x > free:
+                    x /= 4
+                    split_estimation += 1
 
-            required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
-            free_mem = f"{free/GB_AMT:.2f}"
-            total_mem = f"{total/GB_AMT:.2f}"
-            logger.info(
-                f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
+                required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
+                free_mem = f"{free/GB_AMT:.2f}"
+                total_mem = f"{total/GB_AMT:.2f}"
+                logger.info(
+                    f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
+                )
+                # Attempt to avoid using too much vram at once
+                if float(required_mem) > float(free_mem) * 0.6:
+                    split_estimation += 1
+
+            t_out, depth = auto_split_process(
+                options,
+                img_tensor,
+                model,
+                scale,
+                max_depth=tile_mode if tile_mode > 0 else split_estimation,
             )
-            # Attempt to avoid using too much vram at once
-            if float(required_mem) > float(free_mem) * 0.6:
-                split_estimation += 1
+            if "cuda" in options.device:
+                logger.info(f"Actual Split depth: {depth}")
+            del img_tensor
+            logger.debug("Converting tensor to image")
 
-        t_out, depth = auto_split_process(
-            options,
-            img_tensor,
-            model,
-            scale,
-            max_depth=tile_mode if tile_mode > 0 else split_estimation,
-        )
-        if "cuda" in options.device:
-            logger.info(f"Actual Split depth: {depth}")
-        del img_tensor
-        logger.debug("Converting tensor to image")
-
-        img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
-        logger.debug("Done upscaling")
-        del t_out
-        gc.collect()
-        torch.cuda.empty_cache()
-        return img_out
+            img_out = tensor2np(t_out.detach(), change_range=False, imtype=np.float32)
+            logger.debug("Done upscaling")
+            del t_out
+            gc.collect()
+            torch.cuda.empty_cache()
+            return img_out
 
     def run(self, model: PyTorchModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
         """Upscales an image with a pretrained model"""
