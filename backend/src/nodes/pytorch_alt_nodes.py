@@ -75,7 +75,6 @@ class FaceUpscaleNode(NodeBase):
         face_helper: FaceRestoreHelper,
         face_model: PyTorchModel,
         weight: float,
-        upscale: int,
     ):
         exec_options = to_pytorch_execution_options(get_execution_options())
         device = torch.device(exec_options.device)
@@ -173,7 +172,6 @@ class FaceUpscaleNode(NodeBase):
                             face_helper,
                             face_model,
                             weight,
-                            upscale,
                         )
                 else:
                     result = self.upscale(
@@ -182,7 +180,6 @@ class FaceUpscaleNode(NodeBase):
                         face_helper,
                         face_model,
                         weight,
-                        upscale,
                     )
 
                 return result
