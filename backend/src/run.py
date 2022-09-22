@@ -224,6 +224,16 @@ async def run(request: Request):
         try:
             ctx.executor = executor
             await executor.run()
+            # if torch is not None and "cuda" in exec_opts.device:
+            #     device = torch.device(exec_opts.device)
+            #     with torch.no_grad():
+            #         with torch.autocast(  # type: ignore
+            #             device_type=device.type,
+            #             dtype=torch.float16 if exec_opts.fp16 else torch.float32,
+            #         ):
+            #             await executor.run()
+            # else:
+            #     await executor.run()
         except Aborted:
             pass
         finally:

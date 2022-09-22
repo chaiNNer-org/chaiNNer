@@ -154,43 +154,45 @@ class FaceUpscaleNode(NodeBase):
             upscale = face_model.scale
             weight = 0.5
 
-            with torch.no_grad():
-                appdata_path = user_data_dir(roaming=True)
-                path_str = "chaiNNer/python/gfpgan/weights"
-                download_path = os.path.join(appdata_path, path_str)
+            # with torch.no_grad():
+            appdata_path = user_data_dir(roaming=True)
+            path_str = "chaiNNer/python/gfpgan/weights"
+            download_path = os.path.join(appdata_path, path_str)
 
-                # initialize face helper
-                face_helper = FaceRestoreHelper(
-                    upscale,
-                    face_size=512,
-                    crop_ratio=(1, 1),
-                    det_model="retinaface_resnet50",
-                    save_ext="png",
-                    use_parse=True,
-                    device=device,
-                    model_rootpath=download_path,
-                )
+            # initialize face helper
+            face_helper = FaceRestoreHelper(
+                upscale,
+                face_size=512,
+                crop_ratio=(1, 1),
+                det_model="retinaface_resnet50",
+                save_ext="png",
+                use_parse=True,
+                device=device,
+                model_rootpath=download_path,
+            )
 
-                if "cuda" in exec_options.device:
-                    with torch.autocast(  # type: ignore
-                        device_type=device.type,
-                        dtype=torch.float16 if should_use_fp16 else torch.float32,
-                    ):
-                        result = self.upscale(
-                            img,
-                            background_img,
-                            face_helper,
-                            face_model,
-                            weight,
-                        )
-                else:
-                    result = self.upscale(
-                        img,
-                        background_img,
-                        face_helper,
-                        face_model,
-                        weight,
-                    )
+            result = self.upscale(
+                img,
+                background_img,
+                face_helper,
+                face_model,
+                weight,
+            )
+
+                # if "cuda" in exec_options.device:
+                #     with torch.autocast(  # type: ignore
+                #         device_type=device.type,
+                #         dtype=torch.float16 if should_use_fp16 else torch.float32,
+                #     ):
+
+                # else:
+                #     result = self.upscale(
+                #         img,
+                #         background_img,
+                #         face_helper,
+                #         face_model,
+                #         weight,
+                #     )
 
                 return result
 
