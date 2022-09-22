@@ -344,16 +344,3 @@ def TileModeDropdown(has_auto=True, label="Number of Tiles") -> DropDownInput:
         label=label,
         options=options,
     )
-
-
-def FaceUpscaleDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="FaceUpscaleModel",
-        label="Face Restoration Model",
-        options=[
-            {"option": "GFPGANv1.2", "value": "GFPGANv1.2"},
-            {"option": "GFPGANv1.3", "value": "GFPGANv1.3"},
-            {"option": "GFPGANv1.4", "value": "GFPGANv1.4"},
-            {"option": "RestoreFormer", "value": "RestoreFormer"},
-        ],
-    )
