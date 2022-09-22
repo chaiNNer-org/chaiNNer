@@ -33,7 +33,7 @@ class ImageFileIteratorLoadImageNode(NodeBase):
         self.outputs = [
             ImageOutput(broadcast_type=True),
             DirectoryOutput("Image Directory"),
-            TextOutput("Relative Path"),
+            TextOutput("Subdirectory Path"),
             TextOutput("Image Name"),
             NumberOutput("Overall Index"),
         ]
