@@ -59,14 +59,14 @@ class NcnnSaveNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, net: NcnnModel, directory: str, name: str) -> bool:
+    def run(self, net: NcnnModelWrapper, directory: str, name: str) -> bool:
         full_bin = f"{name}.bin"
         full_param = f"{name}.param"
         full_bin_path = os.path.join(directory, full_bin)
         full_param_path = os.path.join(directory, full_param)
 
         logger.info(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
-        net.write_bin(full_bin_path)
-        net.write_param(full_param_path)
+        net.model.write_bin(full_bin_path)
+        net.model.write_param(full_param_path)
 
         return True

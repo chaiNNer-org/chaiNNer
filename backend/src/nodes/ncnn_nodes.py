@@ -58,7 +58,7 @@ class NcnnLoadModelNode(NodeBase):
         self.description = "Load NCNN model (.bin and .param files)."
         self.inputs = [ParamFileInput(), BinFileInput()]
         self.outputs = [
-            NcnnModelOutput(should_broadcast=True),
+            NcnnModelOutput(kind="ncnn", should_broadcast=True),
             TextOutput("Model Name"),
         ]
 
@@ -68,6 +68,7 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModelWrapper, str]:
+        logger.info("How often we coming here?")
         model = NcnnModelWrapper(NcnnModel.load_from_file(param_path, bin_path))
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 

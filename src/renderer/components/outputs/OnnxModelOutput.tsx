@@ -11,10 +11,10 @@ import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface OnnxModelData {
-    inNc: number | null;
-    outNc: number | null;
-    scale: number | null;
-    nf: number | null;
+    inNc: number;
+    outNc: number;
+    scale: number;
+    nf: number;
 }
 
 const getColorMode = (channels: number) => {

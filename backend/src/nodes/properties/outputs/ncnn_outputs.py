@@ -8,7 +8,7 @@ class NcnnModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "NcnnNetwork",
         label: str = "Model",
-        kind: OutputKind = "ncnn",
+        kind: OutputKind = "generic",
         should_broadcast=False,
     ):
         super().__init__(model_type, label, kind=kind)

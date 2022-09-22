@@ -8,7 +8,7 @@ class OnnxModelOutput(BaseOutput):
         self,
         model_type: expression.ExpressionJson = "OnnxModel",
         label: str = "Model",
-        kind: OutputKind = "onnx",
+        kind: OutputKind = "generic",
         should_broadcast=False,
     ):
         super().__init__(model_type, label, kind=kind)
