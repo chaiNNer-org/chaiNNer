@@ -93,19 +93,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
                 if ext.lower() in supported_filetypes:
                     just_model_files.append(filepath)
 
-        file_len = len(just_model_files)
-        errors = []
-        for idx, filepath in enumerate(just_model_files):
-            # Replace the input filepath with the filepath from the loop
-            context.inputs.set_values(model_path_node_id, [filepath, directory, idx])
-            try:
-                await context.run_iteration(idx, file_len)
-            except Exception as e:
-                logger.error(e)
-                errors.append(str(e))
+        def before(filepath: str, index: int):
+            context.inputs.set_values(model_path_node_id, [filepath, directory, index])
 
-        if len(errors) > 0:
-            raise Exception(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
+        await context.run(just_model_files, before)

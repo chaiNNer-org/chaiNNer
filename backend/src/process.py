@@ -6,7 +6,18 @@ import functools
 import gc
 import uuid
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 import numpy as np
 
 from sanic.log import logger
@@ -20,6 +31,8 @@ from chain.input import InputMap, EdgeInput
 
 from nodes.node_base import NodeBase
 from nodes.utils.image_utils import get_h_w_c
+
+T = TypeVar("T")
 
 
 class NodeExecutionError(Exception):
@@ -92,6 +105,36 @@ class IteratorContext:
                         "running": None,
                     },
                 }
+            )
+
+    async def run(
+        self,
+        collection: Iterable[T],
+        before: Callable[[T, int], Union[None, Literal[False]]],
+    ):
+        items = list(collection)
+        length = len(items)
+
+        errors: List[str] = []
+        for index, item in enumerate(items):
+            try:
+                await self.progress.suspend()
+
+                result = before(item, index)
+                if result is False:
+                    break
+
+                await self.run_iteration(index, length)
+            except Aborted:
+                raise
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
 
 
