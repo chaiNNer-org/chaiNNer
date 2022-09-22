@@ -523,9 +523,11 @@ const errorListener: Parameters<antlr4.Recognizer['addErrorListener']>[0] = {
 const getParser = (code: string): NaviParser => {
     const chars = new antlr4.InputStream(code);
     const lexer = new NaviLexer(chars);
+    lexer.removeErrorListeners();
     lexer.addErrorListener(errorListener);
     const tokens = new antlr4.CommonTokenStream(lexer);
     const parser = new NaviParser(tokens);
+    parser.removeErrorListeners();
     parser.addErrorListener(errorListener);
     parser.buildParseTrees = true;
     return parser;
