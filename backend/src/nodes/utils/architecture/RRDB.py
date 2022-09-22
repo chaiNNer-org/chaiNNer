@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from . import block as B
 
@@ -265,5 +266,16 @@ class RRDBNet(nn.Module):
 
     def forward(self, x):
         if self.shuffle_factor:
+            _, _, h, w = x.size()
+            mod_pad_h = (
+                self.shuffle_factor - h % self.shuffle_factor
+            ) % self.shuffle_factor
+            mod_pad_w = (
+                self.shuffle_factor - w % self.shuffle_factor
+            ) % self.shuffle_factor
+            print(f"{mod_pad_h=}, {mod_pad_w=}")
+            x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), "reflect")
             x = torch.pixel_unshuffle(x, downscale_factor=self.shuffle_factor)
+            x = self.model(x)
+            return x[:, :, : h * self.scale, : w * self.scale]
         return self.model(x)
