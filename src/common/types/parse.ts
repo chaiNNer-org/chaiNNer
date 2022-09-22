@@ -308,11 +308,11 @@ class AstConverter {
             if (exprs.length === 1) return exprs[0];
             const operators = getOperatorsInOrder(context, ['OpMinus', 'OpPlus']);
             return new FunctionCallExpression(
-                'ops::add',
+                'number::add',
                 exprs.map((e, i) => {
                     const op = operators[i - 1]?.type;
                     if (op === 'OpMinus') {
-                        return new FunctionCallExpression('ops::neg', [e]);
+                        return new FunctionCallExpression('number::neg', [e]);
                     }
                     return e;
                 })
@@ -323,11 +323,11 @@ class AstConverter {
             if (exprs.length === 1) return exprs[0];
             const operators = getOperatorsInOrder(context, ['OpDiv', 'OpMult']);
             return new FunctionCallExpression(
-                'ops::mul',
+                'number::mul',
                 exprs.map((e, i) => {
                     const op = operators[i - 1]?.type;
                     if (op === 'OpDiv') {
-                        return new FunctionCallExpression('ops::rec', [e]);
+                        return new FunctionCallExpression('number::rec', [e]);
                     }
                     return e;
                 })
@@ -336,7 +336,7 @@ class AstConverter {
         if (context instanceof NaviParser.NegateExpressionContext) {
             const expr = this.toExpression(getRequired(context, 'fieldAccessExpression'));
             if (!getOptionalToken(context, 'OpMinus')) return expr;
-            return new FunctionCallExpression('ops::neg', [expr]);
+            return new FunctionCallExpression('number::neg', [expr]);
         }
         if (context instanceof NaviParser.FieldAccessExpressionContext) {
             const ofExpression = this.toExpression(getRequired(context, 'primaryExpression'));

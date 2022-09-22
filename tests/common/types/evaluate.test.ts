@@ -301,10 +301,10 @@ describe('Builtin functions', () => {
     };
 
     testUnaryNumber('abs');
-    testUnaryNumber('ops::neg');
+    testUnaryNumber('number::neg');
     testUnaryNumber('round');
     testUnaryNumber('floor');
-    testUnaryNumber('ops::rec');
+    testUnaryNumber('number::rec');
 
     testUnaryNumber('degToRad');
     testUnaryNumber('sin');
@@ -314,8 +314,8 @@ describe('Builtin functions', () => {
     testUnaryNumber('log');
 
     testBinaryNumber('min', { commutative: true, reflexive: true, associative: true });
-    testBinaryNumber('ops::add', { commutative: true, reflexive: false, associative: false });
-    testBinaryNumber('ops::mul', { commutative: true, reflexive: false, associative: false });
+    testBinaryNumber('number::add', { commutative: true, reflexive: false, associative: false });
+    testBinaryNumber('number::mul', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('mod', { commutative: false, reflexive: false, associative: false });
     testBinaryNumber('pow', { commutative: false, reflexive: false, associative: false });
 

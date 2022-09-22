@@ -63,12 +63,12 @@ builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));
 
 // function for syntax desugaring
-builder.add(unary('ops::neg', negate, NumberType.instance));
-builder.add(varArgs('ops::add', add, NumberType.instance));
-builder.add(binary('ops::sub', subtract, NumberType.instance, NumberType.instance));
-builder.add(varArgs('ops::mul', multiply, NumberType.instance));
-builder.add(binary('ops::div', divide, NumberType.instance, NumberType.instance));
-builder.add(varArgs('ops::rec', reciprocal, NumberType.instance));
+builder.add(unary('number::neg', negate, NumberType.instance));
+builder.add(varArgs('number::add', add, NumberType.instance));
+builder.add(binary('number::sub', subtract, NumberType.instance, NumberType.instance));
+builder.add(varArgs('number::mul', multiply, NumberType.instance));
+builder.add(binary('number::div', divide, NumberType.instance, NumberType.instance));
+builder.add(varArgs('number::rec', reciprocal, NumberType.instance));
 
 // invStrSet is an interesting function, because it cannot be a built-in function.
 // For correctness, all built-in functions must guarantee the following property:
