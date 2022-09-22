@@ -25,7 +25,7 @@ class ModelFileIteratorLoadModelNode(NodeBase):
         self.outputs = [
             ModelOutput(should_broadcast=True),
             DirectoryOutput("Model Directory"),
-            TextOutput("Relative Path"),
+            TextOutput("Subdirectory Path"),
             TextOutput("Model Name"),
             NumberOutput("Overall Index"),
         ]

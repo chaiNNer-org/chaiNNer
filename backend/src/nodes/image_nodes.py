@@ -122,7 +122,7 @@ class ImWriteNode(NodeBase):
         self.inputs = [
             ImageInput(),
             DirectoryInput(has_handle=True),
-            TextInput("Relative Path").make_optional(),
+            TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
         ]
