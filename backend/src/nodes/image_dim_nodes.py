@@ -88,118 +88,58 @@ class ImResizeToSide(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type="""
-                let widthWidth = Input1;
-                let widthHeight = max(int & round(Input1 / Input0.height * Input0.width), 1);
-                let widthShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.width), 1);
-                let widthLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.width), 1);
+                struct Size { width: uint, height: uint }
 
-                let heightWidth = max(int & round(Input1 / Input0.width * Input0.height), 1);
-                let heightHeight = Input1;
-                let heightShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.height), 1);
-                let heightLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.height), 1);
+                let w = Input0.width;
+                let h = Input0.height;
+                let target = Input1;
+                let side = Input2;
+                let condition = Input4;
 
-                let largerTargetWidth = max(Input0.width, Input1);
-                let largerTargetHeight = max(Input0.height, Input1);
-                let largerTargetMin = max(min(Input0.width, Input0.height), Input1);
-                let largerTargetMax = max(max(Input0.width, Input0.height), Input1);
+                def compareCondition(b: uint) {
+                    match condition {
+                        ResizeCondition::Both => false,
+                        ResizeCondition::Downscale => number::gt(target, b),
+                        ResizeCondition::Upscale => number::lt(target, b)
+                    }
+                }
 
-                let smallerTargetWidth = min(Input0.width, Input1);
-                let smallerTargetHeight = min(Input0.height, Input1);
-                let smallerTargetMin = min(min(Input0.width, Input0.height), Input1);
-                let smallerTargetMax = min(max(Input0.width, Input0.height), Input1);
+                let same = Size { width: w, height: h };
 
-                let w_out = match Input4 {
-                    ResizeCondition::Both => match Input2 {
-                        SideSelection::Width => widthWidth,
-                        SideSelection::Height => widthHeight,
-                        SideSelection::Shorter => widthShorter,
-                        SideSelection::Longer => widthLonger
+                let outSize = match side {
+                    SideSelection::Width => match compareCondition(w) {
+                        true => same,
+                        false => Size {
+                            width: target,
+                            height: max(int & round((target / w) * h), 1)
+                        }
                     },
-                    ResizeCondition::Downscale => match Input2 {
-                        SideSelection::Width => match largerTargetWidth {
-                            Input0.width => widthWidth,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Height => match largerTargetHeight {
-                            Input0.height => widthHeight,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Shorter => match largerTargetMin {
-                            min(Input0.width, Input0.height) => widthShorter,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Longer => match largerTargetMax {
-                            max(Input0.width, Input0.height) => widthLonger,
-                            Input1 => Input0.width
-                        },
+                    SideSelection::Height => match compareCondition(h) {
+                        true => same,
+                        false => Size {
+                            width: max(int & round((target / h) * w), 1),
+                            height: target
+                        }
                     },
-                    ResizeCondition::Upscale => match Input2 {
-                        SideSelection::Width => match smallerTargetWidth {
-                            Input0.width => widthWidth,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Height => match smallerTargetHeight {
-                            Input0.height => widthHeight,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Shorter => match smallerTargetMin {
-                            min(Input0.width, Input0.height) => widthShorter,
-                            Input1 => Input0.width
-                        },
-                        SideSelection::Longer => match smallerTargetMax {
-                            max(Input0.width, Input0.height) => widthLonger,
-                            Input1 => Input0.width
-                        },
+                    SideSelection::Shorter => match compareCondition(min(h, w)) {
+                        true => same,
+                        false => Size {
+                            width: max(int & round((target / min(h, w)) * w), 1),
+                            height: max(int & round((target / min(h, w)) * h), 1)
+                        }
+                    },
+                    SideSelection::Longer => match compareCondition(max(h, w)) {
+                        true => same,
+                        false => Size {
+                            width: max(int & round((target / max(h, w)) * w), 1),
+                            height: max(int & round((target / max(h, w)) * h), 1)
+                        }
                     },
                 };
 
-                let h_out = match Input4 {
-                    ResizeCondition::Both => match Input2 {
-                        SideSelection::Width => heightWidth,
-                        SideSelection::Height => heightHeight,
-                        SideSelection::Shorter => heightShorter,
-                        SideSelection::Longer => heightLonger,
-                    },
-                    ResizeCondition::Downscale => match Input2 {
-                        SideSelection::Width => match largerTargetWidth {
-                            Input0.width => heightWidth,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Height => match largerTargetHeight {
-                            Input0.height => heightHeight,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Shorter => match largerTargetMin {
-                            min(Input0.width, Input0.height) => heightShorter,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Longer => match largerTargetMax {
-                            max(Input0.width, Input0.height) => heightLonger,
-                            Input1 => Input0.height
-                        },
-                    },
-                    ResizeCondition::Upscale => match Input2 {
-                        SideSelection::Width => match smallerTargetWidth {
-                            Input0.width => heightWidth,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Height => match smallerTargetHeight {
-                            Input0.height => heightHeight,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Shorter => match smallerTargetMin {
-                            min(Input0.width, Input0.height) => heightShorter,
-                            Input1 => Input0.height
-                        },
-                        SideSelection::Longer => match smallerTargetMax {
-                            max(Input0.width, Input0.height) => heightLonger,
-                            Input1 => Input0.height
-                        },
-                    },
-                };
                 Image {
-                    width: w_out,
-                    height: h_out,
+                    width: outSize.width,
+                    height: outSize.height,
                     channels: Input0.channels
                 }
                 """
@@ -221,30 +161,7 @@ class ImResizeToSide(NodeBase):
         logger.info(f"Resizing image to {side} via {interpolation}")
 
         h, w, _ = get_h_w_c(img)
-        if condition == "both":
-            if side == "width":
-                w_new = target
-                h_new = max(round((target / w) * h), 1)
-
-            elif side == "height":
-                w_new = max(round((target / h) * w), 1)
-                h_new = target
-
-            elif side == "shorter side":
-                w_new = max(round((target / min(h, w)) * w), 1)
-                h_new = max(round((target / min(h, w)) * h), 1)
-
-            elif side == "longer side":
-                w_new = max(round((target / max(h, w)) * w), 1)
-                h_new = max(round((target / max(h, w)) * h), 1)
-
-            else:
-                raise RuntimeError(f"Unknown side selection {side}")
-
-            out_dims = (w_new, h_new)
-
-        else:
-            out_dims = resize_to_side_conditional(w, h, target, side, condition)
+        out_dims = resize_to_side_conditional(w, h, target, side, condition)
 
         return resize(img, out_dims, interpolation)
 
