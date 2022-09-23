@@ -9,7 +9,7 @@ onnxruntime
 opencv-python
 pasteboard ; sys_platform=="darwin"
 Pillow
-protobuf==3.16.0
+protobuf==3.18.3
 pylint
 pyright==1.1.249
 pytest
