@@ -11,7 +11,6 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
-import log from 'electron-log';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
@@ -459,29 +458,29 @@ export const usePaneNodeSearchMenu = (
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
+            const target = event.target as Element | SVGTextPathElement;
+
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
             });
-            const isStoppedOnPane = String((event.target as Element).className).includes('pane');
-            const isStoppedOnIterator =
-                typeof (event.target as Element).className === 'object' &&
-                (event.target as Element).classList[0].includes('iterator-editor');
-            if (isStoppedOnPane || isStoppedOnIterator) {
+
+            const isStoppedOnPane = target.classList.contains('react-flow__pane');
+
+            const firstClass = target.classList[0] || '';
+            const stoppedIteratorId =
+                typeof target.className === 'object' && firstClass.startsWith('iterator-editor=')
+                    ? firstClass.slice('iterator-editor='.length)
+                    : undefined;
+
+            if (isStoppedOnPane || stoppedIteratorId) {
                 const fromNode = getNode(connectingFrom?.nodeId ?? '');
                 // Handle case of dragging from inside iterator to outside
                 if (!(fromNode && fromNode.parentNode && isStoppedOnPane)) {
                     menu.manuallyOpenContextMenu(event.pageX, event.pageY);
                 }
-                if (isStoppedOnIterator) {
-                    try {
-                        const iteratorId = String((event.target as Element).classList[0])
-                            .split('=')
-                            .slice(-1)[0];
-                        setStoppedOnIterator(iteratorId);
-                    } catch (e) {
-                        log.error('Unable to parse iterator id from class name', e);
-                    }
+                if (stoppedIteratorId) {
+                    setStoppedOnIterator(stoppedIteratorId);
                 }
             }
             setGlobalConnectingFrom(null);
