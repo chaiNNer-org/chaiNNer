@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
-import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'react-flow-renderer';
+import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'reactflow';
 import semver from 'semver';
 import { deriveUniqueId } from './util';
 

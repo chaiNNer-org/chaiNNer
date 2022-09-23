@@ -1,5 +1,5 @@
 import { Size } from 'electron/common';
-import { Edge, Node, XYPosition } from 'react-flow-renderer';
+import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, InputData, Mutable, NodeData, NodeType } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deepCopy } from '../../common/util';

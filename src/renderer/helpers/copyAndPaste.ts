@@ -1,5 +1,5 @@
 import { clipboard } from 'electron';
-import { Edge, Node } from 'react-flow-renderer';
+import { Edge, Node } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';

@@ -1,6 +1,6 @@
 import log from 'electron-log';
 import { extname } from 'path';
-import { XYPosition } from 'react-flow-renderer';
+import { XYPosition } from 'reactflow';
 import { InputId, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';

@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, useReactFlow } from 'reactflow';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';

@@ -1,4 +1,4 @@
-import { Edge, Node } from 'react-flow-renderer';
+import { Edge, Node } from 'reactflow';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
 import { EvaluationError } from '../../common/types/evaluate';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';

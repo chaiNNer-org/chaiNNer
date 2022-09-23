@@ -1,6 +1,6 @@
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
-import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
+import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'reactflow';
 import { TbUnlink } from 'react-icons/tb';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';

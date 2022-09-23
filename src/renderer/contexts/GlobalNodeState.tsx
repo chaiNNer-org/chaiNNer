@@ -10,7 +10,7 @@ import {
     getOutgoers,
     useReactFlow,
     useViewport,
-} from 'react-flow-renderer';
+} from 'reactflow';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext } from 'use-context-selector';
 import {

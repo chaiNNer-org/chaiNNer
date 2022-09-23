@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { useReactFlow } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
 import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';

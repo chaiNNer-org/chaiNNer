@@ -1,6 +1,6 @@
 import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { useReactFlow } from 'reactflow';
 import { BsEyeFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';

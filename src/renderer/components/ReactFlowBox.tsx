@@ -17,7 +17,7 @@ import ReactFlow, {
     useEdgesState,
     useNodesState,
     useReactFlow,
-} from 'react-flow-renderer';
+} from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
@@ -405,8 +405,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     borderRadius: '0.5rem',
                 }}
                 onConnect={createConnection}
+                onConnectEnd={onConnectStop}
                 onConnectStart={onConnectStart}
-                onConnectStop={onConnectStop}
                 onDragOver={onDragOver}
                 onDragStart={onDragStart}
                 onDrop={onDrop}

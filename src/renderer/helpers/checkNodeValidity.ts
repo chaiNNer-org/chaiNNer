@@ -1,4 +1,4 @@
-import { Edge } from 'react-flow-renderer';
+import { Edge } from 'reactflow';
 import { EdgeData, Input, InputData, NodeSchema } from '../../common/common-types';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { evaluate } from '../../common/types/evaluate';

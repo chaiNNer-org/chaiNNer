@@ -1,7 +1,7 @@
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList, Tooltip, useDisclosure } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useState } from 'react';
-import { useReactFlow } from 'react-flow-renderer';
+import { useReactFlow } from 'reactflow';
 import ReactMarkdown from 'react-markdown';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeSchema } from '../../../common/common-types';

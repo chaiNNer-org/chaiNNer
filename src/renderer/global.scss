@@ -1,4 +1,5 @@
 @use "colors.scss";
+@import "reactflow/dist/style.css";
 
 /* :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
 :not(.chakra-slider__track):not(.chakra-menu__menu-button):not(.react-flow__handle)
@@ -85,7 +86,7 @@ body {
     border-radius: 0px 0px 8px 8px;
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
     .react-flow__controls:hover {
         background: var(--gray-300) !important;
     }
@@ -100,7 +101,7 @@ body {
     }
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
     .react-flow__controls:hover {
         background: var(--gray-700) !important;
     }
@@ -129,12 +130,12 @@ body {
     width: 8px;
 }
 
-[data-theme='dark'] ::-webkit-scrollbar-thumb {
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
     background-color: var(--gray-700);
 }
 
-[data-theme='light'] ::-webkit-scrollbar-thumb {
+[data-theme="light"] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
     background-color: var(--gray-300);
 }
