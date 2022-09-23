@@ -703,7 +703,7 @@ class RestoreFormer(nn.Module):
         self.out_nc = out_ch
         self.state = state_dict
 
-        self.supports_fp16 = True
+        self.supports_fp16 = False
         self.supports_bf16 = True
 
         self.encoder = MultiHeadEncoder(
