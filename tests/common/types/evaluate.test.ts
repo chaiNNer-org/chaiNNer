@@ -318,6 +318,8 @@ describe('Builtin functions', () => {
     testBinaryNumber('number::mul', { commutative: true, reflexive: false, associative: false });
     testBinaryNumber('mod', { commutative: false, reflexive: false, associative: false });
     testBinaryNumber('pow', { commutative: false, reflexive: false, associative: false });
+    testBinaryNumber('number::lt', { commutative: false, reflexive: false, associative: false });
+    testBinaryNumber('number::lte', { commutative: false, reflexive: false, associative: false });
 
     testUnaryString('invStrSet');
 });
