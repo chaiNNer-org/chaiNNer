@@ -1,13 +1,12 @@
-import { Edge } from 'react-flow-renderer';
-import { EdgeData, Input, InputData, NodeSchema } from '../../common/common-types';
-import { getChainnerScope } from '../../common/types/chainner-scope';
-import { evaluate } from '../../common/types/evaluate';
-import { IntersectionExpression, NamedExpression } from '../../common/types/expression';
-import { FunctionInstance } from '../../common/types/function';
-import { isDisjointWith } from '../../common/types/intersection';
-import { IntIntervalType, NumericLiteralType, StructType, Type } from '../../common/types/types';
-import { IntNumberType, isImage } from '../../common/types/util';
-import { assertNever, parseTargetHandle } from '../../common/util';
+import { Input, InputData, InputId, NodeSchema } from './common-types';
+import { getChainnerScope } from './types/chainner-scope';
+import { evaluate } from './types/evaluate';
+import { IntersectionExpression, NamedExpression } from './types/expression';
+import { FunctionInstance } from './types/function';
+import { isDisjointWith } from './types/intersection';
+import { IntIntervalType, NumericLiteralType, StructType, Type } from './types/types';
+import { IntNumberType, isImage } from './types/util';
+import { assertNever } from './util';
 
 export type Validity =
     | { readonly isValid: true }
@@ -204,23 +203,17 @@ const printErrorTrace = (trace: AssignmentErrorTrace): string[] => {
 };
 
 export interface CheckNodeValidityOptions {
-    id: string;
     schema: NodeSchema;
     inputData: InputData;
-    edges: readonly Edge<EdgeData>[];
+    connectedInputs: ReadonlySet<InputId>;
     functionInstance: FunctionInstance | undefined;
 }
 export const checkNodeValidity = ({
-    id,
     schema,
     inputData,
-    edges,
+    connectedInputs,
     functionInstance,
 }: CheckNodeValidityOptions): Validity => {
-    const targetedInputs = edges
-        .filter((e) => e.target === id && e.targetHandle)
-        .map((e) => parseTargetHandle(e.targetHandle!).inOutId);
-
     const missingInputs = schema.inputs.filter((input) => {
         // optional inputs can't be missing
         if (input.optional) return false;
@@ -230,7 +223,7 @@ export const checkNodeValidity = ({
         if (inputValue !== undefined) return false;
 
         // the value of the input is assigned by an edge
-        if (targetedInputs.includes(input.id)) return false;
+        if (connectedInputs.has(input.id)) return false;
 
         return true;
     });

@@ -3,6 +3,7 @@ import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
+import { checkNodeValidity } from '../../common/checkNodeValidity';
 import {
     EdgeData,
     InputId,
@@ -21,7 +22,7 @@ import {
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
-import { checkNodeValidity } from '../helpers/checkNodeValidity';
+import { getConnectedInputs } from '../helpers/connectedInputs';
 import { getEffectivelyDisabledNodes } from '../helpers/disabled';
 import { getNodesWithSideEffects } from '../helpers/sideEffect';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
@@ -390,9 +391,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             const schema = schemata.get(node.data.schemaId);
             const { category, name } = schema;
             const validity = checkNodeValidity({
-                id: node.id,
                 inputData: node.data.inputData,
-                edges,
+                connectedInputs: getConnectedInputs(node.id, edges),
                 schema,
                 functionInstance,
             });
