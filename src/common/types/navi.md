@@ -248,23 +248,23 @@ The behave just like user-defined functions, but they are not implemented with N
 
 The following built-in functions are supported:
 
--   `ops::add(...numbers: number) -> number`
+-   `number::add(...numbers: number) -> number`
 
     Takes any number of numbers and returns their sum.
 
--   `ops::sub(a: number, b: number) -> number`
+-   `number::sub(a: number, b: number) -> number`
 
     Takes 2 number types and returns the type that represents `a - b`.
 
--   `ops::mul(...numbers: number) -> number`
+-   `number::mul(...numbers: number) -> number`
 
     Takes any number of numbers and returns their product.
 
--   `ops::div(a: number, b: number) -> number`
+-   `number::div(a: number, b: number) -> number`
 
     Takes 2 number types and returns the type that represents `a / b`.
 
--   `ops::neg(a: number) -> number`
+-   `number::neg(a: number) -> number`
 
     Takes a number type and returns the type that represents `-a`.
 
@@ -286,14 +286,14 @@ The following built-in functions are supported:
 
 ### Syntax sugar
 
-Special syntax is available for all `ops::*` functions.
+Special syntax is available for all `number::*` functions.
 This includes the following operators:
 
-- Unary operators: `-a` for `ops::neg`.
+- Unary operators: `-a` for `number::neg`.
 - Binary operators: `a + b`, `a - b`, `a * b`, and `a / b` for the respective functions.
 
 Operator precedence is as you would expect it to be.
-E.g. `a + b * c` de-sugars to `ops::add(a, ops::mul(b, c))`.
+E.g. `a + b * c` de-sugars to `number::add(a, number::mul(b, c))`.
 
 ## `match`
 

@@ -8,6 +8,8 @@ import {
     divide,
     exp,
     floor,
+    lessThan,
+    lessThanEqual,
     log,
     maximum,
     minimum,
@@ -25,7 +27,7 @@ import { VariableDefinition } from './expression';
 import { parseDefinitions } from './parse';
 import { BuiltinFunctionDefinition, ScopeBuilder } from './scope';
 import { SourceDocument } from './source';
-import { AnyType, IntIntervalType, NeverType, NumberType, StringType } from './types';
+import { AnyType, NeverType, NumberType, StringType } from './types';
 import { union } from './union';
 
 const builder = new ScopeBuilder('Global scope');
@@ -35,10 +37,6 @@ builder.add(new VariableDefinition('any', AnyType.instance));
 builder.add(new VariableDefinition('never', NeverType.instance));
 builder.add(new VariableDefinition('number', NumberType.instance));
 builder.add(new VariableDefinition('string', StringType.instance));
-
-// builtin types
-builder.add(new VariableDefinition('int', new IntIntervalType(-Infinity, Infinity)));
-builder.add(new VariableDefinition('uint', new IntIntervalType(0, Infinity)));
 
 // builtin functions
 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -63,13 +61,16 @@ builder.add(varArgs('concat', concat, StringType.instance));
 builder.add(unary('toString', toString, union(StringType.instance, NumberType.instance)));
 
 // function for syntax desugaring
-builder.add(unary('ops::neg', negate, NumberType.instance));
-builder.add(varArgs('ops::add', add, NumberType.instance));
-builder.add(binary('ops::sub', subtract, NumberType.instance, NumberType.instance));
-builder.add(varArgs('ops::mul', multiply, NumberType.instance));
-builder.add(binary('ops::div', divide, NumberType.instance, NumberType.instance));
-builder.add(varArgs('ops::rec', reciprocal, NumberType.instance));
+builder.add(unary('number::neg', negate, NumberType.instance));
+builder.add(varArgs('number::add', add, NumberType.instance));
+builder.add(binary('number::sub', subtract, NumberType.instance, NumberType.instance));
+builder.add(varArgs('number::mul', multiply, NumberType.instance));
+builder.add(binary('number::div', divide, NumberType.instance, NumberType.instance));
+builder.add(varArgs('number::rec', reciprocal, NumberType.instance));
+builder.add(binary('number::lt', lessThan, NumberType.instance, NumberType.instance));
+builder.add(binary('number::lte', lessThanEqual, NumberType.instance, NumberType.instance));
 
+const code = `
 // invStrSet is an interesting function, because it cannot be a built-in function.
 // For correctness, all built-in functions must guarantee the following property:
 //   f(A) ⊆ f(B) if A⊆B
@@ -77,10 +78,19 @@ builder.add(varArgs('ops::rec', reciprocal, NumberType.instance));
 //
 // This property is also expected of functions defined in Navi,
 // but functions that do not follow this property can still be non-problematic in some cases.
-const code = `
 def invStrSet(set: string) {
     match string { set => never, _ as inv => inv }
 }
+
+let int = int(..);
+let uint = int(0..);
+
+struct true;
+struct false;
+let bool = true | false;
+
+def number::gte(a: number, b: number) = number::lte(b, a);
+def number::gt(a: number, b: number) = number::lt(b, a);
 `;
 const definitions = parseDefinitions(new SourceDocument(code, 'global-internal'));
 for (const d of definitions) {

@@ -219,28 +219,28 @@ a & b & c & d
 (a & b) | (c & d)
 
 >>> a + b - c + d - e + f
-ops::add(a, b, ops::neg(c), d, ops::neg(e), f)
+number::add(a, b, number::neg(c), d, number::neg(e), f)
 
 >>> a * b / c * d / e * f
-ops::mul(a, b, ops::rec(c), d, ops::rec(e), f)
+number::mul(a, b, number::rec(c), d, number::rec(e), f)
 
 >>> a * (-b+c) / -2
-ops::mul(a, ops::add(ops::neg(b), c), ops::rec(-2))
+number::mul(a, number::add(number::neg(b), c), number::rec(-2))
 
 >>> -a--b
-ops::add(ops::neg(a), ops::neg(ops::neg(b)))
+number::add(number::neg(a), number::neg(number::neg(b)))
 
 >>> -a+-b
-ops::add(ops::neg(a), ops::neg(b))
+number::add(number::neg(a), number::neg(b))
 
 >>> a + b * c
-ops::add(a, ops::mul(b, c))
+number::add(a, number::mul(b, c))
 
 >>> -100 - -100
-ops::add(-100, ops::neg(-100))
+number::add(-100, number::neg(-100))
 
 >>> a---100
-ops::add(a, ops::neg(ops::neg(-100)))
+number::add(a, number::neg(number::neg(-100)))
 
 >>> { 0 }
 0

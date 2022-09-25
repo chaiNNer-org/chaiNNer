@@ -328,7 +328,7 @@ export function union(...types: Type[]): Type {
     if (types.length === 1) return types[0];
 
     const items: NonTrivialType[] = [];
-    let startUnionIndex = -1;
+    let startUnionIndex: number | undefined;
     for (const t of types) {
         if (t.type === 'any') return AnyType.instance;
         if (t.type === 'never') continue;
@@ -342,7 +342,7 @@ export function union(...types: Type[]): Type {
     if (items.length === 1) return items[0];
 
     let u: Union;
-    if (startUnionIndex !== -1) {
+    if (startUnionIndex !== undefined) {
         u = new Union((items[startUnionIndex] as UnionType).items);
         items.splice(startUnionIndex, 1);
     } else {
