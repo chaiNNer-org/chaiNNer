@@ -135,12 +135,12 @@ class ImWriteNode(NodeBase):
         self.side_effects = True
 
     def run(
-            self,
-            img: np.ndarray,
-            base_directory: str,
-            relative_path: Union[str, None],
-            filename: str,
-            extension: str,
+        self,
+        img: np.ndarray,
+        base_directory: str,
+        relative_path: Union[str, None],
+        filename: str,
+        extension: str,
     ) -> bool:
         """Write an image to the specified path and return write status"""
 
