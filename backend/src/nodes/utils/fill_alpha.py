@@ -87,12 +87,12 @@ def fill_alpha_fragment_blur(img: np.ndarray) -> np.ndarray:
         blurred = fragment_blur(img, 5, i, 1 << i)
         # Blurred tends to be a bit too transparent
         with_self_as_background(blurred)
-        blend_images(result, blurred, BlendModes.NORMAL)
+        result = blend_images(result, blurred, BlendModes.NORMAL)
 
     return result
 
 
-def fill_alpha_edge_extend(img: np.ndarray, distance: int):
+def fill_alpha_edge_extend(img: np.ndarray, distance: int) -> np.ndarray:
     """
     Given an image with binary alpha, with will fill transparent pixels by
     extending the closest color.
@@ -130,4 +130,5 @@ def fill_alpha_edge_extend(img: np.ndarray, distance: int):
         r[:, :, 2] *= f
         r[:, :, 3] = np.minimum(r[:, :, 3], 1)
 
-        blend_images(img, r, BlendModes.NORMAL)
+        img = blend_images(img, r, BlendModes.NORMAL)
+    return img

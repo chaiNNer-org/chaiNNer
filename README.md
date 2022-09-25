@@ -98,11 +98,18 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### Pytorch
 
+#### Single Image Super Resolution
+
 - [ESRGAN](https://github.com/xinntao/ESRGAN) (RRDBNet)
   - This includes regular [ESRGAN](https://github.com/xinntao/ESRGAN), [ESRGAN+](https://github.com/ncarraz/ESRGANplus), "new-arch ESRGAN" ([RealSR](https://github.com/jixiaozhong/RealSR), [BSRGAN](https://github.com/cszn/BSRGAN)), [SPSR](https://github.com/Maclory/SPSR), and [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 - [Real-ESRGAN Compact](https://github.com/xinntao/Real-ESRGAN) (SRVGGNet)
 - [Swift-SRGAN](https://github.com/Koushik0901/Swift-SRGAN)
 - [SwinIR](https://github.com/JingyunLiang/SwinIR)
+
+#### Face Restoration
+
+- [GFPGAN](https://github.com/TencentARC/GFPGAN)
+- [RestoreFormer](https://github.com/wzhouxiff/RestoreFormer)
 
 ### NCNN
 

@@ -1,6 +1,7 @@
 import cv2
 
 # pylint: disable=relative-beyond-top-level
+from ...utils.image_utils import BorderType
 from ...utils.pil_utils import InterpolationMethod, RotateExpandCrop
 from ...utils.tile_util import TileMode
 from .generic_inputs import DropDownInput
@@ -215,23 +216,28 @@ def BorderInput() -> DropDownInput:
         options=[
             {
                 "option": "Reflect (Mirror)",
-                "value": cv2.BORDER_REFLECT101,
+                "value": BorderType.REFLECT_MIRROR,
+                "type": "BorderType::ReflectMirror",
             },
             {
                 "option": "Wrap (Tile)",
-                "value": cv2.BORDER_WRAP,
+                "value": BorderType.WRAP,
+                "type": "BorderType::Wrap",
             },
             {
                 "option": "Replicate Edges",
-                "value": cv2.BORDER_REPLICATE,
+                "value": BorderType.REPLICATE,
+                "type": "BorderType::Replicate",
             },
             {
-                "option": "Constant Color",
-                "value": cv2.BORDER_CONSTANT,
+                "option": "Black",
+                "value": BorderType.BLACK,
+                "type": "BorderType::Black",
             },
             {
                 "option": "Transparent",
-                "value": cv2.BORDER_TRANSPARENT,
+                "value": BorderType.TRANSPARENT,
+                "type": "BorderType::Transparent",
             },
         ],
     )

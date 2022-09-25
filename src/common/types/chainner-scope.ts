@@ -1,8 +1,11 @@
 import { lazy } from '../util';
+import { formatTextPattern } from './chainner-format';
 import { globalScope } from './global-scope';
 import { parseDefinitions } from './parse';
-import { Scope, ScopeBuilder } from './scope';
+import { BuiltinFunctionDefinition, Scope, ScopeBuilder } from './scope';
 import { SourceDocument } from './source';
+import { StringType, StructType, Type } from './types';
+import { union } from './union';
 
 const code = `
 struct null;
@@ -29,9 +32,11 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
-    modelType: string,
+    arch: string,
     size: string,
+    subType: string,
 }
+let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
 
 struct NcnnBinFile;
 struct NcnnParamFile;
@@ -46,7 +51,6 @@ struct IteratorAuto;
 struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
-struct BorderType;
 struct CaptionPosition;
 struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
 struct Colorspace;
@@ -68,7 +72,21 @@ enum SideSelection { Width, Height, Shorter, Longer }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
 enum FillColor { Auto, Black, Transparent }
+enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FpMode { fp32, fp16 }
+
+def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
+    match fill {
+        FillColor::Transparent => 4,
+        _ => channels
+    }
+}
+def BorderType::getOutputChannels(type: BorderType, channels: uint) {
+    match type {
+        BorderType::Transparent => 4,
+        _ => channels
+    }
+}
 `;
 
 export const getChainnerScope = lazy((): Scope => {
@@ -78,6 +96,15 @@ export const getChainnerScope = lazy((): Scope => {
     for (const d of definitions) {
         builder.add(d);
     }
+
+    builder.add(
+        new BuiltinFunctionDefinition(
+            'formatPattern',
+            formatTextPattern as (..._: Type[]) => Type,
+            [StringType.instance],
+            union(StringType.instance, new StructType('null'))
+        )
+    );
 
     return builder.createScope();
 });

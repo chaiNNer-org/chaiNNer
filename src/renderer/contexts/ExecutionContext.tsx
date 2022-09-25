@@ -1,16 +1,16 @@
-import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
-import { Edge, Node, getOutgoers, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import {
     EdgeData,
-    EdgeHandle,
     InputId,
+    JsonEdgeInput,
+    JsonInput,
+    JsonNode,
     NodeData,
     OutputId,
-    UsableData,
 } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -18,8 +18,6 @@ import {
     ParsedHandle,
     assertNever,
     getInputValues,
-    isEndingNode,
-    isStartingNode,
     parseSourceHandle,
     parseTargetHandle,
 } from '../../common/util';
@@ -46,6 +44,11 @@ export enum ExecutionStatus {
     PAUSED,
 }
 
+interface ExecutionStatusContextValue {
+    status: ExecutionStatus;
+    paused: boolean;
+}
+
 interface ExecutionContextValue {
     run: () => Promise<void>;
     pause: () => Promise<void>;
@@ -55,36 +58,44 @@ interface ExecutionContextValue {
     setIsBackendKilled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+export const ExecutionStatusContext = createContext<Readonly<ExecutionStatusContextValue>>({
+    status: ExecutionStatus.READY,
+    paused: false,
+});
+
+export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
+    {} as ExecutionContextValue
+);
+
 const convertToUsableFormat = (
     nodes: readonly Node<NodeData>[],
     edges: readonly Edge<EdgeData>[],
     schemata: SchemaMap
 ) => {
-    const result: Record<string, UsableData> = {};
+    const result: JsonNode[] = [];
 
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertHandle = (handle: ParsedHandle, type: 'input' | 'output'): EdgeHandle => {
+    const convertHandle = (handle: ParsedHandle<OutputId>): JsonEdgeInput => {
         const schema = nodeSchemaMap.get(handle.nodeId);
         if (!schema) {
             throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
         }
 
-        const index = schema[`${type}s`].findIndex((inOut) => inOut.id === handle.inOutId);
+        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.inOutId);
         if (index === -1) {
             throw new Error(
-                `Invalid handle: There is no ${type} with id ${handle.inOutId} in ${schema.name}`
+                `Invalid handle: There is no output with id ${handle.inOutId} in ${schema.name}`
             );
         }
 
-        return { id: handle.nodeId, index };
+        return { type: 'edge', id: handle.nodeId, index };
     };
 
     type Handles<I extends InputId | OutputId> = Record<
         string,
-        Record<I, EdgeHandle | undefined> | undefined
+        Record<I, JsonEdgeInput | undefined> | undefined
     >;
     const inputHandles: Handles<InputId> = {};
-    const outputHandles: Handles<OutputId> = {};
     edges.forEach((element) => {
         const { sourceHandle, targetHandle } = element;
         if (!sourceHandle || !targetHandle) return;
@@ -92,15 +103,8 @@ const convertToUsableFormat = (
         const sourceH = parseSourceHandle(sourceHandle);
         const targetH = parseTargetHandle(targetHandle);
 
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH, 'output');
-        (outputHandles[sourceH.nodeId] ??= {})[sourceH.inOutId] = convertHandle(targetH, 'input');
+        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH);
     });
-    // log.info('inputHandles', inputHandles);
-    // log.info('outputHandles', outputHandles);
-
-    // Necessary to get around TS mutability warning
-    const nodesCopy = [...nodes];
-    const edgesCopy = [...edges];
 
     // Set up each node in the result
     nodes.forEach((element) => {
@@ -114,73 +118,21 @@ const convertToUsableFormat = (
             );
         }
 
-        const cacheOptions = {
-            shouldCache: !isEndingNode(schema),
-            maxCacheHits: 0,
-            clearImmediately: false,
-        };
-
-        const currentChildren = getOutgoers(element, nodesCopy, edgesCopy);
-        const isConnectedToIterator = currentChildren.some((child) => child.parentNode);
-        const isStartNode = isStartingNode(schema);
-
-        let totalOutputs = 0;
-        Object.values(inputHandles).forEach((value) => {
-            if (value) {
-                Object.values(value).forEach((v) => {
-                    if (v?.id === id) {
-                        totalOutputs += 1;
-                    }
-                });
-            }
-        });
-
-        // Case when we want to clear the cache after all nodes that needed it have used it from the cache
-        if (totalOutputs > 1 || isConnectedToIterator || isStartNode) {
-            cacheOptions.maxCacheHits =
-                isConnectedToIterator || isStartNode
-                    ? Infinity
-                    : // Max cache hits is the number of outputs - 1 since the first output is what sets it
-                      totalOutputs - 1;
-            // Case where we don't need to cache it at all
-        } else if (totalOutputs === 0) {
-            cacheOptions.shouldCache = false;
-            // Case where we can clear it as soon as it's used
-        } else if (totalOutputs === 1) {
-            cacheOptions.clearImmediately = true;
-        }
-
-        log.info(
-            `${schema.name} (id: ${schemaId}) is ${
-                cacheOptions.shouldCache ? '' : 'not'
-            } caching. Max cache hits: ${cacheOptions.maxCacheHits}`
-        );
-
         // Node
-        result[id] = {
-            schemaId,
+        result.push({
             id,
-            inputs: getInputValues(
+            schemaId,
+            inputs: getInputValues<JsonInput>(
                 schema,
-                (inputId) => inputHandles[id]?.[inputId] ?? inputData[inputId] ?? null
+                (inputId) =>
+                    inputHandles[id]?.[inputId] ?? {
+                        type: 'value',
+                        value: inputData[inputId] ?? null,
+                    }
             ),
-            child: false,
             nodeType,
-            hasSideEffects: schema.hasSideEffects,
-            cacheOptions,
-        };
-        if (nodeType === 'iterator') {
-            result[id].children = [];
-            result[id].percent = data.percentComplete || 0;
-        }
-    });
-
-    // set children
-    nodes.forEach((node) => {
-        if (node.parentNode) {
-            result[node.parentNode].children!.push(node.id);
-            result[node.id].child = true;
-        }
+            parent: element.parentNode ?? null,
+        });
     });
 
     return result;
@@ -232,10 +184,6 @@ const getExecutionErrorMessage = (
     return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
 };
 
-export const ExecutionContext = createContext<Readonly<ExecutionContextValue>>(
-    {} as ExecutionContextValue
-);
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
@@ -269,17 +217,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [isBackendKilled, setIsBackendKilled] = useState(false);
 
     useEffect(() => {
-        // TODO: Actually fix this so it un-animates correctly
-        const id = setTimeout(() => {
-            if (status !== ExecutionStatus.RUNNING) {
-                unAnimate();
-            }
-        }, 1000);
-        return () => clearTimeout(id);
-    }, [status, unAnimate]);
-
-    useEffect(() => {
-        if (status === ExecutionStatus.RUNNING) {
+        if (status !== ExecutionStatus.READY) {
             ipcRenderer.send('start-sleep-blocker');
         } else {
             ipcRenderer.send('stop-sleep-blocker');
@@ -419,7 +357,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         previousStatus.current = status;
     }, [status, nodeChanges, edgeChanges]);
 
-    const run = async () => {
+    const runNodes = async () => {
         const allNodes = getNodes();
         const allEdges = getEdges();
 
@@ -486,43 +424,73 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 onnxGPU,
                 onnxExecutionProvider,
             });
-            if (response.exception) {
+            if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue
-                unAnimate();
-                setStatus(ExecutionStatus.READY);
+            }
+            if (response.type === 'already-running') {
+                sendAlert(
+                    AlertType.ERROR,
+                    null,
+                    `Cannot start because a previous executor is still running.`
+                );
             }
         } catch (err: unknown) {
             sendAlert(AlertType.ERROR, null, `An unexpected error occurred: ${String(err)}`);
+        } finally {
             unAnimate();
             setStatus(ExecutionStatus.READY);
+        }
+    };
+
+    const resume = async () => {
+        try {
+            const response = await backend.resume();
+            if (response.type === 'error') {
+                sendAlert(AlertType.ERROR, null, response.exception);
+                return;
+            }
+            if (response.type === 'no-executor') {
+                return;
+            }
+            setStatus(ExecutionStatus.RUNNING);
+        } catch (err) {
+            sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
+        }
+    };
+
+    const run = async () => {
+        if (status === ExecutionStatus.PAUSED) {
+            await resume();
+        } else {
+            await runNodes();
         }
     };
 
     const pause = async () => {
         try {
             const response = await backend.pause();
-            if (response.exception) {
+            if (response.type === 'error') {
                 sendAlert(AlertType.ERROR, null, response.exception);
+                return;
             }
+            if (response.type === 'no-executor') {
+                return;
+            }
+            setStatus(ExecutionStatus.PAUSED);
         } catch (err) {
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        setStatus(ExecutionStatus.PAUSED);
-        unAnimate();
     };
 
     const kill = async () => {
         try {
             const response = await backend.kill();
-            unAnimate();
-            if (response.exception) {
+            if (response.type === 'error') {
                 sendAlert(AlertType.ERROR, null, response.exception);
             }
         } catch (err) {
             sendAlert(AlertType.ERROR, null, 'An unexpected error occurred.');
         }
-        unAnimate();
-        setStatus(ExecutionStatus.READY);
     };
 
     useHotkeys(
@@ -579,6 +547,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         [kill]
     );
 
+    const statusValue = useMemoObject<ExecutionStatusContextValue>({
+        status,
+        paused: status === ExecutionStatus.PAUSED,
+    });
+
     const value = useMemoObject<ExecutionContextValue>({
         run,
         pause,
@@ -588,5 +561,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         setIsBackendKilled,
     });
 
-    return <ExecutionContext.Provider value={value}>{children}</ExecutionContext.Provider>;
+    return (
+        <ExecutionContext.Provider value={value}>
+            <ExecutionStatusContext.Provider value={statusValue}>
+                {children}
+            </ExecutionStatusContext.Provider>
+        </ExecutionContext.Provider>
+    );
 });

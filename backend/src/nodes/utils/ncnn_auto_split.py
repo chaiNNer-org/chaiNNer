@@ -32,7 +32,7 @@ def ncnn_auto_split_process(
     overlap: int = 16,
     max_depth: Union[int, None] = None,
     current_depth: int = 1,
-    input_name: str = "data",
+    input_name: str = "input",
     output_name: str = "output",
     blob_vkallocator=None,
     staging_vkallocator=None,
@@ -87,9 +87,6 @@ def ncnn_auto_split_process(
             ex.input(input_name, mat_in)
             _, mat_out = ex.extract(output_name)
             result = np.array(mat_out).transpose(1, 2, 0).astype(np.float32)
-            if blob_vkallocator is not None and staging_vkallocator is not None:
-                blob_vkallocator.clear()
-                staging_vkallocator.clear()
             del ex, mat_in, mat_out
             gc.collect()
             # # Clear VRAM
@@ -101,9 +98,6 @@ def ncnn_auto_split_process(
                 logger.info(
                     f"NCNN out of VRAM, clearing VRAM and splitting. Current depth: {current_depth}"
                 )
-                if blob_vkallocator is not None and staging_vkallocator is not None:
-                    blob_vkallocator.clear()
-                    staging_vkallocator.clear()
                 ex = None
                 del ex
                 gc.collect()
@@ -135,6 +129,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=max_depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -144,6 +140,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -153,6 +151,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )
@@ -162,6 +162,8 @@ def ncnn_auto_split_process(
         overlap=overlap,
         max_depth=depth,
         current_depth=current_depth + 1,
+        input_name=input_name,
+        output_name=output_name,
         blob_vkallocator=blob_vkallocator,
         staging_vkallocator=staging_vkallocator,
     )

@@ -4,7 +4,7 @@ Nodes that provide various generic utility
 
 from __future__ import annotations
 import math
-from typing import Union
+from typing import Any, Union
 
 from nodes.utils import clipboard
 
@@ -65,10 +65,10 @@ class MathNode(NodeBase):
                 "Result",
                 output_type="""
                 match Input1.operation {
-                    "add" => add(Input0, Input2),
-                    "sub" => subtract(Input0, Input2),
-                    "mul" => multiply(Input0, Input2),
-                    "div" => divide(Input0, Input2),
+                    "add" => Input0 + Input2,
+                    "sub" => Input0 - Input2,
+                    "mul" => Input0 * Input2,
+                    "div" => Input0 / Input2,
                     "pow" => pow(Input0, Input2),
                     "max" => max(Input0, Input2),
                     "min" => min(Input0, Input2),
@@ -169,7 +169,30 @@ class TextPatternNode(NodeBase):
             TextInput("{3}").make_optional(),
             TextInput("{4}").make_optional(),
         ]
-        self.outputs = [TextOutput("Output Text")]
+        self.outputs = [
+            TextOutput(
+                "Output Text",
+                output_type="""
+                def convert(value: string | number | null) {
+                    match value {
+                        number as n => toString(n),
+                        _ as v => v
+                    }
+                }
+
+                formatPattern(
+                    toString(Input0),
+                    convert(Input1),
+                    convert(Input2),
+                    convert(Input3),
+                    convert(Input4)
+                )
+                """,
+            ).with_never_reason(
+                "The pattern is either syntactically invalid or contains replacements that do not have a value."
+                '\n\nHint: Use "{{" to escape a single "{" inside the pattern.'
+            )
+        ]
 
         self.category = UtilityCategory
         self.name = "Text Pattern"
@@ -216,3 +239,20 @@ class TextClipboardNode(NodeBase):
             clipboard.copy_text(value)
         else:
             raise RuntimeError(f"Unsupported type {type(value)}")
+
+
+@NodeFactory.register("chainner:utility:pass_through")
+class PassThroughNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Outputs the input value as is."
+        self.inputs = [AnyInput(label="Value")]
+        self.outputs = [BaseOutput(output_type="Input0", label="Value")]
+
+        self.category = UtilityCategory
+        self.name = "Pass Through"
+        self.icon = "MdDoubleArrow"
+        self.sub = "Value"
+
+    def run(self, value: Any) -> Any:
+        return value

@@ -139,7 +139,10 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                     h="2rem"
                     verticalAlign="middle"
                 >
-                    <TypeTags type={type} />
+                    <TypeTags
+                        isOptional={false}
+                        type={type}
+                    />
                 </Center>
             )}
             <Text

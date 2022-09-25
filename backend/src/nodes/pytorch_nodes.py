@@ -21,6 +21,7 @@ from .properties.outputs import *
 from .utils.pytorch_auto_split import auto_split_process
 from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
 from .utils.exec_options import get_execution_options, ExecutionOptions
+from .utils.onnx_model import OnnxModel
 from .utils.torch_types import PyTorchModel
 from .utils.pytorch_model_loading import load_state_dict
 
@@ -84,6 +85,11 @@ class LoadModelNode(NodeBase):
                 v.requires_grad = False
             model.eval()
             model = model.to(torch.device(exec_options.device))
+            should_use_fp16 = exec_options.fp16 and model.supports_fp16
+            if should_use_fp16:
+                model.half()
+            else:
+                model.float()
         except ValueError as e:
             raise e
         except Exception:
@@ -97,20 +103,25 @@ class LoadModelNode(NodeBase):
 
 
 @NodeFactory.register("chainner:pytorch:upscale_image")
-@torch.inference_mode()
 class ImageUpscaleNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Upscales an image using a PyTorch Super-Resolution model. \
             Select a manual number of tiles if you are having issues with the automatic mode. "
-        self.inputs = [ModelInput(), ImageInput(), TileModeDropdown()]
+        self.inputs = [
+            ModelInput(
+                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
+            ),
+            ImageInput(),
+            TileModeDropdown(),
+        ]
         self.outputs = [
             ImageOutput(
                 "Upscaled Image",
                 image_type="""
                 Image {
-                    width: multiply(Input0.scale, Input1.width),
-                    height: multiply(Input0.scale, Input1.height),
+                    width: Input0.scale * Input1.width,
+                    height: Input0.scale * Input1.height,
                     channels: Input1.channels
                 }
                 """,
@@ -163,7 +174,7 @@ class ImageUpscaleNode(NodeBase):
                     f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total. Estimated Split depth: {split_estimation}"
                 )
                 # Attempt to avoid using too much vram at once
-                if float(required_mem) > float(free_mem) * 0.85:
+                if float(required_mem) > float(free_mem) * 0.6:
                     split_estimation += 1
 
             t_out, depth = auto_split_process(
@@ -233,7 +244,7 @@ class InterpolateNode(NodeBase):
             ModelOutput(model_type="Input0 & Input1").with_never_reason(
                 "Models must be of the same type and have the same parameters to be interpolated."
             ),
-            NumberOutput("Amount A", "subtract(100, Input2)"),
+            NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
 
@@ -436,14 +447,14 @@ class ConvertTorchToONNXNode(NodeBase):
         except:
             pass
 
-    def run(self, model: torch.nn.Module) -> bytes:
+    def run(self, model: torch.nn.Module) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
         model = model.to(torch.device(exec_options.device))
         # https://github.com/onnx/onnx/issues/654
         dynamic_axes = {
-            "data": {0: "batch_size", 2: "width", 3: "height"},
+            "input": {0: "batch_size", 2: "width", 3: "height"},
             "output": {0: "batch_size", 2: "width", 3: "height"},
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
@@ -456,14 +467,15 @@ class ConvertTorchToONNXNode(NodeBase):
                 f,
                 opset_version=14,
                 verbose=False,
-                input_names=["data"],
+                input_names=["input"],
                 output_names=["output"],
                 dynamic_axes=dynamic_axes,
+                do_constant_folding=True,
             )
             f.seek(0)
             onnx_model_bytes = f.read()
 
-        return onnx_model_bytes
+        return OnnxModel(onnx_model_bytes)
 
 
 @NodeFactory.register("chainner:pytorch:model_dim")
@@ -487,12 +499,18 @@ class GetModelDimensions(NodeBase):
 class ConvertTorchToNCNNNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to NCNN."""
+        self.description = """Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format."""
         self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
-        if ConvertOnnxToNcnnNode is not None:
-            self.outputs = ConvertOnnxToNcnnNode().get_outputs()
-        else:
-            self.outputs = []
+        self.outputs = [
+            NcnnModelOutput("NCNN Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                        FpMode::fp32 => "fp32",
+                        FpMode::fp16 => "fp16",
+                }""",
+            ),
+        ]
 
         self.category = PyTorchCategory
         self.name = "Convert To NCNN"
@@ -501,7 +519,11 @@ class ConvertTorchToNCNNNode(NodeBase):
 
     def run(self, model: torch.nn.Module, is_fp16: int) -> Any:
         if ConvertOnnxToNcnnNode is None:
-            raise Exception("ONNX is not installed")
+            raise Exception(
+                "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
+                and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
+                manager to use this node."
+            )
         onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 

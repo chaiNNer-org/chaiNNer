@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { ChildProcessWithoutNullStreams, exec as _exec, spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
 import log from 'electron-log';
 import { readdirSync, rmSync } from 'fs';
@@ -9,24 +9,21 @@ import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
 import semver from 'semver';
-import util from 'util';
 import { PythonInfo, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
-import { getPythonInfo, setPythonInfo } from '../common/python';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
-import { checkFileExists, lazy } from '../common/util';
+import { lazy } from '../common/util';
 import { getArguments } from './arguments';
 import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
-import { setMainMenu } from './menu';
+import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
-import { downloadPython, extractPython } from './setupIntegratedPython';
+import { getIntegratedPython } from './python/integratedPython';
+import { getSystemPython } from './python/systemPython';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
-
-const exec = util.promisify(_exec);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // eslint-disable-next-line global-require
@@ -65,15 +62,14 @@ log.catchErrors({
             .then((result) => {
                 if (result.response === 1) {
                     submitIssue!('https://github.com/joeyballentine/chaiNNer/issues/new', {
-                        title: `Error report for ${String(versions?.app)}`,
-                        body: `Error:\n\`\`\`${String(error.stack)}\n\`\`\`\nOS: ${String(
-                            versions?.os
-                        )}`,
+                        title: `Error report: ${error.message}`,
+                        body: [
+                            `\`\`\`\n${String(error)}\n\`\`\``,
+                            `ChaiNNer: ${String(versions?.app)}`,
+                            `OS: ${String(versions?.os)}`,
+                        ].join('\n'),
                     });
-                    return;
-                }
-
-                if (result.response === 2) {
+                } else if (result.response === 2) {
                     app.quit();
                 }
             });
@@ -89,10 +85,18 @@ if (app.isPackaged && checkUpdateOnStartup) {
         .then(async (latest) => {
             if (!latest) return;
 
+            const splitBody = latest.body.split('\n');
+            const changelogItems = splitBody.filter(
+                (line) => line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')
+            );
+
             const buttonResult = await dialog.showMessageBox(BrowserWindow.getFocusedWindow()!, {
                 type: 'info',
                 title: 'An update is available for chaiNNer!',
                 message: `Version ${latest.version} is available for download from GitHub.`,
+                detail: `Currently installed: ${app.getVersion()}\n\nRelease notes:\n\n${changelogItems.join(
+                    '\n'
+                )}`,
                 buttons: [`Get version ${latest.version}`, 'Ok'],
                 defaultId: 1,
             });
@@ -107,11 +111,7 @@ if (app.isPackaged && checkUpdateOnStartup) {
 const ownsBackend = !getArguments().noBackend;
 ipcMain.handle('owns-backend', () => ownsBackend);
 
-let splash: BrowserWindowWithSafeIpc;
-let mainWindow: BrowserWindowWithSafeIpc;
-let lastOpenRecent: string[];
-
-const registerEventHandlers = () => {
+const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
     ipcMain.handle('dir-select', (event, dirPath) =>
         dialog.showOpenDialog(mainWindow, {
             defaultPath: dirPath,
@@ -180,14 +180,6 @@ const registerEventHandlers = () => {
         }
     });
 
-    ipcMain.on('disable-menu', () => {
-        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: false });
-    });
-
-    ipcMain.on('enable-menu', () => {
-        setMainMenu({ mainWindow, openRecentRev: lastOpenRecent, enabled: true });
-    });
-
     ipcMain.handle('toggle-discord-rpc', async (event, enabled) => {
         await toggleDiscordRPC(enabled);
     });
@@ -222,17 +214,6 @@ const getValidPort = async (splashWindow: BrowserWindowWithSafeIpc) => {
     return port;
 };
 
-const getPythonVersion = async (pythonBin: string) => {
-    const { stdout } = await exec(`"${pythonBin}" --version`);
-    log.info(`Python version (raw): ${stdout}`);
-
-    const { version } = semver.coerce(stdout)!;
-    log.info(`Python version (semver): ${version}`);
-    return version;
-};
-
-const checkPythonVersion = (version: string) => semver.gte(version, '3.7.0');
-
 const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     log.info('Attempting to check Python env...');
 
@@ -241,22 +222,10 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
 
     if (useSystemPython) {
-        // User is using system python
-        let validPythonVersion;
-        let pythonBin;
-
-        for (const py of ['python', 'python3']) {
-            // eslint-disable-next-line no-await-in-loop
-            const version = await getPythonVersion(py).catch(() => null);
-            if (version && checkPythonVersion(version)) {
-                validPythonVersion = version;
-                pythonBin = py;
-                break;
-            }
-        }
-
-        if (!pythonBin || !validPythonVersion) {
-            log.warn('Python binary not found or invalid');
+        try {
+            pythonInfo = await getSystemPython();
+        } catch (error) {
+            log.error(error);
 
             splashWindow.hide();
             const messageBoxOptions = {
@@ -272,73 +241,47 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
                 await shell.openExternal('https://www.python.org/downloads/');
             }
             app.exit(1);
-            return;
+            throw new Error();
         }
-
-        pythonInfo = { python: pythonBin, version: validPythonVersion };
     } else {
         // User is using bundled python
         const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
-        const platform = os.platform();
-        let pythonPath;
-        switch (platform) {
-            case 'win32':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/python.exe')
-                );
-                break;
-            case 'linux':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/bin/python3.9')
-                );
-                break;
-            case 'darwin':
-                pythonPath = path.resolve(
-                    path.join(integratedPythonFolderPath, '/python/bin/python3.9')
-                );
-                break;
-            default:
-                throw new Error(`Platform ${platform} not supported`);
+        try {
+            let lastStage = '';
+            pythonInfo = await getIntegratedPython(
+                integratedPythonFolderPath,
+                (percentage, stage) => {
+                    if (stage !== lastStage) {
+                        lastStage = stage;
+                        splashWindow.webContents.send(`${stage}ing-python`);
+                    }
+                    splashWindow.webContents.send('progress', percentage);
+                }
+            );
+        } catch (error) {
+            log.error(error);
+
+            splashWindow.hide();
+            const messageBoxOptions = {
+                type: 'error',
+                title: 'Unable to install integrated Python',
+                buttons: ['Exit'],
+                message:
+                    `Chainner was unable to install its integrated Python environment.` +
+                    ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+            };
+            await dialog.showMessageBox(messageBoxOptions);
+            app.exit(1);
+            throw new Error();
         }
-
-        const pythonBinExists = await checkFileExists(pythonPath);
-
-        if (!pythonBinExists) {
-            log.info('Python not downloaded');
-            try {
-                const onProgress = (percentage: number | string) => {
-                    splash.webContents.send('progress', Number(percentage));
-                };
-                splash.webContents.send('downloading-python');
-                onProgress(0);
-                log.info('Downloading standalone python...');
-                await downloadPython(integratedPythonFolderPath, onProgress);
-                log.info('Done downloading standalone python.');
-                splash.webContents.send('extracting-python');
-                onProgress(0);
-                log.info('Extracting standalone python...');
-                await extractPython(integratedPythonFolderPath, pythonPath, onProgress);
-                log.info('Done extracting standalone python.');
-            } catch (error) {
-                log.error(error);
-            }
-        }
-
-        let pythonVersion = await getPythonVersion(pythonPath).catch(() => null);
-        if (!pythonVersion) {
-            // TODO: Find a solution for this hack
-            pythonVersion = 'unknown';
-        }
-
-        pythonInfo = { python: pythonPath, version: pythonVersion };
     }
 
     log.info(`Final Python binary: ${pythonInfo.python}`);
     log.info(pythonInfo);
 
-    setPythonInfo(pythonInfo);
     ipcMain.handle('get-python', () => pythonInfo);
+    return pythonInfo;
 };
 
 const checkSemverGt = (v1: string, v2: string) => {
@@ -350,25 +293,26 @@ const checkSemverGt = (v1: string, v2: string) => {
     }
 };
 
-const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia: boolean) => {
+const checkPythonDeps = async (
+    splashWindow: BrowserWindowWithSafeIpc,
+    pythonInfo: PythonInfo,
+    hasNvidia: boolean
+) => {
     log.info('Attempting to check Python deps...');
     try {
-        const pipList = await runPipList();
+        const pipList = await runPipList(pythonInfo);
         const installedPackages = new Set(Object.keys(pipList));
 
-        const requiredIndividualPackages = requiredDependencies.flatMap((dep) => dep.packages);
-
-        const optionalInvividualPackages = getOptionalDependencies(hasNvidia).flatMap(
-            (dep) => dep.packages
-        );
+        const requiredPackages = requiredDependencies.flatMap((dep) => dep.packages);
+        const optionalPackages = getOptionalDependencies(hasNvidia).flatMap((dep) => dep.packages);
 
         // CASE 1: A package isn't installed
-        const missingRequiredPackages = requiredIndividualPackages.filter(
+        const missingRequiredPackages = requiredPackages.filter(
             (packageInfo) => !installedPackages.has(packageInfo.packageName)
         );
 
         // CASE 2: A required package is installed but not the latest version
-        const outOfDateRequiredPackages = requiredIndividualPackages.filter((packageInfo) => {
+        const outOfDateRequiredPackages = requiredPackages.filter((packageInfo) => {
             const installedVersion = pipList[packageInfo.packageName];
             if (!installedVersion) {
                 return false;
@@ -377,7 +321,7 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
         });
 
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
-        const outOfDateOptionalPackages = optionalInvividualPackages.filter((packageInfo) => {
+        const outOfDateOptionalPackages = optionalPackages.filter((packageInfo) => {
             const installedVersion = pipList[packageInfo.packageName];
             if (!installedVersion) {
                 return false;
@@ -385,21 +329,21 @@ const checkPythonDeps = async (splashWindow: BrowserWindowWithSafeIpc, hasNvidia
             return packageInfo.autoUpdate && checkSemverGt(packageInfo.version, installedVersion);
         });
 
-        const isInstallingRequired = missingRequiredPackages.length > 0;
-        const isUpdating =
-            outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
-
         const allPackagesThatNeedToBeInstalled = [
             ...missingRequiredPackages,
             ...outOfDateRequiredPackages,
             ...outOfDateOptionalPackages,
         ];
 
-        if (isInstallingRequired || isUpdating) {
+        if (allPackagesThatNeedToBeInstalled.length > 0) {
+            const isInstallingRequired = missingRequiredPackages.length > 0;
+            const isUpdating =
+                outOfDateRequiredPackages.length > 0 || outOfDateOptionalPackages.length > 0;
+
             splashWindow.webContents.send('installing-deps', isUpdating && !isInstallingRequired);
             // Try to update/install deps
             log.info('Installing/Updating dependencies...');
-            await runPipInstall([
+            await runPipInstall(pythonInfo, [
                 {
                     name: 'All Packages That Need To Be Installed',
                     packages: allPackagesThatNeedToBeInstalled,
@@ -444,17 +388,15 @@ const checkNvidiaSmi = async () => {
             return true;
         } catch (error) {
             log.error(error);
-            registerEmptyGpuEvents();
         }
-    } else {
-        registerEmptyGpuEvents();
     }
+    registerEmptyGpuEvents();
     return false;
 };
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const spawnBackend = async (port: number) => {
+const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     if (getArguments().noBackend) {
         return;
     }
@@ -464,7 +406,7 @@ const spawnBackend = async (port: number) => {
         const backendPath = app.isPackaged
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
-        const backend = spawn((await getPythonInfo()).python, [backendPath, String(port)], {
+        const backend = spawn(pythonInfo.python, [backendPath, String(port)], {
             env: sanitizedEnv,
         });
         backend.stdout.on('data', (data) => {
@@ -537,7 +479,7 @@ const spawnBackend = async (port: number) => {
                     log.error('Error killing backend.');
                 }
                 ipcMain.removeHandler('kill-backend');
-                spawnBackend(port);
+                spawnBackend(port, pythonInfo);
             } catch (error) {
                 log.error('Error restarting backend.', error);
             }
@@ -563,9 +505,9 @@ const spawnBackend = async (port: number) => {
     }
 };
 
-const doSplashScreenChecks = async () =>
+const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
     new Promise<void>((resolve) => {
-        splash = new BrowserWindow({
+        const splash = new BrowserWindow({
             width: 400,
             height: 400,
             frame: false,
@@ -624,18 +566,18 @@ const doSplashScreenChecks = async () =>
             await sleep(250);
 
             splash.webContents.send('checking-python');
-            await checkPythonEnv(splash);
+            const pythonInfo = await checkPythonEnv(splash);
             await sleep(250);
 
             splash.webContents.send('checking-deps');
             const hasNvidia = await nvidiaSmiPromise;
-            await checkPythonDeps(splash, hasNvidia);
+            await checkPythonDeps(splash, pythonInfo, hasNvidia);
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
-            await spawnBackend(port);
+            spawnBackend(port, pythonInfo);
 
-            registerEventHandlers();
+            registerEventHandlers(mainWindow);
 
             splash.webContents.send('splash-finish');
             await sleep(250);
@@ -661,7 +603,7 @@ const doSplashScreenChecks = async () =>
 
 const createWindow = lazy(async () => {
     // Create the browser window.
-    mainWindow = new BrowserWindow({
+    const mainWindow = new BrowserWindow({
         width: lastWindowSize?.width ?? 1280,
         height: lastWindowSize?.height ?? 720,
         backgroundColor: '#1A202C',
@@ -679,13 +621,20 @@ const createWindow = lazy(async () => {
         show: false,
     }) as BrowserWindowWithSafeIpc;
 
-    setMainMenu({ mainWindow, enabled: true });
+    const menuData: MenuData = { openRecentRev: [] };
+    setMainMenu({ mainWindow, menuData, enabled: true });
     ipcMain.on('update-open-recent-menu', (_, openRecent) => {
-        lastOpenRecent = openRecent;
-        setMainMenu({ mainWindow, openRecentRev: openRecent, enabled: true });
+        menuData.openRecentRev = openRecent;
+        setMainMenu({ mainWindow, menuData, enabled: true });
+    });
+    ipcMain.on('disable-menu', () => {
+        setMainMenu({ mainWindow, menuData, enabled: false });
+    });
+    ipcMain.on('enable-menu', () => {
+        setMainMenu({ mainWindow, menuData, enabled: true });
     });
 
-    await doSplashScreenChecks();
+    await doSplashScreenChecks(mainWindow);
 
     // and load the index.html of the app.
     if (!mainWindow.isDestroyed()) {

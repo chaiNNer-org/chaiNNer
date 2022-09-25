@@ -1,4 +1,6 @@
+appdirs
 black
+facexlib
 ncnn_vulkan
 numpy
 onnx
@@ -15,3 +17,4 @@ pywin32 ; sys_platform=="win32"
 sanic
 sanic_cors
 torch
+torchvision

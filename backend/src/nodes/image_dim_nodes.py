@@ -40,8 +40,8 @@ class ImResizeByFactorNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="max(1, int & round(multiply(Input0.width, divide(Input1, 100))))",
-                    height="max(1, int & round(multiply(Input0.height, divide(Input1, 100))))",
+                    width="max(1, int & round(Input0.width * Input1 / 100))",
+                    height="max(1, int & round(Input0.height * Input1 / 100))",
                     channels_as="Input0",
                 )
             )
@@ -89,14 +89,14 @@ class ImResizeToSide(NodeBase):
             ImageOutput(
                 image_type="""
                 let widthWidth = Input1;
-                let widthHeight = max(int & round(multiply(divide(Input1, Input0.height), Input0.width)), 1);
-                let widthShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.width)), 1);
-                let widthLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.width)), 1);
+                let widthHeight = max(int & round(Input1 / Input0.height * Input0.width), 1);
+                let widthShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.width), 1);
+                let widthLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.width), 1);
 
-                let heightWidth = max(int & round(multiply(divide(Input1, Input0.width), Input0.height)), 1);
+                let heightWidth = max(int & round(Input1 / Input0.width * Input0.height), 1);
                 let heightHeight = Input1;
-                let heightShorter = max(int & round(multiply(divide(Input1, min(Input0.height, Input0.width)), Input0.height)), 1);
-                let heightLonger = max(int & round(multiply(divide(Input1, max(Input0.height, Input0.width)), Input0.height)), 1);
+                let heightShorter = max(int & round(Input1 / min(Input0.height, Input0.width) * Input0.height), 1);
+                let heightLonger = max(int & round(Input1 / max(Input0.height, Input0.width) * Input0.height), 1);
 
                 let largerTargetWidth = max(Input0.width, Input1);
                 let largerTargetHeight = max(Input0.height, Input1);
@@ -203,12 +203,19 @@ class ImResizeToSide(NodeBase):
                     channels: Input0.channels
                 }
                 """
-                )
+            )
         ]
         self.icon = "MdOutlinePhotoSizeSelectLarge"
         self.sub = "Resize"
 
-    def run(self, img: np.ndarray, target: int, side: str, interpolation: int, condition: str) -> np.ndarray:
+    def run(
+        self,
+        img: np.ndarray,
+        target: int,
+        side: str,
+        interpolation: int,
+        condition: str,
+    ) -> np.ndarray:
         """Takes an image and resizes it"""
 
         logger.info(f"Resizing image to {side} via {interpolation}")
@@ -230,7 +237,7 @@ class ImResizeToSide(NodeBase):
             elif side == "longer side":
                 w_new = max(round((target / max(h, w)) * w), 1)
                 h_new = max(round((target / max(h, w)) * h), 1)
-        
+
             else:
                 raise RuntimeError(f"Unknown side selection {side}")
 
@@ -240,7 +247,6 @@ class ImResizeToSide(NodeBase):
             out_dims = resize_to_side_conditional(w, h, target, side, condition)
 
         return resize(img, out_dims, interpolation)
-
 
 
 @NodeFactory.register("chainner:image:resize_resolution")
@@ -323,14 +329,18 @@ class CropNode(NodeBase):
             ImageInput(),
             NumberInput("Top Offset", unit="px"),
             NumberInput("Left Offset", unit="px"),
-            NumberInput("Height", unit="px"),
-            NumberInput("Width", unit="px"),
+            NumberInput("Height", unit="px", minimum=1, default=1),
+            NumberInput("Width", unit="px", minimum=1, default=1),
         ]
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="Input4", height="Input3", channels_as="Input0"
+                    width="min(Input4, Input0.width - Input2) & int(1..)",
+                    height="min(Input3, Input0.height - Input1) & int(1..)",
+                    channels_as="Input0",
                 )
+            ).with_never_reason(
+                "The cropped area would result in an image with no width or no height."
             )
         ]
         self.category = ImageDimensionCategory
@@ -341,12 +351,10 @@ class CropNode(NodeBase):
     def run(
         self, img: np.ndarray, top: int, left: int, height: int, width: int
     ) -> np.ndarray:
-        """Crop an image"""
-
         h, w, _ = get_h_w_c(img)
 
-        assert top < h, "Cropped area would result in image with no height"
-        assert left < w, "Cropped area would result in image with no width"
+        assert top < h, "Cropped area would result in an image with no height"
+        assert left < w, "Cropped area would result in an image with no width"
 
         result = img[top : top + height, left : left + width]
 
@@ -367,12 +375,12 @@ class BorderCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input1, Input1)) & int(1..)",
-                    height="subtract(Input0.height, add(Input1, Input1)) & int(1..)",
+                    width="(Input0.width - Input1 * 2) & int(1..)",
+                    height="(Input0.height - Input1 * 2) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
-                "The cropped area would result in image with no width or no height."
+                "The cropped area would result in an image with no width or no height."
             )
         ]
         self.category = ImageDimensionCategory
@@ -381,12 +389,10 @@ class BorderCropNode(NodeBase):
         self.sub = "Crop"
 
     def run(self, img: np.ndarray, amount: int) -> np.ndarray:
-        """Crop an image"""
-
         h, w, _ = get_h_w_c(img)
 
-        assert 2 * amount < h, "Cropped area would result in image with no height"
-        assert 2 * amount < w, "Cropped area would result in image with no width"
+        assert 2 * amount < h, "Cropped area would result in an image with no height"
+        assert 2 * amount < w, "Cropped area would result in an image with no width"
 
         result = img[amount : h - amount, amount : w - amount]
 
@@ -408,12 +414,12 @@ class EdgeCropNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="subtract(Input0.width, add(Input2, Input3)) & int(1..)",
-                    height="subtract(Input0.height, add(Input1, Input4)) & int(1..)",
+                    width="(Input0.width - (Input2 + Input3)) & int(1..)",
+                    height="(Input0.height - (Input1 + Input4)) & int(1..)",
                     channels_as="Input0",
                 )
             ).with_never_reason(
-                "The cropped area would result in image with no width or no height."
+                "The cropped area would result in an image with no width or no height."
             )
         ]
         self.category = ImageDimensionCategory
@@ -424,12 +430,10 @@ class EdgeCropNode(NodeBase):
     def run(
         self, img: np.ndarray, top: int, left: int, right: int, bottom: int
     ) -> np.ndarray:
-        """Crop an image"""
-
         h, w, _ = get_h_w_c(img)
 
-        assert top + bottom < h, "Cropped area would result in image with no height"
-        assert left + right < w, "Cropped area would result in image with no width"
+        assert top + bottom < h, "Cropped area would result in an image with no height"
+        assert left + right < w, "Cropped area would result in an image with no width"
 
         result = img[top : h - bottom, left : w - right]
 
@@ -454,15 +458,22 @@ class ContentCropNode(NodeBase):
                 default=0,
             ),
         ]
-        self.outputs = [ImageOutput(image_type=expression.Image(channels_as="Input0"))]
+        self.outputs = [
+            ImageOutput(
+                image_type="""
+                match Input0.channels {
+                    ..3 => Input0,
+                    _ => Image { channels: Input0.channels }
+                }
+                """
+            )
+        ]
         self.category = ImageDimensionCategory
         self.name = "Crop (Content)"
         self.icon = "MdCrop"
         self.sub = "Crop"
 
     def run(self, img: np.ndarray, thresh_val: float) -> np.ndarray:
-        """Crop an image"""
-
         c = get_h_w_c(img)[2]
         if c < 4:
             return img

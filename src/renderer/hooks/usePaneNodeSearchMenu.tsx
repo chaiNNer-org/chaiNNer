@@ -11,8 +11,7 @@ import {
     Spacer,
     Text,
 } from '@chakra-ui/react';
-import log from 'electron-log';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
 import { useContext } from 'use-context-selector';
 import {
@@ -45,14 +44,20 @@ import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
+type ConnectionTarget =
+    | { type: 'source'; input: InputId }
+    | { type: 'target'; output: OutputId }
+    | { type: 'none' };
+
 interface MenuProps {
-    onSelect: (schema: NodeSchema) => void;
+    onSelect: (schema: NodeSchema, target: ConnectionTarget) => void;
+    targets: ReadonlyMap<NodeSchema, ConnectionTarget>;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: Category[];
 }
 
-const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => {
+const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const byCategories = useMemo(
@@ -148,7 +153,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                     py={0.5}
                                     onClick={() => {
                                         setSearchQuery('');
-                                        onSelect(favorite);
+                                        onSelect(favorite, targets.get(favorite)!);
                                     }}
                                 >
                                     <IconFactory
@@ -204,7 +209,7 @@ const Menu = memo(({ onSelect, schemata, favorites, categories }: MenuProps) => 
                                             py={0.5}
                                             onClick={() => {
                                                 setSearchQuery('');
-                                                onSelect(schema);
+                                                onSelect(schema, targets.get(schema)!);
                                             }}
                                         >
                                             <IconFactory
@@ -256,58 +261,67 @@ const getFirstPossibleInput = (fn: FunctionDefinition, type: Type): InputId | un
 const getFirstPossibleOutput = (fn: FunctionDefinition, type: Type): OutputId | undefined =>
     fn.schema.outputs.find((o) => o.hasHandle && fn.canAssignOutput(o.id, type))?.id;
 
-const canConnectWith = (
-    connectingFrom: OnConnectStartParams,
+const getConnectionTarget = (
+    connectingFrom: OnConnectStartParams | null,
     schema: NodeSchema,
     typeState: TypeState,
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
     getNode: (id: string) => Node<NodeData> | undefined
-): boolean => {
-    if (!connectingFrom.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
-        return true;
+): ConnectionTarget | undefined => {
+    if (!connectingFrom?.nodeId || !connectingFrom.handleId || !connectingFrom.handleType) {
+        return { type: 'none' };
     }
     switch (connectingFrom.handleType) {
         case 'source': {
             const { inOutId } = parseSourceHandle(connectingFrom.handleId);
             const sourceType = typeState.functions.get(connectingFrom.nodeId)?.outputs.get(inOutId);
             if (!sourceType) {
-                return false;
+                return undefined;
             }
 
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (!targetFn) {
-                return false;
+                return undefined;
             }
 
-            return getFirstPossibleInput(targetFn, sourceType) !== undefined;
+            const input = getFirstPossibleInput(targetFn, sourceType);
+            if (input === undefined) {
+                return undefined;
+            }
+
+            return { type: 'source', input };
         }
         case 'target': {
             const sourceNode = getNode(connectingFrom.nodeId);
             if (!sourceNode) {
-                return false;
+                return undefined;
             }
             const sourceFn = functionDefinitions.get(sourceNode.data.schemaId);
             if (!sourceFn) {
-                return false;
+                return undefined;
             }
 
             const { inOutId } = parseTargetHandle(connectingFrom.handleId);
             const sourceType = sourceFn.inputDefaults.get(inOutId);
             if (!sourceType) {
-                return false;
+                return undefined;
             }
 
             const targetFn = functionDefinitions.get(schema.schemaId);
             if (!targetFn) {
-                return false;
+                return undefined;
             }
 
-            return getFirstPossibleOutput(targetFn, sourceType) !== undefined;
+            const output = getFirstPossibleOutput(targetFn, sourceType);
+            if (output === undefined) {
+                return undefined;
+            }
+
+            return { type: 'target', output };
         }
         default:
-            assertNever(connectingFrom.handleType);
+            return assertNever(connectingFrom.handleType);
     }
-    return true;
 };
 
 interface UsePaneNodeSearchMenuValue {
@@ -333,28 +347,33 @@ export const usePaneNodeSearchMenu = (
 
     const [connectingFrom, setConnectingFrom] = useState<OnConnectStartParams | null>(null);
     const [, setGlobalConnectingFrom] = useConnectingFrom;
-    const [connectingFromType, setConnectingFromType] = useState<Type | null>(null);
     const [stoppedOnIterator, setStoppedOnIterator] = useState<string | null>(null);
 
     const { getNode, project } = useReactFlow();
 
     const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
-    const matchingSchemata = useMemo(
-        () =>
-            schemata.schemata.filter((schema) => {
-                if (schema.deprecated) return false;
-                return (
-                    !connectingFrom ||
-                    !connectingFromType ||
-                    canConnectWith(connectingFrom, schema, typeState, functionDefinitions, getNode)
+    const matchingTargets = useMemo(() => {
+        return new Map<NodeSchema, ConnectionTarget>(
+            schemata.schemata.flatMap((schema) => {
+                if (schema.deprecated) return [];
+                const target = getConnectionTarget(
+                    connectingFrom,
+                    schema,
+                    typeState,
+                    functionDefinitions,
+                    getNode
                 );
-            }),
-        [connectingFrom, connectingFromType, schemata, typeState, functionDefinitions, getNode]
-    );
+                if (!target) return [];
+
+                return [[schema, target] as const];
+            })
+        );
+    }, [connectingFrom, schemata, typeState, functionDefinitions, getNode]);
+    const matchingSchemata = useMemo(() => [...matchingTargets.keys()], [matchingTargets]);
 
     const onSchemaSelect = useCallback(
-        (schema: NodeSchema) => {
+        (schema: NodeSchema, target: ConnectionTarget) => {
             const reactFlowBounds = wrapperRef.current!.getBoundingClientRect();
             const { x, y } = mousePosition;
             const projPosition = project({
@@ -374,55 +393,42 @@ export const usePaneNodeSearchMenu = (
                 stoppedOnIterator || undefined
             );
             const targetFn = functionDefinitions.get(schema.schemaId);
-            if (connectingFrom && targetFn && connectingFromType && connectingFrom.handleType) {
-                switch (connectingFrom.handleType) {
+            if (connectingFrom && targetFn && target.type !== 'none') {
+                switch (target.type) {
                     case 'source': {
-                        const first = getFirstPossibleInput(targetFn, connectingFromType);
-                        if (first !== undefined) {
-                            createConnection({
-                                source: connectingFrom.nodeId,
-                                sourceHandle: connectingFrom.handleId,
-                                target: nodeId,
-                                targetHandle: stringifyTargetHandle(nodeId, first),
-                            });
-                        }
+                        createConnection({
+                            source: connectingFrom.nodeId,
+                            sourceHandle: connectingFrom.handleId,
+                            target: nodeId,
+                            targetHandle: stringifyTargetHandle(nodeId, target.input),
+                        });
                         break;
                     }
                     case 'target': {
-                        const first = getFirstPossibleOutput(targetFn, connectingFromType);
-                        if (first !== undefined) {
-                            createConnection({
-                                source: nodeId,
-                                sourceHandle: stringifySourceHandle(nodeId, first),
-                                target: connectingFrom.nodeId,
-                                targetHandle: connectingFrom.handleId,
-                            });
-                        }
+                        createConnection({
+                            source: nodeId,
+                            sourceHandle: stringifySourceHandle(nodeId, target.output),
+                            target: connectingFrom.nodeId,
+                            targetHandle: connectingFrom.handleId,
+                        });
                         break;
                     }
                     default:
-                        assertNever(connectingFrom.handleType);
+                        assertNever(target);
                 }
             }
 
             setConnectingFrom(null);
             setGlobalConnectingFrom(null);
-            setConnectingFromType(null);
             setStoppedOnIterator(null);
             closeContextMenu();
         },
-        [
-            connectingFrom,
-            createConnection,
-            createNode,
-            connectingFromType,
-            mousePosition,
-            stoppedOnIterator,
-        ]
+        [connectingFrom, createConnection, createNode, mousePosition, stoppedOnIterator]
     );
 
     const menuProps: MenuProps = {
         onSelect: onSchemaSelect,
+        targets: matchingTargets,
         schemata: matchingSchemata,
         favorites,
         categories,
@@ -438,34 +444,6 @@ export const usePaneNodeSearchMenu = (
         Object.values(menuProps)
     );
 
-    useEffect(() => {
-        if (connectingFrom && connectingFrom.handleId && connectingFrom.nodeId) {
-            const node: Node<NodeData> | undefined = getNode(connectingFrom.nodeId);
-            if (node && connectingFrom.handleType) {
-                switch (connectingFrom.handleType) {
-                    case 'source': {
-                        const { inOutId } = parseSourceHandle(connectingFrom.handleId);
-                        const sourceType = functionDefinitions
-                            .get(node.data.schemaId)
-                            ?.outputDefaults.get(inOutId);
-                        setConnectingFromType(sourceType ?? null);
-                        break;
-                    }
-                    case 'target': {
-                        const { inOutId } = parseTargetHandle(connectingFrom.handleId);
-                        const targetType = functionDefinitions
-                            .get(node.data.schemaId)
-                            ?.inputDefaults.get(inOutId);
-                        setConnectingFromType(targetType ?? null);
-                        break;
-                    }
-                    default:
-                        assertNever(connectingFrom.handleType);
-                }
-            }
-        }
-    }, [connectingFrom, setConnectingFrom, setConnectingFromType]);
-
     const onConnectStart = useCallback(
         (event: React.MouseEvent, handle: OnConnectStartParams) => {
             setMousePosition({
@@ -480,29 +458,29 @@ export const usePaneNodeSearchMenu = (
 
     const onConnectStop = useCallback(
         (event: MouseEvent) => {
+            const target = event.target as Element | SVGTextPathElement;
+
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,
             });
-            const isStoppedOnPane = String((event.target as Element).className).includes('pane');
-            const isStoppedOnIterator =
-                typeof (event.target as Element).className === 'object' &&
-                (event.target as Element).classList[0].includes('iterator-editor');
-            if (isStoppedOnPane || isStoppedOnIterator) {
+
+            const isStoppedOnPane = target.classList.contains('react-flow__pane');
+
+            const firstClass = target.classList[0] || '';
+            const stoppedIteratorId =
+                typeof target.className === 'object' && firstClass.startsWith('iterator-editor=')
+                    ? firstClass.slice('iterator-editor='.length)
+                    : undefined;
+
+            if (isStoppedOnPane || stoppedIteratorId) {
                 const fromNode = getNode(connectingFrom?.nodeId ?? '');
                 // Handle case of dragging from inside iterator to outside
                 if (!(fromNode && fromNode.parentNode && isStoppedOnPane)) {
                     menu.manuallyOpenContextMenu(event.pageX, event.pageY);
                 }
-                if (isStoppedOnIterator) {
-                    try {
-                        const iteratorId = String((event.target as Element).classList[0])
-                            .split('=')
-                            .slice(-1)[0];
-                        setStoppedOnIterator(iteratorId);
-                    } catch (e) {
-                        log.error('Unable to parse iterator id from class name', e);
-                    }
+                if (stoppedIteratorId) {
+                    setStoppedOnIterator(stoppedIteratorId);
                 }
             }
             setGlobalConnectingFrom(null);
@@ -513,7 +491,6 @@ export const usePaneNodeSearchMenu = (
     const onPaneContextMenu = useCallback(
         (event: React.MouseEvent) => {
             setConnectingFrom(null);
-            setConnectingFromType(null);
             setMousePosition({
                 x: event.pageX,
                 y: event.pageY,

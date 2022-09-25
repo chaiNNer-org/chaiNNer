@@ -4,13 +4,14 @@ import semver from 'semver';
 export interface LatestVersion {
     version: string;
     releaseUrl: string;
+    body: string;
 }
 
 export const getLatestVersion = () =>
     new Promise<LatestVersion>((resolve, reject) => {
         const options = {
             hostname: 'api.github.com',
-            path: '/repos/joeyballentine/chaiNNer/releases',
+            path: '/repos/joeyballentine/chaiNNer/releases/latest',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -26,24 +27,19 @@ export const getLatestVersion = () =>
 
             res.on('close', () => {
                 try {
-                    const releases = JSON.parse(response) as {
+                    const latest = JSON.parse(response) as {
                         tag_name: string;
                         html_url: string;
-                    }[];
-                    if (!releases.length) {
-                        reject(new Error('Unable to find any releases'));
-                        return;
-                    }
+                        body: string;
+                    };
 
-                    const latestVersion = releases.reduce((greatest, curr) =>
-                        semver.gt(curr.tag_name, greatest.tag_name) ? curr : greatest
-                    );
-
-                    const releaseUrl = latestVersion.html_url;
-                    const latestVersionNum = semver.coerce(latestVersion.tag_name)!;
+                    const releaseUrl = latest.html_url;
+                    const latestVersionNum = semver.coerce(latest.tag_name)!;
+                    const { body } = latest;
                     resolve({
                         version: latestVersionNum.version,
                         releaseUrl,
+                        body,
                     });
                 } catch (error) {
                     reject(error);

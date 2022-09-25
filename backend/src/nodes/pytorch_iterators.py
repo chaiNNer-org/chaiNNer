@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import math
 import os
 
 from sanic.log import logger
-from process import ExecutionContext
+from process import IteratorContext
 
 from .pytorch_nodes import LoadModelNode
 from .categories import PyTorchCategory
@@ -12,6 +11,7 @@ from .node_base import NodeBase, IteratorNodeBase
 from .node_factory import NodeFactory
 from .properties.inputs import *
 from .properties.outputs import *
+from .utils.torch_types import PyTorchModel
 
 PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"
 
@@ -25,7 +25,7 @@ class ModelFileIteratorLoadModelNode(NodeBase):
         self.outputs = [
             ModelOutput(should_broadcast=True),
             DirectoryOutput("Model Directory"),
-            TextOutput("Relative Path"),
+            TextOutput("Subdirectory Path"),
             TextOutput("Model Name"),
             NumberOutput("Overall Index"),
         ]
@@ -69,22 +69,10 @@ class ModelFileIteratorNode(IteratorNodeBase):
         ]
 
     # pylint: disable=invalid-overridden-method
-    async def run(self, directory: str, context: ExecutionContext) -> None:
+    async def run(self, directory: str, context: IteratorContext) -> None:
         logger.info(f"Iterating over models in directory: {directory}")
-        logger.info(context.nodes)
 
-        model_path_node_id = None
-        child_nodes: List[str] = []
-        for k, v in context.nodes.items():
-            if v["schemaId"] == PYTORCH_ITERATOR_NODE_ID:
-                model_path_node_id = v["id"]
-            if context.nodes[k]["child"]:
-                child_nodes.append(v["id"])
-            # Set this to false to actually allow processing to happen
-            context.nodes[k]["child"] = False
-        assert (
-            model_path_node_id is not None
-        ), "Unable to find model iterator helper node"
+        model_path_node_id = context.get_helper(PYTORCH_ITERATOR_NODE_ID).id
 
         supported_filetypes = [".pth"]
 
@@ -97,8 +85,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
         for root, _dirs, files in os.walk(
             directory, topdown=True, onerror=walk_error_handler
         ):
-            if context.executor.should_stop_running():
-                return
+            await context.progress.suspend()
 
             for name in sorted(files):
                 filepath = os.path.join(root, name)
@@ -106,43 +93,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
                 if ext.lower() in supported_filetypes:
                     just_model_files.append(filepath)
 
-        file_len = len(just_model_files)
-        start_idx = math.ceil(float(context.percent) * file_len)
-        errors = []
-        for idx, filepath in enumerate(just_model_files):
-            if context.executor.should_stop_running():
-                return
-            if idx >= start_idx:
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": idx / file_len,
-                            "iteratorId": context.iterator_id,
-                            "running": child_nodes,
-                        },
-                    }
-                )
-                # Replace the input filepath with the filepath from the loop
-                context.nodes[model_path_node_id]["inputs"] = [filepath, directory, idx]
-                executor = context.create_iterator_executor()
-                try:
-                    await executor.run()
-                except Exception as e:
-                    logger.error(e)
-                    errors.append(str(e))
-                await context.queue.put(
-                    {
-                        "event": "iterator-progress-update",
-                        "data": {
-                            "percent": (idx + 1) / file_len,
-                            "iteratorId": context.iterator_id,
-                            "running": None,
-                        },
-                    }
-                )
-        if len(errors) > 0:
-            raise Exception(
-                # pylint: disable=consider-using-f-string
-                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
-            )
+        def before(filepath: str, index: int):
+            context.inputs.set_values(model_path_node_id, [filepath, directory, index])
+
+        await context.run(just_model_files, before)

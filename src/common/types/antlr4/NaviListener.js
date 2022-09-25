@@ -1,4 +1,4 @@
-// Generated from Navi.g4 by ANTLR 4.10.1
+// Generated from .\antlr4\Navi.g4 by ANTLR 4.10.1
 // jshint ignore: start
 import antlr4 from 'antlr4';
 
@@ -137,6 +137,33 @@ export default class NaviListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by NaviParser#fieldAccessExpression.
 	exitFieldAccessExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#negateExpression.
+	enterNegateExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#negateExpression.
+	exitNegateExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#multiplicativeExpression.
+	enterMultiplicativeExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#multiplicativeExpression.
+	exitMultiplicativeExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by NaviParser#additiveExpression.
+	enterAdditiveExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by NaviParser#additiveExpression.
+	exitAdditiveExpression(ctx) {
 	}
 
 

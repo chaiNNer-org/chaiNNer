@@ -109,6 +109,15 @@ class ClipboardInput(BaseInput):
         return str(value)
 
 
+class AnyInput(BaseInput):
+    def __init__(self, label: str):
+        super().__init__(input_type="any", label=label)
+
+    def enforce_(self, value):
+        # The behavior for optional inputs and None makes sense for all inputs except this one.
+        return value
+
+
 def MathOpsDropdown() -> DropDownInput:
     """Input for selecting math operation type from dropdown"""
     return DropDownInput(
@@ -318,7 +327,7 @@ def FillColorDropdown() -> DropDownInput:
     )
 
 
-def TileModeDropdown(has_auto=True) -> DropDownInput:
+def TileModeDropdown(has_auto=True, label="Number of Tiles") -> DropDownInput:
     options = [
         {"option": "None", "value": 1},
         {"option": 4**1, "value": 2},
@@ -332,6 +341,6 @@ def TileModeDropdown(has_auto=True) -> DropDownInput:
         options.insert(0, {"option": "Auto", "value": 0})
     return DropDownInput(
         input_type="TileMode",
-        label="Number of Tiles",
+        label=label,
         options=options,
     )

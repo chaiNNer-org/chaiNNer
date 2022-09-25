@@ -52,12 +52,21 @@ const evaluateInputs = (
 
     const infos = new Map<InputId, InputInfo>();
     for (const input of schema.inputs) {
-        const expression = fromJson(input.type);
-        infos.set(input.id, {
-            expression,
-            inputRefs: getParamRefs(expression, 'Input', inputIds),
-            input,
-        });
+        try {
+            const expression = fromJson(input.type);
+            infos.set(input.id, {
+                expression,
+                inputRefs: getParamRefs(expression, 'Input', inputIds),
+                input,
+            });
+        } catch (error) {
+            const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+            throw new Error(
+                `Unable to parse input type of ${name}:\n` +
+                    `JSON: ${JSON.stringify(input.type)}\n` +
+                    `${String(error)}`
+            );
+        }
     }
 
     const ordered = topologicalSort(infos.values(), (node) =>
@@ -114,16 +123,25 @@ const evaluateOutputs = (
 
     const infos = new Map<OutputId, OutputInfo>();
     for (const output of schema.outputs) {
-        const expression = fromJson(output.type);
-        infos.set(output.id, {
-            expression,
-            // Collecting input references isn't necessary for the evaluation, but they will be
-            // needed by `FunctionDefinition`'s constructor, so we collect them here while we're
-            // at it.
-            inputRefs: getParamRefs(expression, 'Input', inputIds),
-            outputRefs: getParamRefs(expression, 'Output', outputIds),
-            output,
-        });
+        try {
+            const expression = fromJson(output.type);
+            infos.set(output.id, {
+                expression,
+                // Collecting input references isn't necessary for the evaluation, but they will be
+                // needed by `FunctionDefinition`'s constructor, so we collect them here while we're
+                // at it.
+                inputRefs: getParamRefs(expression, 'Input', inputIds),
+                outputRefs: getParamRefs(expression, 'Output', outputIds),
+                output,
+            });
+        } catch (error) {
+            const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
+            throw new Error(
+                `Unable to parse input type of ${name}:\n` +
+                    `JSON: ${JSON.stringify(output.type)}\n` +
+                    `${String(error)}`
+            );
+        }
     }
 
     const ordered = topologicalSort(infos.values(), (node) =>

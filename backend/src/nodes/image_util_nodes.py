@@ -15,6 +15,7 @@ from .utils.image_utils import (
     as_2d_grayscale,
     blend_images,
     calculate_ssim,
+    create_border,
     shift,
     FlipAxis,
 )
@@ -68,51 +69,49 @@ class ImBlend(NodeBase):
 
         if (b_w, b_h) == (o_w, o_h):
             # we don't have to do any size adjustments
-            result = blend_images(ov, base, blend_mode)
-        else:
-            # Pad base image with transparency if necessary to match size with overlay
-            top = bottom = left = right = 0
-            if b_h < max_h:
-                top = (max_h - b_h) // 2
-                bottom = max_h - b_h - top
-            if b_w < max_w:
-                left = (max_w - b_w) // 2
-                right = max_w - b_w - left
-            if any((top, bottom, left, right)):
-                # copyMakeBorder will create black border if base not converted to RGBA first
-                base = convert_to_BGRA(base, b_c)
-                base = cv2.copyMakeBorder(
-                    base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
-                )
-            else:  # Make sure cached image not being worked on regardless
-                base = base.copy()
+            return blend_images(ov, base, blend_mode)
 
-            # Center overlay
-            center_x = base.shape[1] // 2
-            center_y = base.shape[0] // 2
-            x_offset = center_x - (o_w // 2)
-            y_offset = center_y - (o_h // 2)
-
-            blended_img = blend_images(
-                ov,
-                base[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
-                blend_mode,
+        # Pad base image with transparency if necessary to match size with overlay
+        top = bottom = left = right = 0
+        if b_h < max_h:
+            top = (max_h - b_h) // 2
+            bottom = max_h - b_h - top
+        if b_w < max_w:
+            left = (max_w - b_w) // 2
+            right = max_w - b_w - left
+        if any((top, bottom, left, right)):
+            # copyMakeBorder will create black border if base not converted to RGBA first
+            base = convert_to_BGRA(base, b_c)
+            base = cv2.copyMakeBorder(
+                base, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
             )
+        else:  # Make sure cached image not being worked on regardless
+            base = base.copy()
 
-            result = base  # Just so the names make sense
-            result_c = get_h_w_c(result)[2]
-            blend_c = get_h_w_c(blended_img)[2]
+        # Center overlay
+        center_x = base.shape[1] // 2
+        center_y = base.shape[0] // 2
+        x_offset = center_x - (o_w // 2)
+        y_offset = center_y - (o_h // 2)
 
-            # Have to ensure blend and result have same shape
-            if result_c < blend_c:
-                if blend_c == 4:
-                    result = convert_to_BGRA(result, result_c)
-                else:
-                    result = as_2d_grayscale(result)
-                    result = np.dstack((result, result, result))
-            result[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
+        blended_img = blend_images(
+            ov,
+            base[y_offset : y_offset + o_h, x_offset : x_offset + o_w],
+            blend_mode,
+        )
 
-        result = np.clip(result, 0, 1)
+        result = base  # Just so the names make sense
+        result_c = get_h_w_c(result)[2]
+        blend_c = get_h_w_c(blended_img)[2]
+
+        # Have to ensure blend and result have same shape
+        if result_c < blend_c:
+            if blend_c == 4:
+                result = convert_to_BGRA(result, result_c)
+            else:
+                result = as_2d_grayscale(result)
+                result = np.dstack((result, result, result))
+        result[y_offset : y_offset + o_h, x_offset : x_offset + o_w] = blended_img
 
         return result
 
@@ -150,18 +149,18 @@ class StackNode(NodeBase):
                 def getAdjustedWidth(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(divide(multiply(i.width, maxHeight), i.height))
+                        _ as i => uint & round(i.width * maxHeight / i.height)
                     }
                 }
                 def getAdjustedHeight(img: Image | null) {
                     match img {
                         null => 0,
-                        _ as i => uint & round(divide(multiply(i.height, maxWidth), i.width))
+                        _ as i => uint & round(i.height * maxWidth / i.width)
                     }
                 }
 
-                let widthSum = add(getAdjustedWidth(Input0), getAdjustedWidth(Input1), getAdjustedWidth(Input2), getAdjustedWidth(Input3));
-                let heightSum = add(getAdjustedHeight(Input0), getAdjustedHeight(Input1), getAdjustedHeight(Input2), getAdjustedHeight(Input3));
+                let widthSum = getAdjustedWidth(Input0) + getAdjustedWidth(Input1) + getAdjustedWidth(Input2) + getAdjustedWidth(Input3);
+                let heightSum = getAdjustedHeight(Input0) + getAdjustedHeight(Input1) + getAdjustedHeight(Input2) + getAdjustedHeight(Input3);
 
                 Image {
                     width: match Input4 {
@@ -277,7 +276,7 @@ class CaptionNode(NodeBase):
                 let captionHeight = Input2;
                 Image {
                     width: Input0.width,
-                    height: add(Input0.height, captionHeight),
+                    height: Input0.height + captionHeight,
                     channels: Input0.channels,
                 }
                 """
@@ -288,7 +287,9 @@ class CaptionNode(NodeBase):
         self.icon = "MdVideoLabel"
         self.sub = "Compositing"
 
-    def run(self, img: np.ndarray, caption: str, size: int, position: str) -> np.ndarray:
+    def run(
+        self, img: np.ndarray, caption: str, size: int, position: str
+    ) -> np.ndarray:
         """Add caption an image"""
 
         return add_caption(img, caption, size, position)
@@ -348,7 +349,7 @@ class ColorConvertNode(NodeBase):
 
 
 @NodeFactory.register("chainner:image:create_border")
-class BorderMakeNode(NodeBase):
+class CreateBorderNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Creates a border around the image."
@@ -360,8 +361,9 @@ class BorderMakeNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
-                    width="add(Input0.width, multiply(Input2, 2))",
-                    height="add(Input0.height, multiply(Input2, 2))",
+                    width="Input0.width + Input2 * 2",
+                    height="Input0.height + Input2 * 2",
+                    channels="BorderType::getOutputChannels(Input1, Input0.channels)",
                 )
             )
         ]
@@ -371,31 +373,46 @@ class BorderMakeNode(NodeBase):
         self.sub = "Miscellaneous"
 
     def run(self, img: np.ndarray, border_type: int, amount: int) -> np.ndarray:
-        """Takes an image and applies a border to it"""
+        return create_border(img, border_type, amount, amount, amount, amount)
 
-        amount = int(amount)
-        border_type = int(border_type)
 
-        _, _, c = get_h_w_c(img)
-        if c == 4 and border_type == cv2.BORDER_CONSTANT:
-            value = (0, 0, 0, 1)
-        else:
-            value = 0
+@NodeFactory.register("chainner:image:create_edges")
+class CreateEdgesNode(NodeBase):
+    def __init__(self):
+        super().__init__()
+        self.description = "Creates an edge border around the image."
+        self.inputs = [
+            ImageInput(),
+            BorderInput(),
+            NumberInput("Top", unit="px"),
+            NumberInput("Left", unit="px"),
+            NumberInput("Right", unit="px"),
+            NumberInput("Bottom", unit="px"),
+        ]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0.width + Input3 + Input4",
+                    height="Input0.height + Input2 + Input5",
+                    channels="BorderType::getOutputChannels(Input1, Input0.channels)",
+                )
+            )
+        ]
+        self.category = ImageUtilityCategory
+        self.name = "Create Edges"
+        self.icon = "BsBorderOuter"
+        self.sub = "Miscellaneous"
 
-        if border_type == cv2.BORDER_TRANSPARENT:
-            border_type = cv2.BORDER_CONSTANT
-
-        result = cv2.copyMakeBorder(
-            img,
-            amount,
-            amount,
-            amount,
-            amount,
-            border_type,
-            value=value,
-        )
-
-        return result
+    def run(
+        self,
+        img: np.ndarray,
+        border_type: int,
+        top: int,
+        left: int,
+        right: int,
+        bottom: int,
+    ) -> np.ndarray:
+        return create_border(img, border_type, top, right, bottom, left)
 
 
 @NodeFactory.register("chainner:image:shift")
@@ -409,7 +426,15 @@ class ShiftNode(NodeBase):
             NumberInput("Amount Y", minimum=None, unit="px"),
             FillColorDropdown(),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(
+                image_type=expression.Image(
+                    width="Input0.width",
+                    height="Input0.height",
+                    channels="FillColor::getOutputChannels(Input3, Input0.channels)",
+                )
+            )
+        ]
         self.category = ImageUtilityCategory
         self.name = "Shift"
         self.icon = "BsGraphDown"
@@ -454,22 +479,22 @@ class RotateNode(NodeBase):
                 struct Point { x: number, y: number }
 
                 let rot_center = Point {
-                    x: divide(Input0.width, 2),
-                    y: divide(Input0.height, 2),
+                    x: Input0.width / 2,
+                    y: Input0.height / 2,
                 };
 
-                let angle = negate(degToRad(Input1));
+                let angle = -degToRad(Input1);
                 let m0 = cos(angle);
                 let m1 = sin(angle);
-                let m2 = add(rot_center.x, multiply(m0, negate(rot_center.x)), multiply(m1, negate(rot_center.y)));
-                let m3 = negate(sin(angle));
+                let m2 = rot_center.x + m0 * -rot_center.x + m1 * -rot_center.y;
+                let m3 = -sin(angle);
                 let m4 = cos(angle);
-                let m5 = add(rot_center.y, multiply(m3, negate(rot_center.x)), multiply(m4, negate(rot_center.y)));
+                let m5 = rot_center.y + m3 * -rot_center.x + m4 * -rot_center.y;
 
                 def transform(x: number, y: number) {
                     Point {
-                        x: add(multiply(m0, x), multiply(m1, y), m2),
-                        y: add(multiply(m3, x), multiply(m4, y), m5),
+                        x: m0 * x + m1 * y + m2,
+                        y: m3 * x + m4 * y + m5,
                     }
                 }
 
@@ -478,13 +503,13 @@ class RotateNode(NodeBase):
                 let p2 = transform(Input0.width, Input0.height);
                 let p3 = transform(0, Input0.height);
 
-                let expandWidth = uint & subtract(
-                    ceil(max(p0.x, p1.x, p2.x, p3.x)),
-                    floor(min(p0.x, p1.x, p2.x, p3.x))
+                let expandWidth = uint & (
+                    ceil(max(p0.x, p1.x, p2.x, p3.x))
+                    - floor(min(p0.x, p1.x, p2.x, p3.x))
                 );
-                let expandHeight = uint & subtract(
-                    ceil(max(p0.y, p1.y, p2.y, p3.y)),
-                    floor(min(p0.y, p1.y, p2.y, p3.y))
+                let expandHeight = uint & (
+                    ceil(max(p0.y, p1.y, p2.y, p3.y))
+                    - floor(min(p0.y, p1.y, p2.y, p3.y))
                 );
 
                 Image {
@@ -496,7 +521,7 @@ class RotateNode(NodeBase):
                         RotateSizeChange::Crop => Input0.height,
                         _ => expandHeight
                     },
-                    channels: match Input4 { FillColor::Transparent => 4, _ => Input0.channels }
+                    channels: FillColor::getOutputChannels(Input4, Input0.channels)
                 }
                 """
             )
@@ -591,7 +616,9 @@ class CannyEdgeDetectionNode(NodeBase):
             NumberInput("Lower Threshold", minimum=0, default=100),
             NumberInput("Upper Threshold", minimum=0, default=300),
         ]
-        self.outputs = [ImageOutput(image_type="Input0")]
+        self.outputs = [
+            ImageOutput(image_type=expression.Image(size_as="Input0", channels=1))
+        ]
         self.category = ImageUtilityCategory
         self.name = "Canny Edge Detection"
         self.icon = "MdAutoFixHigh"
@@ -608,4 +635,4 @@ class CannyEdgeDetectionNode(NodeBase):
 
         edges = cv2.Canny(img, t_lower, t_upper)
 
-        return edges
+        return normalize(edges)

@@ -2,7 +2,7 @@ import log from 'electron-log';
 import { useEffect, useMemo, useRef } from 'react';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
-import { delay, getInputValues, isStartingNode } from '../../common/util';
+import { delay, getInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
@@ -25,20 +25,27 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
 
     const schema = schemata.get(schemaId);
 
+    const didEverRun = useRef(false);
+
     const inputs = useMemo(
         () => getInputValues(schema, (inputId) => inputData[inputId] ?? null),
         [inputData]
     );
     const inputHash = useMemo(() => JSON.stringify(inputs), [inputData]);
-    const lastRunInputHash = useRef<string>();
+    const lastInputHash = useRef<string>();
     useAsyncEffect(
         async (token) => {
-            if (shouldRun && inputHash !== lastRunInputHash.current) {
-                // give it some time for other effects to settle in
-                await delay(50);
-                token.checkCanceled();
+            if (inputHash === lastInputHash.current) {
+                return;
+            }
+            // give it some time for other effects to settle in
+            await delay(50);
+            token.checkCanceled();
 
-                lastRunInputHash.current = inputHash;
+            lastInputHash.current = inputHash;
+
+            if (shouldRun) {
+                didEverRun.current = true;
                 animate([id], false);
 
                 const result = await backend.runIndividual({
@@ -70,14 +77,8 @@ export const useRunNode = ({ inputData, id, schemaId }: NodeData, shouldRun: boo
 
     useEffect(() => {
         return () => {
-            // TODO: Change this if we ever make more than starting nodes run
-            if (isStartingNode(schema)) {
-                backend
-                    .clearNodeCacheIndividual(id)
-                    .then(() => {})
-                    .catch((error) => {
-                        log.error(error);
-                    });
+            if (didEverRun.current) {
+                backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
             }
         };
     }, []);

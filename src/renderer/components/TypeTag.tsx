@@ -1,6 +1,5 @@
 import { Tag } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { isSubsetOf } from '../../common/types/relation';
 import { StructType, Type } from '../../common/types/types';
 import { isImage, isNumericLiteral } from '../../common/types/util';
 import { without } from '../../common/types/without';
@@ -75,10 +74,10 @@ export const TypeTag = memo(({ children, isOptional }: React.PropsWithChildren<T
 
 export interface TypeTagsProps {
     type: Type;
+    isOptional: boolean;
 }
 
-export const TypeTags = memo(({ type }: TypeTagsProps) => {
-    const isOptional = isSubsetOf(nullType, type);
+export const TypeTags = memo(({ type, isOptional }: TypeTagsProps) => {
     const tags = getTypeText(without(type, nullType));
 
     return (

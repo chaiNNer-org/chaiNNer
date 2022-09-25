@@ -3,13 +3,21 @@ try:
 except:
     torch = None
 
+from typing import Union
+
+
+from ..expression import ExpressionJson
 from .base_input import BaseInput
 
 
 class ModelInput(BaseInput):
     """Input a loaded model"""
 
-    def __init__(self, label: str = "Model", input_type: str = "PyTorchModel"):
+    def __init__(
+        self,
+        label: str = "Model",
+        input_type: Union[str, ExpressionJson] = "PyTorchModel",
+    ):
         super().__init__(input_type, label)
 
     def enforce(self, value):

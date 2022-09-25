@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from .blend_modes import ImageBlender
+from .blend_modes import ImageBlender, blend_mode_normalized
 from .utils import get_h_w_c
 
 
@@ -20,6 +20,14 @@ class FlipAxis:
     VERTICAL = 0
     BOTH = -1
     NONE = 2
+
+
+class BorderType:
+    BLACK = 0
+    REPLICATE = 1
+    WRAP = 3
+    REFLECT_MIRROR = 4
+    TRANSPARENT = 5
 
 
 def get_opencv_formats():
@@ -212,11 +220,49 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
     assert False, "Unable to convert image"
 
 
+def create_border(
+    img: np.ndarray,
+    border_type: int,
+    top: int,
+    right: int,
+    bottom: int,
+    left: int,
+) -> np.ndarray:
+    """
+    Returns a new image with a specified border.
+
+    The border type value is expected to come from the `BorderType` class.
+    """
+
+    _, _, c = get_h_w_c(img)
+    if c == 4 and border_type == BorderType.BLACK:
+        value = (0, 0, 0, 1)
+    else:
+        value = 0
+
+    if border_type == BorderType.TRANSPARENT:
+        border_type = cv2.BORDER_CONSTANT
+        value = 0
+        img = as_target_channels(img, 4)
+
+    return cv2.copyMakeBorder(
+        img,
+        top=top,
+        left=left,
+        right=right,
+        bottom=bottom,
+        borderType=border_type,
+        value=value,
+    )
+
+
 def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
     """
     Changes the given image to the background overlayed with the image.
 
-    The 2 given images must be the same size.
+    The 2 given images must be the same size and their values must be between 0 and 1.
+
+    The returned image is guaranteed to have values between 0 and 1.
 
     If the 2 given images have a different number of channels, then the returned image
     will have maximum of the two.
@@ -234,17 +280,39 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
         sane = c in (1, 3, 4)
         assert sane, f"The {name} has to be a grayscale, RGB, or RGBA image"
 
-    assert_sane(o_shape[2], "overlay layer")
-    assert_sane(b_shape[2], "base layer")
+    o_channels = o_shape[2]
+    b_channels = b_shape[2]
+
+    assert_sane(o_channels, "overlay layer")
+    assert_sane(b_channels, "base layer")
 
     blender = ImageBlender()
-    target_c = max(o_shape[2], b_shape[2])
+    target_c = max(o_channels, b_channels)
+    needs_clipping = not blend_mode_normalized(blend_mode)
+
+    if target_c == 4 and b_channels < 4:
+        base = as_target_channels(base, 3)
+
+        # The general algorithm below can be optimized because we know that b_a is 1
+        o_a = np.dstack((overlay[:, :, 3],) * 3)
+        o_rgb = overlay[:, :, :3]
+
+        blend_rgb = blender.apply_blend(o_rgb, base, blend_mode)
+        final_rgb = o_a * blend_rgb + (1 - o_a) * base
+        if needs_clipping:
+            final_rgb = np.clip(final_rgb, 0, 1)
+
+        return as_target_channels(final_rgb, 4)
+
     overlay = as_target_channels(overlay, target_c)
     base = as_target_channels(base, target_c)
 
     if target_c in (1, 3):
         # We don't need to do any alpha blending, so the images can blended directly
-        return blender.apply_blend(overlay, base, blend_mode)
+        result = blender.apply_blend(overlay, base, blend_mode)
+        if needs_clipping:
+            result = np.clip(result, 0, 1)
+        return result
 
     # do the alpha blending for RGBA
     o_a = overlay[:, :, 3]
@@ -266,8 +334,12 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):
         + (np.dstack((blend_strength,) * 3) * blend_rgb)
     )
     final_rgb /= np.maximum(np.dstack((final_a,) * 3), 0.0001)  # type: ignore
+    final_rgb = np.clip(final_rgb, 0, 1)
 
-    return np.concatenate([final_rgb, np.expand_dims(final_a, axis=2)], axis=2)
+    result = np.concatenate([final_rgb, np.expand_dims(final_a, axis=2)], axis=2)
+    if needs_clipping:
+        result = np.clip(result, 0, 1)
+    return result
 
 
 def calculate_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
