@@ -158,11 +158,11 @@ class ImWriteNode(NodeBase):
         # Any image not supported by cv2, will be handled by pillow.
         if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
             status = 1  # spoof
+            # if array is BGRA or BGR it must be converted to RGBA
             if img.shape[2] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-            else:
+            elif img.shape[2] == 3:
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
             with Image.fromarray(img) as image:
                 image.save(full_path)
         else:
