@@ -158,11 +158,16 @@ class ImWriteNode(NodeBase):
         # Any image not supported by cv2, will be handled by pillow.
         if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
             status = 1  # spoof
+            channels = get_h_w_c(img)[2]
             # if array is BGRA or BGR it must be converted to RGBA or RGB, any grayscale should pass through fine.
-            if get_h_w_c(img)[2] == 4:
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-            elif get_h_w_c(img)[2] == 3:
+            # if it has neither 4, 3, nor 1 channels we can't use pillow.
+            if channels not in [4, 3, 1]:
+                raise RuntimeError(f"Unsupported number of channels. Saving .{extension} images is only supported for "
+                                   f"grayscale, RGB, and RGBA images.")
+            elif channels == 3:
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            elif channels == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
             with Image.fromarray(img) as image:
                 image.save(full_path)
         else:
