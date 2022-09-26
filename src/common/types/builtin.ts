@@ -8,6 +8,7 @@ import {
     StringLiteralType,
     StringPrimitive,
     StringType,
+    StructType,
     UnionType,
     ValueType,
 } from './types';
@@ -33,7 +34,10 @@ const fixRoundingError = (n: number): number => {
 type Arg<T extends ValueType> = T | UnionType<T> | NeverType;
 
 export type UnaryFn<T extends ValueType, R extends ValueType = T> = (a: Arg<T>) => Arg<R>;
-export type BinaryFn<T extends ValueType> = (a: Arg<T>, b: Arg<T>) => Arg<T>;
+export type BinaryFn<T extends ValueType, R extends ValueType = T> = (
+    a: Arg<T>,
+    b: Arg<T>
+) => Arg<R>;
 export type VarArgsFn<T extends ValueType> = (...args: Arg<T>[]) => Arg<T>;
 
 function wrapUnary(fn: (a: StringPrimitive) => Arg<StringPrimitive>): UnaryFn<StringPrimitive>;
@@ -51,39 +55,31 @@ function wrapUnary<T extends ValueType, R extends ValueType = T>(
         return fn(a);
     };
 }
-const wrapBinaryImpl = <T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T> => {
+const wrapBinary = <T extends ValueType, R extends ValueType = T>(
+    fn: (a: T, b: T) => Arg<R>
+): BinaryFn<T, R> => {
     return (a, b) => {
         if (a.type === 'never' || b.type === 'never') return NeverType.instance;
         if (a.type === 'union') {
             if (b.type !== 'union') {
-                return union(...a.items.map((aItem) => fn(aItem, b))) as Arg<T>;
+                return union(...a.items.map((aItem) => fn(aItem, b))) as Arg<R>;
             }
 
-            const items: Arg<T>[] = [];
+            const items: Arg<R>[] = [];
             for (const aItem of a.items) {
                 for (const bItem of b.items) {
                     items.push(fn(aItem, bItem));
                 }
             }
-            return union(...items) as Arg<T>;
+            return union(...items) as Arg<R>;
         }
         if (b.type === 'union') {
-            return union(...b.items.map((bItem) => fn(a, bItem))) as Arg<T>;
+            return union(...b.items.map((bItem) => fn(a, bItem))) as Arg<R>;
         }
         return fn(a, b);
     };
 };
 
-function wrapBinary(
-    fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
-): BinaryFn<StringPrimitive>;
-function wrapBinary(
-    fn: (a: NumberPrimitive, b: NumberPrimitive) => Arg<NumberPrimitive>
-): BinaryFn<NumberPrimitive>;
-// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions
-function wrapBinary<T extends ValueType>(fn: (a: T, b: T) => Arg<T>): BinaryFn<T> {
-    return wrapBinaryImpl(fn);
-}
 function wrapVarArgs(
     neutral: Arg<StringPrimitive>,
     fn: (a: StringPrimitive, b: StringPrimitive) => Arg<StringPrimitive>
@@ -97,7 +93,7 @@ function wrapVarArgs<T extends ValueType>(
     neutral: Arg<T>,
     fn: (a: T, b: T) => Arg<T>
 ): VarArgsFn<T> {
-    const binary = wrapBinaryImpl(fn);
+    const binary = wrapBinary(fn);
     return (...args) => {
         if (args.length === 0) return neutral;
         let result = args[0];
@@ -358,7 +354,7 @@ const moduleLiteral = (a: NumberPrimitive, b: number): Arg<NumberPrimitive> => {
 
     return subtract(a, multiply(literal(b), floor(divide(a, literal(b)))));
 };
-export const modulo = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+export const modulo = wrapBinary<NumberPrimitive>((a, b) => {
     if (b.type === 'literal') return moduleLiteral(a, b.value);
     if (b.type === 'int-interval' && isSmallIntInterval(b)) {
         return mapSmallIntInterval(b, (i) => moduleLiteral(a, i));
@@ -538,7 +534,7 @@ const powLiteral = (a: number, b: NumberPrimitive): Arg<NumberPrimitive> => {
  * Note that the behavior of Python's `math.pow` and `**` are slightly different from each other and JS's `Math.pow`.
  * See https://github.com/joeyballentine/chaiNNer/issues/837 for more details.
  */
-export const pow = wrapBinary((a: NumberPrimitive, b: NumberPrimitive) => {
+export const pow = wrapBinary<NumberPrimitive>((a, b) => {
     // Python's ** behavior is super strange and inconsistent because the operations is implemented by the operants
     // via operator overloading. So this will only implement the part that all implementations should agree on and
     // none of the edge cases.
@@ -570,4 +566,129 @@ export const concat = wrapVarArgs(new StringLiteralType(''), (a, b) => {
         return new StringLiteralType(a.value + b.value);
     }
     return StringType.instance;
+});
+
+const boolTrue = new StructType('true');
+const boolFalse = new StructType('false');
+const bool = union(boolFalse, boolTrue);
+
+type NonNan = NumericLiteralType | IntervalType | IntIntervalType;
+const handleNan = (
+    n: NumberPrimitive
+): { has: false; without: NonNan } | { has: true; without: NonNan | undefined } => {
+    if (n.type === 'int-interval' || n.type === 'interval') {
+        return { has: false, without: n };
+    }
+    if (n.type === 'number') {
+        return { has: true, without: new IntervalType(-Infinity, Infinity) };
+    }
+
+    if (Number.isNaN(n.value)) {
+        return { has: true, without: undefined };
+    }
+    return { has: false, without: n };
+};
+
+class CompareInterval {
+    readonly min: number;
+
+    readonly max: number;
+
+    readonly minExclusive: boolean;
+
+    readonly maxExclusive: boolean;
+
+    constructor(min: number, max: number, minExclusive: boolean, maxExclusive: boolean) {
+        this.min = min;
+        this.max = max;
+        this.minExclusive = minExclusive;
+        this.maxExclusive = maxExclusive;
+    }
+
+    static from(n: NonNan): CompareInterval {
+        if (n.type === 'literal') {
+            return new CompareInterval(n.value, n.value, false, false);
+        }
+        if (n.type === 'interval') {
+            return new CompareInterval(n.min, n.max, false, false);
+        }
+
+        const minExclusive = !Number.isFinite(n.min);
+        const maxExclusive = !Number.isFinite(n.max);
+        return new CompareInterval(n.min, n.max, minExclusive, maxExclusive);
+    }
+
+    has(n: number): boolean {
+        if (n === this.min && !this.minExclusive) return true;
+        if (n === this.max && !this.maxExclusive) return true;
+        return this.min < n && n < this.max;
+    }
+
+    someLess(right: CompareInterval): boolean {
+        return this.min < right.max;
+    }
+
+    someLessEqual(right: CompareInterval): boolean {
+        return (
+            this.min < right.max ||
+            (this.min === right.max && !this.minExclusive && !right.maxExclusive)
+        );
+    }
+
+    someGreater(right: CompareInterval): boolean {
+        return right.someLess(this);
+    }
+
+    someGreaterEqual(right: CompareInterval): boolean {
+        return right.someLessEqual(this);
+    }
+}
+
+const lessThenReal = (a: NonNan, b: NonNan): Arg<StructType> => {
+    const l = CompareInterval.from(a);
+    const r = CompareInterval.from(b);
+
+    if (l.someLess(r)) {
+        if (l.someGreaterEqual(r)) {
+            return bool;
+        }
+        return boolTrue;
+    }
+    return boolFalse;
+};
+export const lessThan = wrapBinary<NumberPrimitive, StructType>((a, b) => {
+    const aNan = handleNan(a);
+    const bNan = handleNan(b);
+
+    if (aNan.has || bNan.has) {
+        if (aNan.without && bNan.without) {
+            return union(boolFalse, lessThenReal(aNan.without, bNan.without));
+        }
+        return boolFalse;
+    }
+    return lessThenReal(aNan.without, bNan.without);
+});
+const lessThenEqualReal = (a: NonNan, b: NonNan): Arg<StructType> => {
+    const l = CompareInterval.from(a);
+    const r = CompareInterval.from(b);
+
+    if (l.someLessEqual(r)) {
+        if (l.someGreater(r)) {
+            return bool;
+        }
+        return boolTrue;
+    }
+    return boolFalse;
+};
+export const lessThanEqual = wrapBinary<NumberPrimitive, StructType>((a, b) => {
+    const aNan = handleNan(a);
+    const bNan = handleNan(b);
+
+    if (aNan.has || bNan.has) {
+        if (aNan.without && bNan.without) {
+            return union(boolFalse, lessThenEqualReal(aNan.without, bNan.without));
+        }
+        return boolFalse;
+    }
+    return lessThenEqualReal(aNan.without, bNan.without);
 });
