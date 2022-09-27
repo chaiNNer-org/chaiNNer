@@ -1,4 +1,3 @@
-import { Presence } from 'discord-rpc';
 import {
     BrowserWindow,
     IpcMainEvent,
@@ -49,8 +48,6 @@ export interface InvokeChannels {
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
-    'toggle-discord-rpc': ChannelInfo<void, [enabled: boolean]>;
-    'update-discord-rpc': ChannelInfo<void, [config: Presence]>;
 }
 
 export interface SendChannels {
