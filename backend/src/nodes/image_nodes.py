@@ -167,8 +167,10 @@ class ImWriteNode(NodeBase):
             elif channels == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
             else:
-                raise RuntimeError(f"Unsupported number of channels. Saving .{extension} images is only supported for "
-                                   f"grayscale, RGB, and RGBA images.")
+                raise RuntimeError(
+                    f"Unsupported number of channels. Saving .{extension} images is only supported for "
+                    f"grayscale, RGB, and RGBA images."
+                )
             with Image.fromarray(img) as image:
                 image.save(full_path)
         else:
