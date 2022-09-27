@@ -460,6 +460,14 @@ class ConvertTorchToONNXNode(NodeBase):
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         dummy_input = dummy_input.to(torch.device(exec_options.device))
 
+        should_use_fp16 = exec_options.fp16 and model.supports_fp16
+        if should_use_fp16:
+            model.half()
+            dummy_input.half()
+        else:
+            model.float()
+            dummy_input.float()
+
         with BytesIO() as f:
             torch.onnx.export(
                 model,
