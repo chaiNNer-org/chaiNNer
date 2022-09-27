@@ -203,7 +203,7 @@ class WindowsClipboard(ClipboardBase):
             raise Exception("win32clipboard is not avaiable!")
 
         if text.isdigit():
-            text = f"{text}\0" # Add null terminator. Without this, the clipboard will throw an error when the input is a number.
+            text = f"{text}\0"  # Add null terminator. Without this, the clipboard will throw an error when the input is a number.
 
         try:
             win32clipboard.OpenClipboard()
