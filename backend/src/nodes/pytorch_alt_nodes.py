@@ -90,9 +90,9 @@ class FaceUpscaleNode(NodeBase):
 
         should_use_fp16 = exec_options.fp16 and face_model.supports_fp16
         if should_use_fp16:
-            face_model.half()
+            face_model = face_model.half()
         else:
-            face_model.float()
+            face_model = face_model.float()
 
         # face restoration
         for cropped_face in face_helper.cropped_faces:
@@ -105,9 +105,9 @@ class FaceUpscaleNode(NodeBase):
 
             try:
                 if should_use_fp16:
-                    cropped_face_t.half()
+                    cropped_face_t = cropped_face_t.half()
                 else:
-                    cropped_face_t.float()
+                    cropped_face_t = cropped_face_t.float()
                 output = face_model(cropped_face_t, return_rgb=False, weight=weight)[0]
                 # convert to image
                 output = (output + 1) / 2

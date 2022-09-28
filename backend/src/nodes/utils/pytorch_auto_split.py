@@ -60,11 +60,11 @@ def auto_split_process(
             model = model.to(device)
             should_use_fp16 = exec_options.fp16 and model.supports_fp16
             if should_use_fp16:
-                d_img.half()
-                model.half()
+                d_img = d_img.half()
+                model = model.half()
             else:
-                d_img.float()
-                model.float()
+                d_img = d_img.float()
+                model = model.float()
             result = model(d_img)
             result = result.detach().cpu()
             del d_img
