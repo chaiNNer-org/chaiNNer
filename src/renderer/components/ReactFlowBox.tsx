@@ -425,7 +425,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
             >
                 <Background
                     gap={16}
-                    size={0.5}
+                    size={1}
                     variant={BackgroundVariant.Dots}
                 />
                 <Controls />

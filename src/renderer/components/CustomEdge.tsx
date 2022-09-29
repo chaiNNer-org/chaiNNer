@@ -1,7 +1,7 @@
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
-import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'reactflow';
 import { TbUnlink } from 'react-icons/tb';
+import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -36,7 +36,7 @@ export const CustomEdge = memo(
         const { paused } = useContext(ExecutionStatusContext);
         const [animateChain] = useAnimateChain;
 
-        const edgePath = useMemo(
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
             () =>
                 getBezierPath({
                     sourceX,
@@ -68,11 +68,6 @@ export const CustomEdge = memo(
 
         const [accentColor] = getTypeAccentColors(type || definitionType);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
-
-        const [edgeCenterX, edgeCenterY] = useMemo(
-            () => getEdgeCenter({ sourceX, sourceY, targetX, targetY }),
-            [sourceX, sourceY, targetX, targetY]
-        );
 
         const buttonSize = 32;
 
