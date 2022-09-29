@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import { basename, dirname } from 'path';
+import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -454,9 +454,6 @@ export const GlobalProvider = memo(
             setSavePath(undefined);
             setViewport({ x: 0, y: 0, zoom: 1 });
             outputDataActions.clear();
-            await ipcRenderer.invoke('update-discord-rpc', {
-                details: 'Working on a new chain',
-            });
         }, [
             hasRelevantUnsavedChanges,
             changeNodes,
@@ -503,9 +500,6 @@ export const GlobalProvider = memo(
                             if (result.kind === 'Canceled') return;
                             if (!isTemplate) {
                                 setSavePath(result.path);
-                                await ipcRenderer.invoke('update-discord-rpc', {
-                                    details: `Working on ${basename(result.path)}`,
-                                });
                             }
                         }
                         if (!isTemplate) {
@@ -534,9 +528,6 @@ export const GlobalProvider = memo(
             if (result) {
                 if (result.kind === 'Success') {
                     await setStateFromJSONRef.current(result.saveData, result.path, true);
-                    await ipcRenderer.invoke('update-discord-rpc', {
-                        details: `Working on ${basename(result.path)}`,
-                    });
                 } else {
                     removeRecentPath(result.path);
                     sendAlert({
@@ -554,9 +545,6 @@ export const GlobalProvider = memo(
             async (event, result) => {
                 if (result.kind === 'Success') {
                     await setStateFromJSONRef.current(result.saveData, result.path, true);
-                    await ipcRenderer.invoke('update-discord-rpc', {
-                        details: `Working on ${basename(result.path)}`,
-                    });
                 } else {
                     removeRecentPath(result.path);
                     sendAlert({

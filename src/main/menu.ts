@@ -219,6 +219,21 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                 },
                 { type: 'separator' },
                 {
+                    label: 'About chaiNNer',
+                    click: async () => {
+                        const response = await dialog.showMessageBox(mainWindow, {
+                            title: 'About chaiNNer',
+                            message: `chaiNNer ${app.getVersion()}`,
+                            detail: `chaiNNer is an open source (GPLv3 licensed) tool created by @joeyballentine, with support from other community members. Support the project by donating to my Ko-Fi via the button below. Also, many thanks to these members specifically: @RunDevelopment and @theflyingzamboni for ongoing development, and @Kim2091 for testing.`,
+                            buttons: ['Open Ko-Fi', 'Close'],
+                        });
+                        if (response.response === 0) {
+                            await shell.openExternal('https://ko-fi.com/jballentine');
+                        }
+                    },
+                },
+                { type: 'separator' },
+                {
                     label: 'Collect system information',
                     click: async () => {
                         const [cpuInfo, gpuInfo] = await Promise.all([getCpuInfo(), getGpuInfo()]);

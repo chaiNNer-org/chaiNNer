@@ -138,6 +138,10 @@ def ImageExtensionDropdown() -> DropDownInput:
                 "option": "WEBP",
                 "value": "webp",
             },
+            {
+                "option": "TGA",
+                "value": "tga",
+            },
         ],
     )
 

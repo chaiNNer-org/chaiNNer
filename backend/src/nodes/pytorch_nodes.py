@@ -87,9 +87,9 @@ class LoadModelNode(NodeBase):
             model = model.to(torch.device(exec_options.device))
             should_use_fp16 = exec_options.fp16 and model.supports_fp16
             if should_use_fp16:
-                model.half()
+                model = model.half()
             else:
-                model.float()
+                model = model.float()
         except ValueError as e:
             raise e
         except Exception:
@@ -459,6 +459,14 @@ class ConvertTorchToONNXNode(NodeBase):
         }
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         dummy_input = dummy_input.to(torch.device(exec_options.device))
+
+        should_use_fp16 = exec_options.fp16 and model.supports_fp16
+        if should_use_fp16:
+            model = model.half()
+            dummy_input = dummy_input.half()
+        else:
+            model = model.float()
+            dummy_input = dummy_input.float()
 
         with BytesIO() as f:
             torch.onnx.export(

@@ -414,16 +414,18 @@ def convenient_upscale(
 def resize_to_side_conditional(
     w: int, h: int, target: int, side: str, condition: str
 ) -> Tuple[int, int]:
-    def compare_conditions(a: int, b: int) -> bool:
+    def compare_conditions(b: int) -> bool:
+        if condition == "both":
+            return False
         if condition == "downscale":
-            return a > b
+            return target > b
         elif condition == "upscale":
-            return a < b
+            return target < b
         else:
             raise RuntimeError(f"Unknown condition {condition}")
 
     if side == "width":
-        if compare_conditions(target, w):
+        if compare_conditions(w):
             w_new = w
             h_new = h
         else:
@@ -431,7 +433,7 @@ def resize_to_side_conditional(
             h_new = max(round((target / w) * h), 1)
 
     elif side == "height":
-        if compare_conditions(target, h):
+        if compare_conditions(h):
             w_new = w
             h_new = h
         else:
@@ -439,7 +441,7 @@ def resize_to_side_conditional(
             h_new = target
 
     elif side == "shorter side":
-        if compare_conditions(target, min(h, w)):
+        if compare_conditions(min(h, w)):
             w_new = w
             h_new = h
         else:
@@ -447,7 +449,7 @@ def resize_to_side_conditional(
             h_new = max(round((target / min(h, w)) * h), 1)
 
     elif side == "longer side":
-        if compare_conditions(target, max(h, w)):
+        if compare_conditions(max(h, w)):
             w_new = w
             h_new = h
         else:

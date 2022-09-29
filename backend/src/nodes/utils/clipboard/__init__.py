@@ -44,6 +44,7 @@ def copy_image(imageArray: np.ndarray):
         logger.error(err)
         raise err
 
+
 def copy_text(text: str):
     if DEFAULT_CLIPBOARD is None:
         logger.error(ERROR)

@@ -18,7 +18,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-    backend-lint:
+    backend-formatting:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
@@ -31,7 +31,19 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
             - name: Black
-              run: black backend/
+              run: black --check backend/
+    backend-lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.9
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
             - name: pylint
               run: pylint backend/ --output-format=colorized --disable="C,R" --fail-under=10
             - name: pyright

@@ -131,7 +131,7 @@ const Feature = memo(
         onUninstall: () => void;
         onUpdate: () => void;
     }) => {
-        const allDepPackagesInstalled = dep.packages.every((p) => pipList[p.packageName]);
+        const missingPackages = dep.packages.filter((p) => !pipList[p.packageName]);
         const outdatedPackages = dep.packages.filter((p) => {
             const installedVersion = pipList[p.packageName];
             return installedVersion && checkSemverGt(p.version, installedVersion);
@@ -172,7 +172,7 @@ const Feature = memo(
                                     </Tooltip>
                                 </HStack>
                             </AccordionButton>
-                            {allDepPackagesInstalled ? (
+                            {missingPackages.length === 0 ? (
                                 <HStack
                                     mr={1}
                                     py={2}
@@ -213,7 +213,12 @@ const Feature = memo(
                                         size="sm"
                                         onClick={onInstall}
                                     >
-                                        Install ({formatSizeEstimate(dep.packages)})
+                                        Install (
+                                        {formatSizeEstimate([
+                                            ...missingPackages,
+                                            ...outdatedPackages,
+                                        ])}
+                                        )
                                     </Button>
                                 </HStack>
                             )}

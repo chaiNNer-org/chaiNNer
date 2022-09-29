@@ -155,22 +155,40 @@ class ImWriteNode(NodeBase):
         img = (np.clip(img, 0, 1) * 255).round().astype("uint8")
 
         os.makedirs(base_directory, exist_ok=True)
-
-        # Write image with opencv if path is ascii, since imwrite doesn't support unicode
-        # This saves us from having to keep the image buffer in memory, if possible
-        if full_path.isascii():
-            status = cv2.imwrite(full_path, img)
+        # Any image not supported by cv2, will be handled by pillow.
+        if extension not in ["png", "jpg", "gif", "tiff", "webp"]:
+            status = 1  # spoof
+            channels = get_h_w_c(img)[2]
+            if channels == 1:
+                # PIL supports grayscale images just fine, so we don't need to do any conversion
+                pass
+            elif channels == 3:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            elif channels == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+            else:
+                raise RuntimeError(
+                    f"Unsupported number of channels. Saving .{extension} images is only supported for "
+                    f"grayscale, RGB, and RGBA images."
+                )
+            with Image.fromarray(img) as image:
+                image.save(full_path)
         else:
-            try:
-                temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
-                full_temp_path = full_path.replace(full_file, temp_filename)
-                status = cv2.imwrite(full_temp_path, img)
-                os.rename(full_temp_path, full_path)
-            except:
-                status, buf_img = cv2.imencode(f".{extension}", img)
-                with open(full_path, "wb") as outf:
-                    bytes_written = outf.write(buf_img)
-                    status = status and bytes_written == len(buf_img)
+            # Write image with opencv if path is ascii, since imwrite doesn't support unicode
+            # This saves us from having to keep the image buffer in memory, if possible
+            if full_path.isascii():
+                status = cv2.imwrite(full_path, img)
+            else:
+                try:
+                    temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
+                    full_temp_path = full_path.replace(full_file, temp_filename)
+                    status = cv2.imwrite(full_temp_path, img)
+                    os.rename(full_temp_path, full_path)
+                except:
+                    status, buf_img = cv2.imencode(f".{extension}", img)
+                    with open(full_path, "wb") as outf:
+                        bytes_written = outf.write(buf_img)
+                        status = status and bytes_written == len(buf_img)
 
         return status
 

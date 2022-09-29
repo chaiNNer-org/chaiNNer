@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useReactFlow } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
-import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
-import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import {
     VALID,
     Validity,
     checkNodeValidity,
     checkRequiredInputs,
-} from '../helpers/checkNodeValidity';
+} from '../../common/checkNodeValidity';
+import { EdgeData, InputData, NodeData, NodeSchema } from '../../common/common-types';
+import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
+import { getConnectedInputs } from '../helpers/connectedInputs';
 
 const STARTING_VALIDITY: Validity = {
     isValid: false,
@@ -38,10 +39,9 @@ export const useValidity = (id: string, schema: NodeSchema, inputData: InputData
         if (!alwaysValid) {
             setValidity(
                 checkNodeValidity({
-                    id,
                     schema,
                     inputData,
-                    edges: getEdges(),
+                    connectedInputs: getConnectedInputs(id, getEdges()),
                     functionInstance,
                 })
             );

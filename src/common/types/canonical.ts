@@ -62,7 +62,7 @@ const comparators: {
     },
     struct: (a, b) => {
         if (a.fields.length !== b.fields.length) return a.fields.length - b.fields.length;
-        if (a.name !== b.name) binaryCompare(a.name, b.name);
+        if (a.name !== b.name) return binaryCompare(a.name, b.name);
 
         return compareSequences(
             a.fields.map((f) => f.type),

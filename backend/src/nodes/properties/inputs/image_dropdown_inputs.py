@@ -130,6 +130,7 @@ def ResizeToSideInput() -> DropDownInput:
         ],
     )
 
+
 def ResizeCondition() -> DropDownInput:
     """Upscale / Downscale condition dropdown"""
     return DropDownInput(
@@ -345,11 +346,11 @@ def CaptionPositionInput() -> DropDownInput:
         options=[
             {
                 "option": "Bottom",
-                "value": 'bottom',
+                "value": "bottom",
             },
             {
                 "option": "Top",
-                "value": 'top',
+                "value": "top",
             },
         ],
     )
