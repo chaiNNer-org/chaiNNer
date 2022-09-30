@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from copy import deepcopy
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import onnx
@@ -12,22 +12,22 @@ from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from sanic.log import logger
 
-from .categories import ONNXCategory
-from .node_base import NodeBase
-from .node_factory import NodeFactory
-from .properties.inputs import *
-from .properties.outputs import *
-from .utils.ncnn_model import NcnnModel
-from .utils.onnx_auto_split import onnx_auto_split_process
-from .utils.onnx_model import OnnxModel
-from .utils.onnx_session import get_onnx_session
-from .utils.onnx_to_ncnn import Onnx2NcnnConverter
-from .utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
-from .utils.exec_options import get_execution_options
+from ...categories import ONNXCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import *
+from ...properties.outputs import *
+from ...utils.ncnn_model import NcnnModel
+from ...utils.onnx_auto_split import onnx_auto_split_process
+from ...utils.onnx_model import OnnxModel
+from ...utils.onnx_session import get_onnx_session
+from ...utils.onnx_to_ncnn import Onnx2NcnnConverter
+from ...utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
+from ...utils.exec_options import get_execution_options
 
 # ONNX Save Model node
 # pylint: disable=unused-import
-from .model_save_nodes import OnnxSaveModelNode
+from ...model_save_nodes import OnnxSaveModelNode
 
 
 @NodeFactory.register("chainner:onnx:load_model")
@@ -282,7 +282,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         # Attempt to import the NCNN save node, otherwise it would be impossible to save
         try:
             # pylint: disable=unused-import, import-outside-toplevel
-            from .model_save_nodes import NcnnSaveNode
+            from ...model_save_nodes import NcnnSaveNode
         except:
             pass
 

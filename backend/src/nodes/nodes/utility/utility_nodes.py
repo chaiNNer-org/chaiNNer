@@ -8,13 +8,13 @@ from typing import Any, Union
 
 from nodes.utils import clipboard
 
-from .categories import UtilityCategory
+from ...categories import UtilityCategory
 
-from .node_base import NodeBase
-from .utils.replacement import ReplacementString
-from .node_factory import NodeFactory
-from .properties.inputs import *
-from .properties.outputs import *
+from ...node_base import NodeBase
+from ...utils.replacement import ReplacementString
+from ...node_factory import NodeFactory
+from ...properties.inputs import *
+from ...properties.outputs import *
 
 
 @NodeFactory.register("chainner:utility:note")

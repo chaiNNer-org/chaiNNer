@@ -7,26 +7,26 @@ import gc
 
 from io import BytesIO
 import os
-from typing import Any, OrderedDict
+from typing import Any, OrderedDict, Tuple
 
 import numpy as np
 import torch
 from sanic.log import logger
 
-from .categories import PyTorchCategory
-from .node_base import NodeBase
-from .node_factory import NodeFactory
-from .properties.inputs import *
-from .properties.outputs import *
-from .utils.pytorch_auto_split import auto_split_process
-from .utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
-from .utils.exec_options import get_execution_options, ExecutionOptions
-from .utils.onnx_model import OnnxModel
-from .utils.torch_types import PyTorchModel
-from .utils.pytorch_model_loading import load_state_dict
+from ...categories import PyTorchCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import *
+from ...properties.outputs import *
+from ...utils.pytorch_auto_split import auto_split_process
+from ...utils.utils import get_h_w_c, np2tensor, tensor2np, convenient_upscale
+from ...utils.exec_options import get_execution_options, ExecutionOptions
+from ...utils.onnx_model import OnnxModel
+from ...utils.torch_types import PyTorchModel
+from ...utils.pytorch_model_loading import load_state_dict
 
 try:
-    from .onnx_nodes import ConvertOnnxToNcnnNode
+    from ..onnx.onnx_nodes import ConvertOnnxToNcnnNode
 except:
     ConvertOnnxToNcnnNode = None
 
