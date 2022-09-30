@@ -5,15 +5,15 @@ from typing import Tuple
 import numpy as np
 from sanic.log import logger
 
-from ...categories import ImageDimensionCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import *
-from ...properties.outputs import *
-from ...utils.fill_alpha import *
-from ...utils.tile_util import tile_image
-from ...utils.pil_utils import *
-from ...utils.utils import get_h_w_c, resize_to_side_conditional
+from ....categories import ImageDimensionCategory
+from ....node_base import NodeBase
+from ....node_factory import NodeFactory
+from ....properties.inputs import *
+from ....properties.outputs import *
+from ....utils.fill_alpha import *
+from ....utils.tile_util import tile_image
+from ....utils.pil_utils import *
+from ....utils.utils import get_h_w_c, resize_to_side_conditional
 
 
 @NodeFactory.register("chainner:image:resize_factor")

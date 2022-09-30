@@ -6,12 +6,12 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from ...categories import ImageUtilityCategory
-from ...node_base import NodeBase
-from ...node_factory import NodeFactory
-from ...properties.inputs import *
-from ...properties.outputs import *
-from ...utils.image_utils import (
+from ....categories import ImageUtilityCategory
+from ....node_base import NodeBase
+from ....node_factory import NodeFactory
+from ....properties.inputs import *
+from ....properties.outputs import *
+from ....utils.image_utils import (
     as_2d_grayscale,
     blend_images,
     calculate_ssim,
@@ -19,8 +19,8 @@ from ...utils.image_utils import (
     shift,
     FlipAxis,
 )
-from ...utils.pil_utils import *
-from ...utils.utils import get_h_w_c
+from ....utils.pil_utils import *
+from ....utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:blend")
@@ -340,7 +340,7 @@ class ColorConvertNode(NodeBase):
 
         # postprocessing
         if color_mode == cv2.COLOR_BGR2HSV:
-            result[:, :, 0] /= 360
+            result[:, :, 0] /= 360  # type: ignore
 
         if color_mode in (cv2.COLOR_BGR2HSV, cv2.COLOR_BGR2YUV):
             result = reverse3(result)
