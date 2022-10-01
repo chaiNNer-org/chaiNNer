@@ -63,8 +63,7 @@ for root, dirs, files in os.walk(
 
                 # A bit of hardcoding, but for these it's fine
                 # TODO: Could make it so the __init__.py files define what to do when it fails to import
-                if "torch" in str(e).lower():
-                    torch = None
+                if "torch" in str(e).lower() or "facexlib" in str(e).lower():
                     missing_categories.add(PyTorchCategory.name)
                 elif "onnx" in str(e).lower():
                     missing_categories.add(ONNXCategory.name)

@@ -1,7 +1,3 @@
-"""
-Mainly to separate GFPGAN from the rest of the nodes
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -21,7 +17,7 @@ from ...properties.outputs import *
 from ...utils.utils import get_h_w_c, np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
 from ...utils.torch_types import PyTorchModel
-from .pytorch_nodes import to_pytorch_execution_options
+from ...utils.pytorch_utils import to_pytorch_execution_options
 
 
 @NodeFactory.register("chainner:pytorch:upscale_face")
