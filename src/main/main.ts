@@ -521,7 +521,7 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
                 nodeIntegration: true,
                 contextIsolation: false,
             },
-            // icon: `${__dirname}/public/icons/cross_platform/icon`,
+            icon: `${__dirname}/../public/icons/cross_platform/icon`,
             show: false,
         }) as BrowserWindowWithSafeIpc;
         if (!splash.isDestroyed()) {
@@ -604,7 +604,7 @@ const createWindow = lazy(async () => {
             nodeIntegrationInWorker: true,
             contextIsolation: false,
         },
-        // icon: `${__dirname}/public/icons/cross_platform/icon`,
+        icon: `${__dirname}/../public/icons/cross_platform/icon`,
         show: false,
     }) as BrowserWindowWithSafeIpc;
 

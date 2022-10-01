@@ -55,7 +55,9 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "chainner"
+            "name": "chainner",
+            "iconUrl": "./src/public/icons/win/icon.ico",
+            "setupIcon": "./src/public/icons/win/icon.ico"
           }
         },
         {
@@ -70,7 +72,8 @@
           "name": "@electron-forge/maker-dmg",
           "config": {
             "format": "ULFO",
-            "name": "chaiNNer"
+            "name": "chaiNNer",
+            "icon": "./src/public/icons/mac/icon.icns"
           }
         },
         {
@@ -88,6 +91,17 @@
             "name": "chainner",
             "options": {
               "icon": "./src/public/icons/cross_platform/icon.png"
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-flatpak",
+          "config": {
+            "options": {
+              "name": "chainner",
+              "options": {
+                "icon": "./src/public/icons/cross_platform/icon.png"
+              }
             }
           }
         }
