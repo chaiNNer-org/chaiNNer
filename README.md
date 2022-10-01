@@ -29,7 +29,7 @@ You don't even need to have Python installed, as chaiNNer will download an isola
 
 If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use the integrated Python. If you do wish to use your system Python, make sure the Python version you are using is either 3.8 or 3.9. 3.10 also should work for the most part, but it is not fully supported at this time.
 
-If you are using the provided .zip portable version of chaiNNer, please be aware that the integrated Python it uses is not portable like the rest of it.
+If you are using the provided .zip portable version of chaiNNer, please be aware that the integrated Python it uses is not portable like the rest of it. It is located at `%appdata%/chaiNNer/python` (windows), `.config/chaiNNer/python` (linux), or `Application Support/chaiNNer/python`. We plan on making this truly portable in the future.
 
 ## How To Use
 
@@ -72,7 +72,9 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## Compatibility Notes
 
-- MacOS versions older than 10.15 are not supported at this time. This is due to a major dependency (opencv) not yet having a build for this version. The next release of it should be compatible though, so stay tuned for an update that adds support for that.
+- MacOS versions older than 10.15 are not supported at this time. This is due to a major dependency (opencv) not yet having a build for this version. The next release of it should be compatible though, so stay tuned for an update that adds support for that (assuming no more compatibility issues are found).
+
+- Windows versions 7 and below are also not supported at this time. You can attempt troubleshooting steps mentioned below in the troubleshooting section, but at this time we do not officially support more Windows versions than Microsoft does.
 
 - Apple M1 laptops are mostly untested, though they should support almost everything. Although, ONNX is unable to be installed as it does not yet have an arm64 build, and NCNN sometimes does not work properly.
 
@@ -119,6 +121,46 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 - Similarly to NCNN, technically almost any SR model should work assuming they follow a typical CNN-based SR structure, however I have only tested with ESRGAN.
 
+## Troubleshooting
+
+### Has Nvidia GPU, PyTorch using CPU
+
+- Check the dependency manager and ensure it installed the +cu113 version. If it did not, and it says CUDA supported at the top, then uninstall and reinstall PyTorch.
+
+- Check to make sure you have the `nvidia-smi` command available to you. Open a terminal (command prompt, powershell, windows terminal) and type `nvidia-smi`. If it errors, reinstall your drivers and restart your computer.
+
+- If chaiNNer or a terminal still isn't able to use `nvidia-smi`, try [adding your System32 folder to your PATH environment variable](https://www.computerhope.com/issues/ch000549.htm). Make sure to restart your computer after.
+
+### Has AMD/Intel GPU, PyTorch using CPU
+
+- PyTorch can only use Nvidia GPUs. In this case, you would want to try using NCNN as the processing framework instead. You can convert any supported PyTorch models to NCNN through chaiNNer (just be sure to also install ONNX as it is needed in the conversion process).
+
+### Checked logs and see `CUDA_INITIALIZE` errors
+
+- Ensure your drivers are up to date. Outdated drivers might not support the CUDA version that PyTorch and ONNX rely on.
+
+- Ensure your GPU isn't too old. Your GPU needs to be able to support CUDA 11.3. If it only supports CUDA 10 for example, you'll need to manually install an older PyTorch version to your system Python and set chaiNNer to use system Python. However, if you do this we cannot guarantee everything will work properly.
+
+### vkQueueSubmit error with NCNN
+
+- If you are using an auto-tiling mode, try setting a manual number of tiles (start with 4 and work your way up until it works)
+
+- If you are on Windows, you can try using [this](https://github.com/chaiNNer-org/chaiNNer/issues/913#issuecomment-1247849063) fix suggested by one of the NCNN devs.
+
+### "ChaiNNer was unable to install its integrated Python environment" message or simply fails to start up
+
+- Ensure you have access to the internet and that you did not restrict chaiNNer from accessing the internet. ChaiNNer needs internet access in order to download its Python environment and the required dependencies.
+
+- If you do have internet access, try going to your `%appdata%/chaiNNer` (windows), `.config/chaiNNer` (linux), or `Application Support/chaiNNer` folder, and deleting the Python folder that is there. This will force chaiNNer to download Python again if the previous download was corrupt.
+
+- If this all does not work, you can force chaiNNer to use system Python. Right now this is not configurable via the UI without being able to start up first, so you need to go to your data folder mentioned above, go to `/settings`, and either find or create a `use-system-python` text file (with no extension) that just contains the word `true`. In order for this to work, you need to have Python installed to your system.
+
+### Integrated Python downloaded, but failed to start up after installing dependencies
+
+- If you are on an older macOS version, such as any version below 10.15, this is unavoidable and you currently cannot use chaiNNer. This is due to a dependency (opencv) that we simply cannot work around at this time.
+
+- If you are on Windows 7, you can try following the advice for the above message related to forcing system Python, and just install Python 3.8. However, we do not officially support Windows 7 and we recommend you upgrade to at least 10.
+
 ## Building chaiNNer Yourself
 
 I provide pre-built versions of chaiNNer here on GitHub. However, if you would like to build chaiNNer yourself, simply run `npm install` (make sure that you have at least npm v7 installed) to install all the nodejs dependencies, and `npm run make` to build the application.
@@ -142,7 +184,3 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 **Wouldn't this make it more difficult to do things?**
 
 - In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
-
-**What platforms are supported?**
-
-- Windows, Linux, and MacOS are all supported by chaiNNer. However, MacOS currently lacks GPU support for PyTorch, meaning you will need to use NCNN in order to get GPU upscaling functionality. MacOS versions under 10.15 are also currently not supported as mentioned earlier in this readme. M1 MacBooks also are not very well tested, but should work now.
