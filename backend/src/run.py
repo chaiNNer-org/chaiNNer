@@ -13,10 +13,11 @@ import os
 # pylint: disable=unused-import
 import cv2
 from sanic import Sanic
-from sanic.log import logger
+from sanic.log import logger, access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
+
 
 from nodes.categories import (
     categories,
@@ -34,7 +35,7 @@ from chain.json import parse_json, JsonNode
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, timed_supplier
-from progress import Aborted
+from progress import Aborted  # type: ignore
 from response import (
     errorResponse,
     alreadyRunningResponse,
@@ -90,9 +91,6 @@ app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
-
-
-from sanic.log import access_logger
 
 
 class SSEFilter(logging.Filter):
