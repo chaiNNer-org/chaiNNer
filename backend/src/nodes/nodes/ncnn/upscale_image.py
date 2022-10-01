@@ -1,11 +1,6 @@
-"""
-Nodes that provide NCNN support
-"""
 from __future__ import annotations
 
-import os
 from contextlib import contextmanager
-from typing import Tuple
 
 import numpy as np
 import cv2
@@ -14,13 +9,11 @@ from sanic.log import logger
 
 from ...categories import NCNNCategory
 
-# NCNN Save Model node
-# pylint: disable=unused-import
-from ...model_save_nodes import NcnnSaveNode
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import *
-from ...properties.outputs import *
+from ...properties.inputs import NcnnModelInput, ImageInput, TileModeDropdown
+from ...properties.outputs import ImageOutput
+from ...properties import expression
 from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split_process
 from ...utils.ncnn_model import NcnnModel
@@ -51,26 +44,6 @@ def ncnn_allocators(vkdev: ncnn.VulkanDevice):
             yield blob_vkallocator, staging_vkallocator
         finally:
             staging_vkallocator.clear()
-
-
-@NodeFactory.register("chainner:ncnn:load_model")
-class NcnnLoadModelNode(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.description = "Load NCNN model (.bin and .param files)."
-        self.inputs = [ParamFileInput(), BinFileInput()]
-        self.outputs = [NcnnModelOutput(), TextOutput("Model Name")]
-
-        self.category = NCNNCategory
-        self.name = "Load Model"
-        self.icon = "NCNN"
-        self.sub = "Input & Output"
-
-    def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModel, str]:
-        model = NcnnModel.load_from_file(param_path, bin_path)
-        model_name = os.path.splitext(os.path.basename(param_path))[0]
-
-        return model, model_name
 
 
 @NodeFactory.register("chainner:ncnn:upscale_image")
@@ -153,61 +126,3 @@ class NcnnUpscaleImageNode(NodeBase):
             return i
 
         return convenient_upscale(img, model_c, upscale)
-
-
-@NodeFactory.register("chainner:ncnn:interpolate_models")
-class NcnnInterpolateModelsNode(NodeBase):
-    def __init__(self):
-        super().__init__()
-        self.description = """Interpolate two NCNN models of the same type together. Note: models must share a common 'pretrained model' ancestor
-             in order to be interpolatable."""
-        self.inputs = [
-            NcnnModelInput("Model A"),
-            NcnnModelInput("Model B"),
-            SliderInput(
-                "Weights",
-                controls_step=5,
-                slider_step=1,
-                maximum=100,
-                default=50,
-                unit="%",
-                note_expression="`Model A ${100 - value}% ― Model B ${value}%`",
-                ends=("A", "B"),
-            ),
-        ]
-        self.outputs = [
-            NcnnModelOutput(),
-            NumberOutput("Amount A", "100 - Input2"),
-            NumberOutput("Amount B", "Input2"),
-        ]
-
-        self.category = NCNNCategory
-        self.name = "Interpolate Models"
-        self.icon = "BsTornado"
-        self.sub = "Utility"
-
-    def check_will_upscale(self, interp: NcnnModel):
-        fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = NcnnUpscaleImageNode().run(interp, fake_img, 0)
-
-        mean_color = np.mean(result)
-        del result
-        return mean_color > 0.5
-
-    def run(
-        self, model_a: NcnnModel, model_b: NcnnModel, amount: int
-    ) -> Tuple[NcnnModel, int, int]:
-        if amount == 0:
-            return model_a, 100, 0
-        elif amount == 100:
-            return model_b, 0, 100
-
-        f_amount = 1 - amount / 100
-        interp_model = model_a.interpolate(model_b, f_amount)
-
-        if not self.check_will_upscale(interp_model):
-            raise ValueError(
-                "These NCNN models are not compatible and not able to be interpolated together"
-            )
-
-        return interp_model, 100 - amount, amount
