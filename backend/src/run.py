@@ -60,6 +60,9 @@ for root, dirs, files in os.walk(
             except ImportError as e:
                 missing_node_count += 1
                 logger.warning(f"Failed to import {module}: {e}")
+
+                # A bit of hardcoding, but for these it's fine
+                # TODO: Could make it so the __init__.py files define what to do when it fails to import
                 if "torch" in str(e).lower():
                     torch = None
                     missing_categories.add(PyTorchCategory.name)
