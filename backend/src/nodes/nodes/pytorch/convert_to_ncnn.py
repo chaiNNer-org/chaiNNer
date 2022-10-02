@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.src.nodes.utils.torch_types import PyTorchModel
-
 from ...categories import PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory

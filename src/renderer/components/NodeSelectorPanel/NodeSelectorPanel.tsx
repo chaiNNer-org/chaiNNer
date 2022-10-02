@@ -37,13 +37,8 @@ import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccor
 import { TextBox } from './TextBox';
 
 export const NodeSelector = memo(() => {
-    const { schemata, categories } = useContext(BackendContext);
+    const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
-
-    const nonEmptyCategories = useMemo(
-        () => new Set(schemata.schemata.map((s) => s.category)),
-        [schemata]
-    );
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -190,69 +185,12 @@ export const NodeSelector = memo(() => {
                                         />
                                         {categories.map((category) => {
                                             const categoryNodes = byCategories.get(category.name);
+                                            const categoryIsMissingNodes =
+                                                categoriesMissingNodes.includes(category.name);
 
-                                            // Check if the only nodes in a category are the ones excluded by the category check'
-                                            const excludedNodes = categories.find(
-                                                (c) => c.name === category.name
-                                            )?.excludedFromCheck;
-
-                                            const hasOnlyExcludedNodes =
-                                                excludedNodes &&
-                                                categoryNodes &&
-                                                excludedNodes.length === categoryNodes.length &&
-                                                categoryNodes.every((catNode) =>
-                                                    excludedNodes.includes(catNode.schemaId)
-                                                );
-
-                                            // eslint-disable-next-line react/jsx-no-useless-fragment
-                                            let inner = <></>;
-
-                                            if (categoryNodes) {
-                                                const subcategoryMap =
-                                                    getSubcategories(categoryNodes);
-
-                                                if (hasOnlyExcludedNodes && category.installHint) {
-                                                    inner = (
-                                                        <>
-                                                            <PackageHint
-                                                                collapsed={collapsed}
-                                                                hint={category.installHint}
-                                                                // TODO: Somehow link categories to deps
-                                                                packageName={category.name}
-                                                                onClick={openDependencyManager}
-                                                            />
-                                                            <Subcategories
-                                                                collapsed={collapsed}
-                                                                subcategoryMap={subcategoryMap}
-                                                            />
-                                                        </>
-                                                    );
-                                                } else {
-                                                    inner = (
-                                                        <Subcategories
-                                                            collapsed={collapsed}
-                                                            subcategoryMap={subcategoryMap}
-                                                        />
-                                                    );
-                                                }
-                                            }
-
-                                            const noNodes = !nonEmptyCategories.has(category.name);
-                                            if (
-                                                category.installHint &&
-                                                noNodes &&
-                                                !hasOnlyExcludedNodes
-                                            ) {
-                                                inner = (
-                                                    <PackageHint
-                                                        collapsed={collapsed}
-                                                        hint={category.installHint}
-                                                        // TODO: Somehow link categories to deps
-                                                        packageName={category.name}
-                                                        onClick={openDependencyManager}
-                                                    />
-                                                );
-                                            }
+                                            const subcategoryMap = categoryNodes
+                                                ? getSubcategories(categoryNodes)
+                                                : null;
 
                                             return (
                                                 <RegularAccordionItem
@@ -260,7 +198,20 @@ export const NodeSelector = memo(() => {
                                                     collapsed={collapsed}
                                                     key={category.name}
                                                 >
-                                                    {inner}
+                                                    {categoryIsMissingNodes && (
+                                                        <PackageHint
+                                                            collapsed={collapsed}
+                                                            hint={category.installHint ?? ''}
+                                                            packageName={category.name}
+                                                            onClick={openDependencyManager}
+                                                        />
+                                                    )}
+                                                    {subcategoryMap && (
+                                                        <Subcategories
+                                                            collapsed={collapsed}
+                                                            subcategoryMap={subcategoryMap}
+                                                        />
+                                                    )}
                                                 </RegularAccordionItem>
                                             );
                                         })}

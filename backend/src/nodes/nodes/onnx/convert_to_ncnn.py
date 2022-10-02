@@ -36,14 +36,6 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Utility"
 
-        # TODO Figure out if this is necessary anymore or if it imports fine without it
-        # Attempt to import the NCNN save node, otherwise it would be impossible to save
-        try:
-            # pylint: disable=unused-import, import-outside-toplevel
-            from ..ncnn.save_model import NcnnSaveNode
-        except:
-            pass
-
     def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModel, str]:
         fp16 = bool(is_fp16)
 
