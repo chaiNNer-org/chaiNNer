@@ -7,81 +7,69 @@ import sys
 import traceback
 from json import dumps as stringify
 from typing import Any, Dict, List, Optional, TypedDict
+import importlib
+import os
 
 # pylint: disable=unused-import
 import cv2
 from sanic import Sanic
-from sanic.log import logger
+from sanic.log import logger, access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-from nodes.categories import categories, category_order
 
-# pylint: disable=ungrouped-imports,wrong-import-position
-from nodes import image_adj_nodes  # type: ignore
-from nodes import image_chan_nodes  # type: ignore
-from nodes import image_dim_nodes  # type: ignore
-from nodes import image_filter_nodes  # type: ignore
-from nodes import image_iterator_nodes  # type: ignore
-from nodes import image_nodes  # type: ignore
-from nodes import image_util_nodes  # type: ignore
-
-try:
-    import torch
-
-    # Lazily initialize to avoid unnecessary ram usage
-    if torch.cuda.is_available():
-        # pylint: disable=W0212
-        torch.cuda._lazy_init()
-
-    # pylint: disable=unused-import,ungrouped-imports
-    from nodes import pytorch_nodes  # type: ignore
-    from nodes import pytorch_iterators  # type: ignore
-    from nodes import pytorch_alt_nodes  # type: ignore
-except Exception as e:
-    torch = None
-    logger.warning(e)
-    logger.info("PyTorch most likely not installed")
-
-try:
-    import onnx
-    import onnxruntime
-
-    # pylint: disable=unused-import,ungrouped-imports
-    from nodes import onnx_nodes  # type: ignore
-except Exception as e:
-    logger.warning(e)
-    logger.info("ONNX most likely not installed")
-
-
-try:
-    # pylint: disable=unused-import
-    import ncnn_vulkan
-
-    # pylint: disable=unused-import,ungrouped-imports
-    from nodes import ncnn_nodes  # type: ignore
-except Exception as e:
-    logger.warning(e)
-    logger.info("NCNN most likely not installed")
-
-# pylint: disable=unused-import
-from nodes import utility_nodes  # type: ignore
+from nodes.categories import (
+    categories,
+    category_order,
+    PyTorchCategory,
+    ONNXCategory,
+    NCNNCategory,
+)
 from nodes.node_factory import NodeFactory
+from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+
 from base_types import NodeId, InputId, OutputId
 from chain.cache import OutputCache
 from chain.json import parse_json, JsonNode
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
 from process import Executor, NodeExecutionError, timed_supplier
-from progress import Aborted
+from progress import Aborted  # type: ignore
 from response import (
     errorResponse,
     alreadyRunningResponse,
     noExecutorResponse,
     successResponse,
 )
-from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+
+
+missing_node_count = 0
+missing_categories = set()
+# Dynamically import all nodes
+for root, dirs, files in os.walk(
+    os.path.join(os.path.dirname(__file__), "nodes", "nodes")
+):
+    for file in files:
+        if file.endswith(".py") and not file.startswith("_"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            try:
+                importlib.import_module(f"{module}", package=None)
+            except ImportError as e:
+                missing_node_count += 1
+                logger.warning(f"Failed to import {module}: {e}")
+
+                # A bit of hardcoding, but for these it's fine
+                # TODO: Could make it so the __init__.py files define what to do when it fails to import
+                if "torch" in str(e).lower() or "facexlib" in str(e).lower():
+                    missing_categories.add(PyTorchCategory.name)
+                elif "onnx" in str(e).lower():
+                    missing_categories.add(ONNXCategory.name)
+                elif "ncnn" in str(e).lower():
+                    missing_categories.add(NCNNCategory.name)
 
 
 class AppContext:
@@ -103,9 +91,6 @@ app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
-
-
-from sanic.log import access_logger
 
 
 class SSEFilter(logging.Filter):
@@ -164,7 +149,13 @@ async def nodes(_):
         if node_object.type == "iterator":
             node_dict["defaultNodes"] = node_object.get_default_nodes()  # type: ignore
         node_list.append(node_dict)
-    return json({"nodes": node_list, "categories": [x.toDict() for x in categories]})
+    return json(
+        {
+            "nodes": node_list,
+            "categories": [x.toDict() for x in categories],
+            "categoriesMissingNodes": list(missing_categories),
+        }
+    )
 
 
 class RunRequest(TypedDict):

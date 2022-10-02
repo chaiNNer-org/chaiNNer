@@ -17,6 +17,7 @@ interface BackendContextState {
      * Some categories might be empty.
      */
     categories: Category[];
+    categoriesMissingNodes: string[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
@@ -29,6 +30,7 @@ interface BackendProviderProps {
     schemata: SchemaMap;
     pythonInfo: PythonInfo;
     categories: Category[];
+    categoriesMissingNodes: string[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
 }
 
@@ -38,6 +40,7 @@ export const BackendProvider = memo(
         schemata,
         pythonInfo,
         categories,
+        categoriesMissingNodes,
         functionDefinitions,
         children,
     }: React.PropsWithChildren<BackendProviderProps>) => {
@@ -49,6 +52,7 @@ export const BackendProvider = memo(
             schemata,
             pythonInfo,
             categories,
+            categoriesMissingNodes,
             functionDefinitions,
         });
 
