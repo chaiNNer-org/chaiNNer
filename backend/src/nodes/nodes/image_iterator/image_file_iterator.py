@@ -8,7 +8,7 @@ from process import IteratorContext
 from sanic.log import logger
 
 from ...categories import ImageCategory
-from ..load_image import ImReadNode
+from ..image.load_image import ImReadNode
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import IteratorInput, DirectoryInput
