@@ -89,7 +89,6 @@ ONNXCategory = Category(
     icon="ONNX",
     color="#63B3ED",
     install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
-    excluded_from_check=["chainner:onnx:save_model"],
 )
 NCNNCategory = Category(
     name="NCNN",
@@ -97,7 +96,6 @@ NCNNCategory = Category(
     icon="NCNN",
     color="#ED64A6",
     install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
-    excluded_from_check=["chainner:ncnn:save_model"],
 )
 
 # Etc
