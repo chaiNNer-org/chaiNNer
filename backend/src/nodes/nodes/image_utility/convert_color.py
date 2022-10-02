@@ -3,16 +3,16 @@ from __future__ import annotations
 import numpy as np
 import cv2
 
-from ....categories import ImageUtilityCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import (
+from ...categories import ImageUtilityCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
     ImageInput,
     ColorModeInput,
 )
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.utils import get_h_w_c
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:change_colorspace")

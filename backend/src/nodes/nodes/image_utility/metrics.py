@@ -5,13 +5,13 @@ import math
 import numpy as np
 import cv2
 
-from ....categories import ImageUtilityCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput
-from ....properties.outputs import NumberOutput
-from ....utils.image_utils import calculate_ssim
-from ....utils.utils import get_h_w_c
+from ...categories import ImageUtilityCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput
+from ...properties.outputs import NumberOutput
+from ...utils.image_utils import calculate_ssim
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:image_metrics")

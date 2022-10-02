@@ -5,13 +5,13 @@ from math import ceil
 import cv2
 import numpy as np
 
-from ....categories import ImageFilterCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput, NumberInput
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.utils import get_h_w_c
+from ...categories import ImageFilterCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, NumberInput
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:average_color_fix")

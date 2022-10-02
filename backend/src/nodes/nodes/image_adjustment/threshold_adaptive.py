@@ -3,18 +3,18 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from ....categories import ImageAdjustmentCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import (
+from ...categories import ImageAdjustmentCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
     ImageInput,
     SliderInput,
     AdaptiveMethodInput,
     AdaptiveThresholdInput,
     NumberInput,
 )
-from ....properties.outputs import ImageOutput
-from ....properties import expression
+from ...properties.outputs import ImageOutput
+from ...properties import expression
 
 
 @NodeFactory.register("chainner:image:threshold_adaptive")

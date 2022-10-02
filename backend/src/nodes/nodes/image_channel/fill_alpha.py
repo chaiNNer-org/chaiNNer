@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import numpy as np
 
-from ....categories import ImageChannelCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput, AlphaFillMethodInput, AlphaFillMethod
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.fill_alpha import (
+from ...categories import ImageChannelCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, AlphaFillMethodInput, AlphaFillMethod
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.fill_alpha import (
     convert_to_binary_alpha,
     fill_alpha_fragment_blur,
     fill_alpha_edge_extend,
 )
-from ....utils.utils import get_h_w_c
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:fill_alpha")

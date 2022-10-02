@@ -8,10 +8,10 @@ import cv2
 from process import IteratorContext
 from sanic.log import logger
 
-from ....categories import ImageCategory
-from ....node_base import IteratorNodeBase, NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import (
+from ...categories import ImageCategory
+from ...node_base import IteratorNodeBase, NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
     IteratorInput,
     ImageInput,
     DirectoryInput,
@@ -19,9 +19,9 @@ from ....properties.inputs import (
     VideoTypeDropdown,
     VideoFileInput,
 )
-from ....properties.outputs import ImageOutput, NumberOutput
-from ....utils.image_utils import normalize
-from ....utils.utils import get_h_w_c
+from ...properties.outputs import ImageOutput, NumberOutput
+from ...utils.image_utils import normalize
+from ...utils.utils import get_h_w_c
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"

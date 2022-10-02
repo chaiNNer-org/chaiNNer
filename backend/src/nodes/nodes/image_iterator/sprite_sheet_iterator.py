@@ -5,12 +5,12 @@ from typing import Tuple, List
 import numpy as np
 from process import IteratorContext
 
-from ....categories import ImageCategory
-from ....node_base import IteratorNodeBase, NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import IteratorInput, ImageInput, NumberInput
-from ....properties.outputs import ImageOutput, NumberOutput
-from ....utils.utils import get_h_w_c
+from ...categories import ImageCategory
+from ...node_base import IteratorNodeBase, NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import IteratorInput, ImageInput, NumberInput
+from ...properties.outputs import ImageOutput, NumberOutput
+from ...utils.utils import get_h_w_c
 
 SPRITESHEET_ITERATOR_INPUT_NODE_ID = "chainner:image:spritesheet_iterator_load"
 SPRITESHEET_ITERATOR_OUTPUT_NODE_ID = "chainner:image:spritesheet_iterator_save"

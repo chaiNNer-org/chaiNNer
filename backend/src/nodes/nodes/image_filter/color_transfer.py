@@ -3,19 +3,19 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from ....categories import ImageFilterCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import (
+from ...categories import ImageFilterCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
     ImageInput,
     ColorspaceInput,
     OverflowMethodInput,
     ReciprocalScalingFactorInput,
 )
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.color_transfer import color_transfer
-from ....utils.utils import get_h_w_c
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.color_transfer import color_transfer
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:color_transfer")

@@ -5,13 +5,13 @@ import numpy as np
 
 from sanic.log import logger
 
-from ....categories import ImageFilterCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput, SliderInput
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.image_utils import normalize_normals
+from ...categories import ImageFilterCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, SliderInput
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.image_utils import normalize_normals
 
 
 @NodeFactory.register("chainner:image:add_normals")

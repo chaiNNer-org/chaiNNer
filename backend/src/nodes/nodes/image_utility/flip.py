@@ -3,12 +3,12 @@ from __future__ import annotations
 import numpy as np
 import cv2
 
-from ....categories import ImageUtilityCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput, FlipAxisInput
-from ....properties.outputs import ImageOutput
-from ....utils.image_utils import FlipAxis
+from ...categories import ImageUtilityCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, FlipAxisInput
+from ...properties.outputs import ImageOutput
+from ...utils.image_utils import FlipAxis
 
 
 @NodeFactory.register("chainner:image:flip")

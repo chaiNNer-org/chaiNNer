@@ -3,18 +3,18 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from ....categories import ImageUtilityCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import ImageInput, BlendModeDropdown
-from ....properties.outputs import ImageOutput
-from ....properties import expression
-from ....utils.image_utils import (
+from ...categories import ImageUtilityCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import ImageInput, BlendModeDropdown
+from ...properties.outputs import ImageOutput
+from ...properties import expression
+from ...utils.image_utils import (
     as_2d_grayscale,
     blend_images,
 )
-from ....utils.pil_utils import convert_to_BGRA
-from ....utils.utils import get_h_w_c
+from ...utils.pil_utils import convert_to_BGRA
+from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:blend")

@@ -3,19 +3,19 @@ from __future__ import annotations
 import numpy as np
 from sanic.log import logger
 
-from ....categories import ImageDimensionCategory
-from ....node_base import NodeBase
-from ....node_factory import NodeFactory
-from ....properties.inputs import (
+from ...categories import ImageDimensionCategory
+from ...node_base import NodeBase
+from ...node_factory import NodeFactory
+from ...properties.inputs import (
     ImageInput,
     NumberInput,
     InterpolationInput,
     ResizeToSideInput,
     ResizeCondition,
 )
-from ....properties.outputs import ImageOutput
-from ....utils.pil_utils import resize
-from ....utils.utils import get_h_w_c, resize_to_side_conditional
+from ...properties.outputs import ImageOutput
+from ...utils.pil_utils import resize
+from ...utils.utils import get_h_w_c, resize_to_side_conditional
 
 
 @NodeFactory.register("chainner:image:resize_to_side")
