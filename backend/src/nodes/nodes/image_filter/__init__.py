@@ -5,5 +5,4 @@ category = Category(
     description="Nodes that deal with filtering images.",
     icon="MdFilterAlt",
     color="#38A169",
-    order=4,
 )

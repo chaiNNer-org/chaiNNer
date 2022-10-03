@@ -6,5 +6,4 @@ category = Category(
     icon="NCNN",
     color="#ED64A6",
     install_hint="NCNN uses .bin/.param models to upscale images. It is recommended for AMD users because it supports both AMD and Nvidia GPUs.",
-    order=11,
 )

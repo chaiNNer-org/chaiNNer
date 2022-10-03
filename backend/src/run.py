@@ -38,6 +38,7 @@ from response import (
 missing_node_count = 0
 categories = set()
 missing_categories = set()
+category_order = []
 
 # Dynamically import all nodes
 for root, dirs, files in os.walk(
@@ -66,20 +67,25 @@ for root, dirs, files in os.walk(
                     logger.warning(ie)
         # Load categories from __init__.py files
         elif file.endswith(".py") and file == ("__init__.py"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            # Case when it is a single module with a category
             try:
-                module = os.path.relpath(
-                    os.path.join(root, file), os.path.dirname(__file__)
-                )
-                module = module.replace(os.path.sep, ".")[:-3]
                 # TODO: replace the category system with a dynamic factory
                 category = getattr(importlib.import_module(module), "category")
                 categories.add(category)
             except:
-                pass
+                # Case when it is a folder with multiple modules that has a category order
+                try:
+                    category_order.extend(
+                        getattr(importlib.import_module(module), "category_order")
+                    )
+                except:
+                    pass
 
-
-categories = sorted(list(categories), key=lambda c: c.order)
-category_order = [x.name for x in categories]
+categories = sorted(list(categories), key=lambda x: category_order.index(x.name))
 
 
 class AppContext:

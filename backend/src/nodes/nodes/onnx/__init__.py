@@ -6,5 +6,4 @@ category = Category(
     icon="ONNX",
     color="#63B3ED",
     install_hint="ONNX uses .onnx models to upscale images. It does not support AMD GPUs.",
-    order=12,
 )

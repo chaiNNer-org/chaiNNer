@@ -7,10 +7,8 @@ def test_categories():
         description="Test category.",
         icon="BsGearFill",
         color="#718096",
-        order=0,
     )
     assert test_category.name == "Test"
     assert test_category.description == "Test category."
     assert test_category.icon == "BsGearFill"
     assert test_category.color == "#718096"
-    assert test_category.order == 0

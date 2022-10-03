@@ -5,5 +5,4 @@ category = Category(
     description="Nodes that deal with adjusting properties of images.",
     icon="BsSliders",
     color="#319795",
-    order=3,
 )

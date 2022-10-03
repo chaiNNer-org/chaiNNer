@@ -5,5 +5,4 @@ category = Category(
     description="Base image nodes.",
     icon="BsFillImageFill",
     color="#C53030",
-    order=1,
 )
