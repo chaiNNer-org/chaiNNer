@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from typing import Union
 
 import numpy as np
 import cv2
@@ -11,11 +12,11 @@ from ...categories import NCNNCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NcnnModelInput, ImageInput, TileModeDropdown
+from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.exec_options import get_execution_options
-from ...utils.ncnn_auto_split import ncnn_auto_split_process
+from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModel
 from ...utils.ncnn_session import get_ncnn_net
 from ...utils.utils import convenient_upscale, get_h_w_c
@@ -55,7 +56,7 @@ class NcnnUpscaleImageNode(NodeBase):
         self.inputs = [
             NcnnModelInput(),
             ImageInput(),
-            TileModeDropdown(),
+            TileSizeDropdown(),
         ]
         self.outputs = [
             ImageOutput(image_type=expression.Image(channels="Input1.channels"))
@@ -71,7 +72,7 @@ class NcnnUpscaleImageNode(NodeBase):
         net,
         input_name: str,
         output_name: str,
-        tile_mode: int,
+        max_tile_size: Union[int, None],
     ):
         exec_options = get_execution_options()
         # Try/except block to catch errors
@@ -82,17 +83,15 @@ class NcnnUpscaleImageNode(NodeBase):
                 blob_vkallocator,
                 staging_vkallocator,
             ):
-                output, _ = ncnn_auto_split_process(
+                return ncnn_auto_split(
                     img,
                     net,
                     input_name=input_name,
                     output_name=output_name,
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
-                    max_depth=tile_mode if tile_mode > 0 else None,
+                    max_tile_size=max_tile_size,
                 )
-            # net.clear() # don't do this, it makes chaining break
-            return output
         except ValueError as e:
             raise e
         except Exception as e:
@@ -100,7 +99,7 @@ class NcnnUpscaleImageNode(NodeBase):
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(self, model: NcnnModel, img: np.ndarray, tile_mode: int) -> np.ndarray:
+    def run(self, model: NcnnModel, img: np.ndarray, tile_size: int) -> np.ndarray:
         exec_options = get_execution_options()
         net = get_ncnn_net(model, exec_options)
 
@@ -117,7 +116,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 net,
                 model.layer_list[0].outputs[0],
                 model.layer_list[-1].outputs[0],
-                tile_mode,
+                tile_size if tile_size > 0 else None,
             )
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)

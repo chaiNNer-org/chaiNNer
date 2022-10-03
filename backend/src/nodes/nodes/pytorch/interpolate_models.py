@@ -14,7 +14,7 @@ from ...properties.inputs import ModelInput, SliderInput
 from ...properties.outputs import ModelOutput, NumberOutput
 from ...utils.torch_types import PyTorchModel
 from ...utils.pytorch_model_loading import load_state_dict
-from ...utils.utils import np2tensor, tensor2np
+from ...utils.pytorch_utils import np2tensor, tensor2np
 
 
 @NodeFactory.register("chainner:pytorch:interpolate_models")

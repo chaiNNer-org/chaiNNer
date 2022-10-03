@@ -14,7 +14,8 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import *
-from ...utils.utils import get_h_w_c, np2tensor, tensor2np
+from ...utils.utils import get_h_w_c
+from ...utils.pytorch_utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
 from ...utils.torch_types import PyTorchModel
 from ...utils.pytorch_utils import to_pytorch_execution_options

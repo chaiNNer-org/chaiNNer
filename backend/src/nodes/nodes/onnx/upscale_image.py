@@ -9,13 +9,13 @@ from sanic.log import logger
 from ...categories import ONNXCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import OnnxModelInput, ImageInput, TileModeDropdown
+from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.onnx_auto_split import onnx_auto_split_process
+from ...utils.onnx_auto_split import onnx_auto_split
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_session import get_onnx_session
-from ...utils.utils import get_h_w_c, np2nptensor, nptensor2np, convenient_upscale
+from ...utils.utils import get_h_w_c, convenient_upscale
 from ...utils.exec_options import get_execution_options
 
 
@@ -29,7 +29,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self.inputs = [
             OnnxModelInput(),
             ImageInput(),
-            TileModeDropdown(has_auto=False),
+            TileSizeDropdown(),
         ]
         self.outputs = [
             ImageOutput(
@@ -47,30 +47,22 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        tile_mode: Union[int, None],
+        tile_size: Union[int, None],
         change_shape: bool,
     ) -> np.ndarray:
         logger.info("Upscaling image")
-        is_fp16_model = session.get_inputs()[0].type == "tensor(float16)"
-        img = np2nptensor(img, change_range=False)
-        logger.info(img.shape)
-        out, _ = onnx_auto_split_process(
-            img.astype(np.float16) if is_fp16_model else img,
+        return onnx_auto_split(
+            img,
             session,
-            max_depth=tile_mode,
             change_shape=change_shape,
+            max_tile_size=tile_size,
         )
-        logger.info(out.shape)
-        out = nptensor2np(out, change_range=False, imtype=np.float32)
-        del session
-        logger.info("Done upscaling")
-        return out
 
     def run(
         self,
         model: OnnxModel,
         img: np.ndarray,
-        tile_mode: Union[int, None],
+        tile_size: int,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
         session = get_onnx_session(model, get_execution_options())
@@ -88,5 +80,10 @@ class OnnxImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(i, session, tile_mode, change_shape),
+            lambda i: self.upscale(
+                i,
+                session,
+                tile_size if tile_size > 0 else None,
+                change_shape,
+            ),
         )
