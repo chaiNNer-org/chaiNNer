@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import cv2
 
-from ...categories import ImageChannelCategory
+from . import category as ImageChannelCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput

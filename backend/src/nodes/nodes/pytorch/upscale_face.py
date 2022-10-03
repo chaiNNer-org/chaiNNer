@@ -9,7 +9,7 @@ from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 
 from appdirs import user_data_dir
 
-from ...categories import PyTorchCategory
+from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *

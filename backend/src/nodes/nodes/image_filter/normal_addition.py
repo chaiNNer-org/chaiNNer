@@ -5,7 +5,7 @@ import numpy as np
 
 from sanic.log import logger
 
-from ...categories import ImageFilterCategory
+from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput

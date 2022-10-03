@@ -4,7 +4,7 @@ from typing import List
 import cv2
 import numpy as np
 
-from ...categories import ImageUtilityCategory
+from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, StackOrientationDropdown

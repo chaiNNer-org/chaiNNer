@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sanic.log import logger
 
-from ...categories import ImageAdjustmentCategory
+from . import category as ImageAdjustmentCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput, ThresholdInput

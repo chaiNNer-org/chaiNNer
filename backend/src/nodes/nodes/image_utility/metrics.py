@@ -5,7 +5,7 @@ import math
 import numpy as np
 import cv2
 
-from ...categories import ImageUtilityCategory
+from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput

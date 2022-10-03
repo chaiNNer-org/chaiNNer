@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from ...categories import ImageAdjustmentCategory
+from . import category as ImageAdjustmentCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput

@@ -3,7 +3,7 @@ from typing import Any, List, Literal
 
 from base_types import InputId, OutputId
 
-from .categories import Category
+from .category import Category
 
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
