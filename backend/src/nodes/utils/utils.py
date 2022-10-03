@@ -58,7 +58,7 @@ def np_rgb_to_bgr(image: np.ndarray) -> np.ndarray:
 
 
 def np_bgra_to_rgba(image: np.ndarray) -> np.ndarray:
-    out: np.ndarray = image[[2, 1, 0, 3], ...]
+    out: np.ndarray = image[[2, 1, 0, 3], ...]  # type: ignore
     return out
 
 
