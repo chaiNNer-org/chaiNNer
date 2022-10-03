@@ -55,7 +55,7 @@ def norm(x: Tensor):
 def np2tensor(
     img: np.ndarray,
     bgr2rgb=True,
-    data_range=1.0,
+    data_range=1.0,  # pylint: disable=unused-argument
     normalize=False,
     change_range=True,
     add_batch=True,

@@ -1,4 +1,3 @@
-# pylint: skip-file
 # From https://github.com/victorca25/iNNfer/blob/main/utils/utils.py
 from __future__ import annotations
 
