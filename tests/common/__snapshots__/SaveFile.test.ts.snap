@@ -580,7 +580,9 @@ Object {
     Object {
       "data": Object {
         "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-        "inputData": Object {},
+        "inputData": Object {
+          "2": 0,
+        },
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -597,7 +599,9 @@ Object {
     Object {
       "data": Object {
         "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-        "inputData": Object {},
+        "inputData": Object {
+          "2": 0,
+        },
         "schemaId": "chainner:onnx:upscale_image",
       },
       "height": 297,
@@ -2484,7 +2488,9 @@ Object {
     Object {
       "data": Object {
         "id": "5961ee68-6b8f-43ad-9120-52e06689ae77",
-        "inputData": Object {},
+        "inputData": Object {
+          "2": 0,
+        },
         "schemaId": "chainner:ncnn:upscale_image",
       },
       "height": 218,
@@ -2820,7 +2826,9 @@ Object {
     Object {
       "data": Object {
         "id": "0ff35754-a542-4812-b3d5-2f1897c1972b",
-        "inputData": Object {},
+        "inputData": Object {
+          "2": 0,
+        },
         "schemaId": "chainner:pytorch:upscale_image",
       },
       "height": 218,
@@ -3588,7 +3596,7 @@ Object {
 
 exports[`Write save file convert-onnx-update.chn 1`] = `
 Object {
-  "checksum": "25e990edb8261f3b7fa470f9e070d42b",
+  "checksum": "5bbe82af0d09c49d67e2e84dd4dc6b38",
   "content": Object {
     "edges": Array [
       Object {
@@ -3884,7 +3892,9 @@ Object {
       Object {
         "data": Object {
           "id": "de61827f-8ed5-452e-ab35-80ce382ff894",
-          "inputData": Object {},
+          "inputData": Object {
+            "2": 0,
+          },
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
@@ -3901,7 +3911,9 @@ Object {
       Object {
         "data": Object {
           "id": "e8b0956f-93a5-4622-a03b-399d5219cfb4",
-          "inputData": Object {},
+          "inputData": Object {
+            "2": 0,
+          },
           "schemaId": "chainner:onnx:upscale_image",
         },
         "height": 297,
@@ -5756,7 +5768,7 @@ Object {
 
 exports[`Write save file ncnn.chn 1`] = `
 Object {
-  "checksum": "f0218e94570b611d7f1e057d6aa527f3",
+  "checksum": "57515cc3f2f040e9ef177d168af6b93b",
   "content": Object {
     "edges": Array [
       Object {
@@ -5844,7 +5856,9 @@ Object {
       Object {
         "data": Object {
           "id": "5961ee68-6b8f-43ad-9120-52e06689ae77",
-          "inputData": Object {},
+          "inputData": Object {
+            "2": 0,
+          },
           "schemaId": "chainner:ncnn:upscale_image",
         },
         "height": 218,
@@ -6100,7 +6114,7 @@ Object {
 
 exports[`Write save file pytorch.chn 1`] = `
 Object {
-  "checksum": "39a2553412e2d32bdf54893f21c37d7f",
+  "checksum": "40d62300c7beaaccbb42be1660bb02f3",
   "content": Object {
     "edges": Array [
       Object {
@@ -6196,7 +6210,9 @@ Object {
       Object {
         "data": Object {
           "id": "0ff35754-a542-4812-b3d5-2f1897c1972b",
-          "inputData": Object {},
+          "inputData": Object {
+            "2": 0,
+          },
           "schemaId": "chainner:pytorch:upscale_image",
         },
         "height": 218,

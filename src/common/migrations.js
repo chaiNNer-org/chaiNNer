@@ -691,6 +691,22 @@ const removeTargetTileSize = (data) => {
     return data;
 };
 
+const addTargetTileSizeAgain = (data) => {
+    data.nodes.forEach((node) => {
+        if (
+            [
+                'chainner:ncnn:upscale_image',
+                'chainner:onnx:upscale_image',
+                'chainner:pytorch:upscale_image',
+            ].includes(node.data.schemaId)
+        ) {
+            node.data.inputData[2] = 0;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -729,6 +745,7 @@ const migrations = [
     removeEmptyStrings,
     blockSizeToRadius,
     removeTargetTileSize,
+    addTargetTileSizeAgain,
 ];
 
 export const currentMigration = migrations.length;
