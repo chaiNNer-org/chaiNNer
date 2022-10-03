@@ -19,7 +19,7 @@ from ...properties.inputs import (
     VideoTypeDropdown,
     VideoFileInput,
 )
-from ...properties.outputs import ImageOutput, NumberOutput, TextOutput
+from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
 from ...utils.image_utils import normalize
 from ...utils.utils import get_h_w_c
 
@@ -36,6 +36,7 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.outputs = [
             ImageOutput("Frame Image", broadcast_type=True),
             NumberOutput("Frame Index"),
+            DirectoryOutput("Video Directory"),
             TextOutput("Video Name"),
         ]
 
@@ -49,9 +50,9 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.side_effects = True
 
     def run(
-        self, img: np.ndarray, idx: int, video_name: str
-    ) -> Tuple[np.ndarray, int, str]:
-        return normalize(img), idx, video_name
+        self, img: np.ndarray, idx: int, video_dir: str, video_name: str
+    ) -> Tuple[np.ndarray, int, str, str]:
+        return normalize(img), idx, video_dir, video_name
 
 
 @NodeFactory.register(VIDEO_ITERATOR_OUTPUT_NODE_ID)
@@ -147,6 +148,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id
 
         base_name = os.path.basename(path)
+        video_dir = os.path.dirname(path)
         video_name = os.path.splitext(base_name)[0]
 
         # TODO: Open Video Buffer
@@ -165,7 +167,9 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                     print("Can't receive frame (stream end?). Exiting ...")
                     return False
 
-                context.inputs.set_values(input_node_id, [frame, index, video_name])
+                context.inputs.set_values(
+                    input_node_id, [frame, index, video_dir, video_name]
+                )
 
             await context.run(range(frame_count), before)
         finally:
