@@ -49,8 +49,6 @@ for root, dirs, files in os.walk(
                 os.path.join(root, file), os.path.dirname(__file__)
             )
             module = module.replace(os.path.sep, ".")[:-3]
-            logger.info(module)
-            print(module)
             try:
                 importlib.import_module(f"{module}", package=None)
             except ImportError as e:
@@ -60,9 +58,12 @@ for root, dirs, files in os.walk(
                 # Turn path into __init__.py path
                 init_module = module.split(".")
                 init_module[-1] = "__init__"
-                init_module = ".".join(module)
-                category = getattr(importlib.import_module(init_module), "category")
-                missing_categories.add(category.name)
+                init_module = ".".join(init_module)
+                try:
+                    category = getattr(importlib.import_module(init_module), "category")
+                    missing_categories.add(category.name)
+                except ImportError as ie:
+                    logger.warning(ie)
         # Load categories from __init__.py files
         elif file.endswith(".py") and file == ("__init__.py"):
             try:
@@ -70,7 +71,6 @@ for root, dirs, files in os.walk(
                     os.path.join(root, file), os.path.dirname(__file__)
                 )
                 module = module.replace(os.path.sep, ".")[:-3]
-                logger.info(module)
                 # TODO: replace the category system with a dynamic factory
                 category = getattr(importlib.import_module(module), "category")
                 categories.add(category)
