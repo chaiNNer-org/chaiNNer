@@ -8,7 +8,7 @@ import cv2
 from process import IteratorContext
 from sanic.log import logger
 
-from ...categories import ImageCategory
+from . import category as ImageCategory
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (

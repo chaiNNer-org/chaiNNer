@@ -2,7 +2,7 @@ import os
 
 from sanic.log import logger
 
-from ...categories import NCNNCategory
+from . import category as NCNNCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory

@@ -6,7 +6,7 @@ from sanic.log import logger
 from process import IteratorContext
 
 from .load_model import LoadModelNode
-from ...categories import PyTorchCategory
+from . import category as PyTorchCategory
 from ...node_base import NodeBase, IteratorNodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import *

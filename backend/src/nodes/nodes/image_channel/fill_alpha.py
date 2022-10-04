@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from ...categories import ImageChannelCategory
+from . import category as ImageChannelCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, AlphaFillMethodInput, AlphaFillMethod

@@ -4,7 +4,7 @@ import os
 
 from sanic.log import logger
 
-from ...categories import ONNXCategory
+from . import category as ONNXCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, DirectoryInput, TextInput

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...categories import PyTorchCategory
+from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput

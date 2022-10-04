@@ -18,14 +18,6 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
-
-from nodes.categories import (
-    categories,
-    category_order,
-    PyTorchCategory,
-    ONNXCategory,
-    NCNNCategory,
-)
 from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
 
@@ -42,10 +34,12 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
-
+from nodes.nodes.builtin_categories import category_order
 
 missing_node_count = 0
+categories = set()
 missing_categories = set()
+
 # Dynamically import all nodes
 for root, dirs, files in os.walk(
     os.path.join(os.path.dirname(__file__), "nodes", "nodes")
@@ -62,14 +56,32 @@ for root, dirs, files in os.walk(
                 missing_node_count += 1
                 logger.warning(f"Failed to import {module}: {e}")
 
-                # A bit of hardcoding, but for these it's fine
-                # TODO: Could make it so the __init__.py files define what to do when it fails to import
-                if "torch" in str(e).lower() or "facexlib" in str(e).lower():
-                    missing_categories.add(PyTorchCategory.name)
-                elif "onnx" in str(e).lower():
-                    missing_categories.add(ONNXCategory.name)
-                elif "ncnn" in str(e).lower():
-                    missing_categories.add(NCNNCategory.name)
+                # Turn path into __init__.py path
+                init_module = module.split(".")
+                init_module[-1] = "__init__"
+                init_module = ".".join(init_module)
+                try:
+                    category = getattr(importlib.import_module(init_module), "category")
+                    missing_categories.add(category.name)
+                except ImportError as ie:
+                    logger.warning(ie)
+        # Load categories from __init__.py files
+        elif file.endswith(".py") and file == ("__init__.py"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            try:
+                # TODO: replace the category system with a dynamic factory
+                category = getattr(importlib.import_module(module), "category")
+                categories.add(category)
+            except:
+                pass
+
+
+categories = sorted(
+    list(categories), key=lambda category: category_order.index(category.name)
+)
 
 
 class AppContext:

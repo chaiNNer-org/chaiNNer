@@ -5,7 +5,7 @@ from typing import Tuple, List
 import numpy as np
 from process import IteratorContext
 
-from ...categories import ImageCategory
+from . import category as ImageCategory
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import IteratorInput, ImageInput, NumberInput
