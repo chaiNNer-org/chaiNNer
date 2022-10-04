@@ -82,7 +82,7 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, model: OnnxModel):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(model, fake_img, None)
+        result = OnnxImageUpscaleNode().run(model, fake_img, 0)
 
         mean_color = np.mean(result)
         del result
