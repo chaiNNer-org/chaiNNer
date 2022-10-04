@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...categories import UtilityCategory
+from . import category as UtilityCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory

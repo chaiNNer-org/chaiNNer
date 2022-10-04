@@ -7,7 +7,7 @@ import numpy as np
 from process import IteratorContext
 from sanic.log import logger
 
-from ...categories import ImageCategory
+from . import category as ImageCategory
 from ..image.load_image import ImReadNode
 from ...node_base import IteratorNodeBase, NodeBase
 from ...node_factory import NodeFactory

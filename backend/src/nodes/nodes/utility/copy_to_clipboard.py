@@ -4,7 +4,7 @@ from typing import Union
 
 from nodes.utils import clipboard
 
-from ...categories import UtilityCategory
+from . import category as UtilityCategory
 
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory

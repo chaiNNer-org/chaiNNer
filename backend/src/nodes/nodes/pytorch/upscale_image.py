@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from sanic.log import logger
 
-from ...categories import PyTorchCategory
+from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, ImageInput, TileModeDropdown

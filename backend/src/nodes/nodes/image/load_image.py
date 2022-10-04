@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from ...categories import ImageCategory
+from . import category as ImageCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageFileInput

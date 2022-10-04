@@ -4,7 +4,7 @@ from typing import Tuple
 
 import onnx
 import onnxoptimizer
-from ...categories import ONNXCategory
+from . import category as ONNXCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, OnnxFpDropdown
