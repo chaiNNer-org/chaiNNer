@@ -331,7 +331,7 @@ def TileSizeDropdown(label="Tile Size") -> DropDownInput:
     options = [
         {"option": "Auto", "value": 0},
     ]
-    for size in [128, 192, 256, 384, 512, 768, 1024, 2048]:
+    for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
         options.append({"option": str(size), "value": size})
 
     return DropDownInput(
