@@ -1,5 +1,5 @@
+import { Type } from '@chainner/navi';
 import { OutputId, OutputKind, SchemaId } from '../../../common/common-types';
-import { Type } from '../../../common/types/types';
 
 export interface OutputProps {
     readonly id: string;

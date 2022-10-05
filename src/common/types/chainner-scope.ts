@@ -1,11 +1,17 @@
+import {
+    BuiltinFunctionDefinition,
+    Scope,
+    ScopeBuilder,
+    SourceDocument,
+    StringType,
+    StructType,
+    Type,
+    globalScope,
+    parseDefinitions,
+    union,
+} from '@chainner/navi';
 import { lazy } from '../util';
 import { formatTextPattern } from './chainner-format';
-import { globalScope } from './global-scope';
-import { parseDefinitions } from './parse';
-import { BuiltinFunctionDefinition, Scope, ScopeBuilder } from './scope';
-import { SourceDocument } from './source';
-import { StringType, StructType, Type } from './types';
-import { union } from './union';
 
 const code = `
 struct null;
