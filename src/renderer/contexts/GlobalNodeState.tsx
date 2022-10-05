@@ -1,3 +1,4 @@
+import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -29,9 +30,6 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 import { getChainnerScope } from '../../common/types/chainner-scope';
-import { evaluate } from '../../common/types/evaluate';
-import { Expression } from '../../common/types/expression';
-import { Type } from '../../common/types/types';
 import {
     EMPTY_SET,
     createUniqueId,

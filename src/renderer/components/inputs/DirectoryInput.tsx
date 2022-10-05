@@ -1,3 +1,4 @@
+import { Type } from '@chainner/navi';
 import {
     Input,
     InputGroup,
@@ -13,7 +14,6 @@ import { BsFolderPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
-import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
