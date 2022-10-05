@@ -195,7 +195,7 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
-    "@chainner/navi": "file:../Navi",
+    "@chainner/navi": "^0.1.0",
     "@chakra-ui/icons": "^2.0.1",
     "@chakra-ui/react": "^2.1.2",
     "@emotion/react": "^11.9.0",
