@@ -1,3 +1,4 @@
+import { Type } from '@chainner/navi';
 import { CloseIcon, SearchIcon, StarIcon } from '@chakra-ui/icons';
 import {
     Box,
@@ -23,7 +24,6 @@ import {
     SchemaId,
 } from '../../common/common-types';
 import { FunctionDefinition } from '../../common/types/function';
-import { Type } from '../../common/types/types';
 import {
     assertNever,
     createUniqueId,

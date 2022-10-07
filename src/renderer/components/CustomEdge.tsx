@@ -85,6 +85,7 @@ export const CustomEdge = memo(
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
                 }}
+                onDoubleClick={() => removeEdgeById(id)}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}

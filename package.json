@@ -55,7 +55,9 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "chainner"
+            "name": "chainner",
+            "iconUrl": "./src/public/icons/win/icon.ico",
+            "setupIcon": "./src/public/icons/win/icon.ico"
           }
         },
         {
@@ -70,7 +72,8 @@
           "name": "@electron-forge/maker-dmg",
           "config": {
             "format": "ULFO",
-            "name": "chaiNNer"
+            "name": "chaiNNer",
+            "icon": "./src/public/icons/mac/icon.icns"
           }
         },
         {
@@ -88,6 +91,17 @@
             "name": "chainner",
             "options": {
               "icon": "./src/public/icons/cross_platform/icon.png"
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-flatpak",
+          "config": {
+            "options": {
+              "name": "chainner",
+              "options": {
+                "icon": "./src/public/icons/cross_platform/icon.png"
+              }
             }
           }
         }
@@ -133,7 +147,6 @@
     "@electron-forge/plugin-webpack": "^6.0.0-beta.65",
     "@electron-forge/publisher-github": "^6.0.0-beta.65",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
-    "@types/antlr4": "^4.7.2",
     "@types/d3": "^7.4.0",
     "@types/decompress": "^4.2.4",
     "@types/jest": "^28.1.0",
@@ -182,13 +195,13 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
+    "@chainner/navi": "^0.1.0",
     "@chakra-ui/icons": "^2.0.1",
     "@chakra-ui/react": "^2.1.2",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@fontsource/open-sans": "^4.5.10",
     "@react-nano/use-event-source": "^0.12.0",
-    "antlr4": "^4.10.1",
     "cross-fetch": "^3.1.5",
     "decompress": "^4.2.1",
     "electron-log": "^4.4.8",

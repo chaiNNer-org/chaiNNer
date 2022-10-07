@@ -1,8 +1,7 @@
+import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { Center, Flex, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -26,16 +25,13 @@ export const GenericOutput = memo(
             if (isStartingNode(schema)) {
                 if (value !== undefined) {
                     if (kind === 'text') {
-                        setManualOutputType(id, outputId, new StringLiteralType(value as string));
+                        setManualOutputType(id, outputId, literal(value as string));
                     } else if (kind === 'directory') {
                         setManualOutputType(
                             id,
                             outputId,
                             new NamedExpression('Directory', [
-                                new NamedExpressionField(
-                                    'path',
-                                    new StringLiteralType(value as string)
-                                ),
+                                new NamedExpressionField('path', literal(value as string)),
                             ])
                         );
                     }

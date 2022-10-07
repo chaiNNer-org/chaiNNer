@@ -34,9 +34,14 @@ interface NodesInfo {
     schemata: SchemaMap;
     categories: Category[];
     functionDefinitions: Map<SchemaId, FunctionDefinition>;
+    categoriesMissingNodes: string[];
 }
 
-const processBackendResponse = ({ nodes, categories }: BackendNodesResponse): NodesInfo => {
+const processBackendResponse = ({
+    nodes,
+    categories,
+    categoriesMissingNodes,
+}: BackendNodesResponse): NodesInfo => {
     const schemata = new SchemaMap(nodes);
 
     const functionDefinitions = new Map<SchemaId, FunctionDefinition>();
@@ -58,7 +63,7 @@ const processBackendResponse = ({ nodes, categories }: BackendNodesResponse): No
         throw new Error(errors.join('\n\n'));
     }
 
-    return { schemata, categories, functionDefinitions };
+    return { schemata, categories, functionDefinitions, categoriesMissingNodes };
 };
 
 const nodeTypes: NodeTypes & Record<NodeType, unknown> = {
@@ -180,6 +185,7 @@ export const Main = memo(({ port }: MainProps) => {
             <SettingsProvider>
                 <BackendProvider
                     categories={nodesInfo.categories}
+                    categoriesMissingNodes={nodesInfo.categoriesMissingNodes}
                     functionDefinitions={nodesInfo.functionDefinitions}
                     port={port}
                     pythonInfo={pythonInfo}

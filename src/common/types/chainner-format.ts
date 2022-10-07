@@ -1,5 +1,3 @@
-import { concat } from './builtin';
-import { intersect } from './intersection';
 import {
     NeverType,
     StringLiteralType,
@@ -8,7 +6,9 @@ import {
     StructType,
     UnionType,
     ValueType,
-} from './types';
+    builtin,
+    intersect,
+} from '@chainner/navi';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -133,5 +133,5 @@ export const formatTextPattern = (
         }
     }
 
-    return concat(...concatArgs);
+    return builtin.concat(...concatArgs);
 };

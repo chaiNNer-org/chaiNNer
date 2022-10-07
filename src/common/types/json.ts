@@ -1,18 +1,21 @@
-import { assertNever } from '../util';
 import {
     Expression,
     FieldAccessExpression,
     FunctionCallExpression,
+    IntIntervalType,
     IntersectionExpression,
+    IntervalType,
     MatchArm,
     MatchExpression,
     NamedExpression,
     NamedExpressionField,
+    NumericLiteralType,
+    SourceDocument,
+    StringLiteralType,
     UnionExpression,
-} from './expression';
-import { parseExpression } from './parse';
-import { SourceDocument } from './source';
-import { IntIntervalType, IntervalType, NumericLiteralType, StringLiteralType } from './types';
+    parseExpression,
+} from '@chainner/navi';
+import { assertNever } from '../util';
 
 export type NumberJson = number | 'inf' | '-inf' | 'NaN';
 

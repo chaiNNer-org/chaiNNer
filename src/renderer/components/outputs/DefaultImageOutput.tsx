@@ -1,11 +1,10 @@
+import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { Center, Flex, Icon, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useReactFlow } from 'reactflow';
 import { BsEyeFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../../common/common-types';
-import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
 import {
     createUniqueId,
     parseSourceHandle,
@@ -42,9 +41,9 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                 id,
                 outputId,
                 new NamedExpression('Image', [
-                    new NamedExpressionField('width', new NumericLiteralType(value.width)),
-                    new NamedExpressionField('height', new NumericLiteralType(value.height)),
-                    new NamedExpressionField('channels', new NumericLiteralType(value.channels)),
+                    new NamedExpressionField('width', literal(value.width)),
+                    new NamedExpressionField('height', literal(value.height)),
+                    new NamedExpressionField('channels', literal(value.channels)),
                 ])
             );
         } else {

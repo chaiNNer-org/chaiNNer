@@ -1,11 +1,9 @@
+import { FunctionCallExpression, Type, evaluate } from '@chainner/navi';
 import { Input } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
-import { evaluate } from '../../../common/types/evaluate';
-import { FunctionCallExpression } from '../../../common/types/expression';
-import { Type } from '../../../common/types/types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
