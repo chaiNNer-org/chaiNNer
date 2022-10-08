@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'reactflow';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { Edge, Node, useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { useThrottledCallback } from 'use-debounce';
 import { checkNodeValidity } from '../../common/checkNodeValidity';
