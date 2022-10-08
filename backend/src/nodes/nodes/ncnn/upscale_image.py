@@ -80,9 +80,6 @@ class NcnnUpscaleImageNode(NodeBase):
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
             heap_budget = vkdev.get_heap_budget() * 1024 * 1024
-            logger.info(heap_budget)
-            logger.info(f"{model.blob_count=}, {model.node_count=}")
-            logger.info(model.bin_length)
 
             def estimate_tile_size() -> Union[int, None]:
                 free = heap_budget
@@ -113,7 +110,6 @@ class NcnnUpscaleImageNode(NodeBase):
 
                 return tile_size
 
-            # logger.info(vkdev.get_heap_budget())
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
                 staging_vkallocator,
@@ -130,6 +126,8 @@ class NcnnUpscaleImageNode(NodeBase):
                     else estimate_tile_size(),
                 )
         except ValueError as e:
+            raise e
+        except RuntimeError as e:
             raise e
         except Exception as e:
             logger.error(e)

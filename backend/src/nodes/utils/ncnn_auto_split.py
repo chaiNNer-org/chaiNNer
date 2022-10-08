@@ -70,6 +70,13 @@ def ncnn_auto_split(
             return result
         except Exception as e:
             if "vkQueueSubmit" in str(e):
+                ex = None
+                del ex
+                gc.collect()
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
+                # TODO: Have someone running into this issue enable this and see if it fixes anything
+                # ncnn.destroy_gpu_instance()
                 raise RuntimeError(
                     "A critical error has occurred. You may need to restart chaiNNer in order for NCNN upscaling to start working again."
                 ) from e
