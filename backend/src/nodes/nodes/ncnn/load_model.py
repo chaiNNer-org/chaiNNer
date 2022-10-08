@@ -26,7 +26,8 @@ class NcnnLoadModelNode(NodeBase):
         self.sub = "Input & Output"
 
     def run(self, param_path: str, bin_path: str) -> Tuple[NcnnModel, str]:
-        model = NcnnModel.load_from_file(param_path, bin_path)
+        model = NcnnModel()
+        model.load_from_file(param_path, bin_path)
         model_name = os.path.splitext(os.path.basename(param_path))[0]
 
         return model, model_name

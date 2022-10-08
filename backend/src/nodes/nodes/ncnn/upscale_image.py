@@ -69,15 +69,50 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        net,
+        model: NcnnModel,
         input_name: str,
         output_name: str,
-        max_tile_size: Union[int, None],
+        tile_size: Union[int, None],
     ):
         exec_options = get_execution_options()
+        net = get_ncnn_net(model, exec_options)
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
+            heap_budget = vkdev.get_heap_budget() * 1024 * 1024
+            logger.info(heap_budget)
+            logger.info(f"{model.blob_count=}, {model.node_count=}")
+            logger.info(model.bin_length)
+
+            def estimate_tile_size() -> Union[int, None]:
+                free = heap_budget
+
+                element_size = 4
+
+                h, w, c = get_h_w_c(img)
+                img_bytes = h * w * c * element_size
+                model_bytes = model.bin_length
+                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
+
+                # Attempt to avoid using too much vram at once
+                free_allowed_usage = 0.8
+                tile_pixels = (
+                    w * h * (free * free_allowed_usage) / mem_required_estimation
+                )
+                # the largest power-of-2 tile_size such that tile_size**2 < tile_pixels
+                tile_size = 2 ** (int(tile_pixels**0.5).bit_length() - 1)
+
+                GB_AMT = 1024**3
+                required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
+                free_mem = f"{free/GB_AMT:.2f}"
+                total_mem = f"{heap_budget/GB_AMT:.2f}"
+                logger.info(
+                    f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total."
+                    f" Estimated tile size: {tile_size}"
+                )
+
+                return tile_size
+
             # logger.info(vkdev.get_heap_budget())
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
@@ -90,7 +125,9 @@ class NcnnUpscaleImageNode(NodeBase):
                     output_name=output_name,
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
-                    max_tile_size=max_tile_size,
+                    max_tile_size=tile_size
+                    if tile_size is not None
+                    else estimate_tile_size(),
                 )
         except ValueError as e:
             raise e
@@ -100,9 +137,6 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(self, model: NcnnModel, img: np.ndarray, tile_size: int) -> np.ndarray:
-        exec_options = get_execution_options()
-        net = get_ncnn_net(model, exec_options)
-
         model_c = model.get_model_in_nc()
 
         def upscale(i: np.ndarray) -> np.ndarray:
@@ -113,7 +147,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 i = cv2.cvtColor(i, cv2.COLOR_BGRA2RGBA)
             i = self.upscale(
                 i,
-                net,
+                model,
                 model.layer_list[0].outputs[0],
                 model.layer_list[-1].outputs[0],
                 tile_size if tile_size > 0 else None,
