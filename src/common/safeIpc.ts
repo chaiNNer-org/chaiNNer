@@ -9,7 +9,7 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
-import { FileOpenResult, FileSaveResult, PythonInfo } from './common-types';
+import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
@@ -25,7 +25,7 @@ export interface InvokeChannels {
     'get-python': ChannelInfo<PythonInfo>;
     'get-port': ChannelInfo<number>;
     'get-localstorage-location': ChannelInfo<string>;
-    'get-app-version': ChannelInfo<string>;
+    'get-app-version': ChannelInfo<Version>;
     'get-vram-usage': ChannelInfo<number | null>;
     'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<

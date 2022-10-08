@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { spawn } from 'child_process';
 import log from 'electron-log';
-import { PythonInfo } from './common-types';
+import { PythonInfo, Version } from './common-types';
 import { Dependency } from './dependencies';
 import { sanitizedEnv } from './env';
 import { pipInstallWithProgress } from './pipInstallWithProgress';
@@ -58,14 +58,14 @@ export const runPip = async (
     });
 };
 
-export type PipList = { [packageName: string]: string | undefined };
+export type PipList = { [packageName: string]: Version | undefined };
 
 export const runPipList = async (info: PythonInfo, onStdio?: OnStdio): Promise<PipList> => {
     const output = await runPip(info, ['list', '--format=json'], onStdio);
 
     interface ListEntry {
         name: string;
-        version: string;
+        version: Version;
     }
     const list = JSON.parse(output) as ListEntry[];
 

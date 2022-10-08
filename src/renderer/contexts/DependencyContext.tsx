@@ -31,12 +31,13 @@ import {
 import log from 'electron-log';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BsTerminalFill } from 'react-icons/bs';
-import semver from 'semver';
 import { createContext, useContext } from 'use-context-selector';
+import { Version } from '../../common/common-types';
 import { Dependency, PyPiPackage, getOptionalDependencies } from '../../common/dependencies';
 import { OnStdio, PipList, runPipInstall, runPipList, runPipUninstall } from '../../common/pip';
 import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
+import { versionGt } from '../../common/version';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
@@ -54,15 +55,6 @@ export const DependencyContext = createContext<Readonly<DependencyContextValue>>
     availableUpdates: 0,
 });
 
-const checkSemverGt = (v1: string, v2: string) => {
-    try {
-        return semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
-    } catch (error) {
-        log.error(error);
-        return false;
-    }
-};
-
 const formatBytes = (bytes: number): string => {
     const KB = 1024 ** 1;
     const MB = 1024 ** 2;
@@ -77,12 +69,12 @@ const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
 
 const FeaturePackage = memo(
-    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion?: string }) => {
+    ({ pkg, installedVersion }: { pkg: PyPiPackage; installedVersion?: Version }) => {
         let color = 'red.500';
         let tagText = 'Missing';
-        let versionString = pkg.version;
+        let versionString: string = pkg.version;
         if (installedVersion) {
-            const outdated = checkSemverGt(pkg.version, installedVersion);
+            const outdated = versionGt(pkg.version, installedVersion);
             if (outdated) {
                 color = 'yellow.500';
                 tagText = 'Outdated';
@@ -134,7 +126,7 @@ const Feature = memo(
         const missingPackages = dep.packages.filter((p) => !pipList[p.packageName]);
         const outdatedPackages = dep.packages.filter((p) => {
             const installedVersion = pipList[p.packageName];
-            return installedVersion && checkSemverGt(p.version, installedVersion);
+            return installedVersion && versionGt(p.version, installedVersion);
         });
 
         return (
@@ -395,7 +387,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 if (!installedVersion) {
                     return true;
                 }
-                return checkSemverGt(version, installedVersion);
+                return versionGt(version, installedVersion);
             })
         ).length;
     }, [pipList, availableDeps]);
