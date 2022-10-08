@@ -1,0 +1,12 @@
+{
+    "extends": [
+        "stylelint-config-standard-scss",
+        "stylelint-prettier/recommended",
+        "stylelint-config-prettier-scss"
+    ],
+    "rules": {
+        "custom-property-empty-line-before": null,
+        "no-descending-specificity": null,
+        "selector-class-pattern": "^[a-z]+(?:-[a-z]+)*(?:__[a-z]+(?:-[a-z]+)*)?$"
+    }
+}
