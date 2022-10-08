@@ -46,7 +46,7 @@ export const ChaiNNerLogo = memo(({ size = 1024, percent = 1 }: chaiNNerLogoProp
                             strokeWidth: '20px',
                             stroke: 'var(--chakra-colors-gray-500)',
                             strokeDasharray: 5,
-                            animation: '_dashdraw 0.5s linear infinite',
+                            animation: 'logo-dashdraw 0.5s linear infinite',
                         }}
                     />
                 </g>
