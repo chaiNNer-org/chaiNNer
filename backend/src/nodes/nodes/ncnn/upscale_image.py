@@ -16,6 +16,7 @@ from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.exec_options import get_execution_options
+from ...utils.auto_split import estimate_tile_size
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModel
 from ...utils.ncnn_session import get_ncnn_net
@@ -81,34 +82,13 @@ class NcnnUpscaleImageNode(NodeBase):
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
             heap_budget = vkdev.get_heap_budget() * 1024 * 1024
 
-            def estimate_tile_size() -> Union[int, None]:
-                free = heap_budget
-
-                element_size = 4
-
-                h, w, c = get_h_w_c(img)
-                img_bytes = h * w * c * element_size
-                model_bytes = model.bin_length
-                mem_required_estimation = (model_bytes / (1024 * 52)) * img_bytes
-
-                # Attempt to avoid using too much vram at once
-                free_allowed_usage = 0.8
-                tile_pixels = (
-                    w * h * (free * free_allowed_usage) / mem_required_estimation
+            max_tile_size = (
+                tile_size
+                if tile_size is not None
+                else estimate_tile_size(
+                    heap_budget, heap_budget, model.bin_length, img, 4, 0.8
                 )
-                # the largest power-of-2 tile_size such that tile_size**2 < tile_pixels
-                tile_size = 2 ** (int(tile_pixels**0.5).bit_length() - 1)
-
-                GB_AMT = 1024**3
-                required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
-                free_mem = f"{free/GB_AMT:.2f}"
-                total_mem = f"{heap_budget/GB_AMT:.2f}"
-                logger.info(
-                    f"Estimating memory required: {required_mem} GB, {free_mem} GB free, {total_mem} GB total."
-                    f" Estimated tile size: {tile_size}"
-                )
-
-                return tile_size
+            )
 
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
@@ -121,9 +101,7 @@ class NcnnUpscaleImageNode(NodeBase):
                     output_name=output_name,
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
-                    max_tile_size=tile_size
-                    if tile_size is not None
-                    else estimate_tile_size(),
+                    max_tile_size=max_tile_size,
                 )
         except ValueError as e:
             raise e
