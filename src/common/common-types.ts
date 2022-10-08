@@ -111,9 +111,17 @@ export interface EdgeData {
     readonly complete?: boolean;
 }
 
+/**
+ * A valid semantic version or a string that can be coerced into one.
+ */
+export type Version =
+    | `${number}.${number}.${number}`
+    | `${number}.${number}.${number}${'+' | '-'}${string}`
+    | (string & { readonly __coerceableVersionString: undefined });
+
 export interface PythonInfo {
     readonly python: string;
-    readonly version: string;
+    readonly version: Version;
 }
 
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;

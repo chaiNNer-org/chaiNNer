@@ -1,3 +1,4 @@
+import { Version } from './common-types';
 import { isM1, isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
@@ -6,7 +7,7 @@ const GB = 1024 ** 3;
 
 export interface PyPiPackage {
     packageName: string;
-    version: string;
+    version: Version;
     findLink?: string;
     /**
      * A size estimate (in bytes) for the whl file to download.
@@ -125,6 +126,6 @@ if (isMac && !isM1) {
 } else if (isWindows) {
     requiredDependencies.push({
         name: 'Pywin32',
-        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB }],
+        packages: [{ packageName: 'pywin32', version: '304' as Version, sizeEstimate: 12 * MB }],
     });
 }
