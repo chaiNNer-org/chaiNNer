@@ -111,6 +111,9 @@ export interface EdgeData {
     readonly complete?: boolean;
 }
 
+/**
+ * A valid semantic version or a string that can be coerced into one.
+ */
 export type Version =
     | `${number}.${number}.${number}`
     | `${number}.${number}.${number}${'+' | '-'}${string}`
