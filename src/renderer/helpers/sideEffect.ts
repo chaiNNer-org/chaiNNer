@@ -1,4 +1,4 @@
-import { Edge, Node } from 'react-flow-renderer';
+import { Edge, Node } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 

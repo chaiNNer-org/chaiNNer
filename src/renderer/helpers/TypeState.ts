@@ -6,7 +6,7 @@ import {
     StructType,
     Type,
 } from '@chainner/navi';
-import { Edge, Node } from 'react-flow-renderer';
+import { Edge, Node } from 'reactflow';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
 import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
 import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../../common/util';

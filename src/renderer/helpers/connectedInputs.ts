@@ -1,4 +1,4 @@
-import { Edge } from 'react-flow-renderer';
+import { Edge } from 'reactflow';
 import { EdgeData, InputId } from '../../common/common-types';
 import { parseTargetHandle } from '../../common/util';
 

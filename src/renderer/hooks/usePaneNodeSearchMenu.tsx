@@ -13,7 +13,7 @@ import {
     Text,
 } from '@chakra-ui/react';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { Node, OnConnectStartParams, useReactFlow } from 'react-flow-renderer';
+import { Node, OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import {
     Category,

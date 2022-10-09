@@ -1,7 +1,7 @@
 import { Type } from '@chainner/navi';
 import { Box, Center, HStack, Text, chakra } from '@chakra-ui/react';
 import React, { memo, useMemo } from 'react';
-import { Connection, Handle, Node, Position, useReactFlow } from 'react-flow-renderer';
+import { Connection, Handle, Node, Position, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, NodeData } from '../../../common/common-types';
 import { parseSourceHandle, parseTargetHandle, stringifyTargetHandle } from '../../../common/util';

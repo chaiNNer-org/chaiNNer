@@ -1,7 +1,7 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import log from 'electron-log';
 import { memo, useEffect, useRef, useState } from 'react';
-import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'react-flow-renderer';
+import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import useFetch, { CachePolicies } from 'use-http';
 import { BackendNodesResponse } from '../common/Backend';

@@ -2,6 +2,7 @@ import { Expression, Type, evaluate } from '@chainner/navi';
 import log from 'electron-log';
 import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import {
     Connection,
     Edge,
@@ -11,8 +12,7 @@ import {
     getOutgoers,
     useReactFlow,
     useViewport,
-} from 'react-flow-renderer';
-import { useHotkeys } from 'react-hotkeys-hook';
+} from 'reactflow';
 import { createContext, useContext } from 'use-context-selector';
 import {
     EdgeData,

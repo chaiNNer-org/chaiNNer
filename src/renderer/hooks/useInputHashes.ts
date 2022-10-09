@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Edge, Node, useReactFlow } from 'react-flow-renderer';
+import { Edge, Node, useReactFlow } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { SchemaMap } from '../../common/SchemaMap';
 import { EMPTY_MAP, deriveUniqueId, stringifyTargetHandle } from '../../common/util';
