@@ -3,8 +3,9 @@ import log from 'electron-log';
 import { readFile, writeFile } from 'fs/promises';
 import { Edge, Node, Viewport } from 'reactflow';
 import semver from 'semver';
-import { EdgeData, FileOpenResult, NodeData } from './common-types';
+import { EdgeData, FileOpenResult, NodeData, Version } from './common-types';
 import { currentMigration, migrate } from './migrations';
+import { versionGt } from './version';
 
 export interface SaveData {
     nodes: Node<NodeData>[];
@@ -17,7 +18,7 @@ export interface ParsedSaveData extends SaveData {
 }
 
 export interface RawSaveFile {
-    version: string;
+    version: Version;
     content: SaveData;
     timestamp?: string;
     checksum?: string;
@@ -48,7 +49,7 @@ export class SaveFile {
             } else {
                 // checksum was added after v0.6.1, so any saves >0.6.1 without a checksum have
                 // been tampered with
-                tamperedWith = semver.gt(version, '0.6.1') || (migration ?? 0) > 4;
+                tamperedWith = versionGt(version, '0.6.1') || (migration ?? 0) > 4;
             }
 
             data = migrate(version, content, migration) as SaveData;
@@ -67,7 +68,7 @@ export class SaveFile {
         return SaveFile.parse(await readFile(path, { encoding: 'utf-8' }));
     }
 
-    static stringify(content: SaveData, version: string): string {
+    static stringify(content: SaveData, version: Version): string {
         const { nodes, edges, viewport } = content;
         const sanitizedNodes = nodes.map<Node<NodeData>>((n) => ({
             data: {
@@ -100,7 +101,7 @@ export class SaveFile {
         return JSON.stringify(data);
     }
 
-    static async write(path: string, saveData: SaveData, version: string): Promise<void> {
+    static async write(path: string, saveData: SaveData, version: Version): Promise<void> {
         await writeFile(path, SaveFile.stringify(saveData, version), 'utf-8');
     }
 }

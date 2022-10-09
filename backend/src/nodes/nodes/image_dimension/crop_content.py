@@ -33,7 +33,11 @@ class ContentCropNode(NodeBase):
                 image_type="""
                 match Input0.channels {
                     ..3 => Input0,
-                    _ => Image { channels: Input0.channels }
+                    _ => Image {
+                        width: min(uint, Input0.width) & 1..,
+                        height: min(uint, Input0.height) & 1..,
+                        channels: Input0.channels
+                    }
                 }
                 """
             )

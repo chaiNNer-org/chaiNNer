@@ -1,8 +1,9 @@
 import https from 'https';
-import semver from 'semver';
+import { Version } from '../common/common-types';
+import { parse, versionGt } from '../common/version';
 
 export interface LatestVersion {
-    version: string;
+    version: Version;
     releaseUrl: string;
     body: string;
 }
@@ -34,10 +35,10 @@ export const getLatestVersion = () =>
                     };
 
                     const releaseUrl = latest.html_url;
-                    const latestVersionNum = semver.coerce(latest.tag_name)!;
+                    const latestVersionNum = parse(latest.tag_name);
                     const { body } = latest;
                     resolve({
-                        version: latestVersionNum.version,
+                        version: latestVersionNum,
                         releaseUrl,
                         body,
                     });
@@ -54,9 +55,9 @@ export const getLatestVersion = () =>
         req.end();
     });
 
-export const hasUpdate = async (currentVersion: string): Promise<LatestVersion | undefined> => {
+export const hasUpdate = async (currentVersion: Version): Promise<LatestVersion | undefined> => {
     const latest = await getLatestVersion();
-    if (!semver.gt(latest.version, currentVersion)) {
+    if (!versionGt(latest.version, currentVersion)) {
         return undefined;
     }
     return latest;
