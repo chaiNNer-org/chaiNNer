@@ -1,5 +1,5 @@
 from typing import Union, Literal
-from base_types import InputId
+from ....base_types import InputId
 from .. import expression
 
 InputKind = Literal[

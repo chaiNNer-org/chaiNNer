@@ -1,6 +1,6 @@
 from typing import Any, List, Literal, Optional, Tuple, TypedDict, Union
 
-from base_types import NodeId
+from ..base_types import NodeId
 
 from .chain import Chain, IteratorNode, FunctionNode, Edge, EdgeSource, EdgeTarget
 from .input import InputMap, EdgeInput, ValueInput, Input

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Literal
 
-from base_types import InputId, OutputId
+from ..base_types import InputId, OutputId
 
 from .category import Category
 

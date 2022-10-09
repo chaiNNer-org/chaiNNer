@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
-from base_types import NodeId
+from ..base_types import NodeId
 
 
 class EdgeInput:
