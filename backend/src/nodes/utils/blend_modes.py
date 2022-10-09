@@ -23,6 +23,11 @@ class BlendModes:
     DIVIDE = 15
     EXCLUSION = 16
     SOFT_LIGHT = 17
+    HARD_LIGHT = 18
+    VIVID_LIGHT = 19
+    LINEAR_LIGHT = 20
+    PIN_LIGHT = 21
+    LINEAR_BURN = 22
 
 
 __normalized = {
@@ -44,6 +49,11 @@ __normalized = {
     BlendModes.DIVIDE: False,
     BlendModes.EXCLUSION: True,
     BlendModes.SOFT_LIGHT: True,
+    BlendModes.HARD_LIGHT: True,
+    BlendModes.VIVID_LIGHT: False,
+    BlendModes.LINEAR_LIGHT: False,
+    BlendModes.PIN_LIGHT: True,
+    BlendModes.LINEAR_BURN: False,
 }
 
 
@@ -77,6 +87,11 @@ class ImageBlender:
             BlendModes.DIVIDE: self.__divide,
             BlendModes.EXCLUSION: self.__exclusion,
             BlendModes.SOFT_LIGHT: self.__soft_light,
+            BlendModes.HARD_LIGHT: self.__hard_light,
+            BlendModes.VIVID_LIGHT: self.__vivid_light,
+            BlendModes.LINEAR_LIGHT: self.__linear_light,
+            BlendModes.PIN_LIGHT: self.__pin_light,
+            BlendModes.LINEAR_BURN: self.__linear_burn,
         }
 
     def apply_blend(self, a: np.ndarray, b: np.ndarray, blend_mode: int) -> np.ndarray:
@@ -112,7 +127,7 @@ class ImageBlender:
         return np.where(b == 1, 1, np.minimum(1, a * a / np.maximum(0.0001, 1 - b)))
 
     def __overlay(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return np.where(b < 0.5, (2 * b * a), (1 - (2 * (1 - b) * (1 - a))))
+        return np.where(b < 0.5, 2 * b * a, 1 - 2 * (1 - b) * (1 - a))
 
     def __difference(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return cv2.absdiff(a, b)
@@ -141,4 +156,23 @@ class ImageBlender:
         return a * (1 - b) + b * (1 - a)
 
     def __soft_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        return 2 * b * a + b * b * (1 - 2 * a)
+        l = 2 * b * a + np.square(b) * (1 - 2 * a)
+        h = np.square(b) * (2 * a - 1) + 2 * a * (1 - b)
+        return np.where(a <= 0.5, l, h)
+
+    def __hard_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return np.where(a <= 0.5, 2 * a * b, 1 - 2 * (1 - a) * (1 - b))
+
+    def __vivid_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return np.where(a <= 0.5, self.__color_burn(a, b), self.__color_dodge(a, b))
+
+    def __linear_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return b + 2 * a - 1
+
+    def __pin_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        x = 2 * a
+        y = x - 1
+        return np.where(b < y, y, np.where(b > x, x, b))
+
+    def __linear_burn(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        return a + b - 1
