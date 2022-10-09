@@ -1,6 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Lint
+name: Tests
 
 # Controls when the workflow will run
 on:
@@ -10,6 +8,8 @@ on:
             - opened
             - synchronize
             - closed
+        paths:
+            - 'backend/**'
     push:
         branches: [main]
 
@@ -18,38 +18,26 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-    backend-formatting:
+    backend-tests:
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ['3.8', '3.9']
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.9
+            - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v1
               with:
-                  python-version: 3.9
-            - name: Install dependencies
-              run: |
+                  python-version: ${{ matrix.python-version }}
+            - run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
-            - name: Black
-              run: black --check backend/
-    backend-lint:
+            - run: pytest ./backend/tests
+    backend-min-dependencies-tests:
         runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-            - name: Set up Python 3.9
-              uses: actions/setup-python@v1
-              with:
-                  python-version: 3.9
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-            - name: pylint
-              run: pylint backend/ --output-format=colorized --disable="C,R" --fail-under=10
-            - name: pyright
-              run: pyright backend/
-    frontend-lint:
-        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ['3.8', '3.9', '3.10']
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js 16.x
@@ -58,9 +46,11 @@ jobs:
                   node-version: 16.x
               # Node v14 comes with npm@6.x by default.
               # This version of npm does NOT install peer deps by default which is required by some of our deps
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v1
+              with:
+                  python-version: ${{ matrix.python-version }}
             - run: npm i -g npm@7
             - run: npm ci --force
-            - name: eslint
-              run: npm run lint-js-ci
-            - name: typescript
-              run: npx tsc
+            - run: npx ts-node ./scripts/install-required-deps.ts
+            - run: python ./backend/src/run.py --no-run
