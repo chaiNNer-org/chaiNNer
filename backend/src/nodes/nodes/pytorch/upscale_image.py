@@ -68,12 +68,16 @@ class ImageUpscaleNode(NodeBase):
             max_tile_size = tile_size
             if "cuda" in options.device and tile_size is not None:
                 mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
-                free, total = mem_info
+                free, _total = mem_info
                 element_size = 2 if use_fp16 else 4
                 model_bytes = sum(p.numel() * element_size for p in model.parameters())
+                budget = int(free * 0.6)
 
                 max_tile_size = estimate_tile_size(
-                    free, total, model_bytes, img, element_size, 0.6
+                    budget,
+                    model_bytes,
+                    img,
+                    element_size,
                 )
 
             img_out = pytorch_auto_split(

@@ -80,14 +80,12 @@ class NcnnUpscaleImageNode(NodeBase):
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
-            heap_budget = vkdev.get_heap_budget() * 1024 * 1024
+            heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
 
             max_tile_size = (
                 tile_size
                 if tile_size is not None
-                else estimate_tile_size(
-                    heap_budget, heap_budget, model.bin_length, img, 4, 0.8
-                )
+                else estimate_tile_size(heap_budget, model.bin_length, img, 4)
             )
 
             with ncnn_allocators(vkdev) as (
