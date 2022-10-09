@@ -1,6 +1,6 @@
 # pylint: disable=relative-beyond-top-level
 
-from ...utils.image_utils import normalize
+from ...utils.image_utils import normalize, get_h_w_c
 from .base_input import BaseInput
 from .. import expression
 
@@ -23,6 +23,9 @@ class ImageInput(BaseInput):
         super().__init__(image_type, label)
 
     def enforce(self, value):
+        _, _, c = get_h_w_c(value)
+        if c == 1 and value.ndim == 3:
+            value = value[:, :, 0]
         return normalize(value)
 
 
