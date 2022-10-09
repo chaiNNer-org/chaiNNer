@@ -11,6 +11,8 @@ on:
         paths:
             - 'backend/**'
             - '.github/workflows/**'
+            - '.pylintrc'
+            - 'requirements.txt'
     push:
         branches: [main]
 
