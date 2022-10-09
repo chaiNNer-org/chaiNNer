@@ -157,7 +157,7 @@ class ImageBlender:
 
     def __soft_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         l = 2 * b * a + np.square(b) * (1 - 2 * a)
-        h = np.square(b) * (2 * a - 1) + 2 * a * (1 - b)
+        h = np.sqrt(b) * (2 * a - 1) + 2 * a * (1 - b)
         return np.where(a <= 0.5, l, h)
 
     def __hard_light(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
