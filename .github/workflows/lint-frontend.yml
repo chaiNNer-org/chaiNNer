@@ -12,6 +12,7 @@ on:
             - closed
         paths:
             - 'src/**'
+            - '.github/workflows/**'
     push:
         branches: [main]
 
