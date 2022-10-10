@@ -66,8 +66,6 @@ class AverageColorFixNode(NodeBase):
         assert (
             ref_w < input_w and ref_h < input_h
         ), "Image must be larger than Reference Image"
-        assert input_c in (3, 4), "The input image must be an RGB or RGBA image"
-        assert ref_c in (3, 4), "The reference image must be an RGB or RGBA image"
 
         # adjust channels
         alpha = None
