@@ -3,8 +3,6 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from sanic.log import logger
-
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -22,9 +20,9 @@ class NormalAdditionNode(NodeBase):
             channels of the input image will be used. The output normal map
             is guaranteed to be normalized."""
         self.inputs = [
-            ImageInput("Normal Map 1", expression.Image(channels=[3, 4])),
+            ImageInput("Normal Map 1", channels=[3, 4]),
             SliderInput("Strength 1", maximum=100, default=100),
-            ImageInput("Normal Map 2", expression.Image(channels=[3, 4])),
+            ImageInput("Normal Map 2", channels=[3, 4]),
             SliderInput("Strength 2", maximum=100, default=100),
         ]
         self.outputs = [
@@ -61,11 +59,6 @@ class NormalAdditionNode(NodeBase):
         on the added heightmaps. Practically, this is unnecessary, as adding
         the slopes together is equivalent to adding the heightmaps.
         """
-
-        logger.info(f"Adding normal maps")
-        assert (
-            n.ndim == 3 and m.ndim == 3
-        ), "The input images must be RGB or RGBA images"
 
         n_norm_strength = n_strength / 100
         m_norm_strength = m_strength / 100

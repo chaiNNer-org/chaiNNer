@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import cv2
 import numpy as np
 
 from . import category as ImageFilterCategory
@@ -13,7 +12,6 @@ from ...properties.inputs import (
     ReciprocalScalingFactorInput,
 )
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...utils.color_transfer import color_transfer
 from ...utils.utils import get_h_w_c
 
@@ -34,8 +32,8 @@ class ColorTransferNode(NodeBase):
             different images. Try multiple setting combinations to find
             best results."""
         self.inputs = [
-            ImageInput("Image", expression.Image(channels=[3, 4])),
-            ImageInput("Reference Image", expression.Image(channels=[3, 4])),
+            ImageInput("Image", channels=[1, 3, 4]),
+            ImageInput("Reference Image", channels=[3, 4]),
             ColorspaceInput(),
             OverflowMethodInput(),
             ReciprocalScalingFactorInput(),
@@ -59,13 +57,6 @@ class ColorTransferNode(NodeBase):
         """
 
         _, _, img_c = get_h_w_c(img)
-        _, _, ref_c = get_h_w_c(ref_img)
-
-        assert ref_c >= 3, "Reference image should be RGB or RGBA"
-
-        # Make sure target has at least 3 channels
-        if img_c == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
         # Preserve alpha
         alpha = None

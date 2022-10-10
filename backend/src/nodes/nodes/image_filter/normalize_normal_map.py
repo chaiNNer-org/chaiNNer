@@ -3,8 +3,6 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from sanic.log import logger
-
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
@@ -21,7 +19,7 @@ class NormalizeNode(NodeBase):
         self.description = """Normalizes the given normal map.
             Only the R and G channels of the input image will be used to compute the unit vectors."""
         self.inputs = [
-            ImageInput("Normal Map", expression.Image(channels=[3, 4])),
+            ImageInput("Normal Map", channels=[3, 4]),
         ]
         self.outputs = [
             ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
@@ -33,9 +31,6 @@ class NormalizeNode(NodeBase):
 
     def run(self, img: np.ndarray) -> np.ndarray:
         """Takes a normal map and normalizes it"""
-
-        logger.info(f"Normalizing image")
-        assert img.ndim == 3, "The input image must be an RGB or RGBA image"
 
         # Convert BGR to XY
         x = img[:, :, 2] * 2 - 1

@@ -9,7 +9,6 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:combine_rgba")
@@ -21,12 +20,10 @@ class CombineRgbaNode(NodeBase):
             " All channel images must be a single channel image."
         )
         self.inputs = [
-            ImageInput("R Channel", image_type=expression.Image(channels=1)),
-            ImageInput("G Channel", image_type=expression.Image(channels=1)),
-            ImageInput("B Channel", image_type=expression.Image(channels=1)),
-            ImageInput(
-                "A Channel", image_type=expression.Image(channels=1)
-            ).make_optional(),
+            ImageInput("R Channel", channels=1),
+            ImageInput("G Channel", channels=1),
+            ImageInput("B Channel", channels=1),
+            ImageInput("A Channel", channels=1).make_optional(),
         ]
         self.outputs = [
             ImageOutput(
@@ -59,23 +56,11 @@ class CombineRgbaNode(NodeBase):
                     im.shape[:2] == start_shape
                 ), "All channel images must have the same resolution"
 
-        def get_channel(img: np.ndarray) -> np.ndarray:
-            if img.ndim == 2:
-                return img
-
-            c = get_h_w_c(img)[2]
-            assert c == 1, (
-                "All channel images must only have exactly one channel."
-                " Suggestion: Convert to grayscale first."
-            )
-
-            return img[:, :, 0]
-
         channels = [
-            get_channel(img_b),
-            get_channel(img_g),
-            get_channel(img_r),
-            get_channel(img_a) if img_a is not None else np.ones(start_shape),
+            img_b,
+            img_g,
+            img_r,
+            img_a if img_a is not None else np.ones(start_shape),
         ]
 
         return np.stack(channels, axis=2)
