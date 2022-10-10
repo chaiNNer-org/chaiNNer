@@ -9,7 +9,6 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
-from ...utils.image_utils import as_target_channels
 
 
 @NodeFactory.register("chainner:image:hue_and_saturation")
