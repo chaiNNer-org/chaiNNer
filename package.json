@@ -93,17 +93,6 @@
               "icon": "./src/public/icons/cross_platform/icon.png"
             }
           }
-        },
-        {
-          "name": "@electron-forge/maker-flatpak",
-          "config": {
-            "options": {
-              "name": "chainner",
-              "options": {
-                "icon": "./src/public/icons/cross_platform/icon.png"
-              }
-            }
-          }
         }
       ],
       "plugins": [
