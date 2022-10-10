@@ -3,7 +3,7 @@
 import log from 'electron-log';
 import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'reactflow';
 import semver from 'semver';
-import { deriveUniqueId } from './util';
+import { deriveUniqueId, parseTargetHandle } from './util';
 
 // ==============
 //   pre-alpha
@@ -707,6 +707,62 @@ const addTargetTileSizeAgain = (data) => {
     return data;
 };
 
+const brightnessImplementationChange = (data) => {
+    const newNodes = [];
+    const newEdges = [];
+    const edgeMapping = new Map();
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:brightness_and_contrast') {
+            const brightness = node.data.inputData[1] ?? 0;
+            if (brightness !== 0) {
+                // set the brightness to 0 and create a Hue & Sat node in its place
+                node.data.inputData[1] = 0;
+                const id = deriveUniqueId(node.id);
+
+                newNodes.push({
+                    data: {
+                        schemaId: 'chainner:image:hue_and_saturation',
+                        inputData: { 1: 0, 2: 0, 3: brightness },
+                        id,
+                    },
+                    id,
+                    position: { x: node.position.x - 280, y: node.position.y - 20 },
+                    type: 'regularNode',
+                    selected: false,
+                    height: 356,
+                    width: 242,
+                    zIndex: 50,
+                });
+                newEdges.push({
+                    id: deriveUniqueId(id),
+                    sourceHandle: `${id}-0`,
+                    targetHandle: `${node.id}-0`,
+                    source: id,
+                    target: node.id,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                    zIndex: 49,
+                });
+                edgeMapping.set(`${node.id}-0`, `${id}-0`);
+            }
+        }
+    });
+    data.edges.forEach((edge) => {
+        const to = edgeMapping.get(edge.targetHandle);
+        if (to) {
+            edge.targetHandle = to;
+            edge.target = parseTargetHandle(to).nodeId;
+        }
+    });
+
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -746,6 +802,7 @@ const migrations = [
     blockSizeToRadius,
     removeTargetTileSize,
     addTargetTileSizeAgain,
+    brightnessImplementationChange,
 ];
 
 export const currentMigration = migrations.length;
