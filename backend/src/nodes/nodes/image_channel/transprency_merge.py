@@ -19,7 +19,7 @@ class TransparencyMergeNode(NodeBase):
         self.description = "Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels."
         self.inputs = [
             ImageInput("RGB Channels"),
-            ImageInput("Alpha Channel", expression.Image(channels=1)),
+            ImageInput("Alpha Channel", channels=1),
         ]
         self.outputs = [
             ImageOutput(

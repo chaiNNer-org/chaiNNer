@@ -8,7 +8,6 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 from ...utils.utils import get_h_w_c
 
 
@@ -18,7 +17,7 @@ class HueAndSaturationNode(NodeBase):
         super().__init__()
         self.description = "Adjust the hue and saturation of an image. This is performed in the HSV color-space."
         self.inputs = [
-            ImageInput(image_type=expression.Image(channels=[1, 3, 4])),
+            ImageInput(channels=[1, 3, 4]),
             SliderInput(
                 "Hue",
                 minimum=-180,

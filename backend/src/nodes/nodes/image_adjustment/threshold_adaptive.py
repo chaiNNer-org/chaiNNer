@@ -14,7 +14,6 @@ from ...properties.inputs import (
     NumberInput,
 )
 from ...properties.outputs import ImageOutput
-from ...properties import expression
 
 
 @NodeFactory.register("chainner:image:threshold_adaptive")
@@ -23,7 +22,7 @@ class AdaptiveThresholdNode(NodeBase):
         super().__init__()
         self.description = "Similar to regular threshold, but determines the threshold for a pixel based on a small region around it."
         self.inputs = [
-            ImageInput(image_type=expression.Image(channels=1)),
+            ImageInput(channels=1),
             SliderInput(
                 "Maximum Value",
                 maximum=100,
@@ -52,10 +51,6 @@ class AdaptiveThresholdNode(NodeBase):
         c: int,
     ) -> np.ndarray:
         """Takes an image and applies an adaptive threshold to it"""
-
-        assert (
-            img.ndim == 2
-        ), "Image must be grayscale (single channel) to apply an adaptive threshold"
 
         # Adaptive threshold requires uint8 input
         img = (img * 255).astype("uint8")

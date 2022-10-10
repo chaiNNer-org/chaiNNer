@@ -1,6 +1,8 @@
 # pylint: disable=relative-beyond-top-level
 
+from typing import List, Optional, Union
 from ...utils.image_utils import normalize, get_h_w_c
+from ...utils.format import format_image_with_channels
 from .base_input import BaseInput
 from .. import expression
 
@@ -19,13 +21,31 @@ class ImageInput(BaseInput):
         self,
         label: str = "Image",
         image_type: expression.ExpressionJson = "Image",
+        channels: Union[int, List[int], None] = None,
     ):
+        image_type = expression.intersect(
+            image_type,
+            expression.Image(channels=channels),  # type: ignore
+        )
         super().__init__(image_type, label)
+
+        self.channels: Optional[List[int]] = (
+            [channels] if isinstance(channels, int) else channels
+        )
 
     def enforce(self, value):
         _, _, c = get_h_w_c(value)
+
+        if self.channels is not None and c not in self.channels:
+            expected = format_image_with_channels(self.channels, plural=True)
+            actual = format_image_with_channels([c])
+            raise ValueError(
+                f"The input {self.label} only supports {expected} but was given {actual}."
+            )
+
         if c == 1 and value.ndim == 3:
             value = value[:, :, 0]
+
         return normalize(value)
 
 

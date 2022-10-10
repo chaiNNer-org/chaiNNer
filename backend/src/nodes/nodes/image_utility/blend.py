@@ -24,14 +24,8 @@ class ImBlend(NodeBase):
         self.description = """Blends overlay image onto base image using
             specified mode."""
         self.inputs = [
-            ImageInput(
-                "Base Layer",
-                image_type=expression.Image(channels=[1, 3, 4]),
-            ),
-            ImageInput(
-                "Overlay Layer",
-                image_type=expression.Image(channels=[1, 3, 4]),
-            ),
+            ImageInput("Base Layer", channels=[1, 3, 4]),
+            ImageInput("Overlay Layer", channels=[1, 3, 4]),
             BlendModeDropdown(),
         ]
         self.outputs = [

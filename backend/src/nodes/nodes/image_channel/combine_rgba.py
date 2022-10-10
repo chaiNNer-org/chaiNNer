@@ -21,12 +21,10 @@ class CombineRgbaNode(NodeBase):
             " All channel images must be a single channel image."
         )
         self.inputs = [
-            ImageInput("R Channel", image_type=expression.Image(channels=1)),
-            ImageInput("G Channel", image_type=expression.Image(channels=1)),
-            ImageInput("B Channel", image_type=expression.Image(channels=1)),
-            ImageInput(
-                "A Channel", image_type=expression.Image(channels=1)
-            ).make_optional(),
+            ImageInput("R Channel", channels=1),
+            ImageInput("G Channel", channels=1),
+            ImageInput("B Channel", channels=1),
+            ImageInput("A Channel", channels=1).make_optional(),
         ]
         self.outputs = [
             ImageOutput(

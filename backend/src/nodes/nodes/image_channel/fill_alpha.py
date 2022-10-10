@@ -13,7 +13,6 @@ from ...utils.fill_alpha import (
     fill_alpha_fragment_blur,
     fill_alpha_edge_extend,
 )
-from ...utils.utils import get_h_w_c
 
 
 @NodeFactory.register("chainner:image:fill_alpha")
@@ -24,7 +23,7 @@ class FillAlphaNode(NodeBase):
             "Fills the transparent pixels of an image with nearby colors."
         )
         self.inputs = [
-            ImageInput("RGBA", expression.Image(channels=4)),
+            ImageInput("RGBA", channels=4),
             AlphaFillMethodInput(),
         ]
         self.outputs = [
@@ -40,9 +39,6 @@ class FillAlphaNode(NodeBase):
 
     def run(self, img: np.ndarray, method: int) -> np.ndarray:
         """Fills transparent holes in the given image"""
-
-        _, _, c = get_h_w_c(img)
-        assert c == 4, "The image has to be an RGBA image to fill its alpha."
 
         if method == AlphaFillMethod.EXTEND_TEXTURE:
             # Preprocess to convert the image into binary alpha
