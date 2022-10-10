@@ -56,7 +56,7 @@
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "chainner",
-            "iconUrl": "./src/public/icons/win/icon.ico",
+            "iconUrl": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico",
             "setupIcon": "./src/public/icons/win/icon.ico"
           }
         },
