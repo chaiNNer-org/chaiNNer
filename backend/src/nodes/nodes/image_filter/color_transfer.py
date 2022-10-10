@@ -33,7 +33,7 @@ class ColorTransferNode(NodeBase):
             different images. Try multiple setting combinations to find
             best results."""
         self.inputs = [
-            ImageInput("Image", channels=[3, 4]),
+            ImageInput("Image", channels=[1, 3, 4]),
             ImageInput("Reference Image", channels=[3, 4]),
             ColorspaceInput(),
             OverflowMethodInput(),
@@ -58,11 +58,6 @@ class ColorTransferNode(NodeBase):
         """
 
         _, _, img_c = get_h_w_c(img)
-        _, _, ref_c = get_h_w_c(ref_img)
-
-        # Make sure target has at least 3 channels
-        if img_c == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
         # Preserve alpha
         alpha = None
