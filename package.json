@@ -56,7 +56,7 @@
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "chainner",
-            "iconUrl": "./src/public/icons/win/icon.ico",
+            "iconUrl": "https://github.com/chaiNNer-org/chaiNNer/blob/main/src/public/icons/win/icon.ico",
             "setupIcon": "./src/public/icons/win/icon.ico"
           }
         },
@@ -93,17 +93,6 @@
               "icon": "./src/public/icons/cross_platform/icon.png"
             }
           }
-        },
-        {
-          "name": "@electron-forge/maker-flatpak",
-          "config": {
-            "options": {
-              "name": "chainner",
-              "options": {
-                "icon": "./src/public/icons/cross_platform/icon.png"
-              }
-            }
-          }
         }
       ],
       "plugins": [
@@ -138,14 +127,15 @@
     "@babel/core": "^7.18.2",
     "@babel/preset-react": "^7.17.12",
     "@babel/preset-typescript": "^7.17.12",
-    "@electron-forge/cli": "^6.0.0-beta.65",
-    "@electron-forge/maker-deb": "^6.0.0-beta.65",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.65",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.65",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.65",
-    "@electron-forge/maker-zip": "^6.0.0-beta.65",
-    "@electron-forge/plugin-webpack": "^6.0.0-beta.65",
-    "@electron-forge/publisher-github": "^6.0.0-beta.65",
+    "@electron-forge/cli": "^6.0.0-beta.67",
+    "@electron-forge/maker-deb": "^6.0.0-beta.67",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.67",
+    "@electron-forge/maker-flatpak": "^6.0.0-beta.67",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.67",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.67",
+    "@electron-forge/maker-zip": "^6.0.0-beta.67",
+    "@electron-forge/plugin-webpack": "^6.0.0-beta.67",
+    "@electron-forge/publisher-github": "^6.0.0-beta.67",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@types/d3": "^7.4.0",
     "@types/decompress": "^4.2.4",
