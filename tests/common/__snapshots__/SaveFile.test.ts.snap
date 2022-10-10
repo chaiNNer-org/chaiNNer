@@ -1100,7 +1100,19 @@ Object {
 
 exports[`Read save file image-adjustments.chn 1`] = `
 Object {
-  "edges": Array [],
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "c81954e2-9045-5b49-8da5-2eafb8987096",
+      "source": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+      "sourceHandle": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7-0",
+      "target": "59b0e388-685e-4b7b-8ffe-c64bc98a350f",
+      "targetHandle": "59b0e388-685e-4b7b-8ffe-c64bc98a350f-0",
+      "type": "main",
+      "zIndex": 49,
+    },
+  ],
   "nodes": Array [
     Object {
       "data": Object {
@@ -1127,7 +1139,7 @@ Object {
       "data": Object {
         "id": "59b0e388-685e-4b7b-8ffe-c64bc98a350f",
         "inputData": Object {
-          "1": 24,
+          "1": 0,
           "2": 43,
         },
         "schemaId": "chainner:image:brightness_and_contrast",
@@ -1184,6 +1196,27 @@ Object {
       "selected": false,
       "type": "regularNode",
       "width": 262,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+        "inputData": Object {
+          "1": 0,
+          "2": 0,
+          "3": 24,
+        },
+        "schemaId": "chainner:image:hue_and_saturation",
+      },
+      "height": 356,
+      "id": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+      "position": Object {
+        "x": 291.33284813944954,
+        "y": 143.52957902171042,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
       "zIndex": 50,
     },
   ],
@@ -4421,9 +4454,21 @@ Object {
 
 exports[`Write save file image-adjustments.chn 1`] = `
 Object {
-  "checksum": "d2a7d8b3d214413add0c229ac3d8be32",
+  "checksum": "d7993cfe78e77bd592ca208a8c64f4f2",
   "content": Object {
-    "edges": Array [],
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "c81954e2-9045-5b49-8da5-2eafb8987096",
+        "source": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+        "sourceHandle": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7-0",
+        "target": "59b0e388-685e-4b7b-8ffe-c64bc98a350f",
+        "targetHandle": "59b0e388-685e-4b7b-8ffe-c64bc98a350f-0",
+        "type": "main",
+        "zIndex": 49,
+      },
+    ],
     "nodes": Array [
       Object {
         "data": Object {
@@ -4450,7 +4495,7 @@ Object {
         "data": Object {
           "id": "59b0e388-685e-4b7b-8ffe-c64bc98a350f",
           "inputData": Object {
-            "1": 24,
+            "1": 0,
             "2": 43,
           },
           "schemaId": "chainner:image:brightness_and_contrast",
@@ -4507,6 +4552,27 @@ Object {
         "selected": false,
         "type": "regularNode",
         "width": 262,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+          "inputData": Object {
+            "1": 0,
+            "2": 0,
+            "3": 24,
+          },
+          "schemaId": "chainner:image:hue_and_saturation",
+        },
+        "height": 356,
+        "id": "4b37d9ad-cd4f-568b-ba0c-973fae2f4cc7",
+        "position": Object {
+          "x": 291.33284813944954,
+          "y": 143.52957902171042,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
         "zIndex": 50,
       },
     ],
