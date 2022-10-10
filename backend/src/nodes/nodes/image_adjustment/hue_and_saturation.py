@@ -9,6 +9,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, SliderInput
 from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
+from ...utils.image_utils import as_target_channels
 
 
 @NodeFactory.register("chainner:image:hue_and_saturation")
@@ -34,6 +35,14 @@ class HueAndSaturationNode(NodeBase):
                 precision=1,
                 controls_step=1,
             ),
+            SliderInput(
+                "Lightness",
+                minimum=-100,
+                maximum=100,
+                default=0,
+                precision=1,
+                controls_step=1,
+            ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageAdjustmentCategory
@@ -41,39 +50,61 @@ class HueAndSaturationNode(NodeBase):
         self.icon = "MdOutlineColorLens"
         self.sub = "Adjustments"
 
-    def add_and_wrap_hue(self, img: np.ndarray, add_val: float) -> np.ndarray:
-        """Adds hue change value to image and wraps on range overflow"""
+    def with_lightness(self, img: np.ndarray, lightness: float) -> np.ndarray:
+        if lightness > 0:
+            return img + (1 - img) * lightness
+        elif lightness < 0:
+            return img * (1 + lightness)
+        else:
+            return img
 
-        img += add_val
-        img[img >= 360] -= 360  # Wrap positive overflow
-        img[img < 0] += 360  # Wrap negative overflow
-        return img
-
-    def run(self, img: np.ndarray, hue: float, saturation: float) -> np.ndarray:
+    def run(
+        self,
+        img: np.ndarray,
+        hue: float,
+        saturation: float,
+        lightness: float,
+    ) -> np.ndarray:
         """Adjust the hue and saturation of an image"""
+
+        saturation /= 100
+        lightness /= 100
 
         _, _, c = get_h_w_c(img)
 
-        # Pass through grayscale and unadjusted images
-        if c == 1 or (hue == 0 and saturation == 0):
+        # Pass through unadjusted images
+        if hue == 0 and saturation == 0 and lightness == 0:
             return img
+
+        if c == 1:
+            # Hue and saturation have no effect on grayscale, so we just need to adjust lightness
+            return self.with_lightness(img, lightness)
 
         # Preserve alpha channel if it exists
         alpha = None
         if c > 3:
             alpha = img[:, :, 3]
 
-        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
-        h, l, s = cv2.split(hls)
+        h, l, s = cv2.split(cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HLS))
 
-        # Adjust hue and saturation
-        hnew = self.add_and_wrap_hue(h, hue)
-        smod = 1 + (saturation / 100)
-        snew = np.clip((s * smod), 0, 1)
+        # Adjust hue
+        if hue != 0:
+            h += hue
+            h[h >= 360] -= 360  # Wrap positive overflow
+            h[h < 0] += 360  # Wrap negative overflow
 
-        hlsnew = cv2.merge([hnew, l, snew])
-        img = cv2.cvtColor(hlsnew, cv2.COLOR_HLS2BGR)
-        if alpha is not None:  # Re-add alpha, if it exists
+        # Adjust saturation
+        if saturation != 0:
+            saturation = 1 + saturation
+            s = np.clip(s * saturation, 0, 1)
+
+        img = cv2.cvtColor(cv2.merge([h, l, s]), cv2.COLOR_HLS2BGR)
+
+        # Adjust lightness
+        img = self.with_lightness(img, lightness)
+
+        # Re-add alpha, if it exists
+        if alpha is not None:
             img = np.dstack((img, alpha))
 
         return img
