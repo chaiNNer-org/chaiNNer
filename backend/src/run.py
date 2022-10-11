@@ -26,7 +26,7 @@ from chain.cache import OutputCache
 from chain.json import parse_json, JsonNode
 from chain.optimize import optimize
 from events import EventQueue, ExecutionErrorData
-from process import Executor, NodeExecutionError, timed_supplier
+from process import Executor, NodeExecutionError, Output, timed_supplier, to_output
 from progress import Aborted  # type: ignore
 from response import (
     errorResponse,
@@ -87,7 +87,7 @@ categories = sorted(
 class AppContext:
     def __init__(self):
         self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, Any] = dict()
+        self.cache: Dict[NodeId, Output] = dict()
         # This will be initialized by setup_queue.
         # This is necessary because we don't know Sanic's event loop yet.
         self.queue: EventQueue = None  # type: ignore
@@ -297,9 +297,10 @@ async def run_individual(request: Request):
         with runIndividualCounter:
             # Run the node and pass in inputs as args
             run_func = functools.partial(node_instance.run, *full_data["inputs"])
-            output, execution_time = await app.loop.run_in_executor(
+            raw_output, execution_time = await app.loop.run_in_executor(
                 None, timed_supplier(run_func)
             )
+            output = to_output(raw_output, node_instance)
 
             # Cache the output of the node
             ctx.cache[full_data["id"]] = output
@@ -308,11 +309,10 @@ async def run_individual(request: Request):
         broadcast_data: Dict[OutputId, Any] = dict()
         node_outputs = node_instance.outputs
         if len(node_outputs) > 0:
-            output_idxable = [output] if len(node_outputs) == 1 else output
             for idx, node_output in enumerate(node_outputs):
                 try:
                     broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output_idxable[idx]
+                        output[idx]
                     )
                 except Exception as error:
                     logger.error(f"Error broadcasting output: {error}")

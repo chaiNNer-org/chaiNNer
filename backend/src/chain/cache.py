@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, Optional, Set
+from typing import Any, Dict, Generic, Iterable, Optional, Set, TypeVar
 import gc
 from sanic.log import logger
 
@@ -48,23 +48,26 @@ def get_cache_strategies(chain: Chain) -> Dict[NodeId, CacheStrategy]:
     return result
 
 
-class _CacheEntry:
-    def __init__(self, value: Any, hits_to_live: int):
+T = TypeVar("T")
+
+
+class _CacheEntry(Generic[T]):
+    def __init__(self, value: T, hits_to_live: int):
         assert hits_to_live > 0
-        self.value = value
-        self.hits_to_live = hits_to_live
+        self.value: T = value
+        self.hits_to_live: int = hits_to_live
 
 
-class OutputCache:
+class OutputCache(Generic[T]):
     def __init__(
         self,
-        parent: Optional["OutputCache"] = None,
-        static_data: Optional[Dict[NodeId, Any]] = None,
+        parent: Optional["OutputCache[T]"] = None,
+        static_data: Optional[Dict[NodeId, T]] = None,
     ):
         super().__init__()
-        self.__static: Dict[NodeId, Any] = static_data.copy() if static_data else {}
-        self.__counted: Dict[NodeId, _CacheEntry] = {}
-        self.parent: Optional[OutputCache] = parent
+        self.__static: Dict[NodeId, T] = static_data.copy() if static_data else {}
+        self.__counted: Dict[NodeId, _CacheEntry[T]] = {}
+        self.parent: Optional[OutputCache[T]] = parent
 
     def keys(self) -> Iterable[NodeId]:
         keys: Set[NodeId] = set()
@@ -80,7 +83,7 @@ class OutputCache:
             return self.parent.has(node_id)
         return False
 
-    def get(self, node_id: NodeId) -> Optional[Any]:
+    def get(self, node_id: NodeId) -> Optional[T]:
         staticValue = self.__static.get(node_id, None)
         if staticValue is not None:
             return staticValue
@@ -100,7 +103,7 @@ class OutputCache:
 
         return None
 
-    def set(self, node_id: NodeId, value: Any, strategy: CacheStrategy):
+    def set(self, node_id: NodeId, value: T, strategy: CacheStrategy):
         if strategy.no_caching:
             return
         elif strategy.static:
