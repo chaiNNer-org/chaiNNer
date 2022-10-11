@@ -50,7 +50,7 @@ class ImWriteNode(NodeBase):
         relative_path: Union[str, None],
         filename: str,
         extension: str,
-    ):
+    ) -> None:
         """Write an image to the specified path and return write status"""
 
         full_file = f"{filename}.{extension}"
