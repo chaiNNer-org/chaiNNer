@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 from .base_input import BaseInput, InputKind
 from .. import expression
@@ -115,6 +115,7 @@ class SliderInput(NumberInput):
         note_expression: Union[str, None] = None,
         ends: Tuple[Union[str, None], Union[str, None]] = (None, None),
         hide_trailing_zeros: bool = False,
+        gradient: Union[List[str], None] = None,
     ):
         super().__init__(
             label,
@@ -134,10 +135,12 @@ class SliderInput(NumberInput):
             if slider_step is not None
             else (controls_step if controls_step is not None else 10**-precision)
         )
+        self.gradient = gradient
 
     def toDict(self):
         return {
             **super().toDict(),
             "ends": self.ends,
             "sliderStep": self.slider_step,
+            "gradient": self.gradient,
         }

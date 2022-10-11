@@ -25,6 +25,15 @@ class HueAndSaturationNode(NodeBase):
                 default=0,
                 precision=1,
                 controls_step=1,
+                gradient=[
+                    "#ff0000",
+                    "#ffff00",
+                    "#00ff00",
+                    "#00ffff",
+                    "#0000ff",
+                    "#ff00ff",
+                    "#ff0000",
+                ],
             ),
             SliderInput(
                 "Saturation",
@@ -33,6 +42,8 @@ class HueAndSaturationNode(NodeBase):
                 default=0,
                 precision=1,
                 controls_step=1,
+                # gradient from gray to saturated
+                gradient=["#808080", "#ff0000"],
             ),
             SliderInput(
                 "Lightness",
@@ -41,6 +52,7 @@ class HueAndSaturationNode(NodeBase):
                 default=0,
                 precision=1,
                 controls_step=1,
+                gradient=["#000000", "#ffffff"],
             ),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
