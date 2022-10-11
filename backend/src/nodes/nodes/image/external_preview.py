@@ -30,7 +30,7 @@ class ImOpenNode(NodeBase):
 
         self.side_effects = True
 
-    def run(self, img: np.ndarray):
+    def run(self, img: np.ndarray) -> None:
         """Show image"""
 
         # Put image back in int range
