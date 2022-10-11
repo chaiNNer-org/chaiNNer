@@ -26,6 +26,7 @@ interface SliderInputProps extends InputProps {
     ends: [string | null, string | null];
     noteExpression?: string;
     hideTrailingZeros: boolean;
+    gradient?: string[];
 }
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
@@ -56,6 +57,7 @@ export const SliderInput = memo(
         hideTrailingZeros,
         isLocked,
         definitionType,
+        gradient,
     }: SliderInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
@@ -124,8 +126,14 @@ export const SliderInput = memo(
                         onMouseEnter={() => setShowTooltip(true)}
                         onMouseLeave={() => setShowTooltip(false)}
                     >
-                        <SliderTrack>
-                            {filled ? <SliderFilledTrack bg={typeAccentColor} /> : <SliderTrack />}
+                        <SliderTrack
+                            bgGradient={gradient ? `linear(to-r, ${gradient.join(', ')})` : 'none'}
+                        >
+                            {filled && !gradient ? (
+                                <SliderFilledTrack bg={typeAccentColor} />
+                            ) : (
+                                <SliderTrack />
+                            )}
                         </SliderTrack>
                         <Tooltip
                             hasArrow
