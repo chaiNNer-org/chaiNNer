@@ -41,12 +41,15 @@ def to_output(raw_output: Any, node: NodeBase) -> Output:
 
     output: Output
     if l == 0:
-        assert raw_output is None
+        assert raw_output is None, f"Expected all {node.name} nodes to return None."
         output = []
     elif l == 1:
         output = [raw_output]
     else:
         output = list(raw_output)
+        assert (
+            len(output) == l
+        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
 
     # make outputs readonly
     for o in output:
