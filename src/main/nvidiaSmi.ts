@@ -28,13 +28,10 @@ const hasOutput = (command: string): Promise<boolean> => {
 };
 
 const getNvidiaSmiCommandFromPath = async (): Promise<string | undefined> => {
-    if (
-        platform === 'win32' &&
-        ((await hasOutput('where nvidia-smi')) || (await hasOutput('nvidia-smi')))
-    ) {
+    if (await hasOutput(`${platform === 'win32' ? 'where' : 'which'} nvidia-smi`)) {
         return 'nvidia-smi';
     }
-    if ((await hasOutput('which nvidia-smi')) || (await hasOutput('nvidia-smi'))) {
+    if (await hasOutput('nvidia-smi')) {
         return 'nvidia-smi';
     }
     return undefined;
