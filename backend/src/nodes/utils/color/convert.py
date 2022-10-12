@@ -41,34 +41,34 @@ def get_shortest_path(
     }
 
     while len(front) > 0:
-        min = None
+        best = None
         for x in front.values():
-            if min is None:
-                min = x
-            elif x.cost < min.cost:
-                min = x
-        assert min is not None
+            if best is None:
+                best = x
+            elif x.cost < best.cost:
+                best = x
+        assert best is not None
 
-        current = min.path[-1]
+        current = best.path[-1]
         del front[current]
         processed.add(current)
 
         if is_destination(current):
-            return min.path
+            return best.path
 
         for cost, to in get_next(current):
-            cost = min.cost + cost
+            cost = best.cost + cost
             old = front.get(to, None)
             if old is None:
                 if to not in processed:
-                    new_path = min.path.copy()
+                    new_path = best.path.copy()
                     new_path.append(to)
                     front[to] = __ProcessingItem(cost=cost, path=new_path)
             else:
                 if old.cost > cost:
                     old.cost = cost
                     old.path.clear()
-                    old.path.extend(min.path)
+                    old.path.extend(best.path)
                     old.path.append(to)
 
 
