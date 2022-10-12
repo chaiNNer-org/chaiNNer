@@ -12,11 +12,11 @@ from .convert_model import (
 )
 
 
-def color_space_from_id(id: int) -> ColorSpace:
+def color_space_from_id(id_: int) -> ColorSpace:
     for c in color_spaces:
-        if c.id == id:
+        if c.id == id_:
             return c
-    raise ValueError(f"There is no color space with the id {id}.")
+    raise ValueError(f"There is no color space with the id {id_}.")
 
 
 T = TypeVar("T")
@@ -73,27 +73,27 @@ def get_shortest_path(
 
 
 __conversions_map: Dict[ColorSpace, List[Conversion]] = {}
-for conv in conversions:
-    l = __conversions_map.get(conv.input, [])
+for conversion in conversions:
+    l = __conversions_map.get(conversion.input, [])
     if len(l) == 0:
-        __conversions_map[conv.input] = l
-    l.append(conv)
+        __conversions_map[conversion.input] = l
+    l.append(conversion)
 
 
-def convert(img: np.ndarray, input: ColorSpace, output: ColorSpace) -> np.ndarray:
-    assert_input_channels(img, input, output)
+def convert(img: np.ndarray, input_: ColorSpace, output: ColorSpace) -> np.ndarray:
+    assert_input_channels(img, input_, output)
 
-    if input == output:
+    if input_ == output:
         return img
 
     path = get_shortest_path(
-        input,
+        input_,
         is_destination=lambda i: i == output,
         get_next=lambda i: [(c.cost, c.output) for c in __conversions_map.get(i, [])],
     )
 
     if path is None:
-        raise ValueError(f"Conversion {input.name} -> {output.name} is not possible.")
+        raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
     logger.info(
         f"Converting color using the path {' -> '.join(map(lambda x: x.name, path))}"
@@ -112,5 +112,5 @@ def convert(img: np.ndarray, input: ColorSpace, output: ColorSpace) -> np.ndarra
 
         img = conv.convert(img)
 
-    assert_output_channels(img, input, output)
+    assert_output_channels(img, input_, output)
     return img

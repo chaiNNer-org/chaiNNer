@@ -40,7 +40,7 @@ class ColorConvertNode(NodeBase):
         self.icon = "MdColorLens"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, input: int, output: int) -> np.ndarray:
+    def run(self, img: np.ndarray, input_: int, output: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        return convert(img, color_space_from_id(input), color_space_from_id(output))
+        return convert(img, color_space_from_id(input_), color_space_from_id(output))
