@@ -12,6 +12,31 @@ class Split:
     pass
 
 
+def estimate_tile_size(
+    budget: int,
+    model_size: int,
+    img: np.ndarray,
+    img_element_size: int = 4,
+) -> int:
+    h, w, c = get_h_w_c(img)
+    img_bytes = h * w * c * img_element_size
+    mem_required_estimation = (model_size / (1024 * 52)) * img_bytes
+
+    tile_pixels = w * h * budget / mem_required_estimation
+    # the largest power-of-2 tile_size such that tile_size**2 < tile_pixels
+    tile_size = 2 ** (int(tile_pixels**0.5).bit_length() - 1)
+
+    GB_AMT = 1024**3
+    required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
+    budget_mem = f"{budget/GB_AMT:.2f}"
+    logger.info(
+        f"Estimating memory required: {required_mem} GB, {budget_mem} GB free."
+        f" Estimated tile size: {tile_size}"
+    )
+
+    return tile_size
+
+
 def auto_split(
     img: np.ndarray,
     upscale: Callable[[np.ndarray], Union[np.ndarray, Split]],

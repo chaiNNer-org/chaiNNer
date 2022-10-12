@@ -299,6 +299,7 @@ class NcnnModel:
         self.blob_count: int = blob_count
         self.layer_list: List[NcnnLayer] = []
         self.weights_bin: bytes = b""
+        self.bin_length = 0
 
     @property
     def magic(self):
@@ -326,6 +327,7 @@ class NcnnModel:
 
                 binf.seek(0)
                 model.weights_bin = binf.read()
+                model.bin_length = len(model.weights_bin)
 
         return model
 
@@ -619,3 +621,7 @@ class NcnnModel:
         interp_model.weights_bin = b"".join(weight_bytes_list)
 
         return interp_model
+
+    @property
+    def bin(self) -> bytes:
+        return self.weights_bin

@@ -16,6 +16,7 @@ from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.exec_options import get_execution_options
+from ...utils.auto_split import estimate_tile_size
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModel
 from ...utils.ncnn_session import get_ncnn_net
@@ -69,16 +70,24 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        net,
+        model: NcnnModel,
         input_name: str,
         output_name: str,
-        max_tile_size: Union[int, None],
+        tile_size: Union[int, None],
     ):
         exec_options = get_execution_options()
+        net = get_ncnn_net(model, exec_options)
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
-            # logger.info(vkdev.get_heap_budget())
+            heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
+
+            max_tile_size = (
+                tile_size
+                if tile_size is not None
+                else estimate_tile_size(heap_budget, model.bin_length, img, 4)
+            )
+
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
                 staging_vkallocator,
@@ -92,17 +101,14 @@ class NcnnUpscaleImageNode(NodeBase):
                     staging_vkallocator=staging_vkallocator,
                     max_tile_size=max_tile_size,
                 )
-        except ValueError as e:
-            raise e
+        except (RuntimeError, ValueError):
+            raise
         except Exception as e:
             logger.error(e)
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(self, model: NcnnModel, img: np.ndarray, tile_size: int) -> np.ndarray:
-        exec_options = get_execution_options()
-        net = get_ncnn_net(model, exec_options)
-
         model_c = model.get_model_in_nc()
 
         def upscale(i: np.ndarray) -> np.ndarray:
@@ -113,7 +119,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 i = cv2.cvtColor(i, cv2.COLOR_BGRA2RGBA)
             i = self.upscale(
                 i,
-                net,
+                model,
                 model.layer_list[0].outputs[0],
                 model.layer_list[-1].outputs[0],
                 tile_size if tile_size > 0 else None,
