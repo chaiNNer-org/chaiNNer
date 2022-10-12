@@ -242,9 +242,9 @@ def FlipAxisInput() -> DropDownInput:
     )
 
 
-def ColorspaceInput() -> DropDownInput:
+def TransferColorspaceInput() -> DropDownInput:
     return DropDownInput(
-        input_type="Colorspace",
+        input_type="TransferColorspace",
         label="Colorspace",
         options=[
             {"option": "L*a*b*", "value": "L*a*b*"},

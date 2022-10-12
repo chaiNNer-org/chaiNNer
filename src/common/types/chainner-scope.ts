@@ -58,8 +58,7 @@ struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
 struct CaptionPosition;
-struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
-struct Colorspace;
+struct ColorSpace { channels: 1 | 3 | 4 }
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
@@ -71,6 +70,7 @@ struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
+struct TransferColorspace;
 struct VideoType;
 
 enum Orientation { Horizontal, Vertical }

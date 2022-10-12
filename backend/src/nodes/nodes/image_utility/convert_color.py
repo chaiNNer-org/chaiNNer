@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import numpy as np
-import cv2
 
 from . import category as ImageUtilityCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
-    ColorModeInput,
+    ColorSpaceInput,
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.utils import get_h_w_c
+from ...utils.color.convert import convert, color_space_from_id
 
 
 @NodeFactory.register("chainner:image:change_colorspace")
@@ -24,14 +23,15 @@ class ColorConvertNode(NodeBase):
             "Also can convert to different channel-spaces."
         )
         self.inputs = [
-            ImageInput(image_type=expression.Image(channels="Input1.inputChannels")),
-            ColorModeInput(),
+            ImageInput(image_type=expression.Image(channels="Input1.channels")),
+            ColorSpaceInput(label="From"),
+            ColorSpaceInput(label="To"),
         ]
         self.outputs = [
             ImageOutput(
                 image_type=expression.Image(
                     size_as="Input0",
-                    channels="Input1.outputChannels",
+                    channels="Input2.channels",
                 )
             )
         ]
@@ -40,29 +40,7 @@ class ColorConvertNode(NodeBase):
         self.icon = "MdColorLens"
         self.sub = "Miscellaneous"
 
-    def run(self, img: np.ndarray, color_mode: int) -> np.ndarray:
+    def run(self, img: np.ndarray, input: int, output: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        def reverse3(image: np.ndarray) -> np.ndarray:
-            c = get_h_w_c(image)[2]
-            assert c == 3, "Expected a 3-channel image"
-            return np.stack([image[:, :, 2], image[:, :, 1], image[:, :, 0]], axis=2)
-
-        # preprocessing
-        if color_mode in (cv2.COLOR_HSV2BGR, cv2.COLOR_YUV2BGR):
-            img = reverse3(img)
-
-        if color_mode == cv2.COLOR_HSV2BGR:
-            img[:, :, 0] *= 360
-
-        # color conversion
-        result = cv2.cvtColor(img, color_mode)
-
-        # postprocessing
-        if color_mode == cv2.COLOR_BGR2HSV:
-            result[:, :, 0] /= 360  # type: ignore
-
-        if color_mode in (cv2.COLOR_BGR2HSV, cv2.COLOR_BGR2YUV):
-            result = reverse3(result)
-
-        return result
+        return convert(img, color_space_from_id(input), color_space_from_id(output))
