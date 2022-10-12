@@ -56,6 +56,10 @@ def to_output(raw_output: Any, node: NodeBase) -> Output:
         if isinstance(o, np.ndarray):
             o.setflags(write=False)
 
+    # output-specific validations
+    for i, o in enumerate(node.outputs):
+        o.validate(output[i])
+
     return output
 
 

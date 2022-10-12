@@ -46,3 +46,6 @@ class BaseOutput:
 
     def get_broadcast_data(self, _value):
         return None
+
+    def validate(self, value) -> None:
+        assert value is not None
