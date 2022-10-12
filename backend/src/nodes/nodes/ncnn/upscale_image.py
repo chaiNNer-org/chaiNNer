@@ -101,10 +101,8 @@ class NcnnUpscaleImageNode(NodeBase):
                     staging_vkallocator=staging_vkallocator,
                     max_tile_size=max_tile_size,
                 )
-        except ValueError as e:
-            raise e
-        except RuntimeError as e:
-            raise e
+        except (RuntimeError, ValueError):
+            raise
         except Exception as e:
             logger.error(e)
             # pylint: disable=raise-missing-from
