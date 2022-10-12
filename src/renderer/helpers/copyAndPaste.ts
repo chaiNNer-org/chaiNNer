@@ -87,22 +87,22 @@ export const pasteFromClipboard = (
         }
     } else {
         availableFormats.forEach((format) => {
-            log.info('Clipboard format', format);
+            log.debug('Clipboard format', format);
             switch (format) {
                 case 'text/plain':
-                    log.info('Clipboard text', clipboard.readText());
+                    log.debug('Clipboard text', clipboard.readText());
                     break;
                 case 'text/html':
-                    log.info('Clipboard html', clipboard.readHTML());
+                    log.debug('Clipboard html', clipboard.readHTML());
                     break;
                 case 'text/rtf':
-                    log.info('Clipboard rtf', clipboard.readRTF());
+                    log.debug('Clipboard rtf', clipboard.readRTF());
                     break;
                 case 'image/png':
-                    log.info('Clipboard image', clipboard.readImage().toPNG());
+                    log.debug('Clipboard image', clipboard.readImage().toPNG());
                     break;
                 default:
-                    log.info('Clipboard data', clipboard.readBuffer(format));
+                    log.debug('Clipboard data', clipboard.readBuffer(format));
             }
         });
     }
