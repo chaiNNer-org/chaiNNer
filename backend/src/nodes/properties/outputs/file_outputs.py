@@ -17,6 +17,9 @@ class FileOutput(BaseOutput):
     def get_broadcast_data(self, value: str):
         return value
 
+    def validate(self, value) -> None:
+        assert isinstance(value, str)
+
 
 def ImageFileOutput() -> FileOutput:
     """Output for saving a local image file"""

@@ -1,5 +1,7 @@
+from typing import List, Optional, Union
 import numpy as np
 
+from ...utils.format import format_image_with_channels
 from ...utils.image_utils import preview_encode
 from ...utils.utils import get_h_w_c
 from .base_output import BaseOutput, OutputKind
@@ -17,6 +19,9 @@ class NumPyOutput(BaseOutput):
         has_handle: bool = True,
     ):
         super().__init__(output_type, label, kind=kind, has_handle=has_handle)
+
+    def validate(self, value) -> None:
+        assert isinstance(value, np.ndarray)
 
 
 def AudioOutput():
@@ -53,6 +58,9 @@ class ImageOutput(NumPyOutput):
             "width": w,
             "channels": c,
         }
+
+    def validate(self, value) -> None:
+        assert isinstance(value, np.ndarray)
 
 
 class LargeImageOutput(ImageOutput):
