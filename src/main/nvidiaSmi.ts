@@ -28,10 +28,10 @@ const hasOutput = (command: string): Promise<boolean> => {
 };
 
 const getNvidiaSmiCommandFromPath = async (): Promise<string | undefined> => {
-    if (platform === 'win32' && (await hasOutput('where nvidia-smi'))) {
+    if (await hasOutput(`${platform === 'win32' ? 'where' : 'which'} nvidia-smi`)) {
         return 'nvidia-smi';
     }
-    if ((await hasOutput('which nvidia-smi')) || (await hasOutput('nvidia-smi'))) {
+    if (await hasOutput('nvidia-smi')) {
         return 'nvidia-smi';
     }
     return undefined;
@@ -71,6 +71,11 @@ const getNvidiaSmiCommand = async (): Promise<string | undefined> => {
 
         if (targetDir) {
             return path.join(basePath, targetDir, 'nvidia-smi.exe');
+        }
+        // check if smi is in System32
+        const smiPath = `${WINDIR}\\System32\\nvidia-smi.exe`;
+        if ((await fs.stat(smiPath)).isFile()) {
+            return smiPath;
         }
     }
     return undefined;
