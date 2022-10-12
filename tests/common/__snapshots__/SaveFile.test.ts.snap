@@ -2270,7 +2270,8 @@ Object {
       "data": Object {
         "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
         "inputData": Object {
-          "1": 1,
+          "1": 2,
+          "2": 1,
         },
         "schemaId": "chainner:image:change_colorspace",
       },
@@ -5396,7 +5397,7 @@ Object {
 
 exports[`Write save file image-utilities.chn 1`] = `
 Object {
-  "checksum": "a7c4e684d6cfa3eb6a22c33238923ff2",
+  "checksum": "7d07b6fd8fc6799a5ec6bea0256d540b",
   "content": Object {
     "edges": Array [
       Object {
@@ -5647,7 +5648,8 @@ Object {
         "data": Object {
           "id": "ad24cc0b-36ac-415f-9347-c6da40edec4e",
           "inputData": Object {
-            "1": 1,
+            "1": 2,
+            "2": 1,
           },
           "schemaId": "chainner:image:change_colorspace",
         },

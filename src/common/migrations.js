@@ -763,6 +763,37 @@ const brightnessImplementationChange = (data) => {
     return data;
 };
 
+const convertColorSpaceFromTo = (data) => {
+    const GRAY = 0;
+    const RGB = 1;
+    const RGBA = 2;
+    const YUV = 3;
+    const HSV = 4;
+
+    /** @type {Partial<Record<number, [number, number]>>} */
+    const mapping = {
+        6: [RGB, GRAY],
+        8: [GRAY, RGB],
+        0: [RGB, RGBA],
+        1: [RGBA, RGB],
+        10: [RGBA, GRAY],
+        9: [GRAY, RGBA],
+        82: [RGB, YUV],
+        84: [YUV, RGB],
+        40: [RGB, HSV],
+        54: [HSV, RGB],
+    };
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const [from, to] = mapping[node.data.inputData[1]] ?? [RGB, RGB];
+            node.data.inputData[1] = from;
+            node.data.inputData[2] = to;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -803,6 +834,7 @@ const migrations = [
     removeTargetTileSize,
     addTargetTileSizeAgain,
     brightnessImplementationChange,
+    convertColorSpaceFromTo,
 ];
 
 export const currentMigration = migrations.length;

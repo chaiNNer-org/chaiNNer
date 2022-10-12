@@ -7,7 +7,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
-    ColorspaceInput,
+    TransferColorspaceInput,
     OverflowMethodInput,
     ReciprocalScalingFactorInput,
 )
@@ -34,7 +34,7 @@ class ColorTransferNode(NodeBase):
         self.inputs = [
             ImageInput("Image", channels=[1, 3, 4]),
             ImageInput("Reference Image", channels=[3, 4]),
-            ColorspaceInput(),
+            TransferColorspaceInput(),
             OverflowMethodInput(),
             ReciprocalScalingFactorInput(),
         ]
