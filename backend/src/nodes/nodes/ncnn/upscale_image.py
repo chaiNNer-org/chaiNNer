@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Union
 
 import numpy as np
 import cv2

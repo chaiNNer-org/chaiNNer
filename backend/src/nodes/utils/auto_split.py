@@ -16,7 +16,7 @@ class Split:
 class Tiler(ABC):
     @abstractmethod
     def starting_tile_size(self, width: int, height: int, channels: int) -> int:
-        raise NotImplemented
+        pass
 
     def split(self, tile_size: int) -> int:
         assert tile_size >= 16
