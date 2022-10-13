@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import gc
-from typing import Union
 
 import torch
 import numpy as np
 
 from .torch_types import PyTorchModel
 
-from .auto_split import auto_split, Split
+from .auto_split import auto_split, Split, Tiler
 from .pytorch_utils import tensor2np, np2tensor
 
 
@@ -18,7 +17,7 @@ def pytorch_auto_split(
     model: PyTorchModel,
     device: torch.device,
     use_fp16: bool,
-    max_tile_size: Union[int, None] = None,
+    tiler: Tiler,
 ) -> np.ndarray:
     model = model.to(device)
     model = model.half() if use_fp16 else model.float()
@@ -55,7 +54,7 @@ def pytorch_auto_split(
                 raise
 
     try:
-        return auto_split(img, upscale, max_tile_size)
+        return auto_split(img, upscale, tiling_mode)
     finally:
         del model
         del device

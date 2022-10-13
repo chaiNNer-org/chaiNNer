@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 from typing import Callable, Optional, Union
 import math
 
@@ -12,12 +13,40 @@ class Split:
     pass
 
 
+class Tiler(ABC):
+    @abstractmethod
+    def starting_tile_size(self, width: int, height: int, channels: int) -> int:
+        raise NotImplemented
+
+    def split(self, tile_size: int) -> int:
+        assert tile_size >= 16
+        return max(16, tile_size // 2)
+
+
+class NoTiling(Tiler):
+    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
+        return max(width, height)
+
+    def split(self, _tile_size: int) -> int:
+        raise ValueError(f"Image cannot be upscale with No Tiling mode.")
+
+
+class MaxTileSize(Tiler):
+    def __init__(self, tile_size: int) -> None:
+        self.tile_size: int = tile_size
+
+    def starting_tile_size(self, width: int, height: int, _channels: int) -> int:
+        # Tile size a lot larger than the image don't make sense.
+        # So we use the minimum of the image dimensions and the given tile size.
+        max_tile_size = max(width + 10, height + 10)
+        return min(self.tile_size, max_tile_size)
+
+
 def auto_split(
     img: np.ndarray,
     upscale: Callable[[np.ndarray], Union[np.ndarray, Split]],
-    max_tile_size: Union[int, None] = None,
+    tiler: Tiler,
     overlap: int = 16,
-    min_tile_size: int = 16,
 ) -> np.ndarray:
     """
     Splits the image into tiles with at most the given tile size.
@@ -26,16 +55,10 @@ def auto_split(
     """
 
     h, w, c = get_h_w_c(img)
-
-    if max_tile_size is None:
-        max_tile_size = max(256, int(w * 1.05), int(h * 1.05))
-        logger.info(
-            f"Auto split image ({w}x{h}px @ {c}) with initial tile size defaulting to {max_tile_size}."
-        )
-    else:
-        logger.info(
-            f"Auto split image ({w}x{h}px @ {c}) with initial tile size {max_tile_size}."
-        )
+    max_tile_size = tiler.starting_tile_size(w, h, c)
+    logger.info(
+        f"Auto split image ({w}x{h}px @ {c}) with initial tile size {max_tile_size}."
+    )
 
     if h <= max_tile_size and w <= max_tile_size:
         # the image might be small enough so that we don't have to split at all
@@ -44,9 +67,7 @@ def auto_split(
             return upscale_result
 
         # the image was too large
-        max_tile_size = max_tile_size // 2
-        while max_tile_size * max_tile_size > w * h:
-            max_tile_size = max_tile_size // 2
+        max_tile_size = tiler.split(max_tile_size)
 
         logger.info(
             f"Unable to upscale the whole image at once. Reduced tile size to {max_tile_size}."
@@ -66,8 +87,6 @@ def auto_split(
     restart = True
     while restart:
         restart = False
-
-        assert max_tile_size >= min_tile_size
 
         # This is a bit complex.
         # We don't actually use the current tile size to partition the image.
@@ -102,7 +121,7 @@ def auto_split(
                 upscale_result = upscale(img[y_min:y_max, x_min:x_max, ...])
 
                 if isinstance(upscale_result, Split):
-                    max_tile_size = max_tile_size // 2
+                    max_tile_size = tiler.split(max_tile_size)
 
                     new_tile_count_x = math.ceil(w / max_tile_size)
                     new_tile_count_y = math.ceil(h / max_tile_size)

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import gc
-from typing import Union
 
 import numpy as np
 import onnxruntime as ort
 
-from .auto_split import auto_split
+from .auto_split import auto_split, Tiler
 from .utils import np2nptensor, nptensor2np
 
 
@@ -14,7 +13,7 @@ def onnx_auto_split(
     img: np.ndarray,
     session: ort.InferenceSession,
     change_shape: bool,
-    max_tile_size: Union[int, None] = None,
+    tiler: Tiler,
 ) -> np.ndarray:
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
@@ -52,6 +51,6 @@ def onnx_auto_split(
                 raise
 
     try:
-        return auto_split(img, upscale, max_tile_size)
+        return auto_split(img, upscale, tiling_mode)
     finally:
         gc.collect()
