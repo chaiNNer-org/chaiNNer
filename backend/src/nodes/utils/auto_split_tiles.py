@@ -36,6 +36,8 @@ def parse_tile_size_input(tile_size: int, estimate: Callable[[], Tiler]) -> Tile
         return estimate()
     if tile_size == -1:
         return NoTiling()
+    if tile_size == -2:
+        return MaxTileSize()
 
     assert tile_size > 0
     return MaxTileSize(tile_size)

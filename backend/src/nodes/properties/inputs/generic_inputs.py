@@ -337,7 +337,7 @@ def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
     if estimate:
         options.append({"option": "Auto (estimate)", "value": 0})
 
-    options.append({"option": "Maximum", "value": 2**31})
+    options.append({"option": "Maximum", "value": -2})
     options.append({"option": "No Tiling", "value": -1})
 
     for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
