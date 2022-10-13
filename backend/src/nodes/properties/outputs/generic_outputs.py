@@ -2,9 +2,16 @@ from .base_output import BaseOutput, OutputKind
 from .. import expression
 
 
-def NumberOutput(label: str, output_type: expression.ExpressionJson = "number"):
-    """Output for arbitrary number"""
-    return BaseOutput(expression.intersect("number", output_type), label)
+class NumberOutput(BaseOutput):
+    def __init__(
+        self,
+        label: str,
+        output_type: expression.ExpressionJson = "number",
+    ):
+        super().__init__(expression.intersect("number", output_type), label)
+
+    def validate(self, value) -> None:
+        assert isinstance(value, (int, float))
 
 
 class TextOutput(BaseOutput):
@@ -18,3 +25,6 @@ class TextOutput(BaseOutput):
 
     def get_broadcast_data(self, value: str):
         return value
+
+    def validate(self, value) -> None:
+        assert isinstance(value, str)

@@ -64,8 +64,21 @@ def ncnn_auto_split(
             del ex, mat_in, mat_out
             gc.collect()
             # Clear VRAM
+            blob_vkallocator.clear()
+            staging_vkallocator.clear()
             return result
         except Exception as e:
+            if "vkQueueSubmit" in str(e):
+                ex = None
+                del ex
+                gc.collect()
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
+                # TODO: Have someone running into this issue enable this and see if it fixes anything
+                # ncnn.destroy_gpu_instance()
+                raise RuntimeError(
+                    "A critical error has occurred. You may need to restart chaiNNer in order for NCNN upscaling to start working again."
+                ) from e
             # Check to see if its actually the NCNN out of memory error
             if "failed" in str(e):
                 # clear VRAM
@@ -73,6 +86,8 @@ def ncnn_auto_split(
                 ex = None
                 del ex
                 gc.collect()
+                blob_vkallocator.clear()
+                staging_vkallocator.clear()
                 return Split()
             else:
                 # Re-raise the exception if not an OOM error
