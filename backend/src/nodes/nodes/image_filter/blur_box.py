@@ -19,8 +19,8 @@ class BlurNode(NodeBase):
         self.description = "Apply box/average blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", precision=1, controls_step=1),
-            NumberInput("Amount Y", precision=1, controls_step=1),
+            NumberInput("Radius X", precision=1, controls_step=1),
+            NumberInput("Radius Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -31,22 +31,22 @@ class BlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount_x: float,
-        amount_y: float,
+        radius_x: float,
+        radius_y: float,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        if amount_x == 0 and amount_y == 0:
+        if radius_x == 0 and radius_y == 0:
             return img
 
         # Create kernel of dims h * w, rounded up to the closest odd integer
         kernel = np.ones(
-            (ceil(amount_y) * 2 + 1, ceil(amount_x) * 2 + 1), np.float32
-        ) / ((2 * amount_y + 1) * (2 * amount_x + 1))
+            (ceil(radius_y) * 2 + 1, ceil(radius_x) * 2 + 1), np.float32
+        ) / ((2 * radius_y + 1) * (2 * radius_x + 1))
 
         # Modify edges of kernel by fractional amount if kernel size (2r+1) is not odd integer
-        x_d = amount_x % 1
-        y_d = amount_y % 1
+        x_d = radius_x % 1
+        y_d = radius_y % 1
         if y_d != 0:
             kernel[0, :] *= y_d
             kernel[-1, :] *= y_d

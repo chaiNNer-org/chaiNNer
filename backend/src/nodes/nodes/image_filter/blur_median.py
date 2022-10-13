@@ -17,7 +17,7 @@ class MedianBlurNode(NodeBase):
         self.description = "Apply median blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount"),
+            NumberInput("Radius"),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -28,17 +28,17 @@ class MedianBlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount: int,
+        radius: int,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        if amount == 0:
+        if radius == 0:
             return img
         else:
-            if amount < 3:
-                blurred = cv2.medianBlur(img, 2 * amount + 1)
+            if radius < 3:
+                blurred = cv2.medianBlur(img, 2 * radius + 1)
             else:  # cv2 requires uint8 for kernel size (2r+1) > 5
                 img = (img * 255).astype("uint8")
-                blurred = cv2.medianBlur(img, 2 * amount + 1).astype("float32") / 255
+                blurred = cv2.medianBlur(img, 2 * radius + 1).astype("float32") / 255
 
             return np.clip(blurred, 0, 1)
