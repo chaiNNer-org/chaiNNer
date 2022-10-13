@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import gc
-from typing import Union
 
 import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from .auto_split import auto_split, Split
+from .auto_split import auto_split, Split, Tiler
 from .utils import get_h_w_c
 
 
@@ -33,7 +32,7 @@ def ncnn_auto_split(
     output_name: str,
     blob_vkallocator,
     staging_vkallocator,
-    max_tile_size: Union[int, None] = None,
+    tiler: Tiler,
 ) -> np.ndarray:
     def upscale(img: np.ndarray):
         ex = net.create_extractor()
@@ -94,4 +93,4 @@ def ncnn_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, max_tile_size)
+    return auto_split(img, upscale, tiler)

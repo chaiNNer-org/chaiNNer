@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Union
 
 import numpy as np
 import cv2
@@ -16,7 +15,8 @@ from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.exec_options import get_execution_options
-from ...utils.auto_split import estimate_tile_size
+from ...utils.auto_split import MaxTileSize
+from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModel
 from ...utils.ncnn_session import get_ncnn_net
@@ -73,20 +73,19 @@ class NcnnUpscaleImageNode(NodeBase):
         model: NcnnModel,
         input_name: str,
         output_name: str,
-        tile_size: Union[int, None],
+        tile_size: int,
     ):
         exec_options = get_execution_options()
         net = get_ncnn_net(model, exec_options)
         # Try/except block to catch errors
         try:
             vkdev = ncnn.get_gpu_device(exec_options.ncnn_gpu_index)
-            heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
 
-            max_tile_size = (
-                tile_size
-                if tile_size is not None
-                else estimate_tile_size(heap_budget, model.bin_length, img, 4)
-            )
+            def estimate():
+                heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
+                return MaxTileSize(
+                    estimate_tile_size(heap_budget, model.bin_length, img, 4)
+                )
 
             with ncnn_allocators(vkdev) as (
                 blob_vkallocator,
@@ -99,7 +98,7 @@ class NcnnUpscaleImageNode(NodeBase):
                     output_name=output_name,
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
-                    max_tile_size=max_tile_size,
+                    tiler=parse_tile_size_input(tile_size, estimate),
                 )
         except (RuntimeError, ValueError):
             raise
@@ -122,7 +121,7 @@ class NcnnUpscaleImageNode(NodeBase):
                 model,
                 model.layer_list[0].outputs[0],
                 model.layer_list[-1].outputs[0],
-                tile_size if tile_size > 0 else None,
+                tile_size,
             )
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)

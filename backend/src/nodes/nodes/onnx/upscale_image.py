@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
 import onnxruntime as ort
 from sanic.log import logger
@@ -12,6 +10,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
+from ...utils.auto_split_tiles import parse_tile_size_input
 from ...utils.onnx_auto_split import onnx_auto_split
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_session import get_onnx_session
@@ -29,7 +28,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self.inputs = [
             OnnxModelInput(),
             ImageInput(),
-            TileSizeDropdown(),
+            TileSizeDropdown(estimate=False),
         ]
         self.outputs = [
             ImageOutput(
@@ -47,15 +46,19 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        tile_size: Union[int, None],
+        tile_size: int,
         change_shape: bool,
     ) -> np.ndarray:
         logger.info("Upscaling image")
+
+        def estimate():
+            raise ValueError
+
         return onnx_auto_split(
             img,
             session,
             change_shape=change_shape,
-            max_tile_size=tile_size,
+            tiler=parse_tile_size_input(tile_size, estimate),
         )
 
     def run(
@@ -80,10 +83,5 @@ class OnnxImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(
-                i,
-                session,
-                tile_size if tile_size > 0 else None,
-                change_shape,
-            ),
+            lambda i: self.upscale(i, session, tile_size, change_shape),
         )

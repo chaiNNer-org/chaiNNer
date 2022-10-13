@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple
 
 import torch
 import numpy as np
@@ -13,7 +13,8 @@ from ...properties.inputs import ModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
 from ...utils.torch_types import PyTorchModel
-from ...utils.auto_split import estimate_tile_size
+from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
+from ...utils.auto_split import MaxTileSize
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.pytorch_auto_split import pytorch_auto_split
 from ...utils.utils import get_h_w_c, convenient_upscale
@@ -54,7 +55,7 @@ class ImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         model: PyTorchModel,
-        tile_size: Union[int, None],
+        tile_size: int,
         options: ExecutionOptions,
     ):
         with torch.no_grad():
@@ -65,27 +66,32 @@ class ImageUpscaleNode(NodeBase):
             use_fp16 = options.fp16 and model.supports_fp16
             device = torch.device(options.device)
 
-            max_tile_size = tile_size
-            if "cuda" in options.device and tile_size is not None:
-                mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
-                free, _total = mem_info
-                element_size = 2 if use_fp16 else 4
-                model_bytes = sum(p.numel() * element_size for p in model.parameters())
-                budget = int(free * 0.6)
+            def estimate():
+                if "cuda" in options.device and tile_size is not None:
+                    mem_info: Tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
+                    free, _total = mem_info
+                    element_size = 2 if use_fp16 else 4
+                    model_bytes = sum(
+                        p.numel() * element_size for p in model.parameters()
+                    )
+                    budget = int(free * 0.6)
 
-                max_tile_size = estimate_tile_size(
-                    budget,
-                    model_bytes,
-                    img,
-                    element_size,
-                )
+                    return MaxTileSize(
+                        estimate_tile_size(
+                            budget,
+                            model_bytes,
+                            img,
+                            element_size,
+                        )
+                    )
+                return MaxTileSize()
 
             img_out = pytorch_auto_split(
                 img,
                 model=model,
                 device=device,
                 use_fp16=use_fp16,
-                max_tile_size=max_tile_size,
+                tiler=parse_tile_size_input(tile_size, estimate),
             )
             logger.debug("Done upscaling")
 
@@ -110,10 +116,5 @@ class ImageUpscaleNode(NodeBase):
         return convenient_upscale(
             img,
             in_nc,
-            lambda i: self.upscale(
-                i,
-                model,
-                tile_size if tile_size > 0 else None,
-                exec_options,
-            ),
+            lambda i: self.upscale(i, model, tile_size, exec_options),
         )
