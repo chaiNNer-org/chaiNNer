@@ -54,7 +54,7 @@ def pytorch_auto_split(
                 raise
 
     try:
-        return auto_split(img, upscale, tiling_mode)
+        return auto_split(img, upscale, tiler)
     finally:
         del model
         del device

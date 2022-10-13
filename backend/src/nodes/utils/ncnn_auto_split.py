@@ -93,4 +93,4 @@ def ncnn_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiling_mode)
+    return auto_split(img, upscale, tiler)
