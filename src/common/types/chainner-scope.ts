@@ -7,11 +7,12 @@ import {
     StructType,
     Type,
     globalScope,
+    intInterval,
     parseDefinitions,
     union,
 } from '@chainner/navi';
 import { lazy } from '../util';
-import { formatTextPattern } from './chainner-format';
+import { formatTextPattern, padCenter, padEnd, padStart } from './chainner-builtin';
 
 const code = `
 struct null;
@@ -73,13 +74,14 @@ struct TileMode;
 struct TransferColorspace;
 struct VideoType;
 
+enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
+enum FillColor { Auto, Black, Transparent }
+enum FpMode { fp32, fp16 }
 enum Orientation { Horizontal, Vertical }
-enum SideSelection { Width, Height, Shorter, Longer }
+enum PaddingAlignment { Start, End, Center }
 enum ResizeCondition { Both, Upscale, Downscale }
 enum RotateSizeChange { Crop, Expand }
-enum FillColor { Auto, Black, Transparent }
-enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
-enum FpMode { fp32, fp16 }
+enum SideSelection { Width, Height, Shorter, Longer }
 
 def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
     match fill {
@@ -110,6 +112,28 @@ export const getChainnerScope = lazy((): Scope => {
             [StringType.instance],
             union(StringType.instance, new StructType('null'))
         )
+    );
+
+    builder.add(
+        new BuiltinFunctionDefinition('padStart', padStart as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
+    );
+    builder.add(
+        new BuiltinFunctionDefinition('padEnd', padEnd as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
+    );
+    builder.add(
+        new BuiltinFunctionDefinition('padCenter', padCenter as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
     );
 
     return builder.createScope();
