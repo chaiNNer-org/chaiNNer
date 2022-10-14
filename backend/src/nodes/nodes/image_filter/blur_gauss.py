@@ -17,8 +17,8 @@ class GaussianBlurNode(NodeBase):
         self.description = "Apply Gaussian blur to an image."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount X", precision=1, controls_step=1),
-            NumberInput("Amount Y", precision=1, controls_step=1),
+            NumberInput("Radius X", precision=1, controls_step=1),
+            NumberInput("Radius Y", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -29,14 +29,14 @@ class GaussianBlurNode(NodeBase):
     def run(
         self,
         img: np.ndarray,
-        amount_x: float,
-        amount_y: float,
+        sigma_x: float,
+        sigma_y: float,
     ) -> np.ndarray:
         """Adjusts the blur of an image"""
 
-        if amount_x == 0 and amount_y == 0:
+        if sigma_x == 0 and sigma_y == 0:
             return img
         else:
             return np.clip(
-                cv2.GaussianBlur(img, (0, 0), sigmaX=amount_x, sigmaY=amount_y), 0, 1
+                cv2.GaussianBlur(img, (0, 0), sigmaX=sigma_x, sigmaY=sigma_y), 0, 1
             )
