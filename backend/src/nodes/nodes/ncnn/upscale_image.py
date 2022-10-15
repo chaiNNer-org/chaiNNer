@@ -16,7 +16,7 @@ from ...utils.auto_split import MaxTileSize
 from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
 from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split
-from ...utils.ncnn_model import NcnnModel, NcnnModelWrapper
+from ...utils.ncnn_model import NcnnModelWrapper
 from ...utils.ncnn_session import get_ncnn_net
 from ...utils.utils import convenient_upscale, get_h_w_c
 from . import category as NCNNCategory

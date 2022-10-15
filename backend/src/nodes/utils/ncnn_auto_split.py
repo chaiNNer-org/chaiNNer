@@ -6,7 +6,7 @@ import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from .auto_split import auto_split, Split, Tiler
+from .auto_split import Split, Tiler, auto_split
 from .utils import get_h_w_c
 
 

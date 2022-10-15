@@ -3,13 +3,12 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from . import category as NCNNCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ParamFileInput, BinFileInput
+from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
 from ...utils.ncnn_model import NcnnModel, NcnnModelWrapper
+from . import category as NCNNCategory
 
 
 @NodeFactory.register("chainner:ncnn:load_model")

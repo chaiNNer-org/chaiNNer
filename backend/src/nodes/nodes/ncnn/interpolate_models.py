@@ -1,20 +1,15 @@
-"""
-Nodes that provide NCNN support
-"""
 from __future__ import annotations
 
 from typing import Tuple
 
 import numpy as np
 
-from . import category as NCNNCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput, SliderInput
 from ...properties.outputs import NcnnModelOutput, NumberOutput
 from ...utils.ncnn_model import NcnnModelWrapper
-
+from . import category as NCNNCategory
 from .upscale_image import NcnnUpscaleImageNode
 
 
