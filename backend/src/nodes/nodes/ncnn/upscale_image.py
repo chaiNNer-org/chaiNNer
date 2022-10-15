@@ -2,25 +2,24 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 
-import numpy as np
 import cv2
+import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from . import category as NCNNCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.exec_options import get_execution_options
+from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
+from ...properties.outputs import ImageOutput
 from ...utils.auto_split import MaxTileSize
 from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
+from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModel, NcnnModelWrapper
 from ...utils.ncnn_session import get_ncnn_net
 from ...utils.utils import convenient_upscale, get_h_w_c
+from . import category as NCNNCategory
 
 
 @contextmanager
@@ -70,7 +69,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        model: NcnnModel,
+        model: NcnnModelWrapper,
         input_name: str,
         output_name: str,
         tile_size: int,
@@ -84,7 +83,7 @@ class NcnnUpscaleImageNode(NodeBase):
             def estimate():
                 heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
                 return MaxTileSize(
-                    estimate_tile_size(heap_budget, model.bin_length, img, 4)
+                    estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
                 )
 
             with ncnn_allocators(vkdev) as (
@@ -108,21 +107,9 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(
-        self, model: NcnnModelWrapper, img: np.ndarray, tile_mode: int
+        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: int
     ) -> np.ndarray:
-        exec_options = get_execution_options()
-
         model_c = model.in_nc
-
-        net = ncnn.Net()
-
-        # Use vulkan compute
-        net.opt.use_vulkan_compute = True
-        net.set_vulkan_device(exec_options.ncnn_gpu_index)
-
-        # Load model param and bin
-        net.load_param_mem(model.model.write_param())
-        net.load_model_mem(model.model.weights_bin)
 
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
@@ -132,10 +119,10 @@ class NcnnUpscaleImageNode(NodeBase):
                 i = cv2.cvtColor(i, cv2.COLOR_BGRA2RGBA)
             i = self.upscale(
                 i,
-                net,
+                model,
                 model.model.layer_list[0].outputs[0],
                 model.model.layer_list[-1].outputs[0],
-                tile_mode,
+                tile_size,
             )
             if ic == 3:
                 i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
