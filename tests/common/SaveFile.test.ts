@@ -13,10 +13,10 @@ for (const file of fs.readdirSync(dataDir)) {
         expect(parsed).toMatchSnapshot();
     });
     test(`Write save file ${file}`, async () => {
-        const json = SaveFile.stringify(await SaveFile.read(filePath), '');
+        const json = SaveFile.stringify(await SaveFile.read(filePath), '0.0.0-test');
         const obj = JSON.parse(json) as RawSaveFile;
         delete obj.migration;
-        obj.timestamp = '';
+        delete obj.timestamp;
         expect(obj).toMatchSnapshot();
     });
 }

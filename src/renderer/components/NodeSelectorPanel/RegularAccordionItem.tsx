@@ -130,7 +130,7 @@ export const PackageHint = memo(({ collapsed, onClick, hint, packageName }: Pack
                 noWrap
                 collapsed={collapsed}
                 height="1.5rem"
-                text="Not installed."
+                text="Missing dependencies."
                 toolTip={
                     <PackageHintText
                         hint={hint}

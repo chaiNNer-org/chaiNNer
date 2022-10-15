@@ -1,67 +1,25 @@
 import cv2
 
 # pylint: disable=relative-beyond-top-level
+from ...utils.image_utils import BorderType
 from ...utils.pil_utils import InterpolationMethod, RotateExpandCrop
 from ...utils.tile_util import TileMode
+from ...utils.color.convert_data import color_spaces
+from ..expression import named
 from .generic_inputs import DropDownInput
 
 
-def ColorModeInput() -> DropDownInput:
-    """Converting color mode dropdown"""
+def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
     return DropDownInput(
-        input_type="ColorMode",
-        label="Color Mode",
+        input_type="ColorSpace",
+        label=label,
         options=[
             {
-                "option": "RGB -> Gray",
-                "value": cv2.COLOR_BGR2GRAY,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 1 }",
-            },
-            {
-                "option": "Gray -> RGB",
-                "value": cv2.COLOR_GRAY2BGR,
-                "type": "ColorMode { inputChannels: 1, outputChannels: 3 }",
-            },
-            {
-                "option": "RGB -> RGBA",
-                "value": cv2.COLOR_BGR2BGRA,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 4 }",
-            },
-            {
-                "option": "RGBA -> RGB",
-                "value": cv2.COLOR_BGRA2BGR,
-                "type": "ColorMode { inputChannels: 4, outputChannels: 3 }",
-            },
-            {
-                "option": "RGBA -> Gray",
-                "value": cv2.COLOR_BGRA2GRAY,
-                "type": "ColorMode { inputChannels: 4, outputChannels: 1 }",
-            },
-            {
-                "option": "Gray -> RGBA",
-                "value": cv2.COLOR_GRAY2BGRA,
-                "type": "ColorMode { inputChannels: 1, outputChannels: 4 }",
-            },
-            {
-                "option": "RGB -> YUV",
-                "value": cv2.COLOR_BGR2YUV,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 3 }",
-            },
-            {
-                "option": "YUV -> RGB",
-                "value": cv2.COLOR_YUV2BGR,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 3 }",
-            },
-            {
-                "option": "RGB -> HSV",
-                "value": cv2.COLOR_BGR2HSV,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 3 }",
-            },
-            {
-                "option": "HSV -> RGB",
-                "value": cv2.COLOR_HSV2BGR,
-                "type": "ColorMode { inputChannels: 3, outputChannels: 3 }",
-            },
+                "option": c.name,
+                "value": c.id,
+                "type": named("ColorSpace", {"channels": c.channels}),
+            }
+            for c in color_spaces
         ],
     )
 
@@ -128,6 +86,7 @@ def ResizeToSideInput() -> DropDownInput:
             },
         ],
     )
+
 
 def ResizeCondition() -> DropDownInput:
     """Upscale / Downscale condition dropdown"""
@@ -215,23 +174,28 @@ def BorderInput() -> DropDownInput:
         options=[
             {
                 "option": "Reflect (Mirror)",
-                "value": cv2.BORDER_REFLECT101,
+                "value": BorderType.REFLECT_MIRROR,
+                "type": "BorderType::ReflectMirror",
             },
             {
                 "option": "Wrap (Tile)",
-                "value": cv2.BORDER_WRAP,
+                "value": BorderType.WRAP,
+                "type": "BorderType::Wrap",
             },
             {
                 "option": "Replicate Edges",
-                "value": cv2.BORDER_REPLICATE,
+                "value": BorderType.REPLICATE,
+                "type": "BorderType::Replicate",
             },
             {
-                "option": "Constant Color",
-                "value": cv2.BORDER_CONSTANT,
+                "option": "Black",
+                "value": BorderType.BLACK,
+                "type": "BorderType::Black",
             },
             {
                 "option": "Transparent",
-                "value": cv2.BORDER_TRANSPARENT,
+                "value": BorderType.TRANSPARENT,
+                "type": "BorderType::Transparent",
             },
         ],
     )
@@ -339,11 +303,11 @@ def CaptionPositionInput() -> DropDownInput:
         options=[
             {
                 "option": "Bottom",
-                "value": 'bottom',
+                "value": "bottom",
             },
             {
                 "option": "Top",
-                "value": 'top',
+                "value": "top",
             },
         ],
     )

@@ -1,10 +1,9 @@
 /* eslint-disable no-nested-ternary */
+import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon, WarningIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Image, Spinner, Text } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
@@ -36,15 +35,9 @@ export const LargeImageOutput = memo(
                         id,
                         outputId,
                         new NamedExpression('Image', [
-                            new NamedExpressionField('width', new NumericLiteralType(value.width)),
-                            new NamedExpressionField(
-                                'height',
-                                new NumericLiteralType(value.height)
-                            ),
-                            new NamedExpressionField(
-                                'channels',
-                                new NumericLiteralType(value.channels)
-                            ),
+                            new NamedExpressionField('width', literal(value.width)),
+                            new NamedExpressionField('height', literal(value.height)),
+                            new NamedExpressionField('channels', literal(value.channels)),
                         ])
                     );
                 } else {

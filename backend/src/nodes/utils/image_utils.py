@@ -22,6 +22,14 @@ class FlipAxis:
     NONE = 2
 
 
+class BorderType:
+    BLACK = 0
+    REPLICATE = 1
+    WRAP = 3
+    REFLECT_MIRROR = 4
+    TRANSPARENT = 5
+
+
 def get_opencv_formats():
     available_formats = [
         # Bitmaps
@@ -210,6 +218,42 @@ def as_target_channels(img: np.ndarray, target_channels: int) -> np.ndarray:
         return convert_to_BGRA(img, c)
 
     assert False, "Unable to convert image"
+
+
+def create_border(
+    img: np.ndarray,
+    border_type: int,
+    top: int,
+    right: int,
+    bottom: int,
+    left: int,
+) -> np.ndarray:
+    """
+    Returns a new image with a specified border.
+
+    The border type value is expected to come from the `BorderType` class.
+    """
+
+    _, _, c = get_h_w_c(img)
+    if c == 4 and border_type == BorderType.BLACK:
+        value = (0, 0, 0, 1)
+    else:
+        value = 0
+
+    if border_type == BorderType.TRANSPARENT:
+        border_type = cv2.BORDER_CONSTANT
+        value = 0
+        img = as_target_channels(img, 4)
+
+    return cv2.copyMakeBorder(
+        img,
+        top=top,
+        left=left,
+        right=right,
+        bottom=bottom,
+        borderType=border_type,
+        value=value,
+    )
 
 
 def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: int):

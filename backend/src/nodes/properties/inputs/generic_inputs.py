@@ -242,9 +242,9 @@ def FlipAxisInput() -> DropDownInput:
     )
 
 
-def ColorspaceInput() -> DropDownInput:
+def TransferColorspaceInput() -> DropDownInput:
     return DropDownInput(
-        input_type="Colorspace",
+        input_type="TransferColorspace",
         label="Colorspace",
         options=[
             {"option": "L*a*b*", "value": "L*a*b*"},
@@ -285,12 +285,17 @@ def BlendModeDropdown() -> DropDownInput:
             {"option": "Darken", "value": bm.DARKEN},
             {"option": "Multiply", "value": bm.MULTIPLY},
             {"option": "Color Burn", "value": bm.COLOR_BURN},
+            {"option": "Linear Burn", "value": bm.LINEAR_BURN},
             {"option": "Lighten", "value": bm.LIGHTEN},
             {"option": "Screen", "value": bm.SCREEN},
             {"option": "Color Dodge", "value": bm.COLOR_DODGE},
-            {"option": "Add", "value": bm.ADD},
+            {"option": "Linear Dodge (Add)", "value": bm.ADD},
             {"option": "Overlay", "value": bm.OVERLAY},
             {"option": "Soft Light", "value": bm.SOFT_LIGHT},
+            {"option": "Hard Light", "value": bm.HARD_LIGHT},
+            {"option": "Vivid Light", "value": bm.VIVID_LIGHT},
+            {"option": "Linear Light", "value": bm.LINEAR_LIGHT},
+            {"option": "Pin Light", "value": bm.PIN_LIGHT},
             {"option": "Reflect", "value": bm.REFLECT},
             {"option": "Glow", "value": bm.GLOW},
             {"option": "Difference", "value": bm.DIFFERENCE},
@@ -327,20 +332,43 @@ def FillColorDropdown() -> DropDownInput:
     )
 
 
-def TileModeDropdown(has_auto=True) -> DropDownInput:
-    options = [
-        {"option": "None", "value": 1},
-        {"option": 4**1, "value": 2},
-        {"option": 4**2, "value": 3},
-        {"option": 4**3, "value": 4},
-        {"option": 4**4, "value": 5},
-        {"option": 4**5, "value": 6},
-        {"option": 4**6, "value": 7},
-    ]
-    if has_auto:
-        options.insert(0, {"option": "Auto", "value": 0})
+def TileSizeDropdown(label="Tile Size", estimate=True) -> DropDownInput:
+    options = []
+    if estimate:
+        options.append({"option": "Auto (estimate)", "value": 0})
+
+    options.append({"option": "Maximum", "value": -2})
+    options.append({"option": "No Tiling", "value": -1})
+
+    for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
+        options.append({"option": str(size), "value": size})
+
     return DropDownInput(
         input_type="TileMode",
-        label="Number of Tiles",
+        label=label,
         options=options,
+    )
+
+
+def PaddingAlignmentDropdown(label="Alignment") -> DropDownInput:
+    return DropDownInput(
+        input_type="PaddingAlignment",
+        label=label,
+        options=[
+            {
+                "option": "Start",
+                "value": "start",
+                "type": "PaddingAlignment::Start",
+            },
+            {
+                "option": "End",
+                "value": "end",
+                "type": "PaddingAlignment::End",
+            },
+            {
+                "option": "Center",
+                "value": "center",
+                "type": "PaddingAlignment::Center",
+            },
+        ],
     )

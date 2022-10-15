@@ -18,6 +18,9 @@ class NumPyOutput(BaseOutput):
     ):
         super().__init__(output_type, label, kind=kind, has_handle=has_handle)
 
+    def validate(self, value) -> None:
+        assert isinstance(value, np.ndarray)
+
 
 def AudioOutput():
     """Output a 1D Audio NumPy array"""
@@ -53,6 +56,9 @@ class ImageOutput(NumPyOutput):
             "width": w,
             "channels": c,
         }
+
+    def validate(self, value) -> None:
+        assert isinstance(value, np.ndarray)
 
 
 class LargeImageOutput(ImageOutput):

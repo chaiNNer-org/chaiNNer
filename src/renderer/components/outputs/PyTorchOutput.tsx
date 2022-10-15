@@ -1,21 +1,21 @@
 /* eslint-disable no-nested-ternary */
+import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
 import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
-import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType, StringLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { OutputProps } from './props';
 
 interface PyTorchModelData {
-    modelType: string;
+    arch: string;
     inNc: number;
     outNc: number;
     size: string[];
     scale: number;
+    subType: string;
 }
 
 const getColorMode = (channels: number) => {
@@ -47,23 +47,12 @@ export const PyTorchOutput = memo(
                         id,
                         outputId,
                         new NamedExpression('PyTorchModel', [
-                            new NamedExpressionField('scale', new NumericLiteralType(value.scale)),
-                            new NamedExpressionField(
-                                'inputChannels',
-                                new NumericLiteralType(value.inNc)
-                            ),
-                            new NamedExpressionField(
-                                'outputChannels',
-                                new NumericLiteralType(value.outNc)
-                            ),
-                            new NamedExpressionField(
-                                'modelType',
-                                new StringLiteralType(value.modelType)
-                            ),
-                            new NamedExpressionField(
-                                'size',
-                                new StringLiteralType(value.size.join('x'))
-                            ),
+                            new NamedExpressionField('scale', literal(value.scale)),
+                            new NamedExpressionField('inputChannels', literal(value.inNc)),
+                            new NamedExpressionField('outputChannels', literal(value.outNc)),
+                            new NamedExpressionField('arch', literal(value.arch)),
+                            new NamedExpressionField('size', literal(value.size.join('x'))),
+                            new NamedExpressionField('subType', literal(value.subType)),
                         ])
                     );
                 } else {
@@ -95,7 +84,15 @@ export const PyTorchOutput = memo(
                                     bgColor={tagColor}
                                     textColor={fontColor}
                                 >
-                                    {value.modelType}
+                                    {value.arch}
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.subType}
                                 </Tag>
                             </WrapItem>
                             <WrapItem>

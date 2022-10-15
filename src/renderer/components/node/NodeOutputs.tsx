@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
+import { Type } from '@chainner/navi';
 import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Output, OutputId, OutputKind, SchemaId } from '../../../common/common-types';
-import { Type } from '../../../common/types/types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';

@@ -1,3 +1,4 @@
+import { Version } from './common-types';
 import { isM1, isMac, isWindows } from './env';
 
 const KB = 1024 ** 1;
@@ -6,7 +7,7 @@ const GB = 1024 ** 3;
 
 export interface PyPiPackage {
     packageName: string;
-    version: string;
+    version: Version;
     findLink?: string;
     /**
      * A size estimate (in bytes) for the whl file to download.
@@ -31,6 +32,17 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: `1.10.2${canCuda ? '+cu113' : ''}`,
                     findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
                     sizeEstimate: canCuda ? 2 * GB : 140 * MB,
+                },
+                {
+                    packageName: 'torchvision',
+                    version: `0.11.3${canCuda ? '+cu113' : ''}`,
+                    findLink: canCuda ? 'https://download.pytorch.org/whl/cu113' : undefined,
+                    sizeEstimate: canCuda ? 2 * MB : 800 * KB,
+                },
+                {
+                    packageName: 'facexlib',
+                    version: '0.2.5',
+                    sizeEstimate: 1.1 * MB,
                 },
             ],
             description:
@@ -100,6 +112,10 @@ export const requiredDependencies: Dependency[] = [
         name: 'Pillow (PIL)',
         packages: [{ packageName: 'Pillow', version: '9.2.0', sizeEstimate: 3 * MB }],
     },
+    {
+        name: 'appdirs',
+        packages: [{ packageName: 'appdirs', version: '1.4.4', sizeEstimate: 13.5 * KB }],
+    },
 ];
 
 if (isMac && !isM1) {
@@ -110,6 +126,6 @@ if (isMac && !isM1) {
 } else if (isWindows) {
     requiredDependencies.push({
         name: 'Pywin32',
-        packages: [{ packageName: 'pywin32', version: '304', sizeEstimate: 12 * MB }],
+        packages: [{ packageName: 'pywin32', version: '304' as Version, sizeEstimate: 12 * MB }],
     });
 }

@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/prefer-default-export */
 import log from 'electron-log';
-import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'react-flow-renderer';
+import { getConnectedEdges, getOutgoers, isEdge, isNode } from 'reactflow';
 import semver from 'semver';
-import { deriveUniqueId } from './util';
+import { deriveUniqueId, parseTargetHandle } from './util';
 
 // ==============
 //   pre-alpha
@@ -691,6 +691,109 @@ const removeTargetTileSize = (data) => {
     return data;
 };
 
+const addTargetTileSizeAgain = (data) => {
+    data.nodes.forEach((node) => {
+        if (
+            [
+                'chainner:ncnn:upscale_image',
+                'chainner:onnx:upscale_image',
+                'chainner:pytorch:upscale_image',
+            ].includes(node.data.schemaId)
+        ) {
+            node.data.inputData[2] = 0;
+        }
+    });
+
+    return data;
+};
+
+const brightnessImplementationChange = (data) => {
+    const newNodes = [];
+    const newEdges = [];
+    const edgeMapping = new Map();
+
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:brightness_and_contrast') {
+            const brightness = node.data.inputData[1] ?? 0;
+            if (brightness !== 0) {
+                // set the brightness to 0 and create a Hue & Sat node in its place
+                node.data.inputData[1] = 0;
+                const id = deriveUniqueId(node.id);
+
+                newNodes.push({
+                    data: {
+                        schemaId: 'chainner:image:hue_and_saturation',
+                        inputData: { 1: 0, 2: 0, 3: brightness },
+                        id,
+                    },
+                    id,
+                    position: { x: node.position.x - 280, y: node.position.y - 20 },
+                    type: 'regularNode',
+                    selected: false,
+                    height: 356,
+                    width: 242,
+                    zIndex: 50,
+                });
+                newEdges.push({
+                    id: deriveUniqueId(id),
+                    sourceHandle: `${id}-0`,
+                    targetHandle: `${node.id}-0`,
+                    source: id,
+                    target: node.id,
+                    type: 'main',
+                    animated: false,
+                    data: {},
+                    zIndex: 49,
+                });
+                edgeMapping.set(`${node.id}-0`, `${id}-0`);
+            }
+        }
+    });
+    data.edges.forEach((edge) => {
+        const to = edgeMapping.get(edge.targetHandle);
+        if (to) {
+            edge.targetHandle = to;
+            edge.target = parseTargetHandle(to).nodeId;
+        }
+    });
+
+    data.nodes.push(...newNodes);
+    data.edges.push(...newEdges);
+
+    return data;
+};
+
+const convertColorSpaceFromTo = (data) => {
+    const GRAY = 0;
+    const RGB = 1;
+    const RGBA = 2;
+    const YUV = 3;
+    const HSV = 4;
+
+    /** @type {Partial<Record<number, [number, number]>>} */
+    const mapping = {
+        6: [RGB, GRAY],
+        8: [GRAY, RGB],
+        0: [RGB, RGBA],
+        1: [RGBA, RGB],
+        10: [RGBA, GRAY],
+        9: [GRAY, RGBA],
+        82: [RGB, YUV],
+        84: [YUV, RGB],
+        40: [RGB, HSV],
+        54: [HSV, RGB],
+    };
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const [from, to] = mapping[node.data.inputData[1]] ?? [RGB, RGB];
+            node.data.inputData[1] = from;
+            node.data.inputData[2] = to;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -729,6 +832,9 @@ const migrations = [
     removeEmptyStrings,
     blockSizeToRadius,
     removeTargetTileSize,
+    addTargetTileSizeAgain,
+    brightnessImplementationChange,
+    convertColorSpaceFromTo,
 ];
 
 export const currentMigration = migrations.length;

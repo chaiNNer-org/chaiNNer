@@ -512,9 +512,6 @@ const AdvancedSettings = memo(() => {
     const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
 
-    const { useDiscordRPC } = useContext(SettingsContext);
-    const [isDiscordRPC, setDiscordRPC] = useDiscordRPC;
-
     return (
         <VStack
             divider={<StackDivider />}
@@ -534,14 +531,6 @@ const AdvancedSettings = memo(() => {
                 value={isCheckUpdOnStrtUp}
                 onToggle={() => {
                     setIsCheckUpdOnStrtUp((prev) => !prev);
-                }}
-            />
-            <Toggle
-                description="Enable Discord Rich Presence integration"
-                title="Discord Rich Presence"
-                value={isDiscordRPC}
-                onToggle={() => {
-                    setDiscordRPC((prev) => !prev);
                 }}
             />
         </VStack>

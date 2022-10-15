@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
+import { Type } from '@chainner/navi';
 import { memo, useCallback } from 'react';
 import { useContext } from 'use-context-selector';
 import {
@@ -11,7 +12,6 @@ import {
     InputSize,
     SchemaId,
 } from '../../../common/common-types';
-import { Type } from '../../../common/types/types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from '../inputs/DirectoryInput';

@@ -6,7 +6,18 @@ import functools
 import gc
 import uuid
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 import numpy as np
 
 from sanic.log import logger
@@ -20,6 +31,39 @@ from chain.input import InputMap, EdgeInput
 
 from nodes.node_base import NodeBase
 from nodes.utils.image_utils import get_h_w_c
+
+
+Output = List[Any]
+
+
+def to_output(raw_output: Any, node: NodeBase) -> Output:
+    l = len(node.outputs)
+
+    output: Output
+    if l == 0:
+        assert raw_output is None, f"Expected all {node.name} nodes to return None."
+        output = []
+    elif l == 1:
+        output = [raw_output]
+    else:
+        output = list(raw_output)
+        assert (
+            len(output) == l
+        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+
+    # make outputs readonly
+    for o in output:
+        if isinstance(o, np.ndarray):
+            o.setflags(write=False)
+
+    # output-specific validations
+    for i, o in enumerate(node.outputs):
+        o.validate(output[i])
+
+    return output
+
+
+T = TypeVar("T")
 
 
 class NodeExecutionError(Exception):
@@ -94,8 +138,38 @@ class IteratorContext:
                 }
             )
 
+    async def run(
+        self,
+        collection: Iterable[T],
+        before: Callable[[T, int], Union[None, Literal[False]]],
+    ):
+        items = list(collection)
+        length = len(items)
 
-def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float]]:
+        errors: List[str] = []
+        for index, item in enumerate(items):
+            try:
+                await self.progress.suspend()
+
+                result = before(item, index)
+                if result is False:
+                    break
+
+                await self.run_iteration(index, length)
+            except Aborted:
+                raise
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
+
+
+def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
     def wrapper():
         start = time.time()
         result = supplier()
@@ -103,6 +177,13 @@ def timed_supplier(supplier: Callable[[], Any]) -> Callable[[], Tuple[Any, float
         return result, duration
 
     return wrapper
+
+
+async def timed_supplier_async(supplier):
+    start = time.time()
+    result = await supplier()
+    duration = time.time() - start
+    return result, duration
 
 
 class Executor:
@@ -117,7 +198,7 @@ class Executor:
         loop: asyncio.AbstractEventLoop,
         queue: EventQueue,
         pool: ThreadPoolExecutor,
-        parent_cache: Optional[OutputCache] = None,
+        parent_cache: Optional[OutputCache[Output]] = None,
         parent_executor: Optional[Executor] = None,
     ):
         assert not (
@@ -127,7 +208,7 @@ class Executor:
         self.execution_id: str = uuid.uuid4().hex
         self.chain = chain
         self.inputs = inputs
-        self.cache: OutputCache = OutputCache(
+        self.cache: OutputCache[Output] = OutputCache(
             parent=parent_executor.cache if parent_executor else parent_cache
         )
         self.__broadcast_tasks: List[asyncio.Task[None]] = []
@@ -148,7 +229,7 @@ class Executor:
             else get_cache_strategies(chain)
         )
 
-    async def process(self, node_id: NodeId) -> Any:
+    async def process(self, node_id: NodeId) -> Output:
         node = self.chain.nodes[node_id]
         try:
             return await self.__process(node)
@@ -159,7 +240,7 @@ class Executor:
         except Exception as e:
             raise NodeExecutionError(node, str(e), {}) from e
 
-    async def __process(self, node: Node) -> Any:
+    async def __process(self, node: Node) -> Output:
         """Process a single node"""
 
         logger.debug(f"node: {node}")
@@ -179,10 +260,8 @@ class Executor:
             if isinstance(node_input, EdgeInput):
                 # Recursively get the value of the input
                 processed_input = await self.process(node_input.id)
-                # Split the output if necessary and grab the right index from the output
-                if type(processed_input) in [list, tuple]:
-                    processed_input = processed_input[node_input.index]
-                inputs.append(processed_input)
+                # Grab the right index from the output
+                inputs.append(processed_input[node_input.index])
                 await self.progress.suspend()
             # Otherwise, just use the given input (number, string, etc)
             else:
@@ -204,18 +283,21 @@ class Executor:
 
         if node_instance.type == "iterator":
             context = IteratorContext(self, node.id)
-            output = await node_instance.run(
-                *enforced_inputs,
-                context=context,  # type: ignore
+            run_func = functools.partial(
+                node_instance.run, *enforced_inputs, context=context
             )
-            await self.queue.put(self.__create_node_finish(node.id))
+            raw_output, execution_time = await timed_supplier_async(run_func)
+            output = to_output(raw_output, node_instance)
+            del run_func
+            await self.__broadcast_data(node_instance, node.id, execution_time, output)
         else:
             try:
                 # Run the node and pass in inputs as args
                 run_func = functools.partial(node_instance.run, *enforced_inputs)
-                output, execution_time = await self.loop.run_in_executor(
+                raw_output, execution_time = await self.loop.run_in_executor(
                     self.pool, timed_supplier(run_func)
                 )
+                output = to_output(raw_output, node_instance)
                 del run_func
             except Aborted:
                 raise
@@ -257,7 +339,7 @@ class Executor:
         node_instance: NodeBase,
         node_id: NodeId,
         execution_time: float,
-        output: Any,
+        output: Output,
     ):
         node_outputs = node_instance.outputs
         finished = list(self.cache.keys())
@@ -266,11 +348,10 @@ class Executor:
 
         def compute_broadcast_data():
             broadcast_data: Dict[OutputId, Any] = dict()
-            output_list: List[Any] = [output] if len(node_outputs) == 1 else output
             for index, node_output in enumerate(node_outputs):
                 try:
                     broadcast_data[node_output.id] = node_output.get_broadcast_data(
-                        output_list[index]
+                        output[index]
                     )
                 except Exception as e:
                     logger.error(f"Error broadcasting output: {e}")

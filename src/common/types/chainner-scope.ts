@@ -1,8 +1,18 @@
+import {
+    BuiltinFunctionDefinition,
+    Scope,
+    ScopeBuilder,
+    SourceDocument,
+    StringType,
+    StructType,
+    Type,
+    globalScope,
+    intInterval,
+    parseDefinitions,
+    union,
+} from '@chainner/navi';
 import { lazy } from '../util';
-import { globalScope } from './global-scope';
-import { parseDefinitions } from './parse';
-import { Scope, ScopeBuilder } from './scope';
-import { SourceDocument } from './source';
+import { formatTextPattern, padCenter, padEnd, padStart } from './chainner-builtin';
 
 const code = `
 struct null;
@@ -29,9 +39,11 @@ struct PyTorchModel {
     scale: int(1..),
     inputChannels: int(1..),
     outputChannels: int(1..),
-    modelType: string,
+    arch: string,
     size: string,
+    subType: string,
 }
+let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
 
 struct NcnnBinFile;
 struct NcnnParamFile;
@@ -56,10 +68,8 @@ struct IteratorAuto;
 struct AdaptiveMethod;
 struct AdaptiveThresholdType;
 struct BlendMode;
-struct BorderType;
 struct CaptionPosition;
-struct ColorMode { inputChannels: 1 | 3 | 4, outputChannels: 1 | 3 | 4 }
-struct Colorspace;
+struct ColorSpace { channels: 1 | 3 | 4 }
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
@@ -71,18 +81,27 @@ struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
 struct ThresholdType;
 struct TileMode;
+struct TransferColorspace;
 struct VideoType;
 
-enum Orientation { Horizontal, Vertical }
-enum SideSelection { Width, Height, Shorter, Longer }
-enum ResizeCondition { Both, Upscale, Downscale }
-enum RotateSizeChange { Crop, Expand }
+enum BorderType { ReflectMirror, Wrap, Replicate, Black, Transparent }
 enum FillColor { Auto, Black, Transparent }
 enum FpMode { fp32, fp16 }
+enum Orientation { Horizontal, Vertical }
+enum PaddingAlignment { Start, End, Center }
+enum ResizeCondition { Both, Upscale, Downscale }
+enum RotateSizeChange { Crop, Expand }
+enum SideSelection { Width, Height, Shorter, Longer }
 
 def FillColor::getOutputChannels(fill: FillColor, channels: uint) {
     match fill {
         FillColor::Transparent => 4,
+        _ => channels
+    }
+}
+def BorderType::getOutputChannels(type: BorderType, channels: uint) {
+    match type {
+        BorderType::Transparent => 4,
         _ => channels
     }
 }
@@ -95,6 +114,37 @@ export const getChainnerScope = lazy((): Scope => {
     for (const d of definitions) {
         builder.add(d);
     }
+
+    builder.add(
+        new BuiltinFunctionDefinition(
+            'formatPattern',
+            formatTextPattern as (..._: Type[]) => Type,
+            [StringType.instance],
+            union(StringType.instance, new StructType('null'))
+        )
+    );
+
+    builder.add(
+        new BuiltinFunctionDefinition('padStart', padStart as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
+    );
+    builder.add(
+        new BuiltinFunctionDefinition('padEnd', padEnd as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
+    );
+    builder.add(
+        new BuiltinFunctionDefinition('padCenter', padCenter as (..._: Type[]) => Type, [
+            StringType.instance,
+            intInterval(0, Infinity),
+            StringType.instance,
+        ])
+    );
 
     return builder.createScope();
 });

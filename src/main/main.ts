@@ -8,16 +8,15 @@ import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
-import semver from 'semver';
-import { PythonInfo, WindowSize } from '../common/common-types';
+import { PythonInfo, Version, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../common/safeIpc';
 import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
+import { versionGt } from '../common/version';
 import { getArguments } from './arguments';
-import { registerDiscordRPC, toggleDiscordRPC, updateDiscordRPC } from './discordRPC';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { getIntegratedPython } from './python/integratedPython';
@@ -30,6 +29,8 @@ import { hasUpdate } from './update';
 if (require('electron-squirrel-startup')) {
     app.quit();
 }
+
+const version = app.getVersion() as Version;
 
 const localStorageLocation = path.join(app.getPath('userData'), 'settings');
 ipcMain.handle('get-localstorage-location', () => localStorageLocation);
@@ -81,7 +82,7 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 // Check for update
 const checkUpdateOnStartup = localStorage.getItem('check-upd-on-strtup') === 'true';
 if (app.isPackaged && checkUpdateOnStartup) {
-    hasUpdate(app.getVersion())
+    hasUpdate(version)
         .then(async (latest) => {
             if (!latest) return;
 
@@ -94,7 +95,7 @@ if (app.isPackaged && checkUpdateOnStartup) {
                 type: 'info',
                 title: 'An update is available for chaiNNer!',
                 message: `Version ${latest.version} is available for download from GitHub.`,
-                detail: `Currently installed: ${app.getVersion()}\n\nRelease notes:\n\n${changelogItems.join(
+                detail: `Currently installed: ${version}\n\nRelease notes:\n\n${changelogItems.join(
                     '\n'
                 )}`,
                 buttons: [`Get version ${latest.version}`, 'Ok'],
@@ -135,7 +136,7 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
                 defaultPath,
             });
             if (!canceled && filePath) {
-                await SaveFile.write(filePath, saveData, app.getVersion());
+                await SaveFile.write(filePath, saveData, version);
                 return { kind: 'Success', path: filePath };
             }
             return { kind: 'Canceled' };
@@ -147,7 +148,7 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
 
     ipcMain.handle('file-save-json', async (event, saveData, savePath) => {
         try {
-            await SaveFile.write(savePath, saveData, app.getVersion());
+            await SaveFile.write(savePath, saveData, version);
         } catch (error) {
             log.error(error);
             throw error;
@@ -165,7 +166,7 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
 
     ipcMain.handle('get-gpu-info', getGpuInfo);
 
-    ipcMain.handle('get-app-version', () => app.getVersion());
+    ipcMain.handle('get-app-version', () => version);
 
     let blockerId: number | undefined;
     ipcMain.on('start-sleep-blocker', () => {
@@ -178,14 +179,6 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
             powerSaveBlocker.stop(blockerId);
             blockerId = undefined;
         }
-    });
-
-    ipcMain.handle('toggle-discord-rpc', async (event, enabled) => {
-        await toggleDiscordRPC(enabled);
-    });
-
-    ipcMain.handle('update-discord-rpc', async (event, config) => {
-        await updateDiscordRPC(config);
     });
 };
 
@@ -284,15 +277,6 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     return pythonInfo;
 };
 
-const checkSemverGt = (v1: string, v2: string) => {
-    try {
-        return semver.gt(semver.coerce(v1)!.version, semver.coerce(v2)!.version);
-    } catch (error) {
-        log.error(error);
-        return false;
-    }
-};
-
 const checkPythonDeps = async (
     splashWindow: BrowserWindowWithSafeIpc,
     pythonInfo: PythonInfo,
@@ -317,7 +301,7 @@ const checkPythonDeps = async (
             if (!installedVersion) {
                 return false;
             }
-            return checkSemverGt(packageInfo.version, installedVersion);
+            return versionGt(packageInfo.version, installedVersion);
         });
 
         // CASE 3: An optional package is installed, set to auto update, and is not the latest version
@@ -326,7 +310,7 @@ const checkPythonDeps = async (
             if (!installedVersion) {
                 return false;
             }
-            return packageInfo.autoUpdate && checkSemverGt(packageInfo.version, installedVersion);
+            return packageInfo.autoUpdate && versionGt(packageInfo.version, installedVersion);
         });
 
         const allPackagesThatNeedToBeInstalled = [
@@ -530,7 +514,7 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
                 nodeIntegration: true,
                 contextIsolation: false,
             },
-            // icon: `${__dirname}/public/icons/cross_platform/icon`,
+            icon: `${__dirname}/../public/icons/cross_platform/icon`,
             show: false,
         }) as BrowserWindowWithSafeIpc;
         if (!splash.isDestroyed()) {
@@ -586,10 +570,6 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
         });
 
         ipcMain.once('backend-ready', async () => {
-            if (localStorage.getItem('use-discord-rpc') === 'true') {
-                await registerDiscordRPC();
-                await updateDiscordRPC({});
-            }
             splash.webContents.send('finish-loading');
             splash.on('close', () => {});
             await sleep(500);
@@ -617,7 +597,7 @@ const createWindow = lazy(async () => {
             nodeIntegrationInWorker: true,
             contextIsolation: false,
         },
-        // icon: `${__dirname}/public/icons/cross_platform/icon`,
+        icon: `${__dirname}/../public/icons/cross_platform/icon`,
         show: false,
     }) as BrowserWindowWithSafeIpc;
 

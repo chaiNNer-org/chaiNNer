@@ -36,6 +36,7 @@ export type BackendExecutorActionResponse =
 export interface BackendNodesResponse {
     nodes: NodeSchema[];
     categories: Category[];
+    categoriesMissingNodes: string[];
 }
 export interface BackendRunRequest {
     data: JsonNode[];

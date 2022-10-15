@@ -1,14 +1,14 @@
-import { Edge, Node } from 'react-flow-renderer';
-import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
-import { EvaluationError } from '../../common/types/evaluate';
-import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
 import {
+    EvaluationError,
     NonNeverType,
     NumericLiteralType,
     StringLiteralType,
     StructType,
     Type,
-} from '../../common/types/types';
+} from '@chainner/navi';
+import { Edge, Node } from 'reactflow';
+import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../../common/common-types';
+import { FunctionDefinition, FunctionInstance } from '../../common/types/function';
 import { EMPTY_MAP, parseSourceHandle, stringifyTargetHandle } from '../../common/util';
 
 export class TypeState {

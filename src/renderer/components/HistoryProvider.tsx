@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useState } from 'react';
-import { Edge, Node, useReactFlow } from 'react-flow-renderer';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { Edge, Node, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { noop } from '../../common/util';

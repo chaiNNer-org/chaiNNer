@@ -1,5 +1,6 @@
 import { clipboard } from 'electron';
-import { Edge, Node } from 'react-flow-renderer';
+import log from 'electron-log';
+import { Edge, Node } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
@@ -55,27 +56,54 @@ export const pasteFromClipboard = (
     setNodes: SetState<Node<NodeData>[]>,
     setEdges: SetState<Edge<EdgeData>[]>
 ) => {
-    const chain = JSON.parse(
-        clipboard.readBuffer('application/chainner.chain').toString()
-    ) as ClipboardChain;
+    const availableFormats = clipboard.availableFormats();
+    if (availableFormats.length === 0) {
+        try {
+            const chain = JSON.parse(
+                clipboard.readBuffer('application/chainner.chain').toString()
+            ) as ClipboardChain;
 
-    const duplicationId = createUniqueId();
-    const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
+            const duplicationId = createUniqueId();
+            const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
 
-    setNodes((nodes) => {
-        const currentIds = new Set(nodes.map((n) => n.id));
-        const newIds = new Set(chain.nodes.map((n) => n.id));
+            setNodes((nodes) => {
+                const currentIds = new Set(nodes.map((n) => n.id));
+                const newIds = new Set(chain.nodes.map((n) => n.id));
 
-        const newNodes = copyNodes(chain.nodes, deriveId, (oldId) => {
-            if (newIds.has(oldId)) return deriveId(oldId);
-            if (currentIds.has(oldId)) return oldId;
-            return undefined;
+                const newNodes = copyNodes(chain.nodes, deriveId, (oldId) => {
+                    if (newIds.has(oldId)) return deriveId(oldId);
+                    if (currentIds.has(oldId)) return oldId;
+                    return undefined;
+                });
+
+                return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
+            });
+            setEdges((edges) => {
+                const newEdges = copyEdges(chain.edges, deriveId);
+                return [...setSelected(edges, false), ...setSelected(newEdges, true)];
+            });
+        } catch (e) {
+            log.error('Invalid clipboard data', e);
+        }
+    } else {
+        availableFormats.forEach((format) => {
+            log.debug('Clipboard format', format);
+            switch (format) {
+                case 'text/plain':
+                    log.debug('Clipboard text', clipboard.readText());
+                    break;
+                case 'text/html':
+                    log.debug('Clipboard html', clipboard.readHTML());
+                    break;
+                case 'text/rtf':
+                    log.debug('Clipboard rtf', clipboard.readRTF());
+                    break;
+                case 'image/png':
+                    log.debug('Clipboard image', clipboard.readImage().toPNG());
+                    break;
+                default:
+                    log.debug('Clipboard data', clipboard.readBuffer(format));
+            }
         });
-
-        return [...setSelected(nodes, false), ...setSelected(newNodes, true)];
-    });
-    setEdges((edges) => {
-        const newEdges = copyEdges(chain.edges, deriveId);
-        return [...setSelected(edges, false), ...setSelected(newEdges, true)];
-    });
+    }
 };

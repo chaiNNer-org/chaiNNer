@@ -1,7 +1,7 @@
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useMemo, useState } from 'react';
-import { EdgeProps, getBezierPath, getEdgeCenter, useReactFlow } from 'react-flow-renderer';
 import { TbUnlink } from 'react-icons/tb';
+import { EdgeProps, getBezierPath, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -36,7 +36,7 @@ export const CustomEdge = memo(
         const { paused } = useContext(ExecutionStatusContext);
         const [animateChain] = useAnimateChain;
 
-        const edgePath = useMemo(
+        const [edgePath, edgeCenterX, edgeCenterY] = useMemo(
             () =>
                 getBezierPath({
                     sourceX,
@@ -69,11 +69,6 @@ export const CustomEdge = memo(
         const [accentColor] = getTypeAccentColors(type || definitionType);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
-        const [edgeCenterX, edgeCenterY] = useMemo(
-            () => getEdgeCenter({ sourceX, sourceY, targetX, targetY }),
-            [sourceX, sourceY, targetX, targetY]
-        );
-
         const buttonSize = 32;
 
         // Prevent hovered state from getting stuck
@@ -90,6 +85,7 @@ export const CustomEdge = memo(
                     cursor: 'pointer',
                     opacity: isSourceEnabled ? 1 : 0.5,
                 }}
+                onDoubleClick={() => removeEdgeById(id)}
                 onDragEnter={() => setHoveredNode(parentNode.parentNode)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}

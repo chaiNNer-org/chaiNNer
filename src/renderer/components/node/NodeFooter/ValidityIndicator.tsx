@@ -4,8 +4,8 @@ import { BsCheck, BsExclamation } from 'react-icons/bs';
 import { IoIosPause } from 'react-icons/io';
 import ReactMarkdown from 'react-markdown';
 import { useContext } from 'use-context-selector';
+import { Validity } from '../../../../common/checkNodeValidity';
 import { ExecutionStatusContext } from '../../../contexts/ExecutionContext';
-import { Validity } from '../../../helpers/checkNodeValidity';
 
 interface ValidityIndicatorProps {
     validity: Validity;

@@ -1,8 +1,7 @@
+import { StructType, Type, without } from '@chainner/navi';
 import { Tag } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { StructType, Type } from '../../common/types/types';
 import { isImage, isNumericLiteral } from '../../common/types/util';
-import { without } from '../../common/types/without';
 
 const getColorMode = (channels: number) => {
     switch (channels) {

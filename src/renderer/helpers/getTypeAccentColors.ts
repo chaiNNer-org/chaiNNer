@@ -1,8 +1,12 @@
+import {
+    NamedExpression,
+    NumberType,
+    StringType,
+    Type,
+    evaluate,
+    isDisjointWith,
+} from '@chainner/navi';
 import { getChainnerScope } from '../../common/types/chainner-scope';
-import { evaluate } from '../../common/types/evaluate';
-import { NamedExpression } from '../../common/types/expression';
-import { isDisjointWith } from '../../common/types/intersection';
-import { NumberType, StringType, Type } from '../../common/types/types';
 import { lazy } from '../../common/util';
 
 export const defaultColor = '#718096';
