@@ -1,10 +1,9 @@
 /* eslint-disable no-nested-ternary */
+import { NamedExpression, NamedExpressionField, NumericLiteralType } from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
 import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { useContext } from 'use-context-selector';
-import { NamedExpression, NamedExpressionField } from '../../../common/types/expression';
-import { NumericLiteralType } from '../../../common/types/types';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
