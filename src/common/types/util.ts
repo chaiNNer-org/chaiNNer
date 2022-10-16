@@ -1,9 +1,5 @@
 import { IntIntervalType, NumericLiteralType, StructType, Type, UnionType } from '@chainner/navi';
 
-export const isNumericLiteral = (type: Type): type is NumericLiteralType => {
-    return type.type === 'literal' && type.underlying === 'number';
-};
-
 export type IntNumberType =
     | NumericLiteralType
     | IntIntervalType
