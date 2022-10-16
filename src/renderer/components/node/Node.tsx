@@ -59,7 +59,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon, category, name } = schema;
+    const { inputs, icon, category, name } = schema;
 
     const { validity } = useValidity(id, schema, inputData);
 
@@ -170,10 +170,8 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         id={id}
                         inputData={inputData}
                         inputSize={inputSize}
-                        inputs={inputs}
                         isLocked={isLocked}
-                        outputs={outputs}
-                        schemaId={schemaId}
+                        schema={schema}
                     />
                 </VStack>
                 <NodeFooter

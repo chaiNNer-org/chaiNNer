@@ -10,7 +10,7 @@ import {
     InputKind,
     InputSchemaValue,
     InputSize,
-    SchemaId,
+    NodeSchema,
 } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext } from '../../contexts/GlobalNodeState';
@@ -63,17 +63,18 @@ const pickInput = (kind: InputKind, props: FullInputProps) => {
 };
 
 interface NodeInputsProps {
-    inputs: readonly Input[];
+    schema: NodeSchema;
     id: string;
     inputData: InputData;
     inputSize?: InputSize;
     isLocked?: boolean;
-    schemaId: SchemaId;
     accentColor: string;
 }
 
 export const NodeInputs = memo(
-    ({ inputs, id, inputData, inputSize, isLocked, schemaId, accentColor }: NodeInputsProps) => {
+    ({ schema, id, inputData, inputSize, isLocked, accentColor }: NodeInputsProps) => {
+        const { inputs, schemaId } = schema;
+
         const { useInputData: useInputDataContext, useInputSize: useInputSizeContext } =
             useContext(GlobalContext);
         const { functionDefinitions } = useContext(BackendContext);
