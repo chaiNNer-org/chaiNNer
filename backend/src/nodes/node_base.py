@@ -1,15 +1,25 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Literal
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from base_types import InputId, OutputId
 
 from .category import Category
+from .group import Group, GroupInfo, GroupId
 
 from .properties.inputs.base_input import BaseInput
 from .properties.outputs.base_output import BaseOutput
 
 
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
+
+# pylint: disable-next=redefined-builtin
+def group(group_type: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
+    info = GroupInfo(GroupId(id), group_type, options)
+
+    def ret(*items: BaseInput) -> Group[BaseInput]:
+        return Group(info, list(items))
+
+    return ret
 
 
 class NodeBase(metaclass=ABCMeta):
@@ -18,6 +28,7 @@ class NodeBase(metaclass=ABCMeta):
     def __init__(self):
         self.__inputs: List[BaseInput] = []
         self.__outputs: List[BaseOutput] = []
+        self.__groups: List[Group[InputId]] = []
         self.description: str = ""
 
         self.category: Category = Category(
@@ -36,11 +47,29 @@ class NodeBase(metaclass=ABCMeta):
         return self.__inputs
 
     @inputs.setter
-    def inputs(self, value: List[BaseInput]):
-        for i, input_value in enumerate(value):
-            if input_value.id == -1:
-                input_value.id = InputId(i)
-        self.__inputs = value
+    def inputs(self, value: List[Union[BaseInput, Group[BaseInput]]]):
+        inputs: List[BaseInput] = []
+        groups: List[Group[InputId]] = []
+
+        for x in value:
+            if isinstance(x, Group):
+                ids: List[InputId] = []
+                for y in x.items:
+                    if y.id == -1:
+                        y.id = InputId(len(inputs))
+                    inputs.append(y)
+                    ids.append(y.id)
+
+                if x.info.id == -1:
+                    x.info.id = GroupId(len(groups))
+                groups.append(Group(x.info, ids))
+            else:
+                if x.id == -1:
+                    x.id = InputId(len(inputs))
+                inputs.append(x)
+
+        self.__inputs = inputs
+        self.__groups = groups
 
     @property
     def outputs(self) -> List[BaseOutput]:
@@ -52,6 +81,10 @@ class NodeBase(metaclass=ABCMeta):
             if output_value.id == -1:
                 output_value.id = OutputId(i)
         self.__outputs = value
+
+    @property
+    def groups(self) -> List[Group[InputId]]:
+        return self.__groups
 
     @abstractmethod
     def run(self) -> Any:
