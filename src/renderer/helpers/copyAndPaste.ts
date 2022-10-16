@@ -123,7 +123,6 @@ export const pasteFromClipboard = (
                                 positionX = width / 2;
                                 positionY = height / 2;
                             }
-
                             createNode({
                                 nodeType: 'regularNode',
                                 position: project({ x: positionX, y: positionY }),
