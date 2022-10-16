@@ -19,6 +19,7 @@ export interface IteratorSize extends Size {
 export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };
 export type OutputId = number & { readonly __outputId: never };
+export type GroupId = number & { readonly __groupId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
@@ -66,11 +67,19 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
+export interface Group {
+    readonly id: GroupId;
+    readonly type: string;
+    readonly options: Readonly<Partial<Record<string, unknown>>>;
+    readonly items: readonly InputId[];
+}
+
 export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
+export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;
@@ -79,9 +88,10 @@ export interface NodeSchema {
     readonly description: string;
     readonly icon: string;
     readonly nodeType: NodeType;
-    readonly inputs: Input[];
-    readonly outputs: Output[];
-    readonly defaultNodes?: DefaultNode[];
+    readonly inputs: readonly Input[];
+    readonly outputs: readonly Output[];
+    readonly groups: readonly Group[];
+    readonly defaultNodes?: readonly DefaultNode[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
@@ -100,6 +110,7 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
+    readonly groupState?: GroupState;
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: IteratorSize;

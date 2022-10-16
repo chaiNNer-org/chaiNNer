@@ -4,6 +4,7 @@ import { InputData, InputId, InputValue, NodeSchema, SchemaId } from './common-t
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
     outputs: [],
+    groups: [],
     icon: '',
     category: '',
     subcategory: '',
