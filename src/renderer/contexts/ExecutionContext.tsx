@@ -157,7 +157,7 @@ const getExecutionErrorMessage = (
         if (value === undefined) return [];
 
         let valueStr: string;
-        const option = i.options?.find((o) => o.value === value);
+        const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
         if (option) {
             valueStr = option.option;
         } else if (value === null) {

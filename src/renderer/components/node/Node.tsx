@@ -88,7 +88,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const onDragOver = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        if (fileInput && fileInput.filetypes && event.dataTransfer.types.includes('Files')) {
+        if (fileInput && fileInput.kind === 'file' && event.dataTransfer.types.includes('Files')) {
             event.stopPropagation();
 
             // eslint-disable-next-line no-param-reassign
@@ -99,7 +99,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const onDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        if (fileInput && fileInput.filetypes && event.dataTransfer.types.includes('Files')) {
+        if (fileInput && fileInput.kind === 'file' && event.dataTransfer.types.includes('Files')) {
             event.stopPropagation();
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);

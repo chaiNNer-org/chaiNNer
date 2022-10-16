@@ -23,22 +23,8 @@ export type GroupId = number & { readonly __groupId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
-export interface InputOption {
-    option: string;
-    value: InputSchemaValue;
-    type?: ExpressionJson;
-}
-export type InputKind =
-    | 'number'
-    | 'slider'
-    | 'dropdown'
-    | 'text'
-    | 'text-line'
-    | 'directory'
-    | 'file'
-    | 'generic';
-export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export interface Input {
+
+interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
     readonly conversion?: ExpressionJson | null;
@@ -46,12 +32,74 @@ export interface Input {
     readonly label: string;
     readonly optional: boolean;
     readonly hasHandle: boolean;
-    readonly def?: InputSchemaValue;
-    readonly default?: InputSchemaValue;
-    readonly options?: InputOption[];
-    readonly fileKind?: FileInputKind;
-    readonly filetypes?: string[];
 }
+export interface InputOption {
+    option: string;
+    value: InputSchemaValue;
+    type?: ExpressionJson;
+}
+export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
+
+interface GenericInput extends InputBase {
+    readonly kind: 'generic';
+}
+interface DropDownInput extends InputBase {
+    readonly kind: 'dropdown';
+    readonly options: readonly InputOption[];
+}
+interface FileInput extends InputBase {
+    readonly kind: 'file';
+    readonly fileKind: FileInputKind;
+    readonly filetypes: string[];
+}
+interface DirectoryInput extends InputBase {
+    readonly kind: 'directory';
+}
+interface TextInput extends InputBase {
+    readonly kind: 'text-line';
+    readonly minLength?: number | null;
+    readonly maxLength?: number | null;
+    readonly placeholder?: string | null;
+}
+interface NoteTextAreaInput extends InputBase {
+    readonly kind: 'text';
+    readonly resizable: boolean;
+}
+interface NumberInput extends InputBase {
+    readonly kind: 'number';
+    readonly def: number;
+    readonly min?: number | null;
+    readonly max?: number | null;
+    readonly precision: number;
+    readonly controlsStep: number;
+    readonly unit?: string | null;
+    readonly noteExpression?: string | null;
+    readonly hideTrailingZeros: boolean;
+}
+interface SliderInput extends InputBase {
+    readonly kind: 'slider';
+    readonly def: number;
+    readonly min?: number | null;
+    readonly max?: number | null;
+    readonly precision: number;
+    readonly controlsStep: number;
+    readonly unit?: string | null;
+    readonly noteExpression?: string | null;
+    readonly hideTrailingZeros: boolean;
+    readonly ends: readonly [string | null, string | null];
+    readonly sliderStep: number;
+    readonly gradient?: readonly string[] | null;
+}
+export type InputKind = Input['kind'];
+export type Input =
+    | GenericInput
+    | FileInput
+    | DirectoryInput
+    | TextInput
+    | NoteTextAreaInput
+    | DropDownInput
+    | SliderInput
+    | NumberInput;
 
 export type OutputKind = 'image' | 'large-image' | 'text' | 'directory' | 'pytorch' | 'generic';
 
@@ -70,7 +118,7 @@ export interface Output {
 export interface Group {
     readonly id: GroupId;
     readonly type: string;
-    readonly options: Readonly<Partial<Record<string, unknown>>>;
+    readonly options: Readonly<Record<string, unknown>>;
     readonly items: readonly InputId[];
 }
 

@@ -43,11 +43,9 @@ export class SchemaMap {
         const defaultData: Record<InputId, InputValue> = {};
         const { inputs } = this.get(schemaId);
         inputs.forEach((input) => {
-            if (input.def || input.def === 0) {
+            if ('def' in input) {
                 defaultData[input.id] = input.def;
-            } else if (input.default || input.default === 0) {
-                defaultData[input.id] = input.default;
-            } else if (input.options) {
+            } else if (input.kind === 'dropdown') {
                 defaultData[input.id] = input.options[0].value;
             }
         });
