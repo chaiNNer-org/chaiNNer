@@ -60,7 +60,8 @@ export const pasteFromClipboard = (
     setNodes: SetState<Node<NodeData>[]>,
     setEdges: SetState<Edge<EdgeData>[]>,
     createNode: (proto: NodeProto, parentId?: string) => void,
-    project: Project
+    project: Project,
+    reactFlowWrapper: React.RefObject<Element>
 ) => {
     const availableFormats = clipboard.availableFormats();
     if (availableFormats.length === 0) {
@@ -114,9 +115,18 @@ export const pasteFromClipboard = (
                     writeFile(imgPath, imgData)
                         .then(() => {
                             log.debug('Clipboard image', imgPath);
+                            let positionX = 0;
+                            let positionY = 0;
+                            if (reactFlowWrapper.current) {
+                                const { height, width } =
+                                    reactFlowWrapper.current.getBoundingClientRect();
+                                positionX = width / 2;
+                                positionY = height / 2;
+                            }
+
                             createNode({
                                 nodeType: 'regularNode',
-                                position: project({ x: 0, y: 0 }),
+                                position: project({ x: positionX, y: positionY }),
                                 data: {
                                     schemaId: 'chainner:image:load' as SchemaId,
                                     inputData: {

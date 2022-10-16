@@ -1038,8 +1038,8 @@ export const GlobalProvider = memo(
             copyToClipboard(getNodes(), getEdges());
         }, [getNodes, getEdges]);
         const pasteFn = useCallback(() => {
-            pasteFromClipboard(changeNodes, changeEdges, createNode, project);
-        }, [changeNodes, changeEdges, createNode, project]);
+            pasteFromClipboard(changeNodes, changeEdges, createNode, project, reactFlowWrapper);
+        }, [changeNodes, changeEdges, createNode, project, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
