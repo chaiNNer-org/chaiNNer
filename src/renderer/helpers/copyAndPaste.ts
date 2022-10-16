@@ -107,13 +107,8 @@ export const pasteFromClipboard = (
                 case 'image/bmp':
                 case 'image/tiff':
                 case 'image/png': {
-                    const tempDir = os.tmpdir();
                     const imgData = clipboard.readImage().toPNG();
-                    const randName =
-                        (Math.random() + 1).toString(36).substring(7) +
-                        (Math.random() + 1).toString(36).substring(7) +
-                        (Math.random() + 1).toString(36).substring(7);
-                    const imgPath = path.join(tempDir, `chaiNNer-clipboard-${randName}.png`);
+                    const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
                     writeFile(imgPath, imgData)
                         .then(() => {
                             log.debug('Clipboard image', imgPath);
