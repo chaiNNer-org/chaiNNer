@@ -166,6 +166,7 @@ export const GlobalProvider = memo(
             setNodes: rfSetNodes,
             setEdges: rfSetEdges,
             viewportInitialized,
+            project,
         } = useReactFlow<NodeData, EdgeData>();
 
         const currentViewport = useViewport();
@@ -1037,8 +1038,8 @@ export const GlobalProvider = memo(
             copyToClipboard(getNodes(), getEdges());
         }, [getNodes, getEdges]);
         const pasteFn = useCallback(() => {
-            pasteFromClipboard(changeNodes, changeEdges, createNode);
-        }, [changeNodes, changeEdges, createNode]);
+            pasteFromClipboard(changeNodes, changeEdges, createNode, project);
+        }, [changeNodes, changeEdges, createNode, project]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));

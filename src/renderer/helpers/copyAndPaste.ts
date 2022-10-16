@@ -3,7 +3,8 @@ import log from 'electron-log';
 import { writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
-import { Edge, Node } from 'reactflow';
+import { Edge, Node, Project } from 'reactflow';
+import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
@@ -58,7 +59,8 @@ export const cutAndCopyToClipboard = (
 export const pasteFromClipboard = (
     setNodes: SetState<Node<NodeData>[]>,
     setEdges: SetState<Edge<EdgeData>[]>,
-    createNode: (proto: NodeProto, parentId?: string) => void
+    createNode: (proto: NodeProto, parentId?: string) => void,
+    project: Project
 ) => {
     const availableFormats = clipboard.availableFormats();
     if (availableFormats.length === 0) {
@@ -114,7 +116,7 @@ export const pasteFromClipboard = (
                             log.debug('Clipboard image', imgPath);
                             createNode({
                                 nodeType: 'regularNode',
-                                position: { x: 0, y: 0 },
+                                position: project({ x: 0, y: 0 }),
                                 data: {
                                     schemaId: 'chainner:image:load' as SchemaId,
                                     inputData: {
