@@ -1038,7 +1038,7 @@ export const GlobalProvider = memo(
         }, [getNodes, getEdges]);
         const pasteFn = useCallback(() => {
             pasteFromClipboard(changeNodes, changeEdges, createNode);
-        }, [changeNodes, changeEdges]);
+        }, [changeNodes, changeEdges, createNode]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
             changeEdges((edges) => edges.map((e) => ({ ...e, selected: true })));
