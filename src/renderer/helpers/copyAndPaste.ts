@@ -1,9 +1,12 @@
 import { clipboard } from 'electron';
 import log from 'electron-log';
+import { writeFile } from 'fs/promises';
+import os from 'os';
+import path from 'path';
 import { Edge, Node } from 'reactflow';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
+import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -54,7 +57,8 @@ export const cutAndCopyToClipboard = (
 
 export const pasteFromClipboard = (
     setNodes: SetState<Node<NodeData>[]>,
-    setEdges: SetState<Edge<EdgeData>[]>
+    setEdges: SetState<Edge<EdgeData>[]>,
+    createNode: (proto: NodeProto, parentId?: string) => void
 ) => {
     const availableFormats = clipboard.availableFormats();
     if (availableFormats.length === 0) {
@@ -98,9 +102,37 @@ export const pasteFromClipboard = (
                 case 'text/rtf':
                     log.debug('Clipboard rtf', clipboard.readRTF());
                     break;
-                case 'image/png':
-                    log.debug('Clipboard image', clipboard.readImage().toPNG());
+                case 'image/jpeg':
+                case 'image/gif':
+                case 'image/bmp':
+                case 'image/tiff':
+                case 'image/png': {
+                    const tempDir = os.tmpdir();
+                    const imgData = clipboard.readImage().toPNG();
+                    const randName =
+                        (Math.random() + 1).toString(36).substring(7) +
+                        (Math.random() + 1).toString(36).substring(7) +
+                        (Math.random() + 1).toString(36).substring(7);
+                    const imgPath = path.join(tempDir, `chaiNNer-clipboard-${randName}.png`);
+                    writeFile(imgPath, imgData)
+                        .then(() => {
+                            log.debug('Clipboard image', imgPath);
+                            createNode({
+                                nodeType: 'regularNode',
+                                position: { x: 0, y: 0 },
+                                data: {
+                                    schemaId: 'chainner:image:load' as SchemaId,
+                                    inputData: {
+                                        [0 as InputId]: imgPath,
+                                    },
+                                },
+                            });
+                        })
+                        .catch((e) => {
+                            log.error('Failed to write clipboard image', e);
+                        });
                     break;
+                }
                 default:
                     log.debug('Clipboard data', clipboard.readBuffer(format));
             }
