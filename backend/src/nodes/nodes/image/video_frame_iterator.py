@@ -164,54 +164,43 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         video_dir = os.path.dirname(path)
         video_name = os.path.splitext(base_name)[0]
 
-        try:
+        ffmpeg_reader = (
+            ffmpeg.input(path)
+            .output("pipe:", format="rawvideo", pix_fmt="rgb24")
+            .run_async(pipe_stdout=True)
+        )
 
-            ffmpeg_reader = (
-                ffmpeg.input(path)
-                .output("pipe:", format="rawvideo", pix_fmt="rgb24")
-                .run_async(pipe_stdout=True)
+        writer = {"out": None}
+
+        probe = ffmpeg.probe(path)
+        video_stream = next(
+            (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+            None,
+        )
+
+        if video_stream is None:
+            raise Exception("No video stream found in file")
+
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
+            video_stream["r_frame_rate"].split("/")[1]
+        )
+        frame_count = int(video_stream["nb_frames"])
+
+        context.inputs.set_append_values(output_node_id, [writer, fps])
+
+        def before(_: int, index: int):
+            # TODO: Determine if it's true that video will always be 3-channel
+            in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
+            if not in_bytes:
+                print("Can't receive frame (stream end?). Exiting ...")
+                return False
+            in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+            in_frame = cv2.cvtColor(in_frame, cv2.COLOR_RGB2BGR)
+
+            context.inputs.set_values(
+                input_node_id, [in_frame, index, video_dir, video_name]
             )
 
-            writer = {"out": None}
-
-            probe = ffmpeg.probe(path)
-            video_stream = next(
-                (
-                    stream
-                    for stream in probe["streams"]
-                    if stream["codec_type"] == "video"
-                ),
-                None,
-            )
-
-            if video_stream is None:
-                raise Exception("No video stream found in file")
-
-            width = int(video_stream["width"])
-            height = int(video_stream["height"])
-            fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
-                video_stream["r_frame_rate"].split("/")[1]
-            )
-            frame_count = int(video_stream["nb_frames"])
-
-            context.inputs.set_append_values(output_node_id, [writer, fps])
-
-            def before(_: int, index: int):
-                # TODO: Determine if it's true that video will always be 3-channel
-                in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
-                if not in_bytes:
-                    print("Can't receive frame (stream end?). Exiting ...")
-                    return False
-                in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
-                in_frame = cv2.cvtColor(in_frame, cv2.COLOR_RGB2BGR)
-
-                context.inputs.set_values(
-                    input_node_id, [in_frame, index, video_dir, video_name]
-                )
-
-            await context.run(range(frame_count), before)
-        except Exception as e:
-            logger.error(f"Failed to iterate over video frames: {e}")
-            raise RuntimeError(
-                "An unexpected error occurred while processing the video."
-            ) from e
+        await context.run(range(frame_count), before)
