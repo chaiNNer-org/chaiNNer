@@ -21,6 +21,7 @@ from ...properties.inputs import (
     VideoFileInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
+from ...properties import expression
 from ...utils.image_utils import normalize
 from ...utils.utils import get_h_w_c
 
@@ -45,7 +46,13 @@ class VideoFrameIteratorFrameLoaderNode(NodeBase):
         self.description = ""
         self.inputs = [IteratorInput().make_optional()]
         self.outputs = [
-            ImageOutput("Frame Image", broadcast_type=True),
+            ImageOutput(
+                "Frame Image",
+                image_type=expression.Image(
+                    channels=3,
+                ),
+                broadcast_type=True,
+            ),
             NumberOutput("Frame Index"),
             DirectoryOutput("Video Directory"),
             TextOutput("Video Name"),
@@ -191,7 +198,6 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         context.inputs.set_append_values(output_node_id, [writer, fps])
 
         def before(_: int, index: int):
-            # TODO: Determine if it's true that video will always be 3-channel
             in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
             if not in_bytes:
                 print("Can't receive frame (stream end?). Exiting ...")
