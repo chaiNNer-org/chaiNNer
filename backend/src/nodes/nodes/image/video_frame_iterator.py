@@ -164,32 +164,36 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         video_dir = os.path.dirname(path)
         video_name = os.path.splitext(base_name)[0]
 
-        probe = ffmpeg.probe(path)
-        video_stream = next(
-            (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
-            None,
-        )
-
-        if video_stream is None:
-            raise Exception("No video stream found in file")
-
-        width = int(video_stream["width"])
-        height = int(video_stream["height"])
-        fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
-            video_stream["r_frame_rate"].split("/")[1]
-        )
-        frame_count = int(video_stream["nb_frames"])
-        pix_fmt = video_stream["pix_fmt"]
-
-        ffmpeg_reader = (
-            ffmpeg.input(path)
-            .output("pipe:", format="rawvideo", pix_fmt="rgb24")
-            .run_async(pipe_stdout=True)
-        )
-
-        writer = {"out": None}
-
         try:
+
+            ffmpeg_reader = (
+                ffmpeg.input(path)
+                .output("pipe:", format="rawvideo", pix_fmt="rgb24")
+                .run_async(pipe_stdout=True)
+            )
+
+            writer = {"out": None}
+
+            probe = ffmpeg.probe(path)
+            video_stream = next(
+                (
+                    stream
+                    for stream in probe["streams"]
+                    if stream["codec_type"] == "video"
+                ),
+                None,
+            )
+
+            if video_stream is None:
+                raise Exception("No video stream found in file")
+
+            width = int(video_stream["width"])
+            height = int(video_stream["height"])
+            fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
+                video_stream["r_frame_rate"].split("/")[1]
+            )
+            frame_count = int(video_stream["nb_frames"])
+
             context.inputs.set_append_values(output_node_id, [writer, fps])
 
             def before(_: int, index: int):
@@ -206,8 +210,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 )
 
             await context.run(range(frame_count), before)
-            return_code = ffmpeg_reader.wait()
-            if return_code:
-                raise ValueError("process returned with code {}".format(return_code))
-        finally:
-            pass
+        except Exception as e:
+            logger.error(f"Failed to iterate over video frames: {e}")
+            raise RuntimeError(
+                "An unexpected error occurred while processing the video."
+            ) from e
