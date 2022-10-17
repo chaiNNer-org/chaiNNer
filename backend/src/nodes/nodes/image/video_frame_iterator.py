@@ -111,11 +111,9 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         format="rawvideo",
                         pix_fmt="rgb24",
                         s=f"{w}x{h}",
-                        # f=video_type,
                         r=fps,
-                        # movflags="faststart",
                     )
-                    .output(video_save_path, pix_fmt="yuv420p")
+                    .output(video_save_path, pix_fmt="yuv420p", r=fps, crf=0)
                     .overwrite_output()
                     .run_async(pipe_stdin=True)
                 )
