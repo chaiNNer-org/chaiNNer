@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from process import IteratorContext
 from sanic.log import logger
+import ffmpeg
 
 from . import category as ImageCategory
 from ...node_base import IteratorNodeBase, NodeBase
@@ -25,6 +26,16 @@ from ...utils.utils import get_h_w_c
 
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
+
+
+def has_ffmpeg():
+    return len([x for x in os.environ["PATH"].split(";") if "ffmpeg" in x]) > 0
+
+
+if not has_ffmpeg():
+    import static_ffmpeg
+
+    static_ffmpeg.add_paths()
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -92,27 +103,31 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         h, w, _ = get_h_w_c(img)
 
         if writer["out"] is None:
-            mp4_codec = "avc1"
-            avi_codec = "divx"
-            codec = mp4_codec if video_type == "mp4" else avi_codec
             try:
-                logger.info(f"Trying to open writer with codec: {codec}")
-                fourcc = cv2.VideoWriter_fourcc(*codec)
                 video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
-                logger.info(f"Writing new video to path: {video_save_path}")
-                writer["out"] = cv2.VideoWriter(
-                    filename=video_save_path,
-                    fourcc=fourcc,
-                    fps=fps,
-                    frameSize=(w, h),
+                writer["out"] = (
+                    ffmpeg.input(
+                        "pipe:",
+                        format="rawvideo",
+                        pix_fmt="rgb24",
+                        s=f"{w}x{h}",
+                        # f=video_type,
+                        r=fps,
+                        # movflags="faststart",
+                    )
+                    .output(video_save_path, pix_fmt="yuv420p")
+                    .overwrite_output()
+                    .run_async(pipe_stdin=True)
                 )
-                logger.info(writer["out"])
+                logger.debug(writer["out"])
             except Exception as e:
-                logger.warning(
-                    f"Failed to open video writer with codec: {codec} because: {e}"
-                )
+                logger.warning(f"Failed to open video writer: {e}")
 
-        writer["out"].write((img * 255).astype(np.uint8))
+        out_frame = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_BGR2RGB)
+        if writer["out"] is not None:
+            writer["out"].stdin.write(out_frame.tobytes())
+        else:
+            raise Exception("Failed to open video writer")
 
 
 @NodeFactory.register("chainner:image:video_frame_iterator")
@@ -151,28 +166,50 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         video_dir = os.path.dirname(path)
         video_name = os.path.splitext(base_name)[0]
 
-        # TODO: Open Video Buffer
-        cap = cv2.VideoCapture(path)
+        probe = ffmpeg.probe(path)
+        video_stream = next(
+            (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
+            None,
+        )
+
+        if video_stream is None:
+            raise Exception("No video stream found in file")
+
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
+            video_stream["r_frame_rate"].split("/")[1]
+        )
+        frame_count = int(video_stream["nb_frames"])
+        pix_fmt = video_stream["pix_fmt"]
+
+        ffmpeg_reader = (
+            ffmpeg.input(path)
+            .output("pipe:", format="rawvideo", pix_fmt="rgb24")
+            .run_async(pipe_stdout=True)
+        )
+
         writer = {"out": None}
 
         try:
-            fps = float(cap.get(cv2.CAP_PROP_FPS))
-            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             context.inputs.set_append_values(output_node_id, [writer, fps])
 
             def before(_: int, index: int):
-                ret, frame = cap.read()
-                # if frame is read correctly ret is True
-                if not ret:
+                # TODO: Determine if it's true that video will always be 3-channel
+                in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
+                if not in_bytes:
                     print("Can't receive frame (stream end?). Exiting ...")
                     return False
+                in_frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+                in_frame = cv2.cvtColor(in_frame, cv2.COLOR_RGB2BGR)
 
                 context.inputs.set_values(
-                    input_node_id, [frame, index, video_dir, video_name]
+                    input_node_id, [in_frame, index, video_dir, video_name]
                 )
 
             await context.run(range(frame_count), before)
+            return_code = ffmpeg_reader.wait()
+            if return_code:
+                raise ValueError("process returned with code {}".format(return_code))
         finally:
-            cap.release()
-            if writer["out"] is not None:
-                writer["out"].release()
+            pass
