@@ -116,6 +116,21 @@ export const requiredDependencies: Dependency[] = [
         name: 'appdirs',
         packages: [{ packageName: 'appdirs', version: '1.4.4', sizeEstimate: 13.5 * KB }],
     },
+    {
+        name: 'FFMPEG',
+        packages: [
+            {
+                packageName: 'ffmpeg-python',
+                version: '0.2.0',
+                sizeEstimate: 25 * KB,
+            },
+            {
+                packageName: 'static-ffmpeg',
+                version: '2.3.0',
+                sizeEstimate: 7 * KB,
+            },
+        ],
+    },
 ];
 
 if (isMac && !isM1) {

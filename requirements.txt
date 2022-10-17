@@ -1,6 +1,7 @@
 appdirs
 black
 facexlib
+ffmpeg-python
 ncnn_vulkan
 numpy
 onnx
@@ -16,5 +17,6 @@ pytest
 pywin32 ; sys_platform=="win32"
 sanic
 sanic_cors
+static_ffmpeg
 torch
 torchvision
