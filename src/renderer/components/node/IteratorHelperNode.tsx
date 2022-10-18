@@ -97,7 +97,6 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                         selected={selected}
                     />
                     <NodeBody
-                        accentColor={accentColor}
                         id={id}
                         inputData={inputData}
                         isLocked={isLocked}

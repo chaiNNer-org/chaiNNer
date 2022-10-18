@@ -102,7 +102,6 @@ const IteratorNodeInner = memo(({ data, selected }: IteratorNodeProps) => {
                         </Center>
                     )}
                     <NodeInputs
-                        accentColor={accentColor}
                         id={id}
                         inputData={inputData}
                         isLocked={isLocked}

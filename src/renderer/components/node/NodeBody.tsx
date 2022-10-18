@@ -10,20 +10,11 @@ interface NodeBodyProps {
     inputSize?: InputSize;
     isLocked?: boolean;
     schema: NodeSchema;
-    accentColor: string;
     animated?: boolean;
 }
 
 export const NodeBody = memo(
-    ({
-        schema,
-        id,
-        inputData,
-        inputSize,
-        isLocked,
-        accentColor,
-        animated = false,
-    }: NodeBodyProps) => {
+    ({ schema, id, inputData, inputSize, isLocked, animated = false }: NodeBodyProps) => {
         const { inputs, outputs, schemaId } = schema;
 
         return (
@@ -42,7 +33,6 @@ export const NodeBody = memo(
                     </Center>
                 )}
                 <NodeInputs
-                    accentColor={accentColor}
                     id={id}
                     inputData={inputData}
                     inputSize={inputSize}

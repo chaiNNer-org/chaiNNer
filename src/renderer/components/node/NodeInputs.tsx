@@ -26,7 +26,6 @@ import { TextAreaInput } from '../inputs/TextAreaInput';
 import { TextInput } from '../inputs/TextInput';
 
 interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
-    accentColor: string;
     definitionType: Type;
 }
 
@@ -68,11 +67,10 @@ interface NodeInputsProps {
     inputData: InputData;
     inputSize?: InputSize;
     isLocked?: boolean;
-    accentColor: string;
 }
 
 export const NodeInputs = memo(
-    ({ schema, id, inputData, inputSize, isLocked, accentColor }: NodeInputsProps) => {
+    ({ schema, id, inputData, inputSize, isLocked }: NodeInputsProps) => {
         const { inputs, schemaId } = schema;
 
         const { useInputData: useInputDataContext, useInputSize: useInputSizeContext } =
@@ -93,7 +91,7 @@ export const NodeInputs = memo(
             [useInputSizeContext, id, inputSize]
         );
 
-        const functions = functionDefinitions.get(schemaId)!.inputDefaults;
+        const definitionTypes = functionDefinitions.get(schemaId)!.inputDefaults;
 
         return (
             <>
@@ -108,8 +106,7 @@ export const NodeInputs = memo(
                         kind: input.kind,
                         isLocked: isLocked ?? false,
                         schemaId,
-                        definitionType: functions.get(input.id)!,
-                        accentColor,
+                        definitionType: definitionTypes.get(input.id)!,
                         optional: input.optional,
                         hasHandle: input.hasHandle,
                     };
