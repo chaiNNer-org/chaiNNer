@@ -1,8 +1,11 @@
-import { GroupId, Input } from '../../../common/common-types';
+import { Group, Input, InputData, InputSize, SchemaId } from '../../../common/common-types';
 
 export interface GroupProps<Options = Record<string, unknown>> {
-    id: GroupId;
-    type: string;
-    options: Readonly<Options>;
+    group: Group & { readonly options: Readonly<Options> };
     inputs: readonly Input[];
+    schemaId: SchemaId;
+    nodeId: string;
+    isLocked: boolean;
+    inputData: InputData;
+    inputSize: InputSize | undefined;
 }
