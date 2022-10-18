@@ -9,65 +9,33 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { clipboard, shell } from 'electron';
-import log from 'electron-log';
 import path from 'path';
 import { DragEvent, memo } from 'react';
 import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
-import { useContext, useContextSelector } from 'use-context-selector';
-import { InputId } from '../../../common/common-types';
+import { useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
-import { checkFileExists } from '../../../common/util';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { InputProps } from './props';
-
-interface FileInputProps extends InputProps {
-    filetypes: readonly string[];
-}
-
-const logError = (e: unknown) => log.error(e);
+import { NewInputProps } from './props';
 
 export const FileInput = memo(
-    ({ filetypes, id, inputId, useInputData, label, isLocked, schemaId }: FileInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            id,
-            inputId
-        );
+    ({
+        value: filePath,
+        setValue: setFilePath,
+        input,
+        inputKey,
+        useInputLocked,
+        isLocked,
+    }: NewInputProps<'file', string>) => {
+        const { label, filetypes } = input;
+
+        const isInputLocked = useInputLocked();
         const { sendToast } = useContext(AlertBoxContext);
 
-        const [filePath, setFilePath] = useInputData<string>(inputId);
-
-        const updateFilePath = async (file: string) => {
-            // Handle case of NCNN model selection where param and bin files are named in pairs
-            // Eventually, these should be combined into a single input type instead of using
-            // the file inputs directly
-            if (/NCNN/i.test(label)) {
-                if (/bin/i.test(label)) {
-                    const param = file.replace(/\.bin$/i, '.param');
-                    if (await checkFileExists(param)) {
-                        // eslint-disable-next-line react-hooks/rules-of-hooks
-                        const [, setParamPath] = useInputData((inputId - 1) as InputId);
-                        setParamPath(param);
-                    }
-                }
-                if (/param/i.test(label)) {
-                    const bin = file.replace(/\.param$/i, '.bin');
-                    if (await checkFileExists(bin)) {
-                        // eslint-disable-next-line react-hooks/rules-of-hooks
-                        const [, setBinPath] = useInputData((inputId + 1) as InputId);
-                        setBinPath(bin);
-                    }
-                }
-            }
-
-            setFilePath(file);
-        };
-
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
             const fileDir = filePath ? path.dirname(filePath) : getLastDirectory();
@@ -85,7 +53,7 @@ export const FileInput = memo(
             );
             const selectedPath = filePaths[0];
             if (!canceled && selectedPath) {
-                updateFilePath(selectedPath).catch(logError);
+                setFilePath(selectedPath);
                 setLastDirectory(path.dirname(selectedPath));
             }
         };
@@ -109,7 +77,7 @@ export const FileInput = memo(
 
                 const p = getSingleFileWithExtension(event.dataTransfer, filetypes);
                 if (p) {
-                    updateFilePath(p).catch(logError);
+                    setFilePath(p);
                     return;
                 }
 

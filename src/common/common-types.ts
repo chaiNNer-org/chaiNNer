@@ -79,8 +79,8 @@ interface NumberInput extends InputBase {
 interface SliderInput extends InputBase {
     readonly kind: 'slider';
     readonly def: number;
-    readonly min?: number | null;
-    readonly max?: number | null;
+    readonly min: number;
+    readonly max: number;
     readonly precision: number;
     readonly controlsStep: number;
     readonly unit?: string | null;

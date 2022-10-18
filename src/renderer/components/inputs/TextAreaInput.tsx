@@ -4,17 +4,13 @@ import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { InputProps } from './props';
-
-interface TextAreaInputProps extends InputProps {
-    resizable: boolean;
-}
+import { NewInputProps } from './props';
 
 export const TextAreaInput = memo(
-    ({ label, inputId, useInputData, useInputSize, isLocked, resizable }: TextAreaInputProps) => {
+    ({ value, setValue, input, isLocked }: NewInputProps<'text', string>) => {
+        const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        const [input, setInput] = useInputData<string>(inputId);
         const [size, setSize] = useInputSize(inputId);
         const [tempText, setTempText] = useState('');
 
@@ -22,16 +18,16 @@ export const TextAreaInput = memo(
             if (!size) {
                 setSize({ width: 320, height: 240 });
             }
-            if (!input) {
-                setInput('');
+            if (!value) {
+                setValue('');
             } else {
-                setTempText(input);
+                setTempText(value);
             }
         }, []);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
             const text = event.target.value;
-            setInput(text);
+            setValue(text);
         }, 500);
 
         return (

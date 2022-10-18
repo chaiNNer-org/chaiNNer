@@ -12,12 +12,10 @@ import { shell } from 'electron';
 import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
-import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { InputProps } from './props';
+import { NewInputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
     if (
@@ -34,35 +32,32 @@ const getDirectoryPath = (type: Type): string | undefined => {
     return undefined;
 };
 
-type DirectoryInputProps = InputProps;
-
 export const DirectoryInput = memo(
-    ({ id, inputId, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            id,
-            inputId
-        );
-
-        const [directory, setDirectory] = useInputData<string>(inputId);
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
+    ({
+        value,
+        setValue,
+        isLocked,
+        inputKey,
+        useInputLocked,
+        useInputType,
+    }: NewInputProps<'directory', string>) => {
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
             const { canceled, filePaths } = await ipcRenderer.invoke(
                 'dir-select',
-                directory ?? getLastDirectory() ?? ''
+                value ?? getLastDirectory() ?? ''
             );
             const path = filePaths[0];
             if (!canceled && path) {
-                setDirectory(path);
+                setValue(path);
                 setLastDirectory(path);
             }
         };
 
-        const typeDirectory = useContextSelector(GlobalVolatileContext, (c) => {
-            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
-            return type ? getDirectoryPath(type) : undefined;
-        });
-        const displayDirectory = isInputLocked ? typeDirectory : directory;
+        const isInputLocked = useInputLocked();
+        const inputType = useInputType();
+        const displayDirectory = isInputLocked ? getDirectoryPath(inputType) : value;
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">

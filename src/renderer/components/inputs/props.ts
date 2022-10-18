@@ -1,5 +1,13 @@
 import { Type } from '@chainner/navi';
-import { InputData, InputId, InputSchemaValue, SchemaId, Size } from '../../../common/common-types';
+import {
+    Input,
+    InputData,
+    InputId,
+    InputKind,
+    InputSchemaValue,
+    SchemaId,
+    Size,
+} from '../../../common/common-types';
 
 export interface InputProps {
     readonly id: string;
@@ -17,4 +25,15 @@ export interface InputProps {
     readonly useInputSize: (
         inputId: InputId
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
+}
+
+export interface NewInputProps<Kind extends InputKind, Value extends string | number> {
+    readonly value: Value | undefined;
+    readonly setValue: (input: Value) => void;
+    readonly input: Omit<Input & { readonly kind: Kind }, 'id'>;
+    readonly definitionType: Type;
+    readonly isLocked: boolean;
+    readonly inputKey: string;
+    readonly useInputLocked: () => boolean;
+    readonly useInputType: () => Type;
 }

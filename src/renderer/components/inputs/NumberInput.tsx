@@ -1,61 +1,37 @@
+import { isNumericLiteral } from '@chainner/navi';
 import { HStack } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContextSelector } from 'use-context-selector';
 import { areApproximatelyEqual } from '../../../common/util';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { InputProps } from './props';
-
-interface NumericalInputProps extends InputProps {
-    precision: number;
-    controlsStep: number;
-    min?: number | null;
-    max?: number | null;
-    def: number;
-    unit?: string | null;
-    hideTrailingZeros: boolean;
-}
+import { NewInputProps } from './props';
 
 export const NumberInput = memo(
     ({
-        id,
-        inputId,
-        useInputData,
-        def,
-        min,
-        max,
-        precision,
-        controlsStep,
-        unit,
-        hideTrailingZeros,
+        value,
+        setValue,
+        input,
         isLocked,
-    }: NumericalInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            id,
-            inputId
-        );
+        useInputLocked,
+        useInputType,
+    }: NewInputProps<'number', number>) => {
+        const { def, min, max, unit, precision, controlsStep, hideTrailingZeros } = input;
 
-        // TODO: make sure this is always a number
-        const [input, setInput] = useInputData<number>(inputId);
-        const [inputString, setInputString] = useState(String(input ?? def));
+        const [inputString, setInputString] = useState(String(value ?? def));
 
         useEffect(() => {
             const asNumber = parseFloat(inputString);
             if (
                 !Number.isNaN(asNumber) &&
-                input !== undefined &&
-                !areApproximatelyEqual(asNumber, input)
+                value !== undefined &&
+                !areApproximatelyEqual(asNumber, value)
             ) {
-                setInputString(String(input));
+                setInputString(String(value));
             }
-        }, [input]);
+        }, [value]);
 
-        const typeNumberString = useContextSelector(GlobalVolatileContext, (c) => {
-            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
-            return type && type.underlying === 'number' && type.type === 'literal'
-                ? type.toString()
-                : '';
-        });
+        const isInputLocked = useInputLocked();
+        const inputType = useInputType();
+        const typeNumberString = isNumericLiteral(inputType) ? inputType.toString() : '';
 
         return (
             <HStack w="full">
@@ -68,7 +44,7 @@ export const NumberInput = memo(
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
                     precision={precision}
-                    setInput={setInput}
+                    setInput={setValue}
                     setInputString={setInputString}
                     unit={unit}
                 />
