@@ -25,7 +25,7 @@ class CannyEdgeDetectionNode(NodeBase):
             NumberInput("Upper Threshold", minimum=0, default=300),
         ]
         self.outputs = [
-            ImageOutput(image_type=expression.Image(size_as="Input0", channels=1))
+            ImageOutput(image_type=expression.Image(size_as="Input0"), channels=1)
         ]
         self.category = ImageUtilityCategory
         self.name = "Canny Edge Detection"
