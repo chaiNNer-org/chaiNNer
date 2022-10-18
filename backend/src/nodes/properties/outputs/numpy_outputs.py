@@ -1,7 +1,9 @@
+from typing import List, Optional, Union
 import numpy as np
 
 from ...utils.image_utils import preview_encode
 from ...utils.utils import get_h_w_c
+from ...utils.format import format_image_with_channels
 from .base_output import BaseOutput, OutputKind
 from .. import expression
 
@@ -35,14 +37,22 @@ class ImageOutput(NumPyOutput):
         kind: OutputKind = "image",
         has_handle: bool = True,
         broadcast_type: bool = False,
+        channels: Union[int, List[int], None] = None,
     ):
         super().__init__(
-            expression.intersect(image_type, "Image"),
+            expression.intersect(
+                image_type,
+                expression.Image(channels=channels),  # type: ignore
+            ),
             label,
             kind=kind,
             has_handle=has_handle,
         )
         self.broadcast_type = broadcast_type
+
+        self.channels: Optional[List[int]] = (
+            [channels] if isinstance(channels, int) else channels
+        )
 
     def get_broadcast_data(self, value: np.ndarray):
         if not self.broadcast_type:
@@ -59,6 +69,17 @@ class ImageOutput(NumPyOutput):
 
     def validate(self, value) -> None:
         assert isinstance(value, np.ndarray)
+
+        _, _, c = get_h_w_c(value)
+
+        if self.channels is not None and c not in self.channels:
+            expected = format_image_with_channels(self.channels)
+            actual = format_image_with_channels([c])
+            raise ValueError(
+                f"The output {self.label} was supposed to return {expected} but actually returned {actual}."
+                f" This is a bug in the implementation of the node."
+                f" Please report this bug."
+            )
 
 
 class LargeImageOutput(ImageOutput):

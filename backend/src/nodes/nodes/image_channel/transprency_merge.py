@@ -26,8 +26,8 @@ class TransparencyMergeNode(NodeBase):
                 image_type=expression.Image(
                     width="Input0.width & Input1.width",
                     height="Input0.height & Input1.height",
-                    channels=4,
-                )
+                ),
+                channels=4,
             ).with_never_reason(
                 "The RGB and alpha channels have different sizes but must have the same size."
             )
