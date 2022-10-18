@@ -29,7 +29,7 @@ class OpacityNode(NodeBase):
             ),
         ]
         self.outputs = [
-            ImageOutput(image_type=expression.Image(size_as="Input0", channels=4))
+            ImageOutput(image_type=expression.Image(size_as="Input0"), channels=4)
         ]
         self.category = ImageAdjustmentCategory
         self.name = "Opacity"

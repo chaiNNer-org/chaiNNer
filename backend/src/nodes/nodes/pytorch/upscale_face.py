@@ -45,9 +45,9 @@ class FaceUpscaleNode(NodeBase):
                 Image {
                     width: Input3 * Input1.width,
                     height: Input3 * Input1.height,
-                    channels: 3
                 }
                 """,
+                channels=3,
             )
         ]
 

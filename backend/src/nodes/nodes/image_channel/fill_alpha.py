@@ -29,7 +29,8 @@ class FillAlphaNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "RGB",
-                expression.Image(size_as="Input0", channels=3),
+                image_type=expression.Image(size_as="Input0"),
+                channels=3,
             ),
         ]
         self.category = ImageChannelCategory
