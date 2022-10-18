@@ -1,38 +1,33 @@
-/* eslint-disable react/jsx-props-no-spreading */
-
-import { Type } from '@chainner/navi';
+import { NeverType, Type } from '@chainner/navi';
 import { memo, useCallback } from 'react';
-import { useContext } from 'use-context-selector';
+import { useContext, useContextSelector } from 'use-context-selector';
 import {
     Input,
     InputData,
-    InputId,
     InputKind,
-    InputSchemaValue,
     InputSize,
     NodeSchema,
+    SchemaId,
 } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
-import { GlobalContext } from '../../contexts/GlobalNodeState';
+import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from '../inputs/DirectoryInput';
 import { DropDownInput } from '../inputs/DropDownInput';
 import { FileInput } from '../inputs/FileInput';
 import { GenericInput } from '../inputs/GenericInput';
-import { InputContainer } from '../inputs/InputContainer';
+import { HandleWrapper, InputContainer } from '../inputs/InputContainer';
 import { NumberInput } from '../inputs/NumberInput';
 import { InputProps } from '../inputs/props';
 import { SliderInput } from '../inputs/SliderInput';
 import { TextAreaInput } from '../inputs/TextAreaInput';
 import { TextInput } from '../inputs/TextInput';
 
-interface FullInputProps extends Omit<Omit<Input, 'type'>, 'id'>, InputProps {
-    definitionType: Type;
-}
-
-const InputComponents: Readonly<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Record<InputKind, React.MemoExoticComponent<(props: any) => JSX.Element>>
-> = {
+const InputComponents: {
+    readonly [K in InputKind]: React.MemoExoticComponent<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (props: InputProps<K, any>) => JSX.Element
+    >;
+} = {
     file: FileInput,
     directory: DirectoryInput,
     'text-line': TextInput,
@@ -43,23 +38,83 @@ const InputComponents: Readonly<
     generic: GenericInput,
 };
 
-const pickInput = (kind: InputKind, props: FullInputProps) => {
-    const InputType = InputComponents[kind];
-    return (
-        <InputContainer
-            definitionType={props.definitionType}
-            generic={kind === 'generic'}
-            hasHandle={props.hasHandle}
-            id={props.id}
-            inputId={props.inputId}
-            key={`${props.id}-${props.inputId}`}
-            label={props.label}
-            optional={props.optional}
-        >
-            <InputType {...props} />
-        </InputContainer>
-    );
-};
+interface SingleInputProps {
+    input: Input;
+    schemaId: SchemaId;
+    nodeId: string;
+    isLocked: boolean;
+    inputData: InputData;
+    inputSize: InputSize | undefined;
+}
+const SingleInput = memo(
+    ({ input, schemaId, nodeId, isLocked, inputData, inputSize }: SingleInputProps) => {
+        const { id: inputId, kind, hasHandle, optional, label } = input;
+
+        const { useInputData, useInputSize: useInputSizeContext } = useContext(GlobalContext);
+        const definitionType = useContextSelector(BackendContext, (c) =>
+            c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId)
+        );
+
+        const [value, setValue, resetValue] = useInputData(nodeId, inputId, inputData);
+
+        const useInputLocked = useCallback((): boolean => {
+            // TODO: move the function call into the selector
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            return useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
+                nodeId,
+                inputId
+            );
+        }, [nodeId, inputId]);
+        const useInputType = useCallback((): Type => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            return useContextSelector(GlobalVolatileContext, (c) => {
+                const type = c.typeState.functions.get(nodeId)?.inputs.get(inputId);
+                return type ?? NeverType.instance;
+            });
+        }, [nodeId, inputId]);
+        const useInputSize = useCallback(
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            () => useInputSizeContext(nodeId, inputId, inputSize),
+            [useInputSizeContext, nodeId, inputId, inputSize]
+        );
+
+        const InputType = InputComponents[kind];
+        const inputElement = (
+            <InputType
+                definitionType={definitionType!}
+                input={input as never}
+                inputKey={`${schemaId}-${inputId}`}
+                isLocked={isLocked}
+                resetValue={resetValue}
+                setValue={setValue}
+                useInputLocked={useInputLocked}
+                useInputSize={useInputSize}
+                useInputType={useInputType}
+                value={value}
+            />
+        );
+
+        return (
+            <InputContainer
+                generic={kind === 'generic'}
+                label={label}
+                optional={optional}
+            >
+                {hasHandle ? (
+                    <HandleWrapper
+                        definitionType={definitionType!}
+                        id={nodeId}
+                        inputId={inputId}
+                    >
+                        {inputElement}
+                    </HandleWrapper>
+                ) : (
+                    inputElement
+                )}
+            </InputContainer>
+        );
+    }
+);
 
 interface NodeInputsProps {
     schema: NodeSchema;
@@ -73,45 +128,19 @@ export const NodeInputs = memo(
     ({ schema, id, inputData, inputSize, isLocked }: NodeInputsProps) => {
         const { inputs, schemaId } = schema;
 
-        const { useInputData: useInputDataContext, useInputSize: useInputSizeContext } =
-            useContext(GlobalContext);
-        const { functionDefinitions } = useContext(BackendContext);
-
-        const useInputData = useCallback(
-            <T extends InputSchemaValue>(inputId: InputId) =>
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                useInputDataContext<T>(id, inputId, inputData),
-            [useInputDataContext, id, inputData]
-        );
-
-        const useInputSize = useCallback(
-            (inputId: InputId) =>
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                useInputSizeContext(id, inputId, inputSize),
-            [useInputSizeContext, id, inputSize]
-        );
-
-        const definitionTypes = functionDefinitions.get(schemaId)!.inputDefaults;
-
         return (
             <>
-                {inputs.map((input) => {
-                    const props: FullInputProps = {
-                        ...input,
-                        id,
-                        inputId: input.id,
-                        inputData,
-                        useInputData,
-                        useInputSize,
-                        kind: input.kind,
-                        isLocked: isLocked ?? false,
-                        schemaId,
-                        definitionType: definitionTypes.get(input.id)!,
-                        optional: input.optional,
-                        hasHandle: input.hasHandle,
-                    };
-                    return pickInput(input.kind, props);
-                })}
+                {inputs.map((input) => (
+                    <SingleInput
+                        input={input}
+                        inputData={inputData}
+                        inputSize={inputSize}
+                        isLocked={isLocked ?? false}
+                        key={input.id}
+                        nodeId={id}
+                        schemaId={schemaId}
+                    />
+                ))}
             </>
         );
     }
