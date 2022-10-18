@@ -4,10 +4,10 @@ import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 export const TextAreaInput = memo(
-    ({ value, setValue, input, isLocked, useInputSize }: NewInputProps<'text', string>) => {
+    ({ value, setValue, input, isLocked, useInputSize }: InputProps<'text', string>) => {
         const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 

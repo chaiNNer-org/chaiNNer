@@ -1,9 +1,9 @@
 import { Box, Center, Text } from '@chakra-ui/react';
 import { memo } from 'react';
 import { TypeTags } from '../TypeTag';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
-export const GenericInput = memo(({ input, definitionType }: NewInputProps<'generic'>) => {
+export const GenericInput = memo(({ input, definitionType }: InputProps<'generic'>) => {
     const { label, optional } = input;
 
     return (

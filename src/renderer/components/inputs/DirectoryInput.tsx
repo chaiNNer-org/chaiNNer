@@ -15,7 +15,7 @@ import { MdFolder } from 'react-icons/md';
 import { ipcRenderer } from '../../../common/safeIpc';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 const getDirectoryPath = (type: Type): string | undefined => {
     if (
@@ -40,7 +40,7 @@ export const DirectoryInput = memo(
         inputKey,
         useInputLocked,
         useInputType,
-    }: NewInputProps<'directory', string>) => {
+    }: InputProps<'directory', string>) => {
         const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {

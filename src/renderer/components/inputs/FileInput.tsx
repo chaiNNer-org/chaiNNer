@@ -19,7 +19,7 @@ import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 export const FileInput = memo(
     ({
@@ -29,7 +29,7 @@ export const FileInput = memo(
         inputKey,
         useInputLocked,
         isLocked,
-    }: NewInputProps<'file', string>) => {
+    }: InputProps<'file', string>) => {
         const { label, filetypes } = input;
 
         const isInputLocked = useInputLocked();

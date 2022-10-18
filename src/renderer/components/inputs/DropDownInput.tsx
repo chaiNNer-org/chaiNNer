@@ -1,9 +1,9 @@
 import { Select } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect } from 'react';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 export const DropDownInput = memo(
-    ({ value, setValue, input, isLocked }: NewInputProps<'dropdown', string | number>) => {
+    ({ value, setValue, input, isLocked }: InputProps<'dropdown', string | number>) => {
         const { options } = input;
         const def = options[0].value;
 

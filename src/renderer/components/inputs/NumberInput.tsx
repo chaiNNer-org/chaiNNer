@@ -3,7 +3,7 @@ import { HStack } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { areApproximatelyEqual } from '../../../common/util';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 export const NumberInput = memo(
     ({
@@ -13,7 +13,7 @@ export const NumberInput = memo(
         isLocked,
         useInputLocked,
         useInputType,
-    }: NewInputProps<'number', number>) => {
+    }: InputProps<'number', number>) => {
         const { def, min, max, unit, precision, controlsStep, hideTrailingZeros } = input;
 
         const [inputString, setInputString] = useState(String(value ?? def));

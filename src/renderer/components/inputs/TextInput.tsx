@@ -3,7 +3,7 @@ import { Input } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 const typeToString = (type: Type): Type => {
     return evaluate(new FunctionCallExpression('toString', [type]), getChainnerScope());
@@ -18,7 +18,7 @@ export const TextInput = memo(
         isLocked,
         useInputLocked,
         useInputType,
-    }: NewInputProps<'text-line', string>) => {
+    }: InputProps<'text-line', string>) => {
         const { label, minLength, maxLength, placeholder } = input;
 
         const [tempText, setTempText] = useState(value ?? '');

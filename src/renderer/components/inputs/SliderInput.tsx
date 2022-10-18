@@ -12,7 +12,7 @@ import {
 import { memo, useEffect, useState } from 'react';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import { NewInputProps } from './props';
+import { InputProps } from './props';
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
     try {
@@ -34,7 +34,7 @@ export const SliderInput = memo(
         definitionType,
         useInputLocked,
         useInputType,
-    }: NewInputProps<'slider', number>) => {
+    }: InputProps<'slider', number>) => {
         const {
             def,
             min,
