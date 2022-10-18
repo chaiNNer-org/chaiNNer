@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional
 import numpy as np
 
 from ...utils.image_utils import preview_encode
@@ -37,22 +37,17 @@ class ImageOutput(NumPyOutput):
         kind: OutputKind = "image",
         has_handle: bool = True,
         broadcast_type: bool = False,
-        channels: Union[int, List[int], None] = None,
+        channels: Optional[int] = None,
     ):
         super().__init__(
-            expression.intersect(
-                image_type,
-                expression.Image(channels=channels),  # type: ignore
-            ),
+            expression.intersect(image_type, expression.Image(channels=channels)),
             label,
             kind=kind,
             has_handle=has_handle,
         )
         self.broadcast_type = broadcast_type
 
-        self.channels: Optional[List[int]] = (
-            [channels] if isinstance(channels, int) else channels
-        )
+        self.channels: Optional[int] = channels
 
     def get_broadcast_data(self, value: np.ndarray):
         if not self.broadcast_type:
@@ -72,8 +67,8 @@ class ImageOutput(NumPyOutput):
 
         _, _, c = get_h_w_c(value)
 
-        if self.channels is not None and c not in self.channels:
-            expected = format_image_with_channels(self.channels)
+        if self.channels is not None and c != self.channels:
+            expected = format_image_with_channels([self.channels])
             actual = format_image_with_channels([c])
             raise ValueError(
                 f"The output {self.label} was supposed to return {expected} but actually returned {actual}."
