@@ -7,11 +7,11 @@ import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NewInputProps } from './props';
 
 export const TextAreaInput = memo(
-    ({ value, setValue, input, isLocked }: NewInputProps<'text', string>) => {
+    ({ value, setValue, input, isLocked, useInputSize }: NewInputProps<'text', string>) => {
         const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        const [size, setSize] = useInputSize(inputId);
+        const [size, setSize] = useInputSize();
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {

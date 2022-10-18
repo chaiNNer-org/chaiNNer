@@ -27,13 +27,18 @@ export interface InputProps {
     ) => readonly [Readonly<Size> | undefined, (size: Readonly<Size>) => void];
 }
 
-export interface NewInputProps<Kind extends InputKind, Value extends string | number> {
+export interface NewInputProps<Kind extends InputKind, Value extends string | number = never> {
     readonly value: Value | undefined;
     readonly setValue: (input: Value) => void;
-    readonly input: Omit<Input & { readonly kind: Kind }, 'id'>;
+    readonly resetValue: () => void;
+    readonly input: Omit<Input & { readonly kind: Kind }, 'id' | 'type' | 'conversion'>;
     readonly definitionType: Type;
     readonly isLocked: boolean;
     readonly inputKey: string;
     readonly useInputLocked: () => boolean;
     readonly useInputType: () => Type;
+    readonly useInputSize: () => readonly [
+        Readonly<Size> | undefined,
+        (size: Readonly<Size>) => void
+    ];
 }

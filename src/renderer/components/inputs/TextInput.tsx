@@ -13,6 +13,7 @@ export const TextInput = memo(
     ({
         value,
         setValue,
+        resetValue,
         input,
         isLocked,
         useInputLocked,
@@ -34,7 +35,7 @@ export const TextInput = memo(
             if (!minLength || text.length >= minLength) {
                 setValue(text);
             } else {
-                resetInput();
+                resetValue();
             }
         }, 500);
 
