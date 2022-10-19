@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import Tuple
 
 import numpy as np
@@ -29,7 +30,8 @@ VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save
 
 
 def has_ffmpeg():
-    return len([x for x in os.environ["PATH"].split(";") if "ffmpeg" in x]) > 0
+    path_vars = os.environ["PATH"].split(";" if sys.platform == "win32" else ":")
+    return len([x for x in path_vars if "ffmpeg" in x]) > 0
 
 
 if not has_ffmpeg():
