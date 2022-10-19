@@ -45,7 +45,6 @@ if not has_ffmpeg():
 codec_map = {
     "mp4": "libx264",
     "avi": "libx264",
-    "mov": "libx264",
     "mkv": "libx264",
     "webm": "libvpx-vp9",
     "gif": "gif",
