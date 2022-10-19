@@ -42,6 +42,16 @@ if not has_ffmpeg():
     static_ffmpeg.add_paths()
 
 
+codec_map = {
+    "mp4": "libx264",
+    "avi": "libx264",
+    "mov": "libx264",
+    "mkv": "libx264",
+    "webm": "libvpx-vp9",
+    "gif": "gif",
+}
+
+
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
 class VideoFrameIteratorFrameLoaderNode(NodeBase):
     def __init__(self):
@@ -136,6 +146,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         r=fps,
                         crf=crf,
                         preset=video_preset if video_preset != "none" else None,
+                        vcodec=codec_map[video_type],
                     )
                     .overwrite_output()
                     .run_async(pipe_stdin=True)
