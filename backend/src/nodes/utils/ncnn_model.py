@@ -653,10 +653,14 @@ class NcnnModelWrapper:
                     pass
                 current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
+                if found_first_conv is not True:
+                    nf, in_nc = self.get_nf_and_in_nc(layer)
+                    found_first_conv = True
                 try:
                     scale *= layer.params[3].value  # type: ignore
                 except KeyError:
                     pass
+                current_conv = layer
 
         out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
 
