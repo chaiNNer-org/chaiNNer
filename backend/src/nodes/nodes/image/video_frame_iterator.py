@@ -19,6 +19,8 @@ from ...properties.inputs import (
     TextInput,
     VideoTypeDropdown,
     VideoFileInput,
+    VideoPresetDropdown,
+    SliderInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
 from ...utils.image_utils import normalize
@@ -76,6 +78,17 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
             DirectoryInput("Output Video Directory"),
             TextInput("Output Video Name"),
             VideoTypeDropdown(),
+            VideoPresetDropdown(),
+            SliderInput(
+                "Quality (CRF)",
+                precision=0,
+                controls_step=1,
+                slider_step=1,
+                minimum=0,
+                maximum=51,
+                default=0,
+                ends=("100%", "0%"),
+            ),
         ]
         self.outputs = []
 
@@ -94,6 +107,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         save_dir: str,
         video_name: str,
         video_type: str,
+        video_preset: str,
+        crf: int,
         writer,
         fps: float,
     ) -> None:
@@ -113,7 +128,13 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         s=f"{w}x{h}",
                         r=fps,
                     )
-                    .output(video_save_path, pix_fmt="yuv420p", r=fps, crf=0)
+                    .output(
+                        video_save_path,
+                        pix_fmt="yuv420p",
+                        r=fps,
+                        crf=crf,
+                        preset=video_preset if video_preset != "none" else None,
+                    )
                     .overwrite_output()
                     .run_async(pipe_stdin=True)
                 )
