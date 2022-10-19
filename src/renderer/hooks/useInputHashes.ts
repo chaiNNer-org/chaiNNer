@@ -32,7 +32,9 @@ const computeInputHashes = (
         const schema = schemata.get(node.data.schemaId);
         const inputs: string[] = [node.data.schemaId];
         for (const { id: inputId } of schema.inputs) {
-            const connectedEdge = byTargetHandle.get(stringifyTargetHandle(node.id, inputId));
+            const connectedEdge = byTargetHandle.get(
+                stringifyTargetHandle({ nodeId: node.id, inputId })
+            );
             if (connectedEdge) {
                 const source = byId.get(connectedEdge.source);
                 if (source) {

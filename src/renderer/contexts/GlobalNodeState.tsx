@@ -703,8 +703,8 @@ export const GlobalProvider = memo(
                 if (source === target || !source || !target || !sourceHandle || !targetHandle) {
                     return false;
                 }
-                const sourceHandleId = parseSourceHandle(sourceHandle).inOutId;
-                const targetHandleId = parseTargetHandle(targetHandle).inOutId;
+                const sourceHandleId = parseSourceHandle(sourceHandle).outputId;
+                const targetHandleId = parseTargetHandle(targetHandle).inputId;
 
                 const sourceFn = typeState.functions.get(source);
                 const targetFn = typeState.functions.get(target);
@@ -878,7 +878,7 @@ export const GlobalProvider = memo(
                     (e) =>
                         e.target === id &&
                         !!e.targetHandle &&
-                        parseTargetHandle(e.targetHandle).inOutId === inputId
+                        parseTargetHandle(e.targetHandle).inputId === inputId
                 );
             },
             [edgeChanges]

@@ -273,8 +273,10 @@ const getConnectionTarget = (
     }
     switch (connectingFrom.handleType) {
         case 'source': {
-            const { inOutId } = parseSourceHandle(connectingFrom.handleId);
-            const sourceType = typeState.functions.get(connectingFrom.nodeId)?.outputs.get(inOutId);
+            const { outputId } = parseSourceHandle(connectingFrom.handleId);
+            const sourceType = typeState.functions
+                .get(connectingFrom.nodeId)
+                ?.outputs.get(outputId);
             if (!sourceType) {
                 return undefined;
             }
@@ -301,8 +303,8 @@ const getConnectionTarget = (
                 return undefined;
             }
 
-            const { inOutId } = parseTargetHandle(connectingFrom.handleId);
-            const sourceType = sourceFn.inputDefaults.get(inOutId);
+            const { inputId } = parseTargetHandle(connectingFrom.handleId);
+            const sourceType = sourceFn.inputDefaults.get(inputId);
             if (!sourceType) {
                 return undefined;
             }
@@ -400,14 +402,17 @@ export const usePaneNodeSearchMenu = (
                             source: connectingFrom.nodeId,
                             sourceHandle: connectingFrom.handleId,
                             target: nodeId,
-                            targetHandle: stringifyTargetHandle(nodeId, target.input),
+                            targetHandle: stringifyTargetHandle({ nodeId, inputId: target.input }),
                         });
                         break;
                     }
                     case 'target': {
                         createConnection({
                             source: nodeId,
-                            sourceHandle: stringifySourceHandle(nodeId, target.output),
+                            sourceHandle: stringifySourceHandle({
+                                nodeId,
+                                outputId: target.output,
+                            }),
                             target: connectingFrom.nodeId,
                             targetHandle: connectingFrom.handleId,
                         });

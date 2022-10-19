@@ -49,12 +49,12 @@ export const HandleWrapper = memo(
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const connectedEdge = edges.find(
-            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inOutId === inputId
+            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
         );
         const isConnected = !!connectedEdge;
         const [connectingFrom] = useConnectingFrom;
 
-        const targetHandle = stringifyTargetHandle(id, inputId);
+        const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
 
         const showHandle = useMemo(() => {
             // no active connection
@@ -80,7 +80,7 @@ export const HandleWrapper = memo(
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
                 const parentNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
-                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).inOutId;
+                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
                 if (parentNode) {
                     const parentDef = functionDefinitions.get(parentNode.data.schemaId);
                     if (!parentDef) {
@@ -154,17 +154,7 @@ export const HandleWrapper = memo(
                             position: 'relative',
                         }}
                         onContextMenu={noContextMenu}
-                    >
-                        {/* // TODO: This would be for icons, if the time ever comes */}
-                        {/* <Center
-                        h="full"
-                        w="full"
-                    >
-                        <CloseIcon
-                            boxSize={2}
-                        />
-                    </Center> */}
-                    </Div>
+                    />
                 </Center>
                 {children}
             </HStack>
