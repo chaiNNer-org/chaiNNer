@@ -8,6 +8,6 @@ export const getConnectedInputs = (
 ): Set<InputId> => {
     const targetedInputs = edges
         .filter((e) => e.target === nodeId && e.targetHandle)
-        .map((e) => parseTargetHandle(e.targetHandle!).inOutId);
+        .map((e) => parseTargetHandle(e.targetHandle!).inputId);
     return new Set(targetedInputs);
 };
