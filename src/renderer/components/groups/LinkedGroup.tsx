@@ -5,8 +5,10 @@ interface Options {
     label: string;
 }
 
-const LinkedGroup = memo(({ id, options, inputs }: GroupProps<Options>) => {
-    const { label = 'All' } = options;
+const LinkedGroup = memo(
+    ({ group, inputs, state: collapsed = false }: GroupProps<Options, boolean>) => {
+        const { label = 'All' } = group.options;
 
-    return <>foo</>;
-});
+        return <>foo</>;
+    }
+);
