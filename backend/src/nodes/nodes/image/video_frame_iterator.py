@@ -87,7 +87,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 minimum=0,
                 maximum=51,
                 default=0,
-                ends=("100%", "0%"),
+                ends=("Best", "Worst"),
             ),
         ]
         self.outputs = []
