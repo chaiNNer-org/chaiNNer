@@ -181,15 +181,13 @@ class IteratorContext:
 
                 index += 1
 
-                if index > length_estimate:
-                    length_estimate = int(length_estimate * 1.1)
-
                 result = before(index)
                 if result is False:
                     break
 
-                await self.run_iteration(index, length_estimate)
-
+                await self.run_iteration(
+                    min(index, length_estimate - 1), length_estimate
+                )
             except Aborted:
                 raise
             except Exception as e:
