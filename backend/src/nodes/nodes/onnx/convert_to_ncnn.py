@@ -39,7 +39,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
     def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModelWrapper, str]:
         fp16 = bool(is_fp16)
 
-        model_proto = onnx.load_model_from_string(model.model)
+        model_proto = onnx.load_model_from_string(model.bytes)
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
         opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
 

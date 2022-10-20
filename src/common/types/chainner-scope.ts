@@ -55,12 +55,7 @@ struct NcnnNetwork {
 }
 
 struct OnnxFile;
-struct OnnxModel {
-    scale: int,
-    inputChannels: int,
-    outputChannels: int,
-    nf: int,
-}
+struct OnnxModel;
 
 struct IteratorAuto;
 

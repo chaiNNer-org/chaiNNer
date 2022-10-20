@@ -94,8 +94,6 @@ class OnnxInterpolateModelsNode(NodeBase):
         b: OnnxModel,
         amount: int,
     ) -> Tuple[OnnxModel, int, int]:
-        model_a = a.model
-        model_b = b.model
         if amount == 0:
             return a, 100, 0
         elif amount == 100:
@@ -104,11 +102,11 @@ class OnnxInterpolateModelsNode(NodeBase):
         # Just to be sure there is no mismatch from opt/un-opt models
         passes = onnxoptimizer.get_fuse_and_elimination_passes()
 
-        model_proto_a = onnx.load_from_string(model_a)  # type:ignore
+        model_proto_a = onnx.load_from_string(a.bytes)
         model_proto_a = onnxoptimizer.optimize(model_proto_a, passes)
         model_a_weights = model_proto_a.graph.initializer  # type: ignore
 
-        model_proto_b = onnx.load_from_string(model_b)  # type:ignore
+        model_proto_b = onnx.load_from_string(b.bytes)
         model_proto_b = onnxoptimizer.optimize(model_proto_b, passes)
         model_b_weights = model_proto_b.graph.initializer  # type: ignore
 
@@ -127,7 +125,7 @@ class OnnxInterpolateModelsNode(NodeBase):
             model_proto_interp.graph.initializer.pop()  # type: ignore
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
         model_interp: bytes = model_proto_interp.SerializeToString()  # type: ignore
-
+        logger.info(len(model_interp))
         model = OnnxModel(model_interp)
         if not self.check_will_upscale(model):
             raise ValueError(

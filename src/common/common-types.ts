@@ -58,7 +58,6 @@ export type OutputKind =
     | 'text'
     | 'directory'
     | 'pytorch'
-    | 'onnx'
     | 'ncnn'
     | 'generic';
 

@@ -38,7 +38,7 @@ def create_inference_session(
     else:
         providers = [exec_options.onnx_execution_provider, "CPUExecutionProvider"]
 
-    session = ort.InferenceSession(model.model, providers=providers)
+    session = ort.InferenceSession(model.bytes, providers=providers)
     return session
 
 
