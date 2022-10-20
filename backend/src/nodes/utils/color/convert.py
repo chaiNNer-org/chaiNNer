@@ -95,7 +95,7 @@ def convert(img: np.ndarray, input_: ColorSpace, output: ColorSpace) -> np.ndarr
     if path is None:
         raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
-    logger.info(
+    logger.debug(
         f"Converting color using the path {' -> '.join(map(lambda x: x.name, path))}"
     )
 

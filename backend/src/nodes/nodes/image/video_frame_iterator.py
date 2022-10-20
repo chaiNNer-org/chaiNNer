@@ -188,7 +188,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
     # pylint: disable=invalid-overridden-method
     async def run(self, path: str, context: IteratorContext) -> None:
-        logger.info(f"Iterating over frames in video file: {path}")
+        logger.debug(f"Iterating over frames in video file: {path}")
 
         input_node_id = context.get_helper(VIDEO_ITERATOR_INPUT_NODE_ID).id
         output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id

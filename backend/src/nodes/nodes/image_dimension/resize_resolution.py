@@ -45,7 +45,7 @@ class ImResizeToResolutionNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and resizes it"""
 
-        logger.info(f"Resizing image to {width}x{height} via {interpolation}")
+        logger.debug(f"Resizing image to {width}x{height} via {interpolation}")
 
         out_dims = (width, height)
 

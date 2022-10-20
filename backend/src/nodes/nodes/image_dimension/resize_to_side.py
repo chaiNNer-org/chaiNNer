@@ -113,7 +113,7 @@ class ImResizeToSide(NodeBase):
     ) -> np.ndarray:
         """Takes an image and resizes it"""
 
-        logger.info(f"Resizing image to {side} via {interpolation}")
+        logger.debug(f"Resizing image to {side} via {interpolation}")
 
         h, w, _ = get_h_w_c(img)
         out_dims = resize_to_side_conditional(w, h, target, side, condition)

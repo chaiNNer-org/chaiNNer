@@ -444,13 +444,13 @@ class Executor:
         await self.__process_nodes(self.__get_iterator_output_nodes(sub))
 
     def resume(self):
-        logger.info(f"Resuming executor {self.execution_id}")
+        logger.debug(f"Resuming executor {self.execution_id}")
         self.progress.resume()
 
     def pause(self):
-        logger.info(f"Pausing executor {self.execution_id}")
+        logger.debug(f"Pausing executor {self.execution_id}")
         self.progress.pause()
 
     def kill(self):
-        logger.info(f"Killing executor {self.execution_id}")
+        logger.debug(f"Killing executor {self.execution_id}")
         self.progress.abort()

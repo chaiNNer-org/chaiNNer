@@ -33,6 +33,6 @@ class OnnxSaveModelNode(NodeBase):
 
     def run(self, model: OnnxModel, directory: str, model_name: str) -> None:
         full_path = f"{os.path.join(directory, model_name)}.onnx"
-        logger.info(f"Writing file to path: {full_path}")
+        logger.debug(f"Writing file to path: {full_path}")
         with open(full_path, "wb") as f:
             f.write(model.bytes)

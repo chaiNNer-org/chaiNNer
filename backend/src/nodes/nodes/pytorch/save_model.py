@@ -34,5 +34,5 @@ class PthSaveNode(NodeBase):
     def run(self, model: PyTorchModel, directory: str, name: str) -> None:
         full_file = f"{name}.pth"
         full_path = os.path.join(directory, full_file)
-        logger.info(f"Writing model to path: {full_path}")
+        logger.debug(f"Writing model to path: {full_path}")
         torch.save(model.state, full_path)
