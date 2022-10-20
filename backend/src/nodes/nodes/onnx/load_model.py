@@ -43,7 +43,7 @@ class OnnxLoadModelNode(NodeBase):
 
         assert os.path.isfile(path), f"Path {path} is not a file"
 
-        logger.info(f"Reading onnx model from path: {path}")
+        logger.debug(f"Reading onnx model from path: {path}")
         model = onnx.load_model(path)
 
         model_as_string = model.SerializeToString()  # type: ignore

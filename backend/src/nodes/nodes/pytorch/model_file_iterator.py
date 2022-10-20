@@ -70,7 +70,7 @@ class ModelFileIteratorNode(IteratorNodeBase):
 
     # pylint: disable=invalid-overridden-method
     async def run(self, directory: str, context: IteratorContext) -> None:
-        logger.info(f"Iterating over models in directory: {directory}")
+        logger.debug(f"Iterating over models in directory: {directory}")
 
         model_path_node_id = context.get_helper(PYTORCH_ITERATOR_NODE_ID).id
 

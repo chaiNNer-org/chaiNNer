@@ -48,7 +48,7 @@ class LoadModelNode(NodeBase):
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         try:
-            logger.info(f"Reading state dict from path: {path}")
+            logger.debug(f"Reading state dict from path: {path}")
             state_dict = torch.load(
                 path, map_location=torch.device(exec_options.device)
             )
