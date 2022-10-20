@@ -168,6 +168,37 @@ class IteratorContext:
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
 
+    async def run_while(
+        self,
+        length: int,
+        before: Callable[[int], Union[None, Literal[False]]],
+    ):
+        errors: List[str] = []
+        index = 0
+        while True:
+            try:
+                await self.progress.suspend()
+
+                result = before(index)
+                if result is False:
+                    break
+
+                await self.run_iteration(index, length)
+
+                if index < length:
+                    index += 1
+            except Aborted:
+                raise
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
+
 
 def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
     def wrapper():
