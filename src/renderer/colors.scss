@@ -1,4 +1,4 @@
-@use "sass:color";
+@use 'sass:color';
 
 :root {
     $gray-100: #edf2f7;
@@ -77,7 +77,7 @@
     --node-selector-bg: var(--bg-800);
 }
 
-:root[data-theme="light"] {
+:root[data-theme='light'] {
     /* backgrounds */
     --bg-800: var(--gray-200);
     --bg-700: var(--gray-300);
