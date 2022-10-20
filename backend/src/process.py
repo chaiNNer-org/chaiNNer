@@ -179,9 +179,9 @@ class IteratorContext:
             try:
                 await self.progress.suspend()
 
-                if index < length_estimate:
-                    index += 1
-                else:
+                index += 1
+
+                if index > length_estimate:
                     length_estimate = int(length_estimate * 1.1)
 
                 result = before(index)
