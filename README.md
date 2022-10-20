@@ -1,12 +1,12 @@
 # chaiNNer
 
-[![GitHub Latest Release](https://img.shields.io/github/v/release/joeyballentine/chaiNNer)](https://github.com/joeyballentine/chaiNNer/releases/latest)
-[![GitHub Total Downloads](https://img.shields.io/github/downloads/joeyballentine/chaiNNer/total)](https://github.com/joeyballentine/chaiNNer/releases)
-[![License](https://img.shields.io/github/license/joeyballentine/chaiNNer)](./LICENSE)
+[![GitHub Latest Release](https://img.shields.io/github/v/release/chaiNNer-org/chaiNNer)](https://github.com/chaiNNer-org/chaiNNer/releases/latest)
+[![GitHub Total Downloads](https://img.shields.io/github/downloads/chaiNNer-org/chaiNNer/total)](https://github.com/chaiNNer-org/chaiNNer/releases)
+[![License](https://img.shields.io/github/license/chaiNNer-org/chaiNNer)](./LICENSE)
 [![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white)](https://discord.gg/pzvAKPKyHM)
 
 <p align="center">
-  <a href="https://github.com/joeyballentine/chaiNNer/releases" target="_blank">
+  <a href="https://github.com/chaiNNer-org/chaiNNer/releases" target="_blank">
     <img src="src/public/banner.png" width="720" />
   </a>
 </p>
@@ -23,7 +23,7 @@ Remember: chaiNNer is still a work in progress and in alpha. While it is slowly 
 
 ## Installation
 
-Download the latest release from the [Github releases page](https://github.com/joeyballentine/chaiNNer/releases) and run the installer best suited for your system. Simple as that.
+Download the latest release from the [Github releases page](https://github.com/chaiNNer-org/chaiNNer/releases) and run the installer best suited for your system. Simple as that.
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 

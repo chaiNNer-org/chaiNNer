@@ -12,7 +12,7 @@ export const getLatestVersion = () =>
     new Promise<LatestVersion>((resolve, reject) => {
         const options = {
             hostname: 'api.github.com',
-            path: '/repos/joeyballentine/chaiNNer/releases/latest',
+            path: '/repos/chaiNNer-org/chaiNNer/releases/latest',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
