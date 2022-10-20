@@ -223,7 +223,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         context.inputs.set_append_values(output_node_id, [writer, fps])
 
-        def before(_: int, index: int):
+        def before(index: int):
             in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
             if not in_bytes:
                 print("Can't receive frame (stream end?). Exiting ...")
@@ -235,4 +235,4 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 input_node_id, [in_frame, index, video_dir, video_name]
             )
 
-        await context.run(range(frame_count), before)
+        await context.run_while(frame_count, before)
