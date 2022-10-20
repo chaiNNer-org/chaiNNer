@@ -13,7 +13,11 @@ from ...properties.inputs import ModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
 from ...utils.torch_types import PyTorchModel
-from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
+from ...utils.auto_split_tiles import (
+    estimate_tile_size,
+    parse_tile_size_input,
+    TileSize,
+)
 from ...utils.auto_split import MaxTileSize
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.pytorch_auto_split import pytorch_auto_split
@@ -55,7 +59,7 @@ class ImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         model: PyTorchModel,
-        tile_size: int,
+        tile_size: TileSize,
         options: ExecutionOptions,
     ):
         with torch.no_grad():
@@ -97,7 +101,12 @@ class ImageUpscaleNode(NodeBase):
 
             return img_out
 
-    def run(self, model: PyTorchModel, img: np.ndarray, tile_size: int) -> np.ndarray:
+    def run(
+        self,
+        model: PyTorchModel,
+        img: np.ndarray,
+        tile_size: TileSize,
+    ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
 
         exec_options = to_pytorch_execution_options(get_execution_options())

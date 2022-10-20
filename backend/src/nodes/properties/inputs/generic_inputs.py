@@ -223,8 +223,28 @@ def VideoTypeDropdown() -> DropDownInput:
         label="Video Type",
         options=[
             {"option": "MP4", "value": "mp4"},
+            {"option": "MKV", "value": "mkv"},
+            {"option": "Webm", "value": "webm"},
             {"option": "AVI", "value": "avi"},
             {"option": "None", "value": "none"},
+        ],
+    )
+
+
+def VideoPresetDropdown() -> DropDownInput:
+    """Video Type option dropdown"""
+    return DropDownInput(
+        input_type="VideoPreset",
+        label="Preset",
+        options=[
+            {"option": "ultrafast", "value": "ultrafast"},
+            {"option": "superfast", "value": "superfast"},
+            {"option": "veryfast", "value": "veryfast"},
+            {"option": "fast", "value": "fast"},
+            {"option": "medium", "value": "medium"},
+            {"option": "slow", "value": "slow"},
+            {"option": "slower", "value": "slower"},
+            {"option": "veryslow", "value": "veryslow"},
         ],
     )
 

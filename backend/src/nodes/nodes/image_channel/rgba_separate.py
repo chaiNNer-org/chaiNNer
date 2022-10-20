@@ -23,15 +23,17 @@ class SeparateRgbaNode(NodeBase):
         self.inputs = [ImageInput()]
         self.outputs = [
             ImageOutput(
-                "R Channel", expression.Image(size_as="Input0", channels=1)
+                "R Channel", image_type=expression.Image(size_as="Input0"), channels=1
             ).with_id(2),
             ImageOutput(
-                "G Channel", expression.Image(size_as="Input0", channels=1)
+                "G Channel", image_type=expression.Image(size_as="Input0"), channels=1
             ).with_id(1),
             ImageOutput(
-                "B Channel", expression.Image(size_as="Input0", channels=1)
+                "B Channel", image_type=expression.Image(size_as="Input0"), channels=1
             ).with_id(0),
-            ImageOutput("A Channel", expression.Image(size_as="Input0", channels=1)),
+            ImageOutput(
+                "A Channel", image_type=expression.Image(size_as="Input0"), channels=1
+            ),
         ]
         self.category = ImageChannelCategory
         self.name = "Separate RGBA"

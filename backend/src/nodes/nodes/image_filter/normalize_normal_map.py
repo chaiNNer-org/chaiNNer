@@ -22,7 +22,11 @@ class NormalizeNode(NodeBase):
             ImageInput("Normal Map", channels=[3, 4]),
         ]
         self.outputs = [
-            ImageOutput("Normal Map", expression.Image(size_as="Input0", channels=3)),
+            ImageOutput(
+                "Normal Map",
+                image_type=expression.Image(size_as="Input0"),
+                channels=3,
+            ),
         ]
         self.category = ImageFilterCategory
         self.name = "Normalize Normal Map"

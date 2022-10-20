@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, NewType
 import numpy as np
 from sanic.log import logger
 
@@ -31,7 +31,13 @@ def estimate_tile_size(
     return tile_size
 
 
-def parse_tile_size_input(tile_size: int, estimate: Callable[[], Tiler]) -> Tiler:
+TileSize = NewType("TileSize", int)
+ESTIMATE = TileSize(0)
+NO_TILING = TileSize(-1)
+MAX_TILE_SIZE = TileSize(-2)
+
+
+def parse_tile_size_input(tile_size: TileSize, estimate: Callable[[], Tiler]) -> Tiler:
     if tile_size == 0:
         return estimate()
     if tile_size == -1:

@@ -28,11 +28,11 @@ class NormalAdditionNode(NodeBase):
         self.outputs = [
             ImageOutput(
                 "Normal Map",
-                expression.Image(
+                image_type=expression.Image(
                     width="Input0.width & Input2.width",
                     height="Input0.height & Input2.height",
-                    channels=3,
                 ),
+                channels=3,
             ).with_never_reason(
                 "The given normal maps have different sizes but must be the same size."
             ),

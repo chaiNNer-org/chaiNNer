@@ -1,9 +1,13 @@
 import { clipboard } from 'electron';
 import log from 'electron-log';
-import { Edge, Node } from 'reactflow';
-import { EdgeData, NodeData } from '../../common/common-types';
+import { writeFile } from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import { Edge, Node, Project } from 'reactflow';
+import { v4 as uuid4 } from 'uuid';
+import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
-import { copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
+import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -54,7 +58,10 @@ export const cutAndCopyToClipboard = (
 
 export const pasteFromClipboard = (
     setNodes: SetState<Node<NodeData>[]>,
-    setEdges: SetState<Edge<EdgeData>[]>
+    setEdges: SetState<Edge<EdgeData>[]>,
+    createNode: (proto: NodeProto, parentId?: string) => void,
+    project: Project,
+    reactFlowWrapper: React.RefObject<Element>
 ) => {
     const availableFormats = clipboard.availableFormats();
     if (availableFormats.length === 0) {
@@ -98,9 +105,40 @@ export const pasteFromClipboard = (
                 case 'text/rtf':
                     log.debug('Clipboard rtf', clipboard.readRTF());
                     break;
-                case 'image/png':
-                    log.debug('Clipboard image', clipboard.readImage().toPNG());
+                case 'image/jpeg':
+                case 'image/gif':
+                case 'image/bmp':
+                case 'image/tiff':
+                case 'image/png': {
+                    const imgData = clipboard.readImage().toPNG();
+                    const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
+                    writeFile(imgPath, imgData)
+                        .then(() => {
+                            log.debug('Clipboard image', imgPath);
+                            let positionX = 0;
+                            let positionY = 0;
+                            if (reactFlowWrapper.current) {
+                                const { height, width } =
+                                    reactFlowWrapper.current.getBoundingClientRect();
+                                positionX = width / 2;
+                                positionY = height / 2;
+                            }
+                            createNode({
+                                nodeType: 'regularNode',
+                                position: project({ x: positionX, y: positionY }),
+                                data: {
+                                    schemaId: 'chainner:image:load' as SchemaId,
+                                    inputData: {
+                                        [0 as InputId]: imgPath,
+                                    },
+                                },
+                            });
+                        })
+                        .catch((e) => {
+                            log.error('Failed to write clipboard image', e);
+                        });
                     break;
+                }
                 default:
                     log.debug('Clipboard data', clipboard.readBuffer(format));
             }
