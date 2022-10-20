@@ -13,6 +13,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput, SliderInput
 from ...properties.outputs import NcnnModelOutput, NumberOutput
+from ...utils.auto_split_tiles import NO_TILING
 from ...utils.ncnn_model import NcnnModel
 
 from .upscale_image import NcnnUpscaleImageNode
@@ -51,7 +52,7 @@ class NcnnInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, interp: NcnnModel):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = NcnnUpscaleImageNode().run(interp, fake_img, 0)
+        result = NcnnUpscaleImageNode().run(interp, fake_img, NO_TILING)
 
         mean_color = np.mean(result)
         del result
