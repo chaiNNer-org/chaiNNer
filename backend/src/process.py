@@ -170,28 +170,43 @@ class IteratorContext:
 
     async def run_while(
         self,
-        length: int,
+        length_estimate: int,
         before: Callable[[int], Union[None, Literal[False]]],
     ):
         errors: List[str] = []
-        index = 0
+        index = -1
         while True:
             try:
                 await self.progress.suspend()
+
+                if index < length_estimate:
+                    index += 1
+                else:
+                    length_estimate = int(length_estimate * 1.1)
 
                 result = before(index)
                 if result is False:
                     break
 
-                await self.run_iteration(index, length)
+                await self.run_iteration(index, length_estimate)
 
-                if index < length:
-                    index += 1
             except Aborted:
                 raise
             except Exception as e:
                 logger.error(e)
                 errors.append(str(e))
+
+        if index < length_estimate:
+            await self.executor.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": 1,
+                        "iteratorId": self.iterator_id,
+                        "running": None,
+                    },
+                }
+            )
 
         if len(errors) > 0:
             raise Exception(
