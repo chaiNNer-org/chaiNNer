@@ -201,7 +201,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                     label: "Open chaiNNer's GitHub page",
                     click: async () => {
                         await shell.openExternal(
-                            'https://github.com/joeyballentine/chaiNNer/blob/main/README.md'
+                            'https://github.com/chaiNNer-org/chaiNNer/blob/main/README.md'
                         );
                     },
                 },

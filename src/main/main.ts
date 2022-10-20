@@ -62,7 +62,7 @@ log.catchErrors({
             })
             .then((result) => {
                 if (result.response === 1) {
-                    submitIssue!('https://github.com/joeyballentine/chaiNNer/issues/new', {
+                    submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
                         title: `Error report: ${error.message}`,
                         body: [
                             `\`\`\`\n${String(error)}\n\`\`\``,
