@@ -18,7 +18,7 @@ export const Timer = memo(({ time }: TimerProps) => {
             textAlign="center"
         >
             <HStack
-                bgColor="var(--gray-800)"
+                bgColor="var(--node-timer-bg)"
                 borderRadius="full"
                 h="full"
                 margin="auto"
@@ -28,10 +28,10 @@ export const Timer = memo(({ time }: TimerProps) => {
             >
                 <TimeIcon
                     boxSize="0.5rem"
-                    color="var(--gray-600)"
+                    color="var(--node-timer-fg)"
                 />
                 <Text
-                    color="var(--gray-600)"
+                    color="var(--node-timer-fg)"
                     fontSize="xx-small"
                     textAlign="right"
                 >
