@@ -78,7 +78,7 @@ class ImageUpscaleNode(NodeBase):
                     model_bytes = sum(
                         p.numel() * element_size for p in model.parameters()
                     )
-                    budget = int(free * 0.6)
+                    budget = int(free * 0.8)
 
                     return MaxTileSize(
                         estimate_tile_size(
