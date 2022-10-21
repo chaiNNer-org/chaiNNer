@@ -48,6 +48,7 @@ export interface InvokeChannels {
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
+    'get-appdata': ChannelInfo<string>;
 }
 
 export interface SendChannels {
