@@ -168,6 +168,8 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
 
     ipcMain.handle('get-app-version', () => version);
 
+    ipcMain.handle('get-appdata', () => app.getPath('userData'));
+
     let blockerId: number | undefined;
     ipcMain.on('start-sleep-blocker', () => {
         if (blockerId === undefined) {
