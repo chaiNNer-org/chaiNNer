@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import Tuple
 
 import numpy as np
@@ -19,6 +20,8 @@ from ...properties.inputs import (
     TextInput,
     VideoTypeDropdown,
     VideoFileInput,
+    VideoPresetDropdown,
+    SliderInput,
 )
 from ...properties.outputs import ImageOutput, NumberOutput, TextOutput, DirectoryOutput
 from ...utils.image_utils import normalize
@@ -29,13 +32,23 @@ VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save
 
 
 def has_ffmpeg():
-    return len([x for x in os.environ["PATH"].split(";") if "ffmpeg" in x]) > 0
+    path_vars = os.environ["PATH"].split(";" if sys.platform == "win32" else ":")
+    return len([x for x in path_vars if "ffmpeg" in x]) > 0
 
 
 if not has_ffmpeg():
     import static_ffmpeg
 
     static_ffmpeg.add_paths()
+
+
+codec_map = {
+    "mp4": "libx264",
+    "avi": "libx264",
+    "mkv": "libx264",
+    "webm": "libvpx-vp9",
+    "gif": "gif",
+}
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -76,6 +89,17 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
             DirectoryInput("Output Video Directory"),
             TextInput("Output Video Name"),
             VideoTypeDropdown(),
+            VideoPresetDropdown(),
+            SliderInput(
+                "Quality (CRF)",
+                precision=0,
+                controls_step=1,
+                slider_step=1,
+                minimum=0,
+                maximum=51,
+                default=0,
+                ends=("Best", "Worst"),
+            ),
         ]
         self.outputs = []
 
@@ -94,6 +118,8 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         save_dir: str,
         video_name: str,
         video_type: str,
+        video_preset: str,
+        crf: int,
         writer,
         fps: float,
     ) -> None:
@@ -113,7 +139,14 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         s=f"{w}x{h}",
                         r=fps,
                     )
-                    .output(video_save_path, pix_fmt="yuv420p", r=fps, crf=0)
+                    .output(
+                        video_save_path,
+                        pix_fmt="yuv420p",
+                        r=fps,
+                        crf=crf,
+                        preset=video_preset if video_preset != "none" else None,
+                        vcodec=codec_map[video_type],
+                    )
                     .overwrite_output()
                     .run_async(pipe_stdin=True)
                 )
@@ -155,7 +188,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
     # pylint: disable=invalid-overridden-method
     async def run(self, path: str, context: IteratorContext) -> None:
-        logger.info(f"Iterating over frames in video file: {path}")
+        logger.debug(f"Iterating over frames in video file: {path}")
 
         input_node_id = context.get_helper(VIDEO_ITERATOR_INPUT_NODE_ID).id
         output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id

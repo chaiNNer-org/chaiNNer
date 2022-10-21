@@ -30,7 +30,7 @@ def __outline_child_nodes(chain: Chain) -> bool:
             if can_outline:
                 node.parent = None
                 changed = True
-                logger.info(
+                logger.debug(
                     f"Chain optimization: Outlined {node.schema_id} node {node.id}"
                 )
 
@@ -48,7 +48,7 @@ def __removed_dead_nodes(chain: Chain) -> bool:
         if is_dead:
             chain.remove_node(node.id)
             changed = True
-            logger.info(f"Chain optimization: Removed {node.schema_id} node {node.id}")
+            logger.debug(f"Chain optimization: Removed {node.schema_id} node {node.id}")
 
     return changed
 

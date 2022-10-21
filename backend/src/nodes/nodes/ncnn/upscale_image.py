@@ -13,7 +13,11 @@ from ...properties import expression
 from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.auto_split import MaxTileSize
-from ...utils.auto_split_tiles import estimate_tile_size, parse_tile_size_input
+from ...utils.auto_split_tiles import (
+    estimate_tile_size,
+    parse_tile_size_input,
+    TileSize,
+)
 from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split
 from ...utils.ncnn_model import NcnnModelWrapper
@@ -72,7 +76,7 @@ class NcnnUpscaleImageNode(NodeBase):
         model: NcnnModelWrapper,
         input_name: str,
         output_name: str,
-        tile_size: int,
+        tile_size: TileSize,
     ):
         exec_options = get_execution_options()
         net = get_ncnn_net(model, exec_options)
@@ -107,7 +111,7 @@ class NcnnUpscaleImageNode(NodeBase):
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
     def run(
-        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: int
+        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: TileSize
     ) -> np.ndarray:
         model_c = model.in_nc
 

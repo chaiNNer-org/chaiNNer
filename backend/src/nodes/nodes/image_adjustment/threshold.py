@@ -45,12 +45,12 @@ class ThresholdNode(NodeBase):
     ) -> np.ndarray:
         """Takes an image and applies a threshold to it"""
 
-        logger.info(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
+        logger.debug(f"thresh {thresh}, maxval {maxval}, type {thresh_type}")
 
         real_thresh = thresh / 100
         real_maxval = maxval / 100
 
-        logger.info(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
+        logger.debug(f"real_thresh {real_thresh}, real_maxval {real_maxval}")
 
         _, result = cv2.threshold(img, real_thresh, real_maxval, thresh_type)
 

@@ -2257,9 +2257,9 @@ class Onnx2NcnnConverter:
 
     def convert(self, is_fp16: bool = False, include_mem_data: bool = True):
         if is_fp16:
-            logger.info("NCNN mode: fp16")
+            logger.debug("NCNN mode: fp16")
         else:
-            logger.info("NCNN mode: fp32")
+            logger.debug("NCNN mode: fp32")
 
         # Topological sort
         i = 0
@@ -2536,7 +2536,7 @@ class Onnx2NcnnConverter:
             + splitncnn_blob_count
         )
         ncnn_model = NcnnModel(ncnn_node_count, ncnn_blob_count)
-        logger.info(
+        logger.debug(
             f"Node count: {ncnn_model.node_count}, Blob count: {ncnn_model.blob_count}"
         )
 

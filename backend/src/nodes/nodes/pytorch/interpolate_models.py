@@ -97,7 +97,7 @@ class InterpolateNode(NodeBase):
         state_a = model_a.state
         state_b = model_b.state
 
-        logger.info(f"Interpolating models...")
+        logger.debug(f"Interpolating models...")
         if not self.check_can_interp(state_a, state_b):
             raise ValueError(
                 "These models are not compatible and not able to be interpolated together"

@@ -78,7 +78,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
     # pylint: disable=invalid-overridden-method
     async def run(self, directory: str, context: IteratorContext) -> None:
-        logger.info(f"Iterating over images in directory: {directory}")
+        logger.debug(f"Iterating over images in directory: {directory}")
 
         img_path_node_id = context.get_helper(IMAGE_ITERATOR_NODE_ID).id
 

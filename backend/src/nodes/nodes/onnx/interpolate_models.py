@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-
 from copy import deepcopy
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
-import onnx
 import onnxoptimizer
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
-from onnx import numpy_helper as onph
 from sanic.log import logger
 
-from . import category as ONNXCategory
+import onnx
+from onnx import numpy_helper as onph
+
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, SliderInput
-from ...properties.outputs import OnnxModelOutput, NumberOutput
+from ...properties.outputs import NumberOutput, OnnxModelOutput
+from ...utils.auto_split_tiles import NO_TILING
 from ...utils.onnx_model import OnnxModel
-
+from . import category as ONNXCategory
 from .upscale_image import OnnxImageUpscaleNode
 
 
@@ -82,7 +82,7 @@ class OnnxInterpolateModelsNode(NodeBase):
 
     def check_will_upscale(self, model: OnnxModel):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-        result = OnnxImageUpscaleNode().run(model, fake_img, 0)
+        result = OnnxImageUpscaleNode().run(model, fake_img, NO_TILING)
 
         mean_color = np.mean(result)
         del result
@@ -114,7 +114,7 @@ class OnnxInterpolateModelsNode(NodeBase):
             model_b_weights
         ), "Models must have same number of weights"
 
-        logger.info(f"Interpolating models...")
+        logger.debug(f"Interpolating models...")
         interp_weights_list = self.perform_interp(
             model_a_weights, model_b_weights, amount
         )
@@ -124,8 +124,8 @@ class OnnxInterpolateModelsNode(NodeBase):
             # Assigning a new value or assigning to field index do not seem to work
             model_proto_interp.graph.initializer.pop()  # type: ignore
         model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
-        model_interp: bytes = model_proto_interp.SerializeToString()  # type: ignore
-        logger.info(len(model_interp))
+        model_interp = model_proto_interp.SerializeToString()  # type: ignore
+
         model = OnnxModel(model_interp)
         if not self.check_will_upscale(model):
             raise ValueError(

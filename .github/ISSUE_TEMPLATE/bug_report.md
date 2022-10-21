@@ -8,12 +8,13 @@ assignees: ''
 ---
 
 <!--
-Before you make open an issue, please search for your problem using the search bar here: https://github.com/joeyballentine/chaiNNer/issues
+Before you make open an issue, please search for your problem using the search bar here: https://github.com/chaiNNer-org/chaiNNer/issues
 
 Many problems are reported to us multiple times, so please try to find your problem before opening a new issue.
 -->
 
 **Information:**
+
 - Chainner version: [e.g. 0.11.0]
 - OS: [e.g. Windows 10, macOS 10.13]
 

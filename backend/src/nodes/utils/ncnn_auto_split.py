@@ -82,7 +82,7 @@ def ncnn_auto_split(
             # Check to see if its actually the NCNN out of memory error
             if "failed" in str(e):
                 # clear VRAM
-                logger.info(f"NCNN out of VRAM, clearing VRAM and splitting.")
+                logger.debug(f"NCNN out of VRAM, clearing VRAM and splitting.")
                 ex = None
                 del ex
                 gc.collect()

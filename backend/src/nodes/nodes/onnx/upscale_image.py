@@ -10,7 +10,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.auto_split_tiles import parse_tile_size_input
+from ...utils.auto_split_tiles import parse_tile_size_input, TileSize
 from ...utils.onnx_auto_split import onnx_auto_split
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_session import get_onnx_session
@@ -46,10 +46,10 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         img: np.ndarray,
         session: ort.InferenceSession,
-        tile_size: int,
+        tile_size: TileSize,
         change_shape: bool,
     ) -> np.ndarray:
-        logger.info("Upscaling image")
+        logger.debug("Upscaling image")
 
         def estimate():
             raise ValueError
@@ -65,7 +65,7 @@ class OnnxImageUpscaleNode(NodeBase):
         self,
         model: OnnxModel,
         img: np.ndarray,
-        tile_size: int,
+        tile_size: TileSize,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
         session = get_onnx_session(model, get_execution_options())
