@@ -285,7 +285,6 @@ const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
     let ffmpegInfo: FfmpegInfo;
 
-    // User is using bundled python
     const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
 
     try {
