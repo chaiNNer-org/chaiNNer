@@ -27,13 +27,13 @@ const Splash = memo(() => {
 
         ipcRenderer.on('checking-deps', () => {
             setShowProgressBar(false);
-            setOverallProgressPercentage(0.3);
+            setOverallProgressPercentage(0.6);
             setStatus('Checking dependencies...');
         });
 
         ipcRenderer.on('installing-deps', (event, onlyUpdating) => {
             setShowProgressBar(false);
-            setOverallProgressPercentage(0.4);
+            setOverallProgressPercentage(0.7);
             setStatus(
                 onlyUpdating ? 'Updating dependencies...' : 'Installing required dependencies...'
             );
@@ -51,19 +51,25 @@ const Splash = memo(() => {
             setStatus('Loading main application...');
         });
 
-        ipcRenderer.on('finish-loading', () => {
-            setShowProgressBar(false);
-            setOverallProgressPercentage(1);
-            setStatus('Loading main application...');
-        });
-
         ipcRenderer.on('downloading-python', () => {
             setShowProgressBar(true);
-            setOverallProgressPercentage(0.5);
+            setOverallProgressPercentage(0.3);
             setStatus('Downloading Integrated Python...');
         });
 
         ipcRenderer.on('extracting-python', () => {
+            setShowProgressBar(true);
+            setOverallProgressPercentage(0.4);
+            setStatus('Extracting downloaded files...');
+        });
+
+        ipcRenderer.on('downloading-ffmpeg', () => {
+            setShowProgressBar(true);
+            setOverallProgressPercentage(0.5);
+            setStatus('Downloading ffmpeg...');
+        });
+
+        ipcRenderer.on('extracting-ffmpeg', () => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.6);
             setStatus('Extracting downloaded files...');
@@ -73,6 +79,12 @@ const Splash = memo(() => {
             setShowProgressBar(true);
             setOverallProgressPercentage(0.7);
             setStatus('Installing required dependencies...');
+        });
+
+        ipcRenderer.on('finish-loading', () => {
+            setShowProgressBar(false);
+            setOverallProgressPercentage(1);
+            setStatus('Loading main application...');
         });
 
         ipcRenderer.on('progress', (event, percentage) => {

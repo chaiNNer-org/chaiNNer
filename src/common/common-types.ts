@@ -124,6 +124,11 @@ export interface PythonInfo {
     readonly version: Version;
 }
 
+export interface FfmpegInfo {
+    readonly ffmpeg: string;
+    readonly ffprobe: string;
+}
+
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
 export type FileSaveCanceled = { kind: 'Canceled' };
 export type FileSaveSuccess = { kind: 'Success'; path: string };
