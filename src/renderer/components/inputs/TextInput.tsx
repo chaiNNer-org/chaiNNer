@@ -15,6 +15,7 @@ interface TextInputProps extends InputProps {
     minLength: number;
     maxLength?: number;
     placeholder?: string;
+    def?: string | null;
 }
 
 export const TextInput = memo(
@@ -27,6 +28,7 @@ export const TextInput = memo(
         minLength,
         maxLength,
         placeholder,
+        def,
     }: TextInputProps) => {
         const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
             id,
@@ -37,8 +39,12 @@ export const TextInput = memo(
         const [tempText, setTempText] = useState(input ?? '');
 
         useEffect(() => {
-            if (input === undefined && minLength === 0) {
-                setInput('');
+            if (input === undefined) {
+                if (def != null) {
+                    setInput(def);
+                } else if (minLength === 0) {
+                    setInput('');
+                }
             }
         }, []);
 
