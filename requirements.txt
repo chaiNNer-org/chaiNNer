@@ -17,6 +17,5 @@ pytest
 pywin32 ; sys_platform=="win32"
 sanic
 sanic_cors
-static_ffmpeg
 torch
 torchvision

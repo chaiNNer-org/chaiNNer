@@ -8,7 +8,7 @@ import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
-import { PythonInfo, Version, WindowSize } from '../common/common-types';
+import { FfmpegInfo, PythonInfo, Version, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
@@ -17,6 +17,7 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
 import { getArguments } from './arguments';
+import { getIntegratedFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
 import { getIntegratedPython } from './python/integratedPython';
@@ -279,6 +280,44 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     return pythonInfo;
 };
 
+const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
+    log.info('Attempting to check Ffmpeg env...');
+
+    let ffmpegInfo: FfmpegInfo;
+
+    const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
+
+    try {
+        let lastStage = '';
+        ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
+            if (stage !== lastStage) {
+                lastStage = stage;
+                splashWindow.webContents.send(`${stage}ing-ffmpeg`);
+            }
+            splashWindow.webContents.send('progress', percentage);
+        });
+    } catch (error) {
+        log.error(error);
+
+        splashWindow.hide();
+        const messageBoxOptions = {
+            type: 'error',
+            title: 'Unable to install integrated Ffmpeg',
+            buttons: ['Exit'],
+            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+        };
+        await dialog.showMessageBox(messageBoxOptions);
+        app.exit(1);
+        throw new Error();
+    }
+
+    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg}`);
+    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe}`);
+
+    ipcMain.handle('get-ffmpeg', () => ffmpegInfo);
+    return ffmpegInfo;
+};
+
 const checkPythonDeps = async (
     splashWindow: BrowserWindowWithSafeIpc,
     pythonInfo: PythonInfo,
@@ -382,7 +421,7 @@ const checkNvidiaSmi = async () => {
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
+const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegInfo) => {
     if (getArguments().noBackend) {
         return;
     }
@@ -393,7 +432,11 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
         const backend = spawn(pythonInfo.python, [backendPath, String(port)], {
-            env: sanitizedEnv,
+            env: {
+                ...sanitizedEnv,
+                STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
+                STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
+            },
         });
         backend.stdout.on('data', (data) => {
             const dataString = String(data);
@@ -465,7 +508,7 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
                     log.error('Error killing backend.');
                 }
                 ipcMain.removeHandler('kill-backend');
-                spawnBackend(port, pythonInfo);
+                spawnBackend(port, pythonInfo, ffmpegInfo);
             } catch (error) {
                 log.error('Error restarting backend.', error);
             }
@@ -555,13 +598,17 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
             const pythonInfo = await checkPythonEnv(splash);
             await sleep(250);
 
+            splash.webContents.send('checking-ffmpeg');
+            const ffmpegInfo = await checkFfmpegEnv(splash);
+            await sleep(250);
+
             splash.webContents.send('checking-deps');
             const hasNvidia = await nvidiaSmiPromise;
             await checkPythonDeps(splash, pythonInfo, hasNvidia);
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
-            spawnBackend(port, pythonInfo);
+            spawnBackend(port, pythonInfo, ffmpegInfo);
 
             registerEventHandlers(mainWindow);
 
