@@ -46,6 +46,7 @@ class TextInput(BaseInput):
         max_length: Union[int, None] = None,
         placeholder: Union[str, None] = None,
         allow_numbers: bool = True,
+        default: Union[str, None] = None,
     ):
         super().__init__(
             ["string", "number"] if allow_numbers else "string",
@@ -56,6 +57,7 @@ class TextInput(BaseInput):
         self.min_length = min_length
         self.max_length = max_length
         self.placeholder = placeholder
+        self.default = default
 
     def enforce(self, value) -> str:
         if isinstance(value, float) and int(value) == value:
@@ -69,6 +71,7 @@ class TextInput(BaseInput):
             "minLength": self.min_length,
             "maxLength": self.max_length,
             "placeholder": self.placeholder,
+            "def": self.default,
         }
 
 
