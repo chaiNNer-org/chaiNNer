@@ -3,12 +3,12 @@ import decompress from 'decompress';
 import log from 'electron-log';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
-import os from 'os';
 import path from 'path';
 import util from 'util';
 import { FfmpegInfo } from '../../common/common-types';
 import { isM1 } from '../../common/env';
 import { assertNever, checkFileExists } from '../../common/util';
+import { SupportedPlatform, getPlatform } from '../platform';
 
 const exec = util.promisify(_exec);
 
@@ -18,22 +18,6 @@ const downloads: Record<SupportedPlatform, string> = {
         ? 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-darwin-arm64.zip'
         : 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-darwin-x64.zip',
     win32: 'https://github.com/chaiNNer-org/ffmpeg-rehost/releases/download/ffmpeg/ffmpeg-win32-x64.zip',
-};
-
-type SupportedPlatform = 'linux' | 'darwin' | 'win32';
-
-const getPlatform = (): SupportedPlatform => {
-    const platform = os.platform();
-    switch (platform) {
-        case 'win32':
-        case 'linux':
-        case 'darwin':
-            return platform;
-        default:
-            throw new Error(
-                `Unsupported platform: Our FFMPEG is not supported on ${platform}. Please report this to us and we may add support.`
-            );
-    }
 };
 
 const getExecutableRelativePath = (platform: SupportedPlatform): FfmpegInfo => {
