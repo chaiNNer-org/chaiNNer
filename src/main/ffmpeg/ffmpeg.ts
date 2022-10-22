@@ -108,15 +108,6 @@ export const getIntegratedFfmpeg = async (
         log.info('Removing downloaded files...');
         await fs.rm(zipPath);
 
-        if (platform === 'linux' || platform === 'darwin') {
-            log.info('Granting permissions for integrated ffmpeg...');
-            try {
-                await fs.chmod(ffmpegPath, 0o7777);
-                await fs.chmod(ffprobePath, 0o7777);
-            } catch (error) {
-                log.warn(error);
-            }
-        }
         // Un-Quarantine ffmpeg on macOS
         if (platform === 'darwin') {
             try {
@@ -138,6 +129,16 @@ export const getIntegratedFfmpeg = async (
                 } catch (error) {
                     log.warn(error);
                 }
+            }
+        }
+
+        if (platform === 'linux' || platform === 'darwin') {
+            log.info('Granting permissions for integrated ffmpeg...');
+            try {
+                await fs.chmod(ffmpegPath, 0o7777);
+                await fs.chmod(ffprobePath, 0o7777);
+            } catch (error) {
+                log.warn(error);
             }
         }
     }
