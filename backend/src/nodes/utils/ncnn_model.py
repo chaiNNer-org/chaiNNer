@@ -205,7 +205,7 @@ class NcnnParamCollection:
 
                         break
                 else:
-                    msg = f"Op {self.op} does not have param {key}, please report"
+                    msg = f"Op {self.op} does not have param {value}, please report"
                     raise ValueError(msg)
 
             return NcnnParam(idstr, param["paramPhase"], value, defaultValue)  # type: ignore
