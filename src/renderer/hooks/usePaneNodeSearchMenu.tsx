@@ -473,12 +473,30 @@ export const usePaneNodeSearchMenu = (
                     ? firstClass.slice('iterator-editor='.length)
                     : undefined;
 
-            if (isStoppedOnPane || stoppedIteratorId) {
-                const fromNode = getNode(connectingFrom?.nodeId ?? '');
-                // Handle case of dragging from inside iterator to outside
-                if (!(fromNode && fromNode.parentNode && isStoppedOnPane)) {
-                    menu.manuallyOpenContextMenu(event.pageX, event.pageY);
-                }
+            const fromNode = getNode(connectingFrom?.nodeId ?? '');
+            const fromParent = fromNode?.parentNode;
+            const fromHandleType = connectingFrom?.handleType;
+
+            const isFreeNodeToPane = isStoppedOnPane && fromParent === undefined;
+            const isIteratorToPane = isStoppedOnPane && fromParent;
+            const isPaneToIterator = !isStoppedOnPane && stoppedIteratorId;
+            const isIteratorToSelf =
+                stoppedIteratorId && fromParent && stoppedIteratorId === fromParent;
+            const isIteratorToOtherIterator =
+                stoppedIteratorId && fromParent && stoppedIteratorId !== fromParent;
+
+            const isIteratorSourceToPaneTarget = isIteratorToPane && fromHandleType === 'source';
+            const isIteratorTargetToPaneSource = isIteratorToPane && fromHandleType === 'target';
+            const isPaneSourceToIteratorTarget = isPaneToIterator && fromHandleType === 'source';
+
+            if (
+                (isFreeNodeToPane ||
+                    isIteratorToSelf ||
+                    isPaneSourceToIteratorTarget ||
+                    isIteratorTargetToPaneSource) &&
+                !(isIteratorSourceToPaneTarget || isIteratorToOtherIterator)
+            ) {
+                menu.manuallyOpenContextMenu(event.pageX, event.pageY);
                 if (stoppedIteratorId) {
                     setStoppedOnIterator(stoppedIteratorId);
                 }
