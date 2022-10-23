@@ -18,6 +18,7 @@ from ...properties.inputs import (
     DirectoryInput,
     TextInput,
     ImageExtensionDropdown,
+    SliderInput,
 )
 from ...utils.pil_utils import *
 from ...utils.utils import get_h_w_c
@@ -34,6 +35,9 @@ class ImWriteNode(NodeBase):
             TextInput("Subdirectory Path").make_optional(),
             TextInput("Image Name"),
             ImageExtensionDropdown(),
+            SliderInput(
+                "Quality (JPEG/WEBP)", minimum=0, maximum=100, default=95, slider_step=1
+            ),
         ]
         self.category = ImageCategory
         self.name = "Save Image"
@@ -50,6 +54,7 @@ class ImWriteNode(NodeBase):
         relative_path: Union[str, None],
         filename: str,
         extension: str,
+        quality: int,
     ) -> None:
         """Write an image to the specified path and return write status"""
 
@@ -82,17 +87,24 @@ class ImWriteNode(NodeBase):
             with Image.fromarray(img) as image:
                 image.save(full_path)
         else:
+            if extension == "jpg":
+                params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+            elif extension == "webp":
+                params = [cv2.IMWRITE_WEBP_QUALITY, quality]
+            else:
+                params = []
+
             # Write image with opencv if path is ascii, since imwrite doesn't support unicode
             # This saves us from having to keep the image buffer in memory, if possible
             if full_path.isascii():
-                cv2.imwrite(full_path, img)
+                cv2.imwrite(full_path, img, params)
             else:
                 try:
                     temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
                     full_temp_path = full_path.replace(full_file, temp_filename)
-                    cv2.imwrite(full_temp_path, img)
+                    cv2.imwrite(full_temp_path, img, params)
                     os.rename(full_temp_path, full_path)
                 except:
-                    _, buf_img = cv2.imencode(f".{extension}", img)
+                    _, buf_img = cv2.imencode(f".{extension}", img, params)
                     with open(full_path, "wb") as outf:
                         outf.write(buf_img)
