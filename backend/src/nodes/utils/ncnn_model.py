@@ -321,7 +321,6 @@ class NcnnModel:
         self.node_count: int = node_count
         self.blob_count: int = blob_count
         self.layer_list: List[NcnnLayer] = []
-        self.weights_bin: bytes = b""
         self.bin_length = 0
 
     @property
@@ -348,9 +347,8 @@ class NcnnModel:
                     layer.weight_data = model.load_layer_weights(binf, op_type, layer)
                     model.add_layer(layer)
 
-                binf.seek(0)
-                model.weights_bin = binf.read()
-                model.bin_length = len(model.weights_bin)
+                binf.seek(0, os.SEEK_END)
+                model.bin_length = binf.tell()
 
         return model
 
@@ -594,13 +592,22 @@ class NcnnModel:
             else:
                 return p.getvalue()
 
+    def serialize_weights(self) -> bytes:
+        layer_weights = [
+            b"".join((w.quantize_tag, np.ndarray.tobytes(w.weight)))
+            for l in self.layer_list
+            for w in l.weight_data.values()
+            if l.weight_data
+        ]
+
+        return b"".join(layer_weights)
+
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
-            f.write(self.weights_bin)
+            f.write(self.serialize_weights())
 
     def interpolate(self, model_b: "NcnnModel", alpha: float) -> "NcnnModel":
         interp_model = deepcopy(self)
-        interp_model.weights_bin = b""
 
         layer_a_weights = [
             (i, l) for i, l in enumerate(self.layer_list) if l.weight_data
@@ -621,13 +628,11 @@ class NcnnModel:
             interp_model.layer_list[layer_a[0]] = interp_layer
             weight_bytes_list.append(layer_bytes)
 
-        interp_model.weights_bin = b"".join(weight_bytes_list)
-
         return interp_model
 
     @property
     def bin(self) -> bytes:
-        return self.weights_bin
+        return self.serialize_weights()
 
 
 class NcnnModelWrapper:
