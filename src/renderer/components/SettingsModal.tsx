@@ -291,6 +291,7 @@ const EnvironmentSettings = memo(() => {
 const PythonSettings = memo(() => {
     const {
         useIsSystemPython,
+        useSystemPythonLocation,
         useIsCpu,
         useIsFp16,
         usePyTorchGPU,
@@ -301,6 +302,8 @@ const PythonSettings = memo(() => {
     const { backend } = useContext(BackendContext);
 
     const [isSystemPython, setIsSystemPython] = useIsSystemPython;
+    const [systemPythonLocation, setSystemPythonLocation] = useSystemPythonLocation;
+    const [lastDirectory, setLastDirectory] = useState(systemPythonLocation || '');
 
     const [isCpu, setIsCpu] = useIsCpu;
     const [isFp16, setIsFp16] = useIsFp16;
@@ -368,6 +371,16 @@ const PythonSettings = memo(() => {
         [nvidiaGpuList]
     );
 
+    const onButtonClick = useCallback(async () => {
+        const fileDir = systemPythonLocation ? path.dirname(systemPythonLocation) : lastDirectory;
+        const { canceled, filePaths } = await ipcRenderer.invoke('file-select', [], false, fileDir);
+        const selectedPath = filePaths[0];
+        if (!canceled && selectedPath) {
+            setSystemPythonLocation(selectedPath);
+            setLastDirectory(path.dirname(selectedPath));
+        }
+    }, [systemPythonLocation, lastDirectory]);
+
     return (
         <Tabs isFitted>
             <TabList>
@@ -411,6 +424,50 @@ const PythonSettings = memo(() => {
                                 setIsSystemPython((prev) => !prev);
                             }}
                         />
+                        <SettingsItem
+                            description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
+                            title="System Python location"
+                        >
+                            <HStack>
+                                <Tooltip
+                                    borderRadius={8}
+                                    label={systemPythonLocation}
+                                    maxW="auto"
+                                    openDelay={500}
+                                    px={2}
+                                    py={0}
+                                >
+                                    <InputGroup>
+                                        <InputLeftElement pointerEvents="none">
+                                            <Icon as={FaPython} />
+                                        </InputLeftElement>
+
+                                        <Input
+                                            isReadOnly
+                                            alt="Pick system python location"
+                                            className="nodrag"
+                                            cursor="pointer"
+                                            draggable={false}
+                                            placeholder="Select a file..."
+                                            textOverflow="ellipsis"
+                                            value={
+                                                systemPythonLocation
+                                                    ? path.parse(systemPythonLocation).base
+                                                    : ''
+                                            }
+                                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                            onClick={onButtonClick}
+                                        />
+                                    </InputGroup>
+                                </Tooltip>
+                                <IconButton
+                                    aria-label="clear"
+                                    icon={<SmallCloseIcon />}
+                                    size="xs"
+                                    onClick={() => setSystemPythonLocation(null)}
+                                />
+                            </HStack>
+                        </SettingsItem>
                     </VStack>
                 </TabPanel>
                 <TabPanel>

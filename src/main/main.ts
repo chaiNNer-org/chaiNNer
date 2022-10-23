@@ -219,7 +219,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
     if (useSystemPython) {
         try {
-            pythonInfo = await getSystemPython();
+            pythonInfo = await getSystemPython(localStorageLocation);
         } catch (error) {
             log.error(error);
 
