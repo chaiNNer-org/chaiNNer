@@ -89,7 +89,7 @@ class ImWriteNode(NodeBase):
         else:
             if extension == "png":
                 # opencv compresses png from 0-9 (higher is more compression). 3 is default
-                params = [cv2.IMWRITE_PNG_COMPRESSION, int(compression / 10) - 1]
+                params = [cv2.IMWRITE_PNG_COMPRESSION, min(int(compression / 10), 9)]
             elif extension == "jpg":
                 # opencv compresses jpg from 0-100 (higher is better). 95 is default
                 params = [cv2.IMWRITE_JPEG_QUALITY, 100 - compression]
