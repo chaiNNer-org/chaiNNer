@@ -183,7 +183,7 @@ class NcnnParamCollection:
     def __getitem__(self, pid: int) -> NcnnParam:
         try:
             return self.param_dict[pid]
-        except KeyError:
+        except KeyError as exc:
             idstr = str(pid)
             param_dict = param_schema[self.op]
             try:
@@ -206,7 +206,7 @@ class NcnnParamCollection:
                         break
                 else:
                     msg = f"Op {self.op} does not have param {value}, please report"
-                    raise ValueError(msg)
+                    raise KeyError(msg) from exc
 
             return NcnnParam(idstr, param["paramPhase"], value, defaultValue)  # type: ignore
 
