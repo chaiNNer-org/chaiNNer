@@ -7,7 +7,7 @@ import { PythonInfo } from '../../common/common-types';
 import { isM1 } from '../../common/env';
 import { assertNever, checkFileExists } from '../../common/util';
 import { SupportedPlatform, getPlatform } from '../platform';
-import { getPythonVersion, isSupportedPythonVersion } from './version';
+import { checkPythonPaths } from './checkPythonPaths';
 
 const downloads: Record<SupportedPlatform, string> = {
     linux: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-unknown-linux-gnu-install_only-20211017T1616.tar.gz',
@@ -98,10 +98,5 @@ export const getIntegratedPython = async (
         }
     }
 
-    const version = await getPythonVersion(pythonPath).catch(() => null);
-    if (version && isSupportedPythonVersion(version)) {
-        return { python: pythonPath, version };
-    }
-
-    throw new Error(`Integrated python version ${String(version)} not supported`);
+    return checkPythonPaths([pythonPath]);
 };

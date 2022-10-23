@@ -1,8 +1,8 @@
 import { PythonInfo } from '../../common/common-types';
 import { getPythonVersion, isSupportedPythonVersion } from './version';
 
-export const getSystemPython = async (): Promise<PythonInfo> => {
-    for (const py of ['python', 'python3']) {
+export const checkPythonPaths = async (pythonsToCheck: string[]): Promise<PythonInfo> => {
+    for (const py of pythonsToCheck) {
         // eslint-disable-next-line no-await-in-loop
         const version = await getPythonVersion(py).catch(() => null);
         if (version && isSupportedPythonVersion(version)) {
@@ -10,5 +10,7 @@ export const getSystemPython = async (): Promise<PythonInfo> => {
         }
     }
 
-    throw new Error('System Python binary not found or unsupported version');
+    throw new Error(
+        `No Python binaries in [${pythonsToCheck.join(', ')}] found or supported version (3.8+)`
+    );
 };

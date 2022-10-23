@@ -20,8 +20,8 @@ import { getArguments } from './arguments';
 import { getIntegratedFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
+import { checkPythonPaths } from './python/checkPythonPaths';
 import { getIntegratedPython } from './python/integratedPython';
-import { getSystemPython } from './python/systemPython';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
 
@@ -216,21 +216,47 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     let pythonInfo: PythonInfo;
 
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
+    const systemPythonLocation = localStorage.getItem('system-python-location');
+    const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
     if (useSystemPython) {
         try {
-            pythonInfo = await getSystemPython();
+            pythonInfo = await checkPythonPaths([
+                ...(systemPythonLocation ? [systemPythonLocation] : []),
+                'python3',
+                'python',
+                // Fall back to integrated python if all else fails
+                integratedPythonFolderPath,
+            ]);
+            if (pythonInfo.python === integratedPythonFolderPath) {
+                log.info('System python not found. Using integrated Python');
+                const messageBoxOptions = {
+                    type: 'warning',
+                    title: 'Python not installed or invalid version',
+                    buttons: ['Get Python', 'Ok'],
+                    defaultId: 1,
+                    message:
+                        'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                        ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
+                };
+                const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+                if (buttonResult.response === 0) {
+                    await shell.openExternal('https://www.python.org/downloads/');
+                }
+            }
         } catch (error) {
             log.error(error);
 
             splashWindow.hide();
             const messageBoxOptions = {
                 type: 'error',
-                title: 'Python not installed or invalid version',
+                title: 'Error checking for valid Python instance',
                 buttons: ['Get Python', 'Exit'],
                 defaultId: 1,
                 message:
-                    'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                    'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             };
             const buttonResult = await dialog.showMessageBox(messageBoxOptions);
             if (buttonResult.response === 0) {
@@ -240,9 +266,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             throw new Error();
         }
     } else {
-        // User is using bundled python
-        const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
-
+        // User is using integrated python
         try {
             let lastStage = '';
             pythonInfo = await getIntegratedPython(

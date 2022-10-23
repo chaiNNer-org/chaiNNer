@@ -14,6 +14,10 @@ interface Settings {
     useOnnxGPU: readonly [number, React.Dispatch<React.SetStateAction<number>>];
     useOnnxExecutionProvider: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsSystemPython: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useSystemPythonLocation: readonly [
+        string | null,
+        React.Dispatch<React.SetStateAction<string | null>>
+    ];
     useDisHwAccel: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useCheckUpdOnStrtUp: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useSnapToGrid: readonly [
@@ -49,6 +53,9 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
     );
 
     const useIsSystemPython = useMemoArray(useLocalStorage('use-system-python', false));
+    const useSystemPythonLocation = useMemoArray(
+        useLocalStorage<string | null>('system-python-location', null)
+    );
     const useDisHwAccel = useMemoArray(useLocalStorage('disable-hw-accel', false));
     const useCheckUpdOnStrtUp = useMemoArray(useLocalStorage('check-upd-on-strtup', true));
     const useStartupTemplate = useMemoArray(useLocalStorage('startup-template', ''));
@@ -92,6 +99,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
 
         // Globals
         useIsSystemPython,
+        useSystemPythonLocation,
         useSnapToGrid,
         useDisHwAccel,
         useCheckUpdOnStrtUp,
