@@ -44,6 +44,62 @@ import { useContextMenu } from './useContextMenu';
 import { useNodeFavorites } from './useNodeFavorites';
 import { useThemeColor } from './useThemeColor';
 
+interface SchemaItemProps {
+    schema: NodeSchema;
+    isFavorite?: boolean;
+    onClick: (schema: NodeSchema) => void;
+}
+const SchemaItem = memo(({ schema, onClick, isFavorite }: SchemaItemProps) => {
+    const accentColor = getNodeAccentColor(schema.category);
+    const bgColor = useThemeColor('--bg-700');
+    const menuBgColor = useThemeColor('--bg-800');
+
+    const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
+    const gradR = menuBgColor;
+    const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
+    const hoverGradR = bgColor;
+
+    return (
+        <HStack
+            _hover={{
+                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
+            }}
+            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
+            borderRadius="md"
+            key={schema.schemaId}
+            mx={1}
+            my={0.5}
+            px={2}
+            py={0.5}
+            onClick={() => onClick(schema)}
+        >
+            <IconFactory
+                accentColor="gray.500"
+                icon={schema.icon}
+            />
+            <Text
+                h="full"
+                verticalAlign="middle"
+            >
+                {schema.name}
+            </Text>
+            {isFavorite && (
+                <>
+                    <Spacer />
+                    <StarIcon
+                        aria-label="Favorites"
+                        boxSize={2.5}
+                        color="gray.500"
+                        overflow="hidden"
+                        stroke="gray.500"
+                        verticalAlign="middle"
+                    />
+                </>
+            )}
+        </HStack>
+    );
+});
+
 type ConnectionTarget =
     | { type: 'source'; input: InputId }
     | { type: 'target'; output: OutputId }
@@ -60,18 +116,25 @@ interface MenuProps {
 const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    const byCategories = useMemo(
+    const byCategories: ReadonlyMap<string, readonly NodeSchema[]> = useMemo(
         () => getNodesByCategory(getMatchingNodes(searchQuery, sortSchemata(schemata))),
         [searchQuery, schemata]
     );
 
-    const favoriteNodes = useMemo(() => {
+    const favoriteNodes: readonly NodeSchema[] = useMemo(() => {
         return [...byCategories.values()].flat().filter((n) => favorites.has(n.schemaId));
     }, [byCategories, favorites]);
 
-    const bgColor = useThemeColor('--bg-700');
     const menuBgColor = useThemeColor('--bg-800');
     const inputColor = 'var(--fg-300)';
+
+    const onClickHandler = useCallback(
+        (schema: NodeSchema) => {
+            setSearchQuery('');
+            onSelect(schema, targets.get(schema)!);
+        },
+        [setSearchQuery, onSelect, targets]
+    );
 
     return (
         <MenuList
@@ -133,52 +196,19 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                             />
                             <Text fontSize="xs">Favorites</Text>
                         </HStack>
-                        {favoriteNodes.map((favorite) => {
-                            const accentColor = getNodeAccentColor(favorite.category);
-                            const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
-                            const gradR = menuBgColor;
-                            const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
-                            const hoverGradR = bgColor;
-                            return (
-                                <HStack
-                                    _hover={{
-                                        bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
-                                    }}
-                                    bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
-                                    borderRadius="md"
-                                    key={favorite.schemaId}
-                                    mx={1}
-                                    my={0.5}
-                                    px={2}
-                                    py={0.5}
-                                    onClick={() => {
-                                        setSearchQuery('');
-                                        onSelect(favorite, targets.get(favorite)!);
-                                    }}
-                                >
-                                    <IconFactory
-                                        accentColor="gray.500"
-                                        icon={favorite.icon}
-                                    />
-                                    <Text
-                                        h="full"
-                                        verticalAlign="middle"
-                                    >
-                                        {favorite.name}
-                                    </Text>
-                                </HStack>
-                            );
-                        })}
+                        {favoriteNodes.map((favorite) => (
+                            <SchemaItem
+                                key={favorite.schemaId}
+                                schema={favorite}
+                                onClick={onClickHandler}
+                            />
+                        ))}
                     </Box>
                 )}
 
                 {byCategories.size > 0 ? (
                     [...byCategories].map(([category, categorySchemata]) => {
                         const accentColor = getNodeAccentColor(category);
-                        const gradL = interpolateColor(accentColor, menuBgColor, 0.95);
-                        const gradR = menuBgColor;
-                        const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
-                        const hoverGradR = bgColor;
                         return (
                             <Box key={category}>
                                 <HStack
@@ -193,53 +223,14 @@ const Menu = memo(({ onSelect, targets, schemata, favorites, categories }: MenuP
                                     />
                                     <Text fontSize="xs">{category}</Text>
                                 </HStack>
-                                {[...categorySchemata].map((schema) => {
-                                    const isFavorite = favorites.has(schema.schemaId);
-                                    return (
-                                        <HStack
-                                            _hover={{
-                                                bgGradient: `linear(to-r, ${hoverGradL}, ${hoverGradR})`,
-                                            }}
-                                            bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
-                                            borderRadius="md"
-                                            key={schema.schemaId}
-                                            mx={1}
-                                            my={0.5}
-                                            px={2}
-                                            py={0.5}
-                                            onClick={() => {
-                                                setSearchQuery('');
-                                                onSelect(schema, targets.get(schema)!);
-                                            }}
-                                        >
-                                            <IconFactory
-                                                accentColor="gray.500"
-                                                icon={schema.icon}
-                                            />
-                                            <Text
-                                                h="full"
-                                                verticalAlign="middle"
-                                            >
-                                                {schema.name}
-                                            </Text>
-                                            (
-                                            {isFavorite && (
-                                                <>
-                                                    <Spacer />
-                                                    <StarIcon
-                                                        aria-label="Favorites"
-                                                        boxSize={2.5}
-                                                        color="gray.500"
-                                                        overflow="hidden"
-                                                        stroke="gray.500"
-                                                        verticalAlign="middle"
-                                                    />
-                                                </>
-                                            )}
-                                            )
-                                        </HStack>
-                                    );
-                                })}
+                                {categorySchemata.map((schema) => (
+                                    <SchemaItem
+                                        isFavorite={favorites.has(schema.schemaId)}
+                                        key={schema.schemaId}
+                                        schema={schema}
+                                        onClick={onClickHandler}
+                                    />
+                                ))}
                             </Box>
                         );
                     })
