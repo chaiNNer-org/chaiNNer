@@ -473,16 +473,30 @@ export const usePaneNodeSearchMenu = (
                     ? firstClass.slice('iterator-editor='.length)
                     : undefined;
 
-            if (isStoppedOnPane || stoppedIteratorId) {
-                const fromNode = getNode(connectingFrom?.nodeId ?? '');
-                if (
-                    // Handle case of dragging from inside iterator to outside
-                    !(fromNode && fromNode.parentNode && isStoppedOnPane) &&
-                    // Handle case of dragging from one iterator to another
-                    !(fromNode?.parentNode && fromNode.parentNode !== stoppedIteratorId)
-                ) {
-                    menu.manuallyOpenContextMenu(event.pageX, event.pageY);
-                }
+            const fromNode = getNode(connectingFrom?.nodeId ?? '');
+            const fromParent = fromNode?.parentNode;
+            const fromHandleType = connectingFrom?.handleType;
+
+            const isFreeNodeToPane = isStoppedOnPane && fromParent === undefined;
+            const isIteratorToPane = isStoppedOnPane && fromParent;
+            const isPaneToIterator = !isStoppedOnPane && stoppedIteratorId;
+            const isIteratorToSelf =
+                stoppedIteratorId && fromParent && stoppedIteratorId === fromParent;
+            const isIteratorToOtherIterator =
+                stoppedIteratorId && fromParent && stoppedIteratorId !== fromParent;
+
+            const isIteratorSourceToPaneTarget = isIteratorToPane && fromHandleType === 'source';
+            const isIteratorTargetToPaneSource = isIteratorToPane && fromHandleType === 'target';
+            const isPaneSourceToIteratorTarget = isPaneToIterator && fromHandleType === 'source';
+
+            if (
+                (isFreeNodeToPane ||
+                    isIteratorToSelf ||
+                    isPaneSourceToIteratorTarget ||
+                    isIteratorTargetToPaneSource) &&
+                !(isIteratorSourceToPaneTarget || isIteratorToOtherIterator)
+            ) {
+                menu.manuallyOpenContextMenu(event.pageX, event.pageY);
                 if (stoppedIteratorId) {
                     setStoppedOnIterator(stoppedIteratorId);
                 }
