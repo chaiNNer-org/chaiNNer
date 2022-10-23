@@ -610,13 +610,14 @@ class NcnnModel:
 class NcnnModelWrapper:
     def __init__(self, model: NcnnModel) -> None:
         self.model: NcnnModel = model
-        scale, in_nc, out_nc, nf = self.get_broadcast_data()
+        scale, in_nc, out_nc, nf = NcnnModelWrapper.get_broadcast_data(model)
         self.scale: int = scale
-        self.nf = nf
+        self.nf: int = nf
         self.in_nc: int = in_nc
         self.out_nc: int = out_nc
 
-    def get_broadcast_data(self) -> Tuple[int, int, int, int]:
+    @staticmethod
+    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int]:
         scale = 1
         in_nc = 0
         out_nc = 0
@@ -625,12 +626,12 @@ class NcnnModelWrapper:
         found_first_conv = False
         current_conv = None
 
-        for i, layer in enumerate(self.model.layer_list):
+        for i, layer in enumerate(model.layer_list):
             if layer.op_type == "Interp":
                 try:
                     if (
-                        self.model.layer_list[i + 1].op_type != "BinaryOp"
-                        and self.model.layer_list[i + 1].params[0].value != 0
+                        model.layer_list[i + 1].op_type != "BinaryOp"
+                        and model.layer_list[i + 1].params[0].value != 0
                     ):
                         scale *= layer.params[1].value  # type: ignore
                 except IndexError:
@@ -644,7 +645,7 @@ class NcnnModelWrapper:
                 "ConvolutionDepthWise",
             ):
                 if found_first_conv is not True:
-                    nf, in_nc = self.get_nf_and_in_nc(layer)
+                    nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
                     found_first_conv = True
 
                 try:
@@ -654,7 +655,7 @@ class NcnnModelWrapper:
                 current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
                 if found_first_conv is not True:
-                    nf, in_nc = self.get_nf_and_in_nc(layer)
+                    nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
                     found_first_conv = True
                 try:
                     scale *= layer.params[3].value  # type: ignore
@@ -666,7 +667,8 @@ class NcnnModelWrapper:
 
         return int(scale), in_nc, out_nc, nf  # type: ignore
 
-    def get_nf_and_in_nc(self, layer: NcnnLayer) -> Tuple[int, int]:
+    @staticmethod
+    def get_nf_and_in_nc(layer: NcnnLayer) -> Tuple[int, int]:
         nf = layer.params[0].value
         kernel_w = layer.params[1].value
         try:
