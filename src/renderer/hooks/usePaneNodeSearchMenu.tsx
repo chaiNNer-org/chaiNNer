@@ -59,8 +59,6 @@ const SchemaItem = memo(({ schema, onClick, isFavorite }: SchemaItemProps) => {
     const hoverGradL = interpolateColor(accentColor, bgColor, 0.95);
     const hoverGradR = bgColor;
 
-    const onClickHandler = useCallback(() => onClick(schema), [schema, onClick]);
-
     return (
         <HStack
             _hover={{
@@ -73,7 +71,7 @@ const SchemaItem = memo(({ schema, onClick, isFavorite }: SchemaItemProps) => {
             my={0.5}
             px={2}
             py={0.5}
-            onClick={onClickHandler}
+            onClick={() => onClick(schema)}
         >
             <IconFactory
                 accentColor="gray.500"
