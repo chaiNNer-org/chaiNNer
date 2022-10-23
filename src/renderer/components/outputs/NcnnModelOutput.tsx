@@ -1,5 +1,10 @@
 /* eslint-disable no-nested-ternary */
-import { NamedExpression, NamedExpressionField, NumericLiteralType } from '@chainner/navi';
+import {
+    NamedExpression,
+    NamedExpressionField,
+    NumericLiteralType,
+    StringLiteralType,
+} from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
 import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
@@ -14,6 +19,7 @@ interface NcnnModelData {
     outNc: number;
     scale: number;
     nf: number;
+    fp: string;
 }
 
 const getColorMode = (channels: number) => {
@@ -55,6 +61,7 @@ export const NcnnModelOutput = memo(
                                 new NumericLiteralType(value.outNc)
                             ),
                             new NamedExpressionField('nf', new NumericLiteralType(value.nf)),
+                            new NamedExpressionField('fp', new StringLiteralType(value.fp)),
                         ])
                     );
                 } else {
@@ -103,6 +110,14 @@ export const NcnnModelOutput = memo(
                                     textColor={fontColor}
                                 >
                                     {value.nf}nf
+                                </Tag>
+                            </WrapItem>
+                            <WrapItem>
+                                <Tag
+                                    bgColor={tagColor}
+                                    textColor={fontColor}
+                                >
+                                    {value.fp}
                                 </Tag>
                             </WrapItem>
                         </Wrap>

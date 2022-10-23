@@ -610,18 +610,20 @@ class NcnnModel:
 class NcnnModelWrapper:
     def __init__(self, model: NcnnModel) -> None:
         self.model: NcnnModel = model
-        scale, in_nc, out_nc, nf = NcnnModelWrapper.get_broadcast_data(model)
+        scale, in_nc, out_nc, nf, fp = NcnnModelWrapper.get_broadcast_data(model)
         self.scale: int = scale
         self.nf: int = nf
         self.in_nc: int = in_nc
         self.out_nc: int = out_nc
+        self.fp: str = fp
 
     @staticmethod
-    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int]:
+    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int, str]:
         scale = 1
         in_nc = 0
         out_nc = 0
         nf = 0
+        fp = "fp32"
         pixel_shuffle = 1
         found_first_conv = False
         current_conv = None
@@ -646,6 +648,8 @@ class NcnnModelWrapper:
             ):
                 if found_first_conv is not True:
                     nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
+                    if layer.weight_data["weight"].quantize_tag == DTYPE_FP16:
+                        fp = "fp16"
                     found_first_conv = True
 
                 try:
@@ -665,7 +669,7 @@ class NcnnModelWrapper:
 
         out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
 
-        return int(scale), in_nc, out_nc, nf  # type: ignore
+        return int(scale), in_nc, out_nc, nf, fp  # type: ignore
 
     @staticmethod
     def get_nf_and_in_nc(layer: NcnnLayer) -> Tuple[int, int]:
