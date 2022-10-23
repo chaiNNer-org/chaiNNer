@@ -21,9 +21,6 @@ def create_ncnn_net(
     net.load_param_mem(model.model.write_param())
     net.load_model_mem(model.model.bin)
 
-    # Attribute not needed anymore, save memory
-    model.model.weights_bin = b""
-
     return net
 
 
