@@ -6,7 +6,6 @@ export const getSystemPython = async (localStorageLocation: string): Promise<Pyt
     const localStorage = new LocalStorage(localStorageLocation);
     const systemPythonLocation = localStorage.getItem('system-python-location');
 
-    // CASE: system python location is not set
     for (const py of [systemPythonLocation, 'python', 'python3']) {
         if (py) {
             // eslint-disable-next-line no-await-in-loop
