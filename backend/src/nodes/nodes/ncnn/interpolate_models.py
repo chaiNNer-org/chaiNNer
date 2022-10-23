@@ -1,21 +1,16 @@
-"""
-Nodes that provide NCNN support
-"""
 from __future__ import annotations
 
 from typing import Tuple
 
 import numpy as np
 
-from . import category as NCNNCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import NcnnModelInput, SliderInput
 from ...properties.outputs import NcnnModelOutput, NumberOutput
 from ...utils.auto_split_tiles import NO_TILING
-from ...utils.ncnn_model import NcnnModel
-
+from ...utils.ncnn_model import NcnnModelWrapper
+from . import category as NCNNCategory
 from .upscale_image import NcnnUpscaleImageNode
 
 
@@ -40,7 +35,7 @@ class NcnnInterpolateModelsNode(NodeBase):
             ),
         ]
         self.outputs = [
-            NcnnModelOutput(),
+            NcnnModelOutput(should_broadcast=False),
             NumberOutput("Amount A", "100 - Input2"),
             NumberOutput("Amount B", "Input2"),
         ]
@@ -50,7 +45,7 @@ class NcnnInterpolateModelsNode(NodeBase):
         self.icon = "BsTornado"
         self.sub = "Utility"
 
-    def check_will_upscale(self, interp: NcnnModel):
+    def check_will_upscale(self, interp: NcnnModelWrapper):
         fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
         result = NcnnUpscaleImageNode().run(interp, fake_img, NO_TILING)
 
@@ -59,15 +54,17 @@ class NcnnInterpolateModelsNode(NodeBase):
         return mean_color > 0.5
 
     def run(
-        self, model_a: NcnnModel, model_b: NcnnModel, amount: int
-    ) -> Tuple[NcnnModel, int, int]:
+        self, model_a: NcnnModelWrapper, model_b: NcnnModelWrapper, amount: int
+    ) -> Tuple[NcnnModelWrapper, int, int]:
         if amount == 0:
             return model_a, 100, 0
         elif amount == 100:
             return model_b, 0, 100
 
         f_amount = 1 - amount / 100
-        interp_model = model_a.interpolate(model_b, f_amount)
+        interp_model = NcnnModelWrapper(
+            model_a.model.interpolate(model_b.model, f_amount)
+        )
 
         if not self.check_will_upscale(interp_model):
             raise ValueError(

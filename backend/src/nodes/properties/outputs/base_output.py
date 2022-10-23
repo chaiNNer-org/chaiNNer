@@ -2,7 +2,9 @@ from typing import Union, Literal
 from base_types import OutputId
 from .. import expression
 
-OutputKind = Literal["image", "large-image", "text", "directory", "pytorch", "generic"]
+OutputKind = Literal[
+    "image", "large-image", "text", "directory", "pytorch", "generic", "ncnn"
+]
 
 
 class BaseOutput:

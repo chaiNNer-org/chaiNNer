@@ -24,7 +24,7 @@ class ConvertTorchToNCNNNode(NodeBase):
         self.description = """Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format."""
         self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
         self.outputs = [
-            NcnnModelOutput("NCNN Model"),
+            NcnnModelOutput(label="NCNN Model"),
             TextOutput(
                 "FP Mode",
                 """match Input1 {

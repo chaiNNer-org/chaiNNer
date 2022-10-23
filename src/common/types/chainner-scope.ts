@@ -47,7 +47,13 @@ let PyTorchModel::FaceArchs = "GFPGAN" | "RestoreFormer";
 
 struct NcnnBinFile;
 struct NcnnParamFile;
-struct NcnnNetwork;
+struct NcnnNetwork {
+    scale: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
+    nf: int(1..),
+    fp: string,
+}
 
 struct OnnxFile;
 struct OnnxModel;

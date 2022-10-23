@@ -1,12 +1,16 @@
 from __future__ import annotations
-from ncnn_vulkan import ncnn
+
 from weakref import WeakKeyDictionary
 
+from ncnn_vulkan import ncnn
+
 from .exec_options import ExecutionOptions
-from .ncnn_model import NcnnModel
+from .ncnn_model import NcnnModelWrapper
 
 
-def create_ncnn_net(model: NcnnModel, exec_options: ExecutionOptions) -> ncnn.Net:
+def create_ncnn_net(
+    model: NcnnModelWrapper, exec_options: ExecutionOptions
+) -> ncnn.Net:
     net = ncnn.Net()
 
     # Use vulkan compute
@@ -14,19 +18,19 @@ def create_ncnn_net(model: NcnnModel, exec_options: ExecutionOptions) -> ncnn.Ne
     net.set_vulkan_device(exec_options.ncnn_gpu_index)
 
     # Load model param and bin
-    net.load_param_mem(model.write_param())
-    net.load_model_mem(model.weights_bin)
+    net.load_param_mem(model.model.write_param())
+    net.load_model_mem(model.model.bin)
 
     # Attribute not needed anymore, save memory
-    model.weights_bin = b""
+    model.model.weights_bin = b""
 
     return net
 
 
-__session_cache: WeakKeyDictionary[NcnnModel, ncnn.Net] = WeakKeyDictionary()
+__session_cache: WeakKeyDictionary[NcnnModelWrapper, ncnn.Net] = WeakKeyDictionary()
 
 
-def get_ncnn_net(model: NcnnModel, exec_options: ExecutionOptions) -> ncnn.Net:
+def get_ncnn_net(model: NcnnModelWrapper, exec_options: ExecutionOptions) -> ncnn.Net:
     cached = __session_cache.get(model)
     if cached is None:
         cached = create_ncnn_net(model, exec_options)

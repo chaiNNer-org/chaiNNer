@@ -9,7 +9,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import OnnxModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.ncnn_model import NcnnModel
+from ...utils.ncnn_model import NcnnModelWrapper
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_to_ncnn import Onnx2NcnnConverter
 
@@ -21,7 +21,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.description = """Convert an ONNX model to NCNN."""
         self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
         self.outputs = [
-            NcnnModelOutput("NCNN Model"),
+            NcnnModelOutput(label="NCNN Model"),
             TextOutput(
                 "FP Mode",
                 """match Input1 {
@@ -36,7 +36,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Utility"
 
-    def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModel, str]:
+    def run(self, model: OnnxModel, is_fp16: int) -> Tuple[NcnnModelWrapper, str]:
         fp16 = bool(is_fp16)
 
         model_proto = onnx.load_model_from_string(model.bytes)
@@ -44,7 +44,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         opt_model = onnxoptimizer.optimize(model_proto, passes)  # type: ignore
 
         converter = Onnx2NcnnConverter(opt_model)
-        ncnn_model = converter.convert(fp16, False)
+        ncnn_model = NcnnModelWrapper(converter.convert(fp16, False))
 
         fp_mode = "fp16" if fp16 else "fp32"
 
