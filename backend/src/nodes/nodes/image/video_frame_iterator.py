@@ -87,7 +87,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 slider_step=1,
                 minimum=0,
                 maximum=51,
-                default=0,
+                default=23,
                 ends=("Best", "Worst"),
             ),
         ]
