@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from nodes.utils.utils import get_h_w_c
+from nodes.utils.image_utils import as_target_channels
 from .clipboard_base import ClipboardBase
 
 # Check if we are running on Windows, because win32clipboard is only available on Windows
@@ -110,7 +111,9 @@ class WindowsClipboard(ClipboardBase):
         self.__DIP_FORMAT = 8
 
     def __generate_dibv5(self, image_array: np.ndarray):
-        image_height, image_width, image_channel_count = get_h_w_c(image_array)
+        # We only support RGBA images
+        image_array = as_target_channels(image_array, 4)
+        image_height, image_width, _ = get_h_w_c(image_array)
 
         img_pixel_size = image_height * image_width
 
@@ -129,9 +132,6 @@ class WindowsClipboard(ClipboardBase):
         dipv5.bmiHeader.bV5Compression = COMPRESSION_ENUMERATION.BI_RGB
         dipv5.bmiHeader.bV5SizeImage = 0
 
-        if image_channel_count == 3:
-            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
-
         image_array = cv2.flip(image_array, 0)
 
         colors = (
@@ -146,7 +146,9 @@ class WindowsClipboard(ClipboardBase):
         return dipv5
 
     def __generate_div(self, image_array: np.ndarray):
-        image_height, image_width, image_channel_count = get_h_w_c(image_array)
+        # We only support RGBA images
+        image_array = as_target_channels(image_array, 4)
+        image_height, image_width, _ = get_h_w_c(image_array)
 
         img_pixel_size = image_height * image_width
 
@@ -164,9 +166,6 @@ class WindowsClipboard(ClipboardBase):
         dip.bmiHeader.biBitCount = 32
         dip.bmiHeader.biCompression = COMPRESSION_ENUMERATION.BI_RGB
         dip.bmiHeader.biSizeImage = 0
-
-        if image_channel_count == 3:
-            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
 
         image_array = cv2.flip(image_array, 0)
 
