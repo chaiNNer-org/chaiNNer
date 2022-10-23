@@ -184,7 +184,6 @@ class NcnnParamCollection:
         try:
             return self.param_dict[key]
         except KeyError:
-            logger.error(f"Op {self.op} does not have param {key}")
             raise
 
     def __setitem__(
