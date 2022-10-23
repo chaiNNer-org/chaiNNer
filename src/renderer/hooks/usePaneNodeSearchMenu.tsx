@@ -475,8 +475,12 @@ export const usePaneNodeSearchMenu = (
 
             if (isStoppedOnPane || stoppedIteratorId) {
                 const fromNode = getNode(connectingFrom?.nodeId ?? '');
-                // Handle case of dragging from inside iterator to outside
-                if (!(fromNode && fromNode.parentNode && isStoppedOnPane)) {
+                if (
+                    // Handle case of dragging from inside iterator to outside
+                    !(fromNode && fromNode.parentNode && isStoppedOnPane) &&
+                    // Handle case of dragging from one iterator to another
+                    !(fromNode?.parentNode && fromNode.parentNode !== stoppedIteratorId)
+                ) {
                     menu.manuallyOpenContextMenu(event.pageX, event.pageY);
                 }
                 if (stoppedIteratorId) {
