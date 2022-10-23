@@ -180,11 +180,35 @@ class NcnnParamCollection:
             param_schema[self.op]["weightOrder"] if self.op else []
         )
 
-    def __getitem__(self, key: int) -> NcnnParam:
+    def __getitem__(self, pid: int) -> NcnnParam:
         try:
-            return self.param_dict[key]
+            return self.param_dict[pid]
         except KeyError:
-            raise
+            idstr = str(pid)
+            param_dict = param_schema[self.op]
+            try:
+                param = param_dict[idstr]
+            except KeyError:
+                logger.error(f"Op {self.op} does not have param {pid}, please report")
+                raise
+
+            defaultValue = param["defaultValue"]
+            value = param["defaultValue"]
+            if isinstance(value, str):
+                for key, val in list(param_dict.items())[:-1]:
+                    if value == val["paramPhase"]:
+                        try:
+                            value = self.param_dict[int(key)].value
+                        except KeyError:
+                            value = val["defaultValue"]
+                        defaultValue = val["defaultValue"]
+
+                        break
+                else:
+                    msg = f"Op {self.op} does not have param {key}, please report"
+                    raise ValueError(msg)
+
+            return NcnnParam(idstr, param["paramPhase"], value, defaultValue)  # type: ignore
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]
@@ -466,11 +490,11 @@ class NcnnModel:
                 else weight_data_length * 4
             )
 
-            has_bias = layer.params[5].value if 5 in layer.params else 0
+            has_bias = layer.params[5].value
 
             num_filters = layer.params[0].value
             kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
+            kernel_h = layer.params[11].value
             num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
@@ -493,11 +517,11 @@ class NcnnModel:
                 else weight_data_length * 4
             )
 
-            has_bias = layer.params[5].value if 5 in layer.params else 0
+            has_bias = layer.params[5].value
 
             num_filters = layer.params[0].value
             kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
+            kernel_h = layer.params[11].value
             num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
@@ -526,7 +550,7 @@ class NcnnModel:
             weight_data = weight_data.reshape((num_input, num_output))
             weight_dict["weight"] = NcnnWeight(weight_data)
 
-            has_bias = layer.params[1].value if 1 in layer.params else 0
+            has_bias = layer.params[1].value
             if has_bias == 1:
                 bias_data_size = num_output * 4
                 bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)
@@ -651,19 +675,14 @@ class NcnnModelWrapper:
                         fp = "fp16"
                     found_first_conv = True
 
-                try:
-                    scale /= layer.params[3].value  # type: ignore
-                except KeyError:
-                    pass
+                scale /= layer.params[3].value  # type: ignore
                 current_conv = layer
             elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
                 if found_first_conv is not True:
                     nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
                     found_first_conv = True
-                try:
-                    scale *= layer.params[3].value  # type: ignore
-                except KeyError:
-                    pass
+
+                scale *= layer.params[3].value  # type: ignore
                 current_conv = layer
 
         out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
