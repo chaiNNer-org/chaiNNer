@@ -36,7 +36,7 @@ class ImWriteNode(NodeBase):
             TextInput("Image Name"),
             ImageExtensionDropdown(),
             SliderInput(
-                "Compression Level", minimum=0, maximum=100, default=30, slider_step=1
+                "Quality (JPEG/WEBP)", minimum=0, maximum=100, default=95, slider_step=1
             ),
         ]
         self.category = ImageCategory
@@ -54,7 +54,7 @@ class ImWriteNode(NodeBase):
         relative_path: Union[str, None],
         filename: str,
         extension: str,
-        compression: int,
+        quality: int,
     ) -> None:
         """Write an image to the specified path and return write status"""
 
@@ -87,15 +87,10 @@ class ImWriteNode(NodeBase):
             with Image.fromarray(img) as image:
                 image.save(full_path)
         else:
-            if extension == "png":
-                # opencv compresses png from 0-9 (higher is more compression). 3 is default
-                params = [cv2.IMWRITE_PNG_COMPRESSION, min(int(compression / 10), 9)]
-            elif extension == "jpg":
-                # opencv compresses jpg from 0-100 (higher is better). 95 is default
-                params = [cv2.IMWRITE_JPEG_QUALITY, 100 - compression]
+            if extension == "jpg":
+                params = [cv2.IMWRITE_JPEG_QUALITY, quality]
             elif extension == "webp":
-                # opencv compresses webp from 0-100 (higher is better)
-                params = [cv2.IMWRITE_WEBP_QUALITY, 100 - compression]
+                params = [cv2.IMWRITE_WEBP_QUALITY, quality]
             else:
                 params = []
 
