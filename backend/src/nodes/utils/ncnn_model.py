@@ -295,7 +295,7 @@ class NcnnLayer:
         data: Union[float, int, np.ndarray, TensorProto],  # type: ignore
         weight_name: str,
         quantize_tag: bytes = b"",
-    ) -> bytes:
+    ) -> int:
         if isinstance(data, TensorProto):  # type: ignore
             data_array = onph.to_array(data)  # type: ignore
         elif isinstance(data, float):
@@ -309,7 +309,7 @@ class NcnnLayer:
             data_array = data_array.astype(np.float16)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
-        return quantize_tag + data_array.tobytes()
+        return len(quantize_tag) + len(data_array.tobytes())
 
 
 class NcnnModel:
