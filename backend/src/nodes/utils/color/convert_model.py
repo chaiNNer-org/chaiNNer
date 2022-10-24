@@ -15,8 +15,8 @@ class ColorSpace:
 
 class ColorSpaceDetector:
     def __init__(self, id_: int, name: str, color_spaces: Iterable[ColorSpace]) -> None:
-        assert 0 <= id_ and id_ < 256
-        self.id = 1000 + id_
+        assert 1000 <= id_ and id_ < 2000
+        self.id = id_
         self.name = name
         self.channel_map: Dict[int, ColorSpace] = {}
         for cs in color_spaces:
