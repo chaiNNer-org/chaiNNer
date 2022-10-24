@@ -22,7 +22,13 @@ class ConvertTorchToNCNNNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format."""
-        self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
+        self.inputs = [
+            ModelInput(
+                "PyTorch Model",
+                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
+            ),
+            OnnxFpDropdown(),
+        ]
         self.outputs = [
             NcnnModelOutput(label="NCNN Model"),
             TextOutput(

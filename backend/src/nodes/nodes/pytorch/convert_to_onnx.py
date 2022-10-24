@@ -20,7 +20,12 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX."""
-        self.inputs = [ModelInput("PyTorch Model")]
+        self.inputs = [
+            ModelInput(
+                "PyTorch Model",
+                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
+            )
+        ]
         self.outputs = [OnnxModelOutput(label="ONNX Model")]
 
         self.category = PyTorchCategory
