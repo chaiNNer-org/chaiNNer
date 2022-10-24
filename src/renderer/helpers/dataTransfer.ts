@@ -15,6 +15,7 @@ export interface ChainnerDragData {
 
 export const enum TransferTypes {
     ChainnerSchema = 'application/chainner/schema',
+    Preset = 'application/chainner/preset',
 }
 
 export interface DataTransferProcessorOptions {

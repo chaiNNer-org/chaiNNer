@@ -7,7 +7,6 @@ import {
     Center,
     ExpandedIndex,
     HStack,
-    Heading,
     Icon,
     Input,
     InputGroup,
@@ -18,8 +17,6 @@ import {
     TabPanel,
     TabPanels,
     Tabs,
-    Text,
-    VStack,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
@@ -36,6 +33,7 @@ import {
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
+import { PresetComponent } from './Preset';
 import { presets } from './presets';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
@@ -249,52 +247,10 @@ export const NodeSelector = memo(() => {
                                 p={0}
                             >
                                 {presets.map((preset) => (
-                                    <Box
-                                        key={preset.name}
-                                        p={2}
-                                        width={300}
-                                    >
-                                        <Center
-                                            draggable
-                                            _active={{ borderColor: 'white' }}
-                                            _focus={{ borderColor: 'white' }}
-                                            _hover={{ borderColor: 'white' }}
-                                            borderColor="var(--selector-node-bg)"
-                                            borderRadius="lg"
-                                            borderWidth="1px"
-                                            boxShadow="lg"
-                                            overflow="hidden"
-                                            tabIndex={0}
-                                            transition="border 0.15s ease-in-out"
-                                            w="full"
-                                        >
-                                            <VStack
-                                                p={2}
-                                                w="full"
-                                            >
-                                                <Heading
-                                                    as="h4"
-                                                    size="md"
-                                                    w="full"
-                                                >
-                                                    {preset.name}
-                                                </Heading>
-                                                <Text
-                                                    as="i"
-                                                    fontSize="sm"
-                                                    w="full"
-                                                >
-                                                    By: {preset.author}
-                                                </Text>
-                                                <Text
-                                                    fontSize="md"
-                                                    w="full"
-                                                >
-                                                    {preset.description}
-                                                </Text>
-                                            </VStack>
-                                        </Center>
-                                    </Box>
+                                    <PresetComponent
+                                        collapsed={collapsed}
+                                        preset={preset}
+                                    />
                                 ))}
                             </TabPanel>
                         </TabPanels>
