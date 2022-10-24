@@ -249,6 +249,7 @@ export const NodeSelector = memo(() => {
                                 {presets.map((preset) => (
                                     <PresetComponent
                                         collapsed={collapsed}
+                                        key={preset.name}
                                         preset={preset}
                                     />
                                 ))}

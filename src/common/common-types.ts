@@ -184,3 +184,5 @@ export interface Category {
     installHint?: string;
     excludedFromCheck: string[];
 }
+
+export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;

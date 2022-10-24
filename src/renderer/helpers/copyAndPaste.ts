@@ -5,11 +5,9 @@ import os from 'os';
 import path from 'path';
 import { Edge, Node, Project } from 'reactflow';
 import { v4 as uuid4 } from 'uuid';
-import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
+import { EdgeData, InputId, NodeData, SchemaId, SetState } from '../../common/common-types';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { NodeProto, copyEdges, copyNodes, expandSelection, setSelected } from './reactFlowUtil';
-
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface ClipboardChain {
     nodes: Node<NodeData>[];

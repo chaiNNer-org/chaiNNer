@@ -1,25 +1,38 @@
 import { Box, Center, Heading, Text, VStack } from '@chakra-ui/react';
 import React, { DragEvent, memo } from 'react';
+import { migrate } from '../../../common/migrations';
+import { deepCopy } from '../../../common/util';
 import { TransferTypes } from '../../helpers/dataTransfer';
 import { Preset } from './presets';
 
 const onDragStart = (event: DragEvent<HTMLDivElement>, preset: Preset) => {
-    const { offsetX, offsetY } = event.nativeEvent;
-    const changedPreset = { ...preset };
-    // Get the minimum x and y values
-    const minX = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.x));
-    const minY = Math.min(...changedPreset.chain.content.nodes.map((node) => node.position.y));
+    const changedPreset = deepCopy({ ...preset });
 
-    // Subtract the minimum x and y values from all nodes, add mouse offset
-    // This will place the nodes relative to the mouse, but also relative to each other correctly
-    changedPreset.chain.content.nodes.forEach((node) => {
-        // eslint-disable-next-line no-param-reassign
-        node.position.x -= minX + offsetX;
-        // eslint-disable-next-line no-param-reassign
-        node.position.y -= minY + offsetY;
-    });
+    // Migrate preset to latest version
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    changedPreset.chain.content = migrate(
+        changedPreset.chain.version,
+        changedPreset.chain.content,
+        changedPreset.chain.migration
+    );
 
-    event.dataTransfer.setData(TransferTypes.Preset, JSON.stringify(changedPreset));
+    // Get the node with the minimum x value
+    const nodeWithMinX = changedPreset.chain.content.nodes.reduce((prev, current) =>
+        prev.position.x < current.position.x ? prev : current
+    );
+
+    // Subtract the minimum x and y values from all nodes
+    // We don't need to use the mouse offset here, it feels kinda weird (doesn't scale with zoom)
+    // const { offsetX, offsetY } = event.nativeEvent;
+    changedPreset.chain.content.nodes = changedPreset.chain.content.nodes.map((node) => ({
+        ...node,
+        position: {
+            x: node.position.x - nodeWithMinX.position.x, // - offsetX,
+            y: node.position.y - nodeWithMinX.position.y, // - offsetY,
+        },
+    }));
+
+    event.dataTransfer.setData(TransferTypes.Preset, JSON.stringify(changedPreset.chain));
     // eslint-disable-next-line no-param-reassign
     event.dataTransfer.effectAllowed = 'move';
 };
@@ -30,7 +43,8 @@ interface PresetProps {
 }
 
 export const PresetComponent = memo(
-    ({ children, preset, collapsed }: React.PropsWithChildren<PresetProps>) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ({ preset, collapsed }: React.PropsWithChildren<PresetProps>) => {
         return (
             <Box
                 key={preset.name}
