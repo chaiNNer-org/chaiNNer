@@ -88,9 +88,13 @@ for conversion in conversions:
     l.append(conversion)
 
 
-def convert(img: np.ndarray, input_: Union[ColorSpace, ColorSpaceDetector], output: ColorSpace) -> np.ndarray:
+def convert(
+    img: np.ndarray,
+    input_: Union[ColorSpace, ColorSpaceDetector],
+    output: ColorSpace,
+) -> np.ndarray:
     if isinstance(input_, ColorSpaceDetector):
-        input_= input_.detect(img)
+        input_ = input_.detect(img)
 
     assert_input_channels(img, input_, output)
 
