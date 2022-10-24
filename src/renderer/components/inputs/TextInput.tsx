@@ -19,13 +19,17 @@ export const TextInput = memo(
         useInputLocked,
         useInputType,
     }: InputProps<'text-line', string>) => {
-        const { label, minLength, maxLength, placeholder } = input;
+        const { label, minLength, maxLength, def, placeholder } = input;
 
         const [tempText, setTempText] = useState(value ?? '');
 
         useEffect(() => {
-            if (value === undefined && minLength === 0) {
-                setValue('');
+            if (value === undefined) {
+                if (def != null) {
+                    setValue(def);
+                } else if (minLength === 0) {
+                    setValue('');
+                }
             }
         }, []);
 

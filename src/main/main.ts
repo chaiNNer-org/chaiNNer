@@ -8,7 +8,7 @@ import { LocalStorage } from 'node-localstorage';
 import os from 'os';
 import path from 'path';
 import portfinder from 'portfinder';
-import { PythonInfo, Version, WindowSize } from '../common/common-types';
+import { FfmpegInfo, PythonInfo, Version, WindowSize } from '../common/common-types';
 import { Dependency, getOptionalDependencies, requiredDependencies } from '../common/dependencies';
 import { sanitizedEnv } from '../common/env';
 import { runPipInstall, runPipList } from '../common/pip';
@@ -17,10 +17,11 @@ import { SaveFile, openSaveFile } from '../common/SaveFile';
 import { lazy } from '../common/util';
 import { versionGt } from '../common/version';
 import { getArguments } from './arguments';
+import { getIntegratedFfmpeg } from './ffmpeg/ffmpeg';
 import { MenuData, setMainMenu } from './menu';
 import { createNvidiaSmiVRamChecker, getNvidiaGpuNames, getNvidiaSmi } from './nvidiaSmi';
+import { checkPythonPaths } from './python/checkPythonPaths';
 import { getIntegratedPython } from './python/integratedPython';
-import { getSystemPython } from './python/systemPython';
 import { getGpuInfo } from './systemInfo';
 import { hasUpdate } from './update';
 
@@ -62,7 +63,7 @@ log.catchErrors({
             })
             .then((result) => {
                 if (result.response === 1) {
-                    submitIssue!('https://github.com/joeyballentine/chaiNNer/issues/new', {
+                    submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
                         title: `Error report: ${error.message}`,
                         body: [
                             `\`\`\`\n${String(error)}\n\`\`\``,
@@ -168,6 +169,8 @@ const registerEventHandlers = (mainWindow: BrowserWindowWithSafeIpc) => {
 
     ipcMain.handle('get-app-version', () => version);
 
+    ipcMain.handle('get-appdata', () => app.getPath('userData'));
+
     let blockerId: number | undefined;
     ipcMain.on('start-sleep-blocker', () => {
         if (blockerId === undefined) {
@@ -213,21 +216,47 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
     let pythonInfo: PythonInfo;
 
     const useSystemPython = localStorage.getItem('use-system-python') === 'true';
+    const systemPythonLocation = localStorage.getItem('system-python-location');
+    const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
 
     if (useSystemPython) {
         try {
-            pythonInfo = await getSystemPython();
+            pythonInfo = await checkPythonPaths([
+                ...(systemPythonLocation ? [systemPythonLocation] : []),
+                'python3',
+                'python',
+                // Fall back to integrated python if all else fails
+                integratedPythonFolderPath,
+            ]);
+            if (pythonInfo.python === integratedPythonFolderPath) {
+                log.info('System python not found. Using integrated Python');
+                const messageBoxOptions = {
+                    type: 'warning',
+                    title: 'Python not installed or invalid version',
+                    buttons: ['Get Python', 'Ok'],
+                    defaultId: 1,
+                    message:
+                        'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                        ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
+                };
+                const buttonResult = await dialog.showMessageBox(messageBoxOptions);
+                if (buttonResult.response === 0) {
+                    await shell.openExternal('https://www.python.org/downloads/');
+                }
+            }
         } catch (error) {
             log.error(error);
 
             splashWindow.hide();
             const messageBoxOptions = {
                 type: 'error',
-                title: 'Python not installed or invalid version',
+                title: 'Error checking for valid Python instance',
                 buttons: ['Get Python', 'Exit'],
                 defaultId: 1,
                 message:
-                    'It seems like you do not have a valid version of Python installed on your system. Please install Python (>= 3.7) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                    'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             };
             const buttonResult = await dialog.showMessageBox(messageBoxOptions);
             if (buttonResult.response === 0) {
@@ -237,9 +266,7 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
             throw new Error();
         }
     } else {
-        // User is using bundled python
-        const integratedPythonFolderPath = path.join(app.getPath('userData'), '/python');
-
+        // User is using integrated python
         try {
             let lastStage = '';
             pythonInfo = await getIntegratedPython(
@@ -275,6 +302,44 @@ const checkPythonEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
 
     ipcMain.handle('get-python', () => pythonInfo);
     return pythonInfo;
+};
+
+const checkFfmpegEnv = async (splashWindow: BrowserWindowWithSafeIpc) => {
+    log.info('Attempting to check Ffmpeg env...');
+
+    let ffmpegInfo: FfmpegInfo;
+
+    const integratedFfmpegFolderPath = path.join(app.getPath('userData'), '/ffmpeg');
+
+    try {
+        let lastStage = '';
+        ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
+            if (stage !== lastStage) {
+                lastStage = stage;
+                splashWindow.webContents.send(`${stage}ing-ffmpeg`);
+            }
+            splashWindow.webContents.send('progress', percentage);
+        });
+    } catch (error) {
+        log.error(error);
+
+        splashWindow.hide();
+        const messageBoxOptions = {
+            type: 'error',
+            title: 'Unable to install integrated Ffmpeg',
+            buttons: ['Exit'],
+            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+        };
+        await dialog.showMessageBox(messageBoxOptions);
+        app.exit(1);
+        throw new Error();
+    }
+
+    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg}`);
+    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe}`);
+
+    ipcMain.handle('get-ffmpeg', () => ffmpegInfo);
+    return ffmpegInfo;
 };
 
 const checkPythonDeps = async (
@@ -380,7 +445,7 @@ const checkNvidiaSmi = async () => {
 
 const nvidiaSmiPromise = checkNvidiaSmi();
 
-const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
+const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegInfo) => {
     if (getArguments().noBackend) {
         return;
     }
@@ -391,7 +456,11 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
             ? path.join(process.resourcesPath, 'src', 'run.py')
             : './backend/src/run.py';
         const backend = spawn(pythonInfo.python, [backendPath, String(port)], {
-            env: sanitizedEnv,
+            env: {
+                ...sanitizedEnv,
+                STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
+                STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
+            },
         });
         backend.stdout.on('data', (data) => {
             const dataString = String(data);
@@ -463,7 +532,7 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
                     log.error('Error killing backend.');
                 }
                 ipcMain.removeHandler('kill-backend');
-                spawnBackend(port, pythonInfo);
+                spawnBackend(port, pythonInfo, ffmpegInfo);
             } catch (error) {
                 log.error('Error restarting backend.', error);
             }
@@ -553,13 +622,17 @@ const doSplashScreenChecks = async (mainWindow: BrowserWindowWithSafeIpc) =>
             const pythonInfo = await checkPythonEnv(splash);
             await sleep(250);
 
+            splash.webContents.send('checking-ffmpeg');
+            const ffmpegInfo = await checkFfmpegEnv(splash);
+            await sleep(250);
+
             splash.webContents.send('checking-deps');
             const hasNvidia = await nvidiaSmiPromise;
             await checkPythonDeps(splash, pythonInfo, hasNvidia);
             await sleep(250);
 
             splash.webContents.send('spawning-backend');
-            spawnBackend(port, pythonInfo);
+            spawnBackend(port, pythonInfo, ffmpegInfo);
 
             registerEventHandlers(mainWindow);
 

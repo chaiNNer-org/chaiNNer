@@ -190,7 +190,7 @@ def convenient_upscale(
         # Ignore single-color alpha
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
-            logger.info("Single color alpha channel, ignoring.")
+            logger.debug("Single color alpha channel, ignoring.")
             if input_channels == 1:
                 logger.warning("Converting image to grayscale.")
                 img = np.expand_dims(cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY), axis=2)

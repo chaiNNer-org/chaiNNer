@@ -49,7 +49,7 @@ class OnnxImageUpscaleNode(NodeBase):
         tile_size: TileSize,
         change_shape: bool,
     ) -> np.ndarray:
-        logger.info("Upscaling image")
+        logger.debug("Upscaling image")
 
         def estimate():
             raise ValueError

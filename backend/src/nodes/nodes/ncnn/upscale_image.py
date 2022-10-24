@@ -2,29 +2,28 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 
-import numpy as np
 import cv2
+import numpy as np
 from ncnn_vulkan import ncnn
 from sanic.log import logger
 
-from . import category as NCNNCategory
-
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import NcnnModelInput, ImageInput, TileSizeDropdown
-from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.exec_options import get_execution_options
+from ...properties.inputs import ImageInput, NcnnModelInput, TileSizeDropdown
+from ...properties.outputs import ImageOutput
 from ...utils.auto_split import MaxTileSize
 from ...utils.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,
     TileSize,
 )
+from ...utils.exec_options import get_execution_options
 from ...utils.ncnn_auto_split import ncnn_auto_split
-from ...utils.ncnn_model import NcnnModel
+from ...utils.ncnn_model import NcnnModelWrapper
 from ...utils.ncnn_session import get_ncnn_net
 from ...utils.utils import convenient_upscale, get_h_w_c
+from . import category as NCNNCategory
 
 
 @contextmanager
@@ -74,7 +73,7 @@ class NcnnUpscaleImageNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        model: NcnnModel,
+        model: NcnnModelWrapper,
         input_name: str,
         output_name: str,
         tile_size: TileSize,
@@ -88,7 +87,7 @@ class NcnnUpscaleImageNode(NodeBase):
             def estimate():
                 heap_budget = vkdev.get_heap_budget() * 1024 * 1024 * 0.8
                 return MaxTileSize(
-                    estimate_tile_size(heap_budget, model.bin_length, img, 4)
+                    estimate_tile_size(heap_budget, model.model.bin_length, img, 4)
                 )
 
             with ncnn_allocators(vkdev) as (
@@ -111,8 +110,10 @@ class NcnnUpscaleImageNode(NodeBase):
             # pylint: disable=raise-missing-from
             raise RuntimeError("An unexpected error occurred during NCNN processing.")
 
-    def run(self, model: NcnnModel, img: np.ndarray, tile_size: TileSize) -> np.ndarray:
-        model_c = model.get_model_in_nc()
+    def run(
+        self, model: NcnnModelWrapper, img: np.ndarray, tile_size: TileSize
+    ) -> np.ndarray:
+        model_c = model.in_nc
 
         def upscale(i: np.ndarray) -> np.ndarray:
             ic = get_h_w_c(i)[2]
@@ -123,8 +124,8 @@ class NcnnUpscaleImageNode(NodeBase):
             i = self.upscale(
                 i,
                 model,
-                model.layer_list[0].outputs[0],
-                model.layer_list[-1].outputs[0],
+                model.model.layer_list[0].outputs[0],
+                model.model.layer_list[-1].outputs[0],
                 tile_size,
             )
             if ic == 3:

@@ -9,7 +9,7 @@ import {
     ipcRenderer as unsafeIpcRenderer,
 } from 'electron';
 import { Systeminformation } from 'systeminformation';
-import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
+import { FfmpegInfo, FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ParsedSaveData, SaveData } from './SaveFile';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
@@ -23,6 +23,7 @@ export interface InvokeChannels {
     'get-nvidia-gpus': ChannelInfo<string[] | null>;
     'get-gpu-info': ChannelInfo<Systeminformation.GraphicsData>;
     'get-python': ChannelInfo<PythonInfo>;
+    'get-ffmpeg': ChannelInfo<FfmpegInfo>;
     'get-port': ChannelInfo<number>;
     'get-localstorage-location': ChannelInfo<string>;
     'get-app-version': ChannelInfo<Version>;
@@ -48,6 +49,7 @@ export interface InvokeChannels {
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
+    'get-appdata': ChannelInfo<string>;
 }
 
 export interface SendChannels {
@@ -57,6 +59,9 @@ export interface SendChannels {
     'checking-python': SendChannelInfo;
     'downloading-python': SendChannelInfo;
     'extracting-python': SendChannelInfo;
+    'checking-ffmpeg': SendChannelInfo;
+    'downloading-ffmpeg': SendChannelInfo;
+    'extracting-ffmpeg': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
     'file-save-as': SendChannelInfo;

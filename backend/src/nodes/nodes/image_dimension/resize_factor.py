@@ -49,7 +49,7 @@ class ImResizeByFactorNode(NodeBase):
     def run(self, img: np.ndarray, scale: float, interpolation: int) -> np.ndarray:
         """Takes an image and resizes it"""
 
-        logger.info(f"Resizing image by {scale} via {interpolation}")
+        logger.debug(f"Resizing image by {scale} via {interpolation}")
 
         h, w, _ = get_h_w_c(img)
         out_dims = (

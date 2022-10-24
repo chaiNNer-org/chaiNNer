@@ -21,7 +21,7 @@ class ConvertTorchToONNXNode(NodeBase):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX."""
         self.inputs = [ModelInput("PyTorch Model")]
-        self.outputs = [OnnxModelOutput("ONNX Model")]
+        self.outputs = [OnnxModelOutput(label="ONNX Model")]
 
         self.category = PyTorchCategory
         self.name = "Convert To ONNX"

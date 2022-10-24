@@ -118,18 +118,7 @@ export const requiredDependencies: Dependency[] = [
     },
     {
         name: 'FFMPEG',
-        packages: [
-            {
-                packageName: 'ffmpeg-python',
-                version: '0.2.0',
-                sizeEstimate: 25 * KB,
-            },
-            {
-                packageName: 'static-ffmpeg',
-                version: '2.3.0',
-                sizeEstimate: 7 * KB,
-            },
-        ],
+        packages: [{ packageName: 'ffmpeg-python', version: '0.2.0', sizeEstimate: 25 * KB }],
     },
 ];
 

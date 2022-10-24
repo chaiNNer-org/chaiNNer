@@ -50,7 +50,7 @@ __global_exec_options = ExecutionOptions("cpu", False, 0, 0, 0, "CPUExecutionPro
 
 def get_execution_options() -> ExecutionOptions:
     logger.info(
-        f"Execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.device}"
+        f"PyTorch execution options: fp16: {__global_exec_options.fp16}, device: {__global_exec_options.device} | NCNN execution options: gpu_index: {__global_exec_options.ncnn_gpu_index} | ONNX execution options: gpu_index: {__global_exec_options.onnx_gpu_index}, execution_provider: {__global_exec_options.onnx_execution_provider}"
     )
     return __global_exec_options
 

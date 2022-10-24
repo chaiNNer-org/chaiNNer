@@ -2,12 +2,12 @@ import decompress from 'decompress';
 import log from 'electron-log';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
-import os from 'os';
 import path from 'path';
 import { PythonInfo } from '../../common/common-types';
 import { isM1 } from '../../common/env';
 import { assertNever, checkFileExists } from '../../common/util';
-import { getPythonVersion, isSupportedPythonVersion } from './version';
+import { SupportedPlatform, getPlatform } from '../platform';
+import { checkPythonPaths } from './checkPythonPaths';
 
 const downloads: Record<SupportedPlatform, string> = {
     linux: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-unknown-linux-gnu-install_only-20211017T1616.tar.gz',
@@ -15,22 +15,6 @@ const downloads: Record<SupportedPlatform, string> = {
         ? 'https://github.com/indygreg/python-build-standalone/releases/download/20220318/cpython-3.9.11+20220318-aarch64-apple-darwin-install_only.tar.gz'
         : 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-apple-darwin-install_only-20211017T1616.tar.gz',
     win32: 'https://github.com/indygreg/python-build-standalone/releases/download/20211017/cpython-3.9.7-x86_64-pc-windows-msvc-shared-install_only-20211017T1616.tar.gz',
-};
-
-type SupportedPlatform = 'linux' | 'darwin' | 'win32';
-
-const getPlatform = (): SupportedPlatform => {
-    const platform = os.platform();
-    switch (platform) {
-        case 'win32':
-        case 'linux':
-        case 'darwin':
-            return platform;
-        default:
-            throw new Error(
-                `Unsupported platform: Integrated Python is not supported on ${platform}.`
-            );
-    }
 };
 
 const getExecutableRelativePath = (platform: SupportedPlatform): string => {
@@ -114,10 +98,5 @@ export const getIntegratedPython = async (
         }
     }
 
-    const version = await getPythonVersion(pythonPath).catch(() => null);
-    if (version && isSupportedPythonVersion(version)) {
-        return { python: pythonPath, version };
-    }
-
-    throw new Error(`Integrated python version ${String(version)} not supported`);
+    return checkPythonPaths([pythonPath]);
 };

@@ -20,6 +20,7 @@ from sanic_cors import CORS
 
 from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+from nodes.nodes.builtin_categories import category_order
 
 from base_types import NodeId, InputId, OutputId
 from chain.cache import OutputCache
@@ -34,7 +35,6 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
-from nodes.nodes.builtin_categories import category_order
 
 missing_node_count = 0
 categories = set()
@@ -65,6 +65,14 @@ for root, dirs, files in os.walk(
                     missing_categories.add(category.name)
                 except ImportError as ie:
                     logger.warning(ie)
+                except Exception as oe:
+                    logger.error(
+                        f"A critical error occurred when importing module {init_module}: {oe}"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"A critical error occurred when importing module {module}: {e}"
+                )
         # Load categories from __init__.py files
         elif file.endswith(".py") and file == ("__init__.py"):
             module = os.path.relpath(
@@ -196,7 +204,7 @@ async def run(request: Request):
         await runIndividualCounter.wait_zero()
 
         full_data: RunRequest = dict(request.json)  # type: ignore
-        logger.info(full_data)
+        logger.debug(full_data)
         chain, inputs = parse_json(full_data["data"])
         optimize(chain)
 
@@ -210,7 +218,7 @@ async def run(request: Request):
             onnx_execution_provider=full_data["onnxExecutionProvider"],
         )
         set_execution_options(exec_opts)
-        logger.info(f"Using device: {exec_opts.device}")
+        logger.debug(f"Using device: {exec_opts.device}")
         executor = Executor(
             chain,
             inputs,
@@ -272,7 +280,7 @@ async def run_individual(request: Request):
         full_data: RunIndividualRequest = dict(request.json)  # type: ignore
         if ctx.cache.get(full_data["id"], None) is not None:
             del ctx.cache[full_data["id"]]
-        logger.info(full_data)
+        logger.debug(full_data)
         exec_opts = ExecutionOptions(
             device="cpu" if full_data["isCpu"] else "cuda",
             fp16=full_data["isFp16"],
@@ -282,7 +290,7 @@ async def run_individual(request: Request):
             onnx_execution_provider=full_data["onnxExecutionProvider"],
         )
         set_execution_options(exec_opts)
-        logger.info(f"Using device: {exec_opts.device}")
+        logger.debug(f"Using device: {exec_opts.device}")
         # Create node based on given category/name information
         node_instance = NodeFactory.get_node(full_data["schemaId"])
 

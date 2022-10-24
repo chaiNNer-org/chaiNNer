@@ -60,6 +60,7 @@ interface TextInput extends InputBase {
     readonly minLength?: number | null;
     readonly maxLength?: number | null;
     readonly placeholder?: string | null;
+    readonly def?: string | null;
 }
 interface NoteTextAreaInput extends InputBase {
     readonly kind: 'text';
@@ -101,7 +102,14 @@ export type Input =
     | SliderInput
     | NumberInput;
 
-export type OutputKind = 'image' | 'large-image' | 'text' | 'directory' | 'pytorch' | 'generic';
+export type OutputKind =
+    | 'image'
+    | 'large-image'
+    | 'text'
+    | 'directory'
+    | 'pytorch'
+    | 'ncnn'
+    | 'generic';
 
 export interface Output {
     readonly id: OutputId;
@@ -181,6 +189,11 @@ export type Version =
 export interface PythonInfo {
     readonly python: string;
     readonly version: Version;
+}
+
+export interface FfmpegInfo {
+    readonly ffmpeg: string;
+    readonly ffprobe: string;
 }
 
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;

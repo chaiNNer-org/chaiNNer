@@ -41,10 +41,10 @@ class TransparencyMergeNode(NodeBase):
         """Combine separate channels into a multi-chanel image"""
 
         start_shape = rgb.shape[:2]
-        logger.info(start_shape)
+        logger.debug(start_shape)
 
         for im in rgb, a:
-            logger.info(im.shape[:2])
+            logger.debug(im.shape[:2])
             assert (
                 im.shape[:2] == start_shape
             ), "All images to be merged must be the same resolution"
@@ -64,7 +64,7 @@ class TransparencyMergeNode(NodeBase):
 
         imgs = [rgb, a]
         for img in imgs:
-            logger.info(img.shape)
+            logger.debug(img.shape)
         img = np.concatenate(imgs, axis=2)
 
         return img

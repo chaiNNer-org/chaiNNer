@@ -16,7 +16,13 @@ class TextAppendNode(NodeBase):
         super().__init__()
         self.description = "Append different text together using a separator string."
         self.inputs = [
-            TextInput("Separator", has_handle=False, max_length=3),
+            TextInput(
+                "Separator",
+                has_handle=False,
+                min_length=0,
+                max_length=3,
+                default="-",
+            ),
             TextInput("Text A"),
             TextInput("Text B"),
             TextInput("Text C").make_optional(),

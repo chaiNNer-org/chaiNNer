@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import sys
 from typing import Tuple
 
 import numpy as np
@@ -30,16 +29,16 @@ from ...utils.utils import get_h_w_c
 VIDEO_ITERATOR_INPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_load"
 VIDEO_ITERATOR_OUTPUT_NODE_ID = "chainner:image:simple_video_frame_iterator_save"
 
+ffmpeg_path = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
+ffprobe_path = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
 
-def has_ffmpeg():
-    path_vars = os.environ["PATH"].split(";" if sys.platform == "win32" else ":")
-    return len([x for x in path_vars if "ffmpeg" in x]) > 0
-
-
-if not has_ffmpeg():
-    import static_ffmpeg
-
-    static_ffmpeg.add_paths()
+codec_map = {
+    "mp4": "libx264",
+    "avi": "libx264",
+    "mkv": "libx264",
+    "webm": "libvpx-vp9",
+    "gif": "gif",
+}
 
 
 @NodeFactory.register(VIDEO_ITERATOR_INPUT_NODE_ID)
@@ -88,7 +87,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                 slider_step=1,
                 minimum=0,
                 maximum=51,
-                default=0,
+                default=23,
                 ends=("Best", "Worst"),
             ),
         ]
@@ -136,9 +135,10 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
                         r=fps,
                         crf=crf,
                         preset=video_preset if video_preset != "none" else None,
+                        vcodec=codec_map[video_type],
                     )
                     .overwrite_output()
-                    .run_async(pipe_stdin=True)
+                    .run_async(pipe_stdin=True, cmd=ffmpeg_path)
                 )
                 logger.debug(writer["out"])
             except Exception as e:
@@ -178,7 +178,8 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
     # pylint: disable=invalid-overridden-method
     async def run(self, path: str, context: IteratorContext) -> None:
-        logger.info(f"Iterating over frames in video file: {path}")
+        logger.debug(f"{ffmpeg_path=}, {ffprobe_path=}")
+        logger.debug(f"Iterating over frames in video file: {path}")
 
         input_node_id = context.get_helper(VIDEO_ITERATOR_INPUT_NODE_ID).id
         output_node_id = context.get_helper(VIDEO_ITERATOR_OUTPUT_NODE_ID).id
@@ -190,12 +191,12 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         ffmpeg_reader = (
             ffmpeg.input(path)
             .output("pipe:", format="rawvideo", pix_fmt="rgb24")
-            .run_async(pipe_stdout=True)
+            .run_async(pipe_stdout=True, cmd=ffmpeg_path)
         )
 
         writer = {"out": None}
 
-        probe = ffmpeg.probe(path)
+        probe = ffmpeg.probe(path, cmd=ffprobe_path)
         video_stream = next(
             (stream for stream in probe["streams"] if stream["codec_type"] == "video"),
             None,
@@ -213,7 +214,7 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
 
         context.inputs.set_append_values(output_node_id, [writer, fps])
 
-        def before(_: int, index: int):
+        def before(index: int):
             in_bytes = ffmpeg_reader.stdout.read(width * height * 3)
             if not in_bytes:
                 print("Can't receive frame (stream end?). Exiting ...")
@@ -225,4 +226,4 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 input_node_id, [in_frame, index, video_dir, video_name]
             )
 
-        await context.run(range(frame_count), before)
+        await context.run_while(frame_count, before)

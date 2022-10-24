@@ -114,7 +114,7 @@ class OnnxInterpolateModelsNode(NodeBase):
             model_b_weights
         ), "Models must have same number of weights"
 
-        logger.info(f"Interpolating models...")
+        logger.debug(f"Interpolating models...")
         interp_weights_list = self.perform_interp(
             model_a_weights, model_b_weights, amount
         )

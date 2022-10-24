@@ -168,6 +168,50 @@ class IteratorContext:
                 "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
             )
 
+    async def run_while(
+        self,
+        length_estimate: int,
+        before: Callable[[int], Union[None, Literal[False]]],
+    ):
+        errors: List[str] = []
+        index = -1
+        while True:
+            try:
+                await self.progress.suspend()
+
+                index += 1
+
+                result = before(index)
+                if result is False:
+                    break
+
+                await self.run_iteration(
+                    min(index, length_estimate - 1), length_estimate
+                )
+            except Aborted:
+                raise
+            except Exception as e:
+                logger.error(e)
+                errors.append(str(e))
+
+        if index < length_estimate:
+            await self.executor.queue.put(
+                {
+                    "event": "iterator-progress-update",
+                    "data": {
+                        "percent": 1,
+                        "iteratorId": self.iterator_id,
+                        "running": None,
+                    },
+                }
+            )
+
+        if len(errors) > 0:
+            raise Exception(
+                # pylint: disable=consider-using-f-string
+                "Errors occurred during iteration: \n• {}".format("\n• ".join(errors))
+            )
+
 
 def timed_supplier(supplier: Callable[[], T]) -> Callable[[], Tuple[T, float]]:
     def wrapper():
@@ -444,13 +488,13 @@ class Executor:
         await self.__process_nodes(self.__get_iterator_output_nodes(sub))
 
     def resume(self):
-        logger.info(f"Resuming executor {self.execution_id}")
+        logger.debug(f"Resuming executor {self.execution_id}")
         self.progress.resume()
 
     def pause(self):
-        logger.info(f"Pausing executor {self.execution_id}")
+        logger.debug(f"Pausing executor {self.execution_id}")
         self.progress.pause()
 
     def kill(self):
-        logger.info(f"Killing executor {self.execution_id}")
+        logger.debug(f"Killing executor {self.execution_id}")
         self.progress.abort()

@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 import cv2
 
-from .convert_model import ColorSpace, Conversion
+from .convert_model import ColorSpace, ColorSpaceDetector, Conversion
 from ..utils import get_h_w_c
 
 
@@ -14,7 +14,24 @@ HSV = ColorSpace(4, "HSV", 3)
 HSL = ColorSpace(5, "HSL", 3)
 CMYK = ColorSpace(6, "CMYK", 4)
 
-color_spaces = [RGB, RGBA, GRAY, YUV, HSV, HSL, CMYK]
+RGB_LIKE = ColorSpaceDetector(1000, "Gray/RGB/RGBA", [GRAY, RGB, RGBA])
+
+color_spaces: List[ColorSpace] = [
+    RGB,
+    RGBA,
+    GRAY,
+    YUV,
+    HSV,
+    HSL,
+    CMYK,
+]
+color_spaces_or_detectors: List[Union[ColorSpace, ColorSpaceDetector]] = [
+    RGB_LIKE,
+    YUV,
+    HSV,
+    HSL,
+    CMYK,
+]
 
 
 def __rev3(image: np.ndarray) -> np.ndarray:

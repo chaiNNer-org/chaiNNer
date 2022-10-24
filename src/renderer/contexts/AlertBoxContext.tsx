@@ -12,7 +12,9 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
-import { app, clipboard } from 'electron';
+import { app, clipboard, shell } from 'electron';
+import log from 'electron-log';
+import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext } from 'use-context-selector';
 import { ipcRenderer } from '../../common/safeIpc';
@@ -115,6 +117,28 @@ const getButtons = (
                 );
                 break;
             case AlertType.CRIT_ERROR:
+                buttonElements.push(
+                    <Button
+                        colorScheme="gray"
+                        key="logs"
+                        ml={3}
+                        ref={cancelRef}
+                        onClick={() => {
+                            ipcRenderer
+                                .invoke('get-appdata')
+                                .then((appDataPath) => {
+                                    shell.openPath(path.join(appDataPath, 'logs')).catch(() => {
+                                        log.error('Failed to open logs folder');
+                                    });
+                                })
+                                .catch(() => {
+                                    log.error('Failed to get appdata path');
+                                });
+                        }}
+                    >
+                        Open Logs Folder
+                    </Button>
+                );
                 buttonElements.push(
                     <Button
                         colorScheme="red"

@@ -180,12 +180,35 @@ class NcnnParamCollection:
             param_schema[self.op]["weightOrder"] if self.op else []
         )
 
-    def __getitem__(self, key: int) -> NcnnParam:
+    def __getitem__(self, pid: int) -> NcnnParam:
         try:
-            return self.param_dict[key]
-        except KeyError:
-            logger.error(f"Op {self.op} does not have param {key}")
-            raise
+            return self.param_dict[pid]
+        except KeyError as exc:
+            idstr = str(pid)
+            param_dict = param_schema[self.op]
+            try:
+                param = param_dict[idstr]
+            except KeyError:
+                logger.error(f"Op {self.op} does not have param {pid}, please report")
+                raise
+
+            defaultValue = param["defaultValue"]
+            value = param["defaultValue"]
+            if isinstance(value, str):
+                for key, val in list(param_dict.items())[:-1]:
+                    if value == val["paramPhase"]:
+                        try:
+                            value = self.param_dict[int(key)].value
+                        except KeyError:
+                            value = val["defaultValue"]
+                        defaultValue = val["defaultValue"]
+
+                        break
+                else:
+                    msg = f"Op {self.op} does not have param {value}, please report"
+                    raise KeyError(msg) from exc
+
+            return NcnnParam(idstr, param["paramPhase"], value, defaultValue)  # type: ignore
 
     def __setitem__(
         self, pid: int, value: Union[float, int, List[Union[float, int]]]
@@ -272,7 +295,7 @@ class NcnnLayer:
         data: Union[float, int, np.ndarray, TensorProto],  # type: ignore
         weight_name: str,
         quantize_tag: bytes = b"",
-    ) -> bytes:
+    ) -> int:
         if isinstance(data, TensorProto):  # type: ignore
             data_array = onph.to_array(data)  # type: ignore
         elif isinstance(data, float):
@@ -286,7 +309,7 @@ class NcnnLayer:
             data_array = data_array.astype(np.float16)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
-        return quantize_tag + data_array.tobytes()
+        return len(quantize_tag) + len(data_array.tobytes())
 
 
 class NcnnModel:
@@ -298,7 +321,6 @@ class NcnnModel:
         self.node_count: int = node_count
         self.blob_count: int = blob_count
         self.layer_list: List[NcnnLayer] = []
-        self.weights_bin: bytes = b""
         self.bin_length = 0
 
     @property
@@ -325,9 +347,8 @@ class NcnnModel:
                     layer.weight_data = model.load_layer_weights(binf, op_type, layer)
                     model.add_layer(layer)
 
-                binf.seek(0)
-                model.weights_bin = binf.read()
-                model.bin_length = len(model.weights_bin)
+                binf.seek(0, os.SEEK_END)
+                model.bin_length = binf.tell()
 
         return model
 
@@ -402,26 +423,6 @@ class NcnnModel:
             layer_bytes,
         )
 
-    def get_model_in_nc(self) -> int:
-        conv_layer = next(l for l in self.layer_list if l.op_type == "Convolution")
-        num_filters = conv_layer.params[0].value
-        kernel_w = conv_layer.params[1].value
-        try:
-            kernel_h = conv_layer.params[11].value
-        except KeyError:
-            kernel_h = kernel_w
-        weight_data_size = conv_layer.params[6].value
-
-        assert (
-            isinstance(num_filters, int)
-            and isinstance(kernel_w, int)
-            and isinstance(kernel_h, int)
-            and isinstance(weight_data_size, int)
-        ), "Out nc, kernel width and height, and weight data size must all be ints"
-        in_nc = weight_data_size // num_filters // kernel_w // kernel_h
-
-        return in_nc
-
     def add_layer(self, layer: NcnnLayer) -> None:
         self.layer_list.append(layer)
 
@@ -487,11 +488,11 @@ class NcnnModel:
                 else weight_data_length * 4
             )
 
-            has_bias = layer.params[5].value if 5 in layer.params else 0
+            has_bias = layer.params[5].value
 
             num_filters = layer.params[0].value
             kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
+            kernel_h = layer.params[11].value
             num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
@@ -514,11 +515,11 @@ class NcnnModel:
                 else weight_data_length * 4
             )
 
-            has_bias = layer.params[5].value if 5 in layer.params else 0
+            has_bias = layer.params[5].value
 
             num_filters = layer.params[0].value
             kernel_w = layer.params[1].value
-            kernel_h = layer.params[11].value if 11 in layer.params else kernel_w
+            kernel_h = layer.params[11].value
             num_input = weight_data_length // num_filters // kernel_w // kernel_h  # type: ignore
             shape = (num_filters, num_input, kernel_h, kernel_w)
 
@@ -547,7 +548,7 @@ class NcnnModel:
             weight_data = weight_data.reshape((num_input, num_output))
             weight_dict["weight"] = NcnnWeight(weight_data)
 
-            has_bias = layer.params[1].value if 1 in layer.params else 0
+            has_bias = layer.params[1].value
             if has_bias == 1:
                 bias_data_size = num_output * 4
                 bias_data = np.frombuffer(binf.read(bias_data_size), np.float32)
@@ -591,13 +592,22 @@ class NcnnModel:
             else:
                 return p.getvalue()
 
+    def serialize_weights(self) -> bytes:
+        layer_weights = [
+            b"".join((w.quantize_tag, np.ndarray.tobytes(w.weight)))
+            for l in self.layer_list
+            for w in l.weight_data.values()
+            if l.weight_data
+        ]
+
+        return b"".join(layer_weights)
+
     def write_bin(self, filename: str) -> None:
         with open(filename, "wb") as f:
-            f.write(self.weights_bin)
+            f.write(self.serialize_weights())
 
     def interpolate(self, model_b: "NcnnModel", alpha: float) -> "NcnnModel":
         interp_model = deepcopy(self)
-        interp_model.weights_bin = b""
 
         layer_a_weights = [
             (i, l) for i, l in enumerate(self.layer_list) if l.weight_data
@@ -618,10 +628,88 @@ class NcnnModel:
             interp_model.layer_list[layer_a[0]] = interp_layer
             weight_bytes_list.append(layer_bytes)
 
-        interp_model.weights_bin = b"".join(weight_bytes_list)
-
         return interp_model
 
     @property
     def bin(self) -> bytes:
-        return self.weights_bin
+        return self.serialize_weights()
+
+
+class NcnnModelWrapper:
+    def __init__(self, model: NcnnModel) -> None:
+        self.model: NcnnModel = model
+        scale, in_nc, out_nc, nf, fp = NcnnModelWrapper.get_broadcast_data(model)
+        self.scale: int = scale
+        self.nf: int = nf
+        self.in_nc: int = in_nc
+        self.out_nc: int = out_nc
+        self.fp: str = fp
+
+    @staticmethod
+    def get_broadcast_data(model: NcnnModel) -> Tuple[int, int, int, int, str]:
+        scale = 1
+        in_nc = 0
+        out_nc = 0
+        nf = 0
+        fp = "fp32"
+        pixel_shuffle = 1
+        found_first_conv = False
+        current_conv = None
+
+        for i, layer in enumerate(model.layer_list):
+            if layer.op_type == "Interp":
+                try:
+                    if (
+                        model.layer_list[i + 1].op_type != "BinaryOp"
+                        and model.layer_list[i + 1].params[0].value != 0
+                    ):
+                        scale *= layer.params[1].value  # type: ignore
+                except IndexError:
+                    pass
+            elif layer.op_type == "PixelShuffle":
+                scale *= layer.params[0].value  # type: ignore
+                pixel_shuffle *= int(layer.params[0].value)  # type: ignore
+            elif layer.op_type in (
+                "Convolution",
+                "Convolution1D",
+                "ConvolutionDepthWise",
+            ):
+                if found_first_conv is not True:
+                    nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
+                    if layer.weight_data["weight"].quantize_tag == DTYPE_FP16:
+                        fp = "fp16"
+                    found_first_conv = True
+
+                scale /= layer.params[3].value  # type: ignore
+                current_conv = layer
+            elif layer.op_type in ("Deconvolution", "DeconvolutionDepthWise"):
+                if found_first_conv is not True:
+                    nf, in_nc = NcnnModelWrapper.get_nf_and_in_nc(layer)
+                    found_first_conv = True
+
+                scale *= layer.params[3].value  # type: ignore
+                current_conv = layer
+
+        out_nc = current_conv.params[0].value // pixel_shuffle**2  # type: ignore
+
+        return int(scale), in_nc, out_nc, nf, fp  # type: ignore
+
+    @staticmethod
+    def get_nf_and_in_nc(layer: NcnnLayer) -> Tuple[int, int]:
+        nf = layer.params[0].value
+        kernel_w = layer.params[1].value
+        try:
+            kernel_h = layer.params[11].value
+        except KeyError:
+            kernel_h = kernel_w
+        weight_data_size = layer.params[6].value
+
+        assert (
+            isinstance(nf, int)
+            and isinstance(kernel_w, int)
+            and isinstance(kernel_h, int)
+            and isinstance(weight_data_size, int)
+        ), "Out nc, kernel width and height, and weight data size must all be ints"
+        in_nc = weight_data_size // nf // kernel_w // kernel_h
+
+        return nf, in_nc
