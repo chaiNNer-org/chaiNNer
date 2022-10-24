@@ -25,7 +25,7 @@ class ImageInput(BaseInput):
     ):
         image_type = expression.intersect(
             image_type,
-            expression.Image(channels=channels),  # type: ignore
+            expression.Image(channels=channels),
         )
         super().__init__(image_type, label)
 
