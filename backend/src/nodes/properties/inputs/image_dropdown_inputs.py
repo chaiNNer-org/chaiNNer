@@ -4,12 +4,16 @@ import cv2
 from ...utils.image_utils import BorderType
 from ...utils.pil_utils import InterpolationMethod, RotateExpandCrop
 from ...utils.tile_util import TileMode
-from ...utils.color.convert_data import color_spaces
+from ...utils.color.convert_data import color_spaces, color_spaces_or_detectors
 from ..expression import named
 from .generic_inputs import DropDownInput
 
 
-def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
+def ColorSpaceInput(
+    label: str = "Color Space",
+    detector: bool = False,
+) -> DropDownInput:
+    l = color_spaces_or_detectors if detector else color_spaces
     return DropDownInput(
         input_type="ColorSpace",
         label=label,
@@ -19,7 +23,7 @@ def ColorSpaceInput(label: str = "Color Space") -> DropDownInput:
                 "value": c.id,
                 "type": named("ColorSpace", {"channels": c.channels}),
             }
-            for c in color_spaces
+            for c in l
         ],
     )
 
