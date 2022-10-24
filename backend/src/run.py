@@ -54,7 +54,7 @@ for root, dirs, files in os.walk(
                 importlib.import_module(f"{module}", package=None)
             except ImportError as e:
                 missing_node_count += 1
-                logger.warning(f"Failed to import {module}: {e}")
+                logger.debug(f"Failed to import {module}: {e}")
 
                 # Turn path into __init__.py path
                 init_module = module.split(".")
@@ -64,7 +64,7 @@ for root, dirs, files in os.walk(
                     category = getattr(importlib.import_module(init_module), "category")
                     missing_categories.add(category.name)
                 except ImportError as ie:
-                    logger.warning(ie)
+                    logger.debug(ie)
                 except Exception as oe:
                     logger.error(
                         f"A critical error occurred when importing module {init_module}: {oe}"
