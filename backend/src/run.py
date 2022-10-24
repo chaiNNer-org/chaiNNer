@@ -20,6 +20,7 @@ from sanic_cors import CORS
 
 from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+from nodes.nodes.builtin_categories import category_order
 
 from base_types import NodeId, InputId, OutputId
 from chain.cache import OutputCache
@@ -34,7 +35,6 @@ from response import (
     noExecutorResponse,
     successResponse,
 )
-from nodes.nodes.builtin_categories import category_order
 
 missing_node_count = 0
 categories = set()
@@ -65,6 +65,14 @@ for root, dirs, files in os.walk(
                     missing_categories.add(category.name)
                 except ImportError as ie:
                     logger.warning(ie)
+                except Exception as oe:
+                    logger.error(
+                        f"A critical error occurred when importing module {init_module}: {oe}"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"A critical error occurred when importing module {module}: {e}"
+                )
         # Load categories from __init__.py files
         elif file.endswith(".py") and file == ("__init__.py"):
             module = os.path.relpath(
