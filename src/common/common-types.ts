@@ -50,7 +50,7 @@ interface DropDownInput extends InputBase {
 interface FileInput extends InputBase {
     readonly kind: 'file';
     readonly fileKind: FileInputKind;
-    readonly filetypes: string[];
+    readonly filetypes: readonly string[];
 }
 interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
