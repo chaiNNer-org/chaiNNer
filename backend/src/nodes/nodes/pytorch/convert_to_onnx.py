@@ -12,7 +12,7 @@ from ...properties.outputs import OnnxModelOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.onnx_model import OnnxModel
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
@@ -33,8 +33,12 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel) -> OnnxModel:
+    def run(self, model: PyTorchSRModel) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
+
+        assert isPyTorchSRModel(
+            model
+        ), "Only normal SR models can be converted to ONNX at this time."
 
         model = model.eval()
         model = model.to(torch.device(exec_options.device))

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.src.nodes.utils.architecture.SwinIR import SwinIR
+
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
 
 from .convert_to_onnx import ConvertTorchToONNXNode
 
@@ -45,13 +47,21 @@ class ConvertTorchToNCNNNode(NodeBase):
         self.icon = "NCNN"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel, is_fp16: int) -> Any:
+    def run(self, model: PyTorchSRModel, is_fp16: int) -> Any:
         if ConvertOnnxToNcnnNode is None:
             raise Exception(
                 "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."
             )
+
+        assert isPyTorchSRModel(
+            model
+        ), "Only normal SR models can be converted to NCNN at this time."
+        assert not isinstance(
+            model, SwinIR
+        ), "SwinIR is not supported for NCNN conversion at this time."
+
         onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 

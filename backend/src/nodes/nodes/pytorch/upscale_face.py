@@ -17,7 +17,7 @@ from ...properties.outputs import *
 from ...utils.utils import get_h_w_c
 from ...utils.pytorch_utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchFaceModel, isPyTorchFaceModel
 from ...utils.pytorch_utils import to_pytorch_execution_options
 
 
@@ -70,10 +70,11 @@ class FaceUpscaleNode(NodeBase):
         img: np.ndarray,
         background_img: Union[np.ndarray, None],
         face_helper: FaceRestoreHelper,
-        face_model: PyTorchModel,
+        face_model: PyTorchFaceModel,
         weight: float,
     ):
         exec_options = to_pytorch_execution_options(get_execution_options())
+
         device = torch.device(exec_options.device)
         face_helper.clean_all()
 
@@ -135,12 +136,17 @@ class FaceUpscaleNode(NodeBase):
 
     def run(
         self,
-        face_model: PyTorchModel,
+        face_model: PyTorchFaceModel,
         img: np.ndarray,
         background_img: Union[np.ndarray, None],
         upscale: int,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
+
+        assert isPyTorchFaceModel(
+            face_model
+        ), "Only Face SR models can be used with the Upscale Face node."
+
         face_helper = None
         try:
             img = self.denormalize(img)

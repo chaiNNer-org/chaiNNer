@@ -12,7 +12,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
 from ...utils.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,
@@ -58,7 +58,7 @@ class ImageUpscaleNode(NodeBase):
     def upscale(
         self,
         img: np.ndarray,
-        model: PyTorchModel,
+        model: PyTorchSRModel,
         tile_size: TileSize,
         options: ExecutionOptions,
     ):
@@ -103,11 +103,15 @@ class ImageUpscaleNode(NodeBase):
 
     def run(
         self,
-        model: PyTorchModel,
+        model: PyTorchSRModel,
         img: np.ndarray,
         tile_size: TileSize,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
+
+        assert isPyTorchSRModel(
+            model
+        ), "Only normal SR models can be used with the Upscale Image node."
 
         exec_options = to_pytorch_execution_options(get_execution_options())
 
