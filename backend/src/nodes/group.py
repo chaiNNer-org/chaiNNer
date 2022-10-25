@@ -11,11 +11,11 @@ class GroupInfo:
     def __init__(
         self,
         group_id: GroupId,
-        group_type: str,
+        kind: str,
         options: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.id: GroupId = group_id
-        self.type: str = group_type
+        self.kind: str = kind
         self.options: Dict[str, Any] = {} if options is None else options
 
 
@@ -27,7 +27,7 @@ class Group(Generic[T]):
     def toDict(self):
         return {
             "id": self.info.id,
-            "type": self.info.type,
+            "kind": self.info.kind,
             "options": self.info.options,
             "items": self.items,
         }

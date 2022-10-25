@@ -1,12 +1,19 @@
-import { Group, Input, InputData, InputSize, SchemaId } from '../../../common/common-types';
+import {
+    Group,
+    GroupKind,
+    InputData,
+    InputSize,
+    OfKind,
+    SchemaId,
+} from '../../../common/common-types';
+import { GroupInputs } from '../../../common/group-inputs';
 
-export interface GroupProps<Options = Record<string, unknown>, State = never> {
-    group: Group & { readonly options: Readonly<Options> };
-    inputs: readonly Input[];
+export interface GroupProps<Kind extends GroupKind> {
+    group: OfKind<Group, Kind>;
+    inputs: GroupInputs[Kind];
     schemaId: SchemaId;
     nodeId: string;
     isLocked: boolean;
     inputData: InputData;
     inputSize: InputSize | undefined;
-    state: State | undefined;
 }

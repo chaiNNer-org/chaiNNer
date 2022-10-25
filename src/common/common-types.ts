@@ -40,33 +40,33 @@ export interface InputOption {
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
 
-interface GenericInput extends InputBase {
+export interface GenericInput extends InputBase {
     readonly kind: 'generic';
 }
-interface DropDownInput extends InputBase {
+export interface DropDownInput extends InputBase {
     readonly kind: 'dropdown';
     readonly options: readonly InputOption[];
 }
-interface FileInput extends InputBase {
+export interface FileInput extends InputBase {
     readonly kind: 'file';
     readonly fileKind: FileInputKind;
     readonly filetypes: readonly string[];
 }
-interface DirectoryInput extends InputBase {
+export interface DirectoryInput extends InputBase {
     readonly kind: 'directory';
 }
-interface TextInput extends InputBase {
+export interface TextInput extends InputBase {
     readonly kind: 'text-line';
     readonly minLength?: number | null;
     readonly maxLength?: number | null;
     readonly placeholder?: string | null;
     readonly def?: string | null;
 }
-interface NoteTextAreaInput extends InputBase {
+export interface NoteTextAreaInput extends InputBase {
     readonly kind: 'text';
     readonly resizable: boolean;
 }
-interface NumberInput extends InputBase {
+export interface NumberInput extends InputBase {
     readonly kind: 'number';
     readonly def: number;
     readonly min?: number | null;
@@ -77,7 +77,7 @@ interface NumberInput extends InputBase {
     readonly noteExpression?: string | null;
     readonly hideTrailingZeros: boolean;
 }
-interface SliderInput extends InputBase {
+export interface SliderInput extends InputBase {
     readonly kind: 'slider';
     readonly def: number;
     readonly min: number;
@@ -123,12 +123,24 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
-export interface Group {
+interface GroupBase {
     readonly id: GroupId;
-    readonly type: string;
+    readonly kind: GroupKind;
     readonly options: Readonly<Record<string, unknown>>;
     readonly items: readonly InputId[];
 }
+interface NcnnFileInputGroup extends GroupBase {
+    readonly kind: 'ncnn-file-inputs';
+    readonly options: Readonly<Record<string, never>>;
+}
+interface FromToDropdownsGroup extends GroupBase {
+    readonly kind: 'from-to-dropdowns';
+    readonly options: Readonly<Record<string, never>>;
+}
+export type GroupKind = Group['kind'];
+export type Group = NcnnFileInputGroup | FromToDropdownsGroup;
+
+export type OfKind<T, Kind extends string> = T extends { readonly kind: Kind } ? T : never;
 
 export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 

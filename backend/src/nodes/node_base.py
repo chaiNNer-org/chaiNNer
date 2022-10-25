@@ -13,8 +13,8 @@ from .properties.outputs.base_output import BaseOutput
 NodeType = Literal["regularNode", "iterator", "iteratorHelper"]
 
 # pylint: disable-next=redefined-builtin
-def group(group_type: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
-    info = GroupInfo(GroupId(id), group_type, options)
+def group(kind: str, options: Optional[Dict[str, Any]] = None, id: int = -1):
+    info = GroupInfo(GroupId(id), kind, options)
 
     def ret(*items: BaseInput) -> Group[BaseInput]:
         return Group(info, list(items))
