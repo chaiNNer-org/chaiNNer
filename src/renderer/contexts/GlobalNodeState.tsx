@@ -76,6 +76,14 @@ import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { SettingsContext } from './SettingsContext';
 
+// eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, react-memo/require-memo
+function getNodeInputValue<T extends NonNullable<InputValue>>(
+    inputId: InputId,
+    inputData: InputData
+): T | undefined {
+    return (inputData[inputId] ?? undefined) as T | undefined;
+}
+
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 interface GlobalVolatile {
@@ -109,6 +117,11 @@ interface Global {
     selectNode: (nodeId: string) => void;
     animate: (nodeIdsToAnimate: Iterable<string>, animateEdges?: boolean) => void;
     unAnimate: (nodeIdsToAnimate?: Iterable<string>) => void;
+    getNodeInputValue: <T extends NonNullable<InputValue>>(
+        inputId: InputId,
+        inputData: InputData
+    ) => T | undefined;
+    setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
     useInputData: <T extends NonNullable<InputValue>>(
         id: string,
         inputId: InputId,
@@ -758,6 +771,27 @@ export const GlobalProvider = memo(
             [inputHashesRef]
         );
 
+        const setNodeInputValue = useCallback(
+            // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
+            function <T extends InputValue>(nodeId: string, inputId: InputId, value: T): void {
+                modifyNode(nodeId, (old) => {
+                    if (old.data.inputData[inputId] === value) {
+                        // there's no need to change anything
+                        return old;
+                    }
+
+                    const nodeCopy = copyNode(old);
+                    nodeCopy.data.inputData = {
+                        ...nodeCopy.data.inputData,
+                        [inputId]: value,
+                    };
+                    return nodeCopy;
+                });
+                addInputDataChanges();
+            },
+            [modifyNode, addInputDataChanges]
+        );
+
         const useInputData = useCallback(
             // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
             function <T extends NonNullable<InputValue>>(
@@ -765,27 +799,13 @@ export const GlobalProvider = memo(
                 inputId: InputId,
                 inputData: InputData
             ): readonly [T | undefined, (data: T) => void, () => void] {
-                const currentInput = (inputData[inputId] ?? undefined) as T | undefined;
-                const setInputData = (data: T | undefined) => {
-                    // This is a action that might be called asynchronously, so we cannot rely on of
-                    // the captured data from `nodes` to be up-to-date anymore. For that reason, we
-                    // must derive any changes to nodes from the previous value passed to us by
-                    // `setNodes`.
-
-                    modifyNode(id, (old) => {
-                        const nodeCopy = copyNode(old);
-                        nodeCopy.data.inputData = {
-                            ...nodeCopy.data.inputData,
-                            [inputId]: data,
-                        };
-                        return nodeCopy;
-                    });
-                    addInputDataChanges();
-                };
-                const resetInputData = () => setInputData(undefined);
-                return [currentInput, setInputData, resetInputData] as const;
+                return [
+                    getNodeInputValue(inputId, inputData),
+                    (data) => setNodeInputValue(id, inputId, data),
+                    () => setNodeInputValue(id, inputId, undefined),
+                ] as const;
             },
-            [modifyNode, schemata, addInputDataChanges]
+            [setNodeInputValue]
         );
 
         const useInputSize = useCallback(
@@ -1086,6 +1106,8 @@ export const GlobalProvider = memo(
             selectNode,
             animate,
             unAnimate,
+            getNodeInputValue,
+            setNodeInputValue,
             useInputData,
             useInputSize,
             toggleNodeLock,

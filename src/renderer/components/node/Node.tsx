@@ -50,7 +50,7 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode, useInputData } = useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
@@ -104,9 +104,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
             if (p) {
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                const [, setInput] = useInputData<string>(id, fileInput.id, inputData);
-                setInput(p);
+                setNodeInputValue<string>(id, fileInput.id, p);
                 return;
             }
 
