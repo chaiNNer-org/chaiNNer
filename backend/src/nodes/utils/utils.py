@@ -312,7 +312,7 @@ def alphanumeric_sort(value: str) -> List[Union[str, int]]:
     """Key function to sort strings containing numbers by proper
     numerical order."""
 
-    lcase_value = value.lower()
+    lcase_value = value.upper()
     parts = NUMBERS.split(lcase_value)
     parts[1::2] = map(int, parts[1::2])
     return parts  # type: ignore
