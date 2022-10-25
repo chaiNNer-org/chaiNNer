@@ -24,12 +24,14 @@ const DropDown = memo(({ nodeId, input, inputData, isLocked }: DropDownProps) =>
     );
 
     return (
-        <DropDownInput
-            input={input}
-            isLocked={isLocked}
-            setValue={setValue}
-            value={value}
-        />
+        <Box w="7.5em">
+            <DropDownInput
+                input={input}
+                isLocked={isLocked}
+                setValue={setValue}
+                value={value}
+            />
+        </Box>
     );
 });
 
