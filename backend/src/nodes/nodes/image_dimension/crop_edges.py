@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from . import category as ImageDimensionCategory
-from ...node_base import NodeBase, group
+from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, NumberInput
 from ...properties.outputs import ImageOutput
@@ -18,12 +18,10 @@ class EdgeCropNode(NodeBase):
         self.description = "Crop an image using separate amounts from each edge."
         self.inputs = [
             ImageInput(),
-            group("linked", {"label": "All"})(
-                NumberInput("Top", unit="px", minimum=None),
-                NumberInput("Left", unit="px", minimum=None),
-                NumberInput("Right", unit="px", minimum=None),
-                NumberInput("Bottom", unit="px", minimum=None),
-            ),
+            NumberInput("Top", unit="px", minimum=None),
+            NumberInput("Left", unit="px", minimum=None),
+            NumberInput("Right", unit="px", minimum=None),
+            NumberInput("Bottom", unit="px", minimum=None),
         ]
         self.outputs = [
             ImageOutput(
