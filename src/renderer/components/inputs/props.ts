@@ -9,7 +9,7 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly definitionType: Type;
     readonly isLocked: boolean;
     readonly inputKey: string;
-    readonly useInputLocked: () => boolean;
+    readonly useInputConnected: () => boolean;
     readonly useInputType: () => Type;
     readonly useInputSize: () => readonly [
         Readonly<Size> | undefined,

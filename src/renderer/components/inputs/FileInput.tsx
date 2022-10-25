@@ -27,12 +27,12 @@ export const FileInput = memo(
         setValue: setFilePath,
         input,
         inputKey,
-        useInputLocked,
+        useInputConnected,
         isLocked,
     }: InputProps<'file', string>) => {
         const { label, filetypes } = input;
 
-        const isInputLocked = useInputLocked();
+        const isInputConnected = useInputConnected();
         const { sendToast } = useContext(AlertBoxContext);
 
         const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
@@ -99,7 +99,7 @@ export const FileInput = memo(
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
-                    disabled={isLocked || isInputLocked}
+                    disabled={isLocked || isInputConnected}
                     icon={<BsFileEarmarkPlus />}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
@@ -169,7 +169,7 @@ export const FileInput = memo(
                             alt={filePath}
                             className="nodrag"
                             cursor="pointer"
-                            disabled={isLocked || isInputLocked}
+                            disabled={isLocked || isInputConnected}
                             draggable={false}
                             placeholder="Select a file..."
                             textOverflow="ellipsis"

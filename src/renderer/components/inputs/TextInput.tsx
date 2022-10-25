@@ -16,7 +16,7 @@ export const TextInput = memo(
         resetValue,
         input,
         isLocked,
-        useInputLocked,
+        useInputConnected,
         useInputType,
     }: InputProps<'text-line', string>) => {
         const { label, minLength, maxLength, def, placeholder } = input;
@@ -43,7 +43,7 @@ export const TextInput = memo(
             }
         }, 500);
 
-        const isInputLocked = useInputLocked();
+        const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
         const typeText =
@@ -54,11 +54,11 @@ export const TextInput = memo(
         return (
             <Input
                 className="nodrag"
-                disabled={isLocked || isInputLocked}
+                disabled={isLocked || isInputConnected}
                 draggable={false}
                 maxLength={maxLength ?? undefined}
                 placeholder={placeholder ?? label}
-                value={isInputLocked ? typeText ?? '' : tempText}
+                value={isInputConnected ? typeText ?? '' : tempText}
                 onChange={(event) => {
                     setTempText(event.target.value);
                     handleChange(event);

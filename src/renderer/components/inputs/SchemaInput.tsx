@@ -53,7 +53,7 @@ export const SchemaInput = memo(
 
         const [value, setValue, resetValue] = useInputData(nodeId, inputId, inputData);
 
-        const useInputLocked = useCallback((): boolean => {
+        const useInputConnected = useCallback((): boolean => {
             // TODO: move the function call into the selector
             // eslint-disable-next-line react-hooks/rules-of-hooks
             return useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
@@ -83,7 +83,7 @@ export const SchemaInput = memo(
                 isLocked={isLocked}
                 resetValue={resetValue}
                 setValue={setValue}
-                useInputLocked={useInputLocked}
+                useInputConnected={useInputConnected}
                 useInputSize={useInputSize}
                 useInputType={useInputType}
                 value={value}

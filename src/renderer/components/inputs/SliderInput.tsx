@@ -32,7 +32,7 @@ export const SliderInput = memo(
         input,
         isLocked,
         definitionType,
-        useInputLocked,
+        useInputConnected,
         useInputType,
     }: InputProps<'slider', number>) => {
         const {
@@ -75,12 +75,12 @@ export const SliderInput = memo(
 
         const [typeAccentColor] = getTypeAccentColors(definitionType);
 
-        const isInputLocked = useInputLocked();
+        const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const typeNumber = isNumericLiteral(inputType) ? inputType.value : undefined;
         const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
 
-        const displaySliderValue: number = isInputLocked ? typeNumber ?? def : sliderValue;
+        const displaySliderValue: number = isInputConnected ? typeNumber ?? def : sliderValue;
         const expr = noteExpression
             ? tryEvaluate(noteExpression, {
                   min,
@@ -97,7 +97,7 @@ export const SliderInput = memo(
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
-                        isDisabled={isLocked || isInputLocked}
+                        isDisabled={isLocked || isInputConnected}
                         max={max}
                         min={min}
                         step={sliderStep}
@@ -137,8 +137,8 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputString={isInputLocked ? typeNumberString : inputString}
-                        isDisabled={isLocked || isInputLocked}
+                        inputString={isInputConnected ? typeNumberString : inputString}
+                        isDisabled={isLocked || isInputConnected}
                         max={max}
                         min={min}
                         precision={precision}

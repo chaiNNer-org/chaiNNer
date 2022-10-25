@@ -38,7 +38,7 @@ export const DirectoryInput = memo(
         setValue,
         isLocked,
         inputKey,
-        useInputLocked,
+        useInputConnected,
         useInputType,
     }: InputProps<'directory', string>) => {
         const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
@@ -55,14 +55,14 @@ export const DirectoryInput = memo(
             }
         };
 
-        const isInputLocked = useInputLocked();
+        const isInputConnected = useInputConnected();
         const inputType = useInputType();
-        const displayDirectory = isInputLocked ? getDirectoryPath(inputType) : value;
+        const displayDirectory = isInputConnected ? getDirectoryPath(inputType) : value;
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
-                    disabled={isLocked || isInputLocked}
+                    disabled={isLocked || isInputConnected}
                     icon={<BsFolderPlus />}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
@@ -101,7 +101,7 @@ export const DirectoryInput = memo(
                         isReadOnly
                         className="nodrag"
                         cursor="pointer"
-                        disabled={isLocked || isInputLocked}
+                        disabled={isLocked || isInputConnected}
                         draggable={false}
                         placeholder="Select a directory..."
                         textOverflow="ellipsis"

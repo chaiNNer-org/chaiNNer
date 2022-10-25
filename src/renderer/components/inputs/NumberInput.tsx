@@ -11,7 +11,7 @@ export const NumberInput = memo(
         setValue,
         input,
         isLocked,
-        useInputLocked,
+        useInputConnected,
         useInputType,
     }: InputProps<'number', number>) => {
         const { def, min, max, unit, precision, controlsStep, hideTrailingZeros } = input;
@@ -29,7 +29,7 @@ export const NumberInput = memo(
             }
         }, [value]);
 
-        const isInputLocked = useInputLocked();
+        const isInputConnected = useInputConnected();
         const inputType = useInputType();
         const typeNumberString = isNumericLiteral(inputType) ? inputType.toString() : '';
 
@@ -39,8 +39,8 @@ export const NumberInput = memo(
                     controlsStep={controlsStep}
                     defaultValue={def}
                     hideTrailingZeros={hideTrailingZeros}
-                    inputString={isInputLocked ? typeNumberString : inputString}
-                    isDisabled={isLocked || isInputLocked}
+                    inputString={isInputConnected ? typeNumberString : inputString}
+                    isDisabled={isLocked || isInputConnected}
                     max={max ?? Infinity}
                     min={min ?? -Infinity}
                     precision={precision}
