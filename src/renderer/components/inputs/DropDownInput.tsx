@@ -2,41 +2,44 @@ import { Select } from '@chakra-ui/react';
 import { ChangeEvent, memo, useEffect } from 'react';
 import { InputProps } from './props';
 
-export const DropDownInput = memo(
-    ({ value, setValue, input, isLocked }: InputProps<'dropdown', string | number>) => {
-        const { options } = input;
-        const def = options[0].value;
+type DropDownInputProps = Pick<
+    InputProps<'dropdown', string | number>,
+    'value' | 'setValue' | 'input' | 'isLocked'
+>;
 
-        const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-            setValue(options[Number(event.target.value)]?.value ?? def);
-        };
+export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDownInputProps) => {
+    const { options } = input;
+    const def = options[0].value;
 
-        useEffect(() => {
-            if (value === undefined) {
-                setValue(def);
-            }
-        }, []);
+    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        setValue(options[Number(event.target.value)]?.value ?? def);
+    };
 
-        let selection = options.findIndex((o) => o.value === value);
-        if (selection === -1) selection = 0;
+    useEffect(() => {
+        if (value === undefined) {
+            setValue(def);
+        }
+    }, []);
 
-        return (
-            <Select
-                className="nodrag"
-                disabled={isLocked}
-                draggable={false}
-                value={selection}
-                onChange={handleChange}
-            >
-                {options.map(({ option }, index) => (
-                    <option
-                        key={option}
-                        value={index}
-                    >
-                        {option}
-                    </option>
-                ))}
-            </Select>
-        );
-    }
-);
+    let selection = options.findIndex((o) => o.value === value);
+    if (selection === -1) selection = 0;
+
+    return (
+        <Select
+            className="nodrag"
+            disabled={isLocked}
+            draggable={false}
+            value={selection}
+            onChange={handleChange}
+        >
+            {options.map(({ option }, index) => (
+                <option
+                    key={option}
+                    value={index}
+                >
+                    {option}
+                </option>
+            ))}
+        </Select>
+    );
+});
