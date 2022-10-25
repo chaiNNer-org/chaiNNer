@@ -1,7 +1,14 @@
 import { NeverType, Type } from '@chainner/navi';
 import { memo, useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { Input, InputData, InputKind, InputSize, SchemaId } from '../../../common/common-types';
+import {
+    Input,
+    InputData,
+    InputKind,
+    InputSize,
+    InputValue,
+    SchemaId,
+} from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { DirectoryInput } from './DirectoryInput';
@@ -38,20 +45,36 @@ export interface SingleInputProps {
     isLocked: boolean;
     inputData: InputData;
     inputSize: InputSize | undefined;
+    onSetValue?: (value: InputValue) => void;
 }
 /**
  * Represents a single input from a schema's input list.
  */
 export const SchemaInput = memo(
-    ({ input, schemaId, nodeId, isLocked, inputData, inputSize }: SingleInputProps) => {
+    ({ input, schemaId, nodeId, isLocked, inputData, inputSize, onSetValue }: SingleInputProps) => {
         const { id: inputId, kind, hasHandle, optional, label } = input;
 
-        const { useInputData, useInputSize: useInputSizeContext } = useContext(GlobalContext);
+        const {
+            getNodeInputValue,
+            setNodeInputValue,
+            useInputSize: useInputSizeContext,
+        } = useContext(GlobalContext);
         const definitionType = useContextSelector(BackendContext, (c) =>
             c.functionDefinitions.get(schemaId)?.inputDefaults.get(inputId)
         );
 
-        const [value, setValue, resetValue] = useInputData(nodeId, inputId, inputData);
+        const value = getNodeInputValue(inputId, inputData);
+        const setValue = useCallback(
+            (data: NonNullable<InputValue>) => {
+                setNodeInputValue(nodeId, inputId, data);
+                onSetValue?.(data);
+            },
+            [nodeId, inputId, setNodeInputValue]
+        );
+        const resetValue = useCallback(() => {
+            setNodeInputValue(nodeId, inputId, undefined);
+            onSetValue?.(undefined);
+        }, [nodeId, inputId, setNodeInputValue]);
 
         const useInputConnected = useCallback((): boolean => {
             // TODO: move the function call into the selector

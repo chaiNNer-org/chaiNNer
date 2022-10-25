@@ -122,11 +122,6 @@ interface Global {
         inputData: InputData
     ) => T | undefined;
     setNodeInputValue: <T extends InputValue>(nodeId: string, inputId: InputId, value: T) => void;
-    useInputData: <T extends NonNullable<InputValue>>(
-        id: string,
-        inputId: InputId,
-        inputData: InputData
-    ) => readonly [T | undefined, (data: T) => void, () => void];
     useInputSize: (
         id: string,
         inputId: InputId,
@@ -792,22 +787,6 @@ export const GlobalProvider = memo(
             [modifyNode, addInputDataChanges]
         );
 
-        const useInputData = useCallback(
-            // eslint-disable-next-line prefer-arrow-functions/prefer-arrow-functions, func-names
-            function <T extends NonNullable<InputValue>>(
-                id: string,
-                inputId: InputId,
-                inputData: InputData
-            ): readonly [T | undefined, (data: T) => void, () => void] {
-                return [
-                    getNodeInputValue(inputId, inputData),
-                    (data) => setNodeInputValue(id, inputId, data),
-                    () => setNodeInputValue(id, inputId, undefined),
-                ] as const;
-            },
-            [setNodeInputValue]
-        );
-
         const useInputSize = useCallback(
             (
                 id: string,
@@ -1108,7 +1087,6 @@ export const GlobalProvider = memo(
             unAnimate,
             getNodeInputValue,
             setNodeInputValue,
-            useInputData,
             useInputSize,
             toggleNodeLock,
             clearNode,
