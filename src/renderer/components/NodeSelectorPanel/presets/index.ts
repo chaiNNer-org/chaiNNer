@@ -1,5 +1,8 @@
 import { Edge, Node } from 'reactflow';
-import simpleExample from './simple_example.json';
+import batchUpscale from './PRESET -- batch_upscale.json';
+import captionedMultiUpscaleComparison from './PRESET -- captioned_multi_upscale_comparison.json';
+import captionedUpscale from './PRESET -- captioned_upscale.json';
+import separatedTransparencyUpscale from './PRESET -- separated_transaprency_upscale.json';
 
 export interface PresetFile {
     version: string;
@@ -21,9 +24,28 @@ export interface Preset {
 
 export const presets = [
     {
-        name: 'Simple Example',
+        name: 'Separated Transparency Upscale',
         author: 'chaiNNer',
-        description: 'A simple example preset for development purposes',
-        chain: simpleExample,
+        description: 'A simple way of upscaling the RGB and Alpha channels separately.',
+        chain: separatedTransparencyUpscale,
+    },
+    {
+        name: 'Batch Upscale',
+        author: 'chaiNNer',
+        description: 'A simple example of a batch upscale.',
+        chain: batchUpscale,
+    },
+    {
+        name: 'Captioned Upscale',
+        author: 'chaiNNer',
+        description: 'Upscaling and attaching a caption to the output.',
+        chain: captionedUpscale,
+    },
+    {
+        name: 'Captioned Multi-Upscale Comparison',
+        author: 'chaiNNer',
+        description:
+            'Upscaling with multiple models and making a comparison between them, with captions.',
+        chain: captionedMultiUpscaleComparison,
     },
 ];
