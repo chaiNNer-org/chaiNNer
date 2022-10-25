@@ -117,7 +117,7 @@ export const PackageHintText = memo(
         <>
             <Text>
                 {hint ||
-                    `A critical import error has occurred with a mandatory dependency: ${packageName}.`}
+                    `A critical import error has occurred with a dependency in package: ${packageName}.`}
             </Text>
             <Text display={hint ? 'inherit' : 'none'}>
                 <em>Click</em> to open the dependency manager to install {packageName}.
