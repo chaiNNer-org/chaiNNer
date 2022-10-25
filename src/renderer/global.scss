@@ -22,6 +22,12 @@ body {
     display: none;
 }
 
+.react-flow__node:focus,
+:focus-visible,
+:focus-within {
+    outline: none;
+}
+
 @keyframes logo-dashdraw {
     from {
         stroke-dashoffset: 10;
