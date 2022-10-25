@@ -113,10 +113,13 @@ interface PackageHintProps {
 }
 
 export const PackageHintText = memo(
-    ({ hint, packageName }: { hint: string; packageName: string }) => (
+    ({ hint, packageName }: { hint?: string; packageName: string }) => (
         <>
-            <Text>{hint}</Text>
             <Text>
+                {hint ||
+                    `A critical import error has occurred with a mandatory dependency: ${packageName}.`}
+            </Text>
+            <Text display={hint ? 'inherit' : 'none'}>
                 <em>Click</em> to open the dependency manager to install {packageName}.
             </Text>
         </>
@@ -130,7 +133,7 @@ export const PackageHint = memo(({ collapsed, onClick, hint, packageName }: Pack
                 noWrap
                 collapsed={collapsed}
                 height="1.5rem"
-                text="Missing dependencies."
+                text={hint ? 'Missing dependencies.' : 'Unable to import node(s).'}
                 toolTip={
                     <PackageHintText
                         hint={hint}

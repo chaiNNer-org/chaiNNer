@@ -36,9 +36,32 @@ from response import (
     successResponse,
 )
 
+
+class AppContext:
+    def __init__(self):
+        self.executor: Optional[Executor] = None
+        self.cache: Dict[NodeId, Output] = dict()
+        # This will be initialized by setup_queue.
+        # This is necessary because we don't know Sanic's event loop yet.
+        self.queue: EventQueue = None  # type: ignore
+        self.pool = ThreadPoolExecutor(max_workers=4)
+
+    @staticmethod
+    def get(app_instance: Sanic) -> "AppContext":
+        assert isinstance(app_instance.ctx, AppContext)
+        return app_instance.ctx
+
+
+app = Sanic("chaiNNer", ctx=AppContext())
+app.config.REQUEST_TIMEOUT = sys.maxsize
+app.config.RESPONSE_TIMEOUT = sys.maxsize
+CORS(app)
+
+
 missing_node_count = 0
 categories = set()
 missing_categories = set()
+missing_module_errors = set()
 
 # Dynamically import all nodes
 for root, dirs, files in os.walk(
@@ -55,6 +78,7 @@ for root, dirs, files in os.walk(
             except ImportError as e:
                 missing_node_count += 1
                 logger.debug(f"Failed to import {module}: {e}")
+                missing_module_errors.add(str(e))
 
                 # Turn path into __init__.py path
                 init_module = module.split(".")
@@ -64,7 +88,7 @@ for root, dirs, files in os.walk(
                     category = getattr(importlib.import_module(init_module), "category")
                     missing_categories.add(category.name)
                 except ImportError as ie:
-                    logger.debug(ie)
+                    logger.info(ie)
                 except Exception as oe:
                     logger.error(
                         f"A critical error occurred when importing module {init_module}: {oe}"
@@ -87,30 +111,17 @@ for root, dirs, files in os.walk(
                 pass
 
 
+if len(missing_module_errors) > 0:
+    logger.warning(
+        f"Failed to import {missing_node_count} nodes. "
+        f"Missing categories: {missing_categories}. "
+        f"Missing modules: {missing_module_errors}"
+    )
+
+
 categories = sorted(
     list(categories), key=lambda category: category_order.index(category.name)
 )
-
-
-class AppContext:
-    def __init__(self):
-        self.executor: Optional[Executor] = None
-        self.cache: Dict[NodeId, Output] = dict()
-        # This will be initialized by setup_queue.
-        # This is necessary because we don't know Sanic's event loop yet.
-        self.queue: EventQueue = None  # type: ignore
-        self.pool = ThreadPoolExecutor(max_workers=4)
-
-    @staticmethod
-    def get(app_instance: Sanic) -> "AppContext":
-        assert isinstance(app_instance.ctx, AppContext)
-        return app_instance.ctx
-
-
-app = Sanic("chaiNNer", ctx=AppContext())
-app.config.REQUEST_TIMEOUT = sys.maxsize
-app.config.RESPONSE_TIMEOUT = sys.maxsize
-CORS(app)
 
 
 class SSEFilter(logging.Filter):
