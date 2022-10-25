@@ -1,4 +1,4 @@
-import { Box, HStack, Text, VStack } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
 import { IoMdArrowForward } from 'react-icons/io';
 import { useContext } from 'use-context-selector';
@@ -44,48 +44,27 @@ export const FromToDropdownsGroup = memo(
                 generic
                 optional={false}
             >
-                <VStack
+                <HStack
                     mb={2}
-                    spacing={0}
+                    mt={2}
+                    w="full"
                 >
-                    <HStack w="full">
-                        <Text
-                            fontSize="xs"
-                            lineHeight="0.9rem"
-                            p={1}
-                            textAlign="center"
-                            w="full"
-                        >
-                            {from.label}
-                        </Text>
-                        <Text
-                            fontSize="xs"
-                            lineHeight="0.9rem"
-                            p={1}
-                            textAlign="center"
-                            w="full"
-                        >
-                            {to.label}
-                        </Text>
-                    </HStack>
-                    <HStack w="full">
-                        <DropDown
-                            input={from}
-                            inputData={inputData}
-                            isLocked={isLocked}
-                            nodeId={nodeId}
-                        />
-                        <Box>
-                            <IoMdArrowForward />
-                        </Box>
-                        <DropDown
-                            input={to}
-                            inputData={inputData}
-                            isLocked={isLocked}
-                            nodeId={nodeId}
-                        />
-                    </HStack>
-                </VStack>
+                    <DropDown
+                        input={from}
+                        inputData={inputData}
+                        isLocked={isLocked}
+                        nodeId={nodeId}
+                    />
+                    <Box>
+                        <IoMdArrowForward />
+                    </Box>
+                    <DropDown
+                        input={to}
+                        inputData={inputData}
+                        isLocked={isLocked}
+                        nodeId={nodeId}
+                    />
+                </HStack>
             </InputContainer>
         );
     }
