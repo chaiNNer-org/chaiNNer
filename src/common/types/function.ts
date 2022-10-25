@@ -196,7 +196,7 @@ const evaluateInputOptions = (
 ): Map<InputId, Map<InputSchemaValue, NonNeverType>> => {
     const result = new Map<InputId, Map<InputSchemaValue, NonNeverType>>();
     for (const input of schema.inputs) {
-        if (input.kind === 'dropdown' && input.options) {
+        if (input.kind === 'dropdown') {
             const options = new Map<InputSchemaValue, NonNeverType>();
             result.set(input.id, options);
             for (const o of input.options) {
