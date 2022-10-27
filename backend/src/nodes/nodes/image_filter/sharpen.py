@@ -17,7 +17,7 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image using an unsharp mask."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount"),
+            NumberInput("Amount", default=1, minimum=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
