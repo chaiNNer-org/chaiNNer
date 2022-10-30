@@ -135,16 +135,4 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## FAQ
 
-**What does the name mean?**
-
-- chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
-
-**Why not just use Cupscale/IEU/CLI?**
-
-- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
-
-- Cupscale and IEU are also seemingly no longer maintained at the moment, while chaiNNer is being actively worked on still.
-
-**Wouldn't this make it more difficult to do things?**
-
-- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/chaiNNer/blob/main/FAQ.md).
