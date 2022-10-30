@@ -30,7 +30,7 @@
 
 ## Has AMD/Intel GPU, PyTorch using CPU
 
-- PyTorch can only use Nvidia GPUs. In this case, you would want to try using NCNN as the processing framework instead. You can convert any supported PyTorch models to NCNN through chaiNNer (just be sure to also install ONNX as it is needed in the conversion process).
+- PyTorch can only use Nvidia GPUs. In this case, you would want to try using NCNN as the processing framework instead. You can convert most supported PyTorch models to NCNN through chaiNNer (just be sure to also install ONNX as it is needed in the conversion process).
 
 ## Checked logs and see `CUDA_INITIALIZE` errors
 
