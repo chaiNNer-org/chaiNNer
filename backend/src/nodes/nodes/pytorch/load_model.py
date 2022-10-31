@@ -65,8 +65,7 @@ class LoadModelNode(NodeBase):
                 model = model.float()
         except ValueError as e:
             raise e
-        except Exception as e:
-            logger.error(e)
+        except Exception:
             # pylint: disable=raise-missing-from
             raise ValueError(
                 f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try another."
