@@ -1,3 +1,4 @@
+# pylint: skip-file
 # -----------------------------------------------------------------------------------
 # Swin2SR: Swin2SR: SwinV2 Transformer for Compressed Image Super-Resolution and Restoration, https://arxiv.org/abs/2209.11345
 # Written by Conde and Choi et al.
@@ -11,7 +12,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import re
-import math
 
 # Originally from the timm package
 from .timm.drop import DropPath
