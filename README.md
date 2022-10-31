@@ -107,6 +107,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 - [Real-ESRGAN Compact](https://github.com/xinntao/Real-ESRGAN) (SRVGGNet)
 - [Swift-SRGAN](https://github.com/Koushik0901/Swift-SRGAN)
 - [SwinIR](https://github.com/JingyunLiang/SwinIR)
+- [Swin2SR](https://github.com/mv-lab/swin2sr)
 
 #### Face Restoration
 
