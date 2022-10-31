@@ -123,43 +123,7 @@ chaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ## Troubleshooting
 
-### Has Nvidia GPU, PyTorch using CPU
-
-- Check the dependency manager and ensure it installed the +cu113 version. If it did not, and it says CUDA supported at the top, then uninstall and reinstall PyTorch.
-
-- Check to make sure you have the `nvidia-smi` command available to you. Open a terminal (command prompt, powershell, windows terminal) and type `nvidia-smi`. If it errors, reinstall your drivers and restart your computer.
-
-- If chaiNNer or a terminal still isn't able to use `nvidia-smi`, try [adding your System32 folder to your PATH environment variable](https://www.computerhope.com/issues/ch000549.htm). Make sure to restart your computer after.
-
-### Has AMD/Intel GPU, PyTorch using CPU
-
-- PyTorch can only use Nvidia GPUs. In this case, you would want to try using NCNN as the processing framework instead. You can convert any supported PyTorch models to NCNN through chaiNNer (just be sure to also install ONNX as it is needed in the conversion process).
-
-### Checked logs and see `CUDA_INITIALIZE` errors
-
-- Ensure your drivers are up to date. Outdated drivers might not support the CUDA version that PyTorch and ONNX rely on.
-
-- Ensure your GPU isn't too old. Your GPU needs to be able to support CUDA 11.3. If it only supports CUDA 10 for example, you'll need to manually install an older PyTorch version to your system Python and set chaiNNer to use system Python. However, if you do this we cannot guarantee everything will work properly.
-
-### vkQueueSubmit error with NCNN
-
-- If you are using an auto-tiling mode, try setting a manual number of tiles (start with 4 and work your way up until it works)
-
-- If you are on Windows, you can try using [this](https://github.com/chaiNNer-org/chaiNNer/issues/913#issuecomment-1247849063) fix suggested by one of the NCNN devs.
-
-### "ChaiNNer was unable to install its integrated Python environment" message or simply fails to start up
-
-- Ensure you have access to the internet and that you did not restrict chaiNNer from accessing the internet. ChaiNNer needs internet access in order to download its Python environment and the required dependencies.
-
-- If you do have internet access, try going to your `%appdata%/chaiNNer` (windows), `.config/chaiNNer` (linux), or `Application Support/chaiNNer` folder, and deleting the Python folder that is there. This will force chaiNNer to download Python again if the previous download was corrupt.
-
-- If this all does not work, you can force chaiNNer to use system Python. Right now this is not configurable via the UI without being able to start up first, so you need to go to your data folder mentioned above, go to `/settings`, and either find or create a `use-system-python` text file (with no extension) that just contains the word `true`. In order for this to work, you need to have Python installed to your system.
-
-### Integrated Python downloaded, but failed to start up after installing dependencies
-
-- If you are on an older macOS version, such as any version below 10.15, this is unavoidable and you currently cannot use chaiNNer. This is due to a dependency (opencv) that we simply cannot work around at this time.
-
-- If you are on Windows 7, you can try following the advice for the above message related to forcing system Python, and just install Python 3.8. However, we do not officially support Windows 7 and we recommend you upgrade to at least 10.
+For troubleshooting information, view the [troubleshooting document](https://github.com/chaiNNer-org/chaiNNer/blob/main/troubleshooting.md).
 
 ## Building chaiNNer Yourself
 
@@ -171,16 +135,4 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## FAQ
 
-**What does the name mean?**
-
-- chaiNNer is a play on the fact that you can "chain" different tasks together, with the NN in the name being a common abbreviation for Neural Networks. This is following the brilliant naming scheme of victorca25's machine learning tools (traiNNer, iNNfer, augmeNNt) which he granted me permission to use for this as well.
-
-**Why not just use Cupscale/IEU/CLI?**
-
-- All of these tools are viable options, but as anyone who has used them before knows they can be limited in what they can do. Many features like chaining or interpolating models are hardcoded and provide little flexibility. Certain features that would be useful, like being able to use a separate model on the alpha layer of an image for example, just do not exist in Cupscale. Inversely, you can pretty much do whatever you want with chaiNNer provided there are nodes implemented. Whatever weird feature you want implemented, you can implement yourself by connecting nodes however you want. Cupscale also does not have other image processing abilities like chaiNNer does, such as adjusting contrast.
-
-- Cupscale and IEU are also seemingly no longer maintained at the moment, while chaiNNer is being actively worked on still.
-
-**Wouldn't this make it more difficult to do things?**
-
-- In a way, yes. Similarly to how programming your own script to do this stuff is more difficult, chaiNNer will also be a bit more difficult than simply dragging and dropping an image and messing with some sliders and pressing an upscale button. However, this gives you a lot more flexibility in what you can do. The added complexity is really just connecting some dots together to do what you want. That doesn't sound that bad, right?
+For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/chaiNNer/blob/main/FAQ.md).
