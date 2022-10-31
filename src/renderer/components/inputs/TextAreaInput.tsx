@@ -6,32 +6,28 @@ import { useDebouncedCallback } from 'use-debounce';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputProps } from './props';
 
-interface TextAreaInputProps extends InputProps {
-    resizable: boolean;
-}
-
 export const TextAreaInput = memo(
-    ({ label, inputId, useInputData, useInputSize, isLocked, resizable }: TextAreaInputProps) => {
+    ({ value, setValue, input, isLocked, useInputSize }: InputProps<'text', string>) => {
+        const { label, resizable } = input;
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        const [input, setInput] = useInputData<string>(inputId);
-        const [size, setSize] = useInputSize(inputId);
+        const [size, setSize] = useInputSize();
         const [tempText, setTempText] = useState('');
 
         useEffect(() => {
             if (!size) {
                 setSize({ width: 320, height: 240 });
             }
-            if (!input) {
-                setInput('');
+            if (!value) {
+                setValue('');
             } else {
-                setTempText(input);
+                setTempText(value);
             }
         }, []);
 
         const handleChange = useDebouncedCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
             const text = event.target.value;
-            setInput(text);
+            setValue(text);
         }, 500);
 
         return (

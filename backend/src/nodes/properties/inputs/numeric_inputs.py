@@ -56,7 +56,7 @@ class NumberInput(BaseInput):
         super().__init__("number", label, kind=kind, has_handle=True)
         self.precision = precision
         # controls_step is for increment/decrement arrows.
-        self.controls_step = (
+        self.controls_step: Union[float, int] = (
             controls_step if controls_step is not None else 10**-precision
         )
         self.default = default

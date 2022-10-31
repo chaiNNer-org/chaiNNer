@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from . import category as ImageUtilityCategory
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
@@ -28,8 +28,10 @@ class ColorConvertNode(NodeBase):
         )
         self.inputs = [
             ImageInput(image_type=expression.Image(channels="Input1.channels")),
-            ColorSpaceInput(label="From", detector=True),
-            ColorSpaceInput(label="To"),
+            group("from-to-dropdowns")(
+                ColorSpaceInput(label="From", detector=True),
+                ColorSpaceInput(label="To"),
+            ),
         ]
         self.outputs = [
             ImageOutput(

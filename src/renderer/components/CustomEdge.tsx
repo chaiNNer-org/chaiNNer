@@ -58,12 +58,12 @@ export const CustomEdge = memo(
 
         const [isHovered, setIsHovered] = useState(false);
 
-        const { inOutId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
+        const { outputId } = useMemo(() => parseSourceHandle(sourceHandleId!), [sourceHandleId]);
         const definitionType = functionDefinitions
             .get(parentNode.data.schemaId)!
-            .outputDefaults.get(inOutId)!;
+            .outputDefaults.get(outputId)!;
         const type = useContextSelector(GlobalVolatileContext, (c) =>
-            c.typeState.functions.get(source)?.outputs.get(inOutId)
+            c.typeState.functions.get(source)?.outputs.get(outputId)
         );
 
         const [accentColor] = getTypeAccentColors(type || definitionType);

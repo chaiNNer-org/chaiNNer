@@ -1,3 +1,4 @@
+import { isNumericLiteral } from '@chainner/navi';
 import {
     HStack,
     Slider,
@@ -9,25 +10,9 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { useContextSelector } from 'use-context-selector';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getTypeAccentColors } from '../../helpers/getTypeAccentColors';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
 import { InputProps } from './props';
-
-interface SliderInputProps extends InputProps {
-    min: number;
-    max: number;
-    precision: number;
-    controlsStep: number;
-    sliderStep: number;
-    def: number;
-    unit?: string | null;
-    ends: [string | null, string | null];
-    noteExpression?: string;
-    hideTrailingZeros: boolean;
-    gradient?: string[];
-}
 
 const tryEvaluate = (expression: string, args: Record<string, unknown>): string | undefined => {
     try {
@@ -42,42 +27,41 @@ const tryEvaluate = (expression: string, args: Record<string, unknown>): string 
 
 export const SliderInput = memo(
     ({
-        id,
-        inputId,
-        useInputData,
-        def,
-        min,
-        max,
-        precision,
-        controlsStep,
-        sliderStep,
-        unit,
-        ends,
-        noteExpression,
-        hideTrailingZeros,
+        value,
+        setValue,
+        input,
         isLocked,
         definitionType,
-        gradient,
-    }: SliderInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            id,
-            inputId
-        );
+        useInputConnected,
+        useInputType,
+    }: InputProps<'slider', number>) => {
+        const {
+            def,
+            min,
+            max,
+            precision,
+            controlsStep,
+            sliderStep,
+            unit,
+            hideTrailingZeros,
+            noteExpression,
+            ends,
+            gradient,
+        } = input;
 
-        const [input, setInput] = useInputData<number>(inputId);
-        const [inputString, setInputString] = useState(String(input));
-        const [sliderValue, setSliderValue] = useState(input ?? def);
+        const [inputString, setInputString] = useState(String(value));
+        const [sliderValue, setSliderValue] = useState(value ?? def);
         const [showTooltip, setShowTooltip] = useState(false);
 
         const precisionOutput = (val: number) =>
             hideTrailingZeros ? String(val) : val.toFixed(precision);
 
         useEffect(() => {
-            setSliderValue(input ?? def);
-            if (!Number.isNaN(input)) {
-                setInputString(precisionOutput(input ?? def));
+            setSliderValue(value ?? def);
+            if (!Number.isNaN(value)) {
+                setInputString(precisionOutput(value ?? def));
             }
-        }, [input]);
+        }, [value]);
 
         const onSliderChange = (sliderInput: number) => {
             setInputString(precisionOutput(sliderInput));
@@ -91,15 +75,12 @@ export const SliderInput = memo(
 
         const [typeAccentColor] = getTypeAccentColors(definitionType);
 
-        const typeNumber = useContextSelector(GlobalVolatileContext, (c) => {
-            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
-            return type && type.underlying === 'number' && type.type === 'literal'
-                ? type.value
-                : undefined;
-        });
+        const isInputConnected = useInputConnected();
+        const inputType = useInputType();
+        const typeNumber = isNumericLiteral(inputType) ? inputType.value : undefined;
         const typeNumberString = typeNumber !== undefined ? precisionOutput(typeNumber) : '';
 
-        const displaySliderValue: number = isInputLocked ? typeNumber ?? def : sliderValue;
+        const displaySliderValue: number = isInputConnected ? typeNumber ?? def : sliderValue;
         const expr = noteExpression
             ? tryEvaluate(noteExpression, {
                   min,
@@ -116,13 +97,13 @@ export const SliderInput = memo(
                     <Slider
                         defaultValue={def}
                         focusThumbOnChange={false}
-                        isDisabled={isLocked || isInputLocked}
+                        isDisabled={isLocked || isInputConnected}
                         max={max}
                         min={min}
                         step={sliderStep}
                         value={displaySliderValue}
                         onChange={onSliderChange}
-                        onChangeEnd={setInput}
+                        onChangeEnd={setValue}
                         onDoubleClick={() => onSliderChange(def)}
                         onMouseEnter={() => setShowTooltip(true)}
                         onMouseLeave={() => setShowTooltip(false)}
@@ -156,12 +137,12 @@ export const SliderInput = memo(
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputString={isInputLocked ? typeNumberString : inputString}
-                        isDisabled={isLocked || isInputLocked}
+                        inputString={isInputConnected ? typeNumberString : inputString}
+                        isDisabled={isLocked || isInputConnected}
                         max={max}
                         min={min}
                         precision={precision}
-                        setInput={setInput}
+                        setInput={setValue}
                         setInputString={onNumberInputChange}
                         unit={unit}
                     />

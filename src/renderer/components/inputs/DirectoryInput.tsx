@@ -12,9 +12,7 @@ import { shell } from 'electron';
 import { memo } from 'react';
 import { BsFolderPlus } from 'react-icons/bs';
 import { MdFolder } from 'react-icons/md';
-import { useContextSelector } from 'use-context-selector';
 import { ipcRenderer } from '../../../common/safeIpc';
-import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
 import { InputProps } from './props';
@@ -34,40 +32,37 @@ const getDirectoryPath = (type: Type): string | undefined => {
     return undefined;
 };
 
-type DirectoryInputProps = InputProps;
-
 export const DirectoryInput = memo(
-    ({ id, inputId, isLocked, useInputData, schemaId }: DirectoryInputProps) => {
-        const isInputLocked = useContextSelector(GlobalVolatileContext, (c) => c.isNodeInputLocked)(
-            id,
-            inputId
-        );
-
-        const [directory, setDirectory] = useInputData<string>(inputId);
-        const { getLastDirectory, setLastDirectory } = useLastDirectory(`${schemaId} ${inputId}`);
+    ({
+        value,
+        setValue,
+        isLocked,
+        inputKey,
+        useInputConnected,
+        useInputType,
+    }: InputProps<'directory', string>) => {
+        const { getLastDirectory, setLastDirectory } = useLastDirectory(inputKey);
 
         const onButtonClick = async () => {
             const { canceled, filePaths } = await ipcRenderer.invoke(
                 'dir-select',
-                directory ?? getLastDirectory() ?? ''
+                value ?? getLastDirectory() ?? ''
             );
             const path = filePaths[0];
             if (!canceled && path) {
-                setDirectory(path);
+                setValue(path);
                 setLastDirectory(path);
             }
         };
 
-        const typeDirectory = useContextSelector(GlobalVolatileContext, (c) => {
-            const type = c.typeState.functions.get(id)?.inputs.get(inputId);
-            return type ? getDirectoryPath(type) : undefined;
-        });
-        const displayDirectory = isInputLocked ? typeDirectory : directory;
+        const isInputConnected = useInputConnected();
+        const inputType = useInputType();
+        const displayDirectory = isInputConnected ? getDirectoryPath(inputType) : value;
 
         const menu = useContextMenu(() => (
             <MenuList className="nodrag">
                 <MenuItem
-                    disabled={isLocked || isInputLocked}
+                    disabled={isLocked || isInputConnected}
                     icon={<BsFolderPlus />}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onClick={onButtonClick}
@@ -106,7 +101,7 @@ export const DirectoryInput = memo(
                         isReadOnly
                         className="nodrag"
                         cursor="pointer"
-                        disabled={isLocked || isInputLocked}
+                        disabled={isLocked || isInputConnected}
                         draggable={false}
                         placeholder="Select a directory..."
                         textOverflow="ellipsis"

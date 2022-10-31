@@ -32,7 +32,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon, category, name } = schema;
+    const { icon, category, name } = schema;
 
     const regularBorderColor = 'var(--node-border-color)';
     const accentColor = getNodeAccentColor(category);
@@ -97,13 +97,10 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
                         selected={selected}
                     />
                     <NodeBody
-                        accentColor={accentColor}
                         id={id}
                         inputData={inputData}
-                        inputs={inputs}
                         isLocked={isLocked}
-                        outputs={outputs}
-                        schemaId={schemaId}
+                        schema={schema}
                     />
                 </VStack>
                 <NodeFooter

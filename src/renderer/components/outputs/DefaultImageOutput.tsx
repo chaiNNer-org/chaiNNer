@@ -73,7 +73,7 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                             (e) =>
                                 e.source === id &&
                                 e.sourceHandle &&
-                                parseSourceHandle(e.sourceHandle).inOutId === outputId
+                                parseSourceHandle(e.sourceHandle).outputId === outputId
                         )
                         .map((e) => e.target)
                         .find((i) => byId.get(i)?.data.schemaId === VIEW_SCHEMA_ID);
@@ -103,9 +103,9 @@ export const DefaultImageOutput = memo(({ label, id, outputId, useOutputData }: 
                         );
                         createConnection({
                             source: id,
-                            sourceHandle: stringifySourceHandle(id, outputId),
+                            sourceHandle: stringifySourceHandle({ nodeId: id, outputId }),
                             target: nodeId,
-                            targetHandle: stringifyTargetHandle(nodeId, 0 as InputId),
+                            targetHandle: stringifyTargetHandle({ nodeId, inputId: 0 as InputId }),
                         });
                     }
                 }}

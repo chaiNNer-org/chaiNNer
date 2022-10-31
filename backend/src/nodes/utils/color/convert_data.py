@@ -14,7 +14,7 @@ HSV = ColorSpace(4, "HSV", 3)
 HSL = ColorSpace(5, "HSL", 3)
 CMYK = ColorSpace(6, "CMYK", 4)
 
-RGB_LIKE = ColorSpaceDetector(1000, "Gray/RGB/RGBA", [GRAY, RGB, RGBA])
+RGB_LIKE = ColorSpaceDetector(1000, "Gray/RGB", [GRAY, RGB, RGBA])
 
 color_spaces: List[ColorSpace] = [
     RGB,

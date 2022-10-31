@@ -170,6 +170,7 @@ async def nodes(_):
             "category": node_object.category.name,
             "inputs": [x.toDict() for x in node_object.inputs],
             "outputs": [x.toDict() for x in node_object.outputs],
+            "groups": [g.toDict() for g in node_object.groups],
             "description": node_object.description,
             "icon": node_object.icon,
             "subcategory": node_object.sub,
