@@ -17,7 +17,7 @@ class SharpenNode(NodeBase):
         self.description = "Apply sharpening to an image using an unsharp mask."
         self.inputs = [
             ImageInput(),
-            NumberInput("Amount"),
+            NumberInput("Amount", precision=1, controls_step=1),
         ]
         self.outputs = [ImageOutput(image_type="Input0")]
         self.category = ImageFilterCategory
@@ -31,6 +31,9 @@ class SharpenNode(NodeBase):
         amount: float,
     ) -> np.ndarray:
         """Adjusts the sharpening of an image"""
+
+        if amount == 0:
+            return img
 
         blurred = cv2.GaussianBlur(img, (0, 0), amount)
         img = cv2.addWeighted(img, 2.0, blurred, -1.0, 0)

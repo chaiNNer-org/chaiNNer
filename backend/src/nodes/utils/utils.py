@@ -308,10 +308,11 @@ def resize_to_side_conditional(
     return w_new, h_new
 
 
-def numerical_sort(value: str) -> List[Union[str, int]]:
+def alphanumeric_sort(value: str) -> List[Union[str, int]]:
     """Key function to sort strings containing numbers by proper
     numerical order."""
 
-    parts = NUMBERS.split(value)
+    lcase_value = value.upper()
+    parts = NUMBERS.split(lcase_value)
     parts[1::2] = map(int, parts[1::2])
     return parts  # type: ignore

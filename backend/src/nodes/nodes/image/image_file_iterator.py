@@ -19,7 +19,7 @@ from ...properties.outputs import (
     NumberOutput,
 )
 from ...utils.image_utils import get_available_image_formats
-from ...utils.utils import numerical_sort
+from ...utils.utils import alphanumeric_sort
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -95,8 +95,8 @@ class ImageFileIteratorNode(IteratorNodeBase):
         ):
             await context.progress.suspend()
 
-            dirs.sort(key=numerical_sort)
-            for name in sorted(files, key=numerical_sort):
+            dirs.sort(key=alphanumeric_sort)
+            for name in sorted(files, key=alphanumeric_sort):
                 filepath = os.path.join(root, name)
                 _base, ext = os.path.splitext(filepath)
                 if ext.lower() in supported_filetypes:
