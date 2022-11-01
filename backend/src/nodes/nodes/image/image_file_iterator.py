@@ -19,7 +19,7 @@ from ...properties.outputs import (
     NumberOutput,
 )
 from ...utils.image_utils import get_available_image_formats
-from ...utils.utils import alphanumeric_sort
+from ...utils.utils import alphanumeric_sort, walk_sorted
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -84,23 +84,7 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
         supported_filetypes = get_available_image_formats()
 
-        def walk_error_handler(exception_instance):
-            logger.warning(
-                f"Exception occurred during walk: {exception_instance} Continuing..."
-            )
-
-        just_image_files: List[str] = []
-        for root, dirs, files in os.walk(
-            directory, topdown=True, onerror=walk_error_handler
-        ):
-            await context.progress.suspend()
-
-            dirs.sort(key=alphanumeric_sort)
-            for name in sorted(files, key=alphanumeric_sort):
-                filepath = os.path.join(root, name)
-                _base, ext = os.path.splitext(filepath)
-                if ext.lower() in supported_filetypes:
-                    just_image_files.append(filepath)
+        just_image_files: List[str] = walk_sorted(directory, supported_filetypes)
 
         def before(filepath: str, index: int):
             context.inputs.set_values(img_path_node_id, [filepath, directory, index])

@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 from typing import Callable, List, Tuple, Type, Union
-import cv2
 import re
+import os
+import cv2
 
 import numpy as np
 from sanic.log import logger
@@ -316,3 +317,21 @@ def alphanumeric_sort(value: str) -> List[Union[str, int]]:
     parts = NUMBERS.split(lcase_value)
     parts[1::2] = map(int, parts[1::2])
     return parts  # type: ignore
+
+
+def walk_error_handler(exception_instance):
+    logger.warning(
+        f"Exception occurred during walk: {exception_instance} Continuing..."
+    )
+
+
+def walk_sorted(path: str, ext_filter: Union[List[str], None] = None) -> List[str]:
+    just_files: List[str] = []
+    for root, dirs, files in os.walk(path, topdown=True, onerror=walk_error_handler):
+        dirs.sort(key=alphanumeric_sort)
+        for name in sorted(files, key=alphanumeric_sort):
+            filepath = os.path.join(root, name)
+            _base, ext = os.path.splitext(filepath)
+            if ext_filter is None or ext.lower() in ext_filter:
+                just_files.append(filepath)
+    return just_files
