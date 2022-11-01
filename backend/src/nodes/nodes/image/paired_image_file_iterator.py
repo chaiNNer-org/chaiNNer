@@ -19,7 +19,7 @@ from ...properties.outputs import (
     NumberOutput,
 )
 from ...utils.image_utils import get_available_image_formats
-from ...utils.utils import alphanumeric_sort, walk_sorted
+from ...utils.utils import walk_sorted
 
 PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 
