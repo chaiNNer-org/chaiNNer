@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from typing import Callable, List, Tuple, Type, Union
-import decimal
 import re
 import cv2
 
@@ -33,9 +32,7 @@ def round_half_up(number: Union[float, int]) -> int:
 
     https://en.wikipedia.org/wiki/Rounding#Rounding_to_the_nearest_integer
     """
-    return int(
-        decimal.Decimal(str(number)).to_integral_value(rounding=decimal.ROUND_HALF_UP)
-    )
+    return int(number + 0.5)
 
 
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
