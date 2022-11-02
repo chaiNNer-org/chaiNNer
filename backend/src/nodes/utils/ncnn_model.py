@@ -15,6 +15,8 @@ except:
     TensorProto = None
     onph = None
 
+from .onnx_tensor_utils import TensorProtoTypes as TPT
+
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "ncnn_param_schema.json"
 )
@@ -176,8 +178,8 @@ class NcnnParamCollection:
     ) -> None:
         self.op: str = op
         self.param_dict: Dict[int, NcnnParam] = {} if param_dict is None else param_dict
-        self.weight_order: List[str] = (
-            param_schema[self.op]["weightOrder"] if self.op else []
+        self.weight_order: Dict[str, List[int]] = (
+            param_schema[self.op]["weightOrder"] if self.op else {}
         )
 
     def __getitem__(self, pid: int) -> NcnnParam:
@@ -307,6 +309,13 @@ class NcnnLayer:
 
         if quantize_tag == DTYPE_FP16:
             data_array = data_array.astype(np.float16)
+        elif (
+            data_array.dtype == np.float16
+            and TPT.FLOAT16
+            not in param_schema[self.op_type]["weightOrder"][weight_name]
+        ):
+            # Convert invalid fp16 from ONNX model weights to fp32
+            data_array = data_array.astype(np.float32)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
         return len(quantize_tag) + len(data_array.tobytes())

@@ -1,6 +1,6 @@
 {
   "AbsVal": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ArgMax": {
     "0": {
@@ -13,7 +13,7 @@
       "paramPhase": "topk",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "BatchNorm": {
     "0": {
@@ -26,12 +26,12 @@
       "paramPhase": "eps",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "slope",
-      "mean",
-      "variance",
-      "bias"
-    ]
+    "weightOrder": {
+      "slope": [1],
+      "mean": [1],
+      "variance": [1],
+      "bias": [1]
+    }
   },
   "Bias": {
     "0": {
@@ -39,9 +39,9 @@
       "paramPhase": "bias_data_size",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "channels"
-    ]
+    "weightOrder": {
+      "channels": [1]
+    }
   },
   "BinaryOp": {
     "0": {
@@ -59,10 +59,10 @@
       "paramPhase": "b",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "BNLL": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Cast": {
     "0": {
@@ -75,7 +75,7 @@
       "paramPhase": "type_to",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Clip": {
     "0": {
@@ -88,7 +88,7 @@
       "paramPhase": "max",
       "defaultValue": "FLT_MAX"
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Concat": {
     "0": {
@@ -96,7 +96,7 @@
       "paramPhase": "axis",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Convolution": {
     "0": {
@@ -194,10 +194,10 @@
       "paramPhase": "dynamic_weight",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "Convolution1D": {
     "0": {
@@ -260,10 +260,10 @@
       "paramPhase": "dynamic_weight",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "ConvolutionDepthWise": {
     "0": {
@@ -361,10 +361,10 @@
       "paramPhase": "dynamic_weight",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "Crop": {
     "0": {
@@ -427,7 +427,7 @@
       "paramPhase": "axes",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Deconvolution": {
     "0": {
@@ -525,10 +525,10 @@
       "paramPhase": "output_h",
       "defaultValue": "output_w"
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "DeconvolutionDepthWise": {
     "0": {
@@ -631,10 +631,10 @@
       "paramPhase": "output_h",
       "defaultValue": "output_w"
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "Dequantize": {
     "0": {
@@ -652,9 +652,10 @@
       "paramPhase": "bias_data_size",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "bias"
-    ]
+    "weightOrder": {
+      "scale": [1],
+      "bias": [1]
+    }
   },
   "DetectionOutput": {
     "0": {
@@ -702,7 +703,7 @@
       "paramPhase": "variances[3]",
       "defaultValue": 0.2
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Dropout": {
     "0": {
@@ -710,7 +711,7 @@
       "paramPhase": "scale",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Eltwise": {
     "0": {
@@ -723,7 +724,7 @@
       "paramPhase": "coeffs",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ELU": {
     "0": {
@@ -731,7 +732,7 @@
       "paramPhase": "alpha",
       "defaultValue": 0.1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Embed": {
     "0": {
@@ -754,10 +755,10 @@
       "paramPhase": "weight_data_size",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "Exp": {
     "0": {
@@ -775,7 +776,7 @@
       "paramPhase": "shift",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ExpandDims": {
     "0": {
@@ -798,10 +799,10 @@
       "paramPhase": "axes",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Flatten": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "GRU": {
     "0": {
@@ -819,11 +820,11 @@
       "paramPhase": "direction",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "weight_xc",
-      "bias",
-      "weight_hc"
-    ]
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias": [1, 3, 10],
+      "weight_hc": [1, 3, 10]
+    }
   },
   "HardSigmoid": {
     "0": {
@@ -836,7 +837,7 @@
       "paramPhase": "beta",
       "defaultValue": 0.5
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "HardSwish": {
     "0": {
@@ -849,7 +850,7 @@
       "paramPhase": "beta",
       "defaultValue": 0.5
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "InnerProduct": {
     "0": {
@@ -882,10 +883,10 @@
       "paramPhase": "activation_params",
       "defaultValue": []
     },
-    "weightOrder": [
-      "weight",
-      "bias"
-    ]
+    "weightOrder": {
+      "weight": [1, 3, 10],
+      "bias": [1]
+    }
   },
   "Input": {
     "0": {
@@ -903,7 +904,7 @@
       "paramPhase": "c",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "InstanceNorm": {
     "0": {
@@ -921,10 +922,10 @@
       "paramPhase": "affine",
       "defaultValue": 1
     },
-    "weightOrder": [
-      "gamma",
-      "bias"
-    ]
+    "weightOrder": {
+      "gamma": [1],
+      "bias": [1]
+    }
   },
   "Interp": {
     "0": {
@@ -962,7 +963,7 @@
       "paramPhase": "align_corner",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Log": {
     "0": {
@@ -980,7 +981,7 @@
       "paramPhase": "shift",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "LRN": {
     "0": {
@@ -1008,7 +1009,7 @@
       "paramPhase": "bias",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "LSTM": {
     "0": {
@@ -1026,7 +1027,7 @@
       "paramPhase": "direction",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "MemoryData": {
     "0": {
@@ -1044,10 +1045,10 @@
       "paramPhase": "c",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Mish": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "MVN": {
     "0": {
@@ -1065,10 +1066,10 @@
       "paramPhase": "eps",
       "defaultValue": 0.0001
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Noop": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Normalize": {
     "0": {
@@ -1101,9 +1102,9 @@
       "paramPhase": "eps_mode",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "scale"
-    ]
+    "weightOrder": {
+      "scale": [1]
+    }
   },
   "Packing": {
     "0": {
@@ -1136,7 +1137,7 @@
       "paramPhase": "storage_type_to",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Padding": {
     "0": {
@@ -1184,9 +1185,9 @@
       "paramPhase": "behind",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "per_channel_pad_data"
-    ]
+    "weightOrder": {
+      "per_channel_pad_data": [1]
+    }
   },
   "Permute": {
     "0": {
@@ -1194,7 +1195,7 @@
       "paramPhase": "order_type",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "PixelShuffle": {
     "0": {
@@ -1207,7 +1208,7 @@
       "paramPhase": "mode",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Pooling": {
     "0": {
@@ -1285,7 +1286,7 @@
       "paramPhase": "out_h",
       "defaultValue": "out_w"
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Pooling1D": {
     "0": {
@@ -1338,7 +1339,7 @@
       "paramPhase": "pad_right",
       "defaultValue": "pad_left"
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Power": {
     "0": {
@@ -1356,7 +1357,7 @@
       "paramPhase": "shift",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "PReLU": {
     "0": {
@@ -1364,9 +1365,9 @@
       "paramPhase": "num_slope",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "slope"
-    ]
+    "weightOrder": {
+      "slope": [1]
+    }
   },
   "PriorBox": {
     "0": {
@@ -1449,9 +1450,9 @@
       "paramPhase": "center_mmdetection",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "slope"
-    ]
+    "weightOrder": {
+      "slope": [1]
+    }
   },
   "Proposal": {
     "0": {
@@ -1484,7 +1485,7 @@
       "paramPhase": "min_size",
       "defaultValue": 16
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "PSROIPooling": {
     "0": {
@@ -1507,7 +1508,7 @@
       "paramPhase": "output_dim",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Quantize": {
     "0": {
@@ -1515,7 +1516,9 @@
       "paramPhase": "scale",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {
+      "scale": [1]
+    }
   },
   "Reduction": {
     "0": {
@@ -1548,7 +1551,7 @@
       "paramPhase": "UNKNOWN",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ReLU": {
     "0": {
@@ -1556,7 +1559,7 @@
       "paramPhase": "slope",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Reorg": {
     "0": {
@@ -1564,7 +1567,7 @@
       "paramPhase": "stride",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Requantize": {
     "0": {
@@ -1592,9 +1595,11 @@
       "paramPhase": "fusion_relu",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "bias"
-    ]
+    "weightOrder": {
+      "scale_in": [1],
+      "scale_out": [1],
+      "bias": [1]
+    }
   },
   "Reshape": {
     "0": {
@@ -1617,7 +1622,7 @@
       "paramPhase": "permute",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ROIAlign": {
     "0": {
@@ -1650,7 +1655,7 @@
       "paramPhase": "version",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "ROIPooling": {
     "0": {
@@ -1668,7 +1673,7 @@
       "paramPhase": "spatial_scale",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Scale": {
     "0": {
@@ -1681,10 +1686,10 @@
       "paramPhase": "bias_term",
       "defaultValue": 0
     },
-    "weightOrder": [
-      "scale",
-      "bias"
-    ]
+    "weightOrder": {
+      "scale": [1],
+      "bias": [1]
+    }
   },
   "SELU": {
     "0": {
@@ -1709,7 +1714,7 @@
       "paramPhase": "reverse",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Sigmoid": {},
   "Slice": {
@@ -1723,7 +1728,7 @@
       "paramPhase": "axis",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Softmax": {
     "0": {
@@ -1736,10 +1741,10 @@
       "paramPhase": "fixbug0",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Split": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "SPP": {
     "0": {
@@ -1752,7 +1757,7 @@
       "paramPhase": "pyramid_height",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Squeeze": {
     "0": {
@@ -1775,7 +1780,7 @@
       "paramPhase": "axes",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "StatisticsPooling": {
     "0": {
@@ -1783,13 +1788,13 @@
       "paramPhase": "include_stddev",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Swish": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "TanH": {
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Threshold": {
     "0": {
@@ -1797,7 +1802,7 @@
       "paramPhase": "threshold",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Tile": {
     "0": {
@@ -1810,7 +1815,7 @@
       "paramPhase": "tiles",
       "defaultValue": 1
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "UnaryOp": {
     "0": {
@@ -1818,7 +1823,7 @@
       "paramPhase": "op_type",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "YoloDetectionOutput": {
     "0": {
@@ -1846,7 +1851,7 @@
       "paramPhase": "biases",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "Yolov3DetectionOutput": {
     "0": {
@@ -1884,7 +1889,7 @@
       "paramPhase": "anchors_scale",
       "defaultValue": []
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "RNN": {
     "0": {
@@ -1902,7 +1907,7 @@
       "paramPhase": "direction",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   },
   "MultiHeadAttention": {
     "0": {
@@ -1920,6 +1925,6 @@
       "paramPhase": "weight_data_size",
       "defaultValue": 0
     },
-    "weightOrder": []
+    "weightOrder": {}
   }
 }

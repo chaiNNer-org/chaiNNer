@@ -143,10 +143,12 @@ def get_node_attr_from_input_af(tp: onnx.TensorProto) -> np.ndarray:
     return np.empty(0, np.float32)
 
 
-def get_tensor_proto_data_size(tp: onnx.TensorProto) -> int:
+def get_tensor_proto_data_size(tp: onnx.TensorProto, fpmode: int = TPT.FLOAT) -> int:
     if tp.raw_data:
+        if fpmode == TPT.FLOAT16:
+            return len(tp.raw_data) // 2
         return len(tp.raw_data) // 4
-    elif tp.data_type == TPT.FLOAT:
+    elif tp.data_type == TPT.FLOAT or tp.data_type == TPT.FLOAT16:
         return len(tp.float_data)
 
     return 0

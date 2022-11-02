@@ -28,7 +28,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel) -> OnnxModel:
+    def run(self, model: PyTorchModel, final: bool = True) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
@@ -41,7 +41,7 @@ class ConvertTorchToONNXNode(NodeBase):
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         dummy_input = dummy_input.to(torch.device(exec_options.device))
 
-        should_use_fp16 = exec_options.fp16 and model.supports_fp16
+        should_use_fp16 = exec_options.fp16 and model.supports_fp16 and final
         if should_use_fp16:
             model = model.half()
             dummy_input = dummy_input.half()

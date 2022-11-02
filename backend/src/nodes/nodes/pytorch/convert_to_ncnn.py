@@ -46,7 +46,9 @@ class ConvertTorchToNCNNNode(NodeBase):
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."
             )
-        onnx_model = ConvertTorchToONNXNode().run(model)
+
+        # Set final to False so intermediate conversion to ONNX is always fp32
+        onnx_model = ConvertTorchToONNXNode().run(model, False)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode
