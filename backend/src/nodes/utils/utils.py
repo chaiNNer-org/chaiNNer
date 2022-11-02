@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from typing import Callable, List, Tuple, Type, Union
-import cv2
 import re
+import cv2
 
 import numpy as np
 from sanic.log import logger
@@ -21,6 +21,18 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("float64"): 1.0,
 }
 NUMBERS = re.compile(r"(\d+)")
+
+
+def round_half_up(number: Union[float, int]) -> int:
+    """
+    Python's `round` method implements round-half-to-even rounding which is very unintuitive.
+    This function implements round-half-up rounding.
+
+    Round half up is consistent with JavaScript's `Math.round`.
+
+    https://en.wikipedia.org/wiki/Rounding#Rounding_to_the_nearest_integer
+    """
+    return int(number + 0.5)
 
 
 def get_h_w_c(image: np.ndarray) -> Tuple[int, int, int]:
@@ -276,14 +288,14 @@ def resize_to_side_conditional(
             h_new = h
         else:
             w_new = target
-            h_new = max(round((target / w) * h), 1)
+            h_new = max(round_half_up((target / w) * h), 1)
 
     elif side == "height":
         if compare_conditions(h):
             w_new = w
             h_new = h
         else:
-            w_new = max(round((target / h) * w), 1)
+            w_new = max(round_half_up((target / h) * w), 1)
             h_new = target
 
     elif side == "shorter side":
@@ -291,16 +303,16 @@ def resize_to_side_conditional(
             w_new = w
             h_new = h
         else:
-            w_new = max(round((target / min(h, w)) * w), 1)
-            h_new = max(round((target / min(h, w)) * h), 1)
+            w_new = max(round_half_up((target / min(h, w)) * w), 1)
+            h_new = max(round_half_up((target / min(h, w)) * h), 1)
 
     elif side == "longer side":
         if compare_conditions(max(h, w)):
             w_new = w
             h_new = h
         else:
-            w_new = max(round((target / max(h, w)) * w), 1)
-            h_new = max(round((target / max(h, w)) * h), 1)
+            w_new = max(round_half_up((target / max(h, w)) * w), 1)
+            h_new = max(round_half_up((target / max(h, w)) * h), 1)
 
     else:
         raise RuntimeError(f"Unknown side selection {side}")
