@@ -87,4 +87,4 @@ class ConvertTorchToONNXNode(NodeBase):
 
         fp_mode = "fp16" if fp16 else "fp32"
 
-        return OnnxModel(onnx_model_bytes), "fp32"
+        return OnnxModel(onnx_model_bytes), fp_mode
