@@ -21,27 +21,25 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX."""
-        if to_pytorch_execution_options(get_execution_options()).fp16:
-            self.inputs = [
-                ModelInput("PyTorch Model"),
-                OnnxFpDropdown(),
-            ]
-            self.outputs = [
+        is_fp16 = to_pytorch_execution_options(get_execution_options()).fp16
+        self.inputs = [
+            ModelInput("PyTorch Model"),
+            *([OnnxFpDropdown()] if is_fp16 else []),
+        ]
+        self.outputs = [
+            *(
                 OnnxModelOutput(label="ONNX Model"),
                 TextOutput(
                     "FP Mode",
                     """match Input1 {
                         FpMode::fp32 => "fp32",
                         FpMode::fp16 => "fp16",
-                }""",
-                ),
-            ]
-        else:
-            self.inputs = [ModelInput("PyTorch Model")]
-            self.outputs = [
-                OnnxModelOutput(label="ONNX Model"),
-                TextOutput("FP Mode", "Fp32"),
-            ]
+                    }""",
+                )
+                if is_fp16
+                else TextOutput("FP Mode", '"fp32"'),
+            )
+        ]
 
         self.category = PyTorchCategory
         self.name = "Convert To ONNX"
