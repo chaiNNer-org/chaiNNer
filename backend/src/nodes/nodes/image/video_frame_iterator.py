@@ -118,6 +118,11 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
 
         h, w, _ = get_h_w_c(img)
 
+        if codec_map[video_type] == "libx264":
+            assert (
+                h % 2 == 0 and w % 2 == 0
+            ), f'The codec "libx264" used for video type "{video_type}" requires an even-number frame resolution.'
+
         if writer["out"] is None:
             try:
                 video_save_path = os.path.join(save_dir, f"{video_name}.{video_type}")
@@ -226,4 +231,4 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
                 input_node_id, [in_frame, index, video_dir, video_name]
             )
 
-        await context.run_while(frame_count, before)
+        await context.run_while(frame_count, before, fail_fast=True)
