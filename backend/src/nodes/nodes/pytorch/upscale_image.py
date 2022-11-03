@@ -14,7 +14,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import SrModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
-from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
+from ...utils.torch_types import PyTorchSRModel
 from ...utils.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,

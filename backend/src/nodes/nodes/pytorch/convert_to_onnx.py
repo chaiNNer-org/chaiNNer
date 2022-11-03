@@ -12,7 +12,7 @@ from ...properties.outputs import OnnxModelOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.onnx_model import OnnxModel
-from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
+from ...utils.torch_types import PyTorchSRModel
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
