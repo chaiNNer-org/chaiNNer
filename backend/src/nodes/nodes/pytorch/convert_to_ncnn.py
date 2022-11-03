@@ -48,7 +48,7 @@ class ConvertTorchToNCNNNode(NodeBase):
             )
 
         # Set final to False so intermediate conversion to ONNX is always fp32
-        onnx_model = ConvertTorchToONNXNode().run(model, False)
+        onnx_model = ConvertTorchToONNXNode().run(model, final=False)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode

@@ -57,6 +57,7 @@ struct NcnnNetwork {
 
 struct OnnxFile;
 struct OnnxModel;
+let Fp32 = "fp32";
 
 struct IteratorAuto;
 
