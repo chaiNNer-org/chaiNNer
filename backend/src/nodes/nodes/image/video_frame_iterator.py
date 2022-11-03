@@ -76,7 +76,7 @@ class VideoFrameIteratorFrameWriterNode(NodeBase):
         self.description = ""
         self.inputs = [
             ImageInput("Frame"),
-            DirectoryInput("Output Video Directory"),
+            DirectoryInput("Output Video Directory", has_handle=True),
             TextInput("Output Video Name"),
             VideoTypeDropdown(),
             VideoPresetDropdown(),
