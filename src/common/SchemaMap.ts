@@ -4,6 +4,7 @@ import { InputData, InputId, InputValue, NodeSchema, SchemaId } from './common-t
 const BLANK_SCHEMA: NodeSchema = {
     inputs: [],
     outputs: [],
+    groups: [],
     icon: '',
     category: '',
     subcategory: '',
@@ -42,11 +43,9 @@ export class SchemaMap {
         const defaultData: Record<InputId, InputValue> = {};
         const { inputs } = this.get(schemaId);
         inputs.forEach((input) => {
-            if (input.def || input.def === 0) {
-                defaultData[input.id] = input.def;
-            } else if (input.default || input.default === 0) {
-                defaultData[input.id] = input.default;
-            } else if (input.options) {
+            if ('def' in input) {
+                defaultData[input.id] = input.def ?? undefined;
+            } else if (input.kind === 'dropdown') {
                 defaultData[input.id] = input.options[0].value;
             }
         });

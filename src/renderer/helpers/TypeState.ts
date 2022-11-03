@@ -41,14 +41,14 @@ export class TypeState {
         const evaluationErrors = new Map<string, EvaluationError>();
 
         const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
-            const edge = byTargetHandle.get(stringifyTargetHandle(id, inputId));
+            const edge = byTargetHandle.get(stringifyTargetHandle({ nodeId: id, inputId }));
             if (edge && edge.sourceHandle) {
                 const sourceHandle = parseSourceHandle(edge.sourceHandle);
                 const sourceNode = nodesMap.get(sourceHandle.nodeId);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    return functionInstance.outputs.get(sourceHandle.inOutId);
+                    return functionInstance.outputs.get(sourceHandle.outputId);
                 }
             }
             return undefined;

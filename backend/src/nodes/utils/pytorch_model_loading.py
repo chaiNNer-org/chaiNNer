@@ -5,6 +5,7 @@ from .architecture.SPSR import SPSRNet as SPSR
 from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
+from .architecture.Swin2SR import Swin2SR
 from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
 from .torch_types import PyTorchModel
@@ -38,7 +39,10 @@ def load_state_dict(state_dict) -> PyTorchModel:
         model = SwiftSRGAN(state_dict)
     # SwinIR
     elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict_keys:
-        model = SwinIR(state_dict)
+        if "patch_embed.proj.weight" in state_dict_keys:
+            model = Swin2SR(state_dict)
+        else:
+            model = SwinIR(state_dict)
     # GFPGAN
     elif (
         "toRGB.0.weight" in state_dict_keys

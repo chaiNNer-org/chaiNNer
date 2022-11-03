@@ -16,7 +16,7 @@ import {
 import { ipcRenderer } from '../../common/safeIpc';
 import { SchemaMap } from '../../common/SchemaMap';
 import {
-    ParsedHandle,
+    ParsedSourceHandle,
     assertNever,
     getInputValues,
     parseSourceHandle,
@@ -76,16 +76,16 @@ const convertToUsableFormat = (
     const result: JsonNode[] = [];
 
     const nodeSchemaMap = new Map(nodes.map((n) => [n.id, schemata.get(n.data.schemaId)]));
-    const convertHandle = (handle: ParsedHandle<OutputId>): JsonEdgeInput => {
+    const convertHandle = (handle: ParsedSourceHandle): JsonEdgeInput => {
         const schema = nodeSchemaMap.get(handle.nodeId);
         if (!schema) {
             throw new Error(`Invalid handle: The node id ${handle.nodeId} is not valid`);
         }
 
-        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.inOutId);
+        const index = schema.outputs.findIndex((inOut) => inOut.id === handle.outputId);
         if (index === -1) {
             throw new Error(
-                `Invalid handle: There is no output with id ${handle.inOutId} in ${schema.name}`
+                `Invalid handle: There is no output with id ${handle.outputId} in ${schema.name}`
             );
         }
 
@@ -104,7 +104,7 @@ const convertToUsableFormat = (
         const sourceH = parseSourceHandle(sourceHandle);
         const targetH = parseTargetHandle(targetHandle);
 
-        (inputHandles[targetH.nodeId] ??= {})[targetH.inOutId] = convertHandle(sourceH);
+        (inputHandles[targetH.nodeId] ??= {})[targetH.inputId] = convertHandle(sourceH);
     });
 
     // Set up each node in the result
@@ -157,7 +157,7 @@ const getExecutionErrorMessage = (
         if (value === undefined) return [];
 
         let valueStr: string;
-        const option = i.options?.find((o) => o.value === value);
+        const option = i.kind === 'dropdown' && i.options.find((o) => o.value === value);
         if (option) {
             valueStr = option.option;
         } else if (value === null) {
