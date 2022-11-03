@@ -325,9 +325,13 @@ def walk_error_handler(exception_instance):
     )
 
 
-def walk_sorted(path: str, ext_filter: Union[List[str], None] = None) -> List[str]:
+def list_all_files_sorted(
+    directory: str, ext_filter: Union[List[str], None] = None
+) -> List[str]:
     just_files: List[str] = []
-    for root, dirs, files in os.walk(path, topdown=True, onerror=walk_error_handler):
+    for root, dirs, files in os.walk(
+        directory, topdown=True, onerror=walk_error_handler
+    ):
         dirs.sort(key=alphanumeric_sort)
         for name in sorted(files, key=alphanumeric_sort):
             filepath = os.path.join(root, name)

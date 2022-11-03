@@ -19,7 +19,7 @@ from ...properties.outputs import (
     NumberOutput,
 )
 from ...utils.image_utils import get_available_image_formats
-from ...utils.utils import walk_sorted
+from ...utils.utils import list_all_files_sorted
 
 PAIRED_IMAGE_ITERATOR_NODE_ID = "chainner:image:paired_file_iterator_load"
 
@@ -105,8 +105,12 @@ class PairedImageFileIteratorNode(IteratorNodeBase):
 
         supported_filetypes = get_available_image_formats()
 
-        just_image_files_a: List[str] = walk_sorted(directory_a, supported_filetypes)
-        just_image_files_b: List[str] = walk_sorted(directory_b, supported_filetypes)
+        just_image_files_a: List[str] = list_all_files_sorted(
+            directory_a, supported_filetypes
+        )
+        just_image_files_b: List[str] = list_all_files_sorted(
+            directory_b, supported_filetypes
+        )
 
         assert len(just_image_files_a) == len(just_image_files_b), (
             "Number of images in directories A and B must be equal. "

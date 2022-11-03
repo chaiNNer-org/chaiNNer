@@ -19,7 +19,7 @@ from ...properties.outputs import (
     NumberOutput,
 )
 from ...utils.image_utils import get_available_image_formats
-from ...utils.utils import walk_sorted
+from ...utils.utils import list_all_files_sorted
 
 IMAGE_ITERATOR_NODE_ID = "chainner:image:file_iterator_load"
 
@@ -84,7 +84,9 @@ class ImageFileIteratorNode(IteratorNodeBase):
 
         supported_filetypes = get_available_image_formats()
 
-        just_image_files: List[str] = walk_sorted(directory, supported_filetypes)
+        just_image_files: List[str] = list_all_files_sorted(
+            directory, supported_filetypes
+        )
 
         def before(filepath: str, index: int):
             context.inputs.set_values(img_path_node_id, [filepath, directory, index])
