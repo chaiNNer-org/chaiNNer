@@ -117,7 +117,7 @@ export const Main = memo(({ port }: MainProps) => {
             sendAlert(
                 AlertType.CRIT_ERROR,
                 null,
-                `chaiNNer has encountered a critical error: ${error.message}`
+                `A critical error occurred while processing the node data returned by the backend. Error: ${error.message}`
             );
             setBackendReady(true);
             ipcRenderer.send('backend-ready');

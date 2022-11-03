@@ -1,7 +1,7 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { XYPosition } from 'reactflow';
-import { InputId, SchemaId } from '../../common/common-types';
+import { Input, InputId, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
@@ -93,7 +93,8 @@ const openImageFileProcessor: DataTransferProcessor = (
     const LOAD_IMAGE_ID = 'chainner:image:load' as SchemaId;
     if (!schemata.has(LOAD_IMAGE_ID)) return false;
     const schema = schemata.get(LOAD_IMAGE_ID);
-    const fileTypes = schema.inputs[0]?.filetypes;
+    const input = schema.inputs[0] as Input | undefined;
+    const fileTypes = input && input.kind === 'file' && input.filetypes;
     if (!fileTypes) return false;
 
     const path = getSingleFileWithExtension(dataTransfer, fileTypes);

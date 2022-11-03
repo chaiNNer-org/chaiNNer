@@ -1,6 +1,7 @@
 from typing import Union, Tuple, List
 
 from .base_input import BaseInput, InputKind
+from ...utils.utils import round_half_up
 from .. import expression
 
 
@@ -11,7 +12,7 @@ def clampNumber(
     max_value: Union[float, int, None],
 ) -> Union[float, int]:
     # Convert proper number type
-    value = round(value, precision)
+    value = round_half_up(value) if precision == 0 else round(value, precision)
 
     # Clamp to max and min, correcting for max/min not aligning with offset + n * step
     if max_value is not None:
@@ -56,7 +57,7 @@ class NumberInput(BaseInput):
         super().__init__("number", label, kind=kind, has_handle=True)
         self.precision = precision
         # controls_step is for increment/decrement arrows.
-        self.controls_step = (
+        self.controls_step: Union[float, int] = (
             controls_step if controls_step is not None else 10**-precision
         )
         self.default = default

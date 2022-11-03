@@ -10,7 +10,7 @@ from ...properties.inputs import ImageInput, NumberInput, InterpolationInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.pil_utils import resize
-from ...utils.utils import get_h_w_c
+from ...utils.utils import get_h_w_c, round_half_up
 
 
 @NodeFactory.register("chainner:image:resize_factor")
@@ -53,8 +53,8 @@ class ImResizeByFactorNode(NodeBase):
 
         h, w, _ = get_h_w_c(img)
         out_dims = (
-            max(round(w * (scale / 100)), 1),
-            max(round(h * (scale / 100)), 1),
+            max(round_half_up(w * (scale / 100)), 1),
+            max(round_half_up(h * (scale / 100)), 1),
         )
 
         return resize(img, out_dims, interpolation)

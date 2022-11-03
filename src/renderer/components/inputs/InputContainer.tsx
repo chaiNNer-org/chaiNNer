@@ -11,16 +11,6 @@ import { defaultColor, getTypeAccentColors } from '../../helpers/getTypeAccentCo
 import { noContextMenu } from '../../hooks/useContextMenu';
 import { TypeTag } from '../TypeTag';
 
-interface InputContainerProps {
-    id: string;
-    inputId: InputId;
-    label?: string;
-    hasHandle: boolean;
-    definitionType: Type;
-    optional: boolean;
-    generic: boolean;
-}
-
 interface LeftHandleProps {
     isValidConnection: (connection: Readonly<Connection>) => boolean;
 }
@@ -46,32 +36,29 @@ const Div = chakra('div', {
     baseStyle: {},
 });
 
-export const InputContainer = memo(
-    ({
-        children,
-        hasHandle,
-        id,
-        inputId,
-        label,
-        definitionType,
-        optional,
-        generic,
-    }: React.PropsWithChildren<InputContainerProps>) => {
+export interface HandleWrapperProps {
+    id: string;
+    inputId: InputId;
+    definitionType: Type;
+}
+
+export const HandleWrapper = memo(
+    ({ children, id, inputId, definitionType }: React.PropsWithChildren<HandleWrapperProps>) => {
         const { isValidConnection, edgeChanges, useConnectingFrom, typeState } =
             useContext(GlobalVolatileContext);
         const { getEdges, getNode } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const connectedEdge = edges.find(
-            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inOutId === inputId
+            (e) => e.target === id && parseTargetHandle(e.targetHandle!).inputId === inputId
         );
         const isConnected = !!connectedEdge;
         const [connectingFrom] = useConnectingFrom;
 
+        const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
+
         const showHandle = useMemo(() => {
             // no active connection
             if (!connectingFrom) return true;
-
-            const targetHandle = stringifyTargetHandle(id, inputId);
 
             // We only want to display the connectingFrom target handle
             if (connectingFrom.handleType === 'target')
@@ -84,17 +71,16 @@ export const InputContainer = memo(
                 target: id,
                 targetHandle,
             });
-        }, [connectingFrom, definitionType, id, inputId]);
+        }, [connectingFrom, definitionType, id, targetHandle]);
 
         const { functionDefinitions } = useContext(BackendContext);
 
-        let contents = children;
         const handleColors = getTypeAccentColors(definitionType);
 
         const parentTypeColor = useMemo(() => {
             if (connectedEdge) {
                 const parentNode: Node<NodeData> | undefined = getNode(connectedEdge.source);
-                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).inOutId;
+                const parentOutputId = parseSourceHandle(connectedEdge.sourceHandle!).outputId;
                 if (parentNode) {
                     const parentDef = functionDefinitions.get(parentNode.data.schemaId);
                     if (!parentDef) {
@@ -123,68 +109,67 @@ export const InputContainer = memo(
             .join(', ');
         const handleGradient = `conic-gradient(from 90deg, ${handleColorString})`;
         const connectedColor = 'var(--connection-color)';
-        if (hasHandle) {
-            contents = (
-                <HStack h="full">
-                    <Center
-                        left="-6px"
-                        position="absolute"
-                    >
-                        <Div
-                            _before={{
-                                content: '" "',
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                height: '30px',
-                                width: '45px',
-                                cursor: 'crosshair',
-                                transform: 'translate(-50%, -50%)',
-                                borderRadius: '100%',
-                            }}
-                            _hover={{
-                                width: '22px',
-                                height: '22px',
-                                marginLeft: '-3px',
-                                opacity: showHandle ? 1 : 0,
-                            }}
-                            as={LeftHandle}
-                            className="input-handle"
-                            id={stringifyTargetHandle(id, inputId)}
-                            isValidConnection={isValidConnection}
-                            sx={{
-                                width: '16px',
-                                height: '16px',
-                                borderWidth: isConnected ? '2px' : '0px',
-                                borderColor: parentTypeColor ?? 'none',
-                                transition: '0.15s ease-in-out',
-                                ...(handleColors.length > 1
-                                    ? { background: isConnected ? connectedColor : handleGradient }
-                                    : {}),
-                                backgroundColor: isConnected ? connectedColor : handleColors[0],
-                                boxShadow: '2px 2px 2px #00000014',
-                                filter: showHandle ? undefined : 'grayscale(100%)',
-                                opacity: showHandle ? 1 : 0.3,
-                                position: 'relative',
-                            }}
-                            onContextMenu={noContextMenu}
-                        >
-                            {/* // TODO: This would be for icons, if the time ever comes */}
-                            {/* <Center
-                                h="full"
-                                w="full"
-                            >
-                                <CloseIcon
-                                    boxSize={2}
-                                />
-                            </Center> */}
-                        </Div>
-                    </Center>
-                    {children}
-                </HStack>
-            );
-        }
 
+        return (
+            <HStack h="full">
+                <Center
+                    left="-6px"
+                    position="absolute"
+                >
+                    <Div
+                        _before={{
+                            content: '" "',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            height: '30px',
+                            width: '45px',
+                            cursor: 'crosshair',
+                            transform: 'translate(-50%, -50%)',
+                            borderRadius: '100%',
+                        }}
+                        _hover={{
+                            width: '22px',
+                            height: '22px',
+                            marginLeft: '-3px',
+                            opacity: showHandle ? 1 : 0,
+                        }}
+                        as={LeftHandle}
+                        className="input-handle"
+                        id={targetHandle}
+                        isValidConnection={isValidConnection}
+                        sx={{
+                            width: '16px',
+                            height: '16px',
+                            borderWidth: isConnected ? '2px' : '0px',
+                            borderColor: parentTypeColor ?? 'none',
+                            transition: '0.15s ease-in-out',
+                            ...(handleColors.length > 1
+                                ? { background: isConnected ? connectedColor : handleGradient }
+                                : {}),
+                            backgroundColor: isConnected ? connectedColor : handleColors[0],
+                            boxShadow: '2px 2px 2px #00000014',
+                            filter: showHandle ? undefined : 'grayscale(100%)',
+                            opacity: showHandle ? 1 : 0.3,
+                            position: 'relative',
+                        }}
+                        onContextMenu={noContextMenu}
+                    />
+                </Center>
+                {children}
+            </HStack>
+        );
+    }
+);
+
+export interface InputContainerProps {
+    label?: string;
+    optional: boolean;
+    generic: boolean;
+}
+
+export const InputContainer = memo(
+    ({ children, label, optional, generic }: React.PropsWithChildren<InputContainerProps>) => {
         return (
             <Box
                 bg="var(--bg-700)"
@@ -218,7 +203,7 @@ export const InputContainer = memo(
                         )}
                     </Center>
                 )}
-                <Box pb={generic ? 0 : 2}>{contents}</Box>
+                <Box pb={generic ? 0 : 2}>{children}</Box>
             </Box>
         );
     }

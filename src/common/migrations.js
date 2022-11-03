@@ -794,6 +794,28 @@ const convertColorSpaceFromTo = (data) => {
     return data;
 };
 
+const convertColorRGBLikeDetector = (data) => {
+    const GRAY = 0;
+    const RGB = 1;
+    const RGBA = 2;
+    const RGB_LIKE = 1000;
+
+    /** @type {Partial<Record<number, number>>} */
+    const mapping = {
+        [GRAY]: RGB_LIKE,
+        [RGB]: RGB_LIKE,
+        [RGBA]: RGB_LIKE,
+    };
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:change_colorspace') {
+            const from = node.data.inputData[1];
+            node.data.inputData[1] = mapping[from] ?? from;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version) => {
@@ -835,6 +857,7 @@ const migrations = [
     addTargetTileSizeAgain,
     brightnessImplementationChange,
     convertColorSpaceFromTo,
+    convertColorRGBLikeDetector,
 ];
 
 export const currentMigration = migrations.length;

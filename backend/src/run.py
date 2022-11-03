@@ -20,6 +20,7 @@ from sanic_cors import CORS
 
 from nodes.node_factory import NodeFactory
 from nodes.utils.exec_options import set_execution_options, ExecutionOptions
+from nodes.nodes.builtin_categories import category_order
 
 from base_types import NodeId, InputId, OutputId
 from chain.cache import OutputCache
@@ -33,54 +34,6 @@ from response import (
     alreadyRunningResponse,
     noExecutorResponse,
     successResponse,
-)
-from nodes.nodes.builtin_categories import category_order
-
-missing_node_count = 0
-categories = set()
-missing_categories = set()
-
-# Dynamically import all nodes
-for root, dirs, files in os.walk(
-    os.path.join(os.path.dirname(__file__), "nodes", "nodes")
-):
-    for file in files:
-        if file.endswith(".py") and not file.startswith("_"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                importlib.import_module(f"{module}", package=None)
-            except ImportError as e:
-                missing_node_count += 1
-                logger.warning(f"Failed to import {module}: {e}")
-
-                # Turn path into __init__.py path
-                init_module = module.split(".")
-                init_module[-1] = "__init__"
-                init_module = ".".join(init_module)
-                try:
-                    category = getattr(importlib.import_module(init_module), "category")
-                    missing_categories.add(category.name)
-                except ImportError as ie:
-                    logger.warning(ie)
-        # Load categories from __init__.py files
-        elif file.endswith(".py") and file == ("__init__.py"):
-            module = os.path.relpath(
-                os.path.join(root, file), os.path.dirname(__file__)
-            )
-            module = module.replace(os.path.sep, ".")[:-3]
-            try:
-                # TODO: replace the category system with a dynamic factory
-                category = getattr(importlib.import_module(module), "category")
-                categories.add(category)
-            except:
-                pass
-
-
-categories = sorted(
-    list(categories), key=lambda category: category_order.index(category.name)
 )
 
 
@@ -103,6 +56,72 @@ app = Sanic("chaiNNer", ctx=AppContext())
 app.config.REQUEST_TIMEOUT = sys.maxsize
 app.config.RESPONSE_TIMEOUT = sys.maxsize
 CORS(app)
+
+
+missing_node_count = 0
+categories = set()
+missing_categories = set()
+missing_module_errors = set()
+
+# Dynamically import all nodes
+for root, dirs, files in os.walk(
+    os.path.join(os.path.dirname(__file__), "nodes", "nodes")
+):
+    for file in files:
+        if file.endswith(".py") and not file.startswith("_"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            try:
+                importlib.import_module(f"{module}", package=None)
+            except ImportError as e:
+                missing_node_count += 1
+                logger.debug(f"Failed to import {module}: {e}")
+                missing_module_errors.add(str(e))
+
+                # Turn path into __init__.py path
+                init_module = module.split(".")
+                init_module[-1] = "__init__"
+                init_module = ".".join(init_module)
+                try:
+                    category = getattr(importlib.import_module(init_module), "category")
+                    missing_categories.add(category.name)
+                except ImportError as ie:
+                    logger.info(ie)
+                except Exception as oe:
+                    logger.error(
+                        f"A critical error occurred when importing module {init_module}: {oe}"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"A critical error occurred when importing module {module}: {e}"
+                )
+        # Load categories from __init__.py files
+        elif file.endswith(".py") and file == ("__init__.py"):
+            module = os.path.relpath(
+                os.path.join(root, file), os.path.dirname(__file__)
+            )
+            module = module.replace(os.path.sep, ".")[:-3]
+            try:
+                # TODO: replace the category system with a dynamic factory
+                category = getattr(importlib.import_module(module), "category")
+                categories.add(category)
+            except:
+                pass
+
+
+if len(missing_module_errors) > 0:
+    logger.warning(
+        f"Failed to import {missing_node_count} nodes. "
+        f"Missing categories: {missing_categories}. "
+        f"Missing modules: {missing_module_errors}"
+    )
+
+
+categories = sorted(
+    list(categories), key=lambda category: category_order.index(category.name)
+)
 
 
 class SSEFilter(logging.Filter):
@@ -151,6 +170,7 @@ async def nodes(_):
             "category": node_object.category.name,
             "inputs": [x.toDict() for x in node_object.inputs],
             "outputs": [x.toDict() for x in node_object.outputs],
+            "groups": [g.toDict() for g in node_object.groups],
             "description": node_object.description,
             "icon": node_object.icon,
             "subcategory": node_object.sub,

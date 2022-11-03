@@ -41,6 +41,8 @@ ExpressionJson = Union[
     "FunctionCallExpressionJson",
     "MatchExpressionJson",
     List["ExpressionJson"],
+    List[int],
+    List[str],
 ]
 
 

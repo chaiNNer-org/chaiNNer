@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from . import category as ImageUtilityCategory
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import (
     ImageInput,
@@ -11,7 +11,11 @@ from ...properties.inputs import (
 )
 from ...properties.outputs import ImageOutput
 from ...properties import expression
-from ...utils.color.convert import convert, color_space_from_id
+from ...utils.color.convert import (
+    convert,
+    color_space_from_id,
+    color_space_or_detector_from_id,
+)
 
 
 @NodeFactory.register("chainner:image:change_colorspace")
@@ -24,8 +28,10 @@ class ColorConvertNode(NodeBase):
         )
         self.inputs = [
             ImageInput(image_type=expression.Image(channels="Input1.channels")),
-            ColorSpaceInput(label="From"),
-            ColorSpaceInput(label="To"),
+            group("from-to-dropdowns")(
+                ColorSpaceInput(label="From", detector=True),
+                ColorSpaceInput(label="To"),
+            ),
         ]
         self.outputs = [
             ImageOutput(
@@ -43,4 +49,8 @@ class ColorConvertNode(NodeBase):
     def run(self, img: np.ndarray, input_: int, output: int) -> np.ndarray:
         """Takes an image and changes the color mode it"""
 
-        return convert(img, color_space_from_id(input_), color_space_from_id(output))
+        return convert(
+            img,
+            color_space_or_detector_from_id(input_),
+            color_space_from_id(output),
+        )

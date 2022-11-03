@@ -3,9 +3,10 @@ from typing import Callable, Dict, Generic, Iterable, List, Set, Tuple, TypeVar,
 import numpy as np
 from sanic.log import logger
 
-from .convert_data import conversions, color_spaces
+from .convert_data import conversions, color_spaces, color_spaces_or_detectors
 from .convert_model import (
     ColorSpace,
+    ColorSpaceDetector,
     Conversion,
     assert_input_channels,
     assert_output_channels,
@@ -14,6 +15,13 @@ from .convert_model import (
 
 def color_space_from_id(id_: int) -> ColorSpace:
     for c in color_spaces:
+        if c.id == id_:
+            return c
+    raise ValueError(f"There is no color space with the id {id_}.")
+
+
+def color_space_or_detector_from_id(id_: int) -> Union[ColorSpace, ColorSpaceDetector]:
+    for c in color_spaces_or_detectors:
         if c.id == id_:
             return c
     raise ValueError(f"There is no color space with the id {id_}.")
@@ -80,7 +88,14 @@ for conversion in conversions:
     l.append(conversion)
 
 
-def convert(img: np.ndarray, input_: ColorSpace, output: ColorSpace) -> np.ndarray:
+def convert(
+    img: np.ndarray,
+    input_: Union[ColorSpace, ColorSpaceDetector],
+    output: ColorSpace,
+) -> np.ndarray:
+    if isinstance(input_, ColorSpaceDetector):
+        input_ = input_.detect(img)
+
     assert_input_channels(img, input_, output)
 
     if input_ == output:

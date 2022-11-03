@@ -60,7 +60,7 @@ export const OutputContainer = memo(
         const { getEdges } = useReactFlow();
         const edges = useMemo(() => getEdges(), [edgeChanges]);
         const isConnected = !!edges.find(
-            (e) => e.source === id && parseSourceHandle(e.sourceHandle!).inOutId === outputId
+            (e) => e.source === id && parseSourceHandle(e.sourceHandle!).outputId === outputId
         );
         const [connectingFrom] = useConnectingFrom;
 
@@ -72,7 +72,7 @@ export const OutputContainer = memo(
             // no active connection
             if (!connectingFrom) return true;
 
-            const sourceHandle = stringifySourceHandle(id, outputId);
+            const sourceHandle = stringifySourceHandle({ nodeId: id, outputId });
 
             // We only want to display the connectingFrom source handle
             if (connectingFrom.handleType === 'source')
@@ -117,7 +117,7 @@ export const OutputContainer = memo(
                             }}
                             as={RightHandle}
                             className="output-handle"
-                            id={stringifySourceHandle(id, outputId)}
+                            id={stringifySourceHandle({ nodeId: id, outputId })}
                             isValidConnection={isValidConnection}
                             sx={{
                                 width: '16px',
