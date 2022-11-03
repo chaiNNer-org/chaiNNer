@@ -6,10 +6,12 @@ import torch
 import numpy as np
 from sanic.log import logger
 
+from backend.src.nodes.properties.inputs.pytorch_inputs import SrModelInput
+
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput, ImageInput, TileSizeDropdown
+from ...properties.inputs import SrModelInput, ImageInput, TileSizeDropdown
 from ...properties.outputs import ImageOutput
 from ...utils.exec_options import get_execution_options, ExecutionOptions
 from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
@@ -31,9 +33,7 @@ class ImageUpscaleNode(NodeBase):
         self.description = "Upscales an image using a PyTorch Super-Resolution model. \
             Select a manual number of tiles if you are having issues with the automatic mode. "
         self.inputs = [
-            ModelInput(
-                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
-            ),
+            SrModelInput(),
             ImageInput(),
             TileSizeDropdown(),
         ]
@@ -108,10 +108,6 @@ class ImageUpscaleNode(NodeBase):
         tile_size: TileSize,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
-
-        assert isPyTorchSRModel(
-            model
-        ), "Only normal SR models can be used with the Upscale Image node."
 
         exec_options = to_pytorch_execution_options(get_execution_options())
 

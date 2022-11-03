@@ -1,8 +1,11 @@
 from __future__ import annotations
+import os
+from typing import Union
 
 import numpy as np
 import torch
 from sanic.log import logger
+import cv2
 
 from torchvision.transforms.functional import normalize as tv_normalize
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
@@ -12,12 +15,12 @@ from appdirs import user_data_dir
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import *
-from ...properties.outputs import *
+from ...properties.inputs import FaceModelInput, ImageInput, NumberInput
+from ...properties.outputs import ImageOutput
 from ...utils.utils import get_h_w_c
 from ...utils.pytorch_utils import np2tensor, tensor2np
 from ...utils.exec_options import get_execution_options
-from ...utils.torch_types import PyTorchFaceModel, isPyTorchFaceModel
+from ...utils.torch_types import PyTorchFaceModel
 from ...utils.pytorch_utils import to_pytorch_execution_options
 
 
@@ -28,10 +31,7 @@ class FaceUpscaleNode(NodeBase):
         super().__init__()
         self.description = "Uses face-detection to upscales and restore face(s) in an image using a PyTorch Face Super-Resolution model. Right now supports GFPGAN and RestoreFormer."
         self.inputs = [
-            ModelInput(
-                "Face SR Model",
-                input_type="PyTorchModel { arch: PyTorchModel::FaceArchs }",
-            ),
+            FaceModelInput("Face SR Model"),
             ImageInput(),
             ImageInput("Upscaled Background").make_optional(),
             NumberInput(
@@ -142,10 +142,6 @@ class FaceUpscaleNode(NodeBase):
         upscale: int,
     ) -> np.ndarray:
         """Upscales an image with a pretrained model"""
-
-        assert isPyTorchFaceModel(
-            face_model
-        ), "Only Face SR models can be used with the Upscale Face node."
 
         face_helper = None
         try:

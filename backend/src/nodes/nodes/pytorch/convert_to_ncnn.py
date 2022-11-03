@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.src.nodes.utils.architecture.SwinIR import SwinIR
-
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput, OnnxFpDropdown
+from ...properties.inputs import SrModelInput, OnnxFpDropdown
 from ...properties.outputs import NcnnModelOutput, TextOutput
-from ...utils.torch_types import PyTorchSRModel, isPyTorchSRModel
+from ...utils.torch_types import PyTorchSRModel
+from ...utils.architecture.SwinIR import SwinIR
+from ...utils.architecture.Swin2SR import Swin2SR
 
 from .convert_to_onnx import ConvertTorchToONNXNode
 
@@ -25,10 +25,7 @@ class ConvertTorchToNCNNNode(NodeBase):
         super().__init__()
         self.description = """Convert a PyTorch model to NCNN. Internally, this node uses ONNX as an intermediate format."""
         self.inputs = [
-            ModelInput(
-                "PyTorch Model",
-                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
-            ),
+            SrModelInput("PyTorch Model"),
             OnnxFpDropdown(),
         ]
         self.outputs = [
@@ -55,12 +52,13 @@ class ConvertTorchToNCNNNode(NodeBase):
                 manager to use this node."
             )
 
-        assert isPyTorchSRModel(
-            model
-        ), "Only normal SR models can be converted to NCNN at this time."
         assert not isinstance(
             model, SwinIR
         ), "SwinIR is not supported for NCNN conversion at this time."
+
+        assert not isinstance(
+            model, Swin2SR
+        ), "Swin2SR is not supported for NCNN conversion at this time."
 
         onnx_model = ConvertTorchToONNXNode().run(model)
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)

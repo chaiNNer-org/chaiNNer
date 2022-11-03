@@ -7,7 +7,7 @@ import torch
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput
+from ...properties.inputs import SrModelInput
 from ...properties.outputs import OnnxModelOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.pytorch_utils import to_pytorch_execution_options
@@ -20,12 +20,7 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX."""
-        self.inputs = [
-            ModelInput(
-                "PyTorch Model",
-                input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
-            )
-        ]
+        self.inputs = [SrModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput(label="ONNX Model")]
 
         self.category = PyTorchCategory
@@ -35,10 +30,6 @@ class ConvertTorchToONNXNode(NodeBase):
 
     def run(self, model: PyTorchSRModel) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
-
-        assert isPyTorchSRModel(
-            model
-        ), "Only normal SR models can be converted to ONNX at this time."
 
         model = model.eval()
         model = model.to(torch.device(exec_options.device))
