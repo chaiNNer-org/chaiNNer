@@ -40,7 +40,7 @@
       "defaultValue": 0
     },
     "weightOrder": {
-      "channels": [1]
+      "bias": [1]
     }
   },
   "BinaryOp": {
@@ -1027,7 +1027,12 @@
       "paramPhase": "direction",
       "defaultValue": 0
     },
-    "weightOrder": {}
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias_c": [1, 3, 10],
+      "weight_hc": [1, 3, 10],
+      "weight_hr": [1, 3, 10]
+    }
   },
   "MemoryData": {
     "0": {
@@ -1045,7 +1050,9 @@
       "paramPhase": "c",
       "defaultValue": 0
     },
-    "weightOrder": {}
+    "weightOrder": {
+      "data": [1]
+    }
   },
   "Mish": {
     "weightOrder": {}
@@ -1907,7 +1914,11 @@
       "paramPhase": "direction",
       "defaultValue": 0
     },
-    "weightOrder": {}
+    "weightOrder": {
+      "weight_xc": [1, 3, 10],
+      "bias_c": [1, 3, 10],
+      "weight_hc": [1, 3, 10]
+    }
   },
   "MultiHeadAttention": {
     "0": {
@@ -1925,6 +1936,15 @@
       "paramPhase": "weight_data_size",
       "defaultValue": 0
     },
-    "weightOrder": {}
+    "weightOrder": {
+      "q_weight": [1, 3, 10],
+      "q_bias": [1],
+      "k_weight": [1, 3, 10], 
+      "k_bias": [1],
+      "v_weight": [1, 3, 10],
+      "v_bias": [1],
+      "out_weight": [1, 3, 10],
+      "out_bias": [1]
+    }
   }
 }
