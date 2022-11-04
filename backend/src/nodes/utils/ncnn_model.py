@@ -309,12 +309,9 @@ class NcnnLayer:
 
         if quantize_tag == DTYPE_FP16:
             data_array = data_array.astype(np.float16)
-        elif (
-            data_array.dtype == np.float16
-            and TPT.FLOAT16
-            not in param_schema[self.op_type]["weightOrder"][weight_name]
-        ):
-            # Convert invalid fp16 from ONNX model weights to fp32
+        else:
+            # Since int8 not supported, all data that is not fp16 is fp32.
+            # This covers issues caused by converting fp16 ONNX models.
             data_array = data_array.astype(np.float32)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
