@@ -28,13 +28,7 @@ class ConvertTorchToONNXNode(NodeBase):
         ]
         self.outputs = [
             OnnxModelOutput(label="ONNX Model"),
-            TextOutput(
-                "FP Mode",
-                """match Input1 {
-                    FpMode::fp32 => "fp32",
-                    FpMode::fp16 => "fp16",
-                }""",
-            ),
+            TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 
         self.category = PyTorchCategory
@@ -42,9 +36,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(
-        self, model: PyTorchModel, is_fp16: int = 0, final: bool = True
-    ) -> Tuple[OnnxModel, str]:
+    def run(self, model: PyTorchModel, is_fp16: int = 0) -> Tuple[OnnxModel, str]:
         fp16 = bool(is_fp16)
         exec_options = to_pytorch_execution_options(get_execution_options())
         if fp16:
@@ -62,7 +54,7 @@ class ConvertTorchToONNXNode(NodeBase):
         dummy_input = torch.rand(1, model.in_nc, 64, 64)  # type: ignore
         dummy_input = dummy_input.to(torch.device(exec_options.device))
 
-        should_use_fp16 = exec_options.fp16 and model.supports_fp16 and fp16 and final
+        should_use_fp16 = exec_options.fp16 and model.supports_fp16 and fp16
         if should_use_fp16:
             model = model.half()
             dummy_input = dummy_input.half()
@@ -85,6 +77,6 @@ class ConvertTorchToONNXNode(NodeBase):
             f.seek(0)
             onnx_model_bytes = f.read()
 
-        fp_mode = "fp16" if fp16 else "fp32"
+        fp_mode = "fp16" if should_use_fp16 else "fp32"
 
         return OnnxModel(onnx_model_bytes), fp_mode
