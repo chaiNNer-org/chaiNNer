@@ -103,7 +103,7 @@ def get_node_attr_tensor(node: onnx.NodeProto, key: str) -> onnx.TensorProto:
 def get_node_attr_from_input_f(tp: onnx.TensorProto) -> float:
     shape_data = onph.to_array(tp)
 
-    if tp.data_type in (TPT.FLOAT, TPT.DOUBLE, TPT.INT32):
+    if tp.data_type in (TPT.FLOAT, TPT.FLOAT16, TPT.DOUBLE, TPT.INT32):
         f = shape_data.item(0)
     elif tp.data_type == TPT.INT64:
         f = max(min(shape_data.item(0), INT64_MAX), INT64_MIN)
@@ -134,7 +134,7 @@ def get_node_attr_from_input_ai(tp: onnx.TensorProto) -> np.ndarray:
 
 
 def get_node_attr_from_input_af(tp: onnx.TensorProto) -> np.ndarray:
-    if tp.data_type == TPT.FLOAT or tp.data_type == TPT.DOUBLE:
+    if tp.data_type in (TPT.FLOAT, TPT.FLOAT16, TPT.DOUBLE):
         shape_data = onph.to_array(tp)
         return np.array([val for val in shape_data], shape_data.dtype)
     else:
