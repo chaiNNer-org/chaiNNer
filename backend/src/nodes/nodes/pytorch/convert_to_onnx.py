@@ -20,25 +20,21 @@ from ...utils.torch_types import PyTorchModel
 class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
-        self.description = """Convert a PyTorch model to ONNX."""
-        is_fp16 = to_pytorch_execution_options(get_execution_options()).fp16
+        self.description = """Convert a PyTorch model to ONNX.
+            Note: fp16 conversion will only work if PyTorch fp16 mode is turned on."""
         self.inputs = [
             ModelInput("PyTorch Model"),
-            *([OnnxFpDropdown()] if is_fp16 else []),
+            OnnxFpDropdown(),
         ]
         self.outputs = [
-            *(
-                OnnxModelOutput(label="ONNX Model"),
-                TextOutput(
-                    "FP Mode",
-                    """match Input1 {
-                        FpMode::fp32 => "fp32",
-                        FpMode::fp16 => "fp16",
-                    }""",
-                )
-                if is_fp16
-                else TextOutput("FP Mode", '"fp32"'),
-            )
+            OnnxModelOutput(label="ONNX Model"),
+            TextOutput(
+                "FP Mode",
+                """match Input1 {
+                    FpMode::fp32 => "fp32",
+                    FpMode::fp16 => "fp16",
+                }""",
+            ),
         ]
 
         self.category = PyTorchCategory
@@ -51,6 +47,10 @@ class ConvertTorchToONNXNode(NodeBase):
     ) -> Tuple[OnnxModel, str]:
         fp16 = bool(is_fp16)
         exec_options = to_pytorch_execution_options(get_execution_options())
+        if fp16:
+            assert (
+                exec_options.fp16
+            ), "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
 
         model = model.eval()
         model = model.to(torch.device(exec_options.device))
