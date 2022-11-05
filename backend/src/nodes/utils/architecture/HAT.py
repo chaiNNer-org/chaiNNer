@@ -3,12 +3,13 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import re
 
 from .timm.helpers import to_2tuple
 from .timm.weight_init import trunc_normal_
 
-# from einops import rearrange
+from einops import rearrange
 
 
 def drop_path(x, drop_prob: float = 0.0, training: bool = False):
@@ -476,22 +477,22 @@ class OCAB(nn.Module):
         )  # nw*b, window_size*window_size, c
 
         kv_windows = self.unfold(kv)  # b, c*w*w, nw
-        # kv_windows = rearrange(
-        #     kv_windows,
-        #     "b (nc ch owh oww) nw -> nc (b nw) (owh oww) ch",
-        #     nc=2,
-        #     ch=c,
-        #     owh=self.overlap_win_size,
-        #     oww=self.overlap_win_size,
-        # ).contiguous()  # 2, nw*b, ow*ow, c
+        kv_windows = rearrange(
+            kv_windows,
+            "b (nc ch owh oww) nw -> nc (b nw) (owh oww) ch",
+            nc=2,
+            ch=c,
+            owh=self.overlap_win_size,
+            oww=self.overlap_win_size,
+        ).contiguous()  # 2, nw*b, ow*ow, c
         # Do the above rearrangement without the rearrange function
-        kv_windows = kv_windows.view(
-            2, b, self.overlap_win_size, self.overlap_win_size, c, -1
-        )
-        kv_windows = kv_windows.permute(0, 5, 1, 2, 3, 4).contiguous()
-        kv_windows = kv_windows.view(
-            2, -1, self.overlap_win_size * self.overlap_win_size, c
-        )
+        # kv_windows = kv_windows.view(
+        #     2, b, self.overlap_win_size, self.overlap_win_size, c, -1
+        # )
+        # kv_windows = kv_windows.permute(0, 5, 1, 2, 3, 4).contiguous()
+        # kv_windows = kv_windows.view(
+        #     2, -1, self.overlap_win_size * self.overlap_win_size, c
+        # )
 
         k_windows, v_windows = kv_windows[0], kv_windows[1]  # nw*b, ow*ow, c
 
@@ -907,25 +908,56 @@ class HAT(nn.Module):
         img_range = 1.0
         upsampler = ""
         resi_connection = "1conv"
+
         self.state = state_dict
+        self.model_arch = "HAT"
+        self.sub_type = "SR"
+        self.supports_fp16 = False
+        self.support_bf16 = True
 
         state_keys = list(state_dict.keys())
 
         num_feat = state_dict["conv_last.weight"].shape[1]
+        in_chans = state_dict["conv_first.weight"].shape[1]
+        num_out_ch = state_dict["conv_last.weight"].shape[0]
+        embed_dim = state_dict["conv_first.weight"].shape[0]
 
-        upsample_keys = [
-            x
-            for x in state_dict.keys()
-            if "upsample" in x and "conv" not in x and "bias" not in x
-        ]
-        scale = 1
-        for upsample_key in upsample_keys:
-            shape = state_dict[upsample_key].shape[0]
-            scale *= math.sqrt(shape // num_feat)
+        if "conv_before_upsample.0.weight" in state_keys:
+            if "conv_up1.weight" in state_keys:
+                upsampler = "nearest+conv"
+            else:
+                upsampler = "pixelshuffle"
+                supports_fp16 = False
+        elif "upsample.0.weight" in state_keys:
+            upsampler = "pixelshuffledirect"
+        else:
+            upsampler = ""
+        upscale = 1
+        if upsampler == "nearest+conv":
+            upsample_keys = [
+                x for x in state_keys if "conv_up" in x and "bias" not in x
+            ]
+
+            for upsample_key in upsample_keys:
+                upscale *= 2
+        elif upsampler == "pixelshuffle":
+            upsample_keys = [
+                x
+                for x in state_keys
+                if "upsample" in x and "conv" not in x and "bias" not in x
+            ]
+            for upsample_key in upsample_keys:
+                shape = self.state[upsample_key].shape[0]
+                upscale *= math.sqrt(shape // num_feat)
+            upscale = int(upscale)
+        elif upsampler == "pixelshuffledirect":
+            upscale = int(
+                math.sqrt(self.state["upsample.0.bias"].shape[0] // num_out_ch)
+            )
 
         max_layer_num = 0
         max_block_num = 0
-        for key in state_dict.keys():
+        for key in state_keys:
             result = re.match(
                 r"layers.(\d*).residual_group.blocks.(\d*).conv_block.cab.0.weight", key
             )
@@ -934,15 +966,18 @@ class HAT(nn.Module):
                 max_layer_num = max(max_layer_num, int(layer_num))
                 max_block_num = max(max_block_num, int(block_num))
 
-        head_depth = [max_block_num + 1 for _ in range(max_layer_num + 1)]
+        depths = [max_block_num + 1 for _ in range(max_layer_num + 1)]
 
-        depths = head_depth
-        num_heads = head_depth
-
-        in_chans = state_dict["conv_first.weight"].shape[1]
-        num_out_ch = state_dict["conv_last.weight"].shape[0]
-        embed_dim = state_dict["conv_first.weight"].shape[0]
-        upscale = scale
+        if (
+            "layers.0.residual_group.blocks.0.attn.relative_position_bias_table"
+            in state_keys
+        ):
+            num_heads_num = self.state[
+                "layers.0.residual_group.blocks.0.attn.relative_position_bias_table"
+            ].shape[-1]
+            num_heads = [num_heads_num for _ in range(max_layer_num + 1)]
+        else:
+            num_heads = depths
 
         mlp_ratio = float(
             self.state["layers.0.residual_group.blocks.0.mlp.fc1.bias"].shape[0]
@@ -955,17 +990,51 @@ class HAT(nn.Module):
         else:
             resi_connection = "1conv"
 
-        window_size = int(
-            math.sqrt(
-                self.state[
-                    "layers.0.residual_group.blocks.0.attn.relative_position_index"
-                ].shape[0]
+        window_size = int(math.sqrt(self.state["relative_position_index_SA"].shape[0]))
+
+        # Not sure if this is needed or used at all anywhere in HAT's config
+        if "layers.0.residual_group.blocks.1.attn_mask" in state_keys:
+            img_size = int(
+                math.sqrt(
+                    self.state["layers.0.residual_group.blocks.1.attn_mask"].shape[0]
+                )
+                * window_size
             )
-        )
 
         self.window_size = window_size
         self.shift_size = window_size // 2
         self.overlap_ratio = overlap_ratio
+
+        self.in_nc = in_chans
+        self.out_nc = num_out_ch
+        self.num_feat = num_feat
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.depths = depths
+        self.window_size = window_size
+        self.mlp_ratio = mlp_ratio
+        self.scale = upscale
+        self.upsampler = upsampler
+        self.img_size = img_size
+        self.img_range = img_range
+        self.resi_connection = resi_connection
+        print(
+            {
+                "in_nc": in_chans,
+                "out_nc": num_out_ch,
+                "num_feat": num_feat,
+                "embed_dim": embed_dim,
+                "num_heads": num_heads,
+                "depths": depths,
+                "window_size": window_size,
+                "mlp_ratio": mlp_ratio,
+                "scale": upscale,
+                "upsampler": upsampler,
+                "img_size": img_size,
+                "img_range": img_range,
+                "resi_connection": resi_connection,
+            }
+        )
 
         num_in_ch = in_chans
         # num_out_ch = in_chans
@@ -1078,6 +1147,7 @@ class HAT(nn.Module):
             self.conv_last = nn.Conv2d(num_feat, num_out_ch, 3, 1, 1)
 
         self.apply(self._init_weights)
+        self.load_state_dict(self.state, strict=False)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -1176,6 +1246,13 @@ class HAT(nn.Module):
     def no_weight_decay_keywords(self):
         return {"relative_position_bias_table"}
 
+    def check_image_size(self, x):
+        _, _, h, w = x.size()
+        mod_pad_h = (self.window_size - h % self.window_size) % self.window_size
+        mod_pad_w = (self.window_size - w % self.window_size) % self.window_size
+        x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), "reflect")
+        return x
+
     def forward_features(self, x):
         x_size = (x.shape[2], x.shape[3])
 
@@ -1202,8 +1279,10 @@ class HAT(nn.Module):
         return x
 
     def forward(self, x):
+        H, W = x.shape[2:]
         self.mean = self.mean.type_as(x)
         x = (x - self.mean) * self.img_range
+        x = self.check_image_size(x)
 
         if self.upsampler == "pixelshuffle":
             # for classical SR
@@ -1214,4 +1293,4 @@ class HAT(nn.Module):
 
         x = x / self.img_range + self.mean
 
-        return x
+        return x[:, :, : H * self.upscale, : W * self.upscale]
