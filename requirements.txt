@@ -1,5 +1,6 @@
 appdirs
 black
+einops
 facexlib
 ffmpeg-python
 ncnn_vulkan

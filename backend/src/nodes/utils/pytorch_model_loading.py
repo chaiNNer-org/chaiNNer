@@ -6,6 +6,7 @@ from .architecture.SRVGG import SRVGGNetCompact as RealESRGANv2
 from .architecture.SwiftSRGAN import Generator as SwiftSRGAN
 from .architecture.SwinIR import SwinIR
 from .architecture.Swin2SR import Swin2SR
+from .architecture.HAT import HAT
 from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
 from .torch_types import PyTorchModel
@@ -24,7 +25,6 @@ def load_state_dict(state_dict) -> PyTorchModel:
         state_dict = state_dict["params"]
 
     state_dict_keys = list(state_dict.keys())
-
     # SRVGGNet Real-ESRGAN (v2)
     if "body.0.weight" in state_dict_keys and "body.1.weight" in state_dict_keys:
         model = RealESRGANv2(state_dict)
@@ -37,6 +37,9 @@ def load_state_dict(state_dict) -> PyTorchModel:
         and "initial.cnn.depthwise.weight" in state_dict["model"].keys()
     ):
         model = SwiftSRGAN(state_dict)
+    # HAT -- be sure it is above swinir
+    elif "layers.0.residual_group.blocks.0.conv_block.cab.0.weight" in state_dict_keys:
+        model = HAT(state_dict)
     # SwinIR
     elif "layers.0.residual_group.blocks.0.norm1.weight" in state_dict_keys:
         if "patch_embed.proj.weight" in state_dict_keys:
