@@ -9,7 +9,7 @@ from .architecture.HAT import HAT
 from .architecture.GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
 from .architecture.GFPGAN.restoreformer_arch import RestoreFormer
 
-PyTorchSRModels = (RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR, Swin2SR)
+PyTorchSRModels = (RealESRGANv2, SPSR, SwiftSRGAN, ESRGAN, SwinIR, Swin2SR, HAT)
 PyTorchSRModel = Union[
     RealESRGANv2,
     SPSR,
