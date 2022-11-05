@@ -8,6 +8,7 @@ try:
 except:
     torch = None
 
+from ..expression import ExpressionJson, intersect
 from .base_input import BaseInput
 
 
@@ -17,7 +18,7 @@ class ModelInput(BaseInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type="PyTorchModel",
+        input_type: ExpressionJson = "PyTorchModel",
     ):
         super().__init__(input_type, label)
 
@@ -32,9 +33,14 @@ class SrModelInput(ModelInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
+        input_type: ExpressionJson = "PyTorchModel",
     ):
-        super().__init__(label, input_type)
+        super().__init__(
+            label,
+            intersect(
+                input_type, "PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }"
+            ),
+        )
 
     def enforce(self, value):
         if torch is not None:
@@ -45,11 +51,12 @@ class SrModelInput(ModelInput):
 
 class FaceModelInput(ModelInput):
     def __init__(
-        self,
-        label: str = "Face SR Model",
-        input_type="PyTorchModel { arch: PyTorchModel::FaceArchs }",
+        self, label: str = "Face SR Model", input_type: ExpressionJson = "PyTorchModel"
     ):
-        super().__init__(label, input_type)
+        super().__init__(
+            label,
+            intersect(input_type, "PyTorchModel { arch: PyTorchModel::FaceArchs }"),
+        )
 
     def enforce(self, value):
         if torch is not None:
