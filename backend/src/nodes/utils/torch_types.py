@@ -21,7 +21,7 @@ PyTorchSRModel = Union[
 ]
 
 
-def isPyTorchSRModel(model):
+def isPyTorchSRModel(model: object):
     return isinstance(model, PyTorchSRModels)
 
 
@@ -29,7 +29,7 @@ PyTorchFaceModels = (GFPGANv1Clean, RestoreFormer)
 PyTorchFaceModel = Union[GFPGANv1Clean, RestoreFormer]
 
 
-def isPyTorchFaceModel(model):
+def isPyTorchFaceModel(model: object):
     return isinstance(model, PyTorchFaceModels)
 
 
@@ -37,5 +37,5 @@ PyTorchModels = (*PyTorchSRModels, *PyTorchFaceModels)
 PyTorchModel = Union[PyTorchSRModel, PyTorchFaceModel]
 
 
-def isPyTorchModel(model):
+def isPyTorchModel(model: object):
     return isinstance(model, PyTorchModels)
