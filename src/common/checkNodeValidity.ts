@@ -133,8 +133,10 @@ const prettyPrintType = (type: Type): string => {
         case 'number':
         case 'string':
         case 'interval':
-        case 'inverted-set':
             return type.toString();
+
+        case 'inverted-set':
+            return `not(${[...type.excluded].map((s) => JSON.stringify(s)).join(' | ')})`;
 
         case 'int-interval':
             if (type.min === -Infinity && type.max === Infinity) {
@@ -151,7 +153,6 @@ const prettyPrintType = (type: Type): string => {
         case 'struct':
             if (type.fields.length === 0) return type.name;
             return `${type.name} { ${type.fields
-
                 .map((f) => `${f.name}: ${prettyPrintType(f.type)}`)
                 .join(', ')} }`;
 

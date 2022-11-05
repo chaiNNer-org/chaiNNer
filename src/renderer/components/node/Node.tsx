@@ -50,7 +50,7 @@ export interface NodeProps {
 
 const NodeInner = memo(({ data, selected }: NodeProps) => {
     const { sendToast } = useContext(AlertBoxContext);
-    const { updateIteratorBounds, setHoveredNode, useInputData } = useContext(GlobalContext);
+    const { updateIteratorBounds, setHoveredNode, setNodeInputValue } = useContext(GlobalContext);
     const { schemata } = useContext(BackendContext);
 
     const { id, inputData, inputSize, isLocked, parentNode, schemaId } = data;
@@ -59,7 +59,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
     const schema = schemata.get(schemaId);
-    const { inputs, outputs, icon, category, name } = schema;
+    const { inputs, icon, category, name } = schema;
 
     const { validity } = useValidity(id, schema, inputData);
 
@@ -88,7 +88,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const onDragOver = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        if (fileInput && fileInput.filetypes && event.dataTransfer.types.includes('Files')) {
+        if (fileInput && fileInput.kind === 'file' && event.dataTransfer.types.includes('Files')) {
             event.stopPropagation();
 
             // eslint-disable-next-line no-param-reassign
@@ -99,14 +99,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const onDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        if (fileInput && fileInput.filetypes && event.dataTransfer.types.includes('Files')) {
+        if (fileInput && fileInput.kind === 'file' && event.dataTransfer.types.includes('Files')) {
             event.stopPropagation();
 
             const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
             if (p) {
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                const [, setInput] = useInputData<string>(id, fileInput.id, inputData);
-                setInput(p);
+                setNodeInputValue<string>(id, fileInput.id, p);
                 return;
             }
 
@@ -165,15 +163,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                         selected={selected}
                     />
                     <NodeBody
-                        accentColor={accentColor}
                         animated={animated}
                         id={id}
                         inputData={inputData}
                         inputSize={inputSize}
-                        inputs={inputs}
                         isLocked={isLocked}
-                        outputs={outputs}
-                        schemaId={schemaId}
+                        schema={schema}
                     />
                 </VStack>
                 <NodeFooter

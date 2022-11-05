@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Callable, Dict, Iterable, Tuple
 import numpy as np
 
 from ..format import format_image_with_channels
@@ -11,6 +11,30 @@ class ColorSpace:
         self.id = id_
         self.name = name
         self.channels = channels
+
+
+class ColorSpaceDetector:
+    def __init__(self, id_: int, name: str, color_spaces: Iterable[ColorSpace]) -> None:
+        assert 1000 <= id_ and id_ < 2000
+        self.id = id_
+        self.name = name
+        self.channel_map: Dict[int, ColorSpace] = {}
+        for cs in color_spaces:
+            assert cs.channels not in self.channel_map
+            self.channel_map[cs.channels] = cs
+        self.channels = list(self.channel_map.keys())
+
+    def detect(self, image: np.ndarray) -> ColorSpace:
+        c = get_h_w_c(image)[2]
+        cs = self.channel_map.get(c, None)
+        if cs is not None:
+            return cs
+
+        raise ValueError(
+            f"Expected the input image for {self.name}"
+            f" to be {format_image_with_channels(self.channels)}"
+            f" but found {format_image_with_channels([c])}."
+        )
 
 
 def assert_input_channels(img: np.ndarray, input_: ColorSpace, output: ColorSpace):

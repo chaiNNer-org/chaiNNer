@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import BinFileInput, ParamFileInput
 from ...properties.outputs import NcnnModelOutput, TextOutput
@@ -16,7 +16,12 @@ class NcnnLoadModelNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = "Load NCNN model (.bin and .param files)."
-        self.inputs = [ParamFileInput(), BinFileInput()]
+        self.inputs = [
+            group("ncnn-file-inputs")(
+                ParamFileInput(),
+                BinFileInput(),
+            )
+        ]
         self.outputs = [
             NcnnModelOutput(kind="ncnn", should_broadcast=True),
             TextOutput("Model Name"),

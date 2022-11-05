@@ -19,25 +19,12 @@ export interface IteratorSize extends Size {
 export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };
 export type OutputId = number & { readonly __outputId: never };
+export type GroupId = number & { readonly __groupId: never };
 
 export type InputValue = InputSchemaValue | undefined;
 export type InputSchemaValue = string | number;
-export interface InputOption {
-    option: string;
-    value: InputSchemaValue;
-    type?: ExpressionJson;
-}
-export type InputKind =
-    | 'number'
-    | 'slider'
-    | 'dropdown'
-    | 'text'
-    | 'text-line'
-    | 'directory'
-    | 'file'
-    | 'generic';
-export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export interface Input {
+
+interface InputBase {
     readonly id: InputId;
     readonly type: ExpressionJson;
     readonly conversion?: ExpressionJson | null;
@@ -45,12 +32,75 @@ export interface Input {
     readonly label: string;
     readonly optional: boolean;
     readonly hasHandle: boolean;
-    readonly def?: InputSchemaValue;
-    readonly default?: InputSchemaValue;
-    readonly options?: InputOption[];
-    readonly fileKind?: FileInputKind;
-    readonly filetypes?: string[];
 }
+export interface InputOption {
+    option: string;
+    value: InputSchemaValue;
+    type?: ExpressionJson;
+}
+export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
+
+export interface GenericInput extends InputBase {
+    readonly kind: 'generic';
+}
+export interface DropDownInput extends InputBase {
+    readonly kind: 'dropdown';
+    readonly options: readonly InputOption[];
+}
+export interface FileInput extends InputBase {
+    readonly kind: 'file';
+    readonly fileKind: FileInputKind;
+    readonly filetypes: readonly string[];
+}
+export interface DirectoryInput extends InputBase {
+    readonly kind: 'directory';
+}
+export interface TextInput extends InputBase {
+    readonly kind: 'text-line';
+    readonly minLength?: number | null;
+    readonly maxLength?: number | null;
+    readonly placeholder?: string | null;
+    readonly def?: string | null;
+}
+export interface NoteTextAreaInput extends InputBase {
+    readonly kind: 'text';
+    readonly resizable: boolean;
+}
+export interface NumberInput extends InputBase {
+    readonly kind: 'number';
+    readonly def: number;
+    readonly min?: number | null;
+    readonly max?: number | null;
+    readonly precision: number;
+    readonly controlsStep: number;
+    readonly unit?: string | null;
+    readonly noteExpression?: string | null;
+    readonly hideTrailingZeros: boolean;
+}
+export interface SliderInput extends InputBase {
+    readonly kind: 'slider';
+    readonly def: number;
+    readonly min: number;
+    readonly max: number;
+    readonly precision: number;
+    readonly controlsStep: number;
+    readonly unit?: string | null;
+    readonly noteExpression?: string | null;
+    readonly hideTrailingZeros: boolean;
+    readonly ends: readonly [string | null, string | null];
+    readonly sliderStep: number;
+    readonly gradient?: readonly string[] | null;
+}
+export type InputKind = Input['kind'];
+export type Input =
+    | GenericInput
+    | FileInput
+    | DirectoryInput
+    | TextInput
+    | NoteTextAreaInput
+    | DropDownInput
+    | SliderInput
+    | NumberInput;
 
 export type OutputKind =
     | 'image'
@@ -73,11 +123,31 @@ export interface Output {
     readonly hasHandle: boolean;
 }
 
+interface GroupBase {
+    readonly id: GroupId;
+    readonly kind: GroupKind;
+    readonly options: Readonly<Record<string, unknown>>;
+    readonly items: readonly InputId[];
+}
+interface NcnnFileInputGroup extends GroupBase {
+    readonly kind: 'ncnn-file-inputs';
+    readonly options: Readonly<Record<string, never>>;
+}
+interface FromToDropdownsGroup extends GroupBase {
+    readonly kind: 'from-to-dropdowns';
+    readonly options: Readonly<Record<string, never>>;
+}
+export type GroupKind = Group['kind'];
+export type Group = NcnnFileInputGroup | FromToDropdownsGroup;
+
+export type OfKind<T, Kind extends string> = T extends { readonly kind: Kind } ? T : never;
+
 export type NodeType = 'regularNode' | 'iterator' | 'iteratorHelper';
 
 export type InputData = Readonly<Record<InputId, InputValue>>;
 export type InputSize = Readonly<Record<InputId, Readonly<Size>>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
+export type GroupState = Readonly<Record<GroupId, unknown>>;
 
 export interface NodeSchema {
     readonly name: string;
@@ -86,9 +156,10 @@ export interface NodeSchema {
     readonly description: string;
     readonly icon: string;
     readonly nodeType: NodeType;
-    readonly inputs: Input[];
-    readonly outputs: Output[];
-    readonly defaultNodes?: DefaultNode[];
+    readonly inputs: readonly Input[];
+    readonly outputs: readonly Output[];
+    readonly groups: readonly Group[];
+    readonly defaultNodes?: readonly DefaultNode[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
@@ -107,6 +178,7 @@ export interface NodeData {
     readonly isDisabled?: boolean;
     readonly isLocked?: boolean;
     readonly inputData: InputData;
+    readonly groupState?: GroupState;
     readonly inputSize?: InputSize;
     readonly invalid?: boolean;
     readonly iteratorSize?: IteratorSize;

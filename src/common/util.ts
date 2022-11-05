@@ -23,22 +23,30 @@ export const assertType: <T>(_: T) => void = noop;
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
-export interface ParsedHandle<Id extends InputId | OutputId = InputId | OutputId> {
+export interface ParsedSourceHandle {
     nodeId: string;
-    inOutId: Id;
+    outputId: OutputId;
 }
-const parseHandle = (handle: string): ParsedHandle => {
+export interface ParsedTargetHandle {
+    nodeId: string;
+    inputId: InputId;
+}
+export const parseSourceHandle = (handle: string): ParsedSourceHandle => {
     return {
-        nodeId: handle.substring(0, 36), // uuid
-        inOutId: Number(handle.substring(37)) as InputId | OutputId,
+        nodeId: handle.substring(0, 36),
+        outputId: Number(handle.substring(37)) as OutputId,
     };
 };
-export const parseSourceHandle = parseHandle as (handle: string) => ParsedHandle<OutputId>;
-export const parseTargetHandle = parseHandle as (handle: string) => ParsedHandle<InputId>;
-const stringifyHandle = (nodeId: string, inOutId: InputId | OutputId): string =>
-    `${nodeId}-${inOutId}`;
-export const stringifySourceHandle: (nodeId: string, inOutId: OutputId) => string = stringifyHandle;
-export const stringifyTargetHandle: (nodeId: string, inOutId: InputId) => string = stringifyHandle;
+export const parseTargetHandle = (handle: string): ParsedTargetHandle => {
+    return {
+        nodeId: handle.substring(0, 36),
+        inputId: Number(handle.substring(37)) as InputId,
+    };
+};
+export const stringifySourceHandle = (handle: ParsedSourceHandle): string =>
+    `${handle.nodeId}-${handle.outputId}`;
+export const stringifyTargetHandle = (handle: ParsedTargetHandle): string =>
+    `${handle.nodeId}-${handle.inputId}`;
 
 export const getLocalStorage = (): Storage => {
     const storage = (global as Record<string, unknown>).customLocalStorage;

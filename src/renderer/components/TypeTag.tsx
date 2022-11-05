@@ -1,7 +1,7 @@
-import { StructType, Type, without } from '@chainner/navi';
+import { NeverType, StructType, Type, isNumericLiteral, without } from '@chainner/navi';
 import { Tag } from '@chakra-ui/react';
 import React, { memo } from 'react';
-import { isImage, isNumericLiteral } from '../../common/types/util';
+import { getField, isImage } from '../../common/types/util';
 
 const getColorMode = (channels: number) => {
     switch (channels) {
@@ -36,10 +36,10 @@ const getTypeText = (type: Type): string[] => {
             }
         }
 
-        if (type.name === 'PyTorchModel' && type.fields.length === 3) {
-            const [scale] = type.fields;
-            if (isNumericLiteral(scale.type)) {
-                tags.push(`${scale.type.toString()}x`);
+        if (type.name === 'PyTorchModel' || type.name === 'NcnnNetwork') {
+            const scale = getField(type, 'scale') ?? NeverType.instance;
+            if (isNumericLiteral(scale)) {
+                tags.push(`${scale.toString()}x`);
             }
         }
     }

@@ -9,7 +9,7 @@ from ...node_base import NodeBase
 from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput, StackOrientationDropdown
 from ...properties.outputs import ImageOutput
-from ...utils.utils import get_h_w_c
+from ...utils.utils import get_h_w_c, round_half_up
 
 
 @NodeFactory.register("chainner:image:stack")
@@ -109,14 +109,14 @@ class StackNode(NodeBase):
                 if h < max_h:
                     fixed_img = cv2.resize(
                         img,
-                        (round(w * max_h / h), max_h),
+                        (round_half_up(w * max_h / h), max_h),
                         interpolation=cv2.INTER_NEAREST,
                     )
             elif orientation == "vertical":
                 if w < max_w:
                     fixed_img = cv2.resize(
                         img,
-                        (max_w, round(h * max_w / w)),
+                        (max_w, round_half_up(h * max_w / w)),
                         interpolation=cv2.INTER_NEAREST,
                     )
             else:

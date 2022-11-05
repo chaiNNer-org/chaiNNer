@@ -44,6 +44,11 @@ export const getOptionalDependencies = (isNvidiaAvailable: boolean): Dependency[
                     version: '0.2.5',
                     sizeEstimate: 1.1 * MB,
                 },
+                {
+                    packageName: 'einops',
+                    version: '0.5.0',
+                    sizeEstimate: 36.5 * KB,
+                },
             ],
             description:
                 'PyTorch uses .pth models to upscale images, and is fastest when CUDA is supported (Nvidia GPU). If CUDA is unsupported, it will install with CPU support (which is very slow).',
