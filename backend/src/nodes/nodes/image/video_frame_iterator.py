@@ -222,7 +222,15 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         if fps is None:
             raise Exception("No fps found in video stream")
         fps = int(fps.split("/")[0]) / int(fps.split("/")[1])
-        frame_count = video_stream.get("nb_frames", 999999999)
+        frame_count = video_stream.get("nb_frames", None)
+        if frame_count is None:
+            duration = video_stream.get("duration", None)
+            if duration is not None:
+                frame_count = float(duration) * fps
+            else:
+                raise Exception(
+                    "No frame count or duration found in video stream. Unable to determine video length. Please report."
+                )
         frame_count = int(frame_count)
 
         context.inputs.set_append_values(output_node_id, [writer, fps])
