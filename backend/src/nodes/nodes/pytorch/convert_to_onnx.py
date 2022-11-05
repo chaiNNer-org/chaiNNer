@@ -7,12 +7,12 @@ import torch
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput
+from ...properties.inputs import SrModelInput
 from ...properties.outputs import OnnxModelOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.onnx_model import OnnxModel
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchSRModel
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
@@ -20,7 +20,7 @@ class ConvertTorchToONNXNode(NodeBase):
     def __init__(self):
         super().__init__()
         self.description = """Convert a PyTorch model to ONNX."""
-        self.inputs = [ModelInput("PyTorch Model")]
+        self.inputs = [SrModelInput("PyTorch Model")]
         self.outputs = [OnnxModelOutput(label="ONNX Model")]
 
         self.category = PyTorchCategory
@@ -28,7 +28,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel) -> OnnxModel:
+    def run(self, model: PyTorchSRModel) -> OnnxModel:
         exec_options = to_pytorch_execution_options(get_execution_options())
 
         model = model.eval()
