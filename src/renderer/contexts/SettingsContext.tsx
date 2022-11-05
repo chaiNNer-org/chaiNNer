@@ -29,6 +29,7 @@ interface Settings {
     useStartupTemplate: readonly [string, React.Dispatch<React.SetStateAction<string>>];
     useIsDarkMode: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
     useAnimateChain: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
+    useExperimentalFeatures: readonly [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 
     // Node Settings
     useNodeFavorites: readonly [
@@ -88,6 +89,8 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useLocalStorage('node-selector-collapsed', false)
     );
 
+    const useExperimentalFeatures = useMemoArray(useLocalStorage('experimental-features', false));
+
     const contextValue = useMemoObject<Settings>({
         // GPU Stuff
         useIsCpu,
@@ -106,6 +109,7 @@ export const SettingsProvider = memo(({ children }: React.PropsWithChildren<unkn
         useStartupTemplate,
         useIsDarkMode,
         useAnimateChain,
+        useExperimentalFeatures,
 
         // Node
         useNodeFavorites,
