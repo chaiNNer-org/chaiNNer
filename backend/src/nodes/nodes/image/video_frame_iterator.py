@@ -210,12 +210,28 @@ class SimpleVideoFrameIteratorNode(IteratorNodeBase):
         if video_stream is None:
             raise Exception("No video stream found in file")
 
-        width = int(video_stream["width"])
-        height = int(video_stream["height"])
-        fps = int(video_stream["r_frame_rate"].split("/")[0]) / int(
-            video_stream["r_frame_rate"].split("/")[1]
-        )
-        frame_count = int(video_stream["nb_frames"])
+        width = video_stream.get("width", None)
+        if width is None:
+            raise Exception("No width found in video stream")
+        width = int(width)
+        height = video_stream.get("height", None)
+        if height is None:
+            raise Exception("No height found in video stream")
+        height = int(height)
+        fps = video_stream.get("r_frame_rate", None)
+        if fps is None:
+            raise Exception("No fps found in video stream")
+        fps = int(fps.split("/")[0]) / int(fps.split("/")[1])
+        frame_count = video_stream.get("nb_frames", None)
+        if frame_count is None:
+            duration = video_stream.get("duration", None)
+            if duration is not None:
+                frame_count = float(duration) * fps
+            else:
+                raise Exception(
+                    "No frame count or duration found in video stream. Unable to determine video length. Please report."
+                )
+        frame_count = int(frame_count)
 
         context.inputs.set_append_values(output_node_id, [writer, fps])
 
