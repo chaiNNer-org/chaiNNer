@@ -1,18 +1,14 @@
 try:
     import torch
+    from ...utils.torch_types import (
+        isPyTorchSRModel,
+        isPyTorchFaceModel,
+        isPyTorchModel,
+    )
 except:
     torch = None
 
 from typing import Union
-
-from ...utils.torch_types import (
-    PyTorchModel,
-    PyTorchFaceModel,
-    PyTorchSRModel,
-    isPyTorchSRModel,
-    isPyTorchFaceModel,
-    isPyTorchModel,
-)
 
 
 from ..expression import ExpressionJson
@@ -29,7 +25,7 @@ class ModelInput(BaseInput):
     ):
         super().__init__(input_type, label)
 
-    def enforce(self, value: PyTorchModel):
+    def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert isPyTorchModel(value), "Expected a supported PyTorch model."
@@ -46,7 +42,7 @@ class SrModelInput(ModelInput):
     ):
         super().__init__(label, input_type)
 
-    def enforce(self, value: PyTorchSRModel):
+    def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert isPyTorchSRModel(value), "Expected a regular Super-Resolution model."
@@ -63,7 +59,7 @@ class FaceModelInput(ModelInput):
     ):
         super().__init__(label, input_type)
 
-    def enforce(self, value: PyTorchFaceModel):
+    def enforce(self, value):
         if torch is not None:
             assert isinstance(value, torch.nn.Module), "Expected a PyTorch model."
             assert isPyTorchFaceModel(
