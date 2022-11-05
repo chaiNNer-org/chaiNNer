@@ -888,7 +888,7 @@ class Swin2SR(nn.Module):
         super(Swin2SR, self).__init__()
 
         # Defaults
-        img_size = 64
+        img_size = 128
         patch_size = 1
         in_chans = 3
         embed_dim = 96
@@ -923,7 +923,9 @@ class Swin2SR(nn.Module):
         state_keys = self.state.keys()
 
         if "conv_before_upsample.0.weight" in state_keys:
-            if "conv_up1.weight" in state_keys:
+            if "conv_aux.weight" in state_keys:
+                upsampler = "pixelshuffle_aux"
+            elif "conv_up1.weight" in state_keys:
                 upsampler = "nearest+conv"
             else:
                 upsampler = "pixelshuffle"
@@ -954,7 +956,7 @@ class Swin2SR(nn.Module):
 
             for upsample_key in upsample_keys:
                 upscale *= 2
-        elif upsampler == "pixelshuffle":
+        elif upsampler == "pixelshuffle" or upsampler == "pixelshuffle_aux":
             upsample_keys = [
                 x
                 for x in state_keys
@@ -1037,6 +1039,24 @@ class Swin2SR(nn.Module):
         self.upsampler = upsampler
         self.img_size = img_size
         self.img_range = img_range
+        self.resi_connection = resi_connection
+        print(
+            {
+                "in_nc": num_in_ch,
+                "out_nc": num_out_ch,
+                "num_feat": num_feat,
+                "embed_dim": embed_dim,
+                "num_heads": num_heads,
+                "depths": depths,
+                "window_size": window_size,
+                "mlp_ratio": mlp_ratio,
+                "scale": upscale,
+                "upsampler": upsampler,
+                "img_size": img_size,
+                "img_range": img_range,
+                "resi_connection": resi_connection,
+            }
+        )
 
         self.supports_fp16 = False  # Too much weirdness to support this at the moment
         self.supports_bfp16 = True
@@ -1352,7 +1372,8 @@ class Swin2SR(nn.Module):
 
         x = x / self.img_range + self.mean
         if self.upsampler == "pixelshuffle_aux":
-            return x[:, :, : H * self.upscale, : W * self.upscale], aux  # type: ignore
+            # NOTE: I removed an "aux" output here. not sure what that was for
+            return x[:, :, : H * self.upscale, : W * self.upscale]  # type: ignore
 
         elif self.upsampler == "pixelshuffle_hf":
             x_out = x_out / self.img_range + self.mean  # type: ignore
