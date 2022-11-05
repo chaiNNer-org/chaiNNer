@@ -8,10 +8,6 @@ try:
 except:
     torch = None
 
-from typing import Union
-
-
-from ..expression import ExpressionJson
 from .base_input import BaseInput
 
 
@@ -21,7 +17,7 @@ class ModelInput(BaseInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type: Union[str, ExpressionJson] = "PyTorchModel",
+        input_type="PyTorchModel",
     ):
         super().__init__(input_type, label)
 
@@ -36,9 +32,7 @@ class SrModelInput(ModelInput):
     def __init__(
         self,
         label: str = "Model",
-        input_type: Union[
-            str, ExpressionJson
-        ] = "PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
+        input_type="PyTorchModel { arch: invStrSet(PyTorchModel::FaceArchs) }",
     ):
         super().__init__(label, input_type)
 
@@ -53,9 +47,7 @@ class FaceModelInput(ModelInput):
     def __init__(
         self,
         label: str = "Face SR Model",
-        input_type: Union[
-            str, ExpressionJson
-        ] = "PyTorchModel { arch: PyTorchModel::FaceArchs }",
+        input_type="PyTorchModel { arch: PyTorchModel::FaceArchs }",
     ):
         super().__init__(label, input_type)
 
