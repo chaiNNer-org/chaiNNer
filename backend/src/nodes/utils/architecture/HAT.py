@@ -1018,23 +1018,6 @@ class HAT(nn.Module):
         self.img_size = img_size
         self.img_range = img_range
         self.resi_connection = resi_connection
-        print(
-            {
-                "in_nc": in_chans,
-                "out_nc": num_out_ch,
-                "num_feat": num_feat,
-                "embed_dim": embed_dim,
-                "num_heads": num_heads,
-                "depths": depths,
-                "window_size": window_size,
-                "mlp_ratio": mlp_ratio,
-                "scale": upscale,
-                "upsampler": upsampler,
-                "img_size": img_size,
-                "img_range": img_range,
-                "resi_connection": resi_connection,
-            }
-        )
 
         num_in_ch = in_chans
         # num_out_ch = in_chans
