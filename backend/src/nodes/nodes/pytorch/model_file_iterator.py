@@ -12,6 +12,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import *
 from ...properties.outputs import *
 from ...utils.torch_types import PyTorchModel
+from ...utils.utils import list_all_files_sorted
 
 PYTORCH_ITERATOR_NODE_ID = "chainner:pytorch:model_iterator_load"
 
@@ -76,22 +77,9 @@ class ModelFileIteratorNode(IteratorNodeBase):
 
         supported_filetypes = [".pth"]
 
-        def walk_error_handler(exception_instance):
-            logger.warning(
-                f"Exception occurred during walk: {exception_instance} Continuing..."
-            )
-
-        just_model_files: List[str] = []
-        for root, _dirs, files in os.walk(
-            directory, topdown=True, onerror=walk_error_handler
-        ):
-            await context.progress.suspend()
-
-            for name in sorted(files):
-                filepath = os.path.join(root, name)
-                _base, ext = os.path.splitext(filepath)
-                if ext.lower() in supported_filetypes:
-                    just_model_files.append(filepath)
+        just_model_files: List[str] = list_all_files_sorted(
+            directory, supported_filetypes
+        )
 
         def before(filepath: str, index: int):
             context.inputs.set_values(model_path_node_id, [filepath, directory, index])
