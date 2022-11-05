@@ -12,7 +12,7 @@ from ...utils.torch_types import PyTorchModel
 from .convert_to_onnx import ConvertTorchToONNXNode
 
 try:
-    from ..onnx.convert_to_ncnn import ConvertOnnxToNcnnNode
+    from ..onnx.convert_to_ncnn import ConvertOnnxToNcnnNode, FP_MODE_32
 except:
     ConvertOnnxToNcnnNode = None
 
@@ -25,13 +25,7 @@ class ConvertTorchToNCNNNode(NodeBase):
         self.inputs = [ModelInput("PyTorch Model"), OnnxFpDropdown()]
         self.outputs = [
             NcnnModelOutput(label="NCNN Model"),
-            TextOutput(
-                "FP Mode",
-                """match Input1 {
-                        FpMode::fp32 => "fp32",
-                        FpMode::fp16 => "fp16",
-                }""",
-            ),
+            TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 
         self.category = PyTorchCategory
@@ -47,8 +41,8 @@ class ConvertTorchToNCNNNode(NodeBase):
                 manager to use this node."
             )
 
-        # Set final to False so intermediate conversion to ONNX is always fp32
-        onnx_model = ConvertTorchToONNXNode().run(model)[0]
+        # Intermediate conversion to ONNX is always fp32
+        onnx_model = ConvertTorchToONNXNode().run(model, FP_MODE_32)[0]
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode

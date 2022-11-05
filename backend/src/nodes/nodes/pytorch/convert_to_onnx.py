@@ -36,7 +36,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel, is_fp16: int = 0) -> Tuple[OnnxModel, str]:
+    def run(self, model: PyTorchModel, is_fp16: int) -> Tuple[OnnxModel, str]:
         fp16 = bool(is_fp16)
         exec_options = to_pytorch_execution_options(get_execution_options())
         if fp16:

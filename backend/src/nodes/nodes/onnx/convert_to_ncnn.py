@@ -13,6 +13,8 @@ from ...utils.ncnn_model import NcnnModelWrapper
 from ...utils.onnx_model import OnnxModel
 from ...utils.onnx_to_ncnn import Onnx2NcnnConverter
 
+FP_MODE_32 = 0
+
 
 @NodeFactory.register("chainner:onnx:convert_to_ncnn")
 class ConvertOnnxToNcnnNode(NodeBase):
@@ -22,13 +24,7 @@ class ConvertOnnxToNcnnNode(NodeBase):
         self.inputs = [OnnxModelInput("ONNX Model"), OnnxFpDropdown()]
         self.outputs = [
             NcnnModelOutput(label="NCNN Model"),
-            TextOutput(
-                "FP Mode",
-                """match Input1 {
-                        FpMode::fp32 => "fp32",
-                        FpMode::fp16 => "fp16",
-                }""",
-            ),
+            TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 
         self.category = ONNXCategory
