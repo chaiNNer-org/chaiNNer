@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import List, Union
 
 from . import category as UtilityCategory
 
@@ -32,12 +32,13 @@ class TextAppendNode(NodeBase):
             TextOutput(
                 "Output Text",
                 output_type="""
+                let sep = toString(Input0);
                 concat(
                     toString(Input1),
-                    toString(Input0),
+                    sep,
                     toString(Input2),
-                    match Input3 { null => "", _ as s => concat(toString(Input0), toString(s)) },
-                    match Input4 { null => "", _ as s => concat(toString(Input0), toString(s)) }
+                    match Input3 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input4 { null => "", _ as s => concat(sep, toString(s)) }
                 )
                 """,
             )
@@ -56,5 +57,5 @@ class TextAppendNode(NodeBase):
         str3: Union[str, None],
         str4: Union[str, None],
     ) -> str:
-        strings = [str(x) for x in [str1, str2, str3, str4] if x is not None]
-        return separator.join(strings)
+        inputs: List[Union[str, None]] = [str1, str2, str3, str4]
+        return separator.join([x for x in inputs if x is not None])

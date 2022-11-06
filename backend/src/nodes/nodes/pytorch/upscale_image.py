@@ -6,8 +6,6 @@ import torch
 import numpy as np
 from sanic.log import logger
 
-from backend.src.nodes.properties.inputs.pytorch_inputs import SrModelInput
-
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
