@@ -2565,6 +2565,99 @@ Object {
 }
 `;
 
+exports[`Read save file normal-map-generator.chn 1`] = `
+Object {
+  "edges": Array [
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "30e6cfc3-77fd-440a-82b2-bd7a090a790f",
+      "source": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+      "sourceHandle": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64-0",
+      "target": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+      "targetHandle": "091149ea-be6a-44d9-af3d-fb0902b9077d-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+    Object {
+      "animated": false,
+      "data": Object {},
+      "id": "9d70249f-14f4-4f79-8fe5-fb4ee1767b9f",
+      "source": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+      "sourceHandle": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64-0",
+      "target": "a6759cf4-cd53-4bb8-afc2-929733532786",
+      "targetHandle": "a6759cf4-cd53-4bb8-afc2-929733532786-0",
+      "type": "main",
+      "zIndex": 69,
+    },
+  ],
+  "nodes": Array [
+    Object {
+      "data": Object {
+        "id": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+        "inputData": Object {},
+        "schemaId": "chainner:image:view",
+      },
+      "height": 372,
+      "id": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+      "position": Object {
+        "x": 410,
+        "y": 878,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 242,
+      "zIndex": 50,
+    },
+    Object {
+      "data": Object {
+        "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+        "inputData": Object {
+          "1": 0,
+          "2": 0,
+          "3": "sobel",
+          "4": 0,
+        },
+        "schemaId": "chainner:image:normal_generator",
+      },
+      "height": 448,
+      "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+      "position": Object {
+        "x": 410.0177579278752,
+        "y": 339.0188609548806,
+      },
+      "selected": true,
+      "type": "regularNode",
+      "width": 282,
+      "zIndex": 70,
+    },
+    Object {
+      "data": Object {
+        "id": "a6759cf4-cd53-4bb8-afc2-929733532786",
+        "inputData": Object {},
+        "schemaId": "chainner:image:preview",
+      },
+      "height": 118,
+      "id": "a6759cf4-cd53-4bb8-afc2-929733532786",
+      "position": Object {
+        "x": 745.7945904630488,
+        "y": 855.2046073651672,
+      },
+      "selected": false,
+      "type": "regularNode",
+      "width": 267,
+      "zIndex": 50,
+    },
+  ],
+  "tamperedWith": false,
+  "viewport": Object {
+    "x": -52.25190083081105,
+    "y": -133.49885267518903,
+    "zoom": 0.8705505632961265,
+  },
+}
+`;
+
 exports[`Read save file onnx-interpolate.chn 1`] = `
 Object {
   "edges": Array [],
@@ -5944,6 +6037,102 @@ Object {
       "x": 0,
       "y": 0,
       "zoom": 1,
+    },
+  },
+  "version": "0.0.0-test",
+}
+`;
+
+exports[`Write save file normal-map-generator.chn 1`] = `
+Object {
+  "checksum": "da28de9780627d4253323e4352518421",
+  "content": Object {
+    "edges": Array [
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "30e6cfc3-77fd-440a-82b2-bd7a090a790f",
+        "source": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+        "sourceHandle": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64-0",
+        "target": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+        "targetHandle": "091149ea-be6a-44d9-af3d-fb0902b9077d-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+      Object {
+        "animated": false,
+        "data": Object {},
+        "id": "9d70249f-14f4-4f79-8fe5-fb4ee1767b9f",
+        "source": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+        "sourceHandle": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64-0",
+        "target": "a6759cf4-cd53-4bb8-afc2-929733532786",
+        "targetHandle": "a6759cf4-cd53-4bb8-afc2-929733532786-0",
+        "type": "main",
+        "zIndex": 69,
+      },
+    ],
+    "nodes": Array [
+      Object {
+        "data": Object {
+          "id": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+          "inputData": Object {},
+          "schemaId": "chainner:image:view",
+        },
+        "height": 372,
+        "id": "091149ea-be6a-44d9-af3d-fb0902b9077d",
+        "position": Object {
+          "x": 410,
+          "y": 878,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 242,
+        "zIndex": 50,
+      },
+      Object {
+        "data": Object {
+          "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+          "inputData": Object {
+            "1": 0,
+            "2": 0,
+            "3": "sobel",
+            "4": 0,
+          },
+          "schemaId": "chainner:image:normal_generator",
+        },
+        "height": 448,
+        "id": "5d9369df-6be6-4fee-ab2c-92dcbc7f5c64",
+        "position": Object {
+          "x": 410.0177579278752,
+          "y": 339.0188609548806,
+        },
+        "selected": true,
+        "type": "regularNode",
+        "width": 282,
+        "zIndex": 70,
+      },
+      Object {
+        "data": Object {
+          "id": "a6759cf4-cd53-4bb8-afc2-929733532786",
+          "inputData": Object {},
+          "schemaId": "chainner:image:preview",
+        },
+        "height": 118,
+        "id": "a6759cf4-cd53-4bb8-afc2-929733532786",
+        "position": Object {
+          "x": 745.7945904630488,
+          "y": 855.2046073651672,
+        },
+        "selected": false,
+        "type": "regularNode",
+        "width": 267,
+        "zIndex": 50,
+      },
+    ],
+    "viewport": Object {
+      "x": -52.25190083081105,
+      "y": -133.49885267518903,
+      "zoom": 0.8705505632961265,
     },
   },
   "version": "0.0.0-test",
