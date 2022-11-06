@@ -176,8 +176,8 @@ class NcnnParamCollection:
     ) -> None:
         self.op: str = op
         self.param_dict: Dict[int, NcnnParam] = {} if param_dict is None else param_dict
-        self.weight_order: List[str] = (
-            param_schema[self.op]["weightOrder"] if self.op else []
+        self.weight_order: Dict[str, List[int]] = (
+            param_schema[self.op]["weightOrder"] if self.op else {}
         )
 
     def __getitem__(self, pid: int) -> NcnnParam:
@@ -307,6 +307,10 @@ class NcnnLayer:
 
         if quantize_tag == DTYPE_FP16:
             data_array = data_array.astype(np.float16)
+        else:
+            # Since int8 not supported, all data that is not fp16 is fp32.
+            # This covers issues caused by converting fp16 ONNX models.
+            data_array = data_array.astype(np.float32)
         self.weight_data[weight_name] = NcnnWeight(data_array, quantize_tag)
 
         return len(quantize_tag) + len(data_array.tobytes())

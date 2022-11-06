@@ -334,7 +334,7 @@ class Onnx2NcnnConverter:
                 add_three = self.weights[node.input[1]]
                 if (
                     len(add_three.dims) != 0
-                    or get_tensor_proto_data_size(add_three) != 1
+                    or get_tensor_proto_data_size(add_three, add_three.data_type) != 1
                 ):
                     continue
 
@@ -379,7 +379,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 div_six = self.weights[node4.input[1]]
-                if len(div_six.dims) != 0 or get_tensor_proto_data_size(div_six) != 1:
+                if (
+                    len(div_six.dims) != 0
+                    or get_tensor_proto_data_size(div_six, div_six.data_type) != 1
+                ):
                     continue
 
                 constant_div_six = get_node_attr_from_input_f(div_six)
@@ -483,7 +486,7 @@ class Onnx2NcnnConverter:
                 add_three = self.weights[node.input[1]]
                 if (
                     len(add_three.dims) != 0
-                    or get_tensor_proto_data_size(add_three) != 1
+                    or get_tensor_proto_data_size(add_three, add_three.data_type) != 1
                 ):
                     continue
 
@@ -522,7 +525,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 div_six = self.weights[node3.input[1]]
-                if len(div_six.dims) != 0 or get_tensor_proto_data_size(div_six) != 1:
+                if (
+                    len(div_six.dims) != 0
+                    or get_tensor_proto_data_size(div_six, div_six.data_type) != 1
+                ):
                     continue
 
                 constant_div_six = get_node_attr_from_input_f(div_six)
@@ -951,7 +957,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 pow_two = self.weights[node3.input[1]]
-                if len(pow_two.dims) != 0 or get_tensor_proto_data_size(pow_two) != 1:
+                if (
+                    len(pow_two.dims) != 0
+                    or get_tensor_proto_data_size(pow_two, pow_two.data_type) != 1
+                ):
                     continue
 
                 constant_pow_two = get_node_attr_from_input_f(pow_two)
@@ -972,7 +981,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 add_eps = self.weights[node5.input[1]]
-                if len(add_eps.dims) != 0 or get_tensor_proto_data_size(add_eps) != 1:
+                if (
+                    len(add_eps.dims) != 0
+                    or get_tensor_proto_data_size(add_eps, add_eps.data_type) != 1
+                ):
                     continue
 
                 eps = get_node_attr_from_input_f(add_eps)
@@ -2203,7 +2215,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 scalar_b = self.weights[node.input[0]]
-                if len(scalar_b.dims) != 0 or get_tensor_proto_data_size(scalar_b) != 1:
+                if (
+                    len(scalar_b.dims) != 0
+                    or get_tensor_proto_data_size(scalar_b, scalar_b.data_type) != 1
+                ):
                     continue
 
                 if node.op_type == "Sub":
@@ -2236,7 +2251,10 @@ class Onnx2NcnnConverter:
                     continue
 
                 scalar_b = self.weights[node.input[1]]
-                if len(scalar_b.dims) != 0 or get_tensor_proto_data_size(scalar_b) != 1:
+                if (
+                    len(scalar_b.dims) != 0
+                    or get_tensor_proto_data_size(scalar_b, scalar_b.data_type) != 1
+                ):
                     continue
 
                 b = get_node_attr_from_input_f(scalar_b)
@@ -2576,7 +2594,7 @@ class Onnx2NcnnConverter:
 
                     M_dims_size = len(M.dims)
                     if M_dims_size == 0:
-                        layer.add_param(0, get_tensor_proto_data_size(M))
+                        layer.add_param(0, get_tensor_proto_data_size(M, M.data_type))
                     elif M_dims_size == 1:
                         layer.add_param(0, M.dims[0])
                     elif M_dims_size == 2:
@@ -2922,7 +2940,7 @@ class Onnx2NcnnConverter:
                 B = self.weights[node.input[2]]
                 mean = self.weights[node.input[3]]
                 var = self.weights[node.input[4]]
-                channels = get_tensor_proto_data_size(scale)
+                channels = get_tensor_proto_data_size(scale, scale.data_type)
 
                 layer.add_param(0, channels)
 
@@ -2937,7 +2955,7 @@ class Onnx2NcnnConverter:
             elif op == "BiasGelu":
                 B = self.weights[node.input[1]]
 
-                layer.add_param(0, get_tensor_proto_data_size(B))
+                layer.add_param(0, get_tensor_proto_data_size(B, B.data_type))
 
                 bin_length += layer.add_weight(B, "bias")
             elif op == "Ceil":
@@ -3016,7 +3034,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, has_bias)
 
-                layer.add_param(6, get_tensor_proto_data_size(W))
+                layer.add_param(6, get_tensor_proto_data_size(W, W.data_type))
 
                 if group > 1:
                     layer.add_param(7, group)
@@ -3092,7 +3110,7 @@ class Onnx2NcnnConverter:
 
                 layer.add_param(5, has_bias)
 
-                weight_data_size = get_tensor_proto_data_size(W)
+                weight_data_size = get_tensor_proto_data_size(W, W.data_type)
                 layer.add_param(6, weight_data_size)
 
                 if group > 1:
@@ -3139,9 +3157,11 @@ class Onnx2NcnnConverter:
                 W = self.weights[node.input[5]]
                 B = self.weights[node.input[6]]
 
-                layer.add_param(0, get_tensor_proto_data_size(B))
-                layer.add_param(1, get_tensor_proto_data_size(words))
-                layer.add_param(2, get_tensor_proto_data_size(positions))
+                layer.add_param(0, get_tensor_proto_data_size(B, B.data_type))
+                layer.add_param(1, get_tensor_proto_data_size(words, words.data_type))
+                layer.add_param(
+                    2, get_tensor_proto_data_size(positions, positions.data_type)
+                )
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 bin_length += layer.add_weight(words, "words", DTYPE_FP32)
@@ -3169,9 +3189,9 @@ class Onnx2NcnnConverter:
                     B = self.weights[node.input[1]]
                     C = self.weights[node.input[2]]
 
-                    layer.add_param(0, get_tensor_proto_data_size(C))
+                    layer.add_param(0, get_tensor_proto_data_size(C, C.data_type))
                     layer.add_param(1, 1)
-                    layer.add_param(2, get_tensor_proto_data_size(B))
+                    layer.add_param(2, get_tensor_proto_data_size(B, B.data_type))
 
                     bin_length += layer.add_weight(B, "B", DTYPE_FP32)
                     bin_length += layer.add_weight(C, "C")
@@ -3376,7 +3396,7 @@ class Onnx2NcnnConverter:
                 if node.input[1] in self.weights:
                     # InnerProduct
                     B = self.weights[node.input[1]]
-                    weight_data_size = get_tensor_proto_data_size(B)
+                    weight_data_size = get_tensor_proto_data_size(B, B.data_type)
                     num_output = B.dims[-1]
 
                     layer.add_param(0, num_output)
@@ -3467,7 +3487,7 @@ class Onnx2NcnnConverter:
                 layer.add_param(0, get_node_attr_i(node, "scale_factor", 1))
             elif op == "PRelu":
                 slope = self.weights[node.input[1]]
-                num_slope = get_tensor_proto_data_size(slope)
+                num_slope = get_tensor_proto_data_size(slope, slope.data_type)
 
                 layer.add_param(0, num_slope)
 
@@ -3636,7 +3656,7 @@ class Onnx2NcnnConverter:
                 else:
                     direction_type = GRU.FORWARD
 
-                weight_data_size = get_tensor_proto_data_size(W)
+                weight_data_size = get_tensor_proto_data_size(W, W.data_type)
 
                 layer.add_param(0, hidden_size)
                 layer.add_param(1, weight_data_size)
@@ -3663,7 +3683,7 @@ class Onnx2NcnnConverter:
                 B = self.weights[node.input[3]]
                 B2 = self.weights[node.input[4]]
 
-                layer.add_param(0, get_tensor_proto_data_size(B))
+                layer.add_param(0, get_tensor_proto_data_size(B, B.data_type))
 
                 quantize_tag = DTYPE_FP16 if is_fp16 else DTYPE_FP32
                 bin_length += layer.add_weight(W, "weight", quantize_tag)
