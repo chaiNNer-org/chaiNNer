@@ -73,7 +73,7 @@ class NormalMapGenerator(NodeBase):
         ]
         self.category = ImageFilterCategory
         self.name = "Normal Map Generator"
-        self.icon = "MdAddCircleOutline"
+        self.icon = "MdOutlineAutoFixHigh"
         self.sub = "Normal Map"
 
     def run(
