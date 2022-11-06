@@ -1,10 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import {
-    NamedExpression,
-    NamedExpressionField,
-    NumericLiteralType,
-    StringLiteralType,
-} from '@chainner/navi';
+import { NamedExpression, NamedExpressionField, literal } from '@chainner/navi';
 import { ViewOffIcon } from '@chakra-ui/icons';
 import { Center, HStack, Spinner, Tag, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
@@ -51,17 +46,11 @@ export const NcnnModelOutput = memo(
                         id,
                         outputId,
                         new NamedExpression('NcnnNetwork', [
-                            new NamedExpressionField('scale', new NumericLiteralType(value.scale)),
-                            new NamedExpressionField(
-                                'inputChannels',
-                                new NumericLiteralType(value.inNc)
-                            ),
-                            new NamedExpressionField(
-                                'outputChannels',
-                                new NumericLiteralType(value.outNc)
-                            ),
-                            new NamedExpressionField('nf', new NumericLiteralType(value.nf)),
-                            new NamedExpressionField('fp', new StringLiteralType(value.fp)),
+                            new NamedExpressionField('scale', literal(value.scale)),
+                            new NamedExpressionField('inputChannels', literal(value.inNc)),
+                            new NamedExpressionField('outputChannels', literal(value.outNc)),
+                            new NamedExpressionField('nf', literal(value.nf)),
+                            new NamedExpressionField('fp', literal(value.fp)),
                         ])
                     );
                 } else {
