@@ -104,7 +104,7 @@ export const SliderInput = memo(
                         value={displaySliderValue}
                         onChange={onSliderChange}
                         onChangeEnd={setValue}
-                        onDoubleClick={() => onSliderChange(def)}
+                        onDoubleClick={() => setValue(def)}
                         onMouseEnter={() => setShowTooltip(true)}
                         onMouseLeave={() => setShowTooltip(false)}
                     >
