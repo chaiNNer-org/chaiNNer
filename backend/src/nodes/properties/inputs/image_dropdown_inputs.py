@@ -315,3 +315,20 @@ def CaptionPositionInput() -> DropDownInput:
             },
         ],
     )
+
+def EdgeFilterInput() -> DropDownInput:
+    """Select Caption Position"""
+    return DropDownInput(
+        input_type="EdgeFilter",
+        label="Filter",
+        options=[
+            {
+                "option": "Sobel",
+                "value": "sobel",
+            },
+            {
+                "option": "Scharr",
+                "value": "scharr",
+            },
+        ],
+    )

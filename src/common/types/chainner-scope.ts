@@ -66,6 +66,7 @@ struct AdaptiveThresholdType;
 struct BlendMode;
 struct CaptionPosition;
 struct ColorSpace { channels: 1 | 3 | 4 }
+struct EdgeFilter;
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
