@@ -172,6 +172,7 @@ class IteratorContext:
         self,
         length_estimate: int,
         before: Callable[[int], Union[None, Literal[False]]],
+        fail_fast=False,
     ):
         errors: List[str] = []
         index = -1
@@ -192,6 +193,8 @@ class IteratorContext:
                 raise
             except Exception as e:
                 logger.error(e)
+                if fail_fast:
+                    raise
                 errors.append(str(e))
 
         if index < length_estimate:

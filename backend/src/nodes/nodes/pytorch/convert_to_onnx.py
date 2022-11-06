@@ -8,12 +8,12 @@ import torch
 from . import category as PyTorchCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ModelInput, OnnxFpDropdown
+from ...properties.inputs import SrModelInput, OnnxFpDropdown
 from ...properties.outputs import OnnxModelOutput, TextOutput
 from ...utils.exec_options import get_execution_options
 from ...utils.pytorch_utils import to_pytorch_execution_options
 from ...utils.onnx_model import OnnxModel
-from ...utils.torch_types import PyTorchModel
+from ...utils.torch_types import PyTorchSRModel
 
 
 @NodeFactory.register("chainner:pytorch:convert_to_onnx")
@@ -23,7 +23,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.description = """Convert a PyTorch model to ONNX.
             Note: fp16 conversion will only work if PyTorch fp16 mode is turned on."""
         self.inputs = [
-            ModelInput("PyTorch Model"),
+            SrModelInput("PyTorch Model"),
             OnnxFpDropdown(),
         ]
         self.outputs = [
@@ -36,7 +36,7 @@ class ConvertTorchToONNXNode(NodeBase):
         self.icon = "ONNX"
         self.sub = "Utility"
 
-    def run(self, model: PyTorchModel, is_fp16: int) -> Tuple[OnnxModel, str]:
+    def run(self, model: PyTorchSRModel, is_fp16: int) -> Tuple[OnnxModel, str]:
         fp16 = bool(is_fp16)
         exec_options = to_pytorch_execution_options(get_execution_options())
         if fp16:

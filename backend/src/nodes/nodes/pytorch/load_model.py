@@ -24,7 +24,7 @@ class LoadModelNode(NodeBase):
         self.description = """Load PyTorch state dict file (.pth) into an auto-detected supported model architecture.
             Supports most variations of the RRDB architecture
             (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR),
-            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, and SwinIR."""
+            Real-ESRGAN's SRVGG architecture, Swift-SRGAN, SwinIR, Swin2SR, and HAT."""
         self.inputs = [PthFileInput()]
         self.outputs = [
             ModelOutput(kind="pytorch", should_broadcast=True),

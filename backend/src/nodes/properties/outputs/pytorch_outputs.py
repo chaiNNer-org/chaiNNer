@@ -21,7 +21,7 @@ class ModelOutput(BaseOutput):
 
         if "SRVGG" in value.model_arch:  # type: ignore
             size = [f"{value.num_feat}nf", f"{value.num_conv}nc"]
-        elif "SwinIR" in value.model_arch:  # type: ignore
+        elif "SwinIR" in value.model_arch or "Swin2SR" in value.model_arch or "HAT" in value.model_arch:  # type: ignore
             head_length = len(value.depths)  # type: ignore
             if head_length <= 4:
                 size_tag = "small"
