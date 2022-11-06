@@ -18,5 +18,5 @@ pytest
 pywin32 ; sys_platform=="win32"
 sanic
 sanic_cors
-torch
-torchvision
+# torch
+# torchvision
