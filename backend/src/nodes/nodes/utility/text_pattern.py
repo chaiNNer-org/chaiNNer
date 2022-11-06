@@ -4,7 +4,7 @@ from typing import Union
 
 from . import category as UtilityCategory
 
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput
@@ -20,8 +20,10 @@ class TextPatternNode(NodeBase):
             TextInput("Pattern", has_handle=False, placeholder='E.g. "{1} and {2}"'),
             TextInput("{1}").make_optional(),
             TextInput("{2}").make_optional(),
-            TextInput("{3}").make_optional(),
-            TextInput("{4}").make_optional(),
+            group("optional-list")(
+                TextInput("{3}").make_optional(),
+                TextInput("{4}").make_optional(),
+            ),
         ]
         self.outputs = [
             TextOutput(
