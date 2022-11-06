@@ -81,6 +81,8 @@ const SearchBar = memo(({ value, onChange, onClose, onClick }: SearchBarProps) =
 export const NodeSelector = memo(() => {
     const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
+    const { useExperimentalFeatures } = useContext(SettingsContext);
+    const [isExperimentalFeatures] = useExperimentalFeatures;
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -143,7 +145,7 @@ export const NodeSelector = memo(() => {
                             {!collapsed && (
                                 <>
                                     <Tab>Nodes</Tab>
-                                    <Tab>Presets</Tab>
+                                    {isExperimentalFeatures && <Tab>Presets</Tab>}
                                 </>
                             )}
                         </TabList>
