@@ -8,7 +8,12 @@ import numpy as np
 from . import category as ImageFilterCategory
 from ...node_base import NodeBase
 from ...node_factory import NodeFactory
-from ...properties.inputs import ImageInput, SliderInput, EdgeFilterInput
+from ...properties.inputs import (
+    ImageInput,
+    SliderInput,
+    EdgeFilterInput,
+    NormalChannelInvertInput,
+)
 from ...properties.outputs import ImageOutput
 from ...properties import expression
 from ...utils.image_utils import get_h_w_c
@@ -57,6 +62,7 @@ class NormalMapGenerator(NodeBase):
             SliderInput("Blur/Sharp", minimum=-20, maximum=20, default=0, precision=1),
             SliderInput("Strength", minimum=-10, maximum=10, default=0, precision=1),
             EdgeFilterInput(),
+            NormalChannelInvertInput(),
         ]
         self.outputs = [
             ImageOutput(
@@ -76,6 +82,7 @@ class NormalMapGenerator(NodeBase):
         blur_sharp: float,
         strength: float,
         filter_name: str,
+        invert: int,
     ) -> np.ndarray:
         img = as_grayscale(img)
 
@@ -98,6 +105,11 @@ class NormalMapGenerator(NodeBase):
 
         z_bias = 1 / (strength + 1) if strength > 0 else 1 - strength
         x, y, z = normalize(dx, dy, z_bias)
+
+        if invert & 1 != 0:
+            x = -x
+        if invert & 2 != 0:
+            y = -y
 
         bgr = np.abs(z), (y + 1) * 0.5, (x + 1) * 0.5
         return np.clip(cv2.merge(bgr), 0, 1)

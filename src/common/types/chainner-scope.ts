@@ -73,6 +73,7 @@ struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }
+struct NormalChannelInvert;
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
