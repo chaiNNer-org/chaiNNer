@@ -18,8 +18,6 @@ PyTorchSRModel = Union[
     SwinIR,
     Swin2SR,
     HAT,
-    GFPGANv1Clean,
-    RestoreFormer,
 ]
 
 
