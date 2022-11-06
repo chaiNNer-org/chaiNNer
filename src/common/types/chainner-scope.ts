@@ -102,6 +102,12 @@ def BorderType::getOutputChannels(type: BorderType, channels: uint) {
         _ => channels
     }
 }
+def FpMode::toString(mode: FpMode) {
+    match mode {
+        FpMode::fp32 => "fp32",
+        FpMode::fp16 => "fp16",
+    }
+}
 `;
 
 export const getChainnerScope = lazy((): Scope => {

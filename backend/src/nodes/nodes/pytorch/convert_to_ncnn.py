@@ -14,7 +14,7 @@ from ...utils.architecture.Swin2SR import Swin2SR
 from .convert_to_onnx import ConvertTorchToONNXNode
 
 try:
-    from ..onnx.convert_to_ncnn import ConvertOnnxToNcnnNode
+    from ..onnx.convert_to_ncnn import ConvertOnnxToNcnnNode, FP_MODE_32
 except:
     ConvertOnnxToNcnnNode = None
 
@@ -30,13 +30,7 @@ class ConvertTorchToNCNNNode(NodeBase):
         ]
         self.outputs = [
             NcnnModelOutput(label="NCNN Model"),
-            TextOutput(
-                "FP Mode",
-                """match Input1 {
-                        FpMode::fp32 => "fp32",
-                        FpMode::fp16 => "fp16",
-                }""",
-            ),
+            TextOutput("FP Mode", "FpMode::toString(Input1)"),
         ]
 
         self.category = PyTorchCategory
@@ -60,7 +54,8 @@ class ConvertTorchToNCNNNode(NodeBase):
             model, Swin2SR
         ), "Swin2SR is not supported for NCNN conversion at this time."
 
-        onnx_model = ConvertTorchToONNXNode().run(model)
+        # Intermediate conversion to ONNX is always fp32
+        onnx_model = ConvertTorchToONNXNode().run(model, FP_MODE_32)[0]
         ncnn_model, fp_mode = ConvertOnnxToNcnnNode().run(onnx_model, is_fp16)
 
         return ncnn_model, fp_mode
