@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Tuple
 
 import numpy as np
-from sanic.log import logger
 
 from . import category as ImageChannelCategory
 from ...node_base import NodeBase
