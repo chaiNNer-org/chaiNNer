@@ -10,6 +10,7 @@ from ...node_factory import NodeFactory
 from ...properties.inputs import ImageInput
 from ...properties.outputs import ImageOutput
 from ...properties import expression
+from ...utils.image_utils import as_target_channels
 
 
 @NodeFactory.register("chainner:image:split_transparency")
@@ -39,19 +40,8 @@ class TransparencySplitNode(NodeBase):
 
     def run(self, img: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Split a multi-channel image into separate channels"""
-        logger.info(img.shape)
 
-        if img.ndim == 2:
-            logger.debug("Expanding image channels")
-            img = np.tile(np.expand_dims(img, axis=2), (1, 1, min(4, 3)))
-        # Pad with solid alpha channel if needed (i.e three channel image)
-        if img.shape[2] == 3:
-            logger.debug("Expanding image channels")
-            img = np.dstack((img, np.full(img.shape[:-1], 1.0)))
-        # Convert from gray to RGB then pad with solid alpha channel
-        if img.shape[2] == 1:
-            logger.debug("Expanding image channels")
-            img = np.dstack((img, img, img, np.full(img.shape[:-1], 1.0)))
+        img = as_target_channels(img, 4)
 
         rgb = img[:, :, :3]
         alpha = img[:, :, 3]
