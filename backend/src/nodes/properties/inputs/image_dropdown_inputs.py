@@ -316,6 +316,7 @@ def CaptionPositionInput() -> DropDownInput:
         ],
     )
 
+
 def EdgeFilterInput() -> DropDownInput:
     """Select Caption Position"""
     return DropDownInput(
