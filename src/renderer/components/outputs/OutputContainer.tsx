@@ -58,7 +58,8 @@ export const OutputContainer = memo(
             useContext(GlobalVolatileContext);
 
         const { getEdges } = useReactFlow();
-        const edges = useMemo(() => getEdges(), [edgeChanges]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const edges = useMemo(() => getEdges(), [edgeChanges, getEdges]);
         const isConnected = !!edges.find(
             (e) => e.source === id && parseSourceHandle(e.sourceHandle!).outputId === outputId
         );
@@ -84,7 +85,7 @@ export const OutputContainer = memo(
                 target: connectingFrom.nodeId,
                 targetHandle: connectingFrom.handleId,
             });
-        }, [connectingFrom, id, outputId]);
+        }, [connectingFrom, id, outputId, isValidConnection]);
 
         let contents = children;
         const [handleColor] = getTypeAccentColors(type || definitionType);

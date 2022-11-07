@@ -139,5 +139,6 @@ export const useAsyncEffect = <T>(
         );
 
         return controller.cancel;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, dependencies);
 };

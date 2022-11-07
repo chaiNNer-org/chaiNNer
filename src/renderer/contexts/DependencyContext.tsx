@@ -338,7 +338,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             setIsBackendKilled(true);
             await ipcRenderer.invoke('kill-backend');
         }
-    }, [depChanged]);
+    }, [depChanged, setIsBackendKilled]);
 
     const changePackages = (supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');

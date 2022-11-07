@@ -44,7 +44,7 @@ export const LargeImageOutput = memo(
                     setManualOutputType(id, outputId, undefined);
                 }
             }
-        }, [id, schemaId, value]);
+        }, [id, schemaId, value, outputId, schema, setManualOutputType]);
 
         const imgBgColor = 'var(--node-image-preview-bg)';
         const fontColor = 'var(--node-image-preview-color)';

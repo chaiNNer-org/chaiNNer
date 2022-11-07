@@ -59,7 +59,7 @@ export const IteratorHelperNode = memo(({ data, selected }: IteratorHelperNodePr
             });
             setCheckedSize(true);
         }
-    }, [checkedSize, updateIteratorBounds]);
+    }, [checkedSize, updateIteratorBounds, parentNode]);
 
     const disabled = useDisabled(data);
 

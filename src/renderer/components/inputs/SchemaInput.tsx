@@ -69,12 +69,12 @@ export const SchemaInput = memo(
                 setNodeInputValue(nodeId, inputId, data);
                 onSetValue?.(data);
             },
-            [nodeId, inputId, setNodeInputValue]
+            [nodeId, inputId, setNodeInputValue, onSetValue]
         );
         const resetValue = useCallback(() => {
             setNodeInputValue(nodeId, inputId, undefined);
             onSetValue?.(undefined);
-        }, [nodeId, inputId, setNodeInputValue]);
+        }, [nodeId, inputId, setNodeInputValue, onSetValue]);
 
         const useInputConnected = useCallback((): boolean => {
             // TODO: move the function call into the selector

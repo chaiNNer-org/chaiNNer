@@ -326,7 +326,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             unAnimate();
             setStatus(ExecutionStatus.READY);
         }
-    }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend]);
+    }, [eventSourceStatus, unAnimate, isBackendKilled, ownsBackend, sendAlert]);
 
     const previousStatus = useRef(status);
     useEffect(() => {
@@ -356,7 +356,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             });
         }
         previousStatus.current = status;
-    }, [status, nodeChanges, edgeChanges]);
+    }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = async () => {
         const allNodes = getNodes();

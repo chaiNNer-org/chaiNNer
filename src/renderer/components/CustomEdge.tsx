@@ -50,7 +50,7 @@ export const CustomEdge = memo(
         );
 
         const { getNode } = useReactFlow<NodeData, EdgeData>();
-        const parentNode = useMemo(() => getNode(source)!, [source]);
+        const parentNode = useMemo(() => getNode(source)!, [source, getNode]);
         const isSourceEnabled = !effectivelyDisabledNodes.has(source);
 
         const { removeEdgeById, setHoveredNode } = useContext(GlobalContext);

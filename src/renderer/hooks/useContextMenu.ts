@@ -11,22 +11,20 @@ export interface UseContextMenu {
     readonly manuallyOpenContextMenu: (pageX: number, pageY: number) => void;
 }
 
-export const useContextMenu = (
-    render: () => JSX.Element,
-    deps?: readonly unknown[]
-): UseContextMenu => {
+export const useContextMenu = (render: () => JSX.Element): UseContextMenu => {
     const { registerContextMenu, unregisterContextMenu, openContextMenu } =
         useContext(ContextMenuContext);
 
+    // eslint-disable-next-line react/hook-use-state
     const [id] = useState(createUniqueId);
 
     useEffect(() => {
         return () => unregisterContextMenu(id);
-    }, []);
+    }, [unregisterContextMenu, id]);
 
     useEffect(() => {
         registerContextMenu(id, render);
-    }, deps);
+    }, [registerContextMenu, id, render]);
 
     const onContextMenu = useCallback(
         (e: MouseEvent): void => {
@@ -36,14 +34,14 @@ export const useContextMenu = (
             e.preventDefault();
             openContextMenu(id, e.pageX, e.pageY);
         },
-        [openContextMenu]
+        [openContextMenu, id]
     );
 
     const manuallyOpenContextMenu = useCallback(
         (pageX: number, pageY: number): void => {
             openContextMenu(id, pageX, pageY);
         },
-        [openContextMenu]
+        [openContextMenu, id]
     );
 
     const onClick = useCallback(
@@ -56,7 +54,7 @@ export const useContextMenu = (
 
             openContextMenu(id, e.pageX - x + rect.width, e.pageY - y + rect.height);
         },
-        [openContextMenu]
+        [openContextMenu, id]
     );
 
     return useMemoObject<UseContextMenu>({

@@ -9,6 +9,7 @@ export const useInterval = (
     useEffect(() => {
         const id = setInterval(callback, delay);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [delay, ...dependencies]);
 };
 

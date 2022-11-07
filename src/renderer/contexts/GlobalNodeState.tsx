@@ -149,6 +149,15 @@ interface Global {
     getInputHash: (nodeId: string) => string;
 }
 
+const unsavedChangesWarning = {
+    type: AlertType.WARN,
+    title: 'Discard unsaved changes?',
+    message:
+        'The current chain has some unsaved changes. Do you really want to discard those changes?',
+    buttons: ['Discard changes', 'No'],
+    defaultButton: 1,
+};
+
 // TODO: Find default
 export const GlobalVolatileContext = createContext<Readonly<GlobalVolatile>>({} as GlobalVolatile);
 export const GlobalContext = createContext<Readonly<Global>>({} as Global);
@@ -239,7 +248,7 @@ export const GlobalProvider = memo(
                 typeStateRef.current = types;
             }, 100);
             return () => clearTimeout(timerId);
-        }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions]);
+        }, [nodeChanges, edgeChanges, manualOutputTypes, functionDefinitions, getEdges, getNodes]);
 
         const [outputDataMap, outputDataActions] = useOutputDataStore();
 
@@ -250,13 +259,13 @@ export const GlobalProvider = memo(
                 sessionStorage.setItem('cachedEdges', JSON.stringify(getEdges()));
             }, 100);
             return () => clearTimeout(timerId);
-        }, [nodeChanges, edgeChanges]);
+        }, [nodeChanges, edgeChanges, getEdges, getNodes]);
         useEffect(() => {
             const timerId = setTimeout(() => {
                 sessionStorage.setItem('cachedViewport', JSON.stringify(getViewport()));
             }, 100);
             return () => clearTimeout(timerId);
-        }, Object.values(currentViewport));
+        }, [currentViewport.x, currentViewport.y, currentViewport.zoom, getViewport]);
         const [causeVPEffect, setCauseVPEffect] = useState(0);
         useEffect(() => {
             if (viewportInitialized) {
@@ -273,8 +282,8 @@ export const GlobalProvider = memo(
 
             changeNodes(cachedNodes);
             changeEdges(cachedEdges);
-            setCauseVPEffect(causeVPEffect + 1);
-        }, [changeNodes, changeEdges]);
+            setCauseVPEffect((prev) => prev + 1);
+        }, [changeNodes, changeEdges, setCauseVPEffect]);
 
         const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
             useState<ReadonlySet<string>>(EMPTY_SET);
@@ -282,11 +291,14 @@ export const GlobalProvider = memo(
             const newEffectivelyDisabled = getEffectivelyDisabledNodes(getNodes(), getEdges())
                 .map((n) => n.id)
                 .sort();
-            const newKey = newEffectivelyDisabled.join(';');
-            const oldKey = [...effectivelyDisabledNodes].join(';');
-            if (oldKey !== newKey) {
-                setEffectivelyDisabledNodes(new Set(newEffectivelyDisabled));
-            }
+            setEffectivelyDisabledNodes((prev) => {
+                const newKey = newEffectivelyDisabled.join(';');
+                const oldKey = [...prev].join(';');
+                if (oldKey === newKey) {
+                    return prev;
+                }
+                return new Set(newEffectivelyDisabled);
+            });
         }, [edgeChanges, nodeChanges, getNodes, getEdges]);
 
         const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
@@ -316,7 +328,7 @@ export const GlobalProvider = memo(
             const value = hasUnsavedChanges && (getNodes().length > 0 || !!savePath);
             setHasRelevantUnsavedChanges(value);
             ipcRenderer.send('update-has-unsaved-changes', value);
-        }, [lastSavedChanges, savePath, nodeChanges, edgeChanges]);
+        }, [lastSavedChanges, savePath, nodeChanges, edgeChanges, getNodes]);
 
         useEffect(() => {
             const id = setTimeout(() => {
@@ -325,15 +337,6 @@ export const GlobalProvider = memo(
             }, 200);
             return () => clearTimeout(id);
         }, [savePath, hasRelevantUnsavedChanges]);
-
-        const unsavedChangesWarning = {
-            type: AlertType.WARN,
-            title: 'Discard unsaved changes?',
-            message:
-                'The current chain has some unsaved changes. Do you really want to discard those changes?',
-            buttons: ['Discard changes', 'No'],
-            defaultButton: 1,
-        };
 
         const modifyNode = useCallback(
             (id: string, mapFn: (oldNode: Node<NodeData>) => Node<NodeData>) => {
@@ -442,7 +445,20 @@ export const GlobalProvider = memo(
                 setSavePath(path);
                 pushOpenPath(path);
             },
-            [hasRelevantUnsavedChanges, schemata, changeNodes, changeEdges, outputDataActions]
+            [
+                changeEdges,
+                changeNodes,
+                edgeChangesRef,
+                hasRelevantUnsavedChanges,
+                nodeChangesRef,
+                outputDataActions,
+                pushOpenPath,
+                schemata,
+                sendAlert,
+                setSavePath,
+                setViewport,
+                showAlert,
+            ]
         );
         const setStateFromJSONRef = useRef(setStateFromJSON);
         setStateFromJSONRef.current = setStateFromJSON;
@@ -462,12 +478,13 @@ export const GlobalProvider = memo(
             setViewport({ x: 0, y: 0, zoom: 1 });
             outputDataActions.clear();
         }, [
-            hasRelevantUnsavedChanges,
-            changeNodes,
             changeEdges,
+            changeNodes,
+            hasRelevantUnsavedChanges,
+            outputDataActions,
             setSavePath,
             setViewport,
-            outputDataActions,
+            showAlert,
         ]);
 
         const performSave = useCallback(
@@ -523,7 +540,16 @@ export const GlobalProvider = memo(
                     }
                 })();
             },
-            [dumpState, savePath, openRecent]
+            [
+                dumpState,
+                edgeChangesRef,
+                nodeChangesRef,
+                openRecent,
+                savePath,
+                schemata,
+                sendToast,
+                setSavePath,
+            ]
         );
 
         // Register New File event handler
@@ -543,7 +569,7 @@ export const GlobalProvider = memo(
                     });
                 }
             }
-        }, [removeRecentPath]);
+        }, [removeRecentPath, sendAlert]);
 
         // Register Open File event handler
         useIpcRendererListener(
@@ -593,7 +619,7 @@ export const GlobalProvider = memo(
                 }
                 setFirstLoad(false);
             }
-        }, [firstLoad]);
+        }, [firstLoad, sendAlert, setFirstLoad, startupTemplate]);
 
         const removeNodeById = useCallback(
             (id: string) => {
@@ -806,14 +832,14 @@ export const GlobalProvider = memo(
                 };
                 return [currentSize, setInputSize] as const;
             },
-            [modifyNode, schemata]
+            [modifyNode]
         );
 
-        const [animatedNodes, setAnimated] = useState<ReadonlySet<string>>(EMPTY_SET);
+        const [animatedNodes, setAnimatedNodes] = useState<ReadonlySet<string>>(EMPTY_SET);
         const animate = useCallback(
             (nodes: Iterable<string>, animateEdges = true): void => {
                 const ids = new Set(nodes);
-                setAnimated((prev) => {
+                setAnimatedNodes((prev) => {
                     const newSet = new Set(prev);
                     for (const id of ids) {
                         newSet.add(id);
@@ -829,13 +855,13 @@ export const GlobalProvider = memo(
                     });
                 }
             },
-            [setAnimated]
+            [setAnimatedNodes]
         );
         const unAnimate = useCallback(
             (nodes?: Iterable<string>): void => {
                 if (nodes) {
                     const ids = new Set(nodes);
-                    setAnimated((prev) => {
+                    setAnimatedNodes((prev) => {
                         const newSet = new Set(prev);
                         for (const id of ids) {
                             newSet.delete(id);
@@ -849,13 +875,13 @@ export const GlobalProvider = memo(
                         });
                     });
                 } else {
-                    setAnimated(EMPTY_SET);
+                    setAnimatedNodes(EMPTY_SET);
                     setEdgesRef.current((edges) =>
                         edges.map((e) => (e.animated ? { ...e, animated: false } : e))
                     );
                 }
             },
-            [setAnimated]
+            [setAnimatedNodes]
         );
 
         const toggleNodeLock = useCallback(
@@ -881,7 +907,8 @@ export const GlobalProvider = memo(
                         parseTargetHandle(e.targetHandle).inputId === inputId
                 );
             },
-            [edgeChanges]
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            [edgeChanges, getEdges]
         );
 
         const setIteratorSize = useCallback(
@@ -967,7 +994,7 @@ export const GlobalProvider = memo(
                     return nodes;
                 });
             },
-            [modifyNode]
+            [rfSetNodes]
         );
 
         const duplicateNode = useCallback(
@@ -1016,7 +1043,7 @@ export const GlobalProvider = memo(
                 addInputDataChanges();
                 backend.clearNodeCacheIndividual(id).catch((error) => log.error(error));
             },
-            [modifyNode, addInputDataChanges, outputDataActions]
+            [modifyNode, addInputDataChanges, outputDataActions, backend, schemata]
         );
 
         const setNodeDisabled = useCallback(

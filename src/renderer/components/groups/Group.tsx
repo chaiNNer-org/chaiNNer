@@ -9,6 +9,7 @@ import {
 } from '../../../common/common-types';
 import { FromToDropdownsGroup } from './FromToDropdownsGroup';
 import { NcnnFileInputsGroup } from './NcnnFileInputsGroup';
+import { OptionalInputsGroup } from './OptionalInputsGroup';
 import { GroupProps } from './props';
 
 const GroupComponents: {
@@ -16,6 +17,7 @@ const GroupComponents: {
 } = {
     'from-to-dropdowns': FromToDropdownsGroup,
     'ncnn-file-inputs': NcnnFileInputsGroup,
+    'optional-list': OptionalInputsGroup,
 };
 
 interface GroupElementProps {

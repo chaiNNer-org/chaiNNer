@@ -19,7 +19,7 @@ export const DropDownInput = memo(({ value, setValue, input, isLocked }: DropDow
         if (value === undefined) {
             setValue(def);
         }
-    }, []);
+    }, [value, setValue, def]);
 
     let selection = options.findIndex((o) => o.value === value);
     if (selection === -1) selection = 0;
