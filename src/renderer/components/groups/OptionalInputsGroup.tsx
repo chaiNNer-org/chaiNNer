@@ -56,7 +56,7 @@ export const OptionalInputsGroup = memo(
                 ))}
                 {showMoreButton && (
                     <Box
-                        bg="var(--bg-700)"
+                        bg="var(--node-bg-color)"
                         w="full"
                     >
                         <Center>
@@ -67,9 +67,10 @@ export const OptionalInputsGroup = memo(
                                 aria-label="Add Input"
                                 bg="var(--bg-700)"
                                 height="auto"
-                                m={1}
+                                m={0}
                                 minWidth={0}
                                 p={1}
+                                width="66%"
                                 onClick={() => setUserUncovered(uncovered + 1)}
                             >
                                 <Icon
