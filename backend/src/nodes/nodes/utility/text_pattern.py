@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import List, Union
 
 from . import category as UtilityCategory
 
@@ -43,7 +43,28 @@ class TextPatternNode(NodeBase):
                     convert(Input1),
                     convert(Input2),
                     convert(Input3),
-                    convert(Input4)
+                    convert(Input4),
+                    convert(Input5),
+                    convert(Input6),
+                    convert(Input7),
+                    convert(Input8),
+                    convert(Input9),
+                    convert(Input10),
+                    convert(Input11),
+                    convert(Input12),
+                    convert(Input13),
+                    convert(Input14),
+                    convert(Input15),
+                    convert(Input16),
+                    convert(Input17),
+                    convert(Input18),
+                    convert(Input19),
+                    convert(Input20),
+                    convert(Input21),
+                    convert(Input22),
+                    convert(Input23),
+                    convert(Input24),
+                    convert(Input25),
                 )
                 """,
             ).with_never_reason(
@@ -62,11 +83,10 @@ class TextPatternNode(NodeBase):
         pattern: str,
         str1: Union[str, None],
         str2: Union[str, None],
-        str3: Union[str, None],
-        str4: Union[str, None],
+        *args: Union[str, None],
     ) -> str:
         replacements: dict[str, str] = {}
-        for i, s in enumerate([str1, str2, str3, str4]):
+        for i, s in enumerate([str1, str2, *args]):
             if s is not None:
                 replacements[str(i + 1)] = s
 

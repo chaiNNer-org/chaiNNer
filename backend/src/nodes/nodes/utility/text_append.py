@@ -43,7 +43,29 @@ class TextAppendNode(NodeBase):
                     sep,
                     toString(Input2),
                     match Input3 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input4 { null => "", _ as s => concat(sep, toString(s)) }
+                    match Input4 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input5 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input6 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input7 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input8 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input9 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input10 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input11 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input12 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input13 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input14 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input15 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input16 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input17 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input18 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input19 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input20 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input21 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input22 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input23 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input24 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input25 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input26 { null => "", _ as s => concat(sep, toString(s)) },
                 )
                 """,
             )
@@ -54,13 +76,6 @@ class TextAppendNode(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Text"
 
-    def run(
-        self,
-        separator: str,
-        str1: str,
-        str2: str,
-        str3: Union[str, None],
-        str4: Union[str, None],
-    ) -> str:
-        inputs: List[Union[str, None]] = [str1, str2, str3, str4]
+    def run(self, separator: str, str1: str, str2: str, *args: Union[str, None]) -> str:
+        inputs: List[Union[str, None]] = [str1, str2, *args]
         return separator.join([x for x in inputs if x is not None])
