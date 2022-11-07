@@ -19,7 +19,7 @@ import {
     Tabs,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { memo, useMemo, useState } from 'react';
+import { ChangeEventHandler, memo, useMemo, useState } from 'react';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -33,12 +33,56 @@ import {
 } from '../../helpers/nodeSearchFuncs';
 import { useNodeFavorites } from '../../hooks/useNodeFavorites';
 import { FavoritesAccordionItem } from './FavoritesAccordionItem';
+import { PresetComponent } from './Preset';
+import { presets } from './presets';
 import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccordionItem';
 import { TextBox } from './TextBox';
+
+interface SearchBarProps {
+    value: string;
+    onChange: ChangeEventHandler<HTMLInputElement>;
+    onClose: () => void;
+    onClick: () => void;
+}
+
+const SearchBar = memo(({ value, onChange, onClose, onClick }: SearchBarProps) => (
+    <InputGroup borderRadius={0}>
+        <InputLeftElement
+            color="var(--fg-300)"
+            pointerEvents="none"
+        >
+            <SearchIcon />
+        </InputLeftElement>
+        <Input
+            borderRadius={0}
+            placeholder="Search..."
+            spellCheck={false}
+            type="text"
+            value={value}
+            variant="filled"
+            onChange={onChange}
+            onClick={onClick}
+        />
+        <InputRightElement
+            _hover={{ color: 'var(--fg-000)' }}
+            style={{
+                color: 'var(--fg-300)',
+                cursor: 'pointer',
+                display: value ? undefined : 'none',
+                fontSize: '66%',
+            }}
+            onClick={onClose}
+        >
+            <CloseIcon />
+        </InputRightElement>
+    </InputGroup>
+));
 
 export const NodeSelector = memo(() => {
     const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
+    const { useExperimentalFeatures } = useContext(SettingsContext);
+    const [isExperimentalFeatures] = useExperimentalFeatures;
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -97,46 +141,29 @@ export const NodeSelector = memo(() => {
                         h="100%"
                         w="100%"
                     >
-                        <TabList h="42px">{!collapsed && <Tab>Nodes</Tab>}</TabList>
+                        <TabList h="42px">
+                            {!collapsed && (
+                                <>
+                                    <Tab>Nodes</Tab>
+                                    {isExperimentalFeatures && <Tab>Presets</Tab>}
+                                </>
+                            )}
+                        </TabList>
                         <TabPanels>
                             <TabPanel
                                 m={0}
                                 overflowX="hidden"
                                 p={0}
                             >
-                                <InputGroup borderRadius={0}>
-                                    <InputLeftElement
-                                        color="var(--fg-300)"
-                                        pointerEvents="none"
-                                    >
-                                        <SearchIcon />
-                                    </InputLeftElement>
-                                    <Input
-                                        borderRadius={0}
-                                        placeholder="Search..."
-                                        spellCheck={false}
-                                        type="text"
-                                        value={searchQuery}
-                                        variant="filled"
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value);
-                                            setCollapsed(false);
-                                        }}
-                                        onClick={() => setCollapsed(false)}
-                                    />
-                                    <InputRightElement
-                                        _hover={{ color: 'var(--fg-000)' }}
-                                        style={{
-                                            color: 'var(--fg-300)',
-                                            cursor: 'pointer',
-                                            display: searchQuery ? undefined : 'none',
-                                            fontSize: '66%',
-                                        }}
-                                        onClick={() => setSearchQuery('')}
-                                    >
-                                        <CloseIcon />
-                                    </InputRightElement>
-                                </InputGroup>
+                                <SearchBar
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCollapsed(false);
+                                    }}
+                                    onClick={() => setCollapsed(false)}
+                                    onClose={() => setSearchQuery('')}
+                                />
                                 <Box
                                     h="calc(100vh - 165px)"
                                     overflowX="hidden"
@@ -231,6 +258,34 @@ export const NodeSelector = memo(() => {
                                         </AccordionItem>
                                     </Accordion>
                                 </Box>
+                            </TabPanel>
+                            <TabPanel
+                                m={0}
+                                overflowX="hidden"
+                                p={0}
+                            >
+                                <SearchBar
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCollapsed(false);
+                                    }}
+                                    onClick={() => setCollapsed(false)}
+                                    onClose={() => setSearchQuery('')}
+                                />
+                                {presets
+                                    .filter((preset) =>
+                                        `${preset.name} ${preset.author} ${preset.description}`
+                                            .toLowerCase()
+                                            .includes(searchQuery.toLowerCase())
+                                    )
+                                    .map((preset) => (
+                                        <PresetComponent
+                                            collapsed={collapsed}
+                                            key={preset.name}
+                                            preset={preset}
+                                        />
+                                    ))}
                             </TabPanel>
                         </TabPanels>
                     </Tabs>

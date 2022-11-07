@@ -96,7 +96,8 @@ export const setSelected = <T extends { selected?: boolean }>(
 export const copyNodes = (
     nodesToCopy: readonly Node<NodeData>[],
     deriveNodeId: (oldId: string) => string,
-    deriveParentNodeId: (parentOldId: string) => string | undefined
+    deriveParentNodeId: (parentOldId: string) => string | undefined,
+    modifyPositions = true
 ): Mutable<Node<NodeData>>[] => {
     const offsetX = 50 * (Math.random() * 2 - 1);
     const offsetY = 50 * (Math.random() * 2 - 1);
@@ -107,8 +108,8 @@ export const copyNodes = (
                 ...n,
                 id: newId,
                 position: {
-                    x: n.position.x + 200 + offsetX,
-                    y: n.position.y + 200 + offsetY,
+                    x: n.position.x + (modifyPositions ? 200 + offsetX : 0),
+                    y: n.position.y + (modifyPositions ? 200 + offsetY : 0),
                 },
                 data: {
                     ...n.data,
@@ -123,8 +124,8 @@ export const copyNodes = (
             ...n,
             id: newId,
             position: {
-                x: n.position.x + offsetX,
-                y: n.position.y + offsetY,
+                x: n.position.x + (modifyPositions ? offsetX : 0),
+                y: n.position.y + (modifyPositions ? offsetY : 0),
             },
             data: {
                 ...n.data,

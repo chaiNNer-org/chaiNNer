@@ -345,6 +345,8 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                             y: event.clientY - reactFlowBounds.top - offsetY * zoom,
                         });
                     },
+                    setNodes,
+                    setEdges,
                 };
 
                 for (const processor of dataTransferProcessors) {
@@ -365,7 +367,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 });
             }
         },
-        [createNode, wrapper, reactFlowInstance, schemata, sendAlert]
+        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, setEdges, setNodes]
     );
 
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);

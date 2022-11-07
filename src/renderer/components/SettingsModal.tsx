@@ -563,11 +563,11 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
-    const { useDisHwAccel } = useContext(SettingsContext);
+    const { useDisHwAccel, useCheckUpdOnStrtUp, useExperimentalFeatures } =
+        useContext(SettingsContext);
     const [isDisHwAccel, setIsDisHwAccel] = useDisHwAccel;
-
-    const { useCheckUpdOnStrtUp } = useContext(SettingsContext);
     const [isCheckUpdOnStrtUp, setIsCheckUpdOnStrtUp] = useCheckUpdOnStrtUp;
+    const [isExperimentalFeatures, setIsExperimentalFeatures] = useExperimentalFeatures;
 
     return (
         <VStack
@@ -588,6 +588,14 @@ const AdvancedSettings = memo(() => {
                 value={isCheckUpdOnStrtUp}
                 onToggle={() => {
                     setIsCheckUpdOnStrtUp((prev) => !prev);
+                }}
+            />
+            <Toggle
+                description="Enable experimental features to try them out before they are finished."
+                title="Enable experimental features."
+                value={isExperimentalFeatures}
+                onToggle={() => {
+                    setIsExperimentalFeatures((prev) => !prev);
                 }}
             />
         </VStack>
