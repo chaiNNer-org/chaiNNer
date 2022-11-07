@@ -257,4 +257,3 @@ export interface Category {
     excludedFromCheck: string[];
 }
 
-export type SetState<T> = React.Dispatch<React.SetStateAction<T>>;

@@ -1,13 +1,15 @@
 import log from 'electron-log';
 import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
-import { EdgeData, Input, InputId, NodeData, SchemaId, SetState } from '../../common/common-types';
+import { EdgeData, Input, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { ipcRenderer } from '../../common/safeIpc';
 import { openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { PresetFile } from '../components/NodeSelectorPanel/presets';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
+
+type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
