@@ -95,10 +95,7 @@ class ImWriteNode(NodeBase):
             if extension == "jpg":
                 params = [cv2.IMWRITE_JPEG_QUALITY, quality]
             elif extension == "webp":
-                if lossless:
-                    params = [cv2.IMWRITE_WEBP_QUALITY, 101]
-                else:
-                    params = [cv2.IMWRITE_WEBP_QUALITY, quality]
+                params = [cv2.IMWRITE_WEBP_QUALITY, 101 if lossless else quality]
             else:
                 params = []
 
