@@ -367,7 +367,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                 });
             }
         },
-        [createNode, wrapper, reactFlowInstance, schemata, sendAlert]
+        [createNode, wrapper, reactFlowInstance, schemata, sendAlert, setEdges, setNodes]
     );
 
     const { onConnectStart, onConnectStop, onPaneContextMenu } = usePaneNodeSearchMenu(wrapperRef);
