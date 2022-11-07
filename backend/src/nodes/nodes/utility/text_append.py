@@ -8,6 +8,7 @@ from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput
+from ...utils.utils import ALPHABET
 
 
 @NodeFactory.register("chainner:utility:text_append")
@@ -26,8 +27,10 @@ class TextAppendNode(NodeBase):
             TextInput("Text A"),
             TextInput("Text B"),
             group("optional-list")(
-                TextInput("Text C").make_optional(),
-                TextInput("Text D").make_optional(),
+                *[
+                    TextInput(f"Text {letter}").make_optional()
+                    for letter in ALPHABET[2:10]
+                ],
             ),
         ]
         self.outputs = [
@@ -40,7 +43,14 @@ class TextAppendNode(NodeBase):
                     sep,
                     toString(Input2),
                     match Input3 { null => "", _ as s => concat(sep, toString(s)) },
-                    match Input4 { null => "", _ as s => concat(sep, toString(s)) }
+                    match Input4 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input5 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input6 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input7 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input8 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input9 { null => "", _ as s => concat(sep, toString(s)) },
+                    match Input10 { null => "", _ as s => concat(sep, toString(s)) }
+
                 )
                 """,
             )
@@ -51,13 +61,6 @@ class TextAppendNode(NodeBase):
         self.icon = "MdTextFields"
         self.sub = "Text"
 
-    def run(
-        self,
-        separator: str,
-        str1: str,
-        str2: str,
-        str3: Union[str, None],
-        str4: Union[str, None],
-    ) -> str:
-        inputs: List[Union[str, None]] = [str1, str2, str3, str4]
+    def run(self, separator: str, *args: Union[str, None]) -> str:
+        inputs: List[Union[str, None]] = [*args]
         return separator.join([x for x in inputs if x is not None])

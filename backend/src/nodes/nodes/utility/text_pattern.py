@@ -21,8 +21,10 @@ class TextPatternNode(NodeBase):
             TextInput("{1}").make_optional(),
             TextInput("{2}").make_optional(),
             group("optional-list")(
-                TextInput("{3}").make_optional(),
-                TextInput("{4}").make_optional(),
+                *[
+                    TextInput(f"{{{number}}}").make_optional()
+                    for number in range(3, 10)
+                ],
             ),
         ]
         self.outputs = [
@@ -41,7 +43,12 @@ class TextPatternNode(NodeBase):
                     convert(Input1),
                     convert(Input2),
                     convert(Input3),
-                    convert(Input4)
+                    convert(Input4),
+                    convert(Input5),
+                    convert(Input6),
+                    convert(Input7),
+                    convert(Input8),
+                    convert(Input9)
                 )
                 """,
             ).with_never_reason(
@@ -58,13 +65,10 @@ class TextPatternNode(NodeBase):
     def run(
         self,
         pattern: str,
-        str1: Union[str, None],
-        str2: Union[str, None],
-        str3: Union[str, None],
-        str4: Union[str, None],
+        *args: Union[str, None],
     ) -> str:
         replacements: dict[str, str] = {}
-        for i, s in enumerate([str1, str2, str3, str4]):
+        for i, s in enumerate(args):
             if s is not None:
                 replacements[str(i + 1)] = s
 

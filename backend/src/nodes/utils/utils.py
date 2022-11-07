@@ -23,6 +23,8 @@ MAX_VALUES_BY_DTYPE = {
 }
 NUMBERS = re.compile(r"(\d+)")
 
+ALPHABET = [*"ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+
 
 def round_half_up(number: Union[float, int]) -> int:
     """
