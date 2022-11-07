@@ -21,8 +21,10 @@ class TextPatternNode(NodeBase):
             TextInput("{1}").make_optional(),
             TextInput("{2}").make_optional(),
             group("optional-list")(
-                TextInput("{3}").make_optional(),
-                TextInput("{4}").make_optional(),
+                *[
+                    TextInput(f"{{{number}}}").make_optional()
+                    for number in range(3, 26)
+                ],
             ),
         ]
         self.outputs = [

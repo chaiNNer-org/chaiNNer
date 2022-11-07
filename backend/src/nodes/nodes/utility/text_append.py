@@ -8,6 +8,7 @@ from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput
+from ...utils.utils import ALPHABET
 
 
 @NodeFactory.register("chainner:utility:text_append")
@@ -26,8 +27,10 @@ class TextAppendNode(NodeBase):
             TextInput("Text A"),
             TextInput("Text B"),
             group("optional-list")(
-                TextInput("Text C").make_optional(),
-                TextInput("Text D").make_optional(),
+                *[
+                    TextInput(f"Text {letter}").make_optional()
+                    for letter in ALPHABET[2:]
+                ],
             ),
         ]
         self.outputs = [
