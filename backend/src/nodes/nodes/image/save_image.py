@@ -58,6 +58,11 @@ class ImWriteNode(NodeBase):
     ) -> None:
         """Write an image to the specified path and return write status"""
 
+        lossless = False
+        if extension == "webp-lossless":
+            extension = "webp"
+            lossless = True
+
         full_file = f"{filename}.{extension}"
         if relative_path and relative_path != ".":
             base_directory = os.path.join(base_directory, relative_path)
@@ -90,7 +95,7 @@ class ImWriteNode(NodeBase):
             if extension == "jpg":
                 params = [cv2.IMWRITE_JPEG_QUALITY, quality]
             elif extension == "webp":
-                params = [cv2.IMWRITE_WEBP_QUALITY, quality]
+                params = [cv2.IMWRITE_WEBP_QUALITY, 101 if lossless else quality]
             else:
                 params = []
 
