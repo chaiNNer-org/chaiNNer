@@ -66,12 +66,14 @@ struct AdaptiveThresholdType;
 struct BlendMode;
 struct CaptionPosition;
 struct ColorSpace { channels: 1 | 3 | 4 }
+struct EdgeFilter;
 struct FillMethod;
 struct FlipAxis;
 struct GammaOption;
 struct ImageExtension;
 struct InterpolationMode;
 struct MathOperation { operation: string }
+struct NormalChannelInvert;
 struct OverflowMethod;
 struct ReciprocalScalingFactor;
 struct RotateInterpolationMode;
