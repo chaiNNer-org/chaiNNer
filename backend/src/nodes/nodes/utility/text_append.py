@@ -4,7 +4,7 @@ from typing import List, Union
 
 from . import category as UtilityCategory
 
-from ...node_base import NodeBase
+from ...node_base import NodeBase, group
 from ...node_factory import NodeFactory
 from ...properties.inputs import TextInput
 from ...properties.outputs import TextOutput
@@ -25,8 +25,10 @@ class TextAppendNode(NodeBase):
             ),
             TextInput("Text A"),
             TextInput("Text B"),
-            TextInput("Text C").make_optional(),
-            TextInput("Text D").make_optional(),
+            group("optional-list")(
+                TextInput("Text C").make_optional(),
+                TextInput("Text D").make_optional(),
+            ),
         ]
         self.outputs = [
             TextOutput(

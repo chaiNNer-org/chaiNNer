@@ -23,6 +23,26 @@ export const assertType: <T>(_: T) => void = noop;
 
 export const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+export const findLastIndex = <T>(
+    array: readonly T[],
+    predicate: (value: T, index: number, obj: readonly T[]) => unknown
+): number => {
+    for (let i = array.length - 1; i >= 0; i -= 1) {
+        if (predicate(array[i], i, array)) {
+            return i;
+        }
+    }
+    return -1;
+};
+export const findLast = <T>(
+    array: readonly T[],
+    predicate: (value: T, index: number, obj: readonly T[]) => unknown
+): T | undefined => {
+    const index = findLastIndex(array, predicate);
+    if (index === -1) return undefined;
+    return array[index];
+};
+
 export interface ParsedSourceHandle {
     nodeId: string;
     outputId: OutputId;

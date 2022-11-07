@@ -6,6 +6,7 @@ type InputGuarantees<T extends Record<GroupKind, readonly Input[]>> = T;
 type DeclaredGroupInputs = InputGuarantees<{
     'from-to-dropdowns': readonly [DropDownInput, DropDownInput];
     'ncnn-file-inputs': readonly [FileInput, FileInput];
+    'optional-list': readonly [Input, ...Input[]];
 }>;
 
 // A bit hacky, but this ensures that GroupInputs covers exactly all group types, no more and no less
@@ -29,5 +30,8 @@ export const groupInputsChecks: {
     },
     'ncnn-file-inputs': (inputs) => {
         return inputs.length === 2 && inputs.every((i) => i.kind === 'file');
+    },
+    'optional-list': (inputs) => {
+        return inputs.length >= 1 && inputs.every((i) => i.optional);
     },
 };

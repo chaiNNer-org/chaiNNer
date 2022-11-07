@@ -137,8 +137,12 @@ interface FromToDropdownsGroup extends GroupBase {
     readonly kind: 'from-to-dropdowns';
     readonly options: Readonly<Record<string, never>>;
 }
+interface OptionalListGroup extends GroupBase {
+    readonly kind: 'optional-list';
+    readonly options: Readonly<Record<string, never>>;
+}
 export type GroupKind = Group['kind'];
-export type Group = NcnnFileInputGroup | FromToDropdownsGroup;
+export type Group = NcnnFileInputGroup | FromToDropdownsGroup | OptionalListGroup;
 
 export type OfKind<T, Kind extends string> = T extends { readonly kind: Kind } ? T : never;
 
